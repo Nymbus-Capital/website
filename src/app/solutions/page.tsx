@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, TrendingUp, Users, DollarSign } from 'lucide-react';
-import Button from '@/components/Button';
-import Card from '@/components/Card';
-import SectionHeader from '@/components/SectionHeader';
-import ScrollReveal from '@/components/ScrollReveal';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import SectionHeader from '@/components/ui/SectionHeader';
+import ScrollReveal from '@/components/animations/ScrollReveal';
 
 const SolutionsPage = () => {
   const [expandedSolution, setExpandedSolution] = useState<string | null>('institutional');
