@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Minimum Volatility Strategy | NYCH.GMV</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .benefit-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="navbar bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="text-2xl font-bold text-blue-600">Nymbus Capital</a>
+                <ul class="flex gap-6">
+                    <li><a href="index.html" class="hover:text-blue-600">Home</a></li>
+                    <li><a href="solutions.html" class="hover:text-blue-600">Solutions</a></li>
+                    <li><a href="strategies.html" class="hover:text-blue-600">Strategies</a></li>
+                    <li><a href="team.html" class="hover:text-blue-600">Team</a></li>
+                    <li><a href="sustainability.html" class="hover:text-blue-600">Sustainability</a></li>
+                    <li><a href="contact.html" class="hover:text-blue-600">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-12">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-4xl font-bold mb-2">Global Minimum Volatility Strategy</h1>
+            <p class="text-gray-600 text-lg mb-4">Ticker: <span class="font-bold">NYCH.GMV</span></p>
+            <p class="text-gray-700 leading-relaxed">The Global Minimum Volatility Strategy employs advanced quantitative methods to construct a globally diversified portfolio designed to minimize volatility while maintaining attractive returns. This strategy is particularly suited for investors seeking a smoother investment experience.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow">
+                <p class="text-sm font-semibold opacity-90">Portfolio Volatility</p>
+                <p class="text-3xl font-bold mt-2">6.2%</p>
+                <p class="text-xs opacity-75 mt-2">30% below market</p>
+            </div>
+            <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6 shadow">
+                <p class="text-sm font-semibold opacity-90">Sharpe Ratio</p>
+                <p class="text-3xl font-bold mt-2">1.68</p>
+                <p class="text-xs opacity-75 mt-2">Risk-adjusted returns</p>
+            </div>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-6 shadow">
+                <p class="text-sm font-semibold opacity-90">AUM</p>
+                <p class="text-3xl font-bold mt-2">$2.1B</p>
+                <p class="text-xs opacity-75 mt-2">Growing investor base</p>
+            </div>
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg p-6 shadow">
+                <p class="text-sm font-semibold opacity-90">3-Yr Return</p>
+                <p class="text-3xl font-bold mt-2">7.4%</p>
+                <p class="text-xs opacity-75 mt-2">Annualized</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Geographic Diversification</h2>
+                <ul class="space-y-3">
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">North America</span>
+                        <span class="font-bold">45%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Europe</span>
+                        <span class="font-bold">30%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Asia-Pacific</span>
+                        <span class="font-bold">20%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Emerging Markets</span>
+                        <span class="font-bold">5%</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Asset Class Allocation</h2>
+                <ul class="space-y-3">
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Equities</span>
+                        <span class="font-bold">50%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Bonds</span>
+                        <span class="font-bold">35%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Real Estate</span>
+                        <span class="font-bold">10%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Commodities</span>
+                        <span class="font-bold">5%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">Strategy Methodology</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="benefit-icon">📊</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Quantitative Analysis</h3>
+                    <p class="text-gray-700 text-sm">Advanced algorithms analyze correlations and covariance matrices to identify optimal asset combinations with minimal volatility.</p>
+                </div>
+                <div>
+                    <div class="benefit-icon">🌍</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Global Diversification</h3>
+                    <p class="text-gray-700 text-sm">Systematically diversifies across geographies and asset classes to reduce concentration risk and volatility.</p>
+                </div>
+                <div>
+                    <div class="benefit-icon">⚖️</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Risk Optimization</h3>
+                    <p class="text-gray-700 text-sm">Continuous optimization of portfolio weights to maintain minimum volatility while pursuing attractive returns.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-indigo-500 to-blue-500 rounded-lg shadow-lg p-8 text-white mb-8">
+            <h2 class="text-2xl font-bold mb-4">Investment Benefits</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold mb-2">Reduced Drawdowns</h3>
+                    <p>Volatility minimization historically reduces portfolio drawdowns during market downturns, providing more stable long-term growth.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Better Sleep at Night</h3>
+                    <p>Lower portfolio volatility means less dramatic price movements, reducing emotional decision-making and investor stress.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Risk-Adjusted Returns</h3>
+                    <p>By minimizing volatility, we improve risk-adjusted returns (Sharpe ratio), delivering more return per unit of risk taken.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Long-Term Consistency</h3>
+                    <p>The strategy's quantitative foundation provides consistent, systematic approach to portfolio management across market cycles.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded">
+            <h3 class="font-bold text-gray-900 mb-2">Risk Disclosure</h3>
+            <p class="text-gray-700 mb-2">While designed to minimize volatility, this strategy does not eliminate investment risk. Past performance does not guarantee future results. Investors may experience negative returns.</p>
+            <p class="text-gray-700">Global investing involves additional risks including currency fluctuations, political events, and different regulatory environments.</p>
+        </div>
+
+        <div class="text-center">
+            <a href="contact.html" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700">Request Prospectus</a>
+        </div>
+    </div>
+
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p>&copy; 2026 Nymbus Capital. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

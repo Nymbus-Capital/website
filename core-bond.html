@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nymbus Core Bond Fund | NYCH.F</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- D3.js v7 -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .chart-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            color: white;
+        }
+        .metric-card {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="navbar bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="text-2xl font-bold text-blue-600">Nymbus Capital</a>
+                <ul class="flex gap-6">
+                    <li><a href="index.html" class="hover:text-blue-600">Home</a></li>
+                    <li><a href="solutions.html" class="hover:text-blue-600">Solutions</a></li>
+                    <li><a href="strategies.html" class="hover:text-blue-600">Strategies</a></li>
+                    <li><a href="team.html" class="hover:text-blue-600">Team</a></li>
+                    <li><a href="sustainability.html" class="hover:text-blue-600">Sustainability</a></li>
+                    <li><a href="contact.html" class="hover:text-blue-600">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-12">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-4xl font-bold mb-2">Nymbus Core Bond Fund</h1>
+            <p class="text-gray-600 text-lg mb-4">Ticker: <span class="font-bold">NYCH.F</span></p>
+            <p class="text-gray-700 leading-relaxed">The Core Bond Fund is designed to provide stable, consistent returns through a diversified portfolio of investment-grade bonds. With a focus on credit quality and yield optimization, this fund is ideal for institutional investors seeking reliable income and capital preservation.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="metric-card">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Net Asset Value</h3>
+                <p class="text-3xl font-bold text-gray-900">$1,250M</p>
+            </div>
+            <div class="metric-card">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Annual Return (YTD)</h3>
+                <p class="text-3xl font-bold text-gray-900">4.2%</p>
+            </div>
+            <div class="metric-card">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Average Duration</h3>
+                <p class="text-3xl font-bold text-gray-900">5.3 years</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Portfolio Composition</h2>
+                <ul class="space-y-4">
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Government Bonds</span>
+                        <span class="font-bold text-gray-900">35%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Investment Grade Corporate</span>
+                        <span class="font-bold text-gray-900">45%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Municipal Bonds</span>
+                        <span class="font-bold text-gray-900">15%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Cash & Equivalents</span>
+                        <span class="font-bold text-gray-900">5%</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Key Metrics</h2>
+                <ul class="space-y-4">
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Yield to Maturity</span>
+                        <span class="font-bold text-gray-900">4.8%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Modified Duration</span>
+                        <span class="font-bold text-gray-900">5.1 years</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Credit Quality (Avg)</span>
+                        <span class="font-bold text-gray-900">A</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span class="text-gray-700">Expense Ratio</span>
+                        <span class="font-bold text-gray-900">0.35%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6">Fund Characteristics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-3">Investment Approach</h3>
+                    <p class="text-gray-700">The fund employs a disciplined, research-driven approach to bond selection, focusing on credit quality and relative value across the bond market. Our team conducts rigorous fundamental analysis to identify attractive opportunities.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-3">Risk Management</h3>
+                    <p class="text-gray-700">Comprehensive risk management practices include diversification across sectors and issuers, continuous monitoring of credit spreads, and active duration management to optimize risk-adjusted returns.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8 rounded">
+            <h3 class="font-bold text-gray-900 mb-2">Risk Disclosure</h3>
+            <p class="text-gray-700">Investments in bonds carry interest rate risk, credit risk, and inflation risk. The value of fund shares will fluctuate with changes in market conditions. Past performance does not guarantee future results.</p>
+        </div>
+
+        <div class="text-center">
+            <a href="contact.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">Request More Information</a>
+        </div>
+    </div>
+
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p>&copy; 2026 Nymbus Capital. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
