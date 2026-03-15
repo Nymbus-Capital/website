@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SectionHeader from '@/components/SectionHeader';
-import { teamMembers } from '@/data/team';
+import SectionHeader from '@/components/ui/SectionHeader';
+import { team as teamMembers } from '@/data/team';
 
 const departments = [
   'All',
@@ -69,7 +69,7 @@ const TeamPage = () => {
             >
               {filteredMembers.map((member, index) => (
                 <motion.div
-                  key={member.id}
+                  key={member.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
