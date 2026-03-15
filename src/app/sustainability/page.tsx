@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Leaf, Droplets, Users } from 'lucide-react';
-import SectionHeader from '@/components/ui/SectionHeader';
-import ScrollReveal from '@/components/animations/ScrollReveal';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import AnimatedCounter from '@/components/animations/AnimatedCounter';
 
 const SustainabilityPage = () => {
@@ -48,7 +48,7 @@ const SustainabilityPage = () => {
       <section className="px-6 py-20 md:px-12">
         <SectionHeader
           title="Sustainability & ESG"
-          subtitle="Integrating environmental, social, and governance principles into our investment process"
+          description="Integrating environmental, social, and governance principles into our investment process"
         />
       </section>
 
@@ -107,7 +107,7 @@ const SustainabilityPage = () => {
                       <div>
                         <p className="text-sm text-gray-400 mb-2">Nymbus Funds</p>
                         <p className="text-3xl font-bold text-amber-400">
-                          <AnimatedCounter value={metric.nymbus} />
+                          <AnimatedCounter target={metric.nymbus} />
                         </p>
                         <p className="text-xs text-gray-500 mt-1">{metric.unit}</p>
                       </div>
@@ -115,7 +115,7 @@ const SustainabilityPage = () => {
                       <div className="border-t border-slate-700 pt-6">
                         <p className="text-sm text-gray-400 mb-2">Benchmark Average</p>
                         <p className="text-2xl font-semibold text-gray-400">
-                          <AnimatedCounter value={metric.benchmark} />
+                          <AnimatedCounter target={metric.benchmark} />
                         </p>
                         <p className="text-xs text-gray-500 mt-1">{metric.unit}</p>
                       </div>
