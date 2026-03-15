@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
-import Button from '@/components/Button';
-import BackgroundBeams from '@/components/BackgroundBeams';
+import Button from '@/components/ui/Button';
+import BackgroundBeams from '@/components/animations/BackgroundBeams';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
