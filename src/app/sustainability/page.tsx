@@ -2,9 +2,9 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Leaf, Droplets, Users } from 'lucide-react';
-import SectionHeader from '@/components/SectionHeader';
-import ScrollReveal from '@/components/ScrollReveal';
-import AnimatedCounter from '@/components/AnimatedCounter';
+import SectionHeader from '@/components/ui/SectionHeader';
+import ScrollReveal from '@/components/animations/ScrollReveal';
+import AnimatedCounter from '@/components/animations/AnimatedCounter';
 
 const SustainabilityPage = () => {
   const impactMetrics = [
