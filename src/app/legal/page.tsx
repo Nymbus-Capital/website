@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SectionHeader from '@/components/ui/SectionHeader';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 const LegalPage = () => {
   const [activeTab, setActiveTab] = useState('terms');
@@ -146,7 +146,7 @@ const LegalPage = () => {
       <section className="px-6 py-20 md:px-12">
         <SectionHeader
           title="Legal Information"
-          subtitle="Terms of use, privacy policy, and regulatory disclosures"
+          description="Terms of use, privacy policy, and regulatory disclosures"
         />
       </section>
 
