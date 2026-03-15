@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, TrendingUp, Users, DollarSign } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import SectionHeader from '@/components/ui/SectionHeader';
-import ScrollReveal from '@/components/animations/ScrollReveal';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { ScrollReveal } from '@/components/animations/ScrollReveal';
 
 const SolutionsPage = () => {
   const [expandedSolution, setExpandedSolution] = useState<string | null>('institutional');
@@ -69,7 +69,7 @@ const SolutionsPage = () => {
       <section className="px-6 py-20 md:px-12">
         <SectionHeader
           title="Solutions for Every Investor"
-          subtitle="Tailored investment strategies designed to meet diverse client needs"
+          description="Tailored investment strategies designed to meet diverse client needs"
         />
       </section>
 
@@ -111,11 +111,9 @@ const SolutionsPage = () => {
                           </li>
                         ))}
                       </ul>
-                      <Button variant="secondary" size="sm" asChild>
-                        <a href={`mailto:${solution.contact}`}>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Contact Us
-                        </a>
+                      <Button variant="secondary" size="sm" href={`mailto:${solution.contact}`}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Contact Us
                       </Button>
                     </motion.div>
                   )}
@@ -131,7 +129,7 @@ const SolutionsPage = () => {
         <div className="max-w-4xl mx-auto">
           <SectionHeader
             title="Available Investment Vehicles"
-            subtitle="Access our strategies through mutual funds, ETFs, or segregated accounts"
+            description="Access our strategies through mutual funds, ETFs, or segregated accounts"
           />
           <div className="mt-12 overflow-x-auto">
             <table className="w-full">
@@ -148,11 +146,9 @@ const SolutionsPage = () => {
                     <td className="py-4 px-6 text-gray-300">{fund.name}</td>
                     <td className="py-4 px-6 text-amber-400">{fund.ldm}</td>
                     <td className="py-4 px-6">
-                      <Button variant="secondary" size="sm" asChild>
-                        <a href={`mailto:${fund.contact}`}>
-                          <Mail className="w-4 h-4 mr-1" />
-                          Email
-                        </a>
+                      <Button variant="secondary" size="sm" href={`mailto:${fund.contact}`}>
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
                       </Button>
                     </td>
                   </tr>
@@ -162,10 +158,8 @@ const SolutionsPage = () => {
           </div>
           <div className="mt-8 p-6 bg-slate-700/30 rounded-lg border border-slate-600">
             <p className="text-gray-300 mb-4">Find our funds on major platforms:</p>
-            <Button asChild>
-              <a href="https://www.fundserv.com" target="_blank" rel="noopener noreferrer">
-                View on Fundserv
-              </a>
+            <Button href="https://www.fundserv.com">
+              View on Fundserv
             </Button>
           </div>
         </div>
