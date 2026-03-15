@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SectionHeader from '@/components/ui/SectionHeader';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { team as teamMembers } from '@/data/team';
 
 const departments = [
@@ -26,7 +26,7 @@ const TeamPage = () => {
       <section className="px-6 py-20 md:px-12">
         <SectionHeader
           title="Meet Our Team"
-          subtitle="Dedicated professionals committed to exceptional investment management"
+          description="Dedicated professionals committed to exceptional investment management"
         />
       </section>
 
