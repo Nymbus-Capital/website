@@ -1,21 +1,26 @@
-import React, { ReactNode } from 'react';
+import React, { forwardRef, ReactNode } from 'react';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   hoverable?: boolean;
-  onClick?: () => void;
 }
 
-export function Card({ children, className = '', hoverable = true, onClick }: CardProps) {
-  return (
-    <div
-      onClick={onClick}
-      className={`bg-white border border-slate-100 rounded-xl ${
-        hoverable ? 'transition-shadow duration-300 hover:shadow-md' : ''
-      } ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
+export const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ children, className = '', hoverable = true, onClick, ...rest }, ref) => {
+    return (
+      <div
+        ref={ref}
+        onClick={onClick}
+        className={`bg-white border border-slate-100 rounded-xl ${
+          hoverable ? 'transition-shadow duration-300 hover:shadow-md' : ''
+        } ${className}`}
+        {...rest}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+Card.displayName = 'Card';

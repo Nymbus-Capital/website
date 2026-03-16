@@ -46,8 +46,8 @@ export const funds: Fund[] = [
   },
   {
     slug: "sustainable-enhanced-short-term-bonds",
-    name: "Sustainable Enhanced Short-Term Bonds CAD",
-    shortName: "SESTB CAD",
+    name: "Monthly Income Fund",
+    shortName: "Monthly Income",
     type: "mutual-fund",
     assetClass: "Fixed Income",
     vehicle: "Mutual Fund",
