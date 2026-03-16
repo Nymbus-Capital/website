@@ -1,10 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { CheckCircle, Leaf, Droplets, Users } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
-import AnimatedCounter from '@/components/animations/AnimatedCounter';
 
 const SustainabilityPage = () => {
   const impactMetrics = [
@@ -43,20 +42,25 @@ const SustainabilityPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-white">
       <section className="px-6 py-20 md:px-12">
-        <SectionHeader
-          title="Sustainability & ESG"
-          description="Integrating environmental, social, and governance principles into our investment process"
-        />
+        <div className="max-w-6xl mx-auto">
+          <ScrollReveal direction="up">
+            <SectionHeader
+              eyebrow="Sustainability"
+              title="Sustainability & ESG"
+              description="Integrating environmental, social, and governance principles into our investment process"
+            />
+          </ScrollReveal>
+        </div>
       </section>
 
-      {/* ESG Framework */}
-      <section className="px-6 py-20 md:px-12">
+      <section className="px-6 py-20 md:px-12 bg-slate-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">Our ESG Integration Framework</h2>
-          
+          <ScrollReveal direction="up">
+            <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Our ESG Integration Framework</h2>
+          </ScrollReveal>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -67,69 +71,61 @@ const SustainabilityPage = () => {
               {
                 step: '02',
                 title: 'Integration',
-                description: 'Active incorporation of ESG metrics into portfolio construction and risk management'
+                description: 'Systematic incorporation of ESG insights into portfolio construction and risk management'
               },
               {
                 step: '03',
-                title: 'Monitoring',
-                description: 'Continuous tracking of ESG performance and engagement with portfolio companies'
-              }
-            ].map((item, index) => (
-              <ScrollReveal key={index}>
-                <div className="relative">
-                  <div className="text-5xl font-bold text-amber-400/20 mb-4">{item.step}</div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{item.title}</h3>
-                  <p className="text-gray-300">{item.description}</p>
-                </div>
+                title: 'Engagement',
+                description: 'Active dialogue with portfolio companies to drive sustainable business practices'
+              },
+            ].map((item, idx) => (
+              <ScrollReveal key={idx} direction="up" delay={0.1 * (idx + 1)}>
+                <Card className="p-8">
+                  <div className="text-3xl font-bold text-blue-600 mb-4">{item.step}</div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title}</h3>
+                  <p className="text-slate-600">{item.description}</p>
+                </Card>
               </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Impact Metrics */}
-      <section className="px-6 py-20 md:px-12 bg-slate-800/50">
+      <section className="px-6 py-20 md:px-12">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">Our Impact</h2>
-          
+          <ScrollReveal direction="up">
+            <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Impact Metrics</h2>
+          </ScrollReveal>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {impactMetrics.map((metric, index) => {
+            {impactMetrics.map((metric, idx) => {
               const IconComponent = metric.icon;
               return (
-                <ScrollReveal key={index}>
-                  <div className="bg-slate-800 rounded-lg p-8 border border-slate-700">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold text-white">{metric.title}</h3>
-                      <IconComponent className="w-6 h-6 text-amber-400" />
-                    </div>
-                    
-                    <div className="space-y-6">
+                <ScrollReveal key={idx} direction="up" delay={0.1 * (idx + 1)}>
+                  <Card className="p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-blue-600" />
+                      </div>
                       <div>
-                        <p className="text-sm text-gray-400 mb-2">Nymbus Funds</p>
-                        <p className="text-3xl font-bold text-amber-400">
-                          <AnimatedCounter target={metric.nymbus} />
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{metric.unit}</p>
+                        <h3 className="font-semibold text-slate-900">{metric.title}</h3>
+                        <p className="text-xs text-slate-500">{metric.unit}</p>
                       </div>
-                      
-                      <div className="border-t border-slate-700 pt-6">
-                        <p className="text-sm text-gray-400 mb-2">Benchmark Average</p>
-                        <p className="text-2xl font-semibold text-gray-400">
-                          <AnimatedCounter target={metric.benchmark} />
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{metric.unit}</p>
-                      </div>
-                      
-                      <motion.div
-                        className="bg-gradient-to-r from-amber-400/20 to-orange-500/20 rounded-lg p-4 border border-amber-400/30"
-                        initial={{ scale: 0.9 }}
-                        whileInView={{ scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <p className="text-sm font-semibold text-amber-300">{metric.improvement}% better</p>
-                      </motion.div>
                     </div>
-                  </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Nymbus</p>
+                        <p className="text-2xl font-bold text-blue-600">{metric.nymbus}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Benchmark</p>
+                        <p className="text-xl text-slate-600">{metric.benchmark}</p>
+                      </div>
+                      <div className="pt-4 border-t border-slate-200">
+                        <p className="text-sm font-semibold text-green-600">+{metric.improvement}% Better</p>
+                      </div>
+                    </div>
+                  </Card>
                 </ScrollReveal>
               );
             })}
@@ -137,42 +133,28 @@ const SustainabilityPage = () => {
         </div>
       </section>
 
-      {/* Commitments */}
-      <section className="px-6 py-20 md:px-12">
+      <section className="px-6 py-20 md:px-12 bg-slate-50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">Our Commitments</h2>
-          
-          <div className="space-y-4">
-            {commitments.map((commitment, index) => (
-              <motion.div
-                key={index}
-                className="flex items-center p-4 bg-slate-800/50 rounded-lg border border-slate-700"
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <CheckCircle className="w-6 h-6 text-amber-400 mr-4 flex-shrink-0" />
-                <span className="text-gray-300">{commitment}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <ScrollReveal direction="up">
+            <SectionHeader
+              eyebrow="Commitments"
+              title="Our Sustainability Commitments"
+              description="Advancing environmental and social progress through responsible investment"
+            />
+          </ScrollReveal>
 
-      {/* Stakeholder Engagement */}
-      <section className="px-6 py-20 md:px-12 bg-slate-800/50">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">Stakeholder Engagement</h2>
-          <p className="text-gray-300 text-lg mb-8">
-            We actively engage with portfolio companies, regulators, and stakeholders to promote sustainable business practices and drive meaningful environmental and social impact.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['TCFD', 'SASB', 'PRI Signatory', 'ISO 14001'].map((cert, index) => (
-              <div key={index} className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                <p className="text-sm font-semibold text-amber-400">{cert}</p>
-              </div>
-            ))}
-          </div>
+          <ScrollReveal direction="up" delay={0.1}>
+            <Card className="p-8 mt-8">
+              <ul className="space-y-4">
+                {commitments.map((commitment, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-1" />
+                    <span className="text-slate-700">{commitment}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </ScrollReveal>
         </div>
       </section>
     </div>

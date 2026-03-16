@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -16,7 +15,8 @@ const SolutionsPage = () => {
       id: 'institutional',
       title: 'Institutional Solutions',
       subtitle: 'Segregated Accounts',
-      description: 'Customized investment mandates designed specifically for institutional clients with dedicated portfolio management.',
+      description:
+        'Customized investment mandates designed specifically for institutional clients with dedicated portfolio management.',
       icon: TrendingUp,
       features: [
         'Personalized mandate agreements',
@@ -30,7 +30,8 @@ const SolutionsPage = () => {
       id: 'family',
       title: 'Family Office Solutions',
       subtitle: 'Managed Futures Overlays',
-      description: 'Sophisticated multi-strategy approach combining traditional allocations with managed futures for enhanced diversification.',
+      description:
+        'Sophisticated multi-strategy approach combining traditional allocations with managed futures for enhanced diversification.',
       icon: Users,
       features: [
         'Diversified strategy mix',
@@ -44,7 +45,8 @@ const SolutionsPage = () => {
       id: 'advisors',
       title: 'Advisor Solutions',
       subtitle: 'Mutual Funds & ETFs',
-      description: 'Accessible investment vehicles for advisors and their clients seeking professional active management.',
+      description:
+        'Accessible investment vehicles for advisors and their clients seeking professional active management.',
       icon: DollarSign,
       features: [
         'Multiple asset classes',
@@ -56,7 +58,7 @@ const SolutionsPage = () => {
     }
   ];
 
-  const funds = [
+  const fundsData = [
     { name: 'Sustainable Enhanced Bonds Fund', ldm: 'MUN 1234', contact: 'marc@nymbus.com' },
     { name: 'Sustainable Enhanced Short-Term Bonds Fund', ldm: 'MUN 1235', contact: 'xavier@nymbus.com' },
     { name: 'Multi-Strategy Fund', ldm: 'MUN 1236', contact: 'marc@nymbus.com' },
@@ -64,103 +66,124 @@ const SolutionsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-white">
       <section className="px-6 py-20 md:px-12">
-        <SectionHeader
-          title="Solutions for Every Investor"
-          description="Tailored investment strategies designed to meet diverse client needs"
-        />
+        <div className="max-w-6xl mx-auto">
+          <ScrollReveal direction="up">
+            <SectionHeader
+              eyebrow="Solutions"
+              title="Solutions for Every Investor"
+              description="Tailored investment strategies designed to meet diverse client needs"
+            />
+          </ScrollReveal>
+        </div>
       </section>
 
-      {/* Solutions Grid */}
-      <section className="px-6 py-20 md:px-12">
+      <section className="px-6 py-20 md:px-12 bg-slate-50">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {solutions.map((solution) => {
+          {solutions.map((solution, index) => {
             const IconComponent = solution.icon;
             return (
-              <Card key={solution.id} className="cursor-pointer" onClick={() => setExpandedSolution(expandedSolution === solution.id ? null : solution.id)}>
-                <motion.div
-                  initial={{ scale: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="mb-4"
+              <ScrollReveal key={solution.id} direction="up" delay={0.1 * (index + 1)}>
+                <Card
+                  className="cursor-pointer transition-all duration-200 hover:shadow-lg"
+                  onClick={() =>
+                    setExpandedSolution(expandedSolution === solution.id ? null : solution.id)
+                  }
                 >
-                  <motion.div
-                    className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center"
-                    animate={expandedSolution === solution.id ? { rotate: 360 } : { rotate: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <IconComponent className="w-6 h-6 text-white" />
-                  </motion.div>
-                </motion.div>
-                <h3 className="text-xl font-semibold text-white mb-1">{solution.title}</h3>
-                <p className="text-sm text-amber-400 mb-3">{solution.subtitle}</p>
-                <p className="text-gray-300 mb-4">{solution.description}</p>
-                <AnimatePresence>
-                  {expandedSolution === solution.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <ul className="space-y-2 mb-4">
-                        {solution.features.map((feature) => (
-                          <li key={feature} className="text-sm text-gray-300 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full mr-2" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button variant="secondary" size="sm" href={`mailto:${solution.contact}`}>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Contact Us
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Card>
+                  <div className="p-6">
+                    <div className="mb-4 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1 text-center">
+                      {solution.title}
+                    </h3>
+                    <p className="text-sm text-blue-600 mb-3 text-center font-medium">
+                      {solution.subtitle}
+                    </p>
+                    <p className="text-slate-600 mb-4 text-center text-sm">{solution.description}</p>
+                    {expandedSolution === solution.id && (
+                      <div className="border-t border-slate-200 pt-4 mt-4">
+                        <ul className="space-y-2 mb-4">
+                          {solution.features.map((feature) => (
+                            <li key={feature} className="text-sm text-slate-600 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-2 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `mailto:${solution.contact}`;
+                          }}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Contact Us
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </ScrollReveal>
             );
           })}
         </div>
       </section>
 
-      {/* Available Funds */}
-      <section className="px-6 py-20 md:px-12 bg-slate-800/50">
+      <section className="px-6 py-20 md:px-12">
         <div className="max-w-4xl mx-auto">
-          <SectionHeader
-            title="Available Investment Vehicles"
-            description="Access our strategies through mutual funds, ETFs, or segregated accounts"
-          />
+          <ScrollReveal direction="up">
+            <SectionHeader
+              eyebrow="Vehicles"
+              title="Available Investment Vehicles"
+              description="Access our strategies through mutual funds, ETFs, or segregated accounts"
+            />
+          </ScrollReveal>
           <div className="mt-12 overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-white">Fund Name</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-white">LDM Code</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-white">Contact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {funds.map((fund, index) => (
-                  <tr key={index} className="border-b border-slate-700 hover:bg-slate-700/30">
-                    <td className="py-4 px-6 text-gray-300">{fund.name}</td>
-                    <td className="py-4 px-6 text-amber-400">{fund.ldm}</td>
-                    <td className="py-4 px-6">
-                      <Button variant="secondary" size="sm" href={`mailto:${fund.contact}`}>
-                        <Mail className="w-4 h-4 mr-1" />
-                        Email
-                      </Button>
-                    </td>
+            <Card className="overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-900">
+                      Fund Name
+                    </th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-900">
+                      Code
+                    </th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-900">
+                      Contact
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {fundsData.map((fund, index) => (
+                    <tr key={index} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-4 px-6 text-slate-700 text-sm">{fund.name}</td>
+                      <td className="py-4 px-6 text-blue-600 font-medium text-sm">{fund.ldm}</td>
+                      <td className="py-4 px-6">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => (window.location.href = `mailto:${fund.contact}`)}
+                        >
+                          <Mail className="w-4 h-4 mr-1" />
+                          Email
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
           </div>
-          <div className="mt-8 p-6 bg-slate-700/30 rounded-lg border border-slate-600">
-            <p className="text-gray-300 mb-4">Find our funds on major platforms:</p>
-            <Button href="https://www.fundserv.com">
-              View on Fundserv
-            </Button>
+          <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-slate-600 mb-4 text-sm">Find our funds on major platforms:</p>
+            <Button href="https://www.fundserv.com">View on Fundserv</Button>
           </div>
         </div>
       </section>

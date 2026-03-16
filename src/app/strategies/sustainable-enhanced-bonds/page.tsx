@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
-import { formatPercent, formatCurrency, formatNumber } from "@/lib/utils";
-import { funds } from "@/data/funds";
-import Link from "next/link";
+import { formatPercent, formatCurrency, formatNumber } from '@/lib/utils';
+import { funds } from '@/data/funds';
+import Link from 'next/link';
 
 export default function SustainableEnhancedBondsPage() {
   const fund = funds.find((f) => f.slug === "sustainable-enhanced-bonds");
@@ -15,7 +15,6 @@ export default function SustainableEnhancedBondsPage() {
     return <div className="text-center py-20">Fund not found</div>;
   }
 
-  // Realistic bond fund data
   const trailingReturns = [
     { period: "1M", return: 0.8 },
     { period: "3M", return: 1.1 },
@@ -61,7 +60,7 @@ export default function SustainableEnhancedBondsPage() {
   const managers = fund.managers;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-white">
+    <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link href="/strategies" className="inline-block mb-8">
           <Button variant="ghost" size="sm">
@@ -69,42 +68,39 @@ export default function SustainableEnhancedBondsPage() {
           </Button>
         </Link>
 
-        {/* Hero Section */}
         <ScrollReveal direction="up">
           <div className="space-y-4 mb-12">
             <div className="flex items-center gap-3">
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">{fund.name}</h1>
-              <span className="bg-blue-100 text-[#4285F4] px-3 py-1 rounded-full text-sm font-semibold">
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
                 {fund.assetClass}
               </span>
             </div>
             <p className="text-lg text-slate-600">{fund.description}</p>
           </div>
 
-          {/* Key Metrics Strip */}
           <Card className="p-6 mb-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-sm text-slate-600 mb-1">AUM</p>
-                <p className="text-2xl font-bold text-slate-900">{fund.aum || "—"}</p>
+                <p className="text-sm text-slate-500 mb-1">AUM</p>
+                <p className="text-2xl font-bold text-slate-900">{fund.aum || '—'}</p>
               </div>
               <div>
-                <p className="text-sm text-slate-600 mb-1">MER</p>
-                <p className="text-2xl font-bold text-slate-900">{fund.mer || "—"}</p>
+                <p className="text-sm text-slate-500 mb-1">MER</p>
+                <p className="text-2xl font-bold text-slate-900">{fund.mer || '—'}</p>
               </div>
               <div>
-                <p className="text-sm text-slate-600 mb-1">Inception</p>
+                <p className="text-sm text-slate-500 mb-1">Inception</p>
                 <p className="text-2xl font-bold text-slate-900">{new Date(fund.inceptionDate).getFullYear()}</p>
               </div>
               <div>
-                <p className="text-sm text-slate-600 mb-1">Sharpe Ratio</p>
-                <p className="text-2xl font-bold text-slate-900">{fund.sharpe?.toFixed(2) || "—"}</p>
+                <p className="text-sm text-slate-500 mb-1">Sharpe Ratio</p>
+                <p className="text-2xl font-bold text-slate-900">{fund.sharpe?.toFixed(2) || '—'}</p>
               </div>
             </div>
           </Card>
         </ScrollReveal>
 
-        {/* Trailing Returns Section */}
         <ScrollReveal direction="up" delay={0.1}>
           <div className="mb-12">
             <SectionHeader title="Performance" description="Trailing returns as of March 15, 2026" />
@@ -121,7 +117,6 @@ export default function SustainableEnhancedBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Calendar Year Returns */}
         <ScrollReveal direction="up" delay={0.15}>
           <div className="mb-12">
             <SectionHeader title="Calendar Year Returns" />
@@ -146,7 +141,6 @@ export default function SustainableEnhancedBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Top 10 Holdings */}
         <ScrollReveal direction="up" delay={0.2}>
           <div className="mb-12">
             <SectionHeader title="Top 10 Holdings" />
@@ -161,7 +155,7 @@ export default function SustainableEnhancedBondsPage() {
                     <div className="flex items-center gap-4 ml-4">
                       <div className="w-32 bg-slate-100 rounded-full h-2">
                         <div
-                          className="bg-[#4285F4] h-2 rounded-full"
+                          className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${holding.weight * 3}px` }}
                         />
                       </div>
@@ -174,7 +168,6 @@ export default function SustainableEnhancedBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Credit Quality Breakdown */}
         <ScrollReveal direction="up" delay={0.25}>
           <div className="mb-12">
             <SectionHeader title="Credit Quality Breakdown" />
@@ -185,7 +178,7 @@ export default function SustainableEnhancedBondsPage() {
                     <div className="w-12 font-semibold text-slate-900">{item.rating}</div>
                     <div className="flex-1 bg-slate-100 rounded-full h-6">
                       <div
-                        className="bg-gradient-to-r from-blue-400 to-[#4285F4] h-6 rounded-full flex items-center justify-end pr-2"
+                        className="bg-gradient-to-r from-blue-400 to-blue-600 h-6 rounded-full flex items-center justify-end pr-2"
                         style={{ width: `${item.percentage * 2}px` }}
                       >
                         {item.percentage > 8 && <span className="text-white text-xs font-semibold">{item.percentage}%</span>}
@@ -199,7 +192,6 @@ export default function SustainableEnhancedBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Management Team */}
         <ScrollReveal direction="up" delay={0.3}>
           <div className="mb-12">
             <SectionHeader title="Management Team" />
@@ -214,9 +206,8 @@ export default function SustainableEnhancedBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* CTA Section */}
         <ScrollReveal direction="up" delay={0.35}>
-          <Card className="p-8 bg-gradient-to-r from-blue-50 to-slate-50 border border-blue-100 text-center">
+          <Card className="p-8 bg-slate-50 border border-slate-200 text-center">
             <h3 className="text-2xl font-bold text-slate-900 mb-4">Ready to Invest?</h3>
             <p className="text-slate-600 mb-6">Download the fund facts sheet for complete details.</p>
             <Button size="lg">Download Fund Facts</Button>
