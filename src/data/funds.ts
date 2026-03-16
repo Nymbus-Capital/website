@@ -14,6 +14,8 @@ export interface Fund {
   minInvestment: string;
   returns: { ytd: number; oneYear: number; threeYear?: number; fiveYear?: number; sinceInception: number };
   sharpe?: number;
+  downsideVolatility?: number;
+  annualReturn?: number;
   description: string;
   managers: string[];
 }
@@ -40,6 +42,8 @@ export const funds: Fund[] = [
       sinceInception: 4.2,
     },
     sharpe: 0.82,
+    downsideVolatility: 3.2,
+    annualReturn: 4.2,
     description:
       "A systematic fixed income strategy that blends enhanced bond selection with sustainability principles, targeting outperformance against the FTSE Canada Universe Bond Index through disciplined research and ESG integration.",
     managers: ["Gabriel Cefaloni", "Mathieu Poulin-Brière"],
@@ -64,6 +68,8 @@ export const funds: Fund[] = [
       sinceInception: 3.8,
     },
     sharpe: 1.12,
+    downsideVolatility: 1.8,
+    annualReturn: 3.8,
     description:
       "A systematically managed short-term fixed income strategy with embedded sustainability criteria, designed for investors seeking stable returns with lower duration risk and ESG alignment.",
     managers: ["Gabriel Cefaloni", "Mathieu Poulin-Brière"],
@@ -88,6 +94,8 @@ export const funds: Fund[] = [
       sinceInception: 12.8,
     },
     sharpe: 0.65,
+    downsideVolatility: 7.5,
+    annualReturn: 12.8,
     description:
       "A diversified alternatives strategy combining fixed income enhancement, managed futures, and dynamic asset allocation to generate consistent returns across market conditions with low correlation to traditional equities.",
     managers: ["Gabriel Cefaloni", "Richard Langevin"],
@@ -110,6 +118,8 @@ export const funds: Fund[] = [
       sinceInception: 6.1,
     },
     sharpe: 0.91,
+    downsideVolatility: 5.1,
+    annualReturn: 6.1,
     description:
       "A sophisticated multi-asset strategy employing quantitative optimization to construct low-volatility portfolios with global equity and fixed income exposure, ideal for institutional investors seeking smooth, stable returns.",
     managers: ["Gabriel Cefaloni", "Jason Laliberte"],

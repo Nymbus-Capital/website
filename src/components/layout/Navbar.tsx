@@ -19,6 +19,7 @@ const navItems = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -31,35 +32,115 @@ export function Navbar() {
 
   return (
     <>
+      <style>{`
+        @keyframes dock-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+
+        .dock-float {
+          animation: dock-float 3s ease-in-out infinite;
+        }
+
+        @keyframes scale-in-center {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.15); }
+        }
+
+        .scale-icon {
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nav-item-tooltip {
+          opacity: 0;
+          transform: translateY(-8px);
+          transition: all 0.3s ease;
+          pointer-events: none;
+        }
+
+        .nav-item:hover .nav-item-tooltip {
+          opacity: 1;
+          transform: translateY(28px);
+        }
+
+        .nav-item-bg {
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nav-item:hover .nav-item-bg {
+          transform: scaleX(1.2) scaleY(1.3);
+        }
+
+        .nav-item:hover .scale-icon {
+          transform: scale(1.25);
+        }
+      `}</style>
+
       <nav className={cn(
         "fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500",
-        "rounded-2xl border border-white/20 shadow-lg",
-        scrolled
-          ? "bg-white/90 backdrop-blur-xl shadow-xl border-slate-200/50"
-          : "bg-white/70 backdrop-blur-lg"
+        "dock-float"
       )}>
-        <div className="flex items-center gap-1 px-4 py-2.5">
-          <Link href="/" className="flex-shrink-0 mr-4 hover:opacity-80 transition-opacity">
-            <NymbusLogo height={22} variant="dark" />
+        <div className={cn(
+          "flex items-center gap-1 px-5 py-3 rounded-full border",
+          "backdrop-blur-xl bg-white/70 border-white/30 shadow-lg",
+          scrolled && "bg-white/80 border-white/40 shadow-2xl"
+        )}>
+          <Link href="/" className="flex-shrink-0 mr-2 hover:opacity-80 transition-opacity">
+            <NymbusLogo height={20} variant="dark" />
           </Link>
 
           <div className="hidden lg:flex items-center gap-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const active = isActive(item.href);
+              
               return (
-                <Link
+                <div
                   key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200",
-                    isActive(item.href)
-                      ? "bg-slate-900 text-white shadow-md"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  )}
+                  className="nav-item relative"
+                  onMouseEnter={() => setHoveredItem(item.href)}
+                  onMouseLeave={() => setHoveredItem(null)}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  {item.label}
-                </Link>
+                  <div className="absolute inset-0 rounded-full nav-item-bg" />
+                  
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "relative flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300",
+                      active
+                        ? "text-white z-10"
+                        : "text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    <div className="relative">
+                      <div className={cn(
+                        "absolute inset-0 rounded-full transition-all duration-300",
+                        active ? "bg-slate-900 scale-100" : "bg-slate-200 scale-0 group-hover:scale-100"
+                      )} />
+                      <Icon className={cn(
+                        "w-4 h-4 relative scale-icon transition-transform duration-300",
+                        active && "text-white"
+                      )} />
+                    </div>
+                    <span className="relative">
+                      {item.label}
+                    </span>
+                  </Link>
+
+                  {active && (
+                    <div className="absolute inset-0 rounded-full bg-slate-900 -z-10" />
+                  )}
+
+                  {hoveredItem === item.href && !active && (
+                    <div className="absolute inset-0 rounded-full bg-slate-100 -z-10 animate-pulse" />
+                  )}
+
+                  <div className="nav-item-tooltip absolute top-full left-1/2 -translate-x-1/2 whitespace-nowrap mt-1">
+                    <div className="bg-slate-900 text-white text-xs px-2.5 py-1 rounded-md shadow-lg">
+                      {item.label}
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>

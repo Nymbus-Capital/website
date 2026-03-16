@@ -35,8 +35,8 @@ export const team: TeamMember[] = [
   },
   {
     name: "Marc Rivet",
-    title: "President & Chief Compliance Officer",
-    titleFr: "Président et chef de la conformité",
+    title: "President & Co-Founder",
+    titleFr: "Président et cofondateur",
     department: "Leadership",
     bio: "Marc Rivet co-founded Nymbus Capital in 2013, bringing decades of fixed income and derivatives experience. He previously founded Groupe ARB in 2005 and was an independent participant on the Montreal Exchange from 1991 to 2005, specializing in Canadian bond and derivative trading. He began his career in 1986 at Lévesque Beaubien Geoffrion (now National Bank Financial).",
     education: ["B.Comm Finance, Concordia University"],
@@ -143,7 +143,6 @@ export const team: TeamMember[] = [
     titleFr: "Administratrice de portefeuille",
     department: "Operations",
     bio: "Jennifer Pinkerton manages portfolio administration, NAV calculations, and investor reporting for all fund products. She brings over 23 years of experience from Sodagep, ensuring accurate and timely reporting to investors and regulatory authorities.",
-    designations: ["CFA"],
     previousRoles: ["Portfolio Administrator, Sodagep (23 years)"],
     initials: "JP",
     color: "#285e61",

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Nymbus Capital | Scientific Investing',
   description:
     'Nymbus Capital is Canada\'s premier quantitative bond shop, delivering systematic fixed income strategies with scientific precision.',
-  metadataBase: new URL('https://nymbus.com'),
+  metadataBase: new URL('https://nymbus.ca'),
   openGraph: {
     title: 'Nymbus Capital | Scientific Investing',
     description:
