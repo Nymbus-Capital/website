@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -58,7 +58,7 @@ export default function SustainableEnhancedShortTermBondsPage() {
   const managers = fund.managers;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-white">
+    <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link href="/strategies" className="inline-block mb-8">
           <Button variant="ghost" size="sm">
@@ -66,20 +66,18 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </Button>
         </Link>
 
-        {/* Hero Section */}
         <ScrollReveal direction="up">
           <div className="space-y-4 mb-12">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900">{fund.name}</h1>
-              <span className="bg-blue-100 text-[#4285F4] px-3 py-1 rounded-full text-sm font-semibold">
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
                 {fund.assetClass}
               </span>
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">CAD</span>
+              <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">CAD</span>
             </div>
             <p className="text-lg text-slate-600">{fund.description}</p>
           </div>
 
-          {/* Key Metrics Strip */}
           <Card className="p-6 mb-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
@@ -102,7 +100,6 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </Card>
         </ScrollReveal>
 
-        {/* Trailing Returns Section */}
         <ScrollReveal direction="up" delay={0.1}>
           <div className="mb-12">
             <SectionHeader title="Performance" description="Trailing returns as of March 15, 2026" />
@@ -119,7 +116,6 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Calendar Year Returns */}
         <ScrollReveal direction="up" delay={0.15}>
           <div className="mb-12">
             <SectionHeader title="Calendar Year Returns" />
@@ -144,7 +140,6 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Top 10 Holdings */}
         <ScrollReveal direction="up" delay={0.2}>
           <div className="mb-12">
             <SectionHeader
@@ -162,7 +157,7 @@ export default function SustainableEnhancedShortTermBondsPage() {
                     <div className="flex items-center gap-4 ml-4">
                       <div className="w-32 bg-slate-100 rounded-full h-2">
                         <div
-                          className="bg-green-400 h-2 rounded-full"
+                          className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${holding.weight * 3}px` }}
                         />
                       </div>
@@ -175,7 +170,6 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Sector Exposure */}
         <ScrollReveal direction="up" delay={0.25}>
           <div className="mb-12">
             <SectionHeader
@@ -189,7 +183,7 @@ export default function SustainableEnhancedShortTermBondsPage() {
                     <div className="w-20 font-semibold text-slate-900">{item.sector}</div>
                     <div className="flex-1 bg-slate-100 rounded-full h-6">
                       <div
-                        className="bg-gradient-to-r from-green-400 to-emerald-500 h-6 rounded-full flex items-center justify-end pr-3"
+                        className="bg-gradient-to-r from-blue-400 to-blue-600 h-6 rounded-full flex items-center justify-end pr-3"
                         style={{ width: `${item.percentage * 2}px` }}
                       >
                         {item.percentage > 10 && (
@@ -205,7 +199,6 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* Key Characteristics */}
         <ScrollReveal direction="up" delay={0.3}>
           <div className="mb-12">
             <SectionHeader title="Key Characteristics" />
@@ -213,36 +206,31 @@ export default function SustainableEnhancedShortTermBondsPage() {
               <Card className="p-6">
                 <h4 className="font-bold text-slate-900 mb-3">Low Duration Risk</h4>
                 <p className="text-slate-600 text-sm">
-                  Short-term maturity focus minimizes interest rate sensitivity while capturing yield opportunities in the
-                  Canadian bond market.
+                  Short-term maturity focus minimizes interest rate sensitivity while capturing yield opportunities in the Canadian bond market.
                 </p>
               </Card>
               <Card className="p-6">
                 <h4 className="font-bold text-slate-900 mb-3">Sustainability Integrated</h4>
                 <p className="text-slate-600 text-sm">
-                  ESG criteria embedded throughout the investment process to align returns with values and responsible
-                  investing principles.
+                  ESG criteria embedded throughout the investment process to align returns with values and responsible investing principles.
                 </p>
               </Card>
               <Card className="p-6">
                 <h4 className="font-bold text-slate-900 mb-3">Insurance Exposure</h4>
                 <p className="text-slate-600 text-sm">
-                  Strategic overweight to insurance sector provides attractive yield and diversification while maintaining
-                  credit quality.
+                  Strategic overweight to insurance sector provides attractive yield and diversification while maintaining credit quality.
                 </p>
               </Card>
               <Card className="p-6">
                 <h4 className="font-bold text-slate-900 mb-3">Attractive Sharpe Ratio</h4>
                 <p className="text-slate-600 text-sm">
-                  1.12 Sharpe ratio reflects superior risk-adjusted returns among short-term fixed income strategies in the
-                  Canadian market.
+                  1.12 Sharpe ratio reflects superior risk-adjusted returns among short-term fixed income strategies in the Canadian market.
                 </p>
               </Card>
             </div>
           </div>
         </ScrollReveal>
 
-        {/* Management Team */}
         <ScrollReveal direction="up" delay={0.35}>
           <div className="mb-12">
             <SectionHeader title="Management Team" />
@@ -257,9 +245,8 @@ export default function SustainableEnhancedShortTermBondsPage() {
           </div>
         </ScrollReveal>
 
-        {/* CTA Section */}
         <ScrollReveal direction="up" delay={0.4}>
-          <Card className="p-8 bg-gradient-to-r from-green-50 to-slate-50 border border-green-100 text-center">
+          <Card className="p-8 bg-slate-50 border border-slate-200 text-center">
             <h3 className="text-2xl font-bold text-slate-900 mb-4">Short-Term Bond Solution</h3>
             <p className="text-slate-600 mb-6">Download the fund facts sheet for complete details on this CAD-focused short-term strategy.</p>
             <Button size="lg">Download Fund Facts</Button>
