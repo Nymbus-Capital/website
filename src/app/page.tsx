@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
+import TypewriterEffect from '@/components/animations/TypewriterEffect';
 import AnimatedCounter from '@/components/animations/AnimatedCounter';
 import { funds } from '@/data/funds';
 import { formatPercent } from '@/lib/utils';
@@ -43,95 +44,216 @@ const newsItems = [
   { date: '2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital (2013), Gestion de portefeuille Landry (2002), and Perseus Capital (2005).' },
 ];
 
-// Lightweight Charts performance component
+// SVG Chart Component with GSAP animation
 function PerformanceChart() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<any>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const pathsRef = useRef<{ fund: SVGPathElement | null; benchmark: SVGPathElement | null }>({ fund: null, benchmark: null });
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!svgRef.current) return;
 
-    const loadChart = async () => {
-      const { createChart, ColorType, LineStyle, AreaSeries } = await import('lightweight-charts');
+    const width = 800;
+    const height = 400;
+    const padding = 50;
+    const chartWidth = width - 2 * padding;
+    const chartHeight = height - 2 * padding;
 
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
+    // Normalize data to chart coordinates
+    const minVal = Math.min(...performanceData.map(d => Math.min(d.fund, d.benchmark)));
+    const maxVal = Math.max(...performanceData.map(d => Math.max(d.fund, d.benchmark)));
+    const range = maxVal - minVal;
+
+    const points = performanceData.map((d, i) => ({
+      x: padding + (i / (performanceData.length - 1)) * chartWidth,
+      fundY: height - padding - ((d.fund - minVal) / range) * chartHeight,
+      benchY: height - padding - ((d.benchmark - minVal) / range) * chartHeight,
+    }));
+
+    // Create fund path
+    const fundPath = points
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.fundY}`)
+      .join(' ');
+
+    // Create benchmark path
+    const benchPath = points
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.benchY}`)
+      .join(' ');
+
+    // Get the path elements
+    const fundPathEl = svgRef.current.querySelector('[data-path="fund"]') as SVGPathElement;
+    const benchPathEl = svgRef.current.querySelector('[data-path="benchmark"]') as SVGPathElement;
+
+    if (fundPathEl && benchPathEl) {
+      pathsRef.current.fund = fundPathEl;
+      pathsRef.current.benchmark = benchPathEl;
+
+      // Set paths
+      fundPathEl.setAttribute('d', fundPath);
+      benchPathEl.setAttribute('d', benchPath);
+
+      // Get path lengths
+      const fundLength = fundPathEl.getTotalLength();
+      const benchLength = benchPathEl.getTotalLength();
+
+      // Set initial stroke-dasharray and offset
+      fundPathEl.style.strokeDasharray = fundLength.toString();
+      fundPathEl.style.strokeDashoffset = fundLength.toString();
+      benchPathEl.style.strokeDasharray = benchLength.toString();
+      benchPathEl.style.strokeDashoffset = benchLength.toString();
+
+      // Animate with GSAP
+      gsap.to(fundPathEl, {
+        strokeDashoffset: 0,
+        duration: 2.5,
+        ease: 'power2.inOut',
+        delay: 0.3,
+      });
+
+      gsap.to(benchPathEl, {
+        strokeDashoffset: 0,
+        duration: 2.5,
+        ease: 'power2.inOut',
+        delay: 0.5,
+      });
+    }
+  }, []);
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg
+        ref={svgRef}
+        viewBox="0 0 800 400"
+        className="w-full min-h-[400px]"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="fundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(0, 102, 255, 0.2)" />
+            <stop offset="100%" stopColor="rgba(0, 102, 255, 0)" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid lines */}
+        <line x1="50" y1="350" x2="750" y2="350" stroke="#f1f5f9" strokeWidth="1" />
+        <line x1="50" y1="50" x2="50" y2="350" stroke="#f1f5f9" strokeWidth="1" />
+
+        {/* Benchmark line */}
+        <path
+          data-path="benchmark"
+          fill="none"
+          stroke="#94a3b8"
+          strokeWidth="2"
+          strokeDasharray="5,5"
+          className="transition-opacity duration-500"
+        />
+
+        {/* Fund line */}
+        <path
+          data-path="fund"
+          fill="none"
+          stroke="#0066FF"
+          strokeWidth="2.5"
+          className="transition-opacity duration-500"
+        />
+      </svg>
+    </div>
+  );
+}
+
+// Dot particle canvas animation for hero background
+function DotParticleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight * 0.9;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Particle system
+    const particleCount = 150;
+    const particles: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+    }[] = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+      });
+    }
+
+    const animate = () => {
+      // Clear canvas
+      ctx.fillStyle = 'rgba(255, 255, 255, 0)';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update and draw particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Update position
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap around edges
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // Draw dot
+        ctx.fillStyle = 'rgba(51, 65, 85, 0.3)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw connecting lines to nearby particles
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p2.x - p.x;
+          const dy = p2.y - p.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 100) {
+            ctx.strokeStyle = `rgba(0, 102, 255, ${0.1 * (1 - distance / 100)})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
       }
 
-      const chart = createChart(containerRef.current!, {
-        width: containerRef.current!.clientWidth,
-        height: 400,
-        layout: {
-          background: { type: ColorType.Solid, color: '#ffffff' },
-          textColor: '#64748b',
-          fontFamily: "'Poppins', system-ui, sans-serif",
-          fontSize: 11,
-        },
-        grid: {
-          vertLines: { color: '#f1f5f9' },
-          horzLines: { color: '#f1f5f9' },
-        },
-        rightPriceScale: { borderColor: '#e2e8f0' },
-        timeScale: { borderColor: '#e2e8f0', timeVisible: false },
-        crosshair: {
-          vertLine: { color: '#94a3b8', width: 1, style: LineStyle.Dashed },
-          horzLine: { color: '#94a3b8', width: 1, style: LineStyle.Dashed },
-        },
-      });
-      chartRef.current = chart;
-
-      // Benchmark
-      const benchSeries = chart.addSeries(AreaSeries, {
-        lineColor: '#94a3b8',
-        topColor: 'rgba(148, 163, 184, 0.06)',
-        bottomColor: 'rgba(148, 163, 184, 0)',
-        lineWidth: 1,
-        lineStyle: LineStyle.Dashed,
-        priceFormat: { type: 'custom', formatter: (p: number) => '$' + p.toLocaleString() },
-      });
-      benchSeries.setData(performanceData.map(d => ({ time: d.time, value: d.benchmark })));
-
-      // Fund
-      const fundSeries = chart.addSeries(AreaSeries, {
-        lineColor: '#0066FF',
-        topColor: 'rgba(0, 102, 255, 0.12)',
-        bottomColor: 'rgba(0, 102, 255, 0)',
-        lineWidth: 2,
-        priceFormat: { type: 'custom', formatter: (p: number) => '$' + p.toLocaleString() },
-      });
-      fundSeries.setData(performanceData.map(d => ({ time: d.time, value: d.fund })));
-
-      chart.timeScale().fitContent();
-
-      const ro = new ResizeObserver(() => {
-        if (containerRef.current && chartRef.current) {
-          chartRef.current.applyOptions({ width: containerRef.current.clientWidth });
-        }
-      });
-      ro.observe(containerRef.current!);
-
-      return () => ro.disconnect();
+      requestAnimationFrame(animate);
     };
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        loadChart();
-        observer.disconnect();
-      }
-    }, { threshold: 0.2 });
-    observer.observe(containerRef.current);
+    animate();
 
     return () => {
-      observer.disconnect();
-      if (chartRef.current) { chartRef.current.remove(); chartRef.current = null; }
+      window.removeEventListener('resize', resizeCanvas);
     };
   }, []);
 
-  return <div ref={containerRef} className="w-full" style={{ height: 400 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 opacity-40" />;
 }
 
-// SVG Logo Components for institutional investors
+// Aceternity-style logo cloud with blur animation
 function InvestorLogoBar() {
   const logos = [
     { name: 'CDPQ', w: 90 },
@@ -147,21 +269,41 @@ function InvestorLogoBar() {
   ];
 
   return (
-    <div className="overflow-hidden py-8">
-      <div className="flex overflow-x-hidden">
-        <div className="flex gap-16 animate-marquee items-center">
-          {[...logos, ...logos].map((logo, idx) => (
-            <div key={idx} className="flex-shrink-0 flex items-center justify-center" style={{ minWidth: logo.w }}>
-              <svg width={logo.w} height="40" viewBox={`0 0 ${logo.w} 40`}>
-                <rect x="0" y="8" width={logo.w} height="24" rx="4" fill="#f1f5f9" />
-                <text x={logo.w / 2} y="24" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="600" fontFamily="Poppins, system-ui, sans-serif">
-                  {logo.name}
-                </text>
-              </svg>
-            </div>
-          ))}
-        </div>
+    <div className="relative w-full overflow-hidden py-8">
+      {/* Left gradient mask */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none z-10" />
+      {/* Right gradient mask */}
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none z-10" />
+
+      <div className="flex gap-8 animate-scroll">
+        {[...logos, ...logos].map((logo, idx) => (
+          <div key={idx} className="flex-shrink-0 flex items-center justify-center">
+            <svg width={logo.w} height="40" viewBox={`0 0 ${logo.w} 40`} className="drop-shadow-none hover:drop-shadow-md transition-all duration-300">
+              <rect x="0" y="8" width={logo.w} height="24" rx="4" fill="#f1f5f9" />
+              <text x={logo.w / 2} y="24" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="600" fontFamily="Poppins, system-ui, sans-serif">
+                {logo.name}
+              </text>
+            </svg>
+          </div>
+        ))}
       </div>
+
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(calc(-50% - 16px));
+          }
+        }
+        .animate-scroll {
+          animation: scroll 40s linear infinite;
+        }
+        .animate-scroll:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 }
@@ -198,14 +340,14 @@ export default function Home() {
     <main className="bg-white">
       {/* Hero */}
       <section className="min-h-[90vh] flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
+        <DotParticleCanvas />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
         <div className="max-w-3xl text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-medium mb-8">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-            $1.5B+ Assets Under Management
-          </div>
           <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-            Scientific<br />Investing
+            <TypewriterEffect
+              words={['Scientific Investing', 'Systematic Alpha', 'Quantitative Edge', 'Data-Driven Returns']}
+              className="text-blue-600"
+            />
           </h1>
           <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
             Rigorous quantitative research and systematic strategies applied to fixed income and multi-asset investing. Built in Montreal for institutional investors worldwide.
@@ -236,9 +378,9 @@ export default function Home() {
             <ScrollReveal delay={100}>
               <div className="text-center">
                 <div className="text-4xl font-bold text-slate-900 mb-2">
-                  <AnimatedCounter target={300} suffix="+" duration={2000} />
+                  <AnimatedCounter target={4} suffix="" duration={2000} />
                 </div>
-                <p className="text-sm text-slate-500 font-medium">Institutional Clients</p>
+                <p className="text-sm text-slate-500 font-medium">Investment Strategies</p>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={200}>
@@ -252,7 +394,7 @@ export default function Home() {
             <ScrollReveal delay={300}>
               <div className="text-center">
                 <div className="text-4xl font-bold text-slate-900 mb-2">
-                  <AnimatedCounter target={12} suffix="+" duration={2000} />
+                  <AnimatedCounter target={10} suffix="+" duration={2000} />
                 </div>
                 <p className="text-sm text-slate-500 font-medium">Years of Track Record</p>
               </div>
@@ -389,7 +531,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
             <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-6">
-              Trusted by Canada&apos;s Leading Institutions
+              Trusted by Canada's Leading Institutions
             </p>
           </ScrollReveal>
           <ScrollReveal delay={200}>
@@ -417,15 +559,41 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {newsItems.map((item, index) => (
                 <ScrollReveal key={index} delay={index * 80}>
-                  <Card className="p-6 border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all h-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
-                      <span className="text-slate-400 text-xs flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> {item.date}
-                      </span>
+                  <Card className="p-6 border border-slate-200 bg-white hover:border-blue-300 transition-all h-full group cursor-pointer relative overflow-hidden">
+                    {/* Gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
+                        <span className="text-slate-400 text-xs flex items-center gap-1">
+                          <Calendar className="w-3 h-3" /> {item.date}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+
+                    {/* Arrow icon on hover */}
+                    <div className="absolute top-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+
+                    {/* Lift effect on hover */}
+                    <style jsx>{`
+                      @keyframes liftCard {
+                        from {
+                          transform: translateY(0);
+                        }
+                        to {
+                          transform: translateY(-8px);
+                        }
+                      }
+                      .group:hover {
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                        animation: liftCard 0.3s ease-out forwards;
+                      }
+                    `}</style>
                   </Card>
                 </ScrollReveal>
               ))}

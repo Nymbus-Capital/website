@@ -16,7 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 type Department = "Leadership" | "Quantitative Research" | "Investment Team" | "Operations" | "Board" | "All";
 
-const departmentOrder: Department[] = ["All", "Leadership", "Quantitative Research", "Investment Team", "Operations", "Board"];
+const departmentOrder: Department[] = ["Leadership", "Investment Team", "Quantitative Research", "Operations", "Board"];
 
 const getDepartmentLabel = (dept: Department): string => {
   if (dept === "All") return "All";
@@ -24,7 +24,6 @@ const getDepartmentLabel = (dept: Department): string => {
 };
 
 const filterTeamByDepartment = (dept: Department): TeamMember[] => {
-  if (dept === "All") return team;
   return team.filter(member => member.department === dept);
 };
 
@@ -128,8 +127,9 @@ function TeamMemberModal({ member, isOpen, onClose }: TeamModalProps) {
   );
 }
 
-function TeamMemberCard({ member, onClick }: { member: TeamMember; onClick: () => void }) {
+function TeamMemberCard({ member, onClick, isLeadership = false }: { member: TeamMember; onClick: () => void; isLeadership?: boolean }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const card = cardRef.current;
@@ -137,20 +137,42 @@ function TeamMemberCard({ member, onClick }: { member: TeamMember; onClick: () =
 
     const handleMouseEnter = () => {
       gsap.to(card, {
-        x: 8,
-        boxShadow: `0 20px 40px rgba(66, 133, 244, 0.15)`,
-        duration: 0.3,
+        y: -12,
+        boxShadow: isLeadership
+          ? `0 30px 60px rgba(66, 133, 244, 0.25)`
+          : `0 20px 40px rgba(66, 133, 244, 0.15)`,
+        duration: 0.4,
         ease: 'power2.out',
       });
+
+      if (contentRef.current) {
+        gsap.to(contentRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      }
     };
 
     const handleMouseLeave = () => {
       gsap.to(card, {
-        x: 0,
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        duration: 0.3,
+        y: 0,
+        boxShadow: isLeadership
+          ? '0 10px 30px rgba(0, 0, 0, 0.1)'
+          : '0 1px 3px rgba(0, 0, 0, 0.1)',
+        duration: 0.4,
         ease: 'power2.out',
       });
+
+      if (contentRef.current) {
+        gsap.to(contentRef.current, {
+          opacity: 0,
+          y: 10,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      }
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);
@@ -160,60 +182,62 @@ function TeamMemberCard({ member, onClick }: { member: TeamMember; onClick: () =
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [isLeadership]);
 
   return (
     <Card
+      ref={cardRef}
       onClick={onClick}
-      className="cursor-pointer overflow-hidden group"
+      className={`cursor-pointer overflow-hidden group transition-all duration-300 ${
+        isLeadership ? 'shadow-lg' : 'shadow-md'
+      }`}
     >
-      <div className="border-l-4" style={{ borderColor: member.color }}>
-        <div className="p-6">
+      <div
+        className={`border-l-4 h-full ${isLeadership ? 'bg-gradient-to-br from-white to-blue-50' : 'bg-white'}`}
+        style={{ borderColor: member.color }}
+      >
+        <div className={`p-6 ${isLeadership ? 'pb-8' : ''}`}>
           <div className="flex items-start gap-4 mb-4">
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+              className={`rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
+                isLeadership ? 'w-16 h-16 text-xl' : 'w-14 h-14 text-lg'
+              }`}
               style={{ backgroundColor: member.color }}
             >
               {member.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-slate-900 text-lg">{member.name}</h3>
-              <p className="text-blue-600 font-semibold text-sm">{member.title}</p>
+              <h3 className={`font-bold text-slate-900 ${isLeadership ? 'text-xl' : 'text-lg'}`}>
+                {member.name}
+              </h3>
+              <p className={`text-blue-600 font-semibold ${isLeadership ? 'text-base' : 'text-sm'}`}>
+                {member.title}
+              </p>
             </div>
           </div>
 
-          <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full mb-3">
-            {member.department}
-          </span>
+          <p className={`text-slate-600 ${isLeadership ? 'text-sm line-clamp-3 mb-4' : 'text-sm line-clamp-2 mb-4'}`}>
+            {member.bio}
+          </p>
 
-          <p className="text-slate-600 text-sm line-clamp-2 mb-4">{member.bio}</p>
-
-          {(member.education || member.designations) && (
-            <div className="space-y-2 mb-4">
-              {member.education && (
-                <div className="flex flex-wrap gap-1">
-                  {member.education.slice(0, 2).map((edu, idx) => (
-                    <span key={idx} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                      {edu.split(',')[0]}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {member.designations && (
-                <div className="flex flex-wrap gap-1">
-                  {member.designations.map((des, idx) => (
-                    <span key={idx} className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded font-semibold">
-                      {des}
-                    </span>
-                  ))}
-                </div>
-              )}
+          {(member.designations) && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {member.designations.map((des, idx) => (
+                <span key={idx} className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded font-semibold">
+                  {des}
+                </span>
+              ))}
             </div>
           )}
 
-          <button className="text-blue-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-            View profile →
-          </button>
+          <div
+            ref={contentRef}
+            className={`opacity-0 transition-all ${isLeadership ? 'block' : 'hidden group-hover:block'}`}
+          >
+            <button className="text-blue-600 text-sm font-semibold hover:text-blue-700">
+              View profile →
+            </button>
+          </div>
         </div>
       </div>
     </Card>
@@ -356,11 +380,8 @@ function StatsSection() {
 }
 
 export default function TeamPage() {
-  const [selectedDepartment, setSelectedDepartment] = useState<Department>("All");
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
-
-  const filteredTeam = filterTeamByDepartment(selectedDepartment);
 
   useEffect(() => {
     if (!filterRef.current) return;
@@ -391,41 +412,45 @@ export default function TeamPage() {
         </div>
       </section>
 
-      {/* Department Filter - Sticky */}
-      <div className="sticky top-0 z-40 bg-white border-b border-slate-200 backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap gap-2" ref={filterRef}>
-            {departmentOrder.map((dept) => (
-              <button
-                key={dept}
-                onClick={() => setSelectedDepartment(dept)}
-                className={cn(
-                  "px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm",
-                  selectedDepartment === dept
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                )}
-              >
-                {getDepartmentLabel(dept)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Team Grid */}
+      {/* Team Sections by Department */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTeam.map((member, index) => (
-              <ScrollReveal key={member.name} delay={index * 50}>
-                <TeamMemberCard
-                  member={member}
-                  onClick={() => setSelectedMember(member)}
-                />
-              </ScrollReveal>
-            ))}
-          </div>
+          {departmentOrder.map((dept, deptIndex) => {
+            const deptMembers = filterTeamByDepartment(dept);
+            if (deptMembers.length === 0) return null;
+
+            const isLeadership = dept === "Leadership";
+
+            return (
+              <div key={dept} className={deptIndex > 0 ? "mt-16 pt-12 border-t border-slate-200" : ""}>
+                <ScrollReveal direction="up">
+                  <h2 className={`${isLeadership ? 'text-3xl' : 'text-2xl'} font-bold text-slate-900 mb-8`}>
+                    {dept}
+                  </h2>
+                </ScrollReveal>
+
+                <div className={`grid gap-6 ${
+                  isLeadership
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}>
+                  {deptMembers.map((member, index) => (
+                    <ScrollReveal
+                      key={member.name}
+                      delay={index * 50}
+                      direction="up"
+                    >
+                      <TeamMemberCard
+                        member={member}
+                        onClick={() => setSelectedMember(member)}
+                        isLeadership={isLeadership}
+                      />
+                    </ScrollReveal>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
