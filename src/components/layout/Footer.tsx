@@ -40,12 +40,12 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link href="/team" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                  Team
+                  About & Team
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                  Careers
+                <Link href="/solutions" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Solutions
                 </Link>
               </li>
               <li>
@@ -65,7 +65,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="mailto:info@nymbus.com" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                <a href="mailto:info@nymbus.ca" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
                   Email
                 </a>
               </li>
