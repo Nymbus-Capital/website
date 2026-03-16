@@ -1,112 +1,100 @@
 import Link from 'next/link';
 
 export function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="relative bg-white border-t border-slate-100">
-      {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Strategies Column */}
+    <footer className="bg-white border-t border-slate-100">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-slate-900 mb-6">
-              STRATEGIES
-            </h3>
-            <nav className="space-y-3 text-sm">
-              <Link
-                href="/strategies/multi-strategy"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Multi-Strategy
-              </Link>
-              <br />
-              <Link
-                href="/strategies/sustainable-enhanced-bonds"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Sustainable Enhanced Bonds
-              </Link>
-              <br />
-              <Link
-                href="/strategies/sustainable-enhanced-short-term-bonds"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Sustainable Enhanced Short-Term Bonds
-              </Link>
-              <br />
-              <Link
-                href="/strategies/global-minimum-volatility"
-                className="text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Global Minimum Volatility
-              </Link>
-            </nav>
+            <h3 className="font-semibold text-slate-900 mb-4">About</h3>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Nymbus Capital is Canada's premier quantitative bond shop, delivering systematic fixed income strategies.
+            </p>
           </div>
 
-          {/* Company Column */}
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-slate-900 mb-6">
-              COMPANY
-            </h3>
-            <nav className="space-y-3 text-sm">
-              <Link
-                href="/team"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                Team
-              </Link>
-              <Link
-                href="/sustainability"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                Sustainability
-              </Link>
-              <Link
-                href="/contact"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                Contact
-              </Link>
-              <Link
-                href="/legal"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                Legal
-              </Link>
-            </nav>
+            <h3 className="font-semibold text-slate-900 mb-4">Strategies</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/strategies" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Fixed Income
+                </Link>
+              </li>
+              <li>
+                <Link href="/strategies" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Quantitative
+                </Link>
+              </li>
+              <li>
+                <Link href="/strategies" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Research
+                </Link>
+              </li>
+            </ul>
           </div>
 
-          {/* Connect Column */}
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-slate-900 mb-6">
-              CONNECT
-            </h3>
-            <nav className="space-y-3 text-sm">
-              <a
-                href="tel:+1-416-555-0100"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                +1 (416) 555-0100
-              </a>
-              <a
-                href="mailto:hello@nymbus.com"
-                className="text-slate-500 hover:text-slate-700 transition-colors block"
-              >
-                hello@nymbus.com
-              </a>
-            </nav>
+            <h3 className="font-semibold text-slate-900 mb-4">Company</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/team" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Team
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link href="/sustainability" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Sustainability
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-4">Connect</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/contact" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:info@nymbus.com" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  Email
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+                  LinkedIn
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Section with Gradient Fade */}
-      <div className="relative bg-gradient-to-b from-white via-white to-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
-          <p className="text-xs text-slate-500">
-            © 2026 Nymbus Capital Inc. All rights reserved.
-          </p>
-          <p className="text-xs leading-relaxed" style={{ color: '#cbd5e1' }}>
-            This website is for informational purposes only and does not constitute an offer to sell or a solicitation to buy any security or investment product. Past performance is not indicative of future results. All investments involve risk, including possible loss of principal. Please read our legal disclaimer and privacy policy.
-          </p>
+        <div className="border-t border-slate-100 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs text-slate-500">
+            <div>
+              <p>&copy; {currentYear} Nymbus Capital. All rights reserved.</p>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-md">
+                This website is for informational purposes only and does not constitute investment advice or an offer to sell or solicitation to buy any security.
+              </p>
+            </div>
+            <div className="flex gap-6">
+              <Link href="/privacy" className="hover:text-slate-900 transition-colors">
+                Privacy
+              </Link>
+              <Link href="/legal" className="hover:text-slate-900 transition-colors">
+                Legal
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

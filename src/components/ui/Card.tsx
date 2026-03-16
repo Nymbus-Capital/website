@@ -1,24 +1,21 @@
-'use client';
+import React, { ReactNode } from 'react';
 
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-
-interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
-  children: React.ReactNode;
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+  hoverable?: boolean;
+  onClick?: () => void;
 }
 
-export function Card({ children, className, ...props }: CardProps) {
+export function Card({ children, className = '', hoverable = true, onClick }: CardProps) {
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        'bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300',
-        className
-      )}
-      {...(props as any)}
+    <div
+      onClick={onClick}
+      className={`bg-white border border-slate-100 rounded-xl ${
+        hoverable ? 'transition-shadow duration-300 hover:shadow-md' : ''
+      } ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

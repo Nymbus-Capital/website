@@ -1,39 +1,28 @@
-'use client';
-
-import { motion } from 'framer-motion';
+import React, { ReactNode } from 'react';
 
 interface SectionHeaderProps {
   eyebrow?: string;
-  title: string;
-  description?: string;
+  title: string | ReactNode;
+  description?: string | ReactNode;
+  className?: string;
 }
 
-export function SectionHeader({
-  eyebrow,
-  title,
-  description,
-}: SectionHeaderProps) {
+export function SectionHeader({ eyebrow, title, description, className = '' }: SectionHeaderProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      viewport={{ once: true, amount: 0.3 }}
-      className="space-y-4"
-    >
+    <div className={`mb-16 ${className}`}>
       {eyebrow && (
-        <p className="text-sm font-semibold tracking-wide text-[#4285F4] uppercase">
+        <p className="text-xs uppercase tracking-widest font-semibold text-blue-600 mb-3">
           {eyebrow}
         </p>
       )}
-      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
+      <h2 className="text-4xl md:text-5xl font-semibold text-slate-900 mb-6">
         {title}
       </h2>
       {description && (
-        <p className="text-lg md:text-xl text-slate-600 max-w-2xl">
+        <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
           {description}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }

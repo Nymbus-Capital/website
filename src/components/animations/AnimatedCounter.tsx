@@ -1,7 +1,6 @@
-"use client";
+'use client';
 
-import { animate, useInView, useMotionValue, useTransform, motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface AnimatedCounterProps {
   target: number;
@@ -13,35 +12,52 @@ interface AnimatedCounterProps {
 
 export default function AnimatedCounter({
   target,
-  prefix = "",
-  suffix = "",
-  duration = 2,
-  className = "",
+  prefix = '',
+  suffix = '',
+  duration = 2000,
+  className = '',
 }: AnimatedCounterProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: false, amount: 0.5 });
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => {
-    return Math.round(latest).toLocaleString();
-  });
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasStarted = useRef(false);
 
   useEffect(() => {
-    if (isInView) {
-      const controls = animate(count, target, {
-        duration: duration,
-      });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasStarted.current) {
+          hasStarted.current = true;
+          const startTime = Date.now();
 
-      return () => controls.stop();
-    } else {
-      count.set(0);
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(progress * target);
+            setCount(current);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            }
+          };
+
+          animate();
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
     }
-  }, [isInView, target, duration]);
+
+    return () => observer.disconnect();
+  }, [target, duration]);
 
   return (
-    <div ref={ref} className={className}>
-      <span>{prefix}</span>
-      <motion.span>{rounded}</motion.span>
-      <span>{suffix}</span>
-    </div>
+    <span ref={ref} className={className}>
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
+    </span>
   );
 }
