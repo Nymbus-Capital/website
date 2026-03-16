@@ -46,115 +46,188 @@ const newsItems = [
 
 // SVG Chart Component with GSAP animation
 function PerformanceChart() {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const pathsRef = useRef<{ fund: SVGPathElement | null; benchmark: SVGPathElement | null }>({ fund: null, benchmark: null });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fundPathRef = useRef<SVGPathElement>(null);
+  const benchPathRef = useRef<SVGPathElement>(null);
+  const fundAreaRef = useRef<SVGPathElement>(null);
+  const [animated, setAnimated] = useState(false);
+
+  // Pre-compute chart geometry
+  const width = 800;
+  const height = 400;
+  const padding = { top: 40, right: 30, bottom: 50, left: 60 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  const minVal = Math.min(...performanceData.map(d => Math.min(d.fund, d.benchmark)));
+  const maxVal = Math.max(...performanceData.map(d => Math.max(d.fund, d.benchmark)));
+  const range = maxVal - minVal || 1;
+
+  const points = performanceData.map((d, i) => ({
+    x: padding.left + (i / (performanceData.length - 1)) * chartWidth,
+    fundY: padding.top + chartHeight - ((d.fund - minVal) / range) * chartHeight,
+    benchY: padding.top + chartHeight - ((d.benchmark - minVal) / range) * chartHeight,
+  }));
+
+  const fundPathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.fundY.toFixed(1)}`).join(' ');
+  const benchPathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.benchY.toFixed(1)}`).join(' ');
+  const fundAreaD = fundPathD + ` L${points[points.length - 1].x.toFixed(1)},${(padding.top + chartHeight).toFixed(1)} L${points[0].x.toFixed(1)},${(padding.top + chartHeight).toFixed(1)} Z`;
+
+  // Y-axis ticks
+  const yTicks = 5;
+  const yTickValues = Array.from({ length: yTicks + 1 }, (_, i) => minVal + (range / yTicks) * i);
+
+  // X-axis year labels
+  const years = ['2020', '2021', '2022', '2023', '2024'];
 
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!fundPathRef.current || !benchPathRef.current) return;
 
-    const width = 800;
-    const height = 400;
-    const padding = 50;
-    const chartWidth = width - 2 * padding;
-    const chartHeight = height - 2 * padding;
+    const fundEl = fundPathRef.current;
+    const benchEl = benchPathRef.current;
+    const areaEl = fundAreaRef.current;
 
-    // Normalize data to chart coordinates
-    const minVal = Math.min(...performanceData.map(d => Math.min(d.fund, d.benchmark)));
-    const maxVal = Math.max(...performanceData.map(d => Math.max(d.fund, d.benchmark)));
-    const range = maxVal - minVal;
-
-    const points = performanceData.map((d, i) => ({
-      x: padding + (i / (performanceData.length - 1)) * chartWidth,
-      fundY: height - padding - ((d.fund - minVal) / range) * chartHeight,
-      benchY: height - padding - ((d.benchmark - minVal) / range) * chartHeight,
-    }));
-
-    // Create fund path
-    const fundPath = points
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.fundY}`)
-      .join(' ');
-
-    // Create benchmark path
-    const benchPath = points
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.benchY}`)
-      .join(' ');
-
-    // Get the path elements
-    const fundPathEl = svgRef.current.querySelector('[data-path="fund"]') as SVGPathElement;
-    const benchPathEl = svgRef.current.querySelector('[data-path="benchmark"]') as SVGPathElement;
-
-    if (fundPathEl && benchPathEl) {
-      pathsRef.current.fund = fundPathEl;
-      pathsRef.current.benchmark = benchPathEl;
-
-      // Set paths
-      fundPathEl.setAttribute('d', fundPath);
-      benchPathEl.setAttribute('d', benchPath);
-
-      // Get path lengths
-      const fundLength = fundPathEl.getTotalLength();
-      const benchLength = benchPathEl.getTotalLength();
-
-      // Set initial stroke-dasharray and offset
-      fundPathEl.style.strokeDasharray = fundLength.toString();
-      fundPathEl.style.strokeDashoffset = fundLength.toString();
-      benchPathEl.style.strokeDasharray = benchLength.toString();
-      benchPathEl.style.strokeDashoffset = benchLength.toString();
-
-      // Animate with GSAP
-      gsap.to(fundPathEl, {
-        strokeDashoffset: 0,
-        duration: 2.5,
-        ease: 'power2.inOut',
-        delay: 0.3,
-      });
-
-      gsap.to(benchPathEl, {
-        strokeDashoffset: 0,
-        duration: 2.5,
-        ease: 'power2.inOut',
-        delay: 0.5,
-      });
+    // Animate fund line using stroke-dashoffset
+    let fundLen = 2000;
+    try {
+      fundLen = fundEl.getTotalLength();
+    } catch {
+      // fallback
     }
-  }, []);
+
+    // Set initial hidden state for fund line
+    fundEl.style.strokeDasharray = `${fundLen}`;
+    fundEl.style.strokeDashoffset = `${fundLen}`;
+
+    // Benchmark uses opacity fade instead of dash animation (preserves its dashed style)
+    benchEl.style.opacity = '0';
+
+    if (areaEl) {
+      areaEl.style.opacity = '0';
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !animated) {
+          setAnimated(true);
+
+          // Animate fund line drawing
+          gsap.to(fundEl, {
+            strokeDashoffset: 0,
+            duration: 2,
+            ease: 'power2.out',
+            delay: 0.2,
+          });
+
+          // Fade in benchmark line
+          gsap.to(benchEl, {
+            opacity: 1,
+            duration: 1.5,
+            ease: 'power2.out',
+            delay: 0.6,
+          });
+
+          // Fade in area fill
+          if (areaEl) {
+            gsap.to(areaEl, {
+              opacity: 1,
+              duration: 1.5,
+              ease: 'power2.out',
+              delay: 1,
+            });
+          }
+
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [animated]);
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div ref={containerRef} className="w-full overflow-x-auto">
       <svg
-        ref={svgRef}
-        viewBox="0 0 800 400"
-        className="w-full min-h-[400px]"
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full"
+        style={{ minHeight: '350px' }}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <linearGradient id="fundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(0, 102, 255, 0.2)" />
+          <linearGradient id="fundAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(0, 102, 255, 0.15)" />
             <stop offset="100%" stopColor="rgba(0, 102, 255, 0)" />
           </linearGradient>
         </defs>
 
-        {/* Grid lines */}
-        <line x1="50" y1="350" x2="750" y2="350" stroke="#f1f5f9" strokeWidth="1" />
-        <line x1="50" y1="50" x2="50" y2="350" stroke="#f1f5f9" strokeWidth="1" />
+        {/* Horizontal grid lines */}
+        {yTickValues.map((val, i) => {
+          const y = padding.top + chartHeight - ((val - minVal) / range) * chartHeight;
+          return (
+            <g key={i}>
+              <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+              <text x={padding.left - 8} y={y + 4} textAnchor="end" fill="#94a3b8" fontSize="10" fontFamily="system-ui">
+                ${(val / 1000).toFixed(0)}k
+              </text>
+            </g>
+          );
+        })}
 
-        {/* Benchmark line */}
+        {/* X-axis year labels */}
+        {years.map((year, i) => {
+          const x = padding.left + (i / (years.length - 1)) * chartWidth;
+          return (
+            <text key={year} x={x} y={height - 10} textAnchor="middle" fill="#94a3b8" fontSize="11" fontFamily="system-ui">
+              {year}
+            </text>
+          );
+        })}
+
+        {/* Fund area fill */}
         <path
-          data-path="benchmark"
+          ref={fundAreaRef}
+          d={fundAreaD}
+          fill="url(#fundAreaGradient)"
+          style={{ opacity: 0 }}
+        />
+
+        {/* Benchmark line (dashed) */}
+        <path
+          ref={benchPathRef}
+          d={benchPathD}
           fill="none"
           stroke="#94a3b8"
           strokeWidth="2"
-          strokeDasharray="5,5"
-          className="transition-opacity duration-500"
+          style={{ strokeDasharray: '5,5' }}
         />
 
         {/* Fund line */}
         <path
-          data-path="fund"
+          ref={fundPathRef}
+          d={fundPathD}
           fill="none"
           stroke="#0066FF"
           strokeWidth="2.5"
-          className="transition-opacity duration-500"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
+
+        {/* End dots */}
+        <circle cx={points[points.length - 1].x} cy={points[points.length - 1].fundY} r="4" fill="#0066FF" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }} />
+        <circle cx={points[points.length - 1].x} cy={points[points.length - 1].benchY} r="3" fill="#94a3b8" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }} />
+
+        {/* End value labels */}
+        <text x={points[points.length - 1].x + 8} y={points[points.length - 1].fundY + 4} fill="#0066FF" fontSize="11" fontWeight="600" fontFamily="system-ui" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }}>
+          ${(performanceData[performanceData.length - 1].fund / 1000).toFixed(1)}k
+        </text>
+        <text x={points[points.length - 1].x + 8} y={points[points.length - 1].benchY + 4} fill="#94a3b8" fontSize="11" fontFamily="system-ui" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }}>
+          ${(performanceData[performanceData.length - 1].benchmark / 1000).toFixed(1)}k
+        </text>
       </svg>
     </div>
   );
@@ -498,7 +571,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Performance Chart - TradingView Lightweight Charts */}
+      {/* Performance Chart */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
@@ -531,7 +604,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
             <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-6">
-              Trusted by Canada's Leading Institutions
+              Trusted by Canada&apos;s Leading Institutions
             </p>
           </ScrollReveal>
           <ScrollReveal delay={200}>
