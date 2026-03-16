@@ -19,8 +19,9 @@ export function Navbar() {
 
   const navItems = [
     { label: 'Strategies', href: '/strategies' },
+    { label: 'Solutions', href: '/solutions' },
     { label: 'Team', href: '/team' },
-    { label: 'Insights', href: '/insights' },
+    { label: 'Sustainability', href: '/sustainability' },
     { label: 'Contact', href: '/contact' },
   ];
 

@@ -2,16 +2,16 @@
 
 export function InvestorLogos() {
   const brands = [
-    'Blackstone',
-    'Apollo',
-    'Bridgewater',
-    'Two Sigma',
-    'Citadel',
-    'Millennium',
-    'Jane Street',
-    'Qiwi Capital',
-    'Hexagon Capital',
-    'Radcliffe Capital',
+    'Desjardins',
+    'National Bank',
+    'CDPQ',
+    'PSP Investments',
+    'OMERS',
+    'Ontario Teachers\' Pension',
+    'BCI',
+    'AIMCo',
+    'Fiera Capital',
+    'iA Financial Group',
   ];
 
   return (

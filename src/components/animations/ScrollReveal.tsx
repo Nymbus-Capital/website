@@ -18,7 +18,7 @@ export function ScrollReveal({ children, className = '', delay = 0 }: ScrollReve
 
     el.style.opacity = '0';
     el.style.transform = 'translateY(12px)';
-    el.style.transition = `opacity 0.6s ease-out ${delay}s, transform 0.6s ease-out ${delay}s`;
+    el.style.transition = `opacity 0.6s ease-out ${delay / 1000}s, transform 0.6s ease-out ${delay / 1000}s`;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
