@@ -43,6 +43,7 @@ export default function StrategyDetailPage({ slug }: StrategyDetailPageProps) {
     <div className="min-h-screen bg-slate-50">
       <HeroSection fund={fund} />
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16 space-y-24">
+        <FundOverviewSection fund={fund} />
         <PerformanceSection fund={fund} />
         <TrailingReturnsTable fund={fund} />
         <CalendarYearReturns fund={fund} />
@@ -59,6 +60,7 @@ export default function StrategyDetailPage({ slug }: StrategyDetailPageProps) {
 function HeroSection({ fund }: { fund: Fund }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (titleRef.current) {
@@ -84,8 +86,13 @@ function HeroSection({ fund }: { fund: Fund }) {
   const yearsActive = (new Date().getFullYear() - inceptionDate.getFullYear());
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20 md:py-32">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
+    <div ref={containerRef} className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20 md:py-32 overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 -left-1/2 w-full h-full bg-gradient-to-r from-blue-600/20 to-transparent rounded-full blur-3xl animate-pulse" />
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="flex gap-3 mb-8 items-center">
           <span className="inline-block px-3 py-1 bg-blue-500/20 border border-blue-400/50 rounded-full text-sm font-semibold text-blue-200">
             {fund.assetClass}
@@ -121,6 +128,54 @@ function StatItem({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-widest text-slate-400 mb-2 font-semibold">{label}</p>
       <p className="text-lg font-semibold text-white">{value}</p>
     </div>
+  );
+}
+
+function FundOverviewSection({ fund }: { fund: Fund }) {
+  const inceptionDate = new Date(fund.inceptionDate);
+
+  const overviewItems = [
+    {
+      label: 'Inception Date',
+      value: inceptionDate.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }),
+      icon: Calendar,
+    },
+    {
+      label: 'Benchmark',
+      value: fund.benchmark ? fund.benchmark.split(' ').slice(0, 3).join(' ') : 'N/A',
+      icon: BarChart3,
+    },
+    {
+      label: 'Currency',
+      value: fund.currency,
+      icon: DollarSign,
+    },
+    {
+      label: 'Minimum Investment',
+      value: fund.minInvestment,
+      icon: TrendingUp,
+    },
+  ];
+
+  return (
+    <ScrollReveal>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {overviewItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Card key={item.label} className="p-6 bg-white hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Icon className="w-5 h-5 text-blue-600" />
+                </div>
+              </div>
+              <p className="text-xs uppercase tracking-widest text-slate-500 mb-2 font-semibold">{item.label}</p>
+              <p className="text-lg font-semibold text-slate-900">{item.value}</p>
+            </Card>
+          );
+        })}
+      </div>
+    </ScrollReveal>
   );
 }
 
@@ -359,6 +414,49 @@ function CalendarYearReturns({ fund }: { fund: Fund }) {
   );
 }
 
+function HeatmapCell({ year, monthIdx, return_: returnValue, yearIdx }: { year: number; monthIdx: number; return_: number; yearIdx: number }) {
+  const cellRef = useRef<SVGRectElement>(null);
+
+  useEffect(() => {
+    if (cellRef.current) {
+      gsap.from(cellRef.current, {
+        opacity: 0,
+        delay: (yearIdx * 12 + monthIdx) * 0.02,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+    }
+  }, [yearIdx, monthIdx]);
+
+  const getColor = (return_: number) => {
+    if (return_ < -5) return '#991b1b';
+    if (return_ < -2) return '#dc2626';
+    if (return_ < 0) return '#fca5a5';
+    if (return_ < 2) return '#f3f4f6';
+    if (return_ < 5) return '#86efac';
+    return '#15803d';
+  };
+
+  return (
+    <svg width="48" height="48" viewBox="0 0 48 48">
+      <rect
+        ref={cellRef}
+        x="2"
+        y="2"
+        width="44"
+        height="44"
+        fill={getColor(returnValue)}
+        stroke="#e2e8f0"
+        strokeWidth="1"
+        rx="4"
+      />
+      <text x="24" y="28" textAnchor="middle" className="text-xs font-semibold" fill={Math.abs(returnValue) > 2 ? 'white' : '#64748b'}>
+        {returnValue.toFixed(1)}%
+      </text>
+    </svg>
+  );
+}
+
 function MonthlyReturnsHeatmap({ fund }: { fund: Fund }) {
   const inceptionYear = new Date(fund.inceptionDate).getFullYear();
   const currentYear = new Date().getFullYear();
@@ -373,15 +471,6 @@ function MonthlyReturnsHeatmap({ fund }: { fund: Fund }) {
   const getMonthReturn = (year: number, monthIdx: number) => {
     const hash = year * 12 + monthIdx;
     return (Math.sin(hash) * 5 + (Math.random() - 0.5) * 3);
-  };
-
-  const getColor = (return_: number) => {
-    if (return_ < -5) return '#991b1b';
-    if (return_ < -2) return '#dc2626';
-    if (return_ < 0) return '#fca5a5';
-    if (return_ < 2) return '#f3f4f6';
-    if (return_ < 5) return '#86efac';
-    return '#15803d';
   };
 
   return (
@@ -407,36 +496,14 @@ function MonthlyReturnsHeatmap({ fund }: { fund: Fund }) {
               <div className="flex gap-1">
                 {months.map((_, monthIdx) => {
                   const return_ = getMonthReturn(year, monthIdx);
-                  const hueRef = useRef<SVGRectElement>(null);
-
-                  useEffect(() => {
-                    if (hueRef.current) {
-                      gsap.from(hueRef.current, {
-                        opacity: 0,
-                        delay: (yearIdx * 12 + monthIdx) * 0.02,
-                        duration: 0.4,
-                        ease: 'power2.out',
-                      });
-                    }
-                  }, [yearIdx, monthIdx]);
-
                   return (
-                    <svg key={`${year}-${monthIdx}`} width="48" height="48" viewBox="0 0 48 48">
-                      <rect
-                        ref={hueRef}
-                        x="2"
-                        y="2"
-                        width="44"
-                        height="44"
-                        fill={getColor(return_)}
-                        stroke="#e2e8f0"
-                        strokeWidth="1"
-                        rx="4"
-                      />
-                      <text x="24" y="28" textAnchor="middle" className="text-xs font-semibold" fill={Math.abs(return_) > 2 ? 'white' : '#64748b'}>
-                        {return_.toFixed(1)}%
-                      </text>
-                    </svg>
+                    <HeatmapCell
+                      key={`${year}-${monthIdx}`}
+                      year={year}
+                      monthIdx={monthIdx}
+                      return_={return_}
+                      yearIdx={yearIdx}
+                    />
                   );
                 })}
               </div>
@@ -554,7 +621,7 @@ function FundDocumentsSection({ fund }: { fund: Fund }) {
       <SectionHeader
         eyebrow="Legal Documents"
         title="Fund Documents"
-        description="The following documents are available as required by National Instrument 81-102"
+        description="Required regulatory documents as mandated by National Instrument 81-102"
       />
 
       {fund.type === 'mutual-fund' ? (
@@ -611,7 +678,7 @@ function CTASection({ fund }: { fund: Fund }) {
           Get in touch with our team to learn more about this investment opportunity and how it might fit your portfolio.
         </p>
         <a
-          href="mailto:info@nymbus-capital.com"
+          href="mailto:info@nymbus.ca"
           className="inline-flex items-center gap-2 bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
         >
           Contact Us

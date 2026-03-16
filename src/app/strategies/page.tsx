@@ -46,8 +46,8 @@ function generateMonthlyData(fund: Fund) {
 const fundColors = ['#0066FF', '#059669', '#7c3aed', '#dc2626'];
 const allFundData = funds.map(f => ({ fund: f, data: generateMonthlyData(f) }));
 
-// Lightweight TradingView Chart Component
-function LightweightChart({
+// SVG + GSAP Line Chart Component
+function SVGLineChart({
   fundIndices,
   chartMode,
   height = 450,
@@ -56,99 +56,149 @@ function LightweightChart({
   chartMode: 'growth' | 'drawdown';
   height?: number;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<any>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const pathRefs = useRef<(SVGPathElement | null)[]>([]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!svgRef.current || fundIndices.length === 0) return;
 
-    let chart: any;
-    const loadChart = async () => {
-      const { createChart, ColorType, LineStyle, AreaSeries } = await import('lightweight-charts');
+    const width = svgRef.current.clientWidth || 800;
+    const padding = 50;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
 
-      // Clear previous chart
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
-      }
+    // Animate all paths
+    fundIndices.forEach((fi, idx) => {
+      const pathEl = pathRefs.current[idx];
+      if (!pathEl) return;
 
-      chart = createChart(containerRef.current!, {
-        width: containerRef.current!.clientWidth,
-        height,
-        layout: {
-          background: { type: ColorType.Solid, color: '#ffffff' },
-          textColor: '#64748b',
-          fontFamily: "'Poppins', system-ui, sans-serif",
-          fontSize: 11,
-        },
-        grid: {
-          vertLines: { color: '#f1f5f9' },
-          horzLines: { color: '#f1f5f9' },
-        },
-        rightPriceScale: {
-          borderColor: '#e2e8f0',
-        },
-        timeScale: {
-          borderColor: '#e2e8f0',
-          timeVisible: false,
-        },
-        crosshair: {
-          vertLine: { color: '#94a3b8', width: 1, style: LineStyle.Dashed },
-          horzLine: { color: '#94a3b8', width: 1, style: LineStyle.Dashed },
-        },
-      });
-
-      chartRef.current = chart;
-
-      fundIndices.forEach((fi) => {
-        const { fund, data } = allFundData[fi];
-        const color = fundColors[fi];
-
-        if (chartMode === 'growth') {
-          const series = chart.addSeries(AreaSeries, {
-            lineColor: color,
-            topColor: color + '30',
-            bottomColor: color + '05',
-            lineWidth: 2,
-            priceFormat: { type: 'custom', formatter: (p: number) => '$' + p.toLocaleString() },
-          });
-          series.setData(data.map((d: any) => ({ time: d.time, value: d.value })));
-        } else {
-          const series = chart.addSeries(AreaSeries, {
-            lineColor: color,
-            topColor: color + '05',
-            bottomColor: color + '20',
-            lineWidth: 2,
-            priceFormat: { type: 'custom', formatter: (p: number) => p.toFixed(2) + '%' },
-          });
-          series.setData(data.map((d: any) => ({ time: d.time, value: d.drawdown })));
+      const length = pathEl.getTotalLength();
+      gsap.fromTo(
+        pathEl,
+        { strokeDasharray: length, strokeDashoffset: length },
+        {
+          strokeDashoffset: 0,
+          duration: 2,
+          ease: 'power2.inOut',
+          delay: idx * 0.2,
         }
-      });
+      );
+    });
+  }, [fundIndices, chartMode]);
 
-      chart.timeScale().fitContent();
+  const width = 800;
+  const padding = 50;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - padding * 2;
 
-      // Resize handler
-      const ro = new ResizeObserver(() => {
-        if (containerRef.current && chart) {
-          chart.applyOptions({ width: containerRef.current.clientWidth });
-        }
-      });
-      ro.observe(containerRef.current!);
+  // Get data range for scaling
+  const dataValues = fundIndices.flatMap((fi) => {
+    const { data } = allFundData[fi];
+    if (chartMode === 'growth') {
+      return data.map((d) => d.value);
+    } else {
+      return data.map((d) => d.drawdown);
+    }
+  });
 
-      return () => ro.disconnect();
-    };
+  const minVal = Math.min(...dataValues);
+  const maxVal = Math.max(...dataValues);
+  const range = maxVal - minVal || 1;
+  const scale = (v: number) => padding + ((v - minVal) / range) * chartHeight;
 
-    loadChart();
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full"
+        style={{ minHeight: height, minWidth: width }}
+      >
+        {/* Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
+          <line
+            key={`hgrid-${frac}`}
+            x1={padding}
+            x2={padding + chartWidth}
+            y1={padding + frac * chartHeight}
+            y2={padding + frac * chartHeight}
+            stroke="#f1f5f9"
+            strokeWidth="1"
+          />
+        ))}
 
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
-      }
-    };
-  }, [fundIndices, chartMode, height]);
+        {/* Axes */}
+        <line x1={padding} x2={padding} y1={padding} y2={padding + chartHeight} stroke="#e2e8f0" strokeWidth="2" />
+        <line
+          x1={padding}
+          x2={padding + chartWidth}
+          y1={padding + chartHeight}
+          y2={padding + chartHeight}
+          stroke="#e2e8f0"
+          strokeWidth="2"
+        />
 
-  return <div ref={containerRef} className="w-full" />;
+        {/* Y-axis labels */}
+        {[0, 0.25, 0.5, 0.75, 1].map((frac, i) => {
+          const val = minVal + frac * range;
+          const label =
+            chartMode === 'growth'
+              ? '$' + Math.round(val).toLocaleString()
+              : val.toFixed(1) + '%';
+          return (
+            <text
+              key={`ylabel-${i}`}
+              x={padding - 10}
+              y={padding + (1 - frac) * chartHeight + 4}
+              textAnchor="end"
+              fontSize="11"
+              fill="#94a3b8"
+            >
+              {label}
+            </text>
+          );
+        })}
+
+        {/* Lines */}
+        {fundIndices.map((fi, idx) => {
+          const { data } = allFundData[fi];
+          const color = fundColors[fi];
+          const values = chartMode === 'growth' ? data.map((d) => d.value) : data.map((d) => d.drawdown);
+
+          const points = values.map((v, i) => {
+            const x = padding + (i / (values.length - 1)) * chartWidth;
+            const y = scale(v);
+            return `${x},${y}`;
+          });
+
+          const pathD = 'M' + points.join('L');
+
+          return (
+            <g key={fi}>
+              <defs>
+                <linearGradient id={`grad-${fi}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+                  <stop offset="100%" stopColor={color} stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path
+                d={pathD}
+                fill="none"
+                stroke={color}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d={`${pathD}L${padding + chartWidth},${padding + chartHeight}L${padding},${padding + chartHeight}Z`}
+                fill={`url(#grad-${fi})`}
+              />
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
 }
 
 // Animated bar chart using gsap
@@ -215,109 +265,159 @@ function AnimatedBarChart({ fundIndices }: { fundIndices: number[] }) {
   );
 }
 
-// Risk-return scatter using SVG + gsap
-function RiskReturnScatter() {
+// Downside Volatility vs Annual Returns scatter using SVG + gsap
+function DownsideVolatilityScatter() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [hoveredFund, setHoveredFund] = useState<number | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
-  const riskReturnData = funds.map((fund, i) => ({
+  // Fund data
+  const fundData = funds.map((fund, i) => ({
     name: fund.shortName,
     fullName: fund.name,
-    risk: fund.assetClass === 'Alternatives' ? 8.5 : fund.assetClass === 'Multi-Asset' ? 6.2 : fund.slug.includes('short') ? 2.8 : 4.5,
-    ret: fund.returns.sinceInception,
-    sharpe: fund.sharpe || 0.7,
+    downvol: fund.downsideVolatility || 5,
+    annualReturn: fund.annualReturn || fund.returns.sinceInception,
+    assetClass: fund.assetClass,
     color: fundColors[i],
   }));
 
+  // Reference indices as grey dots
+  const referenceData = [
+    { name: 'S&P/TSX', risk: 15, ret: 8.5, color: '#a1a5a1' },
+    { name: 'FTSE Bond', risk: 4.2, ret: 2.8, color: '#a1a5a1' },
+    { name: 'MSCI World', risk: 14, ret: 9.2, color: '#a1a5a1' },
+    { name: 'T-Bills', risk: 0.5, ret: 1.5, color: '#a1a5a1' },
+  ];
+
   useEffect(() => {
     if (!svgRef.current) return;
-    const circles = svgRef.current.querySelectorAll('.scatter-dot');
-    gsap.fromTo(circles, { scale: 0, opacity: 0 }, {
-      scale: 1,
-      opacity: 1,
-      duration: 0.6,
-      stagger: 0.15,
-      ease: 'back.out(1.7)',
-      transformOrigin: 'center',
-    });
+    const circles = svgRef.current.querySelectorAll('.scatter-circle');
+    gsap.fromTo(
+      circles,
+      { scale: 0, opacity: 0 },
+      {
+        scale: 1,
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'back.out(1.7)',
+        transformOrigin: 'center',
+      }
+    );
   }, []);
 
-  const width = 500;
-  const height = 350;
-  const margin = { top: 30, right: 30, bottom: 50, left: 60 };
+  const width = 520;
+  const height = 380;
+  const margin = { top: 30, right: 30, bottom: 60, left: 70 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
-  const xMin = 0, xMax = 12;
-  const yMin = 0, yMax = 15;
-  const scaleX = (v: number) => margin.left + (v - xMin) / (xMax - xMin) * innerW;
-  const scaleY = (v: number) => margin.top + innerH - (v - yMin) / (yMax - yMin) * innerH;
+  const xMin = 0,
+    xMax = 16;
+  const yMin = 0,
+    yMax = 14;
+  const scaleX = (v: number) => margin.left + ((v - xMin) / (xMax - xMin)) * innerW;
+  const scaleY = (v: number) => margin.top + innerH - ((v - yMin) / (yMax - yMin)) * innerH;
+
+  const allPoints = [
+    ...fundData.map((d) => ({ ...d, isFund: true })),
+    ...referenceData.map((d) => ({ name: d.name, fullName: d.name, downvol: d.risk, annualReturn: d.ret, color: d.color, isFund: false })),
+  ];
 
   return (
     <div className="w-full overflow-x-auto">
-      <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full max-w-[500px] mx-auto">
+      <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full max-w-[520px] mx-auto">
         {/* Grid */}
-        {[0, 3, 6, 9, 12].map(v => (
+        {[0, 4, 8, 12, 16].map((v) => (
           <line key={`gx-${v}`} x1={scaleX(v)} x2={scaleX(v)} y1={margin.top} y2={margin.top + innerH} stroke="#f1f5f9" strokeWidth={1} />
         ))}
-        {[0, 5, 10, 15].map(v => (
+        {[0, 4, 8, 12].map((v) => (
           <line key={`gy-${v}`} x1={margin.left} x2={margin.left + innerW} y1={scaleY(v)} y2={scaleY(v)} stroke="#f1f5f9" strokeWidth={1} />
         ))}
         {/* Axes */}
-        <line x1={margin.left} x2={margin.left + innerW} y1={margin.top + innerH} y2={margin.top + innerH} stroke="#e2e8f0" />
-        <line x1={margin.left} x2={margin.left} y1={margin.top} y2={margin.top + innerH} stroke="#e2e8f0" />
+        <line x1={margin.left} x2={margin.left + innerW} y1={margin.top + innerH} y2={margin.top + innerH} stroke="#e2e8f0" strokeWidth="2" />
+        <line x1={margin.left} x2={margin.left} y1={margin.top} y2={margin.top + innerH} stroke="#e2e8f0" strokeWidth="2" />
         {/* X axis labels */}
-        {[0, 3, 6, 9, 12].map(v => (
-          <text key={`xl-${v}`} x={scaleX(v)} y={margin.top + innerH + 20} textAnchor="middle" fontSize={10} fill="#94a3b8">{v}%</text>
+        {[0, 4, 8, 12, 16].map((v) => (
+          <text key={`xl-${v}`} x={scaleX(v)} y={margin.top + innerH + 20} textAnchor="middle" fontSize={10} fill="#94a3b8">
+            {v}%
+          </text>
         ))}
-        <text x={margin.left + innerW / 2} y={height - 5} textAnchor="middle" fontSize={11} fill="#64748b">Risk (Volatility)</text>
+        <text x={margin.left + innerW / 2} y={height - 8} textAnchor="middle" fontSize={11} fontWeight={600} fill="#64748b">
+          Downside Volatility (%)
+        </text>
         {/* Y axis labels */}
-        {[0, 5, 10, 15].map(v => (
-          <text key={`yl-${v}`} x={margin.left - 10} y={scaleY(v) + 4} textAnchor="end" fontSize={10} fill="#94a3b8">{v}%</text>
+        {[0, 4, 8, 12].map((v) => (
+          <text key={`yl-${v}`} x={margin.left - 12} y={scaleY(v) + 4} textAnchor="end" fontSize={10} fill="#94a3b8">
+            {v}%
+          </text>
         ))}
-        <text x={15} y={margin.top + innerH / 2} textAnchor="middle" fontSize={11} fill="#64748b" transform={`rotate(-90, 15, ${margin.top + innerH / 2})`}>Return</text>
+        <text
+          x={20}
+          y={margin.top + innerH / 2}
+          textAnchor="middle"
+          fontSize={11}
+          fontWeight={600}
+          fill="#64748b"
+          transform={`rotate(-90, 20, ${margin.top + innerH / 2})`}
+        >
+          Annual Return (%)
+        </text>
         {/* Dots */}
-        {riskReturnData.map((d, i) => (
-          <g key={d.name} className="scatter-dot cursor-pointer"
-            onMouseEnter={() => setHoveredFund(i)}
-            onMouseLeave={() => setHoveredFund(null)}
-          >
-            <circle
-              cx={scaleX(d.risk)}
-              cy={scaleY(d.ret)}
-              r={hoveredFund === i ? 14 : 10 + d.sharpe * 4}
-              fill={d.color}
-              opacity={hoveredFund !== null && hoveredFund !== i ? 0.3 : 0.85}
-              className="transition-all duration-200"
-            />
-            <text
-              x={scaleX(d.risk)}
-              y={scaleY(d.ret) + 4}
-              textAnchor="middle"
-              fontSize={9}
-              fontWeight={600}
-              fill="white"
+        {allPoints.map((d, i) => {
+          const isReferenceData = !d.isFund;
+          const radius = hoveredPoint === i ? 10 : 7;
+          return (
+            <g
+              key={`${d.name}-${i}`}
+              className="scatter-circle cursor-pointer"
+              onMouseEnter={() => setHoveredPoint(i)}
+              onMouseLeave={() => setHoveredPoint(null)}
             >
-              {d.name}
-            </text>
-            {hoveredFund === i && (
-              <g>
-                <rect
-                  x={scaleX(d.risk) + 18}
-                  y={scaleY(d.ret) - 30}
-                  width={140}
-                  height={52}
-                  rx={6}
+              <circle
+                cx={scaleX(d.downvol)}
+                cy={scaleY(d.annualReturn)}
+                r={radius}
+                fill={d.color}
+                opacity={hoveredPoint !== null && hoveredPoint !== i ? 0.4 : 0.8}
+                className="transition-all duration-200"
+              />
+              {!isReferenceData && (
+                <text
+                  x={scaleX(d.downvol)}
+                  y={scaleY(d.annualReturn) + 3}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fontWeight={600}
                   fill="white"
-                  stroke="#e2e8f0"
-                />
-                <text x={scaleX(d.risk) + 26} y={scaleY(d.ret) - 14} fontSize={10} fontWeight={600} fill="#0f172a">{d.fullName}</text>
-                <text x={scaleX(d.risk) + 26} y={scaleY(d.ret) + 1} fontSize={9} fill="#64748b">Return: {d.ret.toFixed(1)}% | Risk: {d.risk.toFixed(1)}%</text>
-                <text x={scaleX(d.risk) + 26} y={scaleY(d.ret) + 14} fontSize={9} fill="#64748b">Sharpe: {d.sharpe.toFixed(2)}</text>
-              </g>
-            )}
-          </g>
-        ))}
+                >
+                  {d.name}
+                </text>
+              )}
+              {hoveredPoint === i && (
+                <g>
+                  <rect
+                    x={scaleX(d.downvol) + 15}
+                    y={scaleY(d.annualReturn) - 35}
+                    width={150}
+                    height={58}
+                    rx={6}
+                    fill="white"
+                    stroke="#e2e8f0"
+                  />
+                  <text x={scaleX(d.downvol) + 24} y={scaleY(d.annualReturn) - 18} fontSize={10} fontWeight={600} fill="#0f172a">
+                    {d.fullName}
+                  </text>
+                  <text x={scaleX(d.downvol) + 24} y={scaleY(d.annualReturn) + 0} fontSize={9} fill="#64748b">
+                    Downside Vol: {d.downvol.toFixed(1)}%
+                  </text>
+                  <text x={scaleX(d.downvol) + 24} y={scaleY(d.annualReturn) + 14} fontSize={9} fill="#64748b">
+                    Annual Return: {d.annualReturn.toFixed(1)}%
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
@@ -396,64 +496,86 @@ export default function StrategiesPage() {
         </div>
       </section>
 
-      {/* Fund Cards with Sparklines */}
-      <section className="px-6 pb-16 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {allFundData.map(({ fund, data }, index) => (
-              <ScrollReveal key={fund.slug} delay={index * 100}>
-                <Link href={`/strategies/${fund.slug}`}>
-                  <Card className="p-6 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {fund.name}
-                        </h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">{fund.assetClass}</span>
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">{fund.vehicle}</span>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                    </div>
+      {/* Fund Cards organized by Asset Class */}
+      {(['Fixed Income', 'Alternatives', 'Multi-Asset'] as const).map((assetClass, sectionIdx) => {
+        const assetClassFunds = allFundData.filter(({ fund }) => fund.assetClass === assetClass);
+        const sectionTitles = {
+          'Fixed Income': 'Fixed Income Strategies',
+          'Alternatives': 'Liquid Alternatives',
+          'Multi-Asset': 'Multi-Asset Strategies',
+        };
 
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">{fund.description}</p>
-
-                    {/* Sparkline */}
-                    <div className="mb-4">
-                      <Sparkline
-                        data={data.slice(-24).map(d => d.value)}
-                        color={fundColors[index]}
-                        height={60}
-                      />
-                    </div>
-
-                    {/* Performance Metrics */}
-                    <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-100">
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.ytd)}</p>
-                        <p className="text-xs text-slate-500">YTD</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.oneYear)}</p>
-                        <p className="text-xs text-slate-500">1Y</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p>
-                        <p className="text-xs text-slate-500">SI</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? '\u2014'}</p>
-                        <p className="text-xs text-slate-500">Sharpe</p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
+        return (
+          <section key={assetClass} className="px-6 pb-16 md:px-12">
+            <div className="max-w-7xl mx-auto">
+              <ScrollReveal>
+                <h2 className="text-3xl font-bold text-slate-900 mb-2">{sectionTitles[assetClass]}</h2>
+                <p className="text-slate-600 mb-8">
+                  {assetClass === 'Fixed Income' && 'Systematic bond strategies targeting enhanced returns with ESG integration.'}
+                  {assetClass === 'Alternatives' && 'Diversified alternatives combining multiple strategies for consistent risk-adjusted returns.'}
+                  {assetClass === 'Multi-Asset' && 'Global multi-asset strategies optimized for low volatility and stable performance.'}
+                </p>
               </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {assetClassFunds.map(({ fund, data }, index) => {
+                  const globalIndex = allFundData.findIndex((f) => f.fund.slug === fund.slug);
+                  return (
+                    <ScrollReveal key={fund.slug} delay={index * 100}>
+                      <Link href={`/strategies/${fund.slug}`}>
+                        <Card className="p-6 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                {fund.name}
+                              </h3>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">{fund.vehicle}</span>
+                              </div>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                          </div>
+
+                          <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">{fund.description}</p>
+
+                          {/* Sparkline */}
+                          <div className="mb-4">
+                            <Sparkline
+                              data={data.slice(-24).map((d) => d.value)}
+                              color={fundColors[globalIndex]}
+                              height={60}
+                            />
+                          </div>
+
+                          {/* Performance Metrics */}
+                          <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-100">
+                            <div className="text-center">
+                              <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.ytd)}</p>
+                              <p className="text-xs text-slate-500">YTD</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.oneYear)}</p>
+                              <p className="text-xs text-slate-500">1Y</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p>
+                              <p className="text-xs text-slate-500">SI</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? '—'}</p>
+                              <p className="text-xs text-slate-500">Sharpe</p>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    </ScrollReveal>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })}
 
       {/* Interactive Performance Comparison */}
       <section className="px-6 py-20 md:px-12 bg-slate-50 border-t border-slate-100">
@@ -528,7 +650,7 @@ export default function StrategiesPage() {
             {chartMode === 'returns' ? (
               <AnimatedBarChart fundIndices={selectedFunds} />
             ) : (
-              <LightweightChart
+              <SVGLineChart
                 fundIndices={selectedFunds}
                 chartMode={chartMode}
                 height={450}
@@ -544,65 +666,45 @@ export default function StrategiesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <ScrollReveal>
               <div>
-                <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Risk & Return</p>
-                <h2 className="text-3xl font-bold text-slate-900 mb-6">Efficient Frontier Positioning</h2>
-                <p className="text-slate-700 leading-relaxed mb-6">
-                  Our strategies are designed to maximize risk-adjusted returns. Each fund occupies a distinct position on the risk-return spectrum, enabling investors to select the optimal combination for their objectives.
+                <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Risk Analysis</p>
+                <h2 className="text-3xl font-bold text-slate-900 mb-6">Downside Volatility vs Returns</h2>
+                <p className="text-slate-700 leading-relaxed mb-8">
+                  Our strategies are positioned across the risk-return spectrum. The chart shows each fund's downside volatility against its annual return, along with key reference indices for context.
                 </p>
-                <div className="space-y-4">
-                  {funds.map((fund, i) => (
-                    <div key={fund.slug} className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: fundColors[i] }} />
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">{fund.shortName}</p>
-                        <p className="text-slate-500 text-xs">Sharpe: {fund.sharpe?.toFixed(2)} | SI Return: {formatPercent(fund.returns.sinceInception)}</p>
-                      </div>
+
+                {(['Fixed Income', 'Alternatives', 'Multi-Asset'] as const).map((assetClass) => (
+                  <div key={assetClass} className="mb-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wide">{assetClass}</h3>
+                    <div className="space-y-2">
+                      {funds.filter((f) => f.assetClass === assetClass).map((fund, i) => {
+                        const fundIdx = funds.indexOf(fund);
+                        return (
+                          <div key={fund.slug} className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: fundColors[fundIdx] }} />
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900 text-sm">{fund.shortName}</p>
+                              <p className="text-slate-500 text-xs">
+                                Downside Vol: {(fund.downsideVolatility || 5).toFixed(1)}% | Annual Return: {formatPercent(fund.returns.sinceInception)}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
               <Card className="p-6 border border-slate-200">
-                <RiskReturnScatter />
+                <DownsideVolatilityScatter />
               </Card>
             </ScrollReveal>
           </div>
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section className="px-6 py-20 md:px-12 bg-slate-900 text-white">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Our Philosophy</p>
-              <h2 className="text-4xl font-bold mb-6">Why Systematic?</h2>
-              <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-                Our data-driven approach removes emotion and behavioral bias from investing, delivering consistent, measurable results backed by rigorous quantitative research.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { stat: '12.8%', label: 'SI Return', sub: 'Multi-Strategy Fund' },
-              { stat: '1.12', label: 'Sharpe Ratio', sub: 'Short-Term Bonds' },
-              { stat: '0.55%', label: 'Lowest MER', sub: 'Cost-efficient investing' },
-              { stat: '2013', label: 'Founded', sub: 'Over a decade of results' },
-            ].map((item, index) => (
-              <ScrollReveal key={index} delay={index * 100}>
-                <div className="text-center p-6 rounded-xl border border-white/10 hover:border-white/20 transition-colors">
-                  <div className="text-3xl font-bold text-white mb-1">{item.stat}</div>
-                  <p className="text-blue-400 font-semibold text-sm mb-1">{item.label}</p>
-                  <p className="text-slate-500 text-xs">{item.sub}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
