@@ -64,7 +64,7 @@ const commitments = [
   {
     title: 'Zero Fossil Fuel Portfolio',
     year: 'Achieved 2023',
-    description: 'Our Sustainable Enhanced Bonds Fund became the first zero fossil fuel fixed income fund in Canada, eliminating direct exposure to coal, oil, and gas producers.',
+    description: 'Our Sustainable Enhanced Bonds Fund became our first zero fossil fuel fixed income fund, eliminating all direct exposure to coal, oil, and gas producers from the portfolio.',
     icon: Zap,
   },
 ];
@@ -326,7 +326,7 @@ function ImpactSection() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {[
             { label: 'Years as PRI Signatory', value: 6 },
-            { label: 'Zero Fossil Fuel Fund in Canada', value: 1, suffix: 'st' },
+            { label: 'Zero Fossil Fuel Fund', value: 1, suffix: 'st' },
             { label: 'Sustainable Fund Mandates', value: 3, suffix: '+' },
             { label: 'ESG-Integrated Models', value: 100, suffix: '%' },
           ].map((stat, idx) => (
