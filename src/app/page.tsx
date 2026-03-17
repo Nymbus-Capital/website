@@ -8,32 +8,8 @@ import TypewriterEffect from '@/components/animations/TypewriterEffect';
 import AnimatedCounter from '@/components/animations/AnimatedCounter';
 import { funds } from '@/data/funds';
 import { formatPercent } from '@/lib/utils';
-import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, ChevronRight } from 'lucide-react';
+import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, ChevronRight, Database, Zap, Layout, Lock } from 'lucide-react';
 import gsap from 'gsap';
-
-// Generate smooth performance data
-const generatePerformanceData = () => {
-  const data: { time: string; fund: number; benchmark: number }[] = [];
-  let fundVal = 10000;
-  let benchVal = 10000;
-  const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-  for (let y = 0; y < 5; y++) {
-    for (let m = 0; m < 12; m++) {
-      const i = y * 12 + m;
-      fundVal += (Math.sin(i * 0.3) * 50 + Math.cos(i * 0.15) * 30 + 90);
-      benchVal += 55 + Math.sin(i * 0.4) * 15;
-      const day = String(Math.min(28, 1 + m * 2)).padStart(2, '0');
-      data.push({
-        time: `${2020 + y}-${months[m]}-${day}`,
-        fund: Math.round(fundVal),
-        benchmark: Math.round(benchVal),
-      });
-    }
-  }
-  return data;
-};
-
-const performanceData = generatePerformanceData();
 
 const newsItems = [
   { date: '2024', title: 'Nymbus Capital Reaches $1 Billion in Assets Under Management', category: 'Milestone', description: 'A significant milestone reflecting institutional trust and investment excellence.' },
@@ -44,99 +20,54 @@ const newsItems = [
   { date: '2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital (2013), Gestion de portefeuille Landry (2002), and Perseus Capital (2005).' },
 ];
 
-// SVG Chart Component with GSAP animation
-function PerformanceChart() {
+// Investment Capabilities Pipeline Component
+function InvestmentCapabilities() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fundPathRef = useRef<SVGPathElement>(null);
-  const benchPathRef = useRef<SVGPathElement>(null);
-  const fundAreaRef = useRef<SVGPathElement>(null);
-  const [animated, setAnimated] = useState(false);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Pre-compute chart geometry
-  const width = 800;
-  const height = 400;
-  const padding = { top: 40, right: 30, bottom: 50, left: 60 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-
-  const minVal = Math.min(...performanceData.map(d => Math.min(d.fund, d.benchmark)));
-  const maxVal = Math.max(...performanceData.map(d => Math.max(d.fund, d.benchmark)));
-  const range = maxVal - minVal || 1;
-
-  const points = performanceData.map((d, i) => ({
-    x: padding.left + (i / (performanceData.length - 1)) * chartWidth,
-    fundY: padding.top + chartHeight - ((d.fund - minVal) / range) * chartHeight,
-    benchY: padding.top + chartHeight - ((d.benchmark - minVal) / range) * chartHeight,
-  }));
-
-  const fundPathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.fundY.toFixed(1)}`).join(' ');
-  const benchPathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.benchY.toFixed(1)}`).join(' ');
-  const fundAreaD = fundPathD + ` L${points[points.length - 1].x.toFixed(1)},${(padding.top + chartHeight).toFixed(1)} L${points[0].x.toFixed(1)},${(padding.top + chartHeight).toFixed(1)} Z`;
-
-  // Y-axis ticks
-  const yTicks = 5;
-  const yTickValues = Array.from({ length: yTicks + 1 }, (_, i) => minVal + (range / yTicks) * i);
-
-  // X-axis year labels
-  const years = ['2020', '2021', '2022', '2023', '2024'];
+  const capabilities = [
+    {
+      icon: Database,
+      title: 'Data & Research',
+      description: 'Deep analysis of market dynamics and fundamental data using proprietary frameworks'
+    },
+    {
+      icon: Zap,
+      title: 'Signal Generation',
+      description: 'Advanced ML models to identify alpha-generating signals across asset classes'
+    },
+    {
+      icon: Layout,
+      title: 'Portfolio Construction',
+      description: 'Optimized portfolio building using systematic allocation and rebalancing rules'
+    },
+    {
+      icon: Lock,
+      title: 'Risk Management',
+      description: 'Continuous monitoring with dynamic hedging and regime-based adjustments'
+    }
+  ];
 
   useEffect(() => {
-    if (!fundPathRef.current || !benchPathRef.current) return;
-
-    const fundEl = fundPathRef.current;
-    const benchEl = benchPathRef.current;
-    const areaEl = fundAreaRef.current;
-
-    // Animate fund line using stroke-dashoffset
-    let fundLen = 2000;
-    try {
-      fundLen = fundEl.getTotalLength();
-    } catch {
-      // fallback
-    }
-
-    // Set initial hidden state for fund line
-    fundEl.style.strokeDasharray = `${fundLen}`;
-    fundEl.style.strokeDashoffset = `${fundLen}`;
-
-    // Benchmark uses opacity fade instead of dash animation (preserves its dashed style)
-    benchEl.style.opacity = '0';
-
-    if (areaEl) {
-      areaEl.style.opacity = '0';
-    }
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !animated) {
-          setAnimated(true);
-
-          // Animate fund line drawing
-          gsap.to(fundEl, {
-            strokeDashoffset: 0,
-            duration: 2,
-            ease: 'power2.out',
-            delay: 0.2,
+        if (entry.isIntersecting) {
+          // Stagger animation for cards
+          cardsRef.current.forEach((card, index) => {
+            if (card) {
+              gsap.fromTo(
+                card,
+                { opacity: 0, y: 40 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.6,
+                  delay: index * 0.15,
+                  ease: 'power2.out'
+                }
+              );
+            }
           });
-
-          // Fade in benchmark line
-          gsap.to(benchEl, {
-            opacity: 1,
-            duration: 1.5,
-            ease: 'power2.out',
-            delay: 0.6,
-          });
-
-          // Fade in area fill
-          if (areaEl) {
-            gsap.to(areaEl, {
-              opacity: 1,
-              duration: 1.5,
-              ease: 'power2.out',
-              delay: 1,
-            });
-          }
-
           observer.disconnect();
         }
       },
@@ -148,87 +79,64 @@ function PerformanceChart() {
     }
 
     return () => observer.disconnect();
-  }, [animated]);
+  }, []);
 
   return (
-    <div ref={containerRef} className="w-full overflow-x-auto">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full"
-        style={{ minHeight: '350px' }}
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <defs>
-          <linearGradient id="fundAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(0, 102, 255, 0.15)" />
-            <stop offset="100%" stopColor="rgba(0, 102, 255, 0)" />
-          </linearGradient>
-        </defs>
+    <div ref={containerRef} className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {capabilities.map((cap, index) => (
+          <div
+            key={index}
+            ref={(el) => {
+              cardsRef.current[index] = el;
+            }}
+            className="relative"
+          >
+            <Card className="h-full p-6 border border-slate-200 bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+              {/* Icon background */}
+              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                <cap.icon className="w-6 h-6 text-blue-600" />
+              </div>
 
-        {/* Horizontal grid lines */}
-        {yTickValues.map((val, i) => {
-          const y = padding.top + chartHeight - ((val - minVal) / range) * chartHeight;
-          return (
-            <g key={i}>
-              <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="#f1f5f9" strokeWidth="1" />
-              <text x={padding.left - 8} y={y + 4} textAnchor="end" fill="#94a3b8" fontSize="10" fontFamily="system-ui">
-                ${(val / 1000).toFixed(0)}k
-              </text>
-            </g>
-          );
-        })}
+              {/* Title and description */}
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{cap.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{cap.description}</p>
 
-        {/* X-axis year labels */}
-        {years.map((year, i) => {
-          const x = padding.left + (i / (years.length - 1)) * chartWidth;
-          return (
-            <text key={year} x={x} y={height - 10} textAnchor="middle" fill="#94a3b8" fontSize="11" fontFamily="system-ui">
-              {year}
-            </text>
-          );
-        })}
+              {/* Animated bottom border on hover */}
+              <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-600 to-transparent w-0 group-hover:w-full transition-all duration-300" />
+            </Card>
 
-        {/* Fund area fill */}
-        <path
-          ref={fundAreaRef}
-          d={fundAreaD}
-          fill="url(#fundAreaGradient)"
-          style={{ opacity: 0 }}
-        />
-
-        {/* Benchmark line (dashed) */}
-        <path
-          ref={benchPathRef}
-          d={benchPathD}
-          fill="none"
-          stroke="#94a3b8"
-          strokeWidth="2"
-          style={{ strokeDasharray: '5,5' }}
-        />
-
-        {/* Fund line */}
-        <path
-          ref={fundPathRef}
-          d={fundPathD}
-          fill="none"
-          stroke="#0066FF"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* End dots */}
-        <circle cx={points[points.length - 1].x} cy={points[points.length - 1].fundY} r="4" fill="#0066FF" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }} />
-        <circle cx={points[points.length - 1].x} cy={points[points.length - 1].benchY} r="3" fill="#94a3b8" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }} />
-
-        {/* End value labels */}
-        <text x={points[points.length - 1].x + 8} y={points[points.length - 1].fundY + 4} fill="#0066FF" fontSize="11" fontWeight="600" fontFamily="system-ui" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }}>
-          ${(performanceData[performanceData.length - 1].fund / 1000).toFixed(1)}k
-        </text>
-        <text x={points[points.length - 1].x + 8} y={points[points.length - 1].benchY + 4} fill="#94a3b8" fontSize="11" fontFamily="system-ui" opacity={animated ? 1 : 0} style={{ transition: 'opacity 0.5s ease 2s' }}>
-          ${(performanceData[performanceData.length - 1].benchmark / 1000).toFixed(1)}k
-        </text>
-      </svg>
+            {/* Connecting arrow (visible on desktop) */}
+            {index < capabilities.length - 1 && (
+              <div className="hidden lg:flex absolute top-1/2 -right-2 transform -translate-y-1/2 z-0">
+                <svg width="40" height="40" viewBox="0 0 40 40" className="text-slate-300">
+                  <defs>
+                    <marker
+                      id={`arrowhead-${index}`}
+                      markerWidth="10"
+                      markerHeight="10"
+                      refX="9"
+                      refY="3"
+                      orient="auto"
+                    >
+                      <polygon points="0 0, 10 3, 0 6" fill="currentColor" />
+                    </marker>
+                  </defs>
+                  <line
+                    x1="5"
+                    y1="20"
+                    x2="35"
+                    y2="20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    markerEnd={`url(#arrowhead-${index})`}
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -377,6 +285,146 @@ function InvestorLogoBar() {
           animation-play-state: paused;
         }
       `}</style>
+    </div>
+  );
+}
+
+// News Carousel Component
+function NewsCarousel() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const itemsPerSlide = {
+    desktop: 3,
+    tablet: 2,
+    mobile: 1
+  };
+
+  const [itemsToShow, setItemsToShow] = useState(itemsPerSlide.desktop);
+
+  // Update items to show based on window size
+  useEffect(() => {
+    const updateItemsToShow = () => {
+      if (window.innerWidth >= 1024) {
+        setItemsToShow(itemsPerSlide.desktop);
+      } else if (window.innerWidth >= 768) {
+        setItemsToShow(itemsPerSlide.tablet);
+      } else {
+        setItemsToShow(itemsPerSlide.mobile);
+      }
+    };
+
+    updateItemsToShow();
+    window.addEventListener('resize', updateItemsToShow);
+    return () => window.removeEventListener('resize', updateItemsToShow);
+  }, []);
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDirection('next');
+      setCurrentSlide((prev) => (prev + 1) % Math.ceil(newsItems.length / itemsToShow));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [itemsToShow]);
+
+  const totalSlides = Math.ceil(newsItems.length / itemsToShow);
+  const offset = currentSlide * itemsToShow;
+
+  const handlePrev = () => {
+    setDirection('prev');
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const handleNext = () => {
+    setDirection('next');
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const handleDotClick = (index: number) => {
+    setDirection(index > currentSlide ? 'next' : 'prev');
+    setCurrentSlide(index);
+  };
+
+  return (
+    <div className="w-full">
+      <div className="relative">
+        {/* Carousel container */}
+        <div ref={containerRef} className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-out"
+            style={{
+              transform: `translateX(-${currentSlide * 100}%)`,
+              width: `${totalSlides * 100}%`
+            }}
+          >
+            {newsItems.map((item, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0"
+                style={{ width: `${100 / totalSlides}%` }}
+              >
+                <div className={`${itemsToShow === 1 ? 'px-0' : 'px-3'}`}>
+                  <Card className="p-6 border border-slate-200 bg-white hover:border-blue-300 transition-all h-full group cursor-pointer relative overflow-hidden">
+                    {/* Gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
+                        <span className="text-slate-400 text-xs flex items-center gap-1">
+                          <Calendar className="w-3 h-3" /> {item.date}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+                    </div>
+
+                    {/* Arrow icon on hover */}
+                    <div className="absolute top-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Left arrow */}
+        <button
+          onClick={handlePrev}
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors"
+          aria-label="Previous slide"
+        >
+          <ArrowRight className="w-6 h-6 text-slate-400 rotate-180 hover:text-slate-600 transition-colors" />
+        </button>
+
+        {/* Right arrow */}
+        <button
+          onClick={handleNext}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors"
+          aria-label="Next slide"
+        >
+          <ArrowRight className="w-6 h-6 text-slate-400 hover:text-slate-600 transition-colors" />
+        </button>
+      </div>
+
+      {/* Navigation dots */}
+      <div className="flex justify-center gap-2 mt-8">
+        {Array.from({ length: totalSlides }).map((_, index) => (
+          <button
+            key={index}
+            onClick={() => handleDotClick(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 hover:bg-slate-400'
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -571,30 +619,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Performance Chart */}
+      {/* Investment Capabilities Pipeline */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
             <div className="mb-12">
-              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Performance</p>
-              <h2 className="text-4xl font-bold text-slate-900 mb-2">Growth of $10,000</h2>
-              <p className="text-lg text-slate-500">Illustrative 5-year cumulative performance vs. benchmark</p>
+              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Our Investment Process</p>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2">Investment Capabilities</h2>
+              <p className="text-lg text-slate-500">A systematic pipeline approach that defines our entire investment methodology</p>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={200}>
-            <Card className="p-4 md:p-6 border border-slate-200 bg-white">
-              <PerformanceChart />
-              <div className="flex items-center justify-center gap-6 mt-4 text-sm text-slate-500">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-0.5 bg-blue-600" />
-                  Nymbus Multi-Strategy
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-0.5 bg-slate-400" />
-                  Benchmark
-                </div>
-              </div>
-            </Card>
+            <InvestmentCapabilities />
           </ScrollReveal>
         </div>
       </section>
@@ -613,7 +649,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* News / Insights Parallax Section */}
+      {/* News & Milestones Carousel Section */}
       <section className="py-20 px-6 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
@@ -628,50 +664,9 @@ export default function Home() {
             </div>
           </ScrollReveal>
 
-          <ParallaxSection>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {newsItems.map((item, index) => (
-                <ScrollReveal key={index} delay={index * 80}>
-                  <Card className="p-6 border border-slate-200 bg-white hover:border-blue-300 transition-all h-full group cursor-pointer relative overflow-hidden">
-                    {/* Gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
-                        <span className="text-slate-400 text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {item.date}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
-                      <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
-                    </div>
-
-                    {/* Arrow icon on hover */}
-                    <div className="absolute top-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-
-                    {/* Lift effect on hover */}
-                    <style jsx>{`
-                      @keyframes liftCard {
-                        from {
-                          transform: translateY(0);
-                        }
-                        to {
-                          transform: translateY(-8px);
-                        }
-                      }
-                      .group:hover {
-                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                        animation: liftCard 0.3s ease-out forwards;
-                      }
-                    `}</style>
-                  </Card>
-                </ScrollReveal>
-              ))}
-            </div>
-          </ParallaxSection>
+          <ScrollReveal delay={200}>
+            <NewsCarousel />
+          </ScrollReveal>
         </div>
       </section>
 
