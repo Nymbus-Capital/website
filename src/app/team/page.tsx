@@ -334,6 +334,9 @@ function ValuesSection() {
 }
 
 function StatsSection() {
+  // Dynamic team count: count all non-Board members
+  const teamCount = team.filter(m => m.department !== 'Board').length;
+
   return (
     <section className="py-20 bg-blue-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -341,7 +344,7 @@ function StatsSection() {
           <ScrollReveal>
             <div>
               <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                $1<AnimatedCounter target={1} prefix="" suffix="B" />
+                $<AnimatedCounter target={1.5} suffix="B+" />
               </div>
               <p className="text-blue-100">Assets Under Management</p>
             </div>
@@ -350,7 +353,7 @@ function StatsSection() {
           <ScrollReveal delay={100}>
             <div>
               <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                <AnimatedCounter target={11} />
+                <AnimatedCounter target={teamCount} />
               </div>
               <p className="text-blue-100">Team Members</p>
             </div>

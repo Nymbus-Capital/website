@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
+import GlobeCanvas from '@/components/GlobeCanvas';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -163,53 +164,10 @@ const ContactPage = () => {
             </div>
           </ScrollReveal>
 
-          {/* Simplified SVG World Map */}
+          {/* 3D Globe Canvas */}
           <ScrollReveal direction="up" delay={0.1}>
             <div className="flex justify-center mb-12">
-              <svg viewBox="0 0 1000 500" className="w-full max-w-4xl h-auto">
-                {/* World outline - simplified continents */}
-                <defs>
-                  <style>{`
-                    .continent { fill: #e5e7eb; stroke: #9ca3af; stroke-width: 2; }
-                    .ocean { fill: #f0f9ff; }
-                    .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-                    @keyframes pulse {
-                      0%, 100% { r: 8; opacity: 1; }
-                      50% { r: 15; opacity: 0.3; }
-                    }
-                  `}</style>
-                </defs>
-
-                {/* Ocean background */}
-                <rect width="1000" height="500" className="ocean" />
-
-                {/* Simplified North America */}
-                <path className="continent" d="M 150 180 L 200 160 L 220 180 L 240 200 L 260 180 L 280 200 L 270 250 L 240 280 L 200 270 L 180 240 Z" />
-
-                {/* Simplified South America */}
-                <path className="continent" d="M 250 280 L 280 270 L 290 310 L 280 360 L 250 380 L 240 320 Z" />
-
-                {/* Simplified Europe */}
-                <path className="continent" d="M 480 140 L 520 130 L 540 160 L 520 200 L 480 210 Z" />
-
-                {/* Simplified Africa */}
-                <path className="continent" d="M 520 210 L 560 200 L 580 240 L 600 300 L 560 380 L 520 350 L 510 270 Z" />
-
-                {/* Simplified Asia */}
-                <path className="continent" d="M 560 130 L 620 120 L 680 140 L 720 160 L 740 200 L 700 240 L 660 220 L 620 200 Z" />
-
-                {/* Simplified Australia */}
-                <path className="continent" d="M 720 360 L 750 350 L 760 380 L 740 400 L 710 390 Z" />
-
-                {/* Montreal location (on North America) */}
-                <circle cx="200" cy="200" r="8" fill="#3b82f6" />
-                <circle cx="200" cy="200" className="pulse" fill="#3b82f6" />
-
-                {/* Montreal label */}
-                <text x="200" y="230" textAnchor="middle" className="text-xs font-semibold" fill="#1e40af">
-                  Montreal
-                </text>
-              </svg>
+              <GlobeCanvas />
             </div>
           </ScrollReveal>
         </div>

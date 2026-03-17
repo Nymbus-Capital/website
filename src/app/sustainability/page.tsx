@@ -37,12 +37,12 @@ const esgStrategy = [
   },
   {
     number: 3,
-    title: 'Active Engagement',
-    description: 'We participate in corporate governance through proxy voting and shareholder engagement.',
+    title: 'Quantitative ESG Integration',
+    description: 'ESG metrics are quantitatively embedded into our credit models and systematic security selection process.',
     items: [
-      'Proxy Voting: Active participation in annual meetings and corporate decisions',
-      'Stakeholder Engagement: Direct dialogue with portfolio company management',
-      'Governance Advocacy: Promotion of responsible corporate practices'
+      'Credit Model Integration: ESG scores weighted in credit risk assessment and pricing models',
+      'Factor-Based Selection: ESG factors used in multi-factor security selection and portfolio construction',
+      'Risk Premia: Systematic capture of ESG-related risk premia in fixed income strategies'
     ],
     icon: Target,
   },
@@ -64,7 +64,7 @@ const commitments = [
   {
     title: 'Zero Fossil Fuel Portfolio',
     year: 'Achieved 2023',
-    description: 'Our credit portfolio achieved zero fossil fuel exposure, eliminating direct exposure to coal, oil, and gas producers.',
+    description: 'Our Sustainable Enhanced Bonds Fund became the first zero fossil fuel fixed income fund in Canada, eliminating direct exposure to coal, oil, and gas producers.',
     icon: Zap,
   },
 ];
@@ -74,13 +74,13 @@ const sustainableStrategies = [
     name: 'Sustainable Enhanced Bonds Fund',
     description: 'Our fixed income strategy with full ESG integration and fossil fuel exclusion.',
     mrr: 'Low MER',
-    features: ['ESG-integrated credit selection', 'Fossil fuel-free', 'Monthly distributions'],
+    features: ['Sustainable and green bonds focus', 'Fossil fuel-free portfolio', 'Daily liquidity'],
   },
   {
     name: 'Monthly Income Fund',
     description: 'Short-term fixed income strategy with enhanced ESG criteria and positive sustainability focus.',
     mrr: 'Ultra-low MER',
-    features: ['Daily liquidity', 'Sustainable bonds focus', 'Capital preservation'],
+    features: ['Monthly distributions', 'ESG-integrated credit selection', 'Capital preservation', 'Daily liquidity'],
   },
 ];
 
@@ -228,7 +228,7 @@ function StrategySection() {
           <SectionHeader
             eyebrow="Integration in Practice"
             title="How ESG Drives Our Investment Decisions"
-            description="ESG integration happens through three complementary approaches: exclusion screening, positive ESG scoring, and active engagement."
+            description="ESG integration happens through three complementary approaches: exclusion screening, positive ESG scoring, and quantitative ESG integration."
           />
         </ScrollReveal>
 
@@ -326,7 +326,7 @@ function ImpactSection() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {[
             { label: 'Years as PRI Signatory', value: 6 },
-            { label: 'Fossil Fuel Divestment', value: 100, suffix: '%' },
+            { label: 'Zero Fossil Fuel Fund in Canada', value: 1, suffix: 'st' },
             { label: 'Sustainable Fund Mandates', value: 3, suffix: '+' },
             { label: 'ESG-Integrated Models', value: 100, suffix: '%' },
           ].map((stat, idx) => (
