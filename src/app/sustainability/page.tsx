@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Leaf, Zap, Award, Target, TrendingUp, Shield, Link as LinkIcon } from 'lucide-react';
@@ -105,7 +106,15 @@ function StrategyCard({ number, title, description, items, icon: Icon }: (typeof
   }, []);
 
   return (
-    <div ref={cardRef} className="relative">
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="relative"
+    >
       <Card className="h-full">
         <div className="p-8">
           <div className="flex items-center gap-4 mb-4">
@@ -126,7 +135,7 @@ function StrategyCard({ number, title, description, items, icon: Icon }: (typeof
           </ul>
         </div>
       </Card>
-    </div>
+    </motion.div>
   );
 }
 
@@ -165,7 +174,15 @@ function CommitmentCard({ title, year, description, icon: Icon }: (typeof commit
   }, []);
 
   return (
-    <div ref={cardRef} className="bg-white border border-slate-100 rounded-xl transition-shadow duration-300 hover:shadow-md border-t-4 border-t-blue-600">
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white border border-slate-100 rounded-xl transition-shadow duration-300 hover:shadow-md border-t-4 border-t-blue-600"
+    >
       <div className="p-6">
         <div className="flex items-center gap-3 mb-2">
           <Icon className="w-5 h-5 text-blue-600" />
@@ -174,7 +191,7 @@ function CommitmentCard({ title, year, description, icon: Icon }: (typeof commit
         <p className="text-sm text-blue-600 font-semibold mb-3">{year}</p>
         <p className="text-slate-600">{description}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -274,10 +291,14 @@ function SustainableStrategiesSection() {
                     </ul>
                   </div>
 
-                  <button className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all">
+                  <motion.button
+                    className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     Learn more
                     <LinkIcon className="w-4 h-4" />
-                  </button>
+                  </motion.button>
                 </div>
               </Card>
             </ScrollReveal>

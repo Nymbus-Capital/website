@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import TypewriterEffect from '@/components/animations/TypewriterEffect';
@@ -22,673 +23,336 @@ const newsItems = [
 
 // Investment Capabilities Pipeline Component
 function InvestmentCapabilities() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <div>
+            <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">How We Work</p>
+            <h2 className="text-4xl font-bold text-slate-900 mb-6">Our Investment Process</h2>
+            <p className="text-lg text-slate-600 mb-12">
+              Systematic investing driven by quantitative models, disciplined risk management, and continuous research innovation.
+            </p>
+          </div>
+        </ScrollReveal>
+        
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          {[
+            { number: 1, title: 'Data Ingestion', description: 'Raw market data aggregation and normalization', icon: Database },
+            { number: 2, title: 'Signal Generation', description: 'Quantitative model development and backtesting', icon: Zap },
+            { number: 3, title: 'Portfolio Construction', description: 'Multi-factor optimization and diversification', icon: Layout },
+            { number: 4, title: 'Risk Management', description: 'Real-time monitoring and stress testing', icon: Shield },
+            { number: 5, title: 'Execution', description: 'Smart order routing and settlement', icon: Lock },
+          ].map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <ScrollReveal key={step.number} delay={idx * 100}>
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="h-full border-t-4 border-t-blue-600">
+                    <div className="p-6">
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+                        <Icon className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+                      <p className="text-slate-600 text-sm">{step.description}</p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NewsSection() {
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  const capabilities = [
-    {
-      icon: Database,
-      title: 'Data & Research',
-      description: 'Deep analysis of market dynamics and fundamental data using proprietary frameworks'
-    },
-    {
-      icon: Zap,
-      title: 'Signal Generation',
-      description: 'Advanced ML models to identify alpha-generating signals across asset classes'
-    },
-    {
-      icon: Layout,
-      title: 'Portfolio Construction',
-      description: 'Optimized portfolio building using systematic allocation and rebalancing rules'
-    },
-    {
-      icon: Lock,
-      title: 'Risk Management',
-      description: 'Continuous monitoring with dynamic hedging and regime-based adjustments'
-    }
-  ];
-
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          // Stagger animation for cards
-          cardsRef.current.forEach((card, index) => {
-            if (card) {
-              gsap.fromTo(
-                card,
-                { opacity: 0, y: 40 },
-                {
-                  opacity: 1,
-                  y: 0,
-                  duration: 0.6,
-                  delay: index * 0.15,
-                  ease: 'power2.out'
-                }
-              );
-            }
-          });
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={containerRef} className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {capabilities.map((cap, index) => (
-          <div
-            key={index}
-            ref={(el) => {
-              cardsRef.current[index] = el;
-            }}
-            className="relative"
-          >
-            <Card className="h-full p-6 border border-slate-200 bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
-              {/* Icon background */}
-              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-                <cap.icon className="w-6 h-6 text-blue-600" />
-              </div>
-
-              {/* Title and description */}
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{cap.title}</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">{cap.description}</p>
-
-              {/* Animated bottom border on hover */}
-              <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-600 to-transparent w-0 group-hover:w-full transition-all duration-300" />
-            </Card>
-
-            {/* Connecting arrow (visible on desktop) */}
-            {index < capabilities.length - 1 && (
-              <div className="hidden lg:flex absolute top-1/2 -right-2 transform -translate-y-1/2 z-0">
-                <svg width="40" height="40" viewBox="0 0 40 40" className="text-slate-300">
-                  <defs>
-                    <marker
-                      id={`arrowhead-${index}`}
-                      markerWidth="10"
-                      markerHeight="10"
-                      refX="9"
-                      refY="3"
-                      orient="auto"
-                    >
-                      <polygon points="0 0, 10 3, 0 6" fill="currentColor" />
-                    </marker>
-                  </defs>
-                  <line
-                    x1="5"
-                    y1="20"
-                    x2="35"
-                    y2="20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    markerEnd={`url(#arrowhead-${index})`}
-                  />
-                </svg>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Dot particle canvas animation for hero background
-function DotParticleCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.9;
-    };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    // Particle system
-    const particleCount = 150;
-    const particles: {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-    }[] = [];
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
+    cardsRef.current.forEach((card, idx) => {
+      if (!card) return;
+      gsap.from(card, {
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        delay: idx * 0.05,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+        },
       });
-    }
-
-    const animate = () => {
-      // Clear canvas
-      ctx.fillStyle = 'rgba(255, 255, 255, 0)';
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Update and draw particles
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-
-        // Update position
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Wrap around edges
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
-        // Draw dot
-        ctx.fillStyle = 'rgba(51, 65, 85, 0.3)';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw connecting lines to nearby particles
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dx = p2.x - p.x;
-          const dy = p2.y - p.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 100) {
-            ctx.strokeStyle = `rgba(0, 102, 255, ${0.1 * (1 - distance / 100)})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
+    });
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 opacity-40" />;
-}
-
-// Aceternity-style logo cloud with blur animation
-function InvestorLogoBar() {
-  const logos = [
-    { name: 'CDPQ', w: 90 },
-    { name: 'PSP Investments', w: 130 },
-    { name: 'OMERS', w: 90 },
-    { name: "Ontario Teachers'", w: 130 },
-    { name: 'BCI', w: 60 },
-    { name: 'AIMCo', w: 80 },
-    { name: 'Desjardins', w: 100 },
-    { name: 'National Bank', w: 120 },
-    { name: 'Fiera Capital', w: 110 },
-    { name: 'iA Financial', w: 100 },
-  ];
-
   return (
-    <div className="relative w-full overflow-hidden py-8">
-      {/* Left gradient mask */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none z-10" />
-      {/* Right gradient mask */}
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none z-10" />
-
-      <div className="flex gap-8 animate-scroll">
-        {[...logos, ...logos].map((logo, idx) => (
-          <div key={idx} className="flex-shrink-0 flex items-center justify-center">
-            <svg width={logo.w} height="40" viewBox={`0 0 ${logo.w} 40`} className="drop-shadow-none hover:drop-shadow-md transition-all duration-300">
-              <rect x="0" y="8" width={logo.w} height="24" rx="4" fill="#f1f5f9" />
-              <text x={logo.w / 2} y="24" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="600" fontFamily="Poppins, system-ui, sans-serif">
-                {logo.name}
-              </text>
-            </svg>
+    <section className="py-20 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <div className="mb-12">
+            <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">News & Updates</p>
+            <h2 className="text-4xl font-bold text-slate-900">Latest From Nymbus</h2>
           </div>
-        ))}
-      </div>
+        </ScrollReveal>
 
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(calc(-50% - 16px));
-          }
-        }
-        .animate-scroll {
-          animation: scroll 40s linear infinite;
-        }
-        .animate-scroll:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
-    </div>
+        <div className="space-y-4">
+          {newsItems.map((item, idx) => (
+            <motion.div
+              key={idx}
+              ref={(el) => { cardsRef.current[idx] = el; }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ x: 4 }}
+              transition={{ duration: 0.2 }}
+              className="cursor-pointer"
+              onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+            >
+              <Card className="border-l-4 border-l-blue-600 transition-all duration-300 hover:shadow-md">
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded">{item.date}</span>
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 px-2 py-1 rounded uppercase tracking-wide">{item.category}</span>
+                    </div>
+                    <ChevronRight
+                      className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${
+                        expandedIdx === idx ? 'rotate-90' : ''
+                      }`}
+                    />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">{item.title}</h3>
+                  <AnimatePresence>
+                    {expandedIdx === idx && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-slate-600 mt-3"
+                      >
+                        {item.description}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
-// News Carousel Component
-function NewsCarousel() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+function FeaturedStrategiesSection() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const itemsPerSlide = {
-    desktop: 3,
-    tablet: 2,
-    mobile: 1
-  };
-
-  const [itemsToShow, setItemsToShow] = useState(itemsPerSlide.desktop);
-
-  // Update items to show based on window size
   useEffect(() => {
-    const updateItemsToShow = () => {
-      if (window.innerWidth >= 1024) {
-        setItemsToShow(itemsPerSlide.desktop);
-      } else if (window.innerWidth >= 768) {
-        setItemsToShow(itemsPerSlide.tablet);
-      } else {
-        setItemsToShow(itemsPerSlide.mobile);
+    if (!containerRef.current) return;
+    
+    const cards = containerRef.current.querySelectorAll('.strategy-card');
+    gsap.fromTo(cards,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: 'top 70%',
+          toggleActions: 'play none none none',
+        },
       }
-    };
-
-    updateItemsToShow();
-    window.addEventListener('resize', updateItemsToShow);
-    return () => window.removeEventListener('resize', updateItemsToShow);
+    );
   }, []);
 
-  // Auto-advance carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDirection('next');
-      setCurrentSlide((prev) => (prev + 1) % Math.ceil(newsItems.length / itemsToShow));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [itemsToShow]);
-
-  const totalSlides = Math.ceil(newsItems.length / itemsToShow);
-  const offset = currentSlide * itemsToShow;
-
-  const handlePrev = () => {
-    setDirection('prev');
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-  };
-
-  const handleNext = () => {
-    setDirection('next');
-    setCurrentSlide((prev) => (prev + 1) % totalSlides);
-  };
-
-  const handleDotClick = (index: number) => {
-    setDirection(index > currentSlide ? 'next' : 'prev');
-    setCurrentSlide(index);
-  };
-
   return (
-    <div className="w-full">
-      <div className="relative">
-        {/* Carousel container */}
-        <div ref={containerRef} className="overflow-hidden">
-          <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{
-              transform: `translateX(-${currentSlide * 100}%)`,
-              width: `${totalSlides * 100}%`
-            }}
-          >
-            {newsItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0"
-                style={{ width: `${100 / totalSlides}%` }}
+    <section className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <div className="mb-12">
+            <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Strategies</p>
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Our Investment Strategies</h2>
+            <p className="text-lg text-slate-600 max-w-2xl">Institutional-quality systematic strategies across multiple asset classes.</p>
+          </div>
+        </ScrollReveal>
+
+        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {funds.slice(0, 4).map((fund, idx) => (
+            <Link key={fund.slug} href={`/strategies/${fund.slug}`}>
+              <motion.div
+                className="strategy-card"
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.3 }}
               >
-                <div className={`${itemsToShow === 1 ? 'px-0' : 'px-3'}`}>
-                  <Card className="p-6 border border-slate-200 bg-white hover:border-blue-300 transition-all h-full group cursor-pointer relative overflow-hidden">
-                    {/* Gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
-                        <span className="text-slate-400 text-xs flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {item.date}
-                        </span>
+                <Card className="border-l-4 border-blue-600 h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900">{fund.name}</h3>
+                        <p className="text-sm text-slate-500 mt-1">{fund.vehicle}</p>
                       </div>
-                      <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
-                      <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+                      <TrendingUp className="w-6 h-6 text-blue-600" />
                     </div>
-
-                    {/* Arrow icon on hover */}
-                    <div className="absolute top-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                      <ArrowRight className="w-5 h-5" />
+                    <p className="text-slate-600 text-sm mb-4">{fund.description}</p>
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                      <div className="text-right">
+                        <p className="text-sm text-slate-500">Since Inception</p>
+                        <p className="text-lg font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-blue-600" />
                     </div>
-                  </Card>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </div>
+                </Card>
+              </motion.div>
+            </Link>
+          ))}
         </div>
 
-        {/* Left arrow */}
-        <button
-          onClick={handlePrev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors"
-          aria-label="Previous slide"
-        >
-          <ArrowRight className="w-6 h-6 text-slate-400 rotate-180 hover:text-slate-600 transition-colors" />
-        </button>
-
-        {/* Right arrow */}
-        <button
-          onClick={handleNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors"
-          aria-label="Next slide"
-        >
-          <ArrowRight className="w-6 h-6 text-slate-400 hover:text-slate-600 transition-colors" />
-        </button>
+        <div className="text-center mt-10">
+          <Link href="/strategies">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View all strategies
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+          </Link>
+        </div>
       </div>
-
-      {/* Navigation dots */}
-      <div className="flex justify-center gap-2 mt-8">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => handleDotClick(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
+    </section>
   );
 }
 
-function ParallaxSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
+function HeroSection() {
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (!ref.current) return;
-    const el = ref.current;
-
-    const handleScroll = () => {
-      const rect = el.getBoundingClientRect();
-      const wh = window.innerHeight;
-      if (rect.top < wh && rect.bottom > 0) {
-        const progress = (wh - rect.top) / (wh + rect.height);
-        gsap.set(el.querySelector('.parallax-inner'), { y: -progress * 40 });
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    setIsLoaded(true);
   }, []);
 
   return (
-    <div ref={ref} className={className}>
-      <div className="parallax-inner">{children}</div>
-    </div>
+    <section className="relative pt-20 pb-32 bg-gradient-to-br from-blue-600 to-blue-700 overflow-hidden">
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={isLoaded ? { opacity: 0.1, scale: 1 } : {}}
+          transition={{ duration: 1 }}
+          className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={isLoaded ? { opacity: 0.1, scale: 1 } : {}}
+          transition={{ duration: 1, delay: 0.2 }}
+          className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl"
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <ScrollReveal>
+          <div className="max-w-3xl">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8 }}
+              className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight"
+            >
+              Systematic Investing,<br />
+              <span className="inline-block">
+                <TypewriterEffect text="Delivered with Precision" color="#60a5fa" />
+              </span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-xl text-blue-100 mb-8 leading-relaxed"
+            >
+              Nymbus Capital is a systematic investment manager specializing in quantitatively-driven, risk-managed strategies. We blend data science, rigorous research, and disciplined execution to deliver consistent, risk-adjusted returns.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isLoaded ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="flex flex-wrap gap-4"
+            >
+              <Link href="/strategies">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Explore Strategies
+                </motion.button>
+              </Link>
+              <Link href="/approach">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Our Approach
+                </motion.button>
+              </Link>
+            </motion.div>
+          </div>
+        </ScrollReveal>
+
+        {/* Stats Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
+          {[
+            { number: 1.5, label: 'B+ AUM', suffix: '' },
+            { number: 10, label: 'Years Experience', suffix: '+' },
+            { number: 4, label: 'Active Strategies', suffix: '' },
+            { number: 15, label: 'Team Members', suffix: '+' },
+          ].map((stat, idx) => (
+            <ScrollReveal key={stat.label} delay={idx * 100}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-white mb-2">
+                    {typeof stat.number === 'number' && stat.number % 1 !== 0 ? (
+                      <AnimatedCounter target={stat.number} suffix={stat.suffix} />
+                    ) : (
+                      <>
+                        <AnimatedCounter target={Math.floor(stat.number)} suffix={stat.suffix} />
+                      </>
+                    )}
+                  </div>
+                  <p className="text-blue-100">{stat.label}</p>
+                </div>
+              </motion.div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="bg-white">
-      {/* Hero */}
-      <section className="min-h-[90vh] flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
-        <DotParticleCanvas />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
-        <div className="max-w-3xl text-center relative z-10">
-          <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-            <TypewriterEffect
-              words={['Scientific Investing', 'Systematic Alpha', 'Quantitative Edge', 'Data-Driven Returns']}
-              className="text-blue-600"
-            />
-          </h1>
-          <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-            Rigorous quantitative research and systematic strategies applied to fixed income and multi-asset investing. Built in Montreal for institutional investors worldwide.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/strategies" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-              Explore Strategies <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link href="/solutions" className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all">
-              Investment Solutions
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Bar */}
-      <section className="bg-white border-y border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <ScrollReveal>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-slate-900 mb-2">
-                  $<AnimatedCounter target={1.5} suffix="B+" duration={2000} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">Assets Under Management</p>
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={100}>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-slate-900 mb-2">
-                  <AnimatedCounter target={4} suffix="" duration={2000} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">Investment Strategies</p>
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={200}>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-slate-900 mb-2">
-                  <AnimatedCounter target={14} suffix="" duration={2000} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">Investment Professionals</p>
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={300}>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-slate-900 mb-2">
-                  <AnimatedCounter target={10} suffix="+" duration={2000} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">Years of Track Record</p>
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Approach */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <ScrollReveal>
-              <div>
-                <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Our Approach</p>
-                <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">
-                  At the Intersection of Technology, Data & Finance
-                </h2>
-                <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                  We believe that systematic, quantitative approaches to investing deliver superior risk-adjusted returns. Our team combines decades of institutional experience with cutting-edge research in machine learning, signal processing, and portfolio optimization.
-                </p>
-                <Link href="/team" className="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">
-                  Meet our team <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={200}>
-              <div className="space-y-5">
-                {[
-                  { icon: TrendingUp, title: 'Quantitative Research', desc: 'Deep analysis of market dynamics, credit fundamentals, and risk factors using proprietary models and ML.' },
-                  { icon: BarChart3, title: 'Systematic Construction', desc: 'Rules-based portfolio building using optimization models with disciplined allocation and rebalancing.' },
-                  { icon: Shield, title: 'Dynamic Risk Management', desc: 'Continuous monitoring with ML-driven regime classification and proactive hedging strategies.' },
-                ].map((item) => (
-                  <Card key={item.title} className="p-6 border border-slate-200 bg-white hover:border-blue-200 transition-colors">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                        <item.icon className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
-                        <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategies */}
-      <section className="py-20 px-6 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <div className="flex items-end justify-between mb-12">
-              <div>
-                <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Strategies</p>
-                <h2 className="text-4xl font-bold text-slate-900">Our Investment Solutions</h2>
-              </div>
-              <Link href="/strategies" className="hidden md:inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">
-                View all strategies <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {funds.slice(0, 4).map((fund, index) => (
-              <ScrollReveal key={fund.slug} delay={index * 100}>
-                <Link href={`/strategies/${fund.slug}`}>
-                  <Card className="h-full p-6 border border-slate-200 bg-white hover:border-blue-200 hover:shadow-md transition-all cursor-pointer group">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{fund.name}</h3>
-                        <div className="flex gap-2 mt-1">
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{fund.assetClass}</span>
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{fund.vehicle}</span>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 transition-colors" />
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">{fund.description}</p>
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-center">
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.oneYear)}</p>
-                        <p className="text-xs text-slate-500 mt-1">1-Year</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p>
-                        <p className="text-xs text-slate-500 mt-1">Since Inception</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? 'N/A'}</p>
-                        <p className="text-xs text-slate-500 mt-1">Sharpe</p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Investment Capabilities Pipeline */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <div className="mb-12">
-              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Our Investment Process</p>
-              <h2 className="text-4xl font-bold text-slate-900 mb-2">Investment Capabilities</h2>
-              <p className="text-lg text-slate-500">A systematic pipeline approach that defines our entire investment methodology</p>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal delay={200}>
-            <InvestmentCapabilities />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Institutional Trust - Logo Bar */}
-      <section className="py-12 px-6 bg-slate-50 border-y border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-6">
-              Trusted by Canada&apos;s Leading Institutions
-            </p>
-          </ScrollReveal>
-          <ScrollReveal delay={200}>
-            <InvestorLogoBar />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* News & Milestones Carousel Section */}
-      <section className="py-20 px-6 bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <div className="flex items-end justify-between mb-12">
-              <div>
-                <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">
-                  <Newspaper className="w-4 h-4 inline-block mr-1 -mt-0.5" />
-                  News & Milestones
-                </p>
-                <h2 className="text-4xl font-bold text-slate-900">Recent Developments</h2>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={200}>
-            <NewsCarousel />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 px-6 bg-slate-900">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <h2 className="text-4xl font-bold text-white mb-6">Ready to explore systematic investing?</h2>
-            <p className="text-lg text-slate-400 mb-8">
-              Connect with our team to learn how our quantitative approach can deliver superior risk-adjusted returns for your portfolio.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Link href="/contact" className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-                Get in Touch <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link href="/solutions" className="border border-white/20 text-white hover:border-white/40 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
-                View Solutions
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-    </main>
+    <div className="min-h-screen bg-white">
+      <HeroSection />
+      <InvestmentCapabilities />
+      <FeaturedStrategiesSection />
+      <NewsSection />
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { funds, Fund } from '@/data/funds';
 import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -300,7 +301,7 @@ function PerformanceComparisonSection() {
         <ScrollReveal delay={100}>
           <div className="flex flex-wrap gap-2 mb-10">
             {funds.map((fund, i) => (
-              <button
+              <motion.button
                 key={fund.slug}
                 onClick={() => toggleFund(i)}
                 className={cn(
@@ -310,9 +311,11 @@ function PerformanceComparisonSection() {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 )}
                 style={selectedFunds.includes(i) ? { backgroundColor: fundColors[i] } : {}}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {fund.shortName}
-              </button>
+              </motion.button>
             ))}
           </div>
         </ScrollReveal>
@@ -433,7 +436,11 @@ export default function StrategiesPage() {
                   return (
                     <ScrollReveal key={fund.slug} delay={index * 100}>
                       <Link href={`/strategies/${fund.slug}`}>
-                        <Card className="p-6 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
+                        <motion.div
+                          whileHover={{ y: -4 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Card className="p-6 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
                           <div className="flex items-start justify-between mb-4">
                             <div>
                               <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
@@ -472,11 +479,12 @@ export default function StrategiesPage() {
                               <p className="text-xs text-slate-500">SI</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? '\u2014'}</p>
+                              <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? '—'}</p>
                               <p className="text-xs text-slate-500">Sharpe</p>
                             </div>
                           </div>
                         </Card>
+                        </motion.div>
                       </Link>
                     </ScrollReveal>
                   );
@@ -528,9 +536,15 @@ export default function StrategiesPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
-              <Card className="p-6 border border-slate-200">
-                <DownsideVolatilityScatter />
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <Card className="p-6 border border-slate-200">
+                  <DownsideVolatilityScatter />
+                </Card>
+              </motion.div>
             </ScrollReveal>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronDown, X, ExternalLink, Award, BookOpen, Briefcase } from 'lucide-react';
@@ -37,8 +38,18 @@ function TeamMemberModal({ member, isOpen, onClose }: TeamModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
         <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div
@@ -122,8 +133,8 @@ function TeamMemberModal({ member, isOpen, onClose }: TeamModalProps) {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -185,13 +196,20 @@ function TeamMemberCard({ member, onClick, isLeadership = false }: { member: Tea
   }, [isLeadership]);
 
   return (
-    <Card
-      ref={cardRef}
-      onClick={onClick}
-      className={`cursor-pointer overflow-hidden group transition-all duration-300 ${
-        isLeadership ? 'shadow-lg' : 'shadow-md'
-      }`}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
     >
+      <Card
+        ref={cardRef}
+        onClick={onClick}
+        className={`cursor-pointer overflow-hidden group transition-all duration-300 ${
+          isLeadership ? 'shadow-lg' : 'shadow-md'
+        }`}
+      >
       <div
         className={`border-l-4 h-full ${isLeadership ? 'bg-gradient-to-br from-white to-blue-50' : 'bg-white'}`}
         style={{ borderColor: member.color }}
@@ -241,6 +259,7 @@ function TeamMemberCard({ member, onClick, isLeadership = false }: { member: Tea
         </div>
       </div>
     </Card>
+    </motion.div>
   );
 }
 
