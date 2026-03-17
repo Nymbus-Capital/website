@@ -265,7 +265,7 @@ export default function ApproachPage() {
               <PhilosophyCard
                 icon={<Brain className="w-6 h-6" />}
                 title="Data-Driven"
-                description="We process billions of data points across fixed income markets, credit spreads, yield curves, and macroeconomic indicators"
+                description="We process over 5 billion data points daily across fixed income markets, credit spreads, yield curves, and macroeconomic indicators"
               />
             </ScrollReveal>
 
@@ -494,13 +494,13 @@ export default function ApproachPage() {
                     </div>
 
                     <div className="text-center border-l border-r border-gray-300">
-                      <p className="text-4xl font-bold text-blue-600 mb-2">$1.5B+</p>
-                      <p className="text-gray-700 font-medium">Assets Under Management</p>
+                      <p className="text-4xl font-bold text-blue-600 mb-2">Top 10%</p>
+                      <p className="text-gray-700 font-medium">Percentile Performance Since 2019</p>
                     </div>
 
                     <div className="text-center">
-                      <p className="text-4xl font-bold text-blue-600 mb-2">4</p>
-                      <p className="text-gray-700 font-medium">Market Cycle Tests</p>
+                      <p className="text-4xl font-bold text-blue-600 mb-2">5B+</p>
+                      <p className="text-gray-700 font-medium">Data Points Analyzed Daily</p>
                     </div>
                   </div>
 
@@ -524,6 +524,14 @@ export default function ApproachPage() {
                       <li className="flex items-start gap-3">
                         <span className="text-blue-600 font-bold mt-1">•</span>
                         <span>Geopolitical shocks and macro regime shifts</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-blue-600 font-bold mt-1">•</span>
+                        <span>Consistently ranked in the top decile among Canadian institutional fixed income managers</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="text-blue-600 font-bold mt-1">•</span>
+                        <span>Multiple industry recognitions for risk-adjusted performance</span>
                       </li>
                     </ul>
                   </div>
