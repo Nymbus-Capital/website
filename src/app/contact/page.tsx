@@ -1,108 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import gsap from 'gsap';
-import { Mail, Phone, MapPin, Clock, CheckCircle, ArrowRight, Send, Building2, User, AtSign, MessageSquare, PhoneCall } from 'lucide-react';
-import WorldMap from '@/components/WorldMap';
-
-const contactInfo = [
-  { icon: MapPin, label: 'Office', lines: ['1002 Sherbrooke Ouest', 'Montreal, QC H3A 2R7', 'Canada'] },
-  { icon: Phone, label: 'Phone', lines: ['514-985-1138', '1-833-227-2656'] },
-  { icon: Mail, label: 'Email', lines: ['info@nymbus.ca'] },
-  { icon: Clock, label: 'Hours', lines: ['Monday – Friday', '9:00 AM – 5:00 PM EST'] },
-];
-
-const keyContacts = [
-  { name: 'Marc Rivet', role: 'Partner, Head of Distribution', phone: '514-360-4255', email: 'mrivet@nymbus.ca' },
-  { name: 'Xavier Girard', role: 'Partner, Client Relations', phone: '514-360-4259', email: 'xgirard@nymbus.ca' },
-];
-
-type FormField = {
-  name: string;
-  label: string;
-  type: 'text' | 'email' | 'tel' | 'textarea';
-  icon: typeof User;
-  required: boolean;
-  half?: boolean;
-};
-
-const formFields: FormField[] = [
-  { name: 'name', label: 'Full Name', type: 'text', icon: User, required: true, half: true },
-  { name: 'email', label: 'Email Address', type: 'email', icon: AtSign, required: true, half: true },
-  { name: 'company', label: 'Company / Organization', type: 'text', icon: Building2, required: false, half: true },
-  { name: 'phone', label: 'Phone Number', type: 'tel', icon: PhoneCall, required: false, half: true },
-  { name: 'message', label: 'Your Message', type: 'textarea', icon: MessageSquare, required: true },
-];
-
-function PremiumInput({
-  field,
-  value,
-  onChange,
-  focused,
-  onFocus,
-  onBlur,
-}: {
-  field: FormField;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  focused: boolean;
-  onFocus: () => void;
-  onBlur: () => void;
-}) {
-  const isFilled = value.length > 0;
-  const isActive = focused || isFilled;
-  const Icon = field.icon;
-
-  const baseClasses = `
-    w-full bg-white rounded-xl border-2 transition-all duration-300 outline-none
-    ${focused ? 'border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]' : 'border-slate-200 hover:border-slate-300'}
-  `;
-
-  if (field.type === 'textarea') {
-    return (
-      <div className="relative group">
-        <div className={`absolute left-4 transition-all duration-200 pointer-events-none flex items-center gap-2 ${isActive ? 'top-2 text-xs' : 'top-4 text-sm'}`}>
-          <Icon className={`w-3.5 h-3.5 transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`} />
-          <span className={`font-medium transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`}>
-            {field.label}{field.required && ' *'}
-          </span>
-        </div>
-        <textarea
-          name={field.name}
-          value={value}
-          onChange={onChange}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          required={field.required}
-          rows={5}
-          className={`${baseClasses} pt-8 pb-4 px-4 resize-none text-slate-900 text-sm`}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative group">
-      <div className={`absolute left-4 transition-all duration-200 pointer-events-none flex items-center gap-2 ${isActive ? 'top-1.5 text-xs' : 'top-1/2 -translate-y-1/2 text-sm'}`}>
-        <Icon className={`w-3.5 h-3.5 transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`} />
-        <span className={`font-medium transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`}>
-          {field.label}{field.required && ' *'}
-        </span>
-      </div>
-      <input
-        type={field.type}
-        name={field.name}
-        value={value}
-        onChange={onChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        required={field.required}
-        className={`${baseClasses} h-14 pt-5 pb-1 px-4 text-slate-900 text-sm`}
-      />
-    </div>
-  );
-}
+import { useState } from 'react';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Button } from '@/components/ui/Button';
+import BackgroundBeams from '@/components/animations/BackgroundBeams';
+import { ScrollReveal } from '@/components/animations/ScrollReveal';
+import { motion } from 'framer-motion';
+import { Phone, MapPin, Mail, Clock } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -112,215 +16,336 @@ export default function ContactPage() {
     phone: '',
     message: '',
   });
+
   const [submitted, setSubmitted] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // UI-only form submission for demonstration
     setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', company: '', phone: '', message: '' });
-    }, 4000);
+    setFormData({ name: '', email: '', company: '', phone: '', message: '' });
+    setTimeout(() => setSubmitted(false), 3000);
   };
 
-  useEffect(() => {
-    if (heroRef.current) {
-      gsap.from(heroRef.current.children, {
-        opacity: 0,
-        y: 20,
-        stagger: 0.1,
-        duration: 0.7,
-        ease: 'power2.out',
-      });
-    }
-  }, []);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Hero with World Map */}
-      <section className="relative overflow-hidden">
-        {/* Subtle background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-          <div ref={heroRef} className="text-center mb-12">
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3"
-            >
-              Contact Us
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4"
-            >
-              Let&apos;s Connect
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-slate-500 max-w-xl mx-auto"
-            >
-              Based in Montreal, serving institutional investors across the globe with quantitative precision.
-            </motion.p>
-          </div>
-
-          {/* World Map */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="max-w-4xl mx-auto"
-          >
-            <WorldMap />
-          </motion.div>
+    <div className="min-h-screen bg-gradient-to-b from-[#FAFAFA] to-white">
+      {/* Hero Section */}
+      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <ScrollReveal direction="up">
+            <SectionHeader
+              title="Get in Touch"
+              description="We'd love to hear from you. Contact our team to discuss your investment needs or ask any questions."
+            />
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* Main Content: Form + Info */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16">
-          {/* Contact Form – 3 cols */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="lg:col-span-3"
-          >
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/40 p-8 md:p-10">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">Send us a message</h2>
-                <p className="text-sm text-slate-500">We typically respond within one business day.</p>
-              </div>
+      {/* Contact Section with Background Beams */}
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <BackgroundBeams />
+        </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Paired fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {formFields.filter(f => f.half).map((field) => (
-                    <PremiumInput
-                      key={field.name}
-                      field={field}
-                      value={formData[field.name as keyof typeof formData]}
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Contact Form */}
+            <ScrollReveal direction="left" className="bg-white rounded-2xl p-8 shadow-lg">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">Send us a Message</h2>
+
+              {submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="h-full flex items-center justify-center"
+                >
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-8 h-8 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                      Thank You!
+                    </h3>
+                    <p className="text-slate-600">
+                      We've received your message and will get back to you soon.
+                    </p>
+                  </div>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-semibold text-slate-900 mb-2"
+                    >
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
                       onChange={handleChange}
-                      focused={focusedField === field.name}
-                      onFocus={() => setFocusedField(field.name)}
-                      onBlur={() => setFocusedField(null)}
+                      required
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-transparent transition-all"
+                      placeholder="John Doe"
                     />
-                  ))}
-                </div>
+                  </div>
 
-                {/* Full-width fields */}
-                {formFields.filter(f => !f.half).map((field) => (
-                  <PremiumInput
-                    key={field.name}
-                    field={field}
-                    value={formData[field.name as keyof typeof formData]}
-                    onChange={handleChange}
-                    focused={focusedField === field.name}
-                    onFocus={() => setFocusedField(field.name)}
-                    onBlur={() => setFocusedField(null)}
-                  />
-                ))}
-
-                {/* Submit */}
-                <AnimatePresence mode="wait">
-                  {submitted ? (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl"
+                  {/* Email */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-semibold text-slate-900 mb-2"
                     >
-                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                      <p className="text-emerald-700 text-sm font-medium">Message sent successfully. We&apos;ll be in touch shortly.</p>
-                    </motion.div>
-                  ) : (
-                    <motion.button
-                      key="submit"
-                      type="submit"
-                      whileHover={{ scale: 1.005 }}
-                      whileTap={{ scale: 0.995 }}
-                      className="w-full relative group bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:shadow-slate-900/15 flex items-center justify-center gap-2"
-                    >
-                      <span>Send Message</span>
-                      <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-              </form>
-            </div>
-          </motion.div>
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-transparent transition-all"
+                      placeholder="john@example.com"
+                    />
+                  </div>
 
-          {/* Sidebar – 2 cols */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            {/* Contact Details */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-5">Contact Information</h3>
-              <div className="space-y-5">
-                {contactInfo.map((item) => (
-                  <div key={item.label} className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-4.5 h-4.5 text-blue-600" />
-                    </div>
+                  {/* Company */}
+                  <div>
+                    <label
+                      htmlFor="company"
+                      className="block text-sm font-semibold text-slate-900 mb-2"
+                    >
+                      Company
+                    </label>
+                    <input
+                      type="text"
+                      id="company"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-transparent transition-all"
+                      placeholder="Your Company"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-semibold text-slate-900 mb-2"
+                    >
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-transparent transition-all"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-semibold text-slate-900 mb-2"
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows={5}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-transparent transition-all resize-none"
+                      placeholder="Tell us about your inquiry..."
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button type="submit" variant="primary" size="lg" className="w-full">
+                    Send Message
+                  </Button>
+                </form>
+              )}
+            </ScrollReveal>
+
+            {/* Contact Info */}
+            <ScrollReveal direction="right">
+              <div className="space-y-8">
+                {/* Main Office */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl p-6 shadow-md border border-slate-100"
+                >
+                  <div className="flex gap-4">
+                    <MapPin className="w-6 h-6 text-[#4285F4] flex-shrink-0 mt-1" />
                     <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                      {item.lines.map((line, i) => (
-                        <p key={i} className="text-sm text-slate-700">{line}</p>
-                      ))}
+                      <h3 className="font-bold text-slate-900 mb-2">Montreal Head Office</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed">
+                        1002 Sherbrooke Ouest
+                        <br />
+                        Suite 1900
+                        <br />
+                        Montreal QC H3A 3L6
+                        <br />
+                        Canada
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </motion.div>
 
-            {/* Key Contacts */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-5">Key Contacts</h3>
-              <div className="space-y-4">
-                {keyContacts.map((contact) => (
-                  <div key={contact.name} className="group p-4 rounded-xl bg-slate-50 hover:bg-blue-50/60 transition-colors duration-200">
-                    <p className="font-semibold text-slate-900 text-sm">{contact.name}</p>
-                    <p className="text-xs text-slate-500 mb-2">{contact.role}</p>
-                    <div className="flex items-center gap-4 text-xs">
-                      <a href={`tel:${contact.phone}`} className="text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
-                        <Phone className="w-3 h-3" /> {contact.phone}
-                      </a>
+                {/* Phone Numbers */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl p-6 shadow-md border border-slate-100"
+                >
+                  <div className="flex gap-4 mb-4">
+                    <Phone className="w-6 h-6 text-[#4285F4] flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 mb-2">Phone</h3>
+                      <p className="text-slate-600 text-sm mb-2">
+                        <span className="font-semibold">Local:</span> 514-985-1138
+                      </p>
+                      <p className="text-slate-600 text-sm">
+                        <span className="font-semibold">Toll-free:</span> 1-833-227-2656
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </motion.div>
 
-            {/* Google Maps */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 overflow-hidden">
-              <iframe
-                width="100%"
-                height="220"
-                style={{ border: 0 }}
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.6289769638746!2d-73.58293!3d45.50294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a4295555555%3A0x5555555555555555!2s1002%20Sherbrooke%20Ouest%2C%20Montreal%2C%20QC!5e0!3m2!1sen!2sca!4v1234567890"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
+                {/* Key Contacts */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl p-6 shadow-md border border-slate-100"
+                >
+                  <div className="flex gap-4">
+                    <Mail className="w-6 h-6 text-[#4285F4] flex-shrink-0 mt-1" />
+                    <div className="w-full">
+                      <h3 className="font-bold text-slate-900 mb-4">Key Contacts</h3>
+                      <div className="space-y-3">
+                        <div className="pb-3 border-b border-slate-100">
+                          <p className="font-semibold text-slate-900 text-sm">
+                            Marc Rivet
+                          </p>
+                          <p className="text-slate-600 text-xs">VP Business Development</p>
+                          <p className="text-[#4285F4] text-sm font-mono mt-1">
+                            514-360-4255
+                          </p>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900 text-sm">
+                            Xavier Girard
+                          </p>
+                          <p className="text-slate-600 text-xs">Client Relations</p>
+                          <p className="text-[#4285F4] text-sm font-mono mt-1">
+                            514-360-4259
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Business Hours */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  viewport={{ once: true }}
+                  className="bg-blue-50 rounded-xl p-6 border border-blue-100"
+                >
+                  <div className="flex gap-4">
+                    <Clock className="w-6 h-6 text-[#4285F4] flex-shrink-0 mt-1" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 mb-2">Business Hours</h3>
+                      <p className="text-slate-600 text-sm">
+                        Monday to Friday
+                        <br />
+                        9:00 AM - 5:00 PM EST
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      {/* Office Locations Note */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-6xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <p className="text-slate-600">
+              <span className="font-semibold">Principal Office Address:</span> 1800 McGill Collège
+              Suite 1430, Montreal QC H3A 2N4
+            </p>
           </motion.div>
         </div>
       </section>
