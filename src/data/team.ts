@@ -135,7 +135,7 @@ export const team: TeamMember[] = [
     department: "Operations",
     bio: "Diane Dusabimana oversees all compliance and regulatory affairs at Nymbus Capital. She brings extensive compliance experience from senior roles at Banque Nationale Investissements, Desjardins, and Fiera Capital. Her multi-disciplinary background ensures Nymbus maintains the highest standards of regulatory governance.",
     education: ["MBA, Université Laval"],
-    designations: ["CPA", "CFA"],
+    designations: ["MBA", "CPA", "CFA"],
     previousRoles: ["Banque Nationale Investissements", "Desjardins", "Fiera Capital"],
     initials: "DD",
     color: "#702459",
