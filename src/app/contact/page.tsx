@@ -1,29 +1,124 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
-import { Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { ScrollReveal } from '@/components/animations/ScrollReveal';
-import GlobeCanvas from '@/components/GlobeCanvas';
+import { Mail, Phone, MapPin, Clock, CheckCircle, ArrowRight, Send, Building2, User, AtSign, MessageSquare, PhoneCall } from 'lucide-react';
+import WorldMap from '@/components/WorldMap';
 
-const ContactPage = () => {
+const contactInfo = [
+  { icon: MapPin, label: 'Office', lines: ['1002 Sherbrooke Ouest', 'Montreal, QC H3A 2R7', 'Canada'] },
+  { icon: Phone, label: 'Phone', lines: ['514-985-1138', '1-833-227-2656'] },
+  { icon: Mail, label: 'Email', lines: ['info@nymbus.ca'] },
+  { icon: Clock, label: 'Hours', lines: ['Monday – Friday', '9:00 AM – 5:00 PM EST'] },
+];
+
+const keyContacts = [
+  { name: 'Marc Rivet', role: 'Partner, Head of Distribution', phone: '514-360-4255', email: 'mrivet@nymbus.ca' },
+  { name: 'Xavier Girard', role: 'Partner, Client Relations', phone: '514-360-4259', email: 'xgirard@nymbus.ca' },
+];
+
+type FormField = {
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'textarea';
+  icon: typeof User;
+  required: boolean;
+  half?: boolean;
+};
+
+const formFields: FormField[] = [
+  { name: 'name', label: 'Full Name', type: 'text', icon: User, required: true, half: true },
+  { name: 'email', label: 'Email Address', type: 'email', icon: AtSign, required: true, half: true },
+  { name: 'company', label: 'Company / Organization', type: 'text', icon: Building2, required: false, half: true },
+  { name: 'phone', label: 'Phone Number', type: 'tel', icon: PhoneCall, required: false, half: true },
+  { name: 'message', label: 'Your Message', type: 'textarea', icon: MessageSquare, required: true },
+];
+
+function PremiumInput({
+  field,
+  value,
+  onChange,
+  focused,
+  onFocus,
+  onBlur,
+}: {
+  field: FormField;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  focused: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
+}) {
+  const isFilled = value.length > 0;
+  const isActive = focused || isFilled;
+  const Icon = field.icon;
+
+  const baseClasses = `
+    w-full bg-white rounded-xl border-2 transition-all duration-300 outline-none
+    ${focused ? 'border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]' : 'border-slate-200 hover:border-slate-300'}
+  `;
+
+  if (field.type === 'textarea') {
+    return (
+      <div className="relative group">
+        <div className={`absolute left-4 transition-all duration-200 pointer-events-none flex items-center gap-2 ${isActive ? 'top-2 text-xs' : 'top-4 text-sm'}`}>
+          <Icon className={`w-3.5 h-3.5 transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`} />
+          <span className={`font-medium transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`}>
+            {field.label}{field.required && ' *'}
+          </span>
+        </div>
+        <textarea
+          name={field.name}
+          value={value}
+          onChange={onChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          required={field.required}
+          rows={5}
+          className={`${baseClasses} pt-8 pb-4 px-4 resize-none text-slate-900 text-sm`}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative group">
+      <div className={`absolute left-4 transition-all duration-200 pointer-events-none flex items-center gap-2 ${isActive ? 'top-1.5 text-xs' : 'top-1/2 -translate-y-1/2 text-sm'}`}>
+        <Icon className={`w-3.5 h-3.5 transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`} />
+        <span className={`font-medium transition-colors ${focused ? 'text-blue-500' : 'text-slate-400'}`}>
+          {field.label}{field.required && ' *'}
+        </span>
+      </div>
+      <input
+        type={field.type}
+        name={field.name}
+        value={value}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        required={field.required}
+        className={`${baseClasses} h-14 pt-5 pb-1 px-4 text-slate-900 text-sm`}
+      />
+    </div>
+  );
+}
+
+export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
     phone: '',
-    message: ''
+    message: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,289 +127,203 @@ const ContactPage = () => {
     setTimeout(() => {
       setSubmitted(false);
       setFormData({ name: '', email: '', company: '', phone: '', message: '' });
-    }, 3000);
+    }, 4000);
   };
 
   useEffect(() => {
-    // Animate the map on load
-    if (mapContainerRef.current) {
-      gsap.from(mapContainerRef.current, {
+    if (heroRef.current) {
+      gsap.from(heroRef.current.children, {
         opacity: 0,
-        y: 30,
-        duration: 0.8,
+        y: 20,
+        stagger: 0.1,
+        duration: 0.7,
         ease: 'power2.out',
       });
     }
   }, []);
 
-  // Floating label input component
-  const FloatingInput = ({
-    label,
-    name,
-    type = 'text',
-    value,
-    onChange,
-    required = false,
-    placeholder = ''
-  }: {
-    label: string;
-    name: string;
-    type?: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    required?: boolean;
-    placeholder?: string;
-  }) => {
-    const isFilled = value.length > 0;
-    const isFocused = focusedField === name;
-
-    return (
-      <div className="relative pb-2">
-        <label
-          htmlFor={name}
-          className={`absolute left-0 transition-all duration-200 origin-left pointer-events-none ${
-            isFilled || isFocused
-              ? 'text-xs text-blue-600 -translate-y-6 scale-90'
-              : 'text-slate-600 translate-y-3'
-          }`}
-        >
-          {label}
-        </label>
-        <input
-          id={name}
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          onFocus={() => setFocusedField(name)}
-          onBlur={() => setFocusedField(null)}
-          required={required}
-          placeholder={placeholder}
-          className={`w-full px-0 py-3 bg-transparent border-b-2 transition-colors duration-200 focus:outline-none ${
-            isFocused || isFilled
-              ? 'border-blue-600'
-              : 'border-slate-300 hover:border-slate-400'
-          } text-slate-900 placeholder-slate-400`}
-        />
-      </div>
-    );
-  };
-
-  const FloatingTextarea = ({
-    label,
-    name,
-    value,
-    onChange,
-    required = false,
-    placeholder = ''
-  }: {
-    label: string;
-    name: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    required?: boolean;
-    placeholder?: string;
-  }) => {
-    const isFilled = value.length > 0;
-    const isFocused = focusedField === name;
-
-    return (
-      <div className="relative pb-2">
-        <label
-          htmlFor={name}
-          className={`absolute left-0 transition-all duration-200 origin-left pointer-events-none ${
-            isFilled || isFocused
-              ? 'text-xs text-blue-600 -translate-y-6 scale-90'
-              : 'text-slate-600 translate-y-3'
-          }`}
-        >
-          {label}
-        </label>
-        <textarea
-          id={name}
-          name={name}
-          value={value}
-          onChange={onChange}
-          onFocus={() => setFocusedField(name)}
-          onBlur={() => setFocusedField(null)}
-          required={required}
-          placeholder={placeholder}
-          rows={6}
-          className={`w-full px-0 py-3 bg-transparent border-b-2 transition-colors duration-200 focus:outline-none resize-none ${
-            isFocused || isFilled
-              ? 'border-blue-600'
-              : 'border-slate-300 hover:border-slate-400'
-          } text-slate-900 placeholder-slate-400`}
-        />
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* SVG World Map with Montreal Location */}
-      <div ref={mapContainerRef} className="px-6 py-16 md:px-12 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <ScrollReveal direction="up">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Get in Touch</h1>
-              <p className="text-slate-600 text-center max-w-2xl mx-auto">
-                Have questions about our investment strategies or solutions? We'd love to hear from you.
-              </p>
-            </div>
-          </ScrollReveal>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Hero with World Map */}
+      <section className="relative overflow-hidden">
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50" />
 
-          {/* 3D Globe Canvas */}
-          <ScrollReveal direction="up" delay={0.1}>
-            <div className="flex justify-center mb-12">
-              <GlobeCanvas />
-            </div>
-          </ScrollReveal>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="px-6 py-20 md:px-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Contact Form */}
-            <ScrollReveal direction="up" delay={0.1} className="lg:col-span-2">
-              <Card className="p-8 backdrop-blur-sm bg-white/95 border border-slate-200/60 shadow-lg">
-                <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <FloatingInput
-                      label="Name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-                    <FloatingInput
-                      label="Email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <FloatingInput
-                      label="Company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                    />
-                    <FloatingInput
-                      label="Phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div>
-                    <FloatingTextarea
-                      label="Message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  {submitted && (
-                    <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg animate-in fade-in">
-                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      <p className="text-green-700 text-sm font-medium">Thank you for your message. We'll be in touch soon!</p>
-                    </div>
-                  )}
-
-                  <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    Send Message
-                  </Button>
-                </form>
-              </Card>
-            </ScrollReveal>
-
-            {/* Contact Info Sidebar with Frosted Glass Effect */}
-            <ScrollReveal direction="up" delay={0.15} className="space-y-6">
-              {/* Google Maps Embed */}
-              <Card className="overflow-hidden border border-slate-200/60 shadow-lg">
-                <iframe
-                  width="100%"
-                  height="300"
-                  style={{ border: 0 }}
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.6289769638746!2d-73.58293!3d45.50294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a4295555555%3A0x5555555555555555!2s1002%20Sherbrooke%20Ouest%2C%20Montreal%2C%20QC!5e0!3m2!1sen!2sca!4v1234567890"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </Card>
-
-              {/* Contact Info Card with Frosted Glass */}
-              <Card className="p-6 backdrop-blur-md bg-white/95 border border-slate-200/60 shadow-lg">
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <MapPin className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-2">Address</h3>
-                      <p className="text-slate-600 text-sm">1002 Sherbrooke Ouest</p>
-                      <p className="text-slate-600 text-sm">Montreal, Quebec H3A 2R7</p>
-                      <p className="text-slate-600 text-sm">Canada</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-6 flex items-start gap-4">
-                    <Phone className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-2">Phone</h3>
-                      <p className="text-slate-600 text-sm mb-1">514-985-1138</p>
-                      <p className="text-slate-600 text-sm">1-833-227-2656</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-6 flex items-start gap-4">
-                    <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-2">Email</h3>
-                      <p className="text-slate-600 text-sm">info@nymbus.ca</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-6 flex items-start gap-4">
-                    <Clock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-2">Business Hours</h3>
-                      <p className="text-slate-600 text-sm mb-1">Monday - Friday</p>
-                      <p className="text-slate-600 text-sm">9:00 AM - 5:00 PM EST</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Key Contacts Card */}
-              <Card className="p-6 backdrop-blur-md bg-white/95 border border-slate-200/60 shadow-lg">
-                <h3 className="font-semibold text-slate-900 mb-4">Key Contacts</h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-semibold text-blue-600">Marc Rivet</p>
-                    <p className="text-xs text-slate-600">514-360-4255</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-blue-600">Xavier Girard</p>
-                    <p className="text-xs text-slate-600">514-360-4259</p>
-                  </div>
-                </div>
-              </Card>
-            </ScrollReveal>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+          <div ref={heroRef} className="text-center mb-12">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3"
+            >
+              Contact Us
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4"
+            >
+              Let&apos;s Connect
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-lg text-slate-500 max-w-xl mx-auto"
+            >
+              Based in Montreal, serving institutional investors across the globe with quantitative precision.
+            </motion.p>
           </div>
+
+          {/* World Map */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="max-w-4xl mx-auto"
+          >
+            <WorldMap />
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* Main Content: Form + Info */}
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16">
+          {/* Contact Form – 3 cols */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="lg:col-span-3"
+          >
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/40 p-8 md:p-10">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Send us a message</h2>
+                <p className="text-sm text-slate-500">We typically respond within one business day.</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Paired fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {formFields.filter(f => f.half).map((field) => (
+                    <PremiumInput
+                      key={field.name}
+                      field={field}
+                      value={formData[field.name as keyof typeof formData]}
+                      onChange={handleChange}
+                      focused={focusedField === field.name}
+                      onFocus={() => setFocusedField(field.name)}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  ))}
+                </div>
+
+                {/* Full-width fields */}
+                {formFields.filter(f => !f.half).map((field) => (
+                  <PremiumInput
+                    key={field.name}
+                    field={field}
+                    value={formData[field.name as keyof typeof formData]}
+                    onChange={handleChange}
+                    focused={focusedField === field.name}
+                    onFocus={() => setFocusedField(field.name)}
+                    onBlur={() => setFocusedField(null)}
+                  />
+                ))}
+
+                {/* Submit */}
+                <AnimatePresence mode="wait">
+                  {submitted ? (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl"
+                    >
+                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                      <p className="text-emerald-700 text-sm font-medium">Message sent successfully. We&apos;ll be in touch shortly.</p>
+                    </motion.div>
+                  ) : (
+                    <motion.button
+                      key="submit"
+                      type="submit"
+                      whileHover={{ scale: 1.005 }}
+                      whileTap={{ scale: 0.995 }}
+                      className="w-full relative group bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:shadow-slate-900/15 flex items-center justify-center gap-2"
+                    >
+                      <span>Send Message</span>
+                      <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </form>
+            </div>
+          </motion.div>
+
+          {/* Sidebar – 2 cols */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="lg:col-span-2 space-y-6"
+          >
+            {/* Contact Details */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-5">Contact Information</h3>
+              <div className="space-y-5">
+                {contactInfo.map((item) => (
+                  <div key={item.label} className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-4.5 h-4.5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                      {item.lines.map((line, i) => (
+                        <p key={i} className="text-sm text-slate-700">{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Contacts */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-5">Key Contacts</h3>
+              <div className="space-y-4">
+                {keyContacts.map((contact) => (
+                  <div key={contact.name} className="group p-4 rounded-xl bg-slate-50 hover:bg-blue-50/60 transition-colors duration-200">
+                    <p className="font-semibold text-slate-900 text-sm">{contact.name}</p>
+                    <p className="text-xs text-slate-500 mb-2">{contact.role}</p>
+                    <div className="flex items-center gap-4 text-xs">
+                      <a href={`tel:${contact.phone}`} className="text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                        <Phone className="w-3 h-3" /> {contact.phone}
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Google Maps */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/30 overflow-hidden">
+              <iframe
+                width="100%"
+                height="220"
+                style={{ border: 0 }}
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.6289769638746!2d-73.58293!3d45.50294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a4295555555%3A0x5555555555555555!2s1002%20Sherbrooke%20Ouest%2C%20Montreal%2C%20QC!5e0!3m2!1sen!2sca!4v1234567890"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
-};
-
-export default ContactPage;
+}

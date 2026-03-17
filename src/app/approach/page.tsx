@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ArrowUpRight, Brain, Zap, TrendingUp, Code2, Network, Microscope, Database } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
@@ -41,10 +42,12 @@ const PhilosophyCard = ({
   };
 
   return (
-    <div
+    <motion.div
       ref={cardRef}
       onMouseEnter={handleHover}
       onMouseLeave={handleHoverEnd}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
       className="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 hover:border-blue-500 cursor-pointer transition-all duration-300 group"
       style={{ perspective: '1000px' }}
     >
@@ -55,7 +58,7 @@ const PhilosophyCard = ({
       </div>
       <h3 className="text-2xl font-bold text-gray-900 mb-3">{title}</h3>
       <p className="text-gray-600 leading-relaxed">{description}</p>
-    </div>
+    </motion.div>
   );
 };
 
@@ -72,7 +75,12 @@ const ProcessStep = ({
   icon: React.ReactNode;
 }) => {
   return (
-    <div className="relative">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="relative"
+    >
       <div className="p-6 rounded-xl bg-white border border-gray-200 hover:border-blue-500 transition-colors">
         <div className="absolute -top-5 -left-5 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
           {number}
@@ -90,7 +98,7 @@ const ProcessStep = ({
           ))}
         </ul>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -150,42 +158,21 @@ const TechCard = ({
   description: string;
   icon: React.ReactNode;
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && cardRef.current) {
-          gsap.to(cardRef.current, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: 'power2.out',
-          });
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div
-      ref={cardRef}
-      className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 opacity-0"
-      style={{ transform: 'translateY(20px)' }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200"
     >
       <div className="flex items-center gap-3 mb-3">
         <div className="w-8 h-8 text-blue-600">{Icon}</div>
         <h4 className="font-semibold text-gray-900">{title}</h4>
       </div>
       <p className="text-sm text-gray-700">{description}</p>
-    </div>
+    </motion.div>
   );
 };
 
@@ -461,12 +448,14 @@ export default function ApproachPage() {
                   </div>
 
                   <div className="pt-4">
-                    <a
+                    <motion.a
                       href="/team"
                       className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       Meet our team <ArrowUpRight className="ml-2 w-4 h-4" />
-                    </a>
+                    </motion.a>
                   </div>
                 </div>
               </Card>
@@ -556,18 +545,22 @@ export default function ApproachPage() {
 
           <ScrollReveal>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
+              <motion.a
                 href="/strategies"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-lg bg-white text-blue-600 font-semibold hover:bg-blue-50 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 Explore Strategies <ArrowUpRight className="ml-2 w-5 h-5" />
-              </a>
-              <a
+              </motion.a>
+              <motion.a
                 href="/solutions"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-lg border border-white text-white font-semibold hover:bg-blue-700 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 Tailored Solutions <ArrowUpRight className="ml-2 w-5 h-5" />
-              </a>
+              </motion.a>
             </div>
           </ScrollReveal>
         </div>
