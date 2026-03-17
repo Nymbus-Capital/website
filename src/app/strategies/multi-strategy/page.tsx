@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -10,98 +11,54 @@ import { formatPercent, cn } from "@/lib/utils";
 import { funds } from "@/data/funds";
 import { team } from "@/data/team";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  FileText,
-  Download,
-  Calendar,
-  Shield,
-  TrendingUp,
-  Zap,
-  BarChart3,
+  BarChart,
+  Bar,
   PieChart,
-} from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+import { FileText, Download, Calendar } from "lucide-react";
 
 export default function MultiStrategyPage() {
   const fund = funds.find((f) => f.slug === "multi-strategy");
-  const [hoveredHeatmapCell, setHoveredHeatmapCell] = useState<{ row: number; col: number; value: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!fund) {
     return <div className="text-center py-20">Fund not found</div>;
   }
 
-  const trailingReturns = [
-    { period: "1M", return: 1.2 },
-    { period: "3M", return: 2.1 },
-    { period: "6M", return: 2.8 },
-    { period: "YTD", return: 3.2 },
-    { period: "1Y", return: 8.5 },
-    { period: "3Y", return: 5.1 },
-    { period: "5Y", return: 7.2 },
-    { period: "SI", return: 12.8 },
-  ];
+  // Prepare data for charts
+  const strategyData = (fund.sectorAllocation || []).map((s) => ({
+    name: s.sector,
+    value: s.weight,
+  }));
 
-  const calendarYearReturns = [
-    { year: 2019, return: 8.3 },
-    { year: 2020, return: 12.7 },
-    { year: 2021, return: 6.2 },
-    { year: 2022, return: -8.5 },
-    { year: 2023, return: 11.4 },
-    { year: 2024, return: 7.6 },
-    { year: 2025, return: 3.2 },
-  ];
+  const calendarYearData = (fund.calendarYearReturns || []).map((d) => ({
+    year: d.year.toString(),
+    fund: d.fund,
+    benchmark: d.benchmark,
+  }));
 
-  const monthlyReturns = [
-    [1.2, 0.8, 1.5, -0.3, 0.9, 1.1],
-    [2.1, 1.8, 2.4, 0.6, 1.7, 2.3],
-    [0.5, -0.2, 1.2, 2.1, -0.8, 1.4],
-    [3.1, 2.6, 2.9, 3.5, 2.1, 3.4],
-    [1.8, 1.5, 2.2, 1.9, 1.6, 2.5],
-    [-0.5, -1.2, 0.3, -0.8, -0.1, 0.8],
-  ];
-
-  const years = [2020, 2021, 2022, 2023, 2024, 2025];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-
-  const allocation = [
-    { name: "Cash & Equivalents", percentage: 36.1 },
-    { name: "Fixed Income Enhancement", percentage: 28.4 },
-    { name: "Managed Futures", percentage: 22.8 },
-    { name: "Dynamic Allocation", percentage: 12.7 },
-  ];
-
-  const strategies = [
-    {
-      name: "Dynamic Allocation",
-      description: "Adaptive positioning across asset classes",
-      icon: TrendingUp,
-    },
-    {
-      name: "Managed Futures",
-      description: "Trend-following systematic strategies",
-      icon: Zap,
-    },
-    {
-      name: "Fixed Income Enhancement",
-      description: "Optimized yield with limited duration",
-      icon: BarChart3,
-    },
-    {
-      name: "Cash Reserves",
-      description: "Capital preservation and liquidity",
-      icon: Shield,
-    },
-  ];
+  const monthlyData = (fund.monthlyReturns || []).map((m) => ({
+    month: m.month,
+    return: m.value,
+  }));
 
   const fundDocuments = [
     { name: "Fund Facts Sheet", category: "Fund Facts", updated: "Mar 2026", icon: FileText },
     { name: "Offering Memorandum", category: "Offering Memorandum", updated: "Feb 2026", icon: Download },
     { name: "Annual Report 2024", category: "Annual Report", updated: "Jan 2026", icon: Calendar },
     { name: "Semi-Annual Report 2025", category: "Semi-Annual Report", updated: "Jul 2025", icon: Calendar },
-    { name: "Audited Financial Statements", category: "Audited Financial Statements", updated: "Dec 2024", icon: Shield },
+    { name: "Audited Financial Statements", category: "Audited Financial Statements", updated: "Dec 2024", icon: FileText },
     { name: "2024 Tax Documents", category: "Tax Documents", updated: "Feb 2025", icon: FileText },
   ];
 
@@ -110,36 +67,28 @@ export default function MultiStrategyPage() {
     const member = team.find(
       (t) => t.name.toLowerCase() === managerName.toLowerCase()
     );
-    return member || { name: managerName, initials: managerName.split(" ").map(n => n[0]).join(""), color: "bg-violet-600" };
+    return member || { name: managerName, initials: managerName.split(" ").map((n) => n[0]).join(""), color: "bg-violet-600" };
   };
 
-  // Color scale for heatmap
-  const getHeatmapColor = (value: number): string => {
-    if (value > 2) return "bg-green-700";
-    if (value > 1.5) return "bg-green-600";
-    if (value > 1) return "bg-green-400";
-    if (value > 0.5) return "bg-green-200";
-    if (value > 0) return "bg-emerald-100";
-    if (value > -0.5) return "bg-orange-100";
-    if (value > -1) return "bg-orange-300";
-    if (value > -1.5) return "bg-red-400";
-    return "bg-red-600";
-  };
-
-  // Calendar year chart
-  const maxReturn = Math.max(...calendarYearReturns.map(r => Math.abs(r.return)));
-  const maxHeight = 280;
+  // Colors for charts
+  const chartColors = ["#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#f3e8ff"];
+  const pieColors = ["#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#f3e8ff"];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
-      {/* Hero Section with Gradient */}
+    <div ref={containerRef} className="min-h-screen bg-slate-950 text-white overflow-hidden">
+      {/* Hero Section */}
       <div className="relative min-h-screen pt-20 pb-32 overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-950 via-slate-900 to-slate-950" />
-        <div className="absolute inset-0 opacity-40">
+        <motion.div
+          className="absolute inset-0 opacity-30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          transition={{ duration: 1.5 }}
+        >
           <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600 rounded-full blur-3xl" />
           <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl" />
-        </div>
+        </motion.div>
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
           <Link href="/strategies" className="inline-block mb-8 w-fit">
@@ -149,326 +98,291 @@ export default function MultiStrategyPage() {
           </Link>
 
           <ScrollReveal direction="up">
-            <div className="space-y-8">
+            <motion.div className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
               {/* Fund Header */}
               <div>
-                <div className="flex items-center gap-4 mb-6">
+                <motion.div className="flex flex-wrap items-center gap-4 mb-6" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
                   <h1 className="text-6xl md:text-7xl font-bold text-white">{fund.name}</h1>
-                  <span className="inline-block bg-violet-600/80 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-semibold border border-violet-400/30">
+                  <motion.span
+                    className="inline-block bg-violet-600/80 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-semibold border border-violet-400/30"
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(124, 58, 237, 0.95)" }}
+                  >
                     {fund.assetClass}
-                  </span>
-                </div>
-                <p className="text-xl md:text-2xl text-slate-300 max-w-3xl leading-relaxed">
+                  </motion.span>
+                  <motion.span
+                    className="inline-block bg-purple-600/80 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-semibold border border-purple-400/30"
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(147, 51, 234, 0.95)" }}
+                  >
+                    {fund.vehicle}
+                  </motion.span>
+                </motion.div>
+                <motion.p
+                  className="text-xl md:text-2xl text-slate-300 max-w-3xl leading-relaxed"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
                   {fund.description}
-                </p>
+                </motion.p>
               </div>
 
-              {/* Frosted Glass Key Metrics */}
-              <div className="mt-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 md:p-10">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                  <div>
-                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">SI Return</p>
-                    <p className="text-4xl font-bold text-white">
-                      <AnimatedCounter target={12.8} duration={2} suffix="%" />
+              {/* Key Metrics */}
+              <motion.div
+                className="mt-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 md:p-10"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ borderColor: "rgba(124, 58, 237, 0.5)" }}
+              >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                  <motion.div whileHover={{ scale: 1.05 }}>
+                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">AUM</p>
+                    <p className="text-3xl md:text-4xl font-bold text-white">{fund.aum}</p>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }}>
+                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">MER</p>
+                    <p className="text-3xl md:text-4xl font-bold text-violet-300">{fund.mer}</p>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }}>
+                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">Inception</p>
+                    <p className="text-3xl md:text-4xl font-bold text-slate-200">2014</p>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }}>
+                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">Sharpe</p>
+                    <p className="text-3xl md:text-4xl font-bold text-violet-300">
+                      <AnimatedCounter target={0.65} duration={2} />
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">Std Dev</p>
-                    <p className="text-4xl font-bold text-slate-200">17.8%</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">Max Drawdown</p>
-                    <p className="text-4xl font-bold text-red-400">-30%</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-300 mb-2 uppercase tracking-wide">Sharpe Ratio</p>
-                    <p className="text-4xl font-bold text-violet-300">0.65</p>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </ScrollReveal>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
-        {/* Trailing Returns */}
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 space-y-20">
+        {/* Strategy Allocation - Pie Chart */}
         <ScrollReveal direction="up" delay={0.1}>
-          <div className="mb-20">
-            <SectionHeader
-              title="Performance Overview"
-              description="Trailing returns as of March 16, 2026"
-            />
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Strategy Allocation" description="Current diversification across six strategy buckets" />
             <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                {trailingReturns.map((item, idx) => (
-                  <div
-                    key={item.period}
-                    className="text-center group"
-                  >
-                    <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wide">
-                      {item.period}
-                    </p>
-                    <div className="bg-gradient-to-b from-violet-600 to-violet-800 rounded-lg p-4 group-hover:shadow-lg group-hover:shadow-violet-600/50 transition-all duration-300">
-                      <p className="text-2xl font-bold text-white">
-                        {formatPercent(item.return)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </ScrollReveal>
-
-        {/* Calendar Year Returns Chart */}
-        <ScrollReveal direction="up" delay={0.15}>
-          <div className="mb-20">
-            <SectionHeader
-              title="Calendar Year Returns"
-              description="Annual performance by year"
-            />
-            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
-              <div className="flex items-end justify-between gap-3 h-96">
-                {calendarYearReturns.map((item) => {
-                  const heightPercent = (item.return / maxReturn) * 100;
-                  const isNegative = item.return < 0;
-                  return (
-                    <div
-                      key={item.year}
-                      className="flex-1 flex flex-col items-center group cursor-pointer"
-                    >
-                      <div className="text-sm font-semibold text-slate-300 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {formatPercent(item.return)}
-                      </div>
-                      <div
-                        className={cn(
-                          "w-full rounded-t-lg transition-all duration-300 group-hover:shadow-lg",
-                          isNegative
-                            ? "bg-gradient-to-t from-red-600 to-red-500 group-hover:shadow-red-600/50"
-                            : "bg-gradient-to-t from-green-600 to-green-500 group-hover:shadow-green-600/50"
-                        )}
-                        style={{ height: `${Math.abs(heightPercent)}%` }}
-                      />
-                      <div className="text-sm font-bold text-slate-200 mt-4">{item.year}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-        </ScrollReveal>
-
-        {/* Monthly Returns Heatmap */}
-        <ScrollReveal direction="up" delay={0.2}>
-          <div className="mb-20">
-            <SectionHeader
-              title="Monthly Returns Heatmap"
-              description="Performance by month and year"
-            />
-            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
-              <div className="overflow-x-auto">
-                <div className="min-w-max">
-                  {/* Header row */}
-                  <div className="flex gap-3 mb-4">
-                    <div className="w-16" />
-                    {years.map((year) => (
-                      <div
-                        key={year}
-                        className="w-20 text-center text-sm font-semibold text-slate-300"
-                      >
-                        {year}
-                      </div>
+              <ResponsiveContainer width="100%" height={400}>
+                <PieChart>
+                  <Pie data={strategyData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}%`} outerRadius={120} fill="#8b5cf6" dataKey="value">
+                    {strategyData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                     ))}
-                  </div>
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value}%`} contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #7c3aed" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          </motion.div>
+        </ScrollReveal>
 
-                  {/* Data rows */}
-                  {months.map((month, rowIdx) => (
-                    <div key={month} className="flex gap-3 mb-3 items-center">
-                      <div className="w-16 text-sm font-semibold text-slate-300">
-                        {month}
-                      </div>
-                      {monthlyReturns[rowIdx].map((value, colIdx) => {
-                        const isHovered =
-                          hoveredHeatmapCell?.row === rowIdx && hoveredHeatmapCell?.col === colIdx;
-                        return (
-                          <div
-                            key={`${rowIdx}-${colIdx}`}
-                            className={cn(
-                              "w-20 h-16 rounded-lg flex items-center justify-center font-semibold text-sm transition-all duration-200 cursor-pointer",
-                              getHeatmapColor(value),
-                              isHovered ? "ring-2 ring-white scale-105 shadow-lg" : ""
-                            )}
-                            onMouseEnter={() => setHoveredHeatmapCell({ row: rowIdx, col: colIdx, value })}
-                            onMouseLeave={() => setHoveredHeatmapCell(null)}
-                            title={`${month} ${years[colIdx]}: ${value > 0 ? "+" : ""}${value.toFixed(1)}%`}
-                          >
-                            {isHovered && (
-                              <span className="text-white">
-                                {value > 0 ? "+" : ""}
-                                {value.toFixed(1)}%
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+        {/* Calendar Year Returns - Bar Chart */}
+        <ScrollReveal direction="up" delay={0.15}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Calendar Year Returns" description="Fund vs benchmark performance over 10 years" />
+            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={calendarYearData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="year" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #7c3aed" }} />
+                  <Legend />
+                  <Bar dataKey="fund" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="benchmark" fill="#a78bfa" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </motion.div>
+        </ScrollReveal>
+
+        {/* Monthly Returns - Area Chart */}
+        <ScrollReveal direction="up" delay={0.2}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Monthly Returns" description="Performance by month" />
+            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={monthlyData}>
+                  <defs>
+                    <linearGradient id="colorReturn" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="month" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #7c3aed" }} />
+                  <Area type="monotone" dataKey="return" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorReturn)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </Card>
+          </motion.div>
+        </ScrollReveal>
+
+        {/* Risk Metrics Grid */}
+        <ScrollReveal direction="up" delay={0.25}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Risk Metrics" description="Comprehensive risk analysis" />
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-8">
+              {[
+                { label: "Sharpe Ratio", value: fund.riskMetrics?.sharpe },
+                { label: "Sortino Ratio", value: fund.riskMetrics?.sortino },
+                { label: "Max Drawdown", value: `${fund.riskMetrics?.maxDrawdown}%` },
+                { label: "Std Deviation", value: `${fund.riskMetrics?.standardDeviation}%` },
+                { label: "Beta", value: fund.riskMetrics?.beta },
+                { label: "Alpha", value: `${fund.riskMetrics?.alpha}%` },
+                { label: "Up Capture", value: `${fund.riskMetrics?.upCaptureRatio}%` },
+                { label: "Down Capture", value: `${fund.riskMetrics?.downCaptureRatio}%` },
+              ].map((metric, idx) => (
+                <motion.div key={metric.label} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <Card className="p-6 bg-gradient-to-br from-violet-600/20 to-purple-600/20 border-violet-600/30">
+                    <p className="text-sm text-slate-300 uppercase tracking-wide mb-2">{metric.label}</p>
+                    <p className="text-3xl font-bold text-violet-300">{metric.value}</p>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </ScrollReveal>
+
+        {/* Performance Highlights with Animated Counters */}
+        <ScrollReveal direction="up" delay={0.3}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Key Performance Highlights" description="Standout metrics since inception" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Card className="p-8 text-center bg-gradient-to-br from-violet-600 to-purple-600 border-violet-500/50">
+                  <p className="text-sm text-violet-200 uppercase tracking-wide mb-3">SI Return</p>
+                  <p className="text-4xl font-bold text-white">
+                    <AnimatedCounter target={12.8} duration={2} suffix="%" />
+                  </p>
+                </Card>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Card className="p-8 text-center bg-gradient-to-br from-violet-600 to-purple-600 border-violet-500/50">
+                  <p className="text-sm text-violet-200 uppercase tracking-wide mb-3">Beta</p>
+                  <p className="text-4xl font-bold text-white">
+                    <AnimatedCounter target={0.18} duration={2} />
+                  </p>
+                </Card>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Card className="p-8 text-center bg-gradient-to-br from-violet-600 to-purple-600 border-violet-500/50">
+                  <p className="text-sm text-violet-200 uppercase tracking-wide mb-3">Capture Ratio</p>
+                  <p className="text-4xl font-bold text-white">
+                    <AnimatedCounter target={45} duration={2} />
+                    <span className="text-lg"> / </span>
+                    <AnimatedCounter target={12} duration={2} />
+                  </p>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
+        </ScrollReveal>
+
+        {/* Distribution */}
+        <ScrollReveal direction="up" delay={0.35}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Distribution" description="Annual distribution details" />
+            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-slate-300">Frequency</p>
+                  <p className="text-2xl font-bold text-white">{fund.distribution?.frequency}</p>
+                </div>
+                <div className="flex justify-between items-center border-t border-slate-700 pt-4">
+                  <p className="text-slate-300">Last Distribution</p>
+                  <p className="text-2xl font-bold text-violet-300">{fund.distribution?.lastAmount}</p>
                 </div>
               </div>
             </Card>
-          </div>
-        </ScrollReveal>
-
-        {/* Asset Allocation */}
-        <ScrollReveal direction="up" delay={0.25}>
-          <div className="mb-20">
-            <SectionHeader title="Asset Allocation" description="Current fund composition" />
-            <Card className="p-8 mt-8 bg-slate-900/50 border-slate-800">
-              <div className="space-y-6">
-                {allocation.map((item) => (
-                  <div key={item.name}>
-                    <div className="flex justify-between items-center mb-2">
-                      <p className="font-semibold text-slate-100">{item.name}</p>
-                      <span className="text-lg font-bold text-violet-400">{item.percentage}%</span>
-                    </div>
-                    <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-500"
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </ScrollReveal>
-
-        {/* Strategies */}
-        <ScrollReveal direction="up" delay={0.3}>
-          <div className="mb-20">
-            <SectionHeader
-              title="Investment Strategies"
-              description="Multi-alpha approach with dynamic positioning"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              {strategies.map((strategy) => {
-                const IconComponent = strategy.icon;
-                return (
-                  <Card
-                    key={strategy.name}
-                    className="p-6 bg-slate-900/50 border-slate-800 hover:border-violet-600/50 hover:bg-slate-900/80 transition-all duration-300 group"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-violet-600/20 rounded-lg group-hover:bg-violet-600/40 transition-colors">
-                        <IconComponent className="w-6 h-6 text-violet-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white mb-1">{strategy.name}</h4>
-                        <p className="text-sm text-slate-400">{strategy.description}</p>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+          </motion.div>
         </ScrollReveal>
 
         {/* Management Team */}
-        <ScrollReveal direction="up" delay={0.35}>
-          <div className="mb-20">
+        <ScrollReveal direction="up" delay={0.4}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <SectionHeader title="Management Team" description="Expert portfolio managers" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               {fund.managers.map((managerName) => {
                 const manager = getManagerDetails(managerName);
                 return (
-                  <Card
-                    key={managerName}
-                    className="p-6 bg-slate-900/50 border-slate-800 hover:border-violet-600/50 transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={cn(
-                          "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg",
-                          manager.color || "bg-violet-600"
-                        )}
-                      >
-                        {manager.initials}
+                  <motion.div key={managerName} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
+                    <Card className="p-6 bg-slate-900/50 border-slate-800 hover:border-violet-600/50 transition-all duration-300">
+                      <div className="flex items-center gap-4">
+                        <motion.div
+                          className={cn("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg", manager.color || "bg-violet-600")}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          {manager.initials}
+                        </motion.div>
+                        <div>
+                          <p className="font-bold text-white">{manager.name}</p>
+                          <p className="text-sm text-slate-400">{(manager as any).title || "Portfolio Manager"}</p>
+                          {(manager as any).designations && <p className="text-xs text-slate-500 mt-1">{(manager as any).designations}</p>}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-white">{manager.name}</p>
-                        <p className="text-sm text-slate-400">
-                          {(manager as any).title || "Portfolio Manager"}
-                        </p>
-                        {(manager as any).designations && (
-                          <p className="text-xs text-slate-500 mt-1">
-                            {(manager as any).designations}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         </ScrollReveal>
 
         {/* Fund Documentation */}
-        <ScrollReveal direction="up" delay={0.4}>
-          <div className="mb-20">
-            <SectionHeader
-              title="Fund Documentation & Reports"
-              description="Access fund facts, reports, and regulatory documents"
-            />
+        <ScrollReveal direction="up" delay={0.45}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <SectionHeader title="Fund Documentation & Reports" description="Access fund facts, reports, and regulatory documents" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               {fundDocuments.map((doc) => {
                 const Icon = doc.icon;
                 return (
-                  <Card
-                    key={doc.name}
-                    className="p-6 bg-slate-900/50 border-l-4 border-l-violet-600 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80 transition-all duration-300 group"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <Icon className="w-8 h-8 text-violet-400" />
-                      <span className="text-xs font-semibold text-violet-300 bg-violet-600/20 px-2 py-1 rounded">
-                        PDF
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-white mb-2">{doc.name}</h4>
-                    <p className="text-sm text-slate-400 mb-4">{doc.category}</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                      <span className="text-xs text-slate-500">Updated: {doc.updated}</span>
-                      <button className="text-violet-400 hover:text-violet-300 transition-colors">
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </Card>
+                  <motion.div key={doc.name} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
+                    <Card className="p-6 bg-slate-900/50 border-l-4 border-l-violet-600 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80 transition-all duration-300">
+                      <div className="flex items-start justify-between mb-3">
+                        <Icon className="w-8 h-8 text-violet-400" />
+                        <span className="text-xs font-semibold text-violet-300 bg-violet-600/20 px-2 py-1 rounded">PDF</span>
+                      </div>
+                      <h4 className="font-bold text-white mb-2">{doc.name}</h4>
+                      <p className="text-sm text-slate-400 mb-4">{doc.category}</p>
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                        <span className="text-xs text-slate-500">Updated: {doc.updated}</span>
+                        <motion.button className="text-violet-400 hover:text-violet-300 transition-colors" whileHover={{ scale: 1.2 }}>
+                          <Download className="w-4 h-4" />
+                        </motion.button>
+                      </div>
+                    </Card>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         </ScrollReveal>
 
-        {/* CTA */}
-        <ScrollReveal direction="up" delay={0.45}>
-          <Card className="p-12 bg-gradient-to-r from-violet-600 to-purple-600 border-violet-500/50 text-center">
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Ready to Invest?
-            </h3>
-            <p className="text-lg text-violet-100 mb-8 max-w-2xl mx-auto">
-              Start your journey with diversified returns and expert portfolio management.
-            </p>
-            <Button
-              size="lg"
-              className="bg-white text-violet-600 hover:bg-slate-100"
-            >
-              Schedule a Consultation
-            </Button>
-          </Card>
+        {/* CTA Section */}
+        <ScrollReveal direction="up" delay={0.5}>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <Card className="p-12 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 border-violet-500/50 text-center">
+              <motion.h3 className="text-3xl md:text-4xl font-bold text-white mb-4" initial={{ scale: 0.95, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
+                Ready to Invest?
+              </motion.h3>
+              <motion.p className="text-lg text-violet-100 mb-8 max-w-2xl mx-auto" initial={{ scale: 0.95, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}>
+                Start your journey with diversified returns and expert portfolio management.
+              </motion.p>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button size="lg" variant="primary" className="bg-white text-violet-600 hover:bg-slate-100">
+                  Schedule a Consultation
+                </Button>
+              </motion.div>
+            </Card>
+          </motion.div>
         </ScrollReveal>
       </div>
     </div>
