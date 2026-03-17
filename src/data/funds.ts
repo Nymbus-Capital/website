@@ -105,7 +105,7 @@ export const funds: Fund[] = [
     name: "Global Minimum Volatility",
     shortName: "GMV",
     type: "strategy",
-    assetClass: "Multi-Asset",
+    assetClass: "Alternatives",
     vehicle: "Managed Account",
     inceptionDate: "2015-01-01",
     currency: "USD",
