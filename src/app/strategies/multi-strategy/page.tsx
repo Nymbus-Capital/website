@@ -1,117 +1,59 @@
 'use client';
 
 import FundDetailLayout from '@/components/FundDetailLayout';
-import { ScrollReveal } from '@/components/animations/ScrollReveal';
-import { Card } from '@/components/ui/Card';
-import AnimatedCounter from '@/components/animations/AnimatedCounter';
 import { fundBySlug } from '@/data/funds';
+import { Card } from '@/components/ui/Card';
+import { ScrollReveal } from '@/components/animations/ScrollReveal';
+import { Layers, TrendingUp, BarChart3, Activity, Zap } from 'lucide-react';
 
-const fund = fundBySlug('multi-strategy')!;
+export default function MultiStrategyPage() {
+  const fund = fundBySlug('multi-strategy');
+  if (!fund) return null;
 
-function SubStrategiesSection() {
   const subStrategies = [
-    {
-      name: 'Fixed Income Enhancement',
-      weight: 35,
-      description: 'Systematic credit strategies capturing risk premia in investment-grade and high-yield bonds through quantitative security selection.',
-      color: '#7c3aed',
-    },
-    {
-      name: 'Managed Futures (CTA)',
-      weight: 22.5,
-      description: 'Trend-following and momentum strategies across global futures markets including equities, fixed income, currencies, and commodities.',
-      color: '#8b5cf6',
-    },
-    {
-      name: 'Equity Market Neutral',
-      weight: 15,
-      description: 'Long/short equity strategies designed to generate alpha independent of market direction through factor-based selection.',
-      color: '#a78bfa',
-    },
-    {
-      name: 'Volatility Arbitrage',
-      weight: 12.5,
-      description: 'Strategies that capture the spread between implied and realized volatility across equity and fixed income derivatives.',
-      color: '#c4b5fd',
-    },
-    {
-      name: 'Dynamic Asset Allocation',
-      weight: 10,
-      description: 'Tactical allocation across asset classes based on quantitative regime detection and risk parity frameworks.',
-      color: '#ddd6fe',
-    },
+    { name: 'Fixed Income Enhancement', weight: 35, icon: TrendingUp, desc: 'Systematic credit selection and duration management across Canadian fixed income markets.' },
+    { name: 'Managed Futures (CTA)', weight: 22.5, icon: BarChart3, desc: 'Trend-following and mean-reversion models across global futures markets.' },
+    { name: 'Equity Market Neutral', weight: 15, icon: Activity, desc: 'Long/short equity pairs with zero net market exposure.' },
+    { name: 'Volatility Arbitrage', weight: 12.5, icon: Zap, desc: 'Capturing the spread between implied and realized volatility.' },
+    { name: 'Dynamic Asset Allocation', weight: 10, icon: Layers, desc: 'Regime-based tactical allocation across asset classes.' },
   ];
 
   return (
-    <div className="mt-12 space-y-8">
-      <ScrollReveal>
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">Sub-Strategy Breakdown</h2>
-          <p className="text-slate-500 mt-2">Five complementary return engines working in concert</p>
-        </div>
-      </ScrollReveal>
-
-      <div className="space-y-4">
-        {subStrategies.map((strategy, idx) => (
-          <ScrollReveal key={strategy.name} delay={idx * 80}>
-            <Card>
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${strategy.color}20` }}>
-                    <span className="text-lg font-bold" style={{ color: strategy.color }}>{strategy.weight}%</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">{strategy.name}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{strategy.description}</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </ScrollReveal>
-        ))}
-      </div>
-
-      {/* Key Metrics */}
-      <ScrollReveal>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-          {[
-            { label: 'Beta to S&P 500', value: 0.18, decimals: 2 },
-            { label: 'Annualized Since Inception', value: 12.8, suffix: '%', decimals: 1 },
-            { label: 'Down Capture Ratio', value: 12, suffix: '%', decimals: 0 },
-            { label: 'Positive Months', value: 82, suffix: '%', decimals: 0 },
-          ].map((stat) => (
-            <Card key={stat.label}>
-              <div className="p-6 text-center">
-                <div className="text-3xl font-bold text-violet-600 mb-1">
-                  <AnimatedCounter target={stat.value} suffix={stat.suffix || ''} decimals={stat.decimals} />
-                </div>
-                <p className="text-sm text-slate-500">{stat.label}</p>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </ScrollReveal>
-
-      <ScrollReveal>
-        <Card>
-          <div className="p-6 md:p-8 bg-gradient-to-r from-violet-50 to-slate-50 rounded-xl">
-            <h3 className="text-lg font-bold text-slate-900 mb-3">Institutional-Grade Alternatives, Accessible to All</h3>
-            <p className="text-slate-600 leading-relaxed">
-              The Multi-Strategy Fund brings hedge fund-caliber diversification to everyday investors. With a $1,000 minimum investment and daily liquidity, this fund democratizes access to alternative strategies that have historically been reserved for large institutional allocators. The fund has delivered positive returns in every calendar year since inception, including 2022 when global equities and bonds both declined significantly.
-            </p>
-          </div>
-        </Card>
-      </ScrollReveal>
-    </div>
-  );
-}
-
-export default function MultiStrategyPage() {
-  return (
     <FundDetailLayout
       fund={fund}
-      themeName="violet"
-      extraSections={<SubStrategiesSection />}
+      extraSections={
+        <section className="border-t border-slate-100 bg-white py-16 px-6">
+          <div className="max-w-7xl mx-auto">
+            <ScrollReveal>
+              <div className="flex items-center gap-2 mb-8">
+                <Layers className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xl font-bold text-slate-900">Sub-Strategy Breakdown</h3>
+              </div>
+              <div className="space-y-3">
+                {subStrategies.map((s) => (
+                  <Card key={s.name} className="p-5 border border-slate-200">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <s.icon className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-semibold text-slate-900 text-sm">{s.name}</h4>
+                          <span className="text-sm font-bold text-blue-600">{s.weight}%</span>
+                        </div>
+                        <p className="text-xs text-slate-600">{s.desc}</p>
+                        <div className="mt-2 bg-slate-100 rounded-full h-1.5">
+                          <div className="bg-blue-500 h-full rounded-full" style={{ width: `${s.weight * 2.5}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+      }
     />
   );
 }
