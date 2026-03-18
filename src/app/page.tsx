@@ -20,3 +20,6 @@ const newsItems = [
   { date: '2022', title: 'New Institutional Mandate with FMOQ', category: 'Growth', description: "Awarded mandate from the Quebec medical professionals' investment fund." },
   { date: '2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital (2013), Gestion de portefeuille Landry (2002), and Perseus Capital (2005).' },
 ];
+
+// Investment Capabilities Pipeline Component
+function InvestmentCapabilities() {
