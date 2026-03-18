@@ -100,14 +100,14 @@ const solutions: Solution[] = [
     capabilities: [
       { title: 'Mutual Funds', description: 'Daily-liquidity mutual funds offering access to our systematic fixed income and multi-strategy capabilities through Fundserv.', icon: Wallet },
       { title: 'Advisor Support', description: 'Dedicated advisor relations team with educational materials, model portfolios, and co-branded marketing support.', icon: Users },
-      { title: 'Portfolio Integration', description: 'Strategies designed as portfolio building blocks \u2014 use as core fixed income, satellite alternatives, or risk reduction overlays.', icon: PieChart },
+      { title: 'Portfolio Integration', description: 'Strategies designed as portfolio building blocks — use as core fixed income, satellite alternatives, or risk reduction overlays.', icon: PieChart },
       { title: 'Performance Tracking', description: 'Monthly factsheets, quarterly commentaries, and on-demand performance data for client reviews.', icon: TrendingUp },
     ],
     investmentApproach: 'Our mutual funds employ the same systematic models and quantitative processes used in our institutional mandates, providing retail investors with professional-grade portfolio management. Each fund targets specific risk-return outcomes and is managed with full ESG integration.',
     keyMetrics: [
       { label: 'Minimum Investment', value: '$1,000' },
       { label: 'Liquidity', value: 'Daily' },
-      { label: 'MER Range', value: '0.55% \u2013 1.85%' },
+      { label: 'MER Range', value: '0.55% – 1.85%' },
       { label: 'Platform', value: 'Fundserv' },
     ],
     suitableStrategies: ['Sustainable Enhanced Bonds', 'Short-Term Bonds', 'Multi-Strategy Fund'],
