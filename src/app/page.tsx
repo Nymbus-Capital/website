@@ -14,12 +14,12 @@ import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, Chevron
 import gsap from 'gsap';
 
 const newsItems = [
-  { date: '2025', title: 'Mageska Capital Partnership — Portable Alpha Strategy', category: 'Partnership', description: 'Mageska entrusts Nymbus with portable alpha strategy management for institutional clients.' },
-  { date: '2024', title: 'Tobacco-Free Finance Pledge Signatory', category: 'ESG', description: 'Nymbus commits to excluding tobacco companies from all portfolios globally.' },
-  { date: '2023', title: 'RBC Fund Ranking — Top Percentile Performance', category: 'Recognition', description: 'All three fixed income strategies ranked in top percentiles of the RBC Fund Study.' },
-  { date: '2023', title: 'Community Impact — Dans la rue Partnership', category: 'Community', description: 'Nymbus partners with Dans la rue to support at-risk youth in Montreal.' },
-  { date: '2022', title: 'New Institutional Mandate with FMOQ', category: 'Growth', description: "Awarded mandate from the Quebec medical professionals' investment fund." },
-  { date: '2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital (2013), Gestion de portefeuille Landry (2002), and Perseus Capital (2005).' },
+  { date: 'January 2025', title: 'Mageska Capital Partnership', category: 'Partnership', description: 'Mageska entrusts Nymbus with portable alpha strategy management for institutional clients.', color: 'from-blue-500 to-blue-600' },
+  { date: 'April 2024', title: 'Tobacco-Free Finance Pledge', category: 'ESG', description: 'Nymbus commits to excluding tobacco companies from all portfolios globally.', color: 'from-emerald-500 to-emerald-600' },
+  { date: 'November 2023', title: 'RBC Fund Ranking', category: 'Recognition', description: 'All three fixed income strategies ranked in top percentiles of the RBC Fund Study.', color: 'from-indigo-500 to-indigo-600' },
+  { date: 'October 2023', title: 'Community Impact', category: 'Community', description: 'Nymbus partners with Dans la rue to support at-risk youth in Montreal.', color: 'from-slate-700 to-slate-800' },
+  { date: 'March 2022', title: 'FMOQ Institutional Mandate', category: 'Growth', description: "Awarded mandate from the Quebec medical professionals' investment fund.", color: 'from-blue-600 to-blue-700' },
+  { date: 'September 2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital, Gestion de portefeuille Landry, and Perseus Capital.', color: 'from-slate-800 to-slate-900' },
 ];
 
 function InvestmentCapabilities() {
@@ -75,8 +75,8 @@ function InvestmentCapabilities() {
   );
 }
 
-function ClientLogos() {
-  const clients = [
+function InvestorLogoBar() {
+  const logos = [
     { name: 'FMOQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fmoq.png' },
     { name: 'PGEQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-pgeq-fr.png' },
     { name: 'Fondaction', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fondaction.png' },
@@ -84,44 +84,42 @@ function ClientLogos() {
   ];
 
   return (
-    <div className="relative w-full overflow-hidden py-8">
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none z-10" />
-      <div className="flex gap-16 animate-scroll">
-        {[...clients, ...clients].map((client, idx) => (
+    <div className="w-full bg-white">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {logos.map((logo, index) => (
           <motion.div
-            key={idx}
-            className="flex-shrink-0 flex items-center justify-center h-16"
-            whileHover={{ scale: 1.05 }}
+            key={index}
+            whileHover={{ scale: 0.97 }}
             transition={{ duration: 0.3 }}
+            className="h-full"
           >
-            <img
-              src={client.url}
-              alt={client.name}
-              className="h-12 w-auto grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
+            <div className="rounded-xl border border-slate-200 p-8 h-full flex items-center justify-center bg-white group hover:border-blue-400 hover:shadow-lg transition-all duration-300">
+              <motion.div
+                whileHover={{ filter: 'blur(4px)' }}
+                transition={{ duration: 0.3 }}
+                className="transition-all duration-300"
+              >
+                <img
+                  src={logo.url}
+                  alt={logo.name}
+                  className="max-h-12 w-auto object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </motion.div>
+            </div>
           </motion.div>
         ))}
       </div>
-      <style jsx>{`
-        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 32px)); } }
-        .animate-scroll { animation: scroll 40s linear infinite; }
-        .animate-scroll:hover { animation-play-state: paused; }
-      `}</style>
     </div>
   );
 }
 
-function NewsTimeline() {
+function NewsCarousel() {
   return (
-    <div className="relative w-full overflow-x-auto pb-4">
-      <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white via-white to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent pointer-events-none z-10" />
-
-      <div className="flex gap-6 min-w-min px-4">
+    <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex gap-6 min-w-min">
         {newsItems.map((item, index) => (
           <motion.div
             key={index}
@@ -129,17 +127,23 @@ function NewsTimeline() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="flex-shrink-0 w-80"
+            whileHover={{ scale: 1.02, y: -8 }}
+            className="flex-shrink-0 min-w-[280px] md:min-w-[350px] max-w-[320px] md:max-w-[350px] snap-center"
           >
-            <div className="group cursor-pointer relative h-full">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-transparent to-blue-50/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative p-6 border border-slate-200 rounded-lg bg-white group-hover:border-blue-300 transition-all duration-300 h-full flex flex-col">
-                <div className="inline-flex items-center gap-2 mb-4">
-                  <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-bold">{item.date}</span>
+            <div className="h-full min-h-[300px] rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col">
+              {/* Colored gradient header */}
+              <div className={`bg-gradient-to-br ${item.color} px-6 pt-8 pb-6 flex flex-col justify-end min-h-[40%]`}>
+                <span className="text-white text-xs uppercase font-bold tracking-wider mb-3">{item.category}</span>
+                <h3 className="text-white font-bold text-xl leading-tight">{item.title}</h3>
+              </div>
+
+              {/* White content area */}
+              <div className="flex-1 p-6 flex flex-col justify-between bg-white">
+                <div>
+                  <p className="text-slate-500 text-sm font-medium mb-3">{item.date}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">{item.title}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed flex-grow">{item.description}</p>
-                <div className="mt-4 flex items-center text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="mt-4 flex items-center text-slate-400 group-hover:text-blue-600 transition-colors">
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
@@ -147,6 +151,16 @@ function NewsTimeline() {
           </motion.div>
         ))}
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
@@ -231,7 +245,7 @@ export default function Home() {
             </div>
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {funds.slice(0, 4).map((fund, index) => (
+            {funds.filter(f => f.slug !== 'multi-strategy-managed-account').slice(0, 4).map((fund, index) => (
               <ScrollReveal key={fund.slug} delay={index * 100}>
                 <Link href={`/strategies/${fund.slug}`}>
                   <motion.div whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
@@ -274,10 +288,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 px-6 bg-slate-50 border-y border-slate-100">
+      <section className="py-12 px-6 bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">Trusted by Canada's Leading Institutions</p></ScrollReveal>
-          <ScrollReveal delay={200}><ClientLogos /></ScrollReveal>
+          <ScrollReveal delay={200}><InvestorLogoBar /></ScrollReveal>
         </div>
       </section>
 
@@ -289,7 +303,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold text-slate-900">Recent Developments</h2>
             </div>
           </ScrollReveal>
-          <ScrollReveal delay={200}><NewsTimeline /></ScrollReveal>
+          <ScrollReveal delay={200}><NewsCarousel /></ScrollReveal>
         </div>
       </section>
 

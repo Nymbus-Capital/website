@@ -17,7 +17,9 @@ export default function StrategiesPage() {
   const [hoveredFund, setHoveredFund] = useState<string | null>(null);
 
   const filters: FilterKey[] = ['All', 'Fixed Income', 'Alternatives'];
-  const filtered = filter === 'All' ? funds : funds.filter((f) => f.assetClass === filter);
+  const filtered = (filter === 'All' ? funds : funds.filter((f) => f.assetClass === filter)).filter(
+    (f) => f.slug !== 'multi-strategy-managed-account'
+  );
 
   return (
     <main className="bg-white min-h-screen">
@@ -81,6 +83,9 @@ export default function StrategiesPage() {
                           <div className="flex gap-2 mt-1.5">
                             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">{fund.assetClass}</span>
                             <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{fund.vehicle}</span>
+                            {fund.slug === 'multi-strategy' && (
+                              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">Managed Account</span>
+                            )}
                           </div>
                         </div>
                         <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
@@ -175,25 +180,27 @@ export default function StrategiesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {funds.map((fund) => (
-                      <tr key={fund.slug}>
-                        <td className="text-left">
-                          <Link href={`/strategies/${fund.slug}`} className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                            {fund.shortName}
-                          </Link>
-                        </td>
-                        <td className="text-right">{fund.assetClass}</td>
-                        <td className={cn('text-right font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
-                          {formatPercent(fund.returns.ytd)}
-                        </td>
-                        <td className={cn('text-right font-semibold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
-                          {formatPercent(fund.returns.oneYear)}
-                        </td>
-                        <td className="text-right font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
-                        <td className="text-right">{fund.sharpe?.toFixed(2) ?? '—'}</td>
-                        <td className="text-right">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
-                      </tr>
-                    ))}
+                    {funds
+                      .filter((f) => f.slug !== 'multi-strategy-managed-account')
+                      .map((fund) => (
+                        <tr key={fund.slug}>
+                          <td className="text-left">
+                            <Link href={`/strategies/${fund.slug}`} className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                              {fund.shortName}
+                            </Link>
+                          </td>
+                          <td className="text-right">{fund.assetClass}</td>
+                          <td className={cn('text-right font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.ytd)}
+                          </td>
+                          <td className={cn('text-right font-semibold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.oneYear)}
+                          </td>
+                          <td className="text-right font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
+                          <td className="text-right">{fund.sharpe?.toFixed(2) ?? '—'}</td>
+                          <td className="text-right">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
