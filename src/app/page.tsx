@@ -14,60 +14,64 @@ import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, Chevron
 import gsap from 'gsap';
 
 const newsItems = [
-  { date: 'January 2025', title: 'Mageska Capital Partnership', category: 'Partnership', description: 'Mageska entrusts Nymbus with portable alpha strategy management for institutional clients.', color: 'from-blue-500 to-blue-600' },
-  { date: 'April 2024', title: 'Tobacco-Free Finance Pledge', category: 'ESG', description: 'Nymbus commits to excluding tobacco companies from all portfolios globally.', color: 'from-emerald-500 to-emerald-600' },
-  { date: 'November 2023', title: 'RBC Fund Ranking', category: 'Recognition', description: 'All three fixed income strategies ranked in top percentiles of the RBC Fund Study.', color: 'from-indigo-500 to-indigo-600' },
-  { date: 'October 2023', title: 'Community Impact', category: 'Community', description: 'Nymbus partners with Dans la rue to support at-risk youth in Montreal.', color: 'from-slate-700 to-slate-800' },
-  { date: 'March 2022', title: 'FMOQ Institutional Mandate', category: 'Growth', description: "Awarded mandate from the Quebec medical professionals' investment fund.", color: 'from-blue-600 to-blue-700' },
-  { date: 'September 2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital, Gestion de portefeuille Landry, and Perseus Capital.', color: 'from-slate-800 to-slate-900' },
+  { date: '2024', title: 'Nymbus Capital Reaches $1 Billion in Assets Under Management', category: 'Milestone', description: 'A significant milestone reflecting institutional trust and investment excellence.' },
+  { date: '2023', title: 'Launch of Sustainable Bond Funds with Fondaction', category: 'Product Launch', description: 'New sustainable bond fund collaboration focused on ESG-forward fixed income investing.' },
+  { date: '2023', title: 'Machine Learning Integration in Market Regime Classification', category: 'Innovation', description: 'Cutting-edge ML models now drive dynamic asset allocation across strategies.' },
+  { date: '2023', title: 'Zero Fossil Fuel Achievement in Credit Portfolio', category: 'ESG', description: 'Full elimination of fossil fuel exposure from credit holdings, leading Canadian fixed income managers.' },
+  { date: '2022', title: 'New Institutional Mandate with FMOQ', category: 'Growth', description: "Awarded mandate from the Quebec medical professionals' investment fund." },
+  { date: '2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital (2013), Gestion de portefeuille Landry (2002), and Perseus Capital (2005).' },
 ];
 
 function InvestmentCapabilities() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
   const capabilities = [
-    { icon: Database, title: 'Data & Research', description: 'Deep analysis of market dynamics and fundamental data using proprietary frameworks to uncover persistent return drivers.' },
-    { icon: Zap, title: 'Signal Generation', description: 'Advanced ML models to identify alpha-generating signals across asset classes with rigorous statistical validation.' },
-    { icon: Layout, title: 'Portfolio Construction', description: 'Optimized portfolio building using systematic allocation and rebalancing rules with disciplined risk controls.' },
-    { icon: Lock, title: 'Risk Management', description: 'Continuous monitoring with dynamic hedging and regime-based adjustments to protect capital across market cycles.' }
+    { icon: Database, title: 'Data & Research', description: 'Deep analysis of market dynamics and fundamental data using proprietary frameworks' },
+    { icon: Zap, title: 'Signal Generation', description: 'Advanced ML models to identify alpha-generating signals across asset classes' },
+    { icon: Layout, title: 'Portfolio Construction', description: 'Optimized portfolio building using systematic allocation and rebalancing rules' },
+    { icon: Lock, title: 'Risk Management', description: 'Continuous monitoring with dynamic hedging and regime-based adjustments' }
   ];
 
-  return (
-    <div className="w-full">
-      <div className="space-y-12 max-w-4xl">
-        {capabilities.map((cap, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            viewport={{ once: true, margin: '-100px' }}
-            className="relative"
-          >
-            <div className="flex gap-8 items-start">
-              {/* Left side - numbered circle and line */}
-              <div className="flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg relative z-10">
-                  {index + 1}
-                </div>
-                {index < capabilities.length - 1 && (
-                  <div className="w-1 h-20 mt-4 bg-gradient-to-b from-blue-600 via-blue-400 to-transparent relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-transparent opacity-50 blur-sm"></div>
-                  </div>
-                )}
-              </div>
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          cardsRef.current.forEach((card, index) => {
+            if (card) {
+              gsap.fromTo(card, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, delay: index * 0.15, ease: 'power2.out' });
+            }
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-              {/* Right side - content */}
-              <div className="flex-1 pt-2">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <cap.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{cap.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{cap.description}</p>
-                  </div>
-                </div>
+  return (
+    <div ref={containerRef} className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {capabilities.map((cap, index) => (
+          <motion.div key={index} ref={(el) => { cardsRef.current[index] = el; }} className="relative" whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+            <Card className="h-full p-6 border border-slate-200 bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                <cap.icon className="w-6 h-6 text-blue-600" />
               </div>
-            </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{cap.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{cap.description}</p>
+              <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-600 to-transparent w-0 group-hover:w-full transition-all duration-300" />
+            </Card>
+            {index < capabilities.length - 1 && (
+              <div className="hidden lg:flex absolute top-1/2 -right-2 transform -translate-y-1/2 z-0">
+                <svg width="40" height="40" viewBox="0 0 40 40" className="text-slate-300">
+                  <defs><marker id={`arrowhead-${index}`} markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="currentColor" /></marker></defs>
+                  <line x1="5" y1="20" x2="35" y2="20" stroke="currentColor" strokeWidth="2" markerEnd={`url(#arrowhead-${index})`} />
+                </svg>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
@@ -84,83 +88,89 @@ function InvestorLogoBar() {
   ];
 
   return (
-    <div className="w-full bg-white">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {logos.map((logo, index) => (
-          <motion.div
-            key={index}
-            whileHover={{ scale: 0.97 }}
-            transition={{ duration: 0.3 }}
-            className="h-full"
-          >
-            <div className="rounded-xl border border-slate-200 p-8 h-full flex items-center justify-center bg-white group hover:border-blue-400 hover:shadow-lg transition-all duration-300">
-              <motion.div
-                whileHover={{ filter: 'blur(4px)' }}
-                transition={{ duration: 0.3 }}
-                className="transition-all duration-300"
-              >
-                <img
-                  src={logo.url}
-                  alt={logo.name}
-                  className="max-h-12 w-auto object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </motion.div>
-            </div>
-          </motion.div>
+    <div className="relative w-full overflow-hidden py-8 bg-slate-50">
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none z-10" />
+      <div className="flex gap-12 animate-scroll">
+        {[...logos, ...logos].map((logo, idx) => (
+          <div key={idx} className="flex-shrink-0 flex items-center justify-center h-16">
+            <img
+              src={logo.url}
+              alt={logo.name}
+              height={45}
+              className="max-h-12 w-auto filter grayscale(100%) hover:grayscale(0%) transition-all duration-300 hover:drop-shadow-md"
+            />
+          </div>
         ))}
       </div>
+      <style jsx>{`
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 24px)); } }
+        .animate-scroll { animation: scroll 40s linear infinite; }
+        .animate-scroll:hover { animation-play-state: paused; }
+      `}</style>
     </div>
   );
 }
 
 function NewsCarousel() {
-  return (
-    <div className="w-full overflow-x-auto pb-4 scrollbar-hide">
-      <div className="flex gap-6 min-w-min">
-        {newsItems.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            viewport={{ once: true, margin: '-50px' }}
-            whileHover={{ scale: 1.02, y: -8 }}
-            className="flex-shrink-0 min-w-[280px] md:min-w-[350px] max-w-[320px] md:max-w-[350px] snap-center"
-          >
-            <div className="h-full min-h-[300px] rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col">
-              {/* Colored gradient header */}
-              <div className={`bg-gradient-to-br ${item.color} px-6 pt-8 pb-6 flex flex-col justify-end min-h-[40%]`}>
-                <span className="text-white text-xs uppercase font-bold tracking-wider mb-3">{item.category}</span>
-                <h3 className="text-white font-bold text-xl leading-tight">{item.title}</h3>
-              </div>
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [itemsToShow, setItemsToShow] = useState(3);
 
-              {/* White content area */}
-              <div className="flex-1 p-6 flex flex-col justify-between bg-white">
-                <div>
-                  <p className="text-slate-500 text-sm font-medium mb-3">{item.date}</p>
-                  <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
-                </div>
-                <div className="mt-4 flex items-center text-slate-400 group-hover:text-blue-600 transition-colors">
-                  <ArrowRight className="w-4 h-4" />
+  useEffect(() => {
+    const update = () => { setItemsToShow(window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1); };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => { setCurrentSlide((prev) => (prev + 1) % Math.ceil(newsItems.length / itemsToShow)); }, 5000);
+    return () => clearInterval(interval);
+  }, [itemsToShow]);
+
+  const totalSlides = Math.ceil(newsItems.length / itemsToShow);
+
+  return (
+    <div className="w-full">
+      <div className="relative">
+        <div className="overflow-hidden">
+          <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${currentSlide * 100}%)`, width: `${totalSlides * 100}%` }}>
+            {newsItems.map((item, index) => (
+              <div key={index} className="flex-shrink-0" style={{ width: `${100 / totalSlides}%` }}>
+                <div className={`${itemsToShow === 1 ? 'px-0' : 'px-3'}`}>
+                  <motion.div whileHover={{ scale: 1.02 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+                    <Card className="p-6 border border-slate-200 bg-white hover:border-blue-300 transition-all h-full group cursor-pointer relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{item.category}</span>
+                          <span className="text-slate-400 text-xs flex items-center gap-1"><Calendar className="w-3 h-3" /> {item.date}</span>
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+                        <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+                      </div>
+                      <div className="absolute top-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                        <ArrowRight className="w-5 h-5" />
+                      </div>
+                    </Card>
+                  </motion.div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            ))}
+          </div>
+        </div>
+        <button onClick={() => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors" aria-label="Previous slide">
+          <ArrowRight className="w-6 h-6 text-slate-400 rotate-180 hover:text-slate-600 transition-colors" />
+        </button>
+        <button onClick={() => setCurrentSlide((prev) => (prev + 1) % totalSlides)} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-16 z-10 p-2 rounded-full hover:bg-slate-100 transition-colors" aria-label="Next slide">
+          <ArrowRight className="w-6 h-6 text-slate-400 hover:text-slate-600 transition-colors" />
+        </button>
+      </div>
+      <div className="flex justify-center gap-2 mt-8">
+        {Array.from({ length: totalSlides }).map((_, index) => (
+          <button key={index} onClick={() => setCurrentSlide(index)} className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 hover:bg-slate-400'}`} aria-label={`Go to slide ${index + 1}`} />
         ))}
       </div>
-
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
@@ -176,23 +186,19 @@ export default function Home() {
             <TypewriterEffect words={['Scientific Investing', 'Systematic Alpha', 'Quantitative Edge', 'Data-Driven Returns']} className="text-blue-600" />
           </motion.h1>
           <motion.p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
-            Institutional-grade quantitative strategies delivering superior risk-adjusted returns through rigorous research and systematic portfolio construction.
+            Rigorous quantitative research and systematic strategies applied to fixed income and multi-asset investing. Built in Montreal for institutional investors worldwide.
           </motion.p>
           <motion.div className="flex gap-4 justify-center flex-wrap" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}>
-            <Link href="/strategies" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl border border-blue-500/30">Explore Strategies <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/strategies" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">Explore Strategies <ArrowRight className="w-4 h-4" /></Link>
             <Link href="/solutions" className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all">Investment Solutions</Link>
           </motion.div>
         </div>
       </section>
 
-      <section className="bg-white border-b border-slate-100">
-        
-      </section>
-
       <section className="bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[{ label: 'Assets Under Management', value: 1.5, prefix: '$', suffix: 'B+' }, { label: 'Investment Strategies', value: 4, prefix: '', suffix: '' }, { label: 'Investment Professionals', value: 14, prefix: '', suffix: '' }, { label: 'Years of Track Record', value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
+            {[{ label: 'Assets Under Management', value: 1.3, prefix: '$', suffix: 'B+' }, { label: 'Investment Strategies', value: 3, prefix: '', suffix: '' }, { label: 'Investment Professionals', value: 12, prefix: '', suffix: '' }, { label: 'Years of Track Record', value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true, margin: '-100px' }}>
                 <ScrollReveal delay={idx * 100}>
                   <div className="text-center">
@@ -245,7 +251,7 @@ export default function Home() {
             </div>
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {funds.filter(f => f.slug !== 'multi-strategy-managed-account').slice(0, 4).map((fund, index) => (
+            {funds.slice(0, 4).map((fund, index) => (
               <ScrollReveal key={fund.slug} delay={index * 100}>
                 <Link href={`/strategies/${fund.slug}`}>
                   <motion.div whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
@@ -288,9 +294,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 px-6 bg-white border-y border-slate-100">
+      <section className="py-12 px-6 bg-slate-50 border-y border-slate-100">
         <div className="max-w-7xl mx-auto">
-          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">Trusted by Canada's Leading Institutions</p></ScrollReveal>
+          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-6">Trusted by Canada's Leading Institutions</p></ScrollReveal>
           <ScrollReveal delay={200}><InvestorLogoBar /></ScrollReveal>
         </div>
       </section>
@@ -298,9 +304,11 @@ export default function Home() {
       <section className="py-20 px-6 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
-            <div className="mb-12">
-              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide"><Newspaper className="w-4 h-4 inline-block mr-1 -mt-0.5" />News & Milestones</p>
-              <h2 className="text-4xl font-bold text-slate-900">Recent Developments</h2>
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide"><Newspaper className="w-4 h-4 inline-block mr-1 -mt-0.5" />News & Milestones</p>
+                <h2 className="text-4xl font-bold text-slate-900">Recent Developments</h2>
+              </div>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={200}><NewsCarousel /></ScrollReveal>

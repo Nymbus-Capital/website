@@ -14,10 +14,7 @@ export default function TeamPage() {
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
 
   const departments = ['All', ...departmentLabels];
-  const sortOrder = ['Leadership', 'Quantitative Research', 'Investment Team', 'Operations', 'Board'];
-  const filtered = activeDept === 'All'
-    ? [...team].sort((a, b) => sortOrder.indexOf(a.department) - sortOrder.indexOf(b.department))
-    : team.filter((m) => m.department === activeDept);
+  const filtered = activeDept === 'All' ? team : team.filter((m) => m.department === activeDept);
 
   const totalExperience = team.reduce((acc, m) => acc + (m.yearJoined ? new Date().getFullYear() - m.yearJoined : 10), 0);
   const cfaHolders = team.filter((m) => m.designations?.some((d) => d.includes('CFA'))).length;
@@ -92,7 +89,7 @@ export default function TeamPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {filtered.map((member, i) => (
                 <ScrollReveal key={member.name} delay={i * 60}>
@@ -102,16 +99,12 @@ export default function TeamPage() {
                   >
                     <div className="p-6">
                       <div className="flex items-start gap-4">
-                        {member.photo ? (
-                          <img src={member.photo} alt={member.name} className="w-20 h-20 rounded-full object-cover flex-shrink-0 transition-transform group-hover:scale-105" />
-                        ) : (
-                          <div
-                            className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 transition-transform group-hover:scale-105"
-                            style={{ backgroundColor: member.color }}
-                          >
-                            {member.initials}
-                          </div>
-                        )}
+                        <div
+                          className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 transition-transform group-hover:scale-105"
+                          style={{ backgroundColor: member.color }}
+                        >
+                          {member.initials}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-slate-900">{member.name}</h3>
                           <p className="text-sm text-slate-500">{member.title}</p>
@@ -122,7 +115,6 @@ export default function TeamPage() {
                               ))}
                             </div>
                           )}
-                          {member.summary && <p className="text-sm text-slate-500 italic mt-1">{member.summary}</p>}
                         </div>
                         <ChevronDown className={cn('w-4 h-4 text-slate-400 transition-transform', expandedMember === member.name && 'rotate-180')} />
                       </div>
