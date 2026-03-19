@@ -8,15 +8,15 @@ import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import { ArrowRight, TrendingUp, Shield, BarChart3, Filter } from 'lucide-react';
 import { cn, formatPercent } from '@/lib/utils';
-import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 
-type FilterKey = 'All' | 'Fixed Income' | 'Alternatives' | 'Multi-Asset';
+type FilterKey = 'All' | 'Fixed Income' | 'Alternatives';
 
 export default function StrategiesPage() {
   const [filter, setFilter] = useState<FilterKey>('All');
   const [hoveredFund, setHoveredFund] = useState<string | null>(null);
 
-  const filters: FilterKey[] = ['All', 'Fixed Income', 'Alternatives', 'Multi-Asset'];
+  const filters: FilterKey[] = ['All', 'Fixed Income', 'Alternatives'];
   const filtered = filter === 'All' ? funds : funds.filter((f) => f.assetClass === filter);
 
   return (
@@ -27,7 +27,7 @@ export default function StrategiesPage() {
           <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Investment Strategies</p>
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Our Funds & Strategies</h1>
           <p className="text-lg text-slate-600 max-w-2xl">
-            Systematic, quantitative approaches across fixed income, alternatives, and multi-asset classes. Each strategy is built on rigorous research and disciplined risk management.
+            Systematic, quantitative approaches across fixed income and alternatives. Each strategy is built on rigorous research and disciplined risk management.
           </p>
         </div>
       </section>
@@ -93,6 +93,20 @@ export default function StrategiesPage() {
                         <div className="mb-5 h-12">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={fund.calendarYearReturns.slice(-5)}>
+                              <XAxis 
+                                dataKey="year" 
+                                tick={{ fontSize: 11 }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                                tickLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <Tooltip 
+                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '4px' }}
+                                formatter={(v: unknown) => {
+                                  const value = v as number;
+                                  return `${value.toFixed(1)}%`;
+                                }}
+                                labelFormatter={(label: unknown) => `Year ${label}`}
+                              />
                               <Bar dataKey="fund" radius={[2, 2, 0, 0]} maxBarSize={16}>
                                 {fund.calendarYearReturns.slice(-5).map((entry, i) => (
                                   <Cell key={i} fill={entry.fund >= 0 ? '#2563eb' : '#ef4444'} opacity={0.7} />
@@ -151,24 +165,24 @@ export default function StrategiesPage() {
                 <table className="w-full fund-table">
                   <thead>
                     <tr>
-                      <th>Strategy</th>
-                      <th className="text-right">AUM</th>
+                      <th className="text-left">Fund Name</th>
+                      <th className="text-right">Asset Class</th>
                       <th className="text-right">YTD</th>
                       <th className="text-right">1Y</th>
                       <th className="text-right">SI</th>
                       <th className="text-right">Sharpe</th>
-                      <th className="text-right">MER</th>
+                      <th className="text-right">Sortino</th>
                     </tr>
                   </thead>
                   <tbody>
                     {funds.map((fund) => (
                       <tr key={fund.slug}>
-                        <td>
+                        <td className="text-left">
                           <Link href={`/strategies/${fund.slug}`} className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                             {fund.shortName}
                           </Link>
                         </td>
-                        <td className="text-right">{fund.aum || '—'}</td>
+                        <td className="text-right">{fund.assetClass}</td>
                         <td className={cn('text-right font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
                           {formatPercent(fund.returns.ytd)}
                         </td>
@@ -177,7 +191,7 @@ export default function StrategiesPage() {
                         </td>
                         <td className="text-right font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
                         <td className="text-right">{fund.sharpe?.toFixed(2) ?? '—'}</td>
-                        <td className="text-right">{fund.mer || '—'}</td>
+                        <td className="text-right">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>

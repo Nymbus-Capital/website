@@ -242,6 +242,47 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      {/* Map Section */}
+      <section className="py-12 px-6 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal>
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">Visit Our Office</h2>
+          </ScrollReveal>
+
+          <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md h-96">
+            {/* Map iframe */}
+            <iframe
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-73.582,45.500,-73.566,45.510&layer=mapnik&marker=45.5048,-73.5741"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+
+            {/* Floating Address Card Overlay */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="absolute bottom-6 left-6 z-10"
+            >
+              <Card className="p-5 border border-slate-200 bg-white shadow-lg backdrop-blur-sm bg-opacity-95">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-slate-900 text-sm">Nymbus Capital</p>
+                    <p className="text-xs text-slate-600 mt-1">1002 Sherbrooke West</p>
+                    <p className="text-xs text-slate-600">Suite 1900, Montreal, QC H3A 3L6</p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
