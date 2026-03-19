@@ -14,12 +14,10 @@ import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, Chevron
 import gsap from 'gsap';
 
 const newsItems = [
-  { date: 'January 2025', title: 'Mageska Capital Partnership', category: 'Partnership', description: 'Mageska entrusts Nymbus with portable alpha strategy management.' },
-  { date: 'April 2024', title: 'Tobacco-Free Finance Pledge', category: 'ESG', description: 'Nymbus commits to excluding tobacco companies from all portfolios.' },
-  { date: 'November 2023', title: 'RBC Top Percentile Ranking', category: 'Recognition', description: 'All three fixed income strategies ranked in top percentiles.' },
-  { date: 'October 2023', title: 'Dans la rue Partnership', category: 'Community', description: 'Nymbus partners to support at-risk youth in Montreal.' },
-  { date: 'March 2022', title: 'FMOQ Institutional Mandate', category: 'Growth', description: "Awarded mandate from Quebec's medical professionals' fund." },
-  { date: 'September 2020', title: 'Historic Three-Firm Merger', category: 'Milestone', description: 'Union of Nymbus Capital, Gestion Landry, and Perseus Capital.' },
+  { date: 'January 28, 2025', title: 'Mageska Capital and Nymbus Capital announce a partnership', category: 'Partnership', description: 'Mageska entrusts Nymbus with the management of a specific portion of the Mageska Fund to implement a portable alpha strategy.', image: 'https://www.nymbus.ca/wp-content/uploads/2025/01/2025-01_Mageska-1000x600.png' },
+  { date: 'April 23, 2024', title: 'Nymbus becomes a signatory of the Tobacco-Free Finance Pledge', category: 'ESG', description: 'Nymbus commits to excluding tobacco companies from all its portfolios.', image: 'https://www.nymbus.ca/wp-content/uploads/2024/04/Nouvelle-Site-Web-Signature-Tabacco-Free-Finance-Pledge-1000x600.png' },
+  { date: 'November 16, 2023', title: 'Nymbus fixed income funds ranked in top percentiles', category: 'Recognition', description: 'All three fixed income strategies ranked in top percentiles of the RBC Fund Study.', image: 'https://www.nymbus.ca/wp-content/uploads/2023/11/Nouvelle-Site-Web-Classement-fonds-RBC-1000x600.png' },
+  { date: 'October 3, 2023', title: 'Nymbus partners with Dans la rue', category: 'Community', description: 'Supporting at-risk youth \u2014 20% of homeless people in Canada are between 13 and 24 years old.', image: 'https://www.nymbus.ca/wp-content/uploads/2023/09/Nouvelle-Dans-La-Rue-1-1000x600.png' },
 ];
 
 function InvestmentCapabilities() {
@@ -34,34 +32,16 @@ function InvestmentCapabilities() {
     <div className="w-full">
       <div className="space-y-12 max-w-4xl">
         {capabilities.map((cap, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            viewport={{ once: true, margin: '-100px' }}
-            className="relative"
-          >
+          <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: index * 0.1 }} viewport={{ once: true, margin: '-100px' }} className="relative">
             <div className="flex gap-8 items-start">
               <div className="flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg relative z-10">
-                  {index + 1}
-                </div>
-                {index < capabilities.length - 1 && (
-                  <div className="w-1 h-20 mt-4 bg-gradient-to-b from-blue-600 via-blue-400 to-transparent relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-transparent opacity-50 blur-sm"></div>
-                  </div>
-                )}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg relative z-10">{index + 1}</div>
+                {index < capabilities.length - 1 && (<div className="w-1 h-20 mt-4 bg-gradient-to-b from-blue-600 via-blue-400 to-transparent relative"><div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-transparent opacity-50 blur-sm"></div></div>)}
               </div>
               <div className="flex-1 pt-2">
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <cap.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{cap.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{cap.description}</p>
-                  </div>
+                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center"><cap.icon className="w-6 h-6 text-blue-600" /></div>
+                  <div><h3 className="text-xl font-bold text-slate-900 mb-2">{cap.title}</h3><p className="text-slate-600 leading-relaxed">{cap.description}</p></div>
                 </div>
               </div>
             </div>
@@ -74,63 +54,73 @@ function InvestmentCapabilities() {
 
 function InvestorLogoBar() {
   const logos = [
+    { name: 'GardaWorld', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/GardaWorld_logo.svg/1280px-GardaWorld_logo.svg.png' },
     { name: 'FMOQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fmoq.png' },
-    { name: 'PGEQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-pgeq-fr.png' },
+    { name: 'Batirente', url: 'https://www.batirente.com/themes/batirente/images/logo_batirente.svg' },
+    { name: 'PGEQ', url: 'https://www.pgeq.ca/wp-content/uploads/2023/01/LOGO_PGEQ-2023_rgb_Grey-Blue.png' },
     { name: 'Fondaction', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fondaction.png' },
-    { name: 'GardaWorld', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-gardaworld.png' },
   ];
-  const allLogos = [...logos, ...logos, ...logos];
+  const allLogos = [...logos, ...logos, ...logos, ...logos];
 
   return (
-    <div className="relative w-full overflow-hidden py-6">
-      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
-      <div className="marquee-track flex items-center gap-16">
+    <div className="relative w-full overflow-hidden py-8">
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
+      <div className="logo-marquee flex items-center gap-20">
         {allLogos.map((logo, idx) => (
-          <div key={idx} className="flex-shrink-0 px-4">
-            <img src={logo.url} alt={logo.name} className="max-h-14 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity duration-500" />
+          <div key={idx} className="flex-shrink-0 px-6">
+            <img src={logo.url} alt={logo.name} className="h-10 md:h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-all duration-500 hover:scale-110" />
           </div>
         ))}
       </div>
       <style jsx>{`
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
-        .marquee-track { animation: marquee 25s linear infinite; }
-        .marquee-track:hover { animation-play-state: paused; }
+        @keyframes logoMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-25%); } }
+        .logo-marquee { animation: logoMarquee 30s linear infinite; }
+        .logo-marquee:hover { animation-play-state: paused; }
       `}</style>
     </div>
   );
 }
 
 function NewsCarousel() {
-  const allNews = [...newsItems, ...newsItems];
+  const [current, setCurrent] = useState(0);
 
-  const categoryColors: Record<string, string> = {
-    Partnership: '#3b82f6', ESG: '#10b981', Recognition: '#6366f1',
-    Community: '#475569', Growth: '#2563eb', Milestone: '#1e293b',
-  };
+  useEffect(() => {
+    const timer = setInterval(() => { setCurrent((prev) => (prev + 1) % newsItems.length); }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="relative w-full overflow-hidden">
-      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
-      <div className="news-track flex items-stretch gap-5 py-2">
-        {allNews.map((item, idx) => (
-          <div
-            key={idx}
-            className="flex-shrink-0 w-[320px] bg-white rounded-lg border border-slate-200 p-5 hover:border-blue-300 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            style={{ borderLeft: `4px solid ${categoryColors[item.category] || '#3b82f6'}` }}
-          >
-            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: categoryColors[item.category] || '#3b82f6' }}>{item.category}</span>
-            <h3 className="text-sm font-bold text-slate-900 mt-1 leading-snug">{item.title}</h3>
-            <p className="text-xs text-slate-500 mt-2">{item.date}</p>
-          </div>
-        ))}
+    <div className="w-full">
+      <div className="relative">
+        <button onClick={() => setCurrent((prev) => (prev - 1 + newsItems.length) % newsItems.length)} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-20 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-50 transition-colors" aria-label="Previous"><ArrowRight className="w-4 h-4 text-slate-600 rotate-180" /></button>
+        <button onClick={() => setCurrent((prev) => (prev + 1) % newsItems.length)} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-20 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-50 transition-colors" aria-label="Next"><ArrowRight className="w-4 h-4 text-slate-600" /></button>
+        <div className="overflow-hidden rounded-xl">
+          <AnimatePresence mode="wait">
+            <motion.div key={current} initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="aspect-[5/3] rounded-xl overflow-hidden bg-slate-100">
+                  <img src={newsItems[current].image} alt={newsItems[current].title} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex flex-col justify-center py-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">{newsItems[current].category}</span>
+                    <span className="text-sm text-slate-400 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{newsItems[current].date}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-tight">{newsItems[current].title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{newsItems[current].description}</p>
+                  <div className="mt-6"><span className="text-blue-600 font-medium text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all cursor-pointer">Read more <ArrowRight className="w-4 h-4" /></span></div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <div className="flex justify-center gap-2.5 mt-8">
+          {newsItems.map((_, index) => (
+            <button key={index} onClick={() => setCurrent(index)} className={`h-2 rounded-full transition-all duration-300 ${index === current ? 'bg-blue-600 w-8' : 'bg-slate-300 w-2 hover:bg-slate-400'}`} aria-label={`Go to slide ${index + 1}`} />
+          ))}
+        </div>
       </div>
-      <style jsx>{`
-        @keyframes newsScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-track { animation: newsScroll 40s linear infinite; }
-        .news-track:hover { animation-play-state: paused; }
-      `}</style>
     </div>
   );
 }
