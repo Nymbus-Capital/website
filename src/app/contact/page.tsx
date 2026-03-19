@@ -213,7 +213,7 @@ export default function ContactPage() {
                   <div className="flex items-start gap-3">
                     <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-slate-900 font-medium">1002 Sherbrooke West, Suite 1900</p>
+                      <p className="text-slate-900 font-medium">1002 Sherbrooke Street West, Suite 1900</p>
                       <p className="text-slate-500">Montreal, QC H3A 3L6</p>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export default function ContactPage() {
           <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md h-96">
             {/* Map iframe */}
             <iframe
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-73.582,45.500,-73.566,45.510&layer=mapnik&marker=45.5048,-73.5741"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.3!2d-73.5773!3d45.5048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a541d52ab21%3A0x206ea20b4e38c712!2s1002+Rue+Sherbrooke+O%2C+Montr%C3%A9al%2C+QC+H3A+3L6!5e0!3m2!1sen!2sca!4v1711000000000"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -274,8 +274,8 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-slate-900 text-sm">Nymbus Capital</p>
-                    <p className="text-xs text-slate-600 mt-1">1002 Sherbrooke West</p>
-                    <p className="text-xs text-slate-600">Suite 1900, Montreal, QC H3A 3L6</p>
+                    <p className="text-xs text-slate-600 mt-1">1002 Sherbrooke Street West, Suite 1900</p>
+                    <p className="text-xs text-slate-600">Montreal, QC H3A 3L6</p>
                   </div>
                 </div>
               </Card>

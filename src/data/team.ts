@@ -67,7 +67,7 @@ export const team: TeamMember[] = [
     name: "Mathieu Poulin-Brière",
     title: "Partner, Systematic Overlays",
     titleFr: "Associé, superpositions systématiques",
-    department: "Investment Team",
+    department: "Leadership",
     bio: "Mathieu Poulin-Brière joined Nymbus in 2021 after eight years at Perseus Capital, a quantitative hedge fund, where he served as Head of Investments. He brings deep expertise in systematic trading strategies and portfolio overlay management, contributing to the firm's fixed income and multi-strategy mandates.",
     education: ["BAA Finance, UQAM", "M.Sc. Finance, Université de Sherbrooke"],
     designations: ["MSc"],
@@ -97,7 +97,7 @@ export const team: TeamMember[] = [
     previousRoles: ["VP & Director, Desjardins Securities"],
     initials: "FL",
     color: "#2b6cb0",
-    photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/FRANCOIS-OLIVIER.png",
+    photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/Francois-Olivier.png",
   },
   {
     name: "Jessica Martins",
