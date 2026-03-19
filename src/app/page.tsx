@@ -54,11 +54,10 @@ function InvestmentCapabilities() {
 
 function InvestorLogoBar() {
   const logos = [
-    { name: 'GardaWorld', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/GardaWorld_logo.svg/1280px-GardaWorld_logo.svg.png' },
     { name: 'FMOQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fmoq.png' },
-    { name: 'Batirente', url: 'https://www.batirente.com/themes/batirente/images/logo_batirente.svg' },
-    { name: 'PGEQ', url: 'https://www.pgeq.ca/wp-content/uploads/2023/01/LOGO_PGEQ-2023_rgb_Grey-Blue.png' },
+    { name: 'PGEQ', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-pgeq-fr.png' },
     { name: 'Fondaction', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-fondaction.png' },
+    { name: 'GardaWorld', url: 'https://www.nymbus.ca/wp-content/uploads/2024/01/logo-gardaworld.png' },
   ];
   const allLogos = [...logos, ...logos, ...logos, ...logos];
 
@@ -69,7 +68,7 @@ function InvestorLogoBar() {
       <div className="logo-marquee flex items-center gap-20">
         {allLogos.map((logo, idx) => (
           <div key={idx} className="flex-shrink-0 px-6">
-            <img src={logo.url} alt={logo.name} className="h-10 md:h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-all duration-500 hover:scale-110" />
+            <img src={logo.url} alt={logo.name} className="h-10 md:h-12 w-auto object-contain transition-all duration-500 hover:scale-110" />
           </div>
         ))}
       </div>
@@ -84,17 +83,22 @@ function InvestorLogoBar() {
 
 function NewsCarousel() {
   const [current, setCurrent] = useState(0);
+  const [openArticle, setOpenArticle] = useState<number | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => { setCurrent((prev) => (prev + 1) % newsItems.length); }, 5000);
+    if (openArticle !== null) return;
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % newsItems.length);
+    }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [openArticle]);
 
   return (
     <div className="w-full">
       <div className="relative">
         <button onClick={() => setCurrent((prev) => (prev - 1 + newsItems.length) % newsItems.length)} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-20 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-50 transition-colors" aria-label="Previous"><ArrowRight className="w-4 h-4 text-slate-600 rotate-180" /></button>
         <button onClick={() => setCurrent((prev) => (prev + 1) % newsItems.length)} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-20 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-50 transition-colors" aria-label="Next"><ArrowRight className="w-4 h-4 text-slate-600" /></button>
+
         <div className="overflow-hidden rounded-xl">
           <AnimatePresence mode="wait">
             <motion.div key={current} initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
@@ -109,18 +113,50 @@ function NewsCarousel() {
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-tight">{newsItems[current].title}</h3>
                   <p className="text-slate-600 leading-relaxed">{newsItems[current].description}</p>
-                  <div className="mt-6"><span className="text-blue-600 font-medium text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all cursor-pointer">Read more <ArrowRight className="w-4 h-4" /></span></div>
+                  <div className="mt-6">
+                    <button onClick={() => setOpenArticle(current)} className="text-blue-600 font-medium text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all cursor-pointer">
+                      Read more <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
+
         <div className="flex justify-center gap-2.5 mt-8">
           {newsItems.map((_, index) => (
             <button key={index} onClick={() => setCurrent(index)} className={`h-2 rounded-full transition-all duration-300 ${index === current ? 'bg-blue-600 w-8' : 'bg-slate-300 w-2 hover:bg-slate-400'}`} aria-label={`Go to slide ${index + 1}`} />
           ))}
         </div>
       </div>
+
+      {/* Article Modal */}
+      <AnimatePresence>
+        {openArticle !== null && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setOpenArticle(null)}>
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+              <div className="aspect-[5/3] w-full overflow-hidden rounded-t-2xl">
+                <img src={newsItems[openArticle].image} alt={newsItems[openArticle].title} className="w-full h-full object-cover" />
+              </div>
+              <button onClick={() => setOpenArticle(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-white transition-colors">
+                <span className="text-slate-600 text-lg leading-none">&times;</span>
+              </button>
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">{newsItems[openArticle].category}</span>
+                  <span className="text-sm text-slate-400 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{newsItems[openArticle].date}</span>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-4 leading-tight">{newsItems[openArticle].title}</h2>
+                <p className="text-slate-600 leading-relaxed mb-4">{newsItems[openArticle].description}</p>
+                <div className="pt-4 border-t border-slate-100">
+                  <p className="text-sm text-slate-500">For the full article, visit <a href="https://www.nymbus.ca/en/news/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">nymbus.ca/news</a></p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
