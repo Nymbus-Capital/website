@@ -1,8 +1,11 @@
+export type Department = "Leadership" | "Investment Team" | "Quantitative Research" | "Operations" | "Board";
+
 export interface TeamMember {
   name: string;
   title: string;
   titleFr?: string;
-  department: "Leadership" | "Investment Team" | "Quantitative Research" | "Operations" | "Board";
+  department: Department;
+  additionalDepartments?: Department[];
   bio: string;
   summary?: string;
   education?: string[];
@@ -48,6 +51,7 @@ export const team: TeamMember[] = [
     title: "Co-founder & Chief Executive Officer",
     titleFr: "Cofondateur et directeur général",
     department: "Leadership",
+    additionalDepartments: ["Operations", "Board"],
     bio: "Marc Rivet co-founded Nymbus Capital in 2013, bringing decades of fixed income and derivatives experience. He previously founded Groupe ARB in 2005 and was an independent participant on the Montreal Exchange from 1991 to 2005, specializing in Canadian bond and derivative trading. He began his career in 1986 at Lévesque Beaubien Geoffrion (now National Bank Financial).",
     summary: "Co-founded Nymbus after 25+ years trading Canadian bonds and derivatives",
     education: ["B.Comm Finance, Concordia University"],
@@ -62,6 +66,7 @@ export const team: TeamMember[] = [
     title: "Co-founder & Chief Investment Officer",
     titleFr: "Cofondateur et chef des placements",
     department: "Leadership",
+    additionalDepartments: ["Quantitative Research", "Investment Team", "Board"],
     bio: "Gabriel Cefaloni co-founded Nymbus Capital with a focus on technology-driven systematic investing. With nearly two decades of experience, he participated in the first wave of high-frequency trading in Canada at Groupe ARB and subsequently managed quantitative derivatives strategies at GC Capital. He leads the firm's investment strategy, research, and technology direction.",
     summary: "Technologist at the intersection of applied math, computer science, and quantitative finance",
     education: ["B.Com Finance, Concordia University"],
@@ -77,6 +82,7 @@ export const team: TeamMember[] = [
     title: "Partner, Systematic Overlays",
     titleFr: "Associé, superpositions systématiques",
     department: "Leadership",
+    additionalDepartments: ["Investment Team", "Board"],
     bio: "Mathieu Poulin-Brière joined Nymbus in 2021 after eight years at Perseus Capital, a quantitative hedge fund, where he served as Head of Investments. He brings deep expertise in systematic trading strategies and portfolio overlay management, contributing to the firm's fixed income and multi-strategy mandates.",
     summary: "Built systematic macro strategies across derivatives and multiple asset classes",
     education: ["BAA Finance, UQAM", "M.Sc. Finance, Université de Sherbrooke"],
@@ -117,6 +123,7 @@ export const team: TeamMember[] = [
     title: "Quant Research, Team Lead",
     titleFr: "Recherche quantitative, cheffe d'équipe",
     department: "Quantitative Research",
+    additionalDepartments: ["Investment Team"],
     bio: "Jessica Martins leads Nymbus's quantitative research team, bringing expertise in data science, machine learning, and mathematical modeling. She previously worked at Tower Research Capital, one of the world's leading quantitative trading firms, where she developed systematic FX trading strategies. She holds a PhD in Astrophysics.",
     summary: "PhD in Astrophysics turned quantitative finance researcher",
     education: ["PhD Astrophysics"],
@@ -132,6 +139,7 @@ export const team: TeamMember[] = [
     title: "Associate PM & Quantitative Developer",
     titleFr: "Gestionnaire de portefeuille associé et développeur quantitatif",
     department: "Quantitative Research",
+    additionalDepartments: ["Investment Team"],
     bio: "Jean-Philippe Lejeune oversees trading operations, model development, and risk management at Nymbus. He combines deep quantitative skills with practical portfolio management experience, ensuring the firm's systematic strategies are executed with precision and reliability.",
     summary: "CFA charterholder bridging quantitative models with live trading execution",
     education: ["M.Sc. Finance, Université Laval"],
@@ -145,8 +153,9 @@ export const team: TeamMember[] = [
     title: "Quantitative Researcher",
     titleFr: "Chercheur quantitatif",
     department: "Quantitative Research",
+    additionalDepartments: ["Investment Team"],
     bio: "Olivier Cyr-Choinière joined Nymbus in 2023, bringing expertise in financial engineering and physics. He previously held research and portfolio management roles at the CDPQ, Trans-Canada Capital, and Futures First. He applies advanced statistical methods and machine learning to signal generation and strategy development.",
-    summary: "PhD in Physics and M.Sc. in Financial Engineering from advisor channels",
+    summary: "PhD in Physics and M.Sc. in Financial Engineering, former quant at CDPQ",
     education: ["PhD Physics, Superconductivity", "M.Sc. Financial Engineering"],
     designations: ["PhD", "M.Sc."],
     previousRoles: ["Researcher, CDPQ", "Trans-Canada Capital", "Futures First"],

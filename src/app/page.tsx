@@ -211,7 +211,7 @@ export default function Home() {
       <section className="bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[{ label: 'Assets Under Management', value: 1.3, prefix: '$', suffix: 'B+' }, { label: 'Investment Strategies', value: 3, prefix: '', suffix: '' }, { label: 'Investment Professionals', value: 12, prefix: '', suffix: '' }, { label: 'Years of Track Record', value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
+            {[{ label: 'Assets Under Management', value: 1.5, prefix: '$', suffix: 'B+' }, { label: 'Investment Strategies', value: 5, prefix: '', suffix: '' }, { label: 'Investment Professionals', value: 9, prefix: '', suffix: '' }, { label: 'Years of Track Record', value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true, margin: '-100px' }}>
                 <ScrollReveal delay={idx * 100}>
                   <div className="text-center">
@@ -309,7 +309,7 @@ export default function Home() {
 
       <section className="py-12 px-6 bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto">
-          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">Trusted by Canada&apos;s Leading Institutions</p></ScrollReveal>
+          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">Trusted by Canada's Leading Institutions</p></ScrollReveal>
           <ScrollReveal delay={200}><InvestorLogoBar /></ScrollReveal>
         </div>
       </section>
