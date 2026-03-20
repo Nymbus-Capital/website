@@ -1,187 +1,429 @@
 'use client';
 
+import { useRef, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Leaf, Zap, Award, Target, TrendingUp, Shield, Link as LinkIcon } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
+import { useTranslation } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import AnimatedCounter from '@/components/animations/AnimatedCounter';
-import Link from 'next/link';
-import {
-  Leaf, Shield, Globe, TrendingDown, Wind, Ban, FileCheck,
-  ArrowRight, BarChart3, Target, Award, Zap, Droplets,
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const esgMetrics = [
-  { label: 'Carbon Intensity vs Benchmark', fund: 42, benchmark: 100, unit: 'tCO2e/$M' },
-  { label: 'ESG Score (Weighted Avg)', fund: 78, benchmark: 62, unit: '/100' },
-  { label: 'Green Bond Allocation', fund: 8.5, benchmark: 2.1, unit: '%' },
-  { label: 'Fossil Fuel Exposure', fund: 0, benchmark: 8.4, unit: '%' },
+gsap.registerPlugin(ScrollTrigger);
+
+const esgStrategy = [
+  {
+    number: 1,
+    title: 'Exclusion Screening',
+    description: 'We systematically exclude securities from our portfolios based on strict ESG criteria.',
+    items: [
+      'Fossil Fuel Exclusion: No exposure to fossil fuel producers or extractors',
+      'Tobacco Exclusion: Complete removal of tobacco companies',
+      'Controversial Weapons: Exclusion of manufacturers of nuclear, biological & chemical weapons'
+    ],
+    icon: Shield,
+  },
+  {
+    number: 2,
+    title: 'Positive Screening',
+    description: 'ESG metrics are integrated directly into our quantitative investment models.',
+    items: [
+      'ESG Scoring: Proprietary scoring system integrated into credit analysis',
+      'Security Selection: ESG ratings weighted in portfolio optimization',
+      'Multi-Factor Models: Environmental and governance metrics in alpha generation'
+    ],
+    icon: TrendingUp,
+  },
+  {
+    number: 3,
+    title: 'Quantitative ESG Integration',
+    description: 'ESG metrics are quantitatively embedded into our credit models and systematic security selection process.',
+    items: [
+      'Credit Model Integration: ESG scores weighted in credit risk assessment and pricing models',
+      'Factor-Based Selection: ESG factors used in multi-factor security selection and portfolio construction',
+      'Risk Premia: Systematic capture of ESG-related risk premia in fixed income strategies'
+    ],
+    icon: Target,
+  },
 ];
 
-const exclusions = [
-  { category: 'Fossil Fuel Production', icon: Wind, desc: 'Companies deriving >5% revenue from coal, oil sands, or thermal coal power generation.' },
-  { category: 'Tobacco', icon: Ban, desc: 'All tobacco manufacturers and distributors.' },
-  { category: 'Controversial Weapons', icon: Shield, desc: 'Cluster munitions, landmines, biological, chemical, and nuclear weapons manufacturers.' },
-  { category: 'Severe ESG Controversies', icon: Target, desc: 'Companies rated "Severe" on MSCI ESG Controversies or equivalent.' },
+const commitments = [
+  {
+    title: 'UN PRI Signatory',
+    year: 'Since 2018',
+    description: 'We are a signatory of the United Nations Principles for Responsible Investment, committing to consider ESG factors in investment decisions and report annually on our progress.',
+    icon: Award,
+  },
+  {
+    title: 'Tobacco-Free Finance Pledge',
+    year: 'Signed 2024',
+    description: 'We have signed the Tobacco-Free Finance Pledge, divesting all tobacco companies from our portfolios and committing to a tobacco-free investment strategy.',
+    icon: Leaf,
+  },
+  {
+    title: 'Zero Fossil Fuel Portfolio',
+    year: 'Achieved 2023',
+    description: 'Our Sustainable Enhanced Bonds Fund became our first zero fossil fuel fixed income fund, eliminating all direct exposure to coal, oil, and gas producers from the portfolio.',
+    icon: Zap,
+  },
 ];
 
-const greenBondData = [
-  { year: '2020', allocation: 3.2 },
-  { year: '2021', allocation: 4.8 },
-  { year: '2022', allocation: 5.5 },
-  { year: '2023', allocation: 7.2 },
-  { year: '2024', allocation: 8.5 },
+const sustainableStrategies = [
+  {
+    name: 'Sustainable Enhanced Bonds Fund',
+    description: 'Our fixed income strategy with full ESG integration and fossil fuel exclusion.',
+    mrr: 'Low MER',
+    features: ['Sustainable and green bonds focus', 'Fossil fuel-free portfolio', 'Daily liquidity'],
+  },
+  {
+    name: 'Monthly Income Fund',
+    description: 'Short-term fixed income strategy with enhanced ESG criteria and positive sustainability focus.',
+    mrr: 'Ultra-low MER',
+    features: ['Monthly distributions', 'ESG-integrated credit selection', 'Capital preservation', 'Daily liquidity'],
+  },
 ];
+
+function StrategyCard({ number, title, description, items, icon: Icon }: (typeof esgStrategy)[0]) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    gsap.from(card, {
+      opacity: 0,
+      y: 30,
+      duration: 0.8,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: card,
+        start: 'top 80%',
+        toggleActions: 'play none none none',
+      },
+    });
+  }, []);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="relative"
+    >
+      <Card className="h-full">
+        <div className="p-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Icon className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="text-3xl font-bold text-blue-600">{number}</div>
+          </div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-2">{title}</h3>
+          <p className="text-slate-600 mb-6">{description}</p>
+          <ul className="space-y-3">
+            {items.map((item, idx) => (
+              <li key={idx} className="flex gap-3 text-sm">
+                <span className="text-blue-600 font-bold flex-shrink-0">•</span>
+                <span className="text-slate-700">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
+
+function CommitmentCard({ title, year, description, icon: Icon }: (typeof commitments)[0]) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const handleMouseEnter = () => {
+      gsap.to(card, {
+        y: -8,
+        boxShadow: '0 20px 40px rgba(66, 133, 244, 0.15)',
+        duration: 0.3,
+        ease: 'power2.out',
+      });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(card, {
+        y: 0,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        duration: 0.3,
+        ease: 'power2.out',
+      });
+    };
+
+    card.addEventListener('mouseenter', handleMouseEnter);
+    card.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      card.removeEventListener('mouseenter', handleMouseEnter);
+      card.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white border border-slate-100 rounded-xl transition-shadow duration-300 hover:shadow-md border-t-4 border-t-blue-600"
+    >
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Icon className="w-5 h-5 text-blue-600" />
+          <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+        </div>
+        <p className="text-sm text-blue-600 font-semibold mb-3">{year}</p>
+        <p className="text-slate-600">{description}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function PhilosophySection({ t }: { t: any }) {
+  return (
+    <section className="py-20 bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <SectionHeader
+            eyebrow={t('sustainability.philosophy.eyebrow')}
+            title={t('sustainability.philosophy.title')}
+            description={t('sustainability.philosophy.description')}
+          />
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {[
+            {
+              title: t('sustainability.philosophy.coreIntegration'),
+              description: t('sustainability.philosophy.coreIntegrationDesc'),
+            },
+            {
+              title: t('sustainability.philosophy.transparency'),
+              description: t('sustainability.philosophy.transparencyDesc'),
+            },
+            {
+              title: t('sustainability.philosophy.accountability'),
+              description: t('sustainability.philosophy.accountabilityDesc'),
+            },
+          ].map((point, idx) => (
+            <ScrollReveal key={point.title} delay={idx * 100}>
+              <Card>
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">{point.title}</h3>
+                  <p className="text-slate-600">{point.description}</p>
+                </div>
+              </Card>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StrategySection({ t }: { t: any }) {
+  return (
+    <section className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <SectionHeader
+            eyebrow={t('sustainability.integration.eyebrow')}
+            title={t('sustainability.integration.title')}
+            description={t('sustainability.integration.description')}
+          />
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {esgStrategy.map((strategy, idx) => (
+            <StrategyCard key={strategy.title} {...strategy} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SustainableStrategiesSection({ t }: { t: any }) {
+  return (
+    <section className="py-20 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <SectionHeader
+            eyebrow={t('sustainability.strategies.eyebrow')}
+            title={t('sustainability.strategies.title')}
+            description={t('sustainability.strategies.description')}
+          />
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
+          {sustainableStrategies.map((strategy, idx) => (
+            <ScrollReveal key={strategy.name} delay={idx * 100}>
+              <Card className="border-l-4 border-blue-600 flex flex-col h-full">
+                <div className="p-8 flex-1">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">{strategy.name}</h3>
+                  <p className="text-slate-600 mb-6">{strategy.description}</p>
+
+                  <div className="mb-6">
+                    <p className="text-sm font-semibold text-blue-600 mb-3">{t('sustainability.keyFeatures')}:</p>
+                    <ul className="space-y-2">
+                      {strategy.features.map((feature, idx) => (
+                        <li key={idx} className="text-sm text-slate-600 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <motion.button
+                    className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {t('sustainability.learnMore')}
+                    <LinkIcon className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </Card>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CommitmentsSection({ t }: { t: any }) {
+  return (
+    <section className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <SectionHeader
+            eyebrow={t('sustainability.commitments.eyebrow')}
+            title={t('sustainability.commitments.title')}
+            description={t('sustainability.commitments.description')}
+          />
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {commitments.map((commitment, idx) => (
+            <ScrollReveal key={commitment.title} delay={idx * 100}>
+              <CommitmentCard {...commitment} />
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ImpactSection({ t }: { t: any }) {
+  return (
+    <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center text-white mb-12">
+          <h2 className="text-4xl font-bold mb-6">{t('sustainability.impact.title')}</h2>
+          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+            {t('sustainability.impact.description')}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {[
+            { label: 'Years as PRI Signatory', value: 6 },
+            { label: 'Zero Fossil Fuel Fund', value: 1, suffix: 'st' },
+            { label: 'Sustainable Fund Mandates', value: 3, suffix: '+' },
+            { label: 'ESG-Integrated Models', value: 100, suffix: '%' },
+          ].map((stat, idx) => (
+            <ScrollReveal key={stat.label} delay={idx * 100}>
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+                  <AnimatedCounter target={stat.value} suffix={stat.suffix || ''} />
+                </div>
+                <p className="text-blue-100">{stat.label}</p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FoundactionSection({ t }: { t: any }) {
+  return (
+    <section className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <div className="bg-gradient-to-r from-blue-50 to-slate-50 rounded-2xl p-8 md:p-12 border border-slate-200">
+            <div className="max-w-3xl">
+              <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">{t('sustainability.partnership.title')}</h3>
+              <p className="text-slate-600 mb-6 text-lg whitespace-pre-line">
+                {t('sustainability.partnership.description')}
+              </p>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+}
 
 export default function SustainabilityPage() {
+  const { t } = useTranslation();
+
   return (
-    <main className="bg-white min-h-screen">
-      {/* Hero */}
-      <section className="bg-white border-b border-slate-100 pt-8 pb-12 px-6">
-        <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="py-20 md:py-32 bg-gradient-to-br from-blue-600 to-blue-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <p className="text-sm font-semibold text-green-600 uppercase tracking-wide mb-2">Sustainability</p>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">Responsible Investing</h1>
-            <p className="text-lg text-slate-600 max-w-2xl">
-              ESG integration is embedded in our investment process, not bolted on. We believe that companies with strong environmental, social, and governance practices deliver superior long-term risk-adjusted returns.
-            </p>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ESG Metrics Dashboard */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">ESG Metrics Dashboard</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {esgMetrics.map((metric) => (
-                <Card key={metric.label} className="p-5 border border-slate-200">
-                  <p className="text-xs text-slate-500 font-medium mb-3">{metric.label}</p>
-                  <div className="flex items-end gap-3">
-                    <div>
-                      <p className="text-xs text-slate-400">Fund</p>
-                      <p className="text-2xl font-bold text-green-600">{metric.fund}{metric.unit}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Benchmark</p>
-                      <p className="text-lg font-semibold text-slate-400">{metric.benchmark}{metric.unit}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+            <div className="text-center text-white">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                {t('sustainability.hero.title')}
+              </h1>
+              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+                {t('sustainability.hero.description')}
+              </p>
             </div>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* Exclusion Policy */}
-      <section className="py-16 px-6 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">Exclusion Policy</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {exclusions.map((ex) => {
-                const Icon = ex.icon;
-                return (
-                  <Card key={ex.category} className="p-5 border border-slate-200 bg-white">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-5 h-5 text-red-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-900 text-sm mb-1">{ex.category}</h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">{ex.desc}</p>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+      {/* Philosophy Section */}
+      <PhilosophySection t={t} />
 
-      {/* Green Bond Growth */}
-      <section className="py-16 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Green Bond Allocation Over Time</h2>
-            <p className="text-slate-600 mb-8">Growing allocation to certified green bonds financing climate-positive projects.</p>
-            <Card className="p-6 border border-slate-200">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={greenBondData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v: unknown) => `${v}%`} />
-                  <Tooltip formatter={(v: unknown) => [`${v}%`, 'Green Bond %']} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }} />
-                  <Bar dataKey="allocation" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </ScrollReveal>
-        </div>
-      </section>
+      {/* Integration Section */}
+      <StrategySection t={t} />
+
+      {/* Sustainable Strategies Section */}
+      <SustainableStrategiesSection t={t} />
+
+      {/* Commitments Section */}
+      <CommitmentsSection t={t} />
 
       {/* Fondaction Partnership */}
-      <section className="py-16 px-6 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="w-5 h-5 text-green-600" />
-                  <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">Partnership</p>
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Fondaction Collaboration</h2>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  Our partnership with Fondaction represents a shared commitment to advancing responsible investing in Canadian fixed income markets. Together, we have developed ESG-integrated bond strategies that demonstrate sustainability and strong returns are not mutually exclusive.
-                </p>
-                <p className="text-slate-600 leading-relaxed">
-                  Fondaction, a labour-sponsored venture capital fund dedicated to positive economic, social, and environmental impact, has entrusted Nymbus with managing sustainable bond mandates that align with their mission of responsible capital allocation.
-                </p>
-              </div>
-              <div>
-                <Card className="p-6 border border-slate-200 bg-white">
-                  <h3 className="font-bold text-slate-900 mb-4">PRI Alignment Scorecard</h3>
-                  <div className="space-y-4">
-                    {[
-                      { principle: 'ESG in investment analysis', score: 95 },
-                      { principle: 'Active ownership policies', score: 82 },
-                      { principle: 'ESG disclosure by investees', score: 88 },
-                      { principle: 'Industry acceptance of ESG', score: 90 },
-                      { principle: 'Implementation effectiveness', score: 85 },
-                      { principle: 'Reporting on ESG activities', score: 92 },
-                    ].map((p) => (
-                      <div key={p.principle}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-slate-600">{p.principle}</span>
-                          <span className="font-semibold text-slate-900">{p.score}%</span>
-                        </div>
-                        <div className="bg-slate-100 rounded-full h-2">
-                          <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${p.score}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+      <FoundactionSection t={t} />
 
-      {/* CTA */}
-      <section className="py-16 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Invest Responsibly</h2>
-            <p className="text-slate-600 mb-8">Explore our sustainable fund offerings and learn how ESG integration enhances long-term performance.</p>
-            <Link href="/strategies/sustainable-enhanced-bonds" className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-lg font-medium hover:bg-green-700 transition-colors">
-              Explore Sustainable Funds <ArrowRight className="w-4 h-4" />
-            </Link>
-          </ScrollReveal>
-        </div>
-      </section>
-    </main>
+      {/* Impact Section */}
+      <ImpactSection t={t} />
+    </div>
   );
 }
