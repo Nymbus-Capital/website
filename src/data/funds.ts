@@ -151,7 +151,6 @@ export const funds: Fund[] = [
       'Monthly distribution',
       'Experienced management team'
     ],
-    assetClass: 'Fixed Income',
     portfolio: {
       topHoldings: [
         {
