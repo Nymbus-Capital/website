@@ -4,23 +4,25 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NymbusLogo } from './NymbusLogo';
-import { BarChart3, Compass, Users, Briefcase, Leaf, Mail, Menu, X } from 'lucide-react';
+import { BarChart3, Compass, Users, Briefcase, Leaf, Mail, Menu, X, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { label: 'Strategies', href: '/strategies', icon: BarChart3 },
-  { label: 'Approach', href: '/approach', icon: Compass },
-  { label: 'About', href: '/team', icon: Users },
-  { label: 'Solutions', href: '/solutions', icon: Briefcase },
-  { label: 'Sustainability', href: '/sustainability', icon: Leaf },
-  { label: 'Contact', href: '/contact', icon: Mail },
-];
+import { useTranslation } from '@/lib/i18n';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const pathname = usePathname();
+  const { locale, setLocale, t } = useTranslation();
+
+  const navItems = [
+    { label: t('nav.strategies'), href: '/strategies', icon: BarChart3 },
+    { label: t('nav.approach'), href: '/approach', icon: Compass },
+    { label: t('nav.about'), href: '/team', icon: Users },
+    { label: t('nav.solutions'), href: '/solutions', icon: Briefcase },
+    { label: t('nav.sustainability'), href: '/sustainability', icon: Leaf },
+    { label: t('nav.contact'), href: '/contact', icon: Mail },
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -146,6 +148,15 @@ export function Navbar() {
           </div>
 
           <button
+            onClick={() => setLocale(locale === 'en' ? 'fr' : 'en')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-1"
+            aria-label="Toggle language"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            {locale === 'en' ? 'FR' : 'EN'}
+          </button>
+
+          <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden ml-2 p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Menu"
@@ -179,6 +190,17 @@ export function Navbar() {
                 </Link>
               );
             })}
+            <button
+              onClick={() => {
+                setLocale(locale === 'en' ? 'fr' : 'en');
+                setMobileOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900 mt-2 border-t border-slate-100 pt-3"
+              aria-label="Toggle language"
+            >
+              <Globe className="w-4 h-4" />
+              {locale === 'en' ? 'Français' : 'English'}
+            </button>
           </div>
         </div>
       )}

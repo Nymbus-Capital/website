@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { Providers } from '@/components/Providers';
 import '@/app/globals.css';
 
 export const metadata: Metadata = {
@@ -29,9 +30,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-white text-slate-900 antialiased" style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}>
-        <Navbar />
-        <main className="pt-16">{children}</main>
-        <Footer />
+        <Providers>
+          <Navbar />
+          <main className="pt-16">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

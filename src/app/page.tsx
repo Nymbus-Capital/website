@@ -11,16 +11,18 @@ import DotParticleCanvas from '@/components/animations/DotParticleCanvas';
 import { funds } from '@/data/funds';
 import { newsItems } from '@/data/news';
 import { formatPercent } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 import { TrendingUp, BarChart3, Shield, ArrowRight, Newspaper, Calendar, ChevronRight, Database, Zap, Layout, Lock } from 'lucide-react';
 import gsap from 'gsap';
 
 
 function InvestmentCapabilities() {
+  const { t } = useTranslation();
   const capabilities = [
-    { icon: Database, title: 'Data & Research', description: 'Deep analysis of market dynamics and fundamental data using proprietary frameworks to uncover persistent return drivers.' },
-    { icon: Zap, title: 'Signal Generation', description: 'Advanced ML models to identify alpha-generating signals across asset classes with rigorous statistical validation.' },
-    { icon: Layout, title: 'Portfolio Construction', description: 'Optimized portfolio building using systematic allocation and rebalancing rules with disciplined risk controls.' },
-    { icon: Lock, title: 'Risk Management', description: 'Continuous monitoring with dynamic hedging and regime-based adjustments to protect capital across market cycles.' }
+    { icon: Database, title: t('home.process.step1.title'), description: t('home.process.step1.desc') },
+    { icon: Zap, title: t('home.process.step2.title'), description: t('home.process.step2.desc') },
+    { icon: Layout, title: t('home.process.step3.title'), description: t('home.process.step3.desc') },
+    { icon: Lock, title: t('home.process.step4.title'), description: t('home.process.step4.desc') }
   ];
 
   return (
@@ -98,6 +100,7 @@ function InvestorLogoBar() {
 }
 
 function NewsCarousel() {
+  const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
   const [openArticle, setOpenArticle] = useState<number | null>(null);
 
@@ -131,7 +134,7 @@ function NewsCarousel() {
                   <p className="text-slate-600 leading-relaxed">{newsItems[current].description}</p>
                   <div className="mt-6">
                     <button onClick={() => setOpenArticle(current)} className="text-blue-600 font-medium text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all cursor-pointer">
-                      Read more <ArrowRight className="w-4 h-4" />
+                      {t('home.news.readMore')} <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -168,7 +171,7 @@ function NewsCarousel() {
                   <p key={i} className="text-slate-600 leading-relaxed mb-3">{paragraph}</p>
                 ))}
                 <div className="pt-4 mt-2 border-t border-slate-100">
-                  <a href={newsItems[openArticle].link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium text-sm inline-flex items-center gap-1.5">Read full article on nymbus.ca <ArrowRight className="w-4 h-4" /></a>
+                  <a href={newsItems[openArticle].link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium text-sm inline-flex items-center gap-1.5">{t('home.news.readFullArticle')} <ArrowRight className="w-4 h-4" /></a>
                 </div>
               </div>
             </motion.div>
@@ -180,6 +183,7 @@ function NewsCarousel() {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   return (
     <main className="bg-white">
       <section className="min-h-[90vh] flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
@@ -190,11 +194,11 @@ export default function Home() {
             <TypewriterEffect words={['Scientific Investing', 'Systematic Alpha', 'Quantitative Edge', 'Data-Driven Returns']} className="text-blue-600" />
           </motion.h1>
           <motion.p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
-            Institutional-grade quantitative strategies delivering superior risk-adjusted returns through rigorous research and systematic portfolio construction.
+            {t('home.hero.subtitle')}
           </motion.p>
           <motion.div className="flex gap-4 justify-center flex-wrap" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}>
-            <Link href="/strategies" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl border border-blue-500/30">Explore Strategies <ArrowRight className="w-4 h-4" /></Link>
-            <Link href="/solutions" className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all">Investment Solutions</Link>
+            <Link href="/strategies" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl border border-blue-500/30">{t('home.hero.cta1')} <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/solutions" className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-all">{t('home.hero.cta2')}</Link>
           </motion.div>
         </div>
       </section>
@@ -206,7 +210,7 @@ export default function Home() {
       <section className="bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[{ label: 'Assets Under Management', value: 1.5, prefix: '$', suffix: 'B+' }, { label: 'Investment Strategies', value: 5, prefix: '', suffix: '' }, { label: 'Investment Professionals', value: 9, prefix: '', suffix: '' }, { label: 'Years of Track Record', value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
+            {[{ label: t('home.stats.aum'), value: 1.5, prefix: '$', suffix: 'B+' }, { label: t('home.stats.strategies'), value: 5, prefix: '', suffix: '' }, { label: t('home.stats.professionals'), value: 9, prefix: '', suffix: '' }, { label: t('home.stats.trackRecord'), value: 10, prefix: '', suffix: '+' }].map((stat, idx) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true, margin: '-100px' }}>
                 <ScrollReveal delay={idx * 100}>
                   <div className="text-center">
@@ -225,15 +229,15 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <ScrollReveal>
               <div>
-                <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Our Approach</p>
-                <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">At the Intersection of Technology, Data & Finance</h2>
-                <p className="text-lg text-slate-600 leading-relaxed mb-6">We believe that systematic, quantitative approaches to investing deliver superior risk-adjusted returns. Our team combines decades of institutional experience with cutting-edge research in machine learning, signal processing, and portfolio optimization.</p>
-                <Link href="/team" className="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">Meet our team <ChevronRight className="w-4 h-4" /></Link>
+                <p className="text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">{t('home.approach.label')}</p>
+                <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">{t('home.approach.title')}</h2>
+                <p className="text-lg text-slate-600 leading-relaxed mb-6">{t('home.approach.description')}</p>
+                <Link href="/team" className="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">{t('home.approach.cta')} <ChevronRight className="w-4 h-4" /></Link>
               </div>
             </ScrollReveal>
             <ScrollReveal delay={200}>
               <div className="space-y-5">
-                {[{ icon: TrendingUp, title: 'Quantitative Research', desc: 'Deep analysis of market dynamics, credit fundamentals, and risk factors using proprietary models and ML.' }, { icon: BarChart3, title: 'Systematic Construction', desc: 'Rules-based portfolio building using optimization models with disciplined allocation and rebalancing.' }, { icon: Shield, title: 'Dynamic Risk Management', desc: 'Continuous monitoring with ML-driven regime classification and proactive hedging strategies.' }].map((item) => (
+                {[{ icon: TrendingUp, title: t('home.approach.research.title'), desc: t('home.approach.research.desc') }, { icon: BarChart3, title: t('home.approach.construction.title'), desc: t('home.approach.construction.desc') }, { icon: Shield, title: t('home.approach.risk.title'), desc: t('home.approach.risk.desc') }].map((item) => (
                   <Card key={item.title} className="p-6 border border-slate-200 bg-white hover:border-blue-200 transition-colors">
                     <div className="flex gap-4">
                       <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center"><item.icon className="w-6 h-6 text-blue-600" /></div>
@@ -252,10 +256,10 @@ export default function Home() {
           <ScrollReveal>
             <div className="flex items-end justify-between mb-12">
               <div>
-                <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Strategies</p>
-                <h2 className="text-4xl font-bold text-slate-900">Our Investment Solutions</h2>
+                <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">{t('home.strategies.label')}</p>
+                <h2 className="text-4xl font-bold text-slate-900">{t('home.strategies.title')}</h2>
               </div>
-              <Link href="/strategies" className="hidden md:inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">View all strategies <ArrowRight className="w-4 h-4" /></Link>
+              <Link href="/strategies" className="hidden md:inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors">{t('home.strategies.cta')} <ArrowRight className="w-4 h-4" /></Link>
             </div>
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -293,9 +297,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
             <div className="mb-12">
-              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Our Investment Process</p>
-              <h2 className="text-4xl font-bold text-slate-900 mb-2">Investment Capabilities</h2>
-              <p className="text-lg text-slate-500">A systematic pipeline approach that defines our entire investment methodology</p>
+              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">{t('home.process.label')}</p>
+              <h2 className="text-4xl font-bold text-slate-900 mb-2">{t('home.process.title')}</h2>
+              <p className="text-lg text-slate-500">{t('home.process.subtitle')}</p>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={200}><InvestmentCapabilities /></ScrollReveal>
@@ -304,7 +308,7 @@ export default function Home() {
 
       <section className="py-12 px-6 bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto">
-          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">Trusted by Canada&apos;s Leading Institutions</p></ScrollReveal>
+          <ScrollReveal><p className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wide mb-8">{t('home.clients.title')}</p></ScrollReveal>
           <ScrollReveal delay={200}><InvestorLogoBar /></ScrollReveal>
         </div>
       </section>
@@ -313,8 +317,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
             <div className="mb-12">
-              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide"><Newspaper className="w-4 h-4 inline-block mr-1 -mt-0.5" />News & Milestones</p>
-              <h2 className="text-4xl font-bold text-slate-900">Recent Developments</h2>
+              <p className="text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide"><Newspaper className="w-4 h-4 inline-block mr-1 -mt-0.5" />{t('home.news.label')}</p>
+              <h2 className="text-4xl font-bold text-slate-900">{t('home.news.title')}</h2>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={200}><NewsCarousel /></ScrollReveal>
@@ -324,11 +328,11 @@ export default function Home() {
       <section className="py-20 px-6 bg-slate-900">
         <div className="max-w-3xl mx-auto text-center">
           <ScrollReveal>
-            <motion.h2 className="text-4xl font-bold text-white mb-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true, margin: '-100px' }}>Ready to explore systematic investing?</motion.h2>
-            <motion.p className="text-lg text-slate-400 mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} viewport={{ once: true, margin: '-100px' }}>Connect with our team to learn how our quantitative approach can deliver superior risk-adjusted returns for your portfolio.</motion.p>
+            <motion.h2 className="text-4xl font-bold text-white mb-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true, margin: '-100px' }}>{t('home.cta.title')}</motion.h2>
+            <motion.p className="text-lg text-slate-400 mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} viewport={{ once: true, margin: '-100px' }}>{t('home.cta.description')}</motion.p>
             <motion.div className="flex gap-4 justify-center flex-wrap" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} viewport={{ once: true, margin: '-100px' }}>
-              <Link href="/contact" className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">Get in Touch <ArrowRight className="w-4 h-4" /></Link>
-              <Link href="/solutions" className="border border-white/20 text-white hover:border-white/40 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">View Solutions</Link>
+              <Link href="/contact" className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">{t('home.cta.button1')} <ArrowRight className="w-4 h-4" /></Link>
+              <Link href="/solutions" className="border border-white/20 text-white hover:border-white/40 px-8 py-3.5 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">{t('home.cta.button2')}</Link>
             </motion.div>
           </ScrollReveal>
         </div>
