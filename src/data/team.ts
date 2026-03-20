@@ -106,6 +106,7 @@ export const team: TeamMember[] = [
     bio: "Fran\u00e7ois-Olivier Laplante leads Nymbus's Folco equity strategies. He previously held roles as Vice-President and Director at Desjardins Securities, where he specialized in equity portfolio management and institutional sales.",
     summary: "Leads Nymbus's real estate equity strategies",
     education: ["BAA, Universit\u00e9 Laval"],
+    designations: ["CIM"],
     previousRoles: ["VP & Director, Desjardins Securities"],
     initials: "FL",
     color: "#2b6cb0",
