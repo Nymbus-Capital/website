@@ -171,12 +171,12 @@ export default function StrategiesPage() {
                   <thead>
                     <tr>
                       <th className="text-left">Fund Name</th>
-                      <th className="text-right">Asset Class</th>
-                      <th className="text-right">YTD</th>
-                      <th className="text-right">1Y</th>
-                      <th className="text-right">SI</th>
-                      <th className="text-right">Sharpe</th>
-                      <th className="text-right">Sortino</th>
+                      <th className="text-left">Asset Class</th>
+                      <th className="text-left">YTD</th>
+                      <th className="text-left">1Y</th>
+                      <th className="text-left">SI</th>
+                      <th className="text-left">Sharpe</th>
+                      <th className="text-left">Sortino</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -189,16 +189,16 @@ export default function StrategiesPage() {
                               {fund.shortName}
                             </Link>
                           </td>
-                          <td className="text-right">{fund.assetClass}</td>
-                          <td className={cn('text-right font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
+                          <td className="text-left">{fund.assetClass}</td>
+                          <td className={cn('text-left font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
                             {formatPercent(fund.returns.ytd)}
                           </td>
-                          <td className={cn('text-right font-semibold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
+                          <td className={cn('text-left font-semibold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
                             {formatPercent(fund.returns.oneYear)}
                           </td>
-                          <td className="text-right font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
-                          <td className="text-right">{fund.sharpe?.toFixed(2) ?? '—'}</td>
-                          <td className="text-right">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
+                          <td className="text-left font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
+                          <td className="text-left">{fund.sharpe?.toFixed(2) ?? '—'}</td>
+                          <td className="text-left">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
                         </tr>
                       ))}
                   </tbody>
