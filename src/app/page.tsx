@@ -19,10 +19,10 @@ import gsap from 'gsap';
 function InvestmentCapabilities() {
   const { t } = useTranslation();
   const capabilities = [
-    { icon: Database, title: t('home.process.step1.title'), description: t('home.process.step1.desc') },
-    { icon: Zap, title: t('home.process.step2.title'), description: t('home.process.step2.desc') },
-    { icon: Layout, title: t('home.process.step3.title'), description: t('home.process.step3.desc') },
-    { icon: Lock, title: t('home.process.step4.title'), description: t('home.process.step4.desc') }
+    { icon: Database, title: t('home.process.steps.dataTitle'), description: t('home.process.steps.dataDesc') },
+    { icon: Zap, title: t('home.process.steps.signalTitle'), description: t('home.process.steps.signalDesc') },
+    { icon: Layout, title: t('home.process.steps.constructionTitle'), description: t('home.process.steps.constructionDesc') },
+    { icon: Lock, title: t('home.process.steps.riskTitle'), description: t('home.process.steps.riskDesc') }
   ];
 
   return (
@@ -183,7 +183,7 @@ function NewsCarousel() {
 }
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   return (
     <main className="bg-white">
       <section className="min-h-[90vh] flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
@@ -191,7 +191,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
         <div className="max-w-3xl text-center relative z-10">
           <motion.h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}>
-            <TypewriterEffect words={['Scientific Investing', 'Systematic Alpha', 'Quantitative Edge', 'Data-Driven Returns']} className="text-blue-600" />
+            <TypewriterEffect words={[t('home.hero.word1'), t('home.hero.word2'), t('home.hero.word3'), t('home.hero.word4')]} className="text-blue-600" />
           </motion.h1>
           <motion.p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
             {t('home.hero.subtitle')}
@@ -237,7 +237,7 @@ export default function Home() {
             </ScrollReveal>
             <ScrollReveal delay={200}>
               <div className="space-y-5">
-                {[{ icon: TrendingUp, title: t('home.approach.research.title'), desc: t('home.approach.research.desc') }, { icon: BarChart3, title: t('home.approach.construction.title'), desc: t('home.approach.construction.desc') }, { icon: Shield, title: t('home.approach.risk.title'), desc: t('home.approach.risk.desc') }].map((item) => (
+                {[{ icon: TrendingUp, title: t('home.approach.research.title'), desc: t('home.approach.research.description') }, { icon: BarChart3, title: t('home.approach.construction.title'), desc: t('home.approach.construction.description') }, { icon: Shield, title: t('home.approach.risk.title'), desc: t('home.approach.risk.description') }].map((item) => (
                   <Card key={item.title} className="p-6 border border-slate-200 bg-white hover:border-blue-200 transition-colors">
                     <div className="flex gap-4">
                       <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center"><item.icon className="w-6 h-6 text-blue-600" /></div>
@@ -278,7 +278,7 @@ export default function Home() {
                         </div>
                         <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 transition-colors" />
                       </div>
-                      <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">{fund.description}</p>
+                      <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">{locale === 'fr' && fund.descriptionFr ? fund.descriptionFr : fund.description}</p>
                       <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-center">
                         <div><p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.oneYear)}</p><p className="text-xs text-slate-500 mt-1">1-Year</p></div>
                         <div><p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p><p className="text-xs text-slate-500 mt-1">Since Inception</p></div>

@@ -1,224 +1,219 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { funds, Fund } from '@/data/funds';
+import { Card } from '@/components/ui/Card';
+import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import { useTranslation } from '@/lib/i18n';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ArrowRight, TrendingUp, Shield, BarChart3, Filter } from 'lucide-react';
+import { cn, formatPercent } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 
-const strategiesData = [
-  {
-    name: 'Canadian Fixed Income',
-    nameFr: 'Revenu fixe canadien',
-    type: 'fixed-income',
-    aum: '$450M',
-    inception: '2015',
-    ytd: 4.2,
-    oneYear: 6.8,
-    si: 5.4,
-    sharpe: 1.8,
-    sortino: 2.3
-  },
-  {
-    name: 'Global Alternatives',
-    nameFr: 'Placements alternatifs mondiaux',
-    type: 'alternatives',
-    aum: '$320M',
-    inception: '2018',
-    ytd: 7.1,
-    oneYear: 9.2,
-    si: 8.5,
-    sharpe: 1.9,
-    sortino: 2.5
-  },
-  {
-    name: 'ESG Fixed Income',
-    nameFr: 'Revenu fixe ESG',
-    type: 'fixed-income',
-    aum: '$180M',
-    inception: '2020',
-    ytd: 3.8,
-    oneYear: 6.1,
-    si: 5.2,
-    sharpe: 1.7,
-    sortino: 2.2
-  },
-  {
-    name: 'Credit Opportunities',
-    nameFr: 'Opportunités de crédit',
-    type: 'fixed-income',
-    aum: '$280M',
-    inception: '2017',
-    ytd: 5.3,
-    oneYear: 7.9,
-    si: 6.8,
-    sharpe: 1.95,
-    sortino: 2.6
-  },
-  {
-    name: 'Multi-Strategy',
-    nameFr: 'Multi-stratégie',
-    type: 'alternatives',
-    aum: '$220M',
-    inception: '2019',
-    ytd: 6.5,
-    oneYear: 8.3,
-    si: 7.8,
-    sharpe: 2.0,
-    sortino: 2.7
-  }
-];
+type FilterKey = 'All' | 'Fixed Income' | 'Alternatives';
+
+const getFilterKey = (t: any, key: string): FilterKey => {
+  if (key === 'Fixed Income') return t('strategies.filter.fixedIncome');
+  if (key === 'Alternatives') return t('strategies.filter.alternatives');
+  return t('strategies.filter.all');
+};
 
 export default function StrategiesPage() {
-  const { t, locale } = useTranslation();
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const { locale, t } = useTranslation();
+  const [filter, setFilter] = useState<FilterKey>('All');
+  const [hoveredFund, setHoveredFund] = useState<string | null>(null);
 
-  const filteredStrategies = activeFilter
-    ? strategiesData.filter(s => s.type === activeFilter)
-    : strategiesData;
-
-  const chartData = filteredStrategies.map(s => ({
-    name: locale === 'fr' ? s.nameFr : s.name,
-    ytd: s.ytd,
-    oneYear: s.oneYear,
-    si: s.si
-  }));
+  const filters: FilterKey[] = ['All', 'Fixed Income', 'Alternatives'];
+  const filtered = (filter === 'All' ? funds : funds.filter((f) => f.assetClass === filter)).filter(
+    (f) => f.slug !== 'multi-strategy-managed-account'
+  );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            {t('strategies.title')}
-          </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            {locale === 'fr'
-              ? 'Stratégies d\'investissement diversifiées conçues pour atteindre les objectifs de rendement ajusté au risque.'
-              : t('strategies.subtitle')}
+    <main className="bg-white min-h-screen">
+      {/* Hero */}
+      <section className="bg-white border-b border-slate-100 pt-8 pb-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">{t('strategies.label')}</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">{t('strategies.title')}</h1>
+          <p className="text-lg text-slate-600 max-w-2xl">
+            {t('strategies.description')}
           </p>
         </div>
       </section>
 
-      {/* Filter Section */}
-      <section className="py-8 px-4 bg-slate-800/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap gap-4 justify-center">
-            <button
-              onClick={() => setActiveFilter(null)}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                activeFilter === null
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              {locale === 'fr' ? 'Tous' : 'All'}
-            </button>
-            <button
-              onClick={() => setActiveFilter('fixed-income')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                activeFilter === 'fixed-income'
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              {locale === 'fr' ? 'Revenu fixe' : 'Fixed Income'}
-            </button>
-            <button
-              onClick={() => setActiveFilter('alternatives')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                activeFilter === 'alternatives'
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              {locale === 'fr' ? 'Placements alternatifs' : 'Alternatives'}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Performance Chart */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-8">
-            {locale === 'fr' ? 'Rendement des stratégies' : 'Strategy Performance'}
-          </h2>
-          <div className="bg-slate-800/50 rounded-lg p-8">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #475569'
-                  }}
-                  labelStyle={{ color: '#f1f5f9' }}
-                />
-                <Legend />
-                <Bar dataKey="ytd" fill="#10b981" name={locale === 'fr' ? 'YTD' : 'YTD'} />
-                <Bar dataKey="oneYear" fill="#3b82f6" name={locale === 'fr' ? '1 an' : '1Y'} />
-                <Bar dataKey="si" fill="#f59e0b" name={locale === 'fr' ? 'Depuis création' : 'SI'} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategies Grid */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredStrategies.map((strategy, index) => (
-              <div key={index} className="bg-slate-700/50 rounded-lg p-8 hover:bg-slate-600/50 transition-all">
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  {locale === 'fr' ? strategy.nameFr : strategy.name}
-                </h3>
-                <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                  <div>
-                    <p className="text-slate-400">{locale === 'fr' ? 'AUM' : 'AUM'}</p>
-                    <p className="text-xl font-bold text-emerald-400">{strategy.aum}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">{locale === 'fr' ? 'Inception' : 'Inception'}</p>
-                    <p className="text-xl font-bold text-emerald-400">{strategy.inception}</p>
-                  </div>
-                </div>
-                <div className="border-t border-slate-600 pt-4">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-slate-400">
-                        <th className="text-left font-semibold">{locale === 'fr' ? 'Métrique' : 'Metric'}</th>
-                        <th className="text-right font-semibold">{locale === 'fr' ? 'Valeur' : 'Value'}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-t border-slate-700 text-slate-300">
-                        <td>{locale === 'fr' ? 'YTD' : 'YTD'}</td>
-                        <td className="text-right text-emerald-400 font-semibold">{strategy.ytd.toFixed(1)}%</td>
-                      </tr>
-                      <tr className="border-t border-slate-700 text-slate-300">
-                        <td>{locale === 'fr' ? '1 an' : '1 Year'}</td>
-                        <td className="text-right text-emerald-400 font-semibold">{strategy.oneYear.toFixed(1)}%</td>
-                      </tr>
-                      <tr className="border-t border-slate-700 text-slate-300">
-                        <td>{locale === 'fr' ? 'Depuis création' : 'Since Inception'}</td>
-                        <td className="text-right text-emerald-400 font-semibold">{strategy.si.toFixed(1)}%</td>
-                      </tr>
-                      <tr className="border-t border-slate-700 text-slate-300">
-                        <td>{locale === 'fr' ? 'Ratio de Sharpe' : 'Sharpe Ratio'}</td>
-                        <td className="text-right text-blue-400 font-semibold">{strategy.sharpe.toFixed(2)}</td>
-                      </tr>
-                      <tr className="border-t border-slate-700 text-slate-300">
-                        <td>{locale === 'fr' ? 'Ratio de Sortino' : 'Sortino Ratio'}</td>
-                        <td className="text-right text-blue-400 font-semibold">{strategy.sortino.toFixed(2)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+      {/* Filter Tabs */}
+      <section className="sticky top-0 z-30 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-1 py-3">
+            <Filter className="w-4 h-4 text-slate-400 mr-2" />
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                  filter === f
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:bg-slate-100'
+                )}
+              >
+                {f}
+              </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Fund Cards */}
+      <section className="py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={filter}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            >
+              {filtered.map((fund, index) => (
+                <ScrollReveal key={fund.slug} delay={index * 80}>
+                  <Link href={`/strategies/${fund.slug}`}>
+                    <Card
+                      className="p-6 border border-slate-200 hover:border-blue-200 hover:shadow-lg transition-all cursor-pointer group h-full"
+                      onMouseEnter={() => setHoveredFund(fund.slug)}
+                      onMouseLeave={() => setHoveredFund(null)}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{fund.name}</h3>
+                          <div className="flex gap-2 mt-1.5">
+                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">{fund.assetClass}</span>
+                            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{fund.vehicle}</span>
+                            {fund.slug === 'multi-strategy' && (
+                              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">Managed Account</span>
+                            )}
+                          </div>
+                        </div>
+                        <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                      </div>
+
+                      <p className="text-sm text-slate-600 leading-relaxed mb-5 line-clamp-2">{locale === 'fr' && fund.descriptionFr ? fund.descriptionFr : fund.description}</p>
+
+                      {/* Mini performance sparkline */}
+                      {fund.calendarYearReturns && fund.calendarYearReturns.length > 0 && (
+                        <div className="mb-5 h-12">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={fund.calendarYearReturns.slice(-5)}>
+                              <XAxis 
+                                dataKey="year" 
+                                tick={{ fontSize: 11 }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                                tickLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <Tooltip 
+                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '4px' }}
+                                formatter={(v: unknown) => {
+                                  const value = v as number;
+                                  return `${value.toFixed(1)}%`;
+                                }}
+                                labelFormatter={(label: unknown) => `Year ${label}`}
+                              />
+                              <Bar dataKey="fund" radius={[2, 2, 0, 0]} maxBarSize={16}>
+                                {fund.calendarYearReturns.slice(-5).map((entry, i) => (
+                                  <Cell key={i} fill={entry.fund >= 0 ? '#2563eb' : '#ef4444'} opacity={0.7} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+
+                      {/* Key metrics */}
+                      <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-100">
+                        <div className="text-center">
+                          <p className={cn('text-sm font-bold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.ytd)}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">{t('strategies.comparison.ytd')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={cn('text-sm font-bold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.oneYear)}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">{t('strategies.comparison.oneYear')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold text-slate-900">{formatPercent(fund.returns.sinceInception)}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{t('strategies.comparison.si')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold text-slate-900">{fund.sharpe?.toFixed(2) ?? 'N/A'}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{t('strategies.comparison.sharpe')}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </ScrollReveal>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+
+          {filtered.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-slate-500">{t('strategies.noResults')}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Comparison Table */}
+      <section className="py-12 px-6 bg-slate-50 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal>
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">{t('strategies.comparison.title')}</h2>
+            <Card className="overflow-hidden border border-slate-200">
+              <div className="overflow-x-auto">
+                <table className="w-full fund-table">
+                  <thead>
+                    <tr>
+                      <th className="text-left">{t('strategies.comparison.fundName')}</th>
+                      <th className="text-left">{t('strategies.comparison.assetClass')}</th>
+                      <th className="text-left">{t('strategies.comparison.ytd')}</th>
+                      <th className="text-left">{t('strategies.comparison.oneYear')}</th>
+                      <th className="text-left">{t('strategies.comparison.si')}</th>
+                      <th className="text-left">{t('strategies.comparison.sharpe')}</th>
+                      <th className="text-left">{t('strategies.comparison.sortino')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {funds
+                      .filter((f) => f.slug !== 'multi-strategy-managed-account')
+                      .map((fund) => (
+                        <tr key={fund.slug}>
+                          <td className="text-left">
+                            <Link href={`/strategies/${fund.slug}`} className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                              {fund.shortName}
+                            </Link>
+                          </td>
+                          <td className="text-left">{fund.assetClass}</td>
+                          <td className={cn('text-left font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.ytd)}
+                          </td>
+                          <td className={cn('text-left font-semibold', fund.returns.oneYear >= 0 ? 'text-green-600' : 'text-red-600')}>
+                            {formatPercent(fund.returns.oneYear)}
+                          </td>
+                          <td className="text-left font-semibold">{formatPercent(fund.returns.sinceInception)}</td>
+                          <td className="text-left">{fund.sharpe?.toFixed(2) ?? '—'}</td>
+                          <td className="text-left">{fund.riskMetrics?.sortino?.toFixed(2) ?? '—'}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </ScrollReveal>
         </div>
       </section>
     </main>
