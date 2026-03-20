@@ -16,10 +16,8 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const saved = localStorage.getItem('nymbus-locale') as Locale | null;
     if (saved && (saved === 'en' || saved === 'fr')) {
       setLocaleState(saved);
@@ -40,10 +38,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return (translations as Record<string, string>)[key] || (en as Record<string, string>)[key] || key;
   };
 
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>
       {children}
@@ -54,7 +48,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 export function useTranslation() {
   const context = useContext(I18nContext);
   if (!context) {
-    // Provide a default context for SSR
     const t = (key: string): string => {
       return (en as Record<string, string>)[key] || key;
     };
