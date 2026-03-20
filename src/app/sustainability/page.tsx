@@ -1,185 +1,254 @@
 'use client';
 
-import { Card } from '@/components/ui/Card';
-import { ScrollReveal } from '@/components/animations/ScrollReveal';
-import AnimatedCounter from '@/components/animations/AnimatedCounter';
-import Link from 'next/link';
-import {
-  Leaf, Shield, Globe, TrendingDown, Wind, Ban, FileCheck,
-  ArrowRight, BarChart3, Target, Award, Zap, Droplets,
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useEffect, useRef } from 'react';
+import { useTranslation } from '@/lib/i18n';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import AnimatedCounter from '@/components/AnimatedCounter';
 
-const esgMetrics = [
-  { label: 'Carbon Intensity vs Benchmark', fund: 42, benchmark: 100, unit: 'tCO2e/$M' },
-  { label: 'ESG Score (Weighted Avg)', fund: 78, benchmark: 62, unit: '/100' },
-  { label: 'Green Bond Allocation', fund: 8.5, benchmark: 2.1, unit: '%' },
-  { label: 'Fossil Fuel Exposure', fund: 0, benchmark: 8.4, unit: '%' },
+gsap.registerPlugin(ScrollTrigger);
+
+const strategies = [
+  {
+    title: 'Exclusion Screening',
+    titleFr: 'Filtrage d\'exclusion',
+    features: ['Tobacco-Free', 'Weapons-Free', 'Controversial Business']
+  },
+  {
+    title: 'Positive Screening',
+    titleFr: 'Filtrage positif',
+    features: ['ESG Leaders', 'Sustainable Business', 'Impact Focus']
+  },
+  {
+    title: 'Quantitative ESG Integration',
+    titleFr: 'Intégration ESG quantitative',
+    features: ['Data-Driven Analysis', 'Risk Assessment', 'Performance Impact']
+  }
 ];
 
-const exclusions = [
-  { category: 'Fossil Fuel Production', icon: Wind, desc: 'Companies deriving >5% revenue from coal, oil sands, or thermal coal power generation.' },
-  { category: 'Tobacco', icon: Ban, desc: 'All tobacco manufacturers and distributors.' },
-  { category: 'Controversial Weapons', icon: Shield, desc: 'Cluster munitions, landmines, biological, chemical, and nuclear weapons manufacturers.' },
-  { category: 'Severe ESG Controversies', icon: Target, desc: 'Companies rated "Severe" on MSCI ESG Controversies or equivalent.' },
-];
-
-const greenBondData = [
-  { year: '2020', allocation: 3.2 },
-  { year: '2021', allocation: 4.8 },
-  { year: '2022', allocation: 5.5 },
-  { year: '2023', allocation: 7.2 },
-  { year: '2024', allocation: 8.5 },
+const commitments = [
+  {
+    title: 'UN PRI Signatory',
+    titleFr: 'Signataire des PRI des Nations Unies',
+    description: 'Committed to responsible investment principles'
+  },
+  {
+    title: 'Tobacco-Free Finance Pledge',
+    titleFr: 'Engagement sans tabac',
+    description: 'Zero investment in tobacco products'
+  },
+  {
+    title: 'Zero Fossil Fuel Portfolio',
+    titleFr: 'Portefeuille zéro carbone',
+    description: 'Divested from fossil fuel extraction'
+  }
 ];
 
 export default function SustainabilityPage() {
+  const { t, locale } = useTranslation();
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    cardRefs.current.forEach((card, index) => {
+      if (card) {
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            delay: index * 0.15,
+            scrollTrigger: {
+              trigger: card,
+              start: 'top 80%',
+              markers: false
+            }
+          }
+        );
+      }
+    });
+  }, []);
+
   return (
-    <main className="bg-white min-h-screen">
-      {/* Hero */}
-      <section className="bg-white border-b border-slate-100 pt-8 pb-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <p className="text-sm font-semibold text-green-600 uppercase tracking-wide mb-2">Sustainability</p>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">Responsible Investing</h1>
-            <p className="text-lg text-slate-600 max-w-2xl">
-              ESG integration is embedded in our investment process, not bolted on. We believe that companies with strong environmental, social, and governance practices deliver superior long-term risk-adjusted returns.
-            </p>
-          </ScrollReveal>
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Hero Section */}
+      <section className="pt-24 pb-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            {t('sustainability.title')}
+          </h1>
+          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            {locale === 'fr'
+              ? 'Intégration des principes ESG dans toutes nos stratégies d\'investissement.'
+              : t('sustainability.subtitle')}
+          </p>
         </div>
       </section>
 
-      {/* ESG Metrics Dashboard */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">ESG Metrics Dashboard</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {esgMetrics.map((metric) => (
-                <Card key={metric.label} className="p-5 border border-slate-200">
-                  <p className="text-xs text-slate-500 font-medium mb-3">{metric.label}</p>
-                  <div className="flex items-end gap-3">
-                    <div>
-                      <p className="text-xs text-slate-400">Fund</p>
-                      <p className="text-2xl font-bold text-green-600">{metric.fund}{metric.unit}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Benchmark</p>
-                      <p className="text-lg font-semibold text-slate-400">{metric.benchmark}{metric.unit}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+      {/* ESG Philosophy */}
+      <section className="py-16 px-4 bg-slate-800/50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">
+            {locale === 'fr' ? 'Philosophie ESG' : 'ESG Philosophy'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-slate-700/50 rounded-lg p-8">
+              <h3 className="text-2xl font-bold text-emerald-400 mb-4">
+                {locale === 'fr' ? 'Intégration fondamentale' : 'Core Integration'}
+              </h3>
+              <p className="text-slate-300">
+                {locale === 'fr'
+                  ? 'Les facteurs ESG sont intégrés dans tous les processus d\'analyse et de prise de décision d\'investissement.'
+                  : 'ESG factors are integrated into all investment analysis and decision-making processes.'}
+              </p>
             </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Exclusion Policy */}
-      <section className="py-16 px-6 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">Exclusion Policy</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {exclusions.map((ex) => {
-                const Icon = ex.icon;
-                return (
-                  <Card key={ex.category} className="p-5 border border-slate-200 bg-white">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-5 h-5 text-red-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-900 text-sm mb-1">{ex.category}</h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">{ex.desc}</p>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
+            <div className="bg-slate-700/50 rounded-lg p-8">
+              <h3 className="text-2xl font-bold text-emerald-400 mb-4">
+                {locale === 'fr' ? 'Transparence' : 'Transparency'}
+              </h3>
+              <p className="text-slate-300">
+                {locale === 'fr'
+                  ? 'Rapports détaillés et communication claire sur nos activités ESG et notre impact.'
+                  : 'Detailed reporting and clear communication on our ESG activities and impact.'}
+              </p>
             </div>
-          </ScrollReveal>
+            <div className="bg-slate-700/50 rounded-lg p-8">
+              <h3 className="text-2xl font-bold text-emerald-400 mb-4">
+                {locale === 'fr' ? 'Responsabilité' : 'Accountability'}
+              </h3>
+              <p className="text-slate-300">
+                {locale === 'fr'
+                  ? 'Engagement envers l\'amélioration continue et la responsabilité en matière de durabilité.'
+                  : 'Commitment to continuous improvement and sustainability accountability.'}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Green Bond Growth */}
-      <section className="py-16 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Green Bond Allocation Over Time</h2>
-            <p className="text-slate-600 mb-8">Growing allocation to certified green bonds financing climate-positive projects.</p>
-            <Card className="p-6 border border-slate-200">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={greenBondData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(v: unknown) => `${v}%`} />
-                  <Tooltip formatter={(v: unknown) => [`${v}%`, 'Green Bond %']} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }} />
-                  <Bar dataKey="allocation" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Fondaction Partnership */}
-      <section className="py-16 px-6 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="w-5 h-5 text-green-600" />
-                  <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">Partnership</p>
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Fondaction Collaboration</h2>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  Our partnership with Fondaction represents a shared commitment to advancing responsible investing in Canadian fixed income markets. Together, we have developed ESG-integrated bond strategies that demonstrate sustainability and strong returns are not mutually exclusive.
-                </p>
-                <p className="text-slate-600 leading-relaxed">
-                  Fondaction, a labour-sponsored venture capital fund dedicated to positive economic, social, and environmental impact, has entrusted Nymbus with managing sustainable bond mandates that align with their mission of responsible capital allocation.
-                </p>
+      {/* Strategies */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">
+            {locale === 'fr' ? 'Approches stratégiques' : 'Strategic Approaches'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {strategies.map((strategy, index) => (
+              <div
+                key={index}
+                ref={el => {
+                  cardRefs.current[index] = el;
+                }}
+                className="bg-slate-700/50 rounded-lg p-8 hover:bg-slate-600/50 transition-all"
+              >
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {locale === 'fr' ? strategy.titleFr : strategy.title}
+                </h3>
+                <ul className="space-y-3">
+                  {strategy.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start text-slate-300">
+                      <span className="text-emerald-400 mr-3 font-bold">•</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div>
-                <Card className="p-6 border border-slate-200 bg-white">
-                  <h3 className="font-bold text-slate-900 mb-4">PRI Alignment Scorecard</h3>
-                  <div className="space-y-4">
-                    {[
-                      { principle: 'ESG in investment analysis', score: 95 },
-                      { principle: 'Active ownership policies', score: 82 },
-                      { principle: 'ESG disclosure by investees', score: 88 },
-                      { principle: 'Industry acceptance of ESG', score: 90 },
-                      { principle: 'Implementation effectiveness', score: 85 },
-                      { principle: 'Reporting on ESG activities', score: 92 },
-                    ].map((p) => (
-                      <div key={p.principle}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-slate-600">{p.principle}</span>
-                          <span className="font-semibold text-slate-900">{p.score}%</span>
-                        </div>
-                        <div className="bg-slate-100 rounded-full h-2">
-                          <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${p.score}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-          </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Invest Responsibly</h2>
-            <p className="text-slate-600 mb-8">Explore our sustainable fund offerings and learn how ESG integration enhances long-term performance.</p>
-            <Link href="/strategies/sustainable-enhanced-bonds" className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-lg font-medium hover:bg-green-700 transition-colors">
-              Explore Sustainable Funds <ArrowRight className="w-4 h-4" />
-            </Link>
-          </ScrollReveal>
+      {/* Commitments */}
+      <section className="py-16 px-4 bg-slate-800/50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">
+            {locale === 'fr' ? 'Engagements' : 'Our Commitments'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {commitments.map((commitment, index) => (
+              <div
+                key={index}
+                className="bg-slate-700/50 rounded-lg p-8 border-l-4 border-emerald-500"
+              >
+                <h3 className="text-xl font-bold text-emerald-400 mb-3">
+                  {locale === 'fr' ? commitment.titleFr : commitment.title}
+                </h3>
+                <p className="text-slate-300">{commitment.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Metrics */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">
+            {locale === 'fr' ? 'Métriques d\'impact' : 'Impact Metrics'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-emerald-400 mb-2">
+                <AnimatedCounter to={180} />M
+              </div>
+              <p className="text-slate-300">{locale === 'fr' ? 'Capital ESG géré' : 'ESG Capital Managed'}</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-emerald-400 mb-2">
+                <AnimatedCounter to={95} />%
+              </div>
+              <p className="text-slate-300">{locale === 'fr' ? 'Sans carbone' : 'Carbon-Free Portfolio'}</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-emerald-400 mb-2">
+                <AnimatedCounter to={100} />%
+              </div>
+              <p className="text-slate-300">{locale === 'fr' ? 'Sans tabac' : 'Tobacco-Free'}</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-emerald-400 mb-2">
+                <AnimatedCounter to={2024} />
+              </div>
+              <p className="text-slate-300">{locale === 'fr' ? 'Signataire PRI ONU' : 'UN PRI Signatory'}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Partnership Section */}
+      <section className="py-16 px-4 bg-slate-800/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-6">
+            {locale === 'fr' ? 'Partenariat Fondaction' : 'Fondaction Partnership'}
+          </h2>
+          <p className="text-xl text-slate-300 mb-6">
+            {locale === 'fr'
+              ? 'Nous collaborons avec Fondaction pour offrir des obligations de développement durable qui soutiennent les entreprises durables au Québec.'
+              : 'We partner with Fondaction to offer sustainable development bonds that support sustainable enterprises in Quebec.'}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div className="bg-slate-700/50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-emerald-400 mb-3">
+                {locale === 'fr' ? 'Impact économique' : 'Economic Impact'}
+              </h3>
+              <p className="text-slate-300 text-sm">
+                {locale === 'fr'
+                  ? 'Soutenir la création d\'emplois durables et la croissance économique au Québec.'
+                  : 'Support sustainable job creation and economic growth in Quebec.'}
+              </p>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-emerald-400 mb-3">
+                {locale === 'fr' ? 'Impact environnemental' : 'Environmental Impact'}
+              </h3>
+              <p className="text-slate-300 text-sm">
+                {locale === 'fr'
+                  ? 'Financer les entreprises qui réduisent leur empreinte carbone et environnementale.'
+                  : 'Finance companies reducing their carbon and environmental footprint.'}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
