@@ -45,8 +45,8 @@ export const team: TeamMember[] = [
   },
   {
     name: "Marc Rivet",
-    title: "Chief Executive Officer",
-    titleFr: "Directeur g\u00e9n\u00e9ral",
+    title: "Co-founder & Chief Executive Officer",
+    titleFr: "Cofondateur et directeur g\u00e9n\u00e9ral",
     department: "Leadership",
     bio: "Marc Rivet co-founded Nymbus Capital in 2013, bringing decades of fixed income and derivatives experience. He previously founded Groupe ARB in 2005 and was an independent participant on the Montreal Exchange from 1991 to 2005, specializing in Canadian bond and derivative trading. He began his career in 1986 at L\u00e9vesque Beaubien Geoffrion (now National Bank Financial).",
     summary: "Co-founded Nymbus after 25+ years trading Canadian bonds and derivatives",
@@ -59,8 +59,8 @@ export const team: TeamMember[] = [
   },
   {
     name: "Gabriel Cefaloni",
-    title: "Chief Investment Officer",
-    titleFr: "Chef des placements",
+    title: "Co-founder & Chief Investment Officer",
+    titleFr: "Cofondateur et chef des placements",
     department: "Leadership",
     bio: "Gabriel Cefaloni co-founded Nymbus Capital with a focus on technology-driven systematic investing. With nearly two decades of experience, he participated in the first wave of high-frequency trading in Canada at Groupe ARB and subsequently managed quantitative derivatives strategies at GC Capital. He leads the firm's investment strategy, research, and technology direction.",
     summary: "Technologist at the intersection of applied math, computer science, and quantitative finance",
@@ -205,7 +205,6 @@ export const team: TeamMember[] = [
     previousRoles: ["BlackRock"],
     initials: "FC",
     color: "#3182ce",
-    photo: "https://media.licdn.com/dms/image/v2/D4E03AQFzT_6_QRNcPw/profile-displayphoto-crop_800_800/B4EZt_ANKrJwAI-/0/1767362319694?e=1775692800&v=beta&t=dX8UMWHy032XdMuystFlaMFEd8VEmkOzlZDhCE3W0nk",
   },
   {
     name: "Luca Ieraci",
@@ -229,7 +228,7 @@ export const team: TeamMember[] = [
     yearJoined: 2024,
     initials: "XG",
     color: "#38a169",
-    photo: "https://www.nymbus.ca/wp-content/uploads/2024/03/XAVIER.png",
+    photo: "https://www.nymbus.ca/wp-content/uploads/2024/01/XAVIER.png",
   },
   {
     name: "Danira Csano",
