@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef, useEffect, useState, ReactNode } from 'react';
@@ -19,6 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import { cn } from '@/lib/utils';
 import type { Fund } from '@/data/funds';
+import { team } from '@/data/team';
 
 /* ================================================================
  * FUND DETAIL LAYOUT — Clean white design, Lysander-style depth
@@ -316,19 +316,32 @@ function OverviewTab({ fund }: { fund: Fund }) {
         <div>
           <SectionTitle icon={Users} title={t('fund.overview.team')} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {fund.managers.map((manager) => (
-              <Card key={manager} className="p-5 border border-slate-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
-                    {manager.split(' ').map(n => n[0]).join('')}
+            {fund.managers.map((manager) => {
+              const teamMember = team.find(m => m.name === manager);
+              const initials = manager.split(' ').map(n => n[0]).join('');
+              
+              return (
+                <Card key={manager} className="p-5 border border-slate-200">
+                  <div className="flex items-center gap-4">
+                    {teamMember?.photo ? (
+                      <img 
+                        src={teamMember.photo} 
+                        alt={manager} 
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+                        {initials}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-slate-900">{manager}</p>
+                      <p className="text-sm text-slate-500">{teamMember?.title || t('fund.manager.title')}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{manager}</p>
-                    <p className="text-sm text-slate-500">{t('fund.manager.title')}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </ScrollReveal>
