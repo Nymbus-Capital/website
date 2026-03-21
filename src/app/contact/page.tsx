@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 import {
   Building2, Users, Briefcase, MapPin, Phone, Mail,
   ArrowRight, ArrowLeft, CheckCircle, Send, Clock,
@@ -13,6 +14,8 @@ import {
 type Step = 1 | 2 | 3;
 
 export default function ContactPage() {
+  const { locale } = useTranslation();
+  const fr = locale === 'fr';
   const [step, setStep] = useState<Step>(1);
   const [investorType, setInvestorType] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
@@ -20,20 +23,15 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const investorTypes = [
-    { key: 'institutional', label: 'Institutional Investor', icon: Building2 },
-    { key: 'family-office', label: 'Family Office', icon: Users },
-    { key: 'advisor', label: 'Investment Advisor', icon: Briefcase },
-    { key: 'other', label: 'Other', icon: Mail },
+    { key: 'institutional', label: fr ? 'Investisseur institutionnel' : 'Institutional Investor', icon: Building2 },
+    { key: 'family-office', label: fr ? 'Bureau familial' : 'Family Office', icon: Users },
+    { key: 'advisor', label: fr ? 'Conseiller en placement' : 'Investment Advisor', icon: Briefcase },
+    { key: 'other', label: fr ? 'Autre' : 'Other', icon: Mail },
   ];
 
-  const interestOptions = [
-    'Sustainable Enhanced Bonds',
-    'Monthly Income Fund',
-    'Multi-Strategy Fund',
-    'Global Minimum Volatility',
-    'Custom Mandate',
-    'General Inquiry',
-  ];
+  const interestOptions = fr
+    ? ['Obligations durables bonifiées', 'Revenu Mensuel', 'Multi-stratégies', 'Global Minimum Volatilité', 'Mandat personnalisé', 'Demande générale']
+    : ['Sustainable Enhanced Bonds', 'Monthly Income Fund', 'Multi-Strategy Fund', 'Global Minimum Volatility', 'Custom Mandate', 'General Inquiry'];
 
   const handleSubmit = () => {
     setSubmitted(true);
@@ -46,9 +44,9 @@ export default function ContactPage() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-3">Thank You</h1>
-          <p className="text-slate-600 mb-6">Your inquiry has been received. Our team will respond within one business day.</p>
-          <a href="/" className="text-blue-600 font-medium hover:text-blue-700 transition-colors">Return to Home</a>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">{fr ? 'Merci' : 'Thank You'}</h1>
+          <p className="text-slate-600 mb-6">{fr ? 'Votre demande a été reçue. Notre équipe vous répondra dans un délai d\'un jour ouvrable.' : 'Your inquiry has been received. Our team will respond within one business day.'}</p>
+          <a href="/" className="text-blue-600 font-medium hover:text-blue-700 transition-colors">{fr ? 'Retour à l\'accueil' : 'Return to Home'}</a>
         </div>
       </main>
     );
@@ -60,10 +58,10 @@ export default function ContactPage() {
       <section className="bg-white border-b border-slate-100 pt-8 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">Contact Us</p>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">Get in Touch</h1>
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">{fr ? 'Nous joindre' : 'Contact Us'}</p>
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">{fr ? 'Communiquez avec nous' : 'Get in Touch'}</h1>
             <p className="text-lg text-slate-600 max-w-2xl">
-              Interested in learning more about our investment strategies? Our team is here to help.
+              {fr ? 'Intéressé à en apprendre davantage sur nos stratégies d\'investissement? Notre équipe est là pour vous aider.' : 'Interested in learning more about our investment strategies? Our team is here to help.'}
             </p>
           </ScrollReveal>
         </div>
@@ -88,7 +86,7 @@ export default function ContactPage() {
                   </div>
                 ))}
                 <span className="text-sm text-slate-500 ml-4">
-                  {step === 1 ? 'Investor Type' : step === 2 ? 'Interests' : 'Contact Details'}
+                  {step === 1 ? (fr ? 'Type d\'investisseur' : 'Investor Type') : step === 2 ? (fr ? 'Intérêts' : 'Interests') : (fr ? 'Coordonnées' : 'Contact Details')}
                 </span>
               </div>
 
@@ -96,7 +94,7 @@ export default function ContactPage() {
                 {/* Step 1: Investor Type */}
                 {step === 1 && (
                   <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">What type of investor are you?</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">{fr ? 'Quel type d\'investisseur êtes-vous?' : 'What type of investor are you?'}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                       {investorTypes.map((type) => {
                         const Icon = type.icon;
@@ -120,7 +118,7 @@ export default function ContactPage() {
                       disabled={!investorType}
                       className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      Continue <ArrowRight className="w-4 h-4" />
+                      {fr ? 'Continuer' : 'Continue'} <ArrowRight className="w-4 h-4" />
                     </button>
                   </motion.div>
                 )}
@@ -128,7 +126,7 @@ export default function ContactPage() {
                 {/* Step 2: Interests */}
                 {step === 2 && (
                   <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">What are you interested in?</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">{fr ? 'Quels sont vos intérêts?' : 'What are you interested in?'}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                       {interestOptions.map((opt) => (
                         <button
@@ -145,14 +143,14 @@ export default function ContactPage() {
                     </div>
                     <div className="flex gap-3">
                       <button onClick={() => setStep(1)} className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> Back
+                        <ArrowLeft className="w-4 h-4" /> {fr ? 'Retour' : 'Back'}
                       </button>
                       <button
                         onClick={() => interests.length > 0 && setStep(3)}
                         disabled={interests.length === 0}
                         className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        Continue <ArrowRight className="w-4 h-4" />
+                        {fr ? 'Continuer' : 'Continue'} <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   </motion.div>
@@ -161,43 +159,43 @@ export default function ContactPage() {
                 {/* Step 3: Contact Details */}
                 {step === 3 && (
                   <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">Your Contact Details</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">{fr ? 'Vos coordonnées' : 'Your Contact Details'}</h2>
                     <div className="space-y-4 mb-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
-                          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder="Your name" />
+                          <label className="block text-sm font-medium text-slate-700 mb-1">{fr ? 'Nom complet *' : 'Full Name *'}</label>
+                          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder={fr ? 'Votre nom' : 'Your name'} />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Email Address *</label>
-                          <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder="you@company.com" />
+                          <label className="block text-sm font-medium text-slate-700 mb-1">{fr ? 'Adresse courriel *' : 'Email Address *'}</label>
+                          <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder={fr ? 'vous@entreprise.com' : 'you@company.com'} />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">{fr ? 'Téléphone' : 'Phone'}</label>
                           <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder="+1 (555) 000-0000" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Company</label>
-                          <input type="text" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder="Company name" />
+                          <label className="block text-sm font-medium text-slate-700 mb-1">{fr ? 'Entreprise' : 'Company'}</label>
+                          <input type="text" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm" placeholder={fr ? 'Nom de l\'entreprise' : 'Company name'} />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Message</label>
-                        <textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} rows={4} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm resize-none" placeholder="Tell us about your investment needs..." />
+                        <label className="block text-sm font-medium text-slate-700 mb-1">{fr ? 'Message' : 'Message'}</label>
+                        <textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} rows={4} className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors text-sm resize-none" placeholder={fr ? 'Décrivez vos besoins en investissement...' : 'Tell us about your investment needs...'} />
                       </div>
                     </div>
                     <div className="flex gap-3">
                       <button onClick={() => setStep(2)} className="inline-flex items-center gap-2 border border-slate-200 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors">
-                        <ArrowLeft className="w-4 h-4" /> Back
+                        <ArrowLeft className="w-4 h-4" /> {fr ? 'Retour' : 'Back'}
                       </button>
                       <button
                         onClick={handleSubmit}
                         disabled={!formData.name || !formData.email}
                         className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        <Send className="w-4 h-4" /> Send Inquiry
+                        <Send className="w-4 h-4" /> {fr ? 'Envoyer la demande' : 'Send Inquiry'}
                       </button>
                     </div>
                   </motion.div>
@@ -208,13 +206,13 @@ export default function ContactPage() {
             {/* Office Info Sidebar */}
             <div className="space-y-4">
               <Card className="p-6 border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-4">Montreal Office</h3>
+                <h3 className="font-bold text-slate-900 mb-4">{fr ? 'Bureau de Montréal' : 'Montreal Office'}</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-3">
                     <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-slate-900 font-medium">1002 Sherbrooke Street West, Suite 1900</p>
-                      <p className="text-slate-500">Montreal, QC H3A 3L6</p>
+                      <p className="text-slate-900 font-medium">1002 {fr ? 'rue Sherbrooke Ouest' : 'Sherbrooke Street West'}, Suite 1900</p>
+                      <p className="text-slate-500">{fr ? 'Montréal' : 'Montreal'}, QC H3A 3L6</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -227,15 +225,15 @@ export default function ContactPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="w-4 h-4 text-blue-500" />
-                    <span className="text-slate-700">Mon–Fri: 8:30 AM – 5:00 PM ET</span>
+                    <span className="text-slate-700">{fr ? 'Lun–Ven : 8 h 30 – 17 h 00 HE' : 'Mon–Fri: 8:30 AM – 5:00 PM ET'}</span>
                   </div>
                 </div>
               </Card>
 
               <Card className="p-6 border border-slate-200 bg-slate-50">
-                <h3 className="font-bold text-slate-900 mb-2">Response Time</h3>
+                <h3 className="font-bold text-slate-900 mb-2">{fr ? 'Délai de réponse' : 'Response Time'}</h3>
                 <p className="text-sm text-slate-600">
-                  We typically respond to inquiries within one business day. For urgent matters, please call us directly.
+                  {fr ? 'Nous répondons habituellement aux demandes dans un délai d\'un jour ouvrable. Pour les questions urgentes, veuillez nous appeler directement.' : 'We typically respond to inquiries within one business day. For urgent matters, please call us directly.'}
                 </p>
               </Card>
             </div>
@@ -247,11 +245,10 @@ export default function ContactPage() {
       <section className="py-12 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <ScrollReveal>
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">Visit Our Office</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">{fr ? 'Visitez notre bureau' : 'Visit Our Office'}</h2>
           </ScrollReveal>
 
           <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md h-96">
-            {/* Map iframe */}
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.3!2d-73.5773!3d45.5048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a541d52ab21%3A0x206ea20b4e38c712!2s1002+Rue+Sherbrooke+O%2C+Montr%C3%A9al%2C+QC+H3A+3L6!5e0!3m2!1sen!2sca!4v1711000000000"
               width="100%"
@@ -262,7 +259,6 @@ export default function ContactPage() {
               referrerPolicy="no-referrer-when-downgrade"
             />
 
-            {/* Floating Address Card Overlay */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -274,8 +270,8 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-slate-900 text-sm">Nymbus Capital</p>
-                    <p className="text-xs text-slate-600 mt-1">1002 Sherbrooke Street West, Suite 1900</p>
-                    <p className="text-xs text-slate-600">Montreal, QC H3A 3L6</p>
+                    <p className="text-xs text-slate-600 mt-1">1002 {fr ? 'rue Sherbrooke Ouest' : 'Sherbrooke Street West'}, Suite 1900</p>
+                    <p className="text-xs text-slate-600">{fr ? 'Montréal' : 'Montreal'}, QC H3A 3L6</p>
                   </div>
                 </div>
               </Card>
