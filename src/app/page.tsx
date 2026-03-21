@@ -19,10 +19,10 @@ import gsap from 'gsap';
 function InvestmentCapabilities() {
   const { t } = useTranslation();
   const capabilities = [
-    { icon: Database, title: t('home.process.steps.dataTitle'), description: t('home.process.steps.dataDesc') },
-    { icon: Zap, title: t('home.process.steps.signalTitle'), description: t('home.process.steps.signalDesc') },
-    { icon: Layout, title: t('home.process.steps.constructionTitle'), description: t('home.process.steps.constructionDesc') },
-    { icon: Lock, title: t('home.process.steps.riskTitle'), description: t('home.process.steps.riskDesc') }
+    { icon: Database, title: t('home.process.step1.title'), description: t('home.process.step1.desc') },
+    { icon: Zap, title: t('home.process.step2.title'), description: t('home.process.step2.desc') },
+    { icon: Layout, title: t('home.process.step3.title'), description: t('home.process.step3.desc') },
+    { icon: Lock, title: t('home.process.step4.title'), description: t('home.process.step4.desc') }
   ];
 
   return (
