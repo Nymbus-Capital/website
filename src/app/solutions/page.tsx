@@ -31,7 +31,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     minInvestment: '$5,000,000',
     vehicles: ['Managed Account', 'Pooled Fund', 'Custom Mandate'],
     vehiclesFr: ['Compte géré', 'Fonds commun', 'Mandat personnalisé'],
-    strategies: ['sustainable-enhanced-bonds', 'multi-strategy', 'global-minimum-volatility'],
+    strategies: ['sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds', 'multi-strategy', 'global-minimum-volatility'],
   },
   'family-office': {
     title: 'Family Office Solutions',
@@ -41,7 +41,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     minInvestment: '$1,000,000',
     vehicles: ['Managed Account', 'Pooled Fund', 'Mutual Fund'],
     vehiclesFr: ['Compte géré', 'Fonds commun', 'Fonds commun de placement'],
-    strategies: ['multi-strategy', 'sustainable-enhanced-bonds', 'global-minimum-volatility'],
+    strategies: ['multi-strategy', 'sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds', 'global-minimum-volatility'],
   },
   advisor: {
     title: 'Advisor Solutions',
@@ -51,7 +51,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     minInvestment: '$1,000',
     vehicles: ['Mutual Fund (Series F)', 'Managed Account (qualified)'],
     vehiclesFr: ['Fonds commun de placement (Série F)', 'Compte géré (qualifié)'],
-    strategies: ['sustainable-enhanced-bonds', 'sustainable-enhanced-short-term-bonds'],
+    strategies: ['sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds'],
   },
 };
 

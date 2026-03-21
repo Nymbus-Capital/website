@@ -109,7 +109,7 @@ export default function StrategiesPage() {
                         <div>
                           <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{locale === 'fr' ? fundNamesFr[fund.name] || fund.name : fund.name}</h3>
                           <div className="flex gap-2 mt-1.5">
-                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">{locale === 'fr' ? assetClassFr[fund.assetClass] || fund.assetClass : fund.assetClass}</span>
+                            <span className={cn('px-2 py-0.5 rounded text-xs font-medium', fund.assetClass === 'Alternatives' ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-blue-700')}>{locale === 'fr' ? assetClassFr[fund.assetClass] || fund.assetClass : fund.assetClass}</span>
                             <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{fund.vehicle}</span>
                             {fund.slug === 'multi-strategy' && (
                               <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">Managed Account</span>
@@ -217,7 +217,9 @@ export default function StrategiesPage() {
                               {locale === 'fr' ? shortNamesFr[fund.shortName] || fund.shortName : fund.shortName}
                             </Link>
                           </td>
-                          <td className="text-left">{locale === 'fr' ? assetClassFr[fund.assetClass] || fund.assetClass : fund.assetClass}</td>
+                          <td className="text-left">
+                            <span className={cn('px-2 py-0.5 rounded text-xs font-medium', fund.assetClass === 'Alternatives' ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-blue-700')}>{locale === 'fr' ? assetClassFr[fund.assetClass] || fund.assetClass : fund.assetClass}</span>
+                          </td>
                           <td className={cn('text-left font-semibold', fund.returns.ytd >= 0 ? 'text-green-600' : 'text-red-600')}>
                             {formatPercent(fund.returns.ytd)}
                           </td>

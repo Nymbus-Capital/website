@@ -12,8 +12,8 @@ export function Footer() {
 
   const footerLinks = {
     [fr ? 'Stratégies' : 'Strategies']: [
-      { label: fr ? 'Obligations durables bonifiées' : 'Sustainable Enhanced Bonds', href: '/strategies/sustainable-enhanced-bonds' },
       { label: fr ? 'Revenu Mensuel' : 'Monthly Income', href: '/strategies/sustainable-enhanced-short-term-bonds' },
+      { label: fr ? 'Obligations durables bonifiées' : 'Sustainable Enhanced Bonds', href: '/strategies/sustainable-enhanced-bonds' },
       { label: fr ? 'Multi-stratégies' : 'Multi-Strategy', href: '/strategies/multi-strategy' },
       { label: fr ? 'Global Min. Volatilité' : 'Global Min. Volatility', href: '/strategies/global-minimum-volatility' },
     ],
