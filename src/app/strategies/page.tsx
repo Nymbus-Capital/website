@@ -214,7 +214,7 @@ export default function StrategiesPage() {
                         <tr key={fund.slug}>
                           <td className="text-left">
                             <Link href={`/strategies/${fund.slug}`} className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                              {locale === 'fr' ? shortNamesFr[fund.shortName] || fund.shortName : fund.shortName}
+                              {locale === 'fr' ? fundNamesFr[fund.name] || fund.name : fund.name}
                             </Link>
                           </td>
                           <td className="text-left">

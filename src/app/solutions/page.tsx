@@ -28,7 +28,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     titleFr: 'Solutions institutionnelles',
     benefits: ['Customized mandates tailored to IPS requirements', 'Dedicated portfolio management team', 'Comprehensive risk reporting and attribution', 'ESG integration and exclusion customization', 'Quarterly investment committee presentations'],
     benefitsFr: ['Mandats personnalisés adaptés aux exigences de l\'ÉPS', 'Équipe dédiée de gestion de portefeuille', 'Rapports de risque et attribution complets', 'Intégration ESG et personnalisation des exclusions', 'Présentations trimestrielles au comité de placement'],
-    minInvestment: '$5,000,000',
+    minInvestment: '$20,000,000',
     vehicles: ['Managed Account', 'Pooled Fund', 'Custom Mandate'],
     vehiclesFr: ['Compte géré', 'Fonds commun', 'Mandat personnalisé'],
     strategies: ['sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds', 'multi-strategy', 'global-minimum-volatility'],
@@ -38,7 +38,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     titleFr: 'Solutions pour bureaux familiaux',
     benefits: ['Multi-strategy diversification across asset classes', 'Absolute return focus with downside protection', 'Tax-efficient structure optimization', 'Direct CIO access and transparent reporting', 'Co-investment opportunities in select strategies'],
     benefitsFr: ['Diversification multistratégie à travers les classes d\'actifs', 'Rendement absolu avec protection contre les baisses', 'Optimisation de la structure fiscale', 'Accès direct au CIO et rapports transparents', 'Occasions de co-investissement dans des stratégies sélectionnées'],
-    minInvestment: '$1,000,000',
+    minInvestment: '$5,000,000',
     vehicles: ['Managed Account', 'Pooled Fund', 'Mutual Fund'],
     vehiclesFr: ['Compte géré', 'Fonds commun', 'Fonds commun de placement'],
     strategies: ['multi-strategy', 'sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds', 'global-minimum-volatility'],
@@ -48,7 +48,7 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
     titleFr: 'Solutions pour conseillers',
     benefits: ['Mutual fund access for client portfolios', 'Model portfolio integration support', 'Marketing and educational materials', 'Dedicated advisor support team', 'Due diligence documentation on demand'],
     benefitsFr: ['Accès aux fonds communs pour les portefeuilles clients', 'Soutien à l\'intégration de portefeuilles modèles', 'Matériel marketing et éducatif', 'Équipe de soutien dédiée aux conseillers', 'Documentation de vérification diligente sur demande'],
-    minInvestment: '$1,000',
+    minInvestment: '$500',
     vehicles: ['Mutual Fund (Series F)', 'Managed Account (qualified)'],
     vehiclesFr: ['Fonds commun de placement (Série F)', 'Compte géré (qualifié)'],
     strategies: ['sustainable-enhanced-short-term-bonds', 'sustainable-enhanced-bonds'],
@@ -56,10 +56,10 @@ const solutions: Record<InvestorType, { title: string; titleFr: string; benefits
 };
 
 const fundNamesFr: Record<string, string> = {
-  'SEB': 'ODB',
-  'Monthly Income': 'Revenu Mensuel',
-  'Multi-Strat': 'Multi-stratégies',
-  'GMV': 'GMV',
+  'Sustainable Enhanced Bonds': 'Obligations durables bonifiées',
+  'Monthly Income Fund': 'Revenu Mensuel',
+  'Multi-Strategy Fund': 'Multi-stratégies',
+  'Global Minimum Volatility': 'Global Minimum Volatilité',
 };
 
 const assetClassFr: Record<string, string> = {
@@ -171,7 +171,7 @@ export default function SolutionsPage() {
                     return (
                       <Link key={slug} href={`/strategies/${slug}`}>
                         <Card className="p-5 border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer group h-full">
-                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">{fr ? fundNamesFr[fund.shortName] || fund.shortName : fund.shortName}</h4>
+                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">{fr ? fundNamesFr[fund.name] || fund.name : fund.name}</h4>
                           <p className="text-xs text-slate-500 mb-3">{fr ? assetClassFr[fund.assetClass] || fund.assetClass : fund.assetClass} · {fund.vehicle}</p>
                           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                             <span className={cn('text-sm font-bold', fund.returns.sinceInception >= 0 ? 'text-green-600' : 'text-red-600')}>
