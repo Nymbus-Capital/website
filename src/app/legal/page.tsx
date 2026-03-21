@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -9,11 +8,11 @@ import { cn } from '@/lib/utils';
 export default function LegalPage() {
   const { locale } = useTranslation();
   const fr = locale === 'fr';
-  const [activeTab, setActiveTab] = useState('terms');
+  const [activeTab, setActiveTab] = useState('complaints');
 
   const tabs = [
-    { id: 'terms', label: fr ? 'Conditions d\'utilisation' : 'Terms of Use' },
-    { id: 'regulatory', label: fr ? 'Divulgations réglementaires' : 'Regulatory Disclosures' },
+    { id: 'complaints', label: fr ? 'Politique de plaintes' : 'Complaints Policy' },
+    { id: 'ethics', label: fr ? 'Code d’éthique' : 'Code of Ethics' },
   ];
 
   return (
@@ -21,103 +20,146 @@ export default function LegalPage() {
       <section className="bg-white border-b border-slate-100 pt-8 pb-12 px-6">
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">{fr ? 'Juridique' : 'Legal'}</p>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">{fr ? 'Conditions d\'utilisation' : 'Terms & Conditions'}</h1>
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-2">{fr ? 'Conformité' : 'Compliance'}</p>
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">{fr ? 'Juridique' : 'Legal'}</h1>
           </ScrollReveal>
         </div>
       </section>
 
-      <section className="py-8 px-6">
+      <section className="py-2 px-6 sticky top-0 z-30 bg-white border-b border-slate-200">
         <div className="max-w-4xl mx-auto">
-          <div className="flex gap-2 mb-8 border-b border-slate-200">
+          <div className="flex gap-2">
             {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'px-4 py-3 text-sm font-medium transition-colors border-b-2',
-                  activeTab === tab.id ? 'text-blue-600 border-blue-600' : 'text-slate-500 border-transparent hover:text-slate-700'
-                )}
-              >
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn('px-4 py-3 text-sm font-medium transition-colors border-b-2', activeTab === tab.id ? 'text-blue-600 border-blue-600' : 'text-slate-500 border-transparent hover:text-slate-700')}>
                 {tab.label}
               </button>
             ))}
           </div>
+        </div>
+      </section>
 
-          {activeTab === 'terms' && (
-            <div className="prose prose-slate max-w-none">
-              <p className="text-sm text-slate-500 mb-6">{fr ? 'Dernière mise à jour : 15 mars 2025' : 'Last Updated: March 15, 2025'}</p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '1. Avis de non-responsabilité' : '1. Disclaimer'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Les informations et opinions contenues sur ce site sont fournies « telles quelles », sans aucune garantie de quelque nature que ce soit, expresse ou implicite, dans toute la mesure permise par la loi applicable. Nymbus Capital décline spécifiquement toute représentation, approbation, garantie, expresse ou implicite, concernant le site, y compris, sans limitation, les garanties implicites de qualité marchande et d\'adéquation à un usage particulier et de non-contrefaçon des droits de tiers.'
-                  : 'The information and opinions contained on this site are provided "as is" without any warranty of any kind, either expressed or implied, to the fullest extent permissible pursuant to applicable law. Nymbus Capital specifically disclaims any representations, endorsements, guarantees, or warranties, express or implied, regarding the site, including without limitation, the implied warranties of merchantability and fitness for a particular purpose and non-infringement of third-party rights.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '2. Limitation de responsabilité' : '2. Limitation of Liability'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Nymbus Capital ne fait aucune garantie que les fonctions contenues sur ce site seront ininterrompues ou exemptes d\'erreurs, que les défauts seront corrigés, ou que ce site ou les serveurs qui le rendent disponible seront exempts de virus ou d\'autres composants nuisibles. L\'utilisateur accepte expressément que l\'ensemble du risque quant à la qualité et la performance du site est assumé uniquement par l\'utilisateur.'
-                  : 'Nymbus Capital makes no warranties that functions contained on this site will be uninterrupted or error-free, that defects will be corrected, or that this site or the servers that make it available will be free of viruses or other harmful components. Users expressly agree that the entire risk as to the quality and performance of the site is assumed solely by the user.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '3. Aucun conseil en placement' : '3. No Investment Advice'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Le contenu de ce site Web est fourni à titre informatif uniquement et ne constitue pas un conseil en placement, une offre de vente ou une sollicitation d\'achat de tout titre ou produit financier. Les performances passées ne sont pas indicatives des résultats futurs. Les investisseurs doivent consulter leurs conseillers financiers avant de prendre toute décision d\'investissement.'
-                  : 'The content of this website is provided for informational purposes only and does not constitute investment advice, an offer to sell, or a solicitation to buy any security or financial product. Past performance is not indicative of future results. Investors should consult their financial advisors before making any investment decisions.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '4. Propriété intellectuelle' : '4. Intellectual Property'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'L\'ensemble du contenu de ce site Web, y compris les textes, graphiques, logos, icônes et images, est la propriété de Nymbus Capital Inc. et est protégé par les lois canadiennes et internationales sur le droit d\'auteur. Aucune partie de ce site ne peut être reproduite, distribuée ou transmise sans l\'autorisation écrite préalable de Nymbus Capital Inc.'
-                  : 'All content on this website, including text, graphics, logos, icons, and images, is the property of Nymbus Capital Inc. and is protected by Canadian and international copyright laws. No part of this site may be reproduced, distributed, or transmitted without the prior written permission of Nymbus Capital Inc.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '5. Liens vers des tiers' : '5. Third-Party Links'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Ce site peut contenir des liens vers des sites Web tiers. Nymbus Capital décline toute responsabilité quant au contenu, à l\'exactitude ou aux pratiques de confidentialité de ces sites tiers. L\'inclusion de tels liens ne constitue ni une approbation ni une recommandation.'
-                  : 'This site may contain links to third-party websites. Nymbus Capital disclaims any responsibility for the content, accuracy, or privacy practices of such third-party sites. The inclusion of such links does not constitute endorsement or recommendation.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? '6. Droit applicable' : '6. Governing Law'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Les présentes conditions sont régies et interprétées conformément aux lois de la province de Québec et aux lois fédérales du Canada applicables dans celle-ci, sans égard aux dispositions relatives aux conflits de lois.'
-                  : 'These terms shall be governed by and construed in accordance with the laws of the Province of Quebec and the federal laws of Canada applicable therein, without regard to conflict of law provisions.'}
-              </p>
-            </div>
-          )}
-
-          {activeTab === 'regulatory' && (
-            <div className="prose prose-slate max-w-none">
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Inscription réglementaire' : 'Regulatory Registration'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Nymbus Capital Inc. est un gestionnaire de portefeuille et un gestionnaire de fonds d\'investissement inscrit auprès de l\'Autorité des marchés financiers (AMF) au Québec et un gestionnaire de portefeuille inscrit en Ontario, en Alberta et en Colombie-Britannique.'
-                  : 'Nymbus Capital Inc. is a portfolio manager and investment fund manager registered with the Autorité des marchés financiers (AMF) in Quebec and a registered portfolio manager in Ontario, Alberta, and British Columbia.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Principes pour l\'investissement responsable (PRI)' : 'Principles for Responsible Investment (PRI)'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Nymbus Capital est signataire des Principes pour l\'investissement responsable soutenus par les Nations Unies (PRI) depuis 2018. Nous nous engageons à intégrer les facteurs ESG dans nos décisions d\'investissement et à rendre compte annuellement de nos progrès.'
-                  : 'Nymbus Capital has been a signatory to the United Nations-supported Principles for Responsible Investment (PRI) since 2018. We are committed to incorporating ESG factors into our investment decisions and reporting annually on our progress.'}
-              </p>
-
-              <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Réclamations et règlement des différends' : 'Complaints & Dispute Resolution'}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                {fr
-                  ? 'Pour toute plainte, veuillez communiquer avec notre cheffe de la conformité, Diane Dusabimana, à l\'adresse info@nymbus.ca ou au 514-985-1138. Les plaintes non résolues peuvent être adressées à l\'Ombudsman des services bancaires et d\'investissement (OSBI).'
-                  : 'For complaints, please contact our Chief Compliance Officer, Diane Dusabimana, at info@nymbus.ca or 514-985-1138. Unresolved complaints may be directed to the Ombudsman for Banking Services and Investments (OBSI).'}
-              </p>
-            </div>
-          )}
+      <section className="py-10 px-6">
+        <div className="max-w-4xl mx-auto">
+          {activeTab === 'complaints' && <ComplaintsContent fr={fr} />}
+          {activeTab === 'ethics' && <EthicsContent fr={fr} />}
         </div>
       </section>
     </main>
+  );
+}
+
+function ComplaintsContent({ fr }: { fr: boolean }) {
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">{fr ? 'Sommaire de la politique de traitement des plaintes de Nymbus' : 'Summary of Nymbus’ Complaint Policy'}</h2>
+        <p className="text-slate-600 mb-4">{fr ? 'Chez Nymbus Capital Inc. (« Nymbus »), nous reconnaissons que le maintien de la confiance de nos clients est essentiel à nos activités. Nous prenons toutes les plaintes au sérieux et nous nous engageons à les résoudre de manière équitable, rapide et transparente.' : 'At Nymbus Capital Inc. ("Nymbus"), we recognize that maintaining our clients’ trust is essential to our business. We take all complaints seriously and are committed to resolving them fairly, promptly, and transparently.'}</p>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Qu’est-ce qu’une plainte?' : 'What is a Complaint?'}</h3>
+        <p className="text-sm text-slate-600">{fr ? 'Une plainte est définie comme une expression d’insatisfaction ou de reproche de la part d’un client concernant les services ou produits que nous fournissons, accompagnée de l’attente que nous prenions des mesures correctives. Cela peut inclure une demande de compensation, des excuses ou toute autre mesure visant à régler le problème.' : 'A complaint is defined as an expression of dissatisfaction or reproach from a client regarding the services or products we provide, along with the expectation that we take corrective action. This may include a request for compensation, an apology, or any other measure to address the issue.'}</p>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Comment déposer une plainte' : 'How to File a Complaint'}</h3>
+        <div className="bg-slate-50 rounded-lg p-5 text-sm text-slate-700">
+          <p className="font-semibold text-slate-900">Nymbus Capital Inc.</p>
+          <p>{fr ? 'À l’attention du responsable désigné des plaintes' : 'ATTN: Designated Complaints Officer'}</p>
+          <p>1002, {fr ? 'rue Sherbrooke Ouest' : 'Sherbrooke Street West'}, {fr ? 'Bureau' : 'Suite'} 1900</p>
+          <p>{fr ? 'Montréal (Québec)' : 'Montreal (Quebec)'} H3A 3L6</p>
+          <p className="mt-2">514-931-1138 {fr ? 'ou' : 'or'} 1-833-227-2656</p>
+          <p>compliance@nymbus.ca</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Processus de traitement des plaintes' : 'Complaint Handling Process'}</h3>
+        <div className="space-y-4">
+          {(fr ? [
+            { step: '1', title: 'Accusé de réception de votre plainte', desc: 'Nous vous enverrons une confirmation écrite dans les 10 jours suivant la réception de votre plainte. Celle-ci comprend des informations sur les prochaines étapes et votre droit de demander un examen par l’AMF.' },
+            { step: '2', title: 'Examen de votre plainte', desc: 'Nous analyserons soigneusement votre plainte et clarifierons le résultat que vous recherchez. Si nécessaire, nous pourrons vous contacter pour obtenir des informations supplémentaires.' },
+            { step: '3', title: 'Réponse finale écrite', desc: 'Vous recevrez notre décision finale par écrit dans les 60 jours. Ce document décrit les étapes que nous avons suivies pour analyser votre plainte, le raisonnement derrière notre conclusion et, le cas échéant, une solution proposée.' },
+            { step: '4', title: 'Résolution de la plainte', desc: 'Si nous offrons une résolution, vous aurez le temps de l’examiner et de demander conseil. Vous pouvez accepter, refuser ou proposer des modifications. Une fois convenue, nous appliquerons la résolution dans les 30 jours.' },
+          ] : [
+            { step: '1', title: 'Acknowledging Your Complaint', desc: 'We will send you a written confirmation within 10 days of receiving your complaint. This includes information about the next steps and your right to request a review by the AMF.' },
+            { step: '2', title: 'Reviewing Your Complaint', desc: 'We’ll carefully analyze your complaint and clarify what outcome you’re seeking. If needed, we may contact you for additional information to better understand the issue.' },
+            { step: '3', title: 'Providing a Final Written Response', desc: 'You’ll receive our final decision in writing within 60 days. This outlines the steps we took to analyze your complaint, the reasoning behind our conclusion, and, where applicable, a proposed solution.' },
+            { step: '4', title: 'Resolution of the Complaint', desc: 'If we offer a resolution, you’ll have time to review it and seek advice. You may accept, refuse, or propose changes. Once agreed, we’ll apply the resolution within 30 days.' },
+          ]).map((item) => (
+            <div key={item.step} className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">{item.step}</div>
+              <div>
+                <h4 className="font-semibold text-slate-900 text-sm mb-1">{item.title}</h4>
+                <p className="text-sm text-slate-600">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Si vous n’êtes pas satisfait' : 'If You’re Not Satisfied'}</h3>
+        <div className="space-y-3 text-sm text-slate-600">
+          <p><strong>{fr ? '1. Demander un examen par l’AMF :' : '1. Request a Review by the AMF:'}</strong> {fr ? 'Remplissez le formulaire de demande de l’AMF et retournez-le-nous. Nous enverrons votre dossier complet à l’AMF dans les 15 jours suivant la réception de votre demande.' : 'Complete the AMF request form and return it to us. We’ll send your full complaint record to the AMF within 15 days of receiving your request.'}</p>
+          <p><strong>{fr ? '2. Contacter l’OSBI :' : '2. Contact the Ombudsman for Banking Services and Investments (OBSI):'}</strong> {fr ? 'L’OSBI offre un service gratuit et indépendant de règlement des différends. Vous devez les contacter dans les 180 jours suivant la réception de notre réponse finale. Ils peuvent recommander une indemnisation allant jusqu’à 350 000 $.' : 'OBSI provides free, independent dispute resolution. You must contact them within 180 days of receiving our final response. They can recommend up to $350,000 in compensation.'}</p>
+          <p className="text-slate-500">{fr ? 'Téléphone : 416-287-2877 ou 1-888-451-4519 (sans frais)' : 'Phone: 416-287-2877 or 1-888-451-4519 (toll-free)'}</p>
+        </div>
+      </div>
+
+      <p className="text-xs text-slate-500">{fr ? 'En vigueur en date du 1er juillet 2025' : 'Effective as of July 1, 2025'}</p>
+    </div>
+  );
+}
+
+function EthicsContent({ fr }: { fr: boolean }) {
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">{fr ? 'Code d’éthique' : 'Code of Ethics'}</h2>
+        <p className="text-slate-600">{fr ? 'Chez Nymbus Capital Inc. (« Nymbus »), nous reconnaissons que l’intégrité et le professionnalisme de nos employés sont essentiels au maintien de notre réputation et de la confiance de nos clients. Ce code d’éthique énonce les principes et normes qui guident la conduite de tous les employés.' : 'At Nymbus Capital Inc. ("Nymbus"), we recognize that the integrity and professionalism of our employees are essential to maintaining our reputation and the trust of our clients. This Code of Ethics outlines the principles and standards that guide the conduct of all employees.'}</p>
+      </div>
+
+      {(fr ? [
+        { title: '1. Aperçu et principes généraux', content: 'Nymbus, ses dirigeants, employés et administrateurs exercent leurs activités selon les normes les plus élevées d’éthique et d’intégrité. Tous les employés adhèrent aux principes de ce code d’éthique dès leur embauche pour préserver la réputation de l’entreprise et assurer une conduite professionnelle constante. Ce code s’applique à tous les employés, y compris à temps partiel, temporaires, contractuels, stagiaires et conseillers.' },
+        { title: '2. Professionnalisme', content: 'Les employés agissent avec intégrité, compétence, diligence, respect et comportement éthique envers les clients, les clients potentiels, les employeurs, les collègues et les autres participants du marché. Tous les employés lisent, comprennent et suivent ce code. Le non-respect peut entraîner des mesures disciplinaires, y compris le congédiement.' },
+        { title: '3. Conformité aux lois, politiques et procédures', content: 'Nymbus et ses employés respectent toutes les lois, règlements et normes professionnelles applicables. En cas de conflit entre les règles, la norme la plus stricte s’applique. Les employés ne participent pas sciemment à des violations et ne les facilitent pas. Les employés signalent les violations ou les violations suspectées au responsable de la conformité (CCO).' },
+        { title: '4. Exceptions aux politiques', content: 'Les employés demandent des exceptions par écrit au CCO avec justification. Les exceptions ne sont accordées que par écrit et doivent être conformes aux lois.' },
+        { title: '5. Autorité des employés', content: 'Les employés ne peuvent pas lier Nymbus contractuellement ni parler en son nom au-delà de leurs fonctions.' },
+        { title: '6. Loyauté et non-sollicitation', content: 'Les clients appartiennent exclusivement à Nymbus; les employés ne peuvent pas prendre ou utiliser les renseignements des clients. À leur départ, les employés ne doivent pas copier ou utiliser les renseignements des clients. La sollicitation ou le recrutement d’employés, de conseillers, de représentants ou de clients pendant l’emploi et pendant deux ans après la cessation est interdit.' },
+        { title: '7. Respect des clients et de Nymbus', content: 'Les employés maintiennent le professionnalisme et la confiance dans les interactions avec les clients. La confidentialité des renseignements de l’entreprise et des clients est strictement observée. Les employés protègent la réputation et les actifs de Nymbus.' },
+        { title: '8. Supervision et délégation', content: 'Nymbus supervise la conformité des employés et l’atténuation des risques. Les superviseurs peuvent déléguer des tâches mais conservent la responsabilité. Les délégations sont conformes aux lois et politiques et nécessitent du personnel qualifié.' },
+        { title: '9. Demandes de renseignements et communications publiques', content: 'Les employés dirigent toutes les demandes du public, des clients ou des médias concernant les politiques, pratiques ou services de Nymbus vers le département ou le porte-parole désigné approprié. Les employés ne doivent pas fournir d’informations non autorisées ou faire des déclarations au nom de Nymbus sans approbation préalable.' },
+      ] : [
+        { title: '1. Overview and General Principles', content: 'Nymbus, its executives, employees, and directors conduct their activities according to the highest standards of ethics and integrity. All employees adhere to the principles in this Code of Ethics from the moment they are hired to preserve the company’s reputation and ensure consistent professional conduct. This Code applies to all employees, including part-time, temporary, contract workers, interns, and advisors.' },
+        { title: '2. Professionalism', content: 'Employees act with integrity, competence, diligence, respect, and ethical behavior toward clients, potential clients, employers, colleagues, and other market participants. All employees read, understand, and follow this Code. Failure to comply may result in disciplinary actions, including termination.' },
+        { title: '3. Compliance with Laws, Policies, and Procedures', content: 'Nymbus and its employees comply with all applicable laws, regulations, and professional standards. In conflicts between rules, the strictest standard applies. Employees do not knowingly participate in or assist violations. Employees report violations or suspected violations to the Chief Compliance Officer (CCO).' },
+        { title: '4. Exceptions to Policies', content: 'Employees request exceptions in writing to the CCO with justification. Exceptions are granted only in writing and must comply with laws.' },
+        { title: '5. Employee Authority', content: 'Employees cannot bind Nymbus contractually or speak on its behalf beyond their duties.' },
+        { title: '6. Loyalty and Non-Solicitation', content: 'Clients belong exclusively to Nymbus; employees may not take or use client information. Upon leaving, employees must not copy or use client information. Soliciting or recruiting employees, advisors, representatives, or clients during employment and for two years after termination is prohibited.' },
+        { title: '7. Respect for Clients and Nymbus', content: 'Employees maintain professionalism and trust in client interactions. Confidentiality of company and client information is strictly observed. Employees protect Nymbus’s reputation and assets.' },
+        { title: '8. Supervision and Delegation', content: 'Nymbus supervises employee compliance and risk mitigation. Supervisors may delegate tasks but retain responsibility. Delegations comply with laws and policies and require qualified personnel.' },
+        { title: '9. Inquiries and Public Communication', content: 'Employees direct all inquiries from the public, clients, or media regarding Nymbus’s policies, practices, or services to the appropriate department or designated spokesperson. Employees must not provide unauthorized information or make statements on behalf of Nymbus without prior approval.' },
+      ]).map((section) => (
+        <div key={section.title}>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">{section.title}</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">{section.content}</p>
+        </div>
+      ))}
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 mb-3">{fr ? 'Pour nous joindre' : 'Contact Information'}</h3>
+        <div className="bg-slate-50 rounded-lg p-5 text-sm text-slate-700">
+          <p className="font-semibold text-slate-900">Nymbus Capital Inc.</p>
+          <p>{fr ? 'À l’attention de la cheffe de la conformité' : 'ATTN: Chief Compliance Officer'}</p>
+          <p>1002 {fr ? 'rue Sherbrooke Ouest' : 'Sherbrooke Street West'}, {fr ? 'Bureau' : 'Suite'} 1900</p>
+          <p>{fr ? 'Montréal (Québec)' : 'Montreal, Quebec'} H3A 3L6</p>
+          <p className="mt-2">514‑985‑1138 {fr ? 'ou' : 'or'} 1‑833‑227‑2656 ({fr ? 'sans frais' : 'toll-free'})</p>
+          <p>compliance@nymbus.ca</p>
+        </div>
+      </div>
+
+      <p className="text-xs text-slate-500">{fr ? 'En vigueur en date du 1er août 2025' : 'Effective as of August 1, 2025'}</p>
+    </div>
   );
 }
