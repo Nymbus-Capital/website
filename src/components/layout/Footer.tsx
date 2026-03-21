@@ -5,29 +5,30 @@ import { NymbusLogo } from './NymbusLogo';
 import { MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
-const footerLinks = {
-  Strategies: [
-    { label: 'Sustainable Enhanced Bonds', href: '/strategies/sustainable-enhanced-bonds' },
-    { label: 'Monthly Income', href: '/strategies/sustainable-enhanced-short-term-bonds' },
-    { label: 'Multi-Strategy', href: '/strategies/multi-strategy' },
-    { label: 'Global Min. Volatility', href: '/strategies/global-minimum-volatility' },
-  ],
-  Company: [
-    { label: 'About & Team', href: '/team' },
-    { label: 'Our Approach', href: '/approach' },
-    { label: 'Sustainability', href: '/sustainability' },
-    { label: 'Solutions', href: '/solutions' },
-  ],
-  Resources: [
-    { label: 'Contact', href: '/contact' },
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Legal', href: '/legal' },
-  ],
-};
-
 export function Footer() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const fr = locale === 'fr';
   const currentYear = new Date().getFullYear();
+
+  const footerLinks = {
+    [fr ? 'Stratégies' : 'Strategies']: [
+      { label: fr ? 'Obligations durables bonifiées' : 'Sustainable Enhanced Bonds', href: '/strategies/sustainable-enhanced-bonds' },
+      { label: fr ? 'Revenu Mensuel' : 'Monthly Income', href: '/strategies/sustainable-enhanced-short-term-bonds' },
+      { label: fr ? 'Multi-stratégies' : 'Multi-Strategy', href: '/strategies/multi-strategy' },
+      { label: fr ? 'Global Min. Volatilité' : 'Global Min. Volatility', href: '/strategies/global-minimum-volatility' },
+    ],
+    [fr ? 'Entreprise' : 'Company']: [
+      { label: fr ? 'À propos et équipe' : 'About & Team', href: '/team' },
+      { label: fr ? 'Notre approche' : 'Our Approach', href: '/approach' },
+      { label: fr ? 'Développement durable' : 'Sustainability', href: '/sustainability' },
+      { label: 'Solutions', href: '/solutions' },
+    ],
+    [fr ? 'Ressources' : 'Resources']: [
+      { label: 'Contact', href: '/contact' },
+      { label: fr ? 'Politique de confidentialité' : 'Privacy Policy', href: '/privacy' },
+      { label: fr ? 'Juridique' : 'Legal', href: '/legal' },
+    ],
+  };
 
   return (
     <footer className="bg-white text-slate-900 relative overflow-hidden">
@@ -70,24 +71,21 @@ export function Footer() {
             </div>
           </div>
 
-          {Object.entries(footerLinks).map(([category, links]) => {
-            const categoryKey = `footer.${category.toLowerCase()}` as const;
-            return (
-              <div key={category}>
-                <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">{t(categoryKey)}</h3>
-                <ul className="space-y-2.5">
-                  {links.map((link) => (
-                    <li key={link.href}>
-                      <Link href={link.href} className="text-sm text-slate-600 hover:text-blue-500 transition-colors flex items-center gap-1 group">
-                        {link.label}
-                        <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
+          {Object.entries(footerLinks).map(([category, links]) => (
+            <div key={category}>
+              <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">{category}</h3>
+              <ul className="space-y-2.5">
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-sm text-slate-600 hover:text-blue-500 transition-colors flex items-center gap-1 group">
+                      {link.label}
+                      <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="border-t border-slate-200 pt-8">
@@ -97,9 +95,11 @@ export function Footer() {
               <p className="text-xs text-slate-600 mt-2 max-w-lg leading-relaxed">{t('footer.disclaimer')}</p>
             </div>
             <div className="flex items-center gap-4">
-              <a href="https://www.linkedin.com/company/nymbus-capital/" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-500 transition-colors text-xs">LinkedIn</a>
+              <a href="https://www.linkedin.com/company/nymbus-capital/" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-blue-500 transition-colors text-xs">
+                LinkedIn
+              </a>
               <span className="text-slate-300">|</span>
-              <span className="text-xs text-slate-600">PRI Signatory</span>
+              <span className="text-xs text-slate-600">{fr ? 'Signataire des PRI' : 'PRI Signatory'}</span>
             </div>
           </div>
         </div>
