@@ -113,6 +113,8 @@ export const team: TeamMember[] = [
     bioFr: "Guy Liébart supervise les mandats institutionnels de titres à revenu fixe et multi-actifs chez Nymbus Capital. Il a précédemment occupé le poste de président de Gestion Sodagep et a amorcé sa carrière à la Caisse de dépôt et placement du Québec (CDPQ), l'un des plus grands investisseurs institutionnels du Canada.",
     summary: "50+ years managing institutional fixed income, starting at CDPQ",
     summaryFr: "50+ ans de gestion de titres à revenu fixe institutionnels, commençant à la CDPQ",
+    education: ["MBA"],
+    designations: ["MBA"],
     previousRoles: ["President, Gestion Sodagep", "Caisse de dépôt et placement du Québec"],
     initials: "GL",
     color: "#553c9a",
