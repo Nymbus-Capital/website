@@ -147,8 +147,8 @@ export const team: TeamMember[] = [
   },
   {
     name: "Jessica Martins",
-    title: "Analyst, Quantitative Research & Data Science",
-    titleFr: "Analyste, recherche quantitative et science de données",
+    title: "Team Lead, Quantitative Research",
+    titleFr: "Chef d'équipe, recherche quantitative",
     department: "Quantitative Research",
     additionalDepartments: ["Investment Team"],
     bio: "Jessica Martins works on Nymbus's quantitative research team, bringing expertise in data science, machine learning, and mathematical modeling. She previously worked at Tower Research Capital, where she developed quantitative trading and hedging strategies. She holds a PhD in Astrophysics.",
