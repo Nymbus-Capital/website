@@ -244,21 +244,47 @@ const AGG = new Set<unknown>([null, undefined, "", "All", "all", "Overall", "Tot
 
 export interface FtseRow { date: string; total_return?: number | null; rating?: string | null; term?: string | null; industry_sector?: string | null; industry_group?: string | null; [k: string]: unknown }
 
+const SIGNATURE_KEYS = ["index_name", "rating", "term", "industry_sector", "industry_group", "index_content"] as const;
+/** grouping values that mean "not broken down" (null, "", All, Overall, Total) compare equal */
+const signatureOf = (r: FtseRow): string => JSON.stringify(SIGNATURE_KEYS.map((k) => (AGG.has(r[k]) ? "*" : String(r[k]))));
+const isAggregate = (r: FtseRow): boolean => AGG.has(r.rating) && AGG.has(r.term) && AGG.has(r.industry_sector) && AGG.has(r.industry_group);
+
 /**
- * Date -> total-return level of the index itself, from index-summary rows (which may repeat a date per
- * rating/term/sector/group breakdown). Only the aggregate row counts: EVERY grouping dimension blank or
- * All/Overall/Total. A day without such a row is dropped (a sub-index level is never used).
+ * Date -> total-return level of the index itself, from index-summary rows of ONE short_name. The dataplatform
+ * returns one row per day describing the index (its term / sector are the index's own definition, e.g.
+ * Short / Corporate). The index's signature (name + grouping columns) is anchored on the latest day that has a
+ * single row, or a single fully aggregate row among breakdown rows; a day counts only if exactly one of its rows
+ * carries that signature, so the series can never switch to another index or a sub-index mid-way (e.g. two
+ * indices slugged to the same short_name, or a breakdown row on a day missing its aggregate).
  */
 export function ftseLevels(rows: FtseRow[]): Record<string, number> {
-  const out: Record<string, number> = {};
+  const byDate = new Map<string, FtseRow[]>();
   for (const r of rows) {
     const v = r.total_return;
     if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) continue;
-    if (!AGG.has(r.rating) || !AGG.has(r.term) || !AGG.has(r.industry_sector) || !AGG.has(r.industry_group)) continue;
     const d = String(r.date).slice(0, 10);
-    if (!(d in out)) out[d] = v;
+    const list = byDate.get(d);
+    if (list) list.push(r);
+    else byDate.set(d, [r]);
   }
-  return Object.fromEntries(Object.keys(out).sort().map((d) => [d, out[d]]));
+  const dates = [...byDate.keys()].sort();
+  let sig: string | null = null;
+  for (const d of [...dates].reverse()) {
+    const list = byDate.get(d)!;
+    const aggs = list.filter(isAggregate);
+    const row = list.length === 1 ? list[0] : aggs.length === 1 ? aggs[0] : null;
+    if (row) {
+      sig = signatureOf(row);
+      break;
+    }
+  }
+  if (sig === null) return {};
+  const out: Record<string, number> = {};
+  for (const d of dates) {
+    const match = byDate.get(d)!.filter((r) => signatureOf(r) === sig);
+    if (match.length === 1) out[d] = match[0].total_return as number;
+  }
+  return out;
 }
 
 /** Why no aggregate row was found: row count and the grouping values seen on the latest date (FTSE metadata only). */
