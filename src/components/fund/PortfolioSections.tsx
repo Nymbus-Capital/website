@@ -4,8 +4,8 @@
  */
 import { useState } from "react";
 import { CountUp, Reveal } from "@/components/v3/motion";
-import type { FundSpec } from "@/config/funds";
-import type { Bucket, Characteristic, FundContent, FundData } from "@/lib/data/types";
+import type { Bucket, Characteristic, FundContent } from "@/lib/data/types";
+import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { SectionHead } from "./PerformanceSections";
 import { Donut, HBars, Holdings } from "./charts/Breakdowns";

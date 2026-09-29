@@ -75,6 +75,18 @@ test.describe("sign-in gate", () => {
     expect(violations).toEqual([]);
   });
 
+  test("public fund page does not ship internal source names or admin fields", async ({ request }) => {
+    const html = await request.get("/strategies/monthly-income").then((r) => r.text());
+    for (const leak of ["sourceName", "dataplatform", "ftseIndex", "bonds_data", "pinnedSnapshot", "uploadedBy", "sha256"]) {
+      expect(html, leak).not.toContain(leak);
+    }
+  });
+
+  test("/api/admin/uploadx is still gated by the proxy", async ({ request }) => {
+    const r = await request.get("/api/admin/uploadx");
+    expect(r.status()).toBe(401);
+  });
+
   test("/api/health is public and minimal", async ({ request }) => {
     const r = await request.get("/api/health");
     expect(r.status()).toBe(200);

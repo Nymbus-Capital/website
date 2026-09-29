@@ -144,6 +144,12 @@ interface FundSeries {
   firstMonth: string;
   sources: string[];
   returnClass?: string;
+  /** months whose factsheet-printed return disagrees with the reference beyond print precision */
+  mismatches: string[];
+  /** months taken from the (rounded) factsheet monthly table */
+  factsheetMonths: string[];
+  /** reasons for an alert (run blocked) */
+  alerts: string[];
 }
 
 /**
@@ -203,6 +209,7 @@ function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): Fun
   } else c.warn(key, `dataplatform monthly net returns unavailable (${dp?.error ?? "not fetched"})`);
 
   // 3. factsheet monthly table (newest archive having the fund)
+  const mismatches: string[] = [];
   const fsb = factsheetBlock(raw, spec);
   if (fsb) {
     const tk = fundMonthlyTableKey(fsb.block, "Net");
@@ -217,7 +224,8 @@ function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): Fun
           origin[p.month] = "factsheet";
           filled.push(ym(p.month));
         } else if (Math.abs(s[p.month] - p.r) > tol) {
-          c.warn(key, `${ym(p.month)}: ${origin[p.month]} ${pct(s[p.month])} vs factsheet ${fsb.name} ${pct(p.r)} (${origin[p.month]} kept)`);
+          mismatches.push(p.month);
+          c.warn(key, `${ym(p.month)}: ${origin[p.month]} ${pct4(s[p.month])} vs factsheet ${fsb.name} ${pct4(p.r)} (beyond print precision)`);
         }
       }
       if (filled.length) c.warn(key, `no analytics/dataplatform return for ${monthRanges(filled.map(toMonthEnd))}: factsheet ${fsb.name} figures used (published precision)`);
@@ -258,7 +266,13 @@ function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): Fun
     count.dataplatform ? `dataplatform /api/performance/monthly-net-returns ${short} ready months (${count.dataplatform})` : null,
     count.factsheet ? `factsheet monthly table (${count.factsheet} month(s))` : null,
   ].filter((x): x is string => !!x);
-  return { series, last, firstMonth: first, sources, returnClass };
+  const factsheetMonths = sortedKeys(series).filter((m) => origin[m] === "factsheet");
+  const alerts: string[] = [];
+  if (!raw.analytics.ok && factsheetMonths.length > 2) {
+    alerts.push(`analytics history unavailable: ${factsheetMonths.length} month(s) rebuilt from rounded factsheet figures`);
+    c.error(key, `analytics history unavailable: ${factsheetMonths.length} month(s) of the track record rebuilt from the factsheet monthly table (rounded to its printed precision)`);
+  }
+  return { series, last, firstMonth: first, sources, returnClass, mismatches: mismatches.filter((m) => m <= last).sort(), factsheetMonths, alerts };
 }
 
 /* ------------------------------------------------------------------ index (published factsheet first) */
@@ -274,6 +288,8 @@ interface IndexBuild {
   name: string | null;
   /** months taken from FTSE (not covered by the factsheet table) */
   ftseMonths: string[];
+  /** FTSE months used before the producer's FTSE cutover (a different definition from the published figures) */
+  mixed: string[];
   prov: string;
 }
 
@@ -284,7 +300,7 @@ interface IndexBuild {
  */
 function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month: string; block: Obj } | null, firstMonth: string, asOf: string, prevPerf: Performance | null | undefined, c: Ctx, base: string): IndexBuild {
   const key = `${base}.performance.index`;
-  const out: IndexBuild = { monthly: {}, fsTrailing: null, fsVa: null, fsDecimals: null, fsCalendar: {}, fsCalendarYearMax: null, name: null, ftseMonths: [], prov: "" };
+  const out: IndexBuild = { monthly: {}, fsTrailing: null, fsVa: null, fsDecimals: null, fsCalendar: {}, fsCalendarYearMax: null, name: null, ftseMonths: [], mixed: [], prov: "" };
   const parts: string[] = [];
   if (fsb) {
     const tt = parseTrailingTable(fsb.block["Trailing Returns Net"], fsb.month.slice(0, 4));
@@ -334,6 +350,7 @@ function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month
     out.monthly[m] = f;
     out.ftseMonths.push(m);
   }
+  out.mixed = out.ftseMonths.filter((m) => m < FTSE_COMPARABLE_FROM);
   if (out.ftseMonths.length) {
     const what = covered.size ? `not covered by the published factsheet yet` : `no published factsheet index table: the whole index series is FTSE ${ftseName}, which differs from the factsheet's definition (ETF) before ${ym(FTSE_COMPARABLE_FROM)}`;
     c.warn(key, `index ${monthRanges(out.ftseMonths)} from FTSE ${ftseName} (${what})`);
@@ -357,6 +374,13 @@ interface PerfBuild {
   withheld?: "compliance" | "error";
   /** the month used is older than the last available one (waiting for the factsheet) */
   held?: string;
+  /** reasons for an alert (run blocked) */
+  alerts?: string[];
+}
+
+/** a factsheet trailing table can serve as a cross-check only if the fund row has 1M, 3M, YTD and 1Y */
+export function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
+  return !!tt && (["1M", "3M", "YTD", "1Y"] as const).every((k) => typeof tt.fund[k] === "number" && Number.isFinite(tt.fund[k] as number));
 }
 
 /** fund trailing vs published factsheet, per-period tolerance: "ok" | "warn" | "block" per period */
@@ -388,19 +412,34 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     return { performance: null, risk: null, risk3Y: null, trailingSource: null, fsTrailing: null, fsFile: null, withheld: "compliance" };
   }
   const prevAsOf = prev?.performance?.asOf ?? null;
+  const alerts = [...fsr.alerts];
 
   // choose the as-of month (H3 gate: a new month needs its factsheet and a passing cross-check)
   let asOf: string | null = null;
   let fsBlock: { name: string; month: string; block: Obj } | null = null;
   let fsTrailing: TrailingTable | null = null;
   const lowest = prevAsOf && prevAsOf <= fsr.last ? prevAsOf : addMonths(fsr.last, -2);
+  // factsheet monthly-table mismatches: blocking for months after the previous as-of, alert for older ones
+  const boundary = prevAsOf ?? addMonths(lowest, -1);
+  const oldMismatches = fsr.mismatches.filter((m) => m <= boundary);
+  if (oldMismatches.length) {
+    alerts.push(`factsheet monthly table disagrees with already published month(s) ${monthRanges(oldMismatches)}`);
+    c.error(key, `factsheet monthly table disagrees beyond print precision with month(s) ${monthRanges(oldMismatches)} (already published or older): to review`);
+  }
   for (let m = fsr.last; m >= lowest && m >= firstMonth; m = addMonths(m, -1)) {
     const fund = fromTrailingMap(trailingOf(cut(fsr.series, m), m));
     const blk = factsheetBlock(raw, spec, ym(m));
-    const tt = blk ? parseTrailingTable(blk.block["Trailing Returns Net"], m.slice(0, 4)) : null;
+    const parsed = blk ? parseTrailingTable(blk.block["Trailing Returns Net"], m.slice(0, 4)) : null;
+    const tt = crossCheckable(parsed) ? parsed : null;
+    if (blk && !tt) c.warn(`${base}.trailing`, `factsheet ${blk.name}: fund trailing row missing or incomplete (1M/3M/YTD/1Y): not usable as a cross-check`);
     const checks = tt ? crossCheck(fund, tt) : [];
     const blocking = checks.filter((x) => x.level === "block");
     const isNew = !prevAsOf || m > prevAsOf;
+    const newMismatch = fsr.mismatches.filter((x) => x > boundary && x <= m);
+    if (newMismatch.length) {
+      c.error(key, `${ym(m)} not published: factsheet monthly table disagrees beyond print precision for ${monthRanges(newMismatch)}`);
+      continue;
+    }
     const detail = blocking.map((x) => `${x.period} computed ${pct(x.computed)} vs published ${pct(x.published)}`).join("; ");
     if (!opts.requireFactsheetForNewMonth || !isNew) {
       if (!isNew && blocking.length) {
@@ -438,12 +477,17 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   let indexName: string | undefined;
   const provParts: string[] = [];
   let idxCalendarFrom: IndexBuild | null = null;
+  let idxMixed: string | null = null;
   if (spec.sources.ftseIndex) {
     // newest factsheet up to the as-of month for the published index tables
     const blk = fsBlock ?? factsheetFilesFor(raw, spec.sources.factsheet!.file).map((f) => ({ ...f, block: f.data[spec.sources.factsheet!.key] })).find((f) => f.month <= ym(asOf!) && isObj(f.block)) as { name: string; month: string; block: Obj } | undefined ?? null;
     const ib = buildIndex(raw, spec, blk, firstMonth, asOf, prev?.performance, c, base);
     idxCalendarFrom = ib;
     idx = ib.monthly;
+    if (ib.mixed.length) {
+      idxMixed = `index months ${monthRanges(ib.mixed)} from FTSE ${raw.ftseIndex[spec.key]}, a different definition from the published index (ETF before ${ym(FTSE_COMPARABLE_FROM)})`;
+      c.error(`${base}.performance.index`, `${idxMixed}: growth / calendar / monthly index figures may not match the published trailing`);
+    }
     indexName = ib.name ?? undefined;
     const computedIdx = fromTrailingMap(trailingOf(idx, asOf, { siStart: firstMonth }));
     const index: PeriodMap = {};
@@ -502,8 +546,10 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     return { date: pt.date, fund: pt.value, index: idxAcc != null ? 10_000 * idxAcc : null };
   });
 
-  const risk = riskFrom(riskStats(series, asOf, "SI"));
-  const risk3Y = riskFrom(riskStats(series, asOf, "3Y"));
+  const rounded = fsr.factsheetMonths.filter((m) => m <= asOf);
+  const risk = rounded.length ? null : riskFrom(riskStats(series, asOf, "SI"));
+  const risk3Y = rounded.some((m) => m > addMonths(asOf, -36)) ? null : riskFrom(riskStats(series, asOf, "3Y"));
+  if (rounded.length) c.warn(`${base}.risk`, `risk statistics not shown${risk3Y ? " for the SI window" : ""}: ${rounded.length} month(s) come from rounded factsheet figures (${monthRanges(rounded)})`);
   const stats = fsBlock && isObj(fsBlock.block["Portfolio Snapshot"]) ? parseStatistics((fsBlock.block["Portfolio Snapshot"] as Obj)["Statistics Net"]) : null;
   if (stats && risk) {
     const checks: [string, number | null, number | null, number][] = [
@@ -522,7 +568,8 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   if (returnClass) performance.returnClass = returnClass;
   if (returnClassLabel) performance.returnClassLabel = returnClassLabel;
   if (indexName) performance.indexName = indexName;
-  return { performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined };
+  if (idxMixed) alerts.push(idxMixed);
+  return { performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts };
 }
 
 /** GMV: gross, arithmetic; published figures from factsheet_data. */
@@ -836,6 +883,7 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
       ctx.factsheetTrailingDecimals = pb.fsTrailing.decimals.fund;
     }
     if (pb.withheld === "error") ctx.alerts.push("performance withheld");
+    if (pb.alerts?.length) ctx.alerts.push(...pb.alerts);
     if (pb.held) c.info(`${base}.performance`, `performance kept at ${ym(pb.performance!.asOf)} until the ${ym(pb.held)} factsheet is available and consistent`);
   } else if (prev?.performance) {
     performance = prev.performance;

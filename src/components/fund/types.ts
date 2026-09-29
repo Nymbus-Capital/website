@@ -8,15 +8,32 @@ import type { DocumentMeta, FundContent, FundData, FundKey, L10n } from "@/lib/d
 export type PublicDocument = Pick<DocumentMeta, "id" | "scope" | "type" | "lang" | "title" | "date" | "fileName" | "size">;
 export interface FundDoc { meta: PublicDocument; url: string }
 
+/** Fund registry entry as the client receives it: `sources` reduced to the basis (no internal source names/keys). */
+export type PublicFundSpec = Omit<FundSpec, "sources"> & { sources: Pick<FundSpec["sources"], "basis"> };
+
+/** Published fund data as the client receives it: without the internal provenance label. */
+export type PublicFundData = Omit<FundData, "sourceName">;
+
+export function toPublicSpec(spec: FundSpec): PublicFundSpec {
+  return { ...spec, sources: { basis: spec.sources.basis } };
+}
+
+export function toPublicData(data: FundData | null): PublicFundData | null {
+  if (!data) return null;
+  const { sourceName: _s, ...rest } = data;
+  void _s;
+  return rest;
+}
+
 /** Admin content as the public page receives it: without the internal snapshot pin. */
 export type PublicFundContent = Omit<FundContent, "pinnedSnapshot">;
 
 export interface FundLink { key: FundKey; name: L10n; short: L10n; color: { solid: string; from: string; to: string } }
 
 export interface FundPageProps {
-  spec: FundSpec;
+  spec: PublicFundSpec;
   content: PublicFundContent;
-  data: FundData | null;
+  data: PublicFundData | null;
   sample: boolean;
   /** published documents of this fund and firm-wide ones */
   docs: FundDoc[];

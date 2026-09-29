@@ -34,3 +34,15 @@ test("expired entries are pruned, live ones kept", async () => {
   assert.equal(await isRevoked("new-session-00000000000001"), true);
   assert.equal(await isRevoked("old-session-00000000000001"), false);
 });
+
+test("revocation write failures propagate (logout must not report success)", async () => {
+  const { chmodSync } = await import("node:fs");
+  if (process.getuid?.() === 0) return; // root ignores permissions: cannot simulate here
+  const rdir = path.join(dir, "revoked");
+  chmodSync(rdir, 0o500);
+  try {
+    await assert.rejects(revokeSession("cannot-write-000000000001", Math.floor(Date.now() / 1000) + 60));
+  } finally {
+    chmodSync(rdir, 0o700);
+  }
+});

@@ -6,8 +6,8 @@
  */
 import { useEffect, useMemo, useRef, type PointerEvent } from "react";
 import { CountUp, EASE, Odometer, Reveal, RevealTitle, Spotlight, reducedMotion } from "@/components/v3/motion";
-import type { FundContent, FundData, GrowthPoint } from "@/lib/data/types";
-import type { FundSpec } from "@/config/funds";
+import type { FundContent, GrowthPoint } from "@/lib/data/types";
+import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { dateLabel, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
 import { headlineClass, isAnnualized, perfClassLabel, riskIndex, RISK_LEVELS, vaRounded } from "./lib/data.ts";

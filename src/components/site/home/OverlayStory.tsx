@@ -46,17 +46,22 @@ export function OverlayStory() {
   const X = HOME.challenge, O = HOME.overlay;
   const line = useRef<SVGPathElement>(null);
   const area = useRef<SVGPathElement>(null);
+  const pin = useRef<HTMLDivElement>(null);
+  // read once, not every scroll frame
+  const still = useRef<boolean | null>(null);
+  const lastStep = useRef(-1);
   const ref = useScrub<HTMLElement>((_k, el) => {
+    if (still.current === null) still.current = reducedMotion();
     // progress through the pinned distance (0 when the section's top reaches the top, 1 at its end)
     const r = el.getBoundingClientRect();
     const vh = window.innerHeight;
-    const p = reducedMotion() ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
+    const p = still.current ? 1 : clamp(-r.top / Math.max(1, r.height - vh));
     const a = clamp((p - 0.06) / 0.2);   // risks converge
     const b = clamp((p - 0.2) / 0.12);   // elevated volatility
     const c = clamp((p - 0.44) / 0.18);  // overlay drops onto the portfolio
     const d = clamp((p - 0.38) / 0.1);   // chart appears
     const m = clamp((p - 0.6) / 0.22);   // bonds only → with overlay
-    const st = el.querySelector<HTMLElement>(".story-pin");
+    const st = pin.current;
     if (!st) return;
     st.style.setProperty("--a", a.toFixed(3));
     st.style.setProperty("--b", b.toFixed(3));
@@ -64,7 +69,7 @@ export function OverlayStory() {
     st.style.setProperty("--d", d.toFixed(3));
     st.style.setProperty("--m", m.toFixed(3));
     const step = p < 0.2 ? 0 : p < 0.42 ? 1 : p < 0.62 ? 2 : 3;
-    st.dataset.step = String(step);
+    if (step !== lastStep.current) { st.dataset.step = String(step); lastStep.current = step; }
     if (line.current && area.current) {
       const ys = BONDS.map((y, i) => y + (OVERLAY[i] - y) * m);
       line.current.setAttribute("d", pathOf(ys));
@@ -75,7 +80,7 @@ export function OverlayStory() {
   const eq = O.eq.map(pick);
   return (
     <section ref={ref} className="story" aria-labelledby="story-t">
-      <div className="screen glow story-pin" data-step="0">
+      <div ref={pin} className="screen glow story-pin" data-step="0">
         <div className="wrap wide story-grid">
           <div className="story-copy">
             <span className="eyebrow">{pick(X.eyebrow)}</span>

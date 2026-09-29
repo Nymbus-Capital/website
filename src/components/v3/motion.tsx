@@ -193,8 +193,8 @@ export function CountUp({
 
 /**
  * Odometer: the figure rolls in digit by digit (each digit a vertical strip 0-9, spring easing, 60 ms stagger
- * from the right), tabular digits so nothing shifts. Same props as <CountUp/>; the accessible text is the final
- * formatted value. Static under reduced motion or before it scrolls into view.
+ * from the right), tabular digits so nothing shifts. Same props as <CountUp/>. Screen readers get the final
+ * formatted value from a visually hidden span (`.odo .sr-only`); the rolling digits are aria-hidden. Static under reduced motion or before it scrolls into view.
  *   <Odometer value={0.0412} pct sign decimals={1} lang={lang} />
  */
 export function Odometer({
@@ -211,13 +211,15 @@ export function Odometer({
   let digitIndex = 0;
   const nDigits = chars.filter((c) => /\d/.test(c)).length;
   return (
-    <span ref={ref} className={`odo ${className ?? ""}`} style={style} aria-label={final} role="text" data-rolling={roll ? "" : undefined}>
+    <span ref={ref} className={`odo ${className ?? ""}`} style={style} data-rolling={roll ? "" : undefined}>
+      <span className="sr-only">{final}</span>
+      <span className="odo-v" aria-hidden="true">
       {chars.map((c, i) => {
-        if (!/\d/.test(c)) return <span key={i} className="odo-c" aria-hidden="true">{c}</span>;
+        if (!/\d/.test(c)) return <span key={i} className="odo-c">{c}</span>;
         const d = Number(c);
         const order = nDigits - 1 - digitIndex++; // rightmost digit first
         return (
-          <span key={i} className="odo-d" aria-hidden="true">
+          <span key={i} className="odo-d">
             <span className="odo-ph">{c}</span>
             <span className="odo-s" style={{ ["--d" as string]: d, ["--t" as string]: `${duration}ms`, ["--w" as string]: `${delay + order * 60}ms` }}>
               {"0123456789".split("").map((x) => <span key={x}>{x}</span>)}
@@ -225,6 +227,7 @@ export function Odometer({
           </span>
         );
       })}
+      </span>
     </span>
   );
 }

@@ -327,3 +327,86 @@ test("C1: factsheet covers the index up to July; August from FTSE (after the cut
   // VA consistent with the displayed figures
   near(p.trailing.va!["1Y"], p.trailing.fund["1Y"]! - p.trailing.index!["1Y"]!, 1e-12);
 });
+
+/* ------------------------------------------------------------------ verifier round (N1, N4, N5) */
+
+async function julyOnly(): Promise<SiteData> {
+  const d0 = await fsCopy();
+  await rm(path.join(d0, "bonds_data_2026-08.json"));
+  await rm(path.join(d0, "factsheet_data_2026-08.json"));
+  return buildSiteData((await raw({ FACTSHEET_DATA_DIR: d0 })).raw, null, NOW).data;
+}
+const wrongAug: Route = (url) => {
+  if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
+  const j = loadFixture("dataplatform/mnr_SEST.json") as { rows: { month: string; net_return: number | null }[] };
+  j.rows.find((r) => r.month === "2026-08-31")!.net_return = 0.2;
+  return json(j);
+};
+
+for (const [label, mutate] of [
+  ["all nan", (t: Record<string, string>) => { for (const k of Object.keys(t)) t[k] = "nan"; }],
+  ["empty strings", (t: Record<string, string>) => { for (const k of Object.keys(t)) t[k] = ""; }],
+  ["1Y missing", (t: Record<string, string>) => { delete t["1Y"]; }],
+] as const) {
+  test(`N1: a same-month factsheet whose fund trailing row is ${label} is not a cross-check (new month waits)`, async () => {
+    const first = await julyOnly();
+    const dir = await fsCopy();
+    await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => mutate(j.SEST["Trailing Returns Net"]["Nymbus Monthly Income Fund"]));
+    const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir }, wrongAug)).raw, first, NOW);
+    const p = b.data.funds["monthly-income"]!.performance!;
+    assert.equal(p.asOf, "2026-07-31", "August (20 % return, unverifiable) not published");
+    near(p.trailing.fund["1Y"], 0.00494802750682144);
+    assert.ok(b.data.issues.some((i) => i.level === "warn" && /fund trailing row missing or incomplete/.test(i.message)));
+  });
+}
+
+test("N1: renamed fund trailing row (fund name changed) -> not cross-checkable", async () => {
+  const first = await julyOnly();
+  const dir = await fsCopy();
+  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => {
+    const t = j.SEST["Trailing Returns Net"];
+    // the fund row disappears; only the index and value added remain
+    delete t["Nymbus Monthly Income Fund"];
+  });
+  const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir }, wrongAug)).raw, first, NOW);
+  assert.equal(b.data.funds["monthly-income"]!.performance!.asOf, "2026-07-31");
+});
+
+test("N1: fund monthly-table mismatch beyond print precision: blocking after the previous as-of, alert for older months", async () => {
+  const first = await julyOnly();
+  // August printed as 0.50 % while the reference (dataplatform) is -0.121918 %: August not published
+  const dir = await fsCopy();
+  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => { j.SEST["Monthly Returns: Nymbus SEST Net"]["2026"]["08-Aug"] = "0.50%"; });
+  const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, first, NOW);
+  assert.equal(b.data.funds["monthly-income"]!.performance!.asOf, "2026-07-31");
+  assert.ok(b.data.issues.some((i) => i.level === "error" && /2026-08 not published: factsheet monthly table disagrees beyond print precision for 2026-08/.test(i.message)));
+  // an older month (2025-03, already published) printed differently: published month kept, alert raised
+  const dir2 = await fsCopy();
+  await editJson(path.join(dir2, "bonds_data_2026-08.json"), (j) => { j.SEST["Monthly Returns: Nymbus SEST Net"]["2025"]["03-Mar"] = "9.99%"; });
+  const b2 = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir2 })).raw, first, NOW);
+  assert.equal(b2.data.funds["monthly-income"]!.performance!.asOf, "2026-08-31");
+  assert.ok(b2.context["monthly-income"]!.alerts.some((a) => /already published month\(s\) 2025-03/.test(a)));
+  // within print precision (-0.12 % for -0.121918 %): no issue
+  const b3 = buildSiteData((await raw()).raw, first, NOW);
+  assert.deepEqual(b3.context["monthly-income"]!.alerts, []);
+});
+
+test("N4: analytics unavailable -> factsheet-rebuilt history alerts, risk statistics withheld", async () => {
+  const { data, context } = buildSiteData((await raw({ ANALYTICS_RETURNS_FILE: path.join(os.tmpdir(), "nope-analytics.json") })).raw, null, NOW);
+  const mi = data.funds["monthly-income"]!;
+  assert.equal(mi.performance!.monthly[0].r, 0.0057, "2019-01 as printed in the factsheet table (0.57 %)");
+  assert.equal(mi.risk, null);
+  assert.equal(mi.risk3Y, null);
+  assert.ok(context["monthly-income"]!.alerts.some((a) => /analytics history unavailable: 91 month\(s\) rebuilt/.test(a)));
+  assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.risk" && /rounded factsheet figures/.test(i.message)));
+});
+
+test("N5: FTSE months before the FTSE cutover used for the index (no published table) -> alert", async () => {
+  const dir = await fsCopy();
+  for (const f of ["bonds_data_2026-08.json", "bonds_data_2026-07.json"]) await editJson(path.join(dir, f), (j) => { delete j.SEST["Monthly Returns: FTSE Canada Short Term Corporate Bond Index"]; });
+  const { context } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
+  assert.ok(context["monthly-income"]!.alerts.some((a) => /index months 2019-01 to 2026-04 from FTSE short_corp, a different definition/.test(a)));
+  // with the published table, no such alert
+  const ok = buildSiteData((await raw()).raw, null, NOW);
+  assert.deepEqual(ok.context["monthly-income"]!.alerts, []);
+});

@@ -104,14 +104,26 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
   if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
 }
 
+/**
+ * NAV gates per class: the day change (administrator return when available) AND the plain price ratio
+ * vs the previous valuation AND vs the previously published NAV of the class must stay within ±10 %.
+ * A failing class is dropped (previous published value kept if any) with an error issue (run blocked).
+ */
 function checkNav(f: FundData, prev: FundData | undefined, base: string, repairs: Issue[], warnings: Issue[], now: Date): void {
   if (!f.nav) return;
   const kept: NavClass[] = [];
+  const lim = TOL.maxNavDayChange;
   for (const k of f.nav.classes) {
-    const bad = k.nav === null || !Number.isFinite(k.nav) || k.nav <= 0 || (k.changePct !== null && (!Number.isFinite(k.changePct) || Math.abs(k.changePct) > TOL.maxNavDayChange));
-    if (bad) {
-      const old = prev?.nav?.classes.find((c) => c.fundserv === k.fundserv);
-      repairs.push({ key: `${base}.nav.${k.fundserv}`, level: "error", message: `NAV ${k.display} (${k.fundserv}) ${k.date}: ${k.nav} vs ${k.prevNav} (${k.changePct !== null && Number.isFinite(k.changePct) ? pct(k.changePct) : "invalid"}) exceeds ±${TOL.maxNavDayChange * 100}% in one day; ${old ? `previous value (${old.date}) kept` : "class not shown"}` });
+    const old = prev?.nav?.classes.find((c) => c.fundserv === k.fundserv);
+    const reasons: string[] = [];
+    if (k.nav === null || !Number.isFinite(k.nav) || k.nav <= 0) reasons.push(`invalid NAV ${k.nav}`);
+    else {
+      if (k.changePct !== null && (!Number.isFinite(k.changePct) || Math.abs(k.changePct) > lim)) reasons.push(`daily return ${Number.isFinite(k.changePct) ? pct(k.changePct) : "invalid"}`);
+      if (k.prevNav !== null && (!Number.isFinite(k.prevNav) || k.prevNav <= 0 || Math.abs(k.nav / k.prevNav - 1) > lim)) reasons.push(`NAV ${k.nav} vs ${k.prevNav} on ${k.prevDate ?? "previous valuation"} (${Number.isFinite(k.prevNav) && k.prevNav > 0 ? pct(k.nav / k.prevNav - 1) : "invalid"})`);
+      if (old?.nav && old.nav > 0 && old.date !== k.date && Math.abs(k.nav / old.nav - 1) > lim) reasons.push(`NAV ${k.nav} vs published ${old.nav} (${old.date}, ${pct(k.nav / old.nav - 1)})`);
+    }
+    if (reasons.length) {
+      repairs.push({ key: `${base}.nav.${k.fundserv}`, level: "error", message: `NAV ${k.display} (${k.fundserv}) ${k.date}: ${reasons.join("; ")} exceeds ±${lim * 100}%; ${old ? `previous value (${old.date}) kept` : "class not shown"}` });
       if (old) kept.push(old);
       continue;
     }

@@ -85,19 +85,47 @@ export async function withLock<T>(name: string, fn: () => Promise<T>, staleMs = 
   };
   try {
     await fs.mkdir(dir);
+    await fs.writeFile(ownerFile, token);
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
     const beat = await lastBeat();
     if (beat !== null && Date.now() - beat < staleMs) return { locked: true };
-    await fs.rm(dir, { recursive: true, force: true });
+    // Takeover, serialised by a second mkdir mutex: only its holder may replace a stale lock, and it
+    // re-checks staleness under the mutex (another contender may have taken over in the meantime).
+    const mutex = `${dir}.takeover`;
     try {
-      await fs.mkdir(dir);
+      await fs.mkdir(mutex);
     } catch (e2: unknown) {
-      if ((e2 as NodeJS.ErrnoException).code === "EEXIST") return { locked: true }; // another process won the takeover
-      throw e2;
+      if ((e2 as NodeJS.ErrnoException).code !== "EEXIST") throw e2;
+      const st = await fs.stat(mutex).catch(() => null);
+      // a takeover mutex left by a crash in the middle of a takeover (it only lives for milliseconds)
+      if (st && Date.now() - st.mtimeMs > 60_000) await fs.rm(mutex, { recursive: true, force: true });
+      return { locked: true };
+    }
+    try {
+      const again = await lastBeat();
+      if (again !== null && Date.now() - again < staleMs) return { locked: true };
+      // move the stale lock aside atomically, then delete it at leisure
+      const aside = `${dir}.stale-${process.pid}-${crypto.randomBytes(6).toString("hex")}`;
+      try {
+        await fs.rename(dir, aside);
+        await fs.rm(aside, { recursive: true, force: true });
+      } catch (e3: unknown) {
+        if ((e3 as NodeJS.ErrnoException).code !== "ENOENT") throw e3;
+      }
+      try {
+        await fs.mkdir(dir);
+      } catch (e4: unknown) {
+        if ((e4 as NodeJS.ErrnoException).code === "EEXIST") return { locked: true }; // a newcomer got the free slot
+        throw e4;
+      }
+      await fs.writeFile(ownerFile, token);
+    } finally {
+      await fs.rm(mutex, { recursive: true, force: true });
     }
   }
-  await fs.writeFile(ownerFile, token);
+  // verify we still own the directory we created (a concurrent takeover would have replaced it)
+  if ((await fs.readFile(ownerFile, "utf8").catch(() => null)) !== token) return { locked: true };
   const heartbeat = setInterval(() => {
     const now = new Date();
     fs.readFile(ownerFile, "utf8").then((t) => (t === token ? fs.utimes(ownerFile, now, now) : undefined)).catch(() => undefined);

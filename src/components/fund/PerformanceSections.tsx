@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from "react";
 import { CountUp, Reveal, RevealTitle } from "@/components/v3/motion";
-import type { FundSpec } from "@/config/funds";
+import type { PublicFundSpec as FundSpec } from "./types";
 import type { Performance, RiskStats } from "@/lib/data/types";
 import { T, tr } from "./copy";
 import { GroupedBars, type BarCategory } from "./charts/GroupedBars";

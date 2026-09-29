@@ -288,3 +288,50 @@ test("pipelineStatus: schedule, timezone, next run, last run, published run", as
   assert.deepEqual(off.schedule, []);
   assert.equal(off.nextRunAt, null);
 });
+
+test("N2/N4 end to end: bad NAV without a daily return, or analytics down -> run blocked and alerted", async () => {
+  const posted: string[] = [];
+  process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
+  const badNav: Route = (url) => {
+    if (url.pathname !== "/api/performance/nav-timeseries" || url.searchParams.get("short_name") !== "SEST") return undefined;
+    const j = loadFixture("dataplatform/nav_SEST.json") as { rows: Record<string, unknown>[] };
+    for (const r of j.rows) if (r.fundserv === "LDM001" && r.date === "2026-09-28") Object.assign(r, { nav_per_share_local: 101.905, net_return_method: "nav_price_ratio", net_daily_return: null });
+    return json(j);
+  };
+  const r = await run({ routes: [hook, badNav] });
+  assert.equal(r.status, "blocked");
+  const pub = await readJ<SiteData>("published", "site-data.json");
+  assert.equal(pub.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM001"), undefined, "class dropped (nothing published before)");
+  process.env.ANALYTICS_RETURNS_FILE = path.join(dir, "missing.json");
+  const r2 = await run({ routes: [hook], now: new Date("2026-09-30T14:00:00Z") });
+  assert.equal(r2.status, "blocked");
+  assert.ok(r2.issues.some((i) => /needs attention: analytics history unavailable/.test(i.message)));
+  assert.equal(posted.length, 2);
+  delete process.env.PIPELINE_ALERT_WEBHOOK;
+});
+
+test("N6: stale-lock takeover renames the stale dir atomically; concurrent takeovers yield exactly one holder", async () => {
+  const { withLock } = await import("../../../src/lib/data/store.ts");
+  const lockDir = path.join(dir, "locks", "race.lock");
+  await mkdir(lockDir, { recursive: true });
+  await writeFile(path.join(lockDir, "owner"), "crashed");
+  const old = new Date(Date.now() - 31 * 60_000);
+  await utimes(path.join(lockDir, "owner"), old, old);
+  await utimes(lockDir, old, old);
+  let inside = 0;
+  let maxInside = 0;
+  const attempt = () => withLock("race", async () => {
+    inside++;
+    maxInside = Math.max(maxInside, inside);
+    await new Promise((res) => setTimeout(res, 30));
+    inside--;
+    return "ran";
+  });
+  // contenders start staggered, so some see the stale lock while another has already taken it over
+  const results = await Promise.all(Array.from({ length: 24 }, (_, i) => new Promise((res) => setTimeout(res, i % 6)).then(attempt)));
+  assert.equal(maxInside, 1, "never two holders at once");
+  assert.ok(results.filter((x) => x === "ran").length >= 1);
+  const left = await readdir(path.join(dir, "locks"));
+  assert.ok(!left.some((f) => f.includes(".stale-")), `no stale leftovers: ${left}`);
+});

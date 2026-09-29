@@ -13,7 +13,8 @@
  *   - mutating API calls must pass the CSRF check (Origin = PUBLIC_URL origin + x-nymbus-admin / JSON)
  *   Every admin page and route handler verifies the session again (requireAdminPage / requireAdmin).
  *
- * Not matched: static assets, /api/documents (PDF downloads) and /api/admin/upload/* (multipart uploads up to 25 MB:
+ * Not matched: static assets, /api/documents (PDF downloads) and /api/admin/upload/* (multipart uploads up to 25 MB;
+ * the exclusion ends with a slash so e.g. /api/admin/uploadx is still gated:
  * a matched request has its body buffered with the experimental.proxyClientMaxBodySize cap and silently truncated).
  * The upload handlers call requireAdmin() (session + policy + CSRF) before reading the body.
  */
@@ -86,6 +87,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.svg|favicon\\.ico|apple-touch-icon\\.png|og\\.png|nymbus-logo\\.svg|fonts/|logos/|robots\\.txt|sitemap\\.xml|api/documents|api/admin/upload|api/health).*)",
+    "/((?!_next/static|_next/image|favicon\\.svg|favicon\\.ico|apple-touch-icon\\.png|og\\.png|nymbus-logo\\.svg|fonts/|logos/|robots\\.txt|sitemap\\.xml|api/documents|api/admin/upload/|api/health).*)",
   ],
 };

@@ -180,7 +180,7 @@ export function groupDocuments<D extends GroupableDoc>(docs: D[], lang: "en" | "
 export type Block = "hero" | "trailing" | "growth" | "calendar" | "heatmap" | "risk" | "portfolio" | "facts" | "documents" | "disclosure";
 
 /** Which blocks render: the data must exist and the admin must not have hidden it. */
-export function visibleBlocks(data: FundData | null, content: FundContent, docCount: number): Record<Block, boolean> {
+export function visibleBlocks(data: Omit<FundData, "sourceName"> | null, content: FundContent, docCount: number): Record<Block, boolean> {
   const h = content.hide ?? {};
   const perf = data?.performance ?? null;
   const has = (x: unknown[] | undefined | null) => !!x && x.length > 0;

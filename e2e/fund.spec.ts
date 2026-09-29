@@ -32,7 +32,7 @@ for (const f of FUNDS) {
     await expect(page.getByRole("heading", { level: 1, name: f.en.toLowerCase() })).toBeVisible();
     // hero: since-inception figure and its label
     await expect(page.locator(".fx-bigfig")).toBeVisible();
-    await expect(page.locator(".fx-bigfig .odo")).toHaveAttribute("aria-label", /^−?\d+\.\d%$/);
+    await expect(page.locator(".fx-bigfig .odo .sr-only")).toHaveText(/^−?\d+\.\d%$/);
     await expect(page.getByTestId("hero-figure-label")).toContainText(f.gross ? "gross" : "net");
     await expect(page.getByTestId("basis")).toContainText(f.gross ? "gross of fees" : "net of fees");
     // sample data is flagged (corner ribbon on desktop, hero chip everywhere)
@@ -97,5 +97,5 @@ test("FR toggle switches the labels", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "rendements cumulatifs" })).toBeAttached();
   await expect(page.getByTestId("basis")).toHaveText(/^net de frais( · (série|classe) \S+)?$/i);
   // French number formatting: decimal comma and a (narrow) no-break space before %
-  await expect(page.locator(".fx-bigfig .odo")).toHaveAttribute("aria-label", /^−?\d+,\d\s%$/);
+  await expect(page.locator(".fx-bigfig .odo .sr-only")).toHaveText(/^−?\d+,\d\s%$/);
 });

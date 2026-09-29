@@ -62,7 +62,8 @@ jobs:
             e2e/screenshots/
           retention-days: 7
       - name: Publish logs and screenshots to a ci/run-* branch (artifact storage is not reachable from the dev sandbox)
-        if: always() && github.event_name == 'push'
+        # opt-in: add [ci-logs] to the commit message
+        if: always() && github.event_name == 'push' && contains(github.event.head_commit.message, '[ci-logs]')
         run: |
           set +e
           mkdir -p /tmp/ci-pub && cd /tmp/ci-pub

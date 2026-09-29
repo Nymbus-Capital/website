@@ -240,7 +240,8 @@ img, svg { display: block; max-width: 100%; }
 
 
 /* odometer (<Odometer/>): each digit is a 0-9 strip that rolls to its value */
-.odo { display: inline-flex; align-items: flex-start; font-variant-numeric: tabular-nums; line-height: 1; }
+.odo { display: inline-flex; font-variant-numeric: tabular-nums; line-height: 1; }
+.odo-v { display: inline-flex; align-items: flex-start; }
 .odo-d { display: inline-block; height: 1em; line-height: 1; overflow: hidden; vertical-align: top; position: relative; }
 .odo-c { display: inline-block; line-height: 1; height: 1em; }
 .odo-ph { visibility: hidden; display: inline-block; line-height: 1; }

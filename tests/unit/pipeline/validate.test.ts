@@ -146,3 +146,29 @@ test("input is not mutated", async () => {
   validateSite(b.data, b.context, null, NOW);
   assert.deepEqual(b.data, before);
 });
+
+test("N2: NAV gate applies when changePct is null: price ratio vs previous valuation and vs published NAV", async () => {
+  // x10 NAV on a class without a distribution-aware return: changePct null, price ratio +900 %
+  const { v, r, previous } = await scenario((d) => {
+    const k = d.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM001")!;
+    k.nav = 101.905;
+    k.changePct = null;
+    k.change = null;
+  });
+  const issue = r.warnings.find((i) => i.key === "funds.monthly-income.nav.LDM001")!;
+  assert.equal(issue.level, "error");
+  assert.match(issue.message, /NAV 101\.905 vs 10\.1791 on 2026-09-25 \(901\.12%\)/);
+  assert.ok(r.alerts.some((a) => /LDM001/.test(a)), "run blocked");
+  assert.deepEqual(v.data.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM001"), previous.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM001"));
+  // no previous valuation in the window, but a published NAV 20 % away (a later date): dropped
+  const prevB = await built();
+  const prev2 = validateSite(prevB.data, prevB.context, null, NOW).data;
+  prev2.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM081")!.date = "2026-09-20";
+  prev2.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM081")!.nav = 8.0;
+  const b = await built();
+  const k = b.data.funds["monthly-income"]!.nav!.classes.find((c) => c.fundserv === "LDM081")!;
+  Object.assign(k, { prevNav: null, prevDate: null, change: null, changePct: null });
+  const v2 = validateSite(b.data, b.context, prev2, NOW);
+  const r2 = v2.results.find((x) => x.fund === "monthly-income")!;
+  assert.ok(r2.warnings.some((i) => i.level === "error" && /vs published 8 \(2026-09-20, 25\.50%\)/.test(i.message)), JSON.stringify(r2.warnings));
+});

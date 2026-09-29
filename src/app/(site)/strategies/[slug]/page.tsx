@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FundPage } from "@/components/fund/FundPage";
-import type { FundDoc, FundLink } from "@/components/fund/types";
+import { toPublicData, toPublicSpec, type FundDoc, type FundLink } from "@/components/fund/types";
 import { documentUrl, listPublishedDocuments, toPublicDocument } from "@/lib/data/documents";
 import { getAllFundViews, getFundView } from "@/lib/data/site";
 import type { DocumentMeta } from "@/lib/data/types";
@@ -53,5 +53,6 @@ export default async function StrategyPage({ params }: Params) {
   // the snapshot pin is internal (admin) state: strip it before the props cross to the client
   const { pinnedSnapshot: _pin, ...content } = view.content;
   void _pin;
-  return <FundPage spec={view.spec} content={content} data={view.data} sample={view.sample} docs={docs} funds={funds} />;
+  // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client
+  return <FundPage spec={toPublicSpec(view.spec)} content={content} data={toPublicData(view.data)} sample={view.sample} docs={docs} funds={funds} />;
 }

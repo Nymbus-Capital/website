@@ -86,7 +86,7 @@ test("odometer: the figure's accessible name is the final value", async ({ page 
   const odo = page.locator('[data-testid^="strategy-"] .odo').first();
   if (!(await odo.count())) test.skip(true, "no published figures in this environment");
   await odo.scrollIntoViewIfNeeded();
-  await expect(odo).toHaveAttribute("aria-label", /^[+−]?\d+\.\d%$/);
+  await expect(odo.locator(".sr-only")).toHaveText(/^[+−]?\d+\.\d%$/);
 });
 
 test("home: live figures come from the data, never invented", async ({ page }) => {
