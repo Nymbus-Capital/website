@@ -1,0 +1,86 @@
+{
+ "snapshot_date": "2026-09-28",
+ "group_by": [
+  "short_name"
+ ],
+ "sources": [
+  "APEX",
+  "CIBC"
+ ],
+ "row_count": 6,
+ "warnings": [
+  "Results span both feeds (synthetic)"
+ ],
+ "rows": [
+  {
+   "source": "APEX",
+   "short_name": "SEST",
+   "holding_value_cad": 212345678.9,
+   "holding_value_local": 212345678.9,
+   "units_held": 21234568,
+   "n_holders": 812,
+   "n_holdings": 815,
+   "investor_no": "SYN-INV-0001",
+   "shareholder_id": "SYN-SH-01",
+   "agent_name": "Synthetic Advisor",
+   "dealer_name": "Synthetic Dealer",
+   "cibc_account": "SYN-ACCT-1"
+  },
+  {
+   "source": "CIBC",
+   "short_name": "SEST",
+   "holding_value_cad": 1234567.1,
+   "holding_value_local": 1234567.1,
+   "units_held": 123457,
+   "n_holders": 9,
+   "n_holdings": 12,
+   "investor_no": "SYN-INV-0001",
+   "shareholder_id": "SYN-SH-01",
+   "agent_name": "Synthetic Advisor",
+   "dealer_name": "Synthetic Dealer",
+   "cibc_account": "SYN-ACCT-1"
+  },
+  {
+   "source": "APEX",
+   "short_name": "SEB",
+   "holding_value_cad": 148765432.1,
+   "holding_value_local": 148765432.1,
+   "units_held": 14876543,
+   "n_holders": 402,
+   "n_holdings": 405,
+   "investor_no": "SYN-INV-0001",
+   "shareholder_id": "SYN-SH-01",
+   "agent_name": "Synthetic Advisor",
+   "dealer_name": "Synthetic Dealer",
+   "cibc_account": "SYN-ACCT-1"
+  },
+  {
+   "source": "APEX",
+   "short_name": "Multistrat",
+   "holding_value_cad": 61234567.5,
+   "holding_value_local": 61234567.5,
+   "units_held": 6123457,
+   "n_holders": 233,
+   "n_holdings": 236,
+   "investor_no": "SYN-INV-0001",
+   "shareholder_id": "SYN-SH-01",
+   "agent_name": "Synthetic Advisor",
+   "dealer_name": "Synthetic Dealer",
+   "cibc_account": "SYN-ACCT-1"
+  },
+  {
+   "source": "CIBC",
+   "short_name": "OTHER",
+   "holding_value_cad": 5000000,
+   "holding_value_local": 5000000,
+   "units_held": 500000,
+   "n_holders": 12,
+   "n_holdings": 15,
+   "investor_no": "SYN-INV-0001",
+   "shareholder_id": "SYN-SH-01",
+   "agent_name": "Synthetic Advisor",
+   "dealer_name": "Synthetic Dealer",
+   "cibc_account": "SYN-ACCT-1"
+  }
+ ]
+}

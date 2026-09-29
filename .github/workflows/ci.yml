@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: ["gh-pages"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+      - name: Upload resolved lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
+          retention-days: 7
+      - name: Unit tests (pipeline, metrics, auth policy, storage)
+        run: npm test
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+        continue-on-error: true
+      - name: Build
+        run: npm run build
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests (public pages, admin gate, API guards, screenshots)
+        run: npm run e2e
+        env:
+          SHOW_SAMPLE_DATA: "1"
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ github.run_number }}
+          path: |
+            test-results/
+            playwright-report/
+            e2e/screenshots/
+          retention-days: 7

@@ -1,0 +1,839 @@
+{
+ "short_name": "Multistrat",
+ "class_code": "STRATEGY",
+ "currency": "CAD",
+ "return_basis": "net_of_fees",
+ "methodology_version": "apex-daily-net-v1",
+ "as_of": "2026-09-29",
+ "row_count": 92,
+ "rows": [
+  {
+   "month": "2019-01-31",
+   "net_return": -0.0219236,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-02-28",
+   "net_return": 0.00301747,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-03-31",
+   "net_return": -0.01017076,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-04-30",
+   "net_return": -0.02865314,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-05-31",
+   "net_return": 0.00395246,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-06-30",
+   "net_return": 0.01871461,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-07-31",
+   "net_return": -0.03049879,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-08-31",
+   "net_return": 0.02798158,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-09-30",
+   "net_return": 0.03883273,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-10-31",
+   "net_return": 0.03045279,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-11-30",
+   "net_return": 0.01692536,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2019-12-31",
+   "net_return": 0.01879293,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-01-31",
+   "net_return": 0.03990016,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-02-29",
+   "net_return": -0.0163751,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-03-31",
+   "net_return": 0.00870585,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-04-30",
+   "net_return": -0.00478655,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-05-31",
+   "net_return": 0.02521191,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-06-30",
+   "net_return": 0.01999439,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-07-31",
+   "net_return": 0.02833325,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-08-31",
+   "net_return": 0.00993499,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-09-30",
+   "net_return": -0.0246438,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-10-31",
+   "net_return": 0.00789606,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-11-30",
+   "net_return": 0.00003913,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2020-12-31",
+   "net_return": 0.03909221,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-01-31",
+   "net_return": -0.00122416,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-02-28",
+   "net_return": 0.00897795,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-03-31",
+   "net_return": 0.04406562,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-04-30",
+   "net_return": 0.02282614,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-05-31",
+   "net_return": 0.01770444,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-06-30",
+   "net_return": -0.01144655,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-07-31",
+   "net_return": -0.00008721,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-08-31",
+   "net_return": 0.00190894,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-09-30",
+   "net_return": -0.02702359,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-10-31",
+   "net_return": -0.00794681,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-11-30",
+   "net_return": 0.02070791,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2021-12-31",
+   "net_return": -0.01612266,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-01-31",
+   "net_return": -0.01499529,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-02-28",
+   "net_return": 0.00775937,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-03-31",
+   "net_return": 0.04503237,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-04-30",
+   "net_return": -0.00487666,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-05-31",
+   "net_return": -0.00274455,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-06-30",
+   "net_return": 0.02652703,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-07-31",
+   "net_return": -0.00027892,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-08-31",
+   "net_return": -0.02898373,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-09-30",
+   "net_return": 0.00447268,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-10-31",
+   "net_return": 0.00033226,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-11-30",
+   "net_return": 0.00519446,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2022-12-31",
+   "net_return": 0.0328202,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-01-31",
+   "net_return": 0.03030645,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-02-28",
+   "net_return": 0.01632272,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-03-31",
+   "net_return": 0.01126147,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-04-30",
+   "net_return": -0.00233476,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-05-31",
+   "net_return": 0.00715225,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-06-30",
+   "net_return": 0.01560947,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-07-31",
+   "net_return": 0.00900529,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-08-31",
+   "net_return": 0.00004954,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-09-30",
+   "net_return": 0.00902073,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-10-31",
+   "net_return": 0.01336518,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-11-30",
+   "net_return": 0.01419834,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2023-12-31",
+   "net_return": -0.01168438,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-01-31",
+   "net_return": 0.02551924,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-02-29",
+   "net_return": -0.01434423,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-03-31",
+   "net_return": -0.0010613,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-04-30",
+   "net_return": 0.00178792,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-05-31",
+   "net_return": -0.00627285,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-06-30",
+   "net_return": 0.00065572,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-07-31",
+   "net_return": 0.01368406,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-08-31",
+   "net_return": -0.01112397,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-09-30",
+   "net_return": 0.0145001,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-10-31",
+   "net_return": 0.00246777,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-11-30",
+   "net_return": 0.02435344,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2024-12-31",
+   "net_return": 0.02894396,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-01-31",
+   "net_return": 0.00468525,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-02-28",
+   "net_return": 0.00387125,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-03-31",
+   "net_return": 0.01788834,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-04-30",
+   "net_return": 0.01728574,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-05-31",
+   "net_return": 0.01020758,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-06-30",
+   "net_return": -0.00511955,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-07-31",
+   "net_return": 0.01451319,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-08-31",
+   "net_return": -0.01676534,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-09-30",
+   "net_return": 0.00635986,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-10-31",
+   "net_return": 0.01629664,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-11-30",
+   "net_return": 0.01896953,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2025-12-31",
+   "net_return": -0.03414324,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-01-31",
+   "net_return": 0.01738221,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-02-28",
+   "net_return": -0.02892341,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-03-31",
+   "net_return": 0.0012369,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-04-30",
+   "net_return": -0.01766565,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-05-31",
+   "net_return": 0.01550997,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-06-30",
+   "net_return": -0.03351065,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-07-31",
+   "net_return": 0.04008193,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  },
+  {
+   "month": "2026-08-31",
+   "net_return": -0.00241732,
+   "status": "ready",
+   "method": "compounded_apex_net_daily",
+   "source_dates": [],
+   "source_row_ids": [],
+   "issue": null
+  }
+ ]
+}
