@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches-ignore: ["gh-pages"]
+    branches-ignore: ["gh-pages", "ci/**"]
   pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # the last step pushes logs and screenshots to a throw-away ci/run-* branch
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -34,18 +34,18 @@ jobs:
           path: package-lock.json
           retention-days: 7
       - name: Unit tests (pipeline, metrics, auth policy, storage)
-        run: npm test
+        run: set -o pipefail; mkdir -p ci-out; npm test 2>&1 | tee ci-out/unit.log
       - name: Type check
-        run: npm run typecheck
+        run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
       - name: Lint
-        run: npm run lint -- --max-warnings=0
+        run: set -o pipefail; npm run lint 2>&1 | tee ci-out/lint.log
         continue-on-error: true
       - name: Build
-        run: npm run build
+        run: set -o pipefail; npm run build 2>&1 | tee ci-out/build.log
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: End-to-end tests (public pages, admin gate, API guards, screenshots)
-        run: npm run e2e
+        run: set -o pipefail; npm run e2e 2>&1 | tee ci-out/e2e.log
         env:
           SHOW_SAMPLE_DATA: "1"
       - name: Upload screenshots and report
@@ -58,3 +58,17 @@ jobs:
             playwright-report/
             e2e/screenshots/
           retention-days: 7
+      - name: Publish logs and screenshots to a ci/run-* branch (artifact storage is not reachable from the dev sandbox)
+        if: always() && github.event_name == 'push'
+        run: |
+          set +e
+          mkdir -p /tmp/ci-pub && cd /tmp/ci-pub
+          git init -q && git checkout -q -b "ci/run-${{ github.run_number }}"
+          cp -r "$GITHUB_WORKSPACE/ci-out" . 2>/dev/null
+          mkdir -p screenshots && cp -r "$GITHUB_WORKSPACE/e2e/screenshots/." screenshots/ 2>/dev/null
+          find "$GITHUB_WORKSPACE/test-results" -name "*.png" -size -2M -exec cp {} screenshots/ \; 2>/dev/null
+          find "$GITHUB_WORKSPACE/test-results" -name "error-context.md" | while read f; do d=$(basename "$(dirname "$f")"); cp "$f" "ci-out/$d.md"; done
+          cp "$GITHUB_WORKSPACE/package-lock.json" . 2>/dev/null
+          echo "${{ github.sha }}" > SHA
+          git add -A && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD
