@@ -8,7 +8,7 @@ export const GRAPH = "https://graph.microsoft.com/v1.0";
 
 export interface GraphConfig { tenantId: string; clientId: string; clientSecret: string; driveId: string; backoffMs?: number }
 
-export function graphConfig(env: NodeJS.ProcessEnv = process.env): GraphConfig | null {
+export function graphConfig(env: Record<string, string | undefined> = process.env): GraphConfig | null {
   const { GRAPH_TENANT_ID, GRAPH_CLIENT_ID, GRAPH_CLIENT_SECRET, GRAPH_DRIVE_ID } = env;
   if (!GRAPH_TENANT_ID || !GRAPH_CLIENT_ID || !GRAPH_CLIENT_SECRET || !GRAPH_DRIVE_ID) return null;
   return { tenantId: GRAPH_TENANT_ID, clientId: GRAPH_CLIENT_ID, clientSecret: GRAPH_CLIENT_SECRET, driveId: GRAPH_DRIVE_ID, backoffMs: retryBaseMs(env) };

@@ -92,7 +92,7 @@ export async function listPublishedDocuments(scope?: FundKey | "firm"): Promise<
 }
 
 /** Public URL of a document (served only while published). */
-export const documentUrl = (d: DocumentMeta): string => `/api/documents/${encodeURIComponent(d.id)}/${encodeURIComponent(sanitizeFileName(d.fileName))}`;
+export const documentUrl = (d: Pick<DocumentMeta, "id" | "fileName">): string => `/api/documents/${encodeURIComponent(d.id)}/${encodeURIComponent(sanitizeFileName(d.fileName))}`;
 
 async function mutateIndex<T>(fn: (docs: DocumentMeta[]) => Promise<{ docs: DocumentMeta[]; result: T }>): Promise<T> {
   for (let attempt = 0; attempt < 40; attempt++) {
@@ -188,6 +188,61 @@ export async function deleteDocument(id: string): Promise<DocumentMeta | null> {
     return { docs: docs.filter((x) => x.id !== id), result: d };
   });
 }
+
+/** Absolute path + size of a document file, or null (bad id / missing file). */
+export async function documentFileStat(id: string): Promise<{ path: string; size: number; mtimeMs: number } | null> {
+  if (!isDocumentId(id)) return null;
+  const file = p("documents", "files", id);
+  try {
+    const st = await fs.stat(file);
+    return st.isFile() ? { path: file, size: st.size, mtimeMs: st.mtimeMs } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse a `Range` header for a single byte range (RFC 9110 §14). Returns the inclusive range, "none" (no / ignored
+ * header: serve the full body), or "unsatisfiable" (416). Multi-range requests are served in full (ignored).
+ */
+export function parseRange(header: string | null, size: number): { start: number; end: number } | "none" | "unsatisfiable" {
+  if (!header) return "none";
+  const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!m) return "none";
+  const [, a, b] = m;
+  if (a === "" && b === "") return "none";
+  if (size === 0) return "unsatisfiable";
+  let start: number;
+  let end: number;
+  if (a === "") {
+    const n = Number(b);
+    if (!Number.isSafeInteger(n) || n === 0) return "unsatisfiable";
+    start = Math.max(0, size - n);
+    end = size - 1;
+  } else {
+    start = Number(a);
+    end = b === "" ? size - 1 : Math.min(Number(b), size - 1);
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return "none";
+    if (start >= size || end < start) return "unsatisfiable";
+  }
+  return { start, end };
+}
+
+/** Public projection of a document for the public pages (no uploader, hash or publication flag). */
+export interface PublicDocument {
+  id: string;
+  scope: DocumentMeta["scope"];
+  type: DocType;
+  lang: DocumentMeta["lang"];
+  title: L10n;
+  date: string;
+  fileName: string;
+  size: number;
+}
+
+export const toPublicDocument = (d: DocumentMeta): PublicDocument => ({
+  id: d.id, scope: d.scope, type: d.type, lang: d.lang, title: d.title, date: d.date, fileName: sanitizeFileName(d.fileName), size: d.size,
+});
 
 /** File bytes of a document, or null (bad id / missing file). */
 export async function readDocumentFile(id: string): Promise<Uint8Array | null> {

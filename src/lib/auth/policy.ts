@@ -3,11 +3,14 @@
  *
  * Who may use the admin:
  *  - an account of the configured Entra tenant (`tid` === AZURE_TENANT_ID),
- *  - that is a MEMBER of that tenant, not a B2B guest (`#EXT#` in its names, a foreign `idp`, or `acct` = 1),
- *  - whose e-mail (claim `email`, else `preferred_username`, else `upn`) is exactly in an allowed domain
- *    (ADMIN_ALLOWED_DOMAINS, default `nymbus.ca`; no implicit subdomains),
- *  - and, when ADMIN_ALLOWED_GROUP_IDS is set, that is a member of one of those groups (`groups` claim).
- *    A group overage (`_claim_names.groups`) is denied with an explicit message instead of guessed.
+ *  - that is a MEMBER of that tenant: `acct` must be present and 0 (fail closed: the app registration must emit the
+ *    `acct` optional claim), no `#EXT#` in its names, no foreign `idp`,
+ *  - whose sign-in name (`preferred_username`, else `upn`: set by the tenant's administrators, not by the user) is
+ *    exactly in an allowed domain (ADMIN_ALLOWED_DOMAINS, default `nymbus.ca`; no implicit subdomains). The
+ *    `email` claim is user/admin-editable metadata and is never used for authorization,
+ *  - when ADMIN_ALLOWED_GROUP_IDS is set, that is a member of one of those groups (`groups` claim); a group overage
+ *    (`_claim_names.groups`) is denied with an explicit message instead of guessed,
+ *  - when ADMIN_REQUIRED_ROLE is set, whose `roles` claim contains that app role.
  *
  * `evaluateLogin` runs on the verified id_token at sign-in; `evaluateSession` re-checks tenant / domain on
  * every request from the session claims (a policy change, e.g. removing a domain, takes effect at once).
@@ -19,9 +22,11 @@ export interface PolicyConfig {
   tenantId: string;
   allowedDomains: readonly string[];
   allowedGroupIds?: readonly string[];
+  /** app role value that must be in the `roles` claim (ADMIN_REQUIRED_ROLE); empty/undefined = no role required */
+  requiredRole?: string;
 }
 
-export type PolicyDenyReason = "tenant" | "subject" | "guest" | "email" | "domain" | "groups" | "groups-overage";
+export type PolicyDenyReason = "tenant" | "subject" | "guest" | "acct-missing" | "email" | "domain" | "groups" | "groups-overage" | "role";
 
 export type PolicyResult =
   | { ok: true; oid: string; email: string; name: string; tid: string }
@@ -57,6 +62,13 @@ export function parseGroupIds(raw: string | undefined): string[] {
     .filter((s) => s.length > 0);
   for (const g of out) if (!GUID_RE.test(g)) throw new Error(`invalid group object id in ADMIN_ALLOWED_GROUP_IDS: "${g}"`);
   return [...new Set(out)];
+}
+
+/** ADMIN_REQUIRED_ROLE → trimmed app-role value, or "" (no restriction). Invalid values throw. */
+export function parseRequiredRole(raw: string | undefined): string {
+  const r = (raw ?? "").trim();
+  if (r && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(r)) throw new Error(`invalid app role in ADMIN_REQUIRED_ROLE: "${r}"`);
+  return r;
 }
 
 /** Lower-cased address with exactly one ASCII `@`, no whitespace / control characters; null otherwise. */
@@ -97,12 +109,15 @@ export function guestReason(claims: Claims, tenantId: string): string | null {
   return null;
 }
 
+const acctMissing = (claims: Claims) => claims.acct === undefined || claims.acct === null;
+
 function tenantMatches(tid: unknown, tenantId: string): tid is string {
   return typeof tid === "string" && isGuid(tid) && tid.toLowerCase() === tenantId.toLowerCase();
 }
 
-function pickEmail(claims: Claims): string | undefined {
-  return str(claims.email) ?? str(claims.preferred_username) ?? str(claims.upn);
+/** Tenant-controlled sign-in name. `email` is deliberately NOT used (editable, not verified for authorization). */
+function pickSignInName(claims: Claims): string | undefined {
+  return str(claims.preferred_username) ?? str(claims.upn);
 }
 
 /** Policy on the (already signature-verified) id_token claims at sign-in. */
@@ -116,10 +131,18 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
 
   const guest = guestReason(claims, cfg.tenantId);
   if (guest) return { ok: false, reason: "guest", message: `Guest accounts cannot use the admin: ${guest}.` };
+  if (acctMissing(claims)) {
+    return {
+      ok: false,
+      reason: "acct-missing",
+      message: "The sign-in token has no acct claim, so member accounts cannot be told apart from guests. " +
+        "An administrator must add the acct optional claim to the ID token (app registration → Token configuration).",
+    };
+  }
 
-  const rawEmail = pickEmail(claims);
-  const email = rawEmail ? normalizeEmail(rawEmail) : null;
-  if (!email) return { ok: false, reason: "email", message: "The sign-in token has no usable e-mail address." };
+  const rawName = pickSignInName(claims);
+  const email = rawName ? normalizeEmail(rawName) : null;
+  if (!email) return { ok: false, reason: "email", message: "The sign-in token has no usable sign-in name (preferred_username / upn)." };
   if (!isAllowedEmail(email, cfg.allowedDomains)) {
     return { ok: false, reason: "domain", message: "This account's e-mail domain is not allowed to use the admin." };
   }
@@ -143,8 +166,36 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
     }
   }
 
+  const role = cfg.requiredRole ?? "";
+  if (role) {
+    const roles = Array.isArray(claims.roles) ? claims.roles.filter((r): r is string => typeof r === "string") : [];
+    if (!roles.includes(role)) {
+      return { ok: false, reason: "role", message: `Your account has not been assigned the "${role}" role of the admin application.` };
+    }
+  }
+
   const name = (str(claims.name) ?? email).slice(0, 200);
   return { ok: true, oid: oid.toLowerCase(), email, name, tid: (claims.tid as string).toLowerCase() };
+}
+
+/**
+ * Fingerprint of the authorization policy (domains, groups, role). Stored in the session (`pv`) so tightening the
+ * policy (e.g. adding a group or role requirement) invalidates existing sessions, which were checked under the old
+ * rules at sign-in. Pure (FNV-1a 64 over a canonical string; not a secret).
+ */
+export function policyVersion(cfg: Pick<PolicyConfig, "tenantId" | "allowedDomains" | "allowedGroupIds" | "requiredRole">): string {
+  const canon = JSON.stringify([
+    cfg.tenantId.toLowerCase(),
+    [...cfg.allowedDomains].map((d) => d.toLowerCase()).sort(),
+    [...(cfg.allowedGroupIds ?? [])].map((g) => g.toLowerCase()).sort(),
+    cfg.requiredRole ?? "",
+  ]);
+  let h = 0xcbf29ce484222325n;
+  for (const b of new TextEncoder().encode(canon)) {
+    h ^= BigInt(b);
+    h = (h * 0x100000001b3n) & 0xffffffffffffffffn;
+  }
+  return h.toString(16).padStart(16, "0");
 }
 
 /** Re-check on every request from the session claims (tenant, member, domain). Groups are checked at sign-in. */

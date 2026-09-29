@@ -8,17 +8,17 @@
    "2023": "10.4",
    "2024": "-6.4",
    "2025": "17.3",
-   "2026": "6.6"
+   "2026": "6.5"
   },
   "Trailing Returns Gross": {
-   "2026": "6.2",
-   "1M": "0.2",
-   "3M": "3.5",
-   "1Y": "10.7",
-   "2Y": "10.4",
-   "3Y": "7.7",
-   "5Y": "6.8",
-   "SI": "8.9"
+   "2026": "6.0",
+   "1M": "0.8",
+   "3M": "2.3",
+   "1Y": "10.9",
+   "2Y": "9.9",
+   "3Y": "7.2",
+   "5Y": "6.9",
+   "SI": "9.0"
   },
   "Monthly Returns Gross": {
    "2019": {
@@ -134,12 +134,12 @@
     "05-May": "-1.0%",
     "06-Jun": "2.5%",
     "07-Jul": "0.8%",
-    "08-Aug": "0.2%",
+    "08-Aug": "nan",
     "09-Sep": "nan",
     "10-Oct": "nan",
     "11-Nov": "nan",
     "12-Dec": "nan",
-    "YTD": "6.2%"
+    "YTD": "6.0%"
    }
   },
   "Calendar Performance Net": {
@@ -150,17 +150,17 @@
    "2023": "9.2",
    "2024": "-7.6",
    "2025": "16.1",
-   "2026": "5.4"
+   "2026": "5.3"
   },
   "Trailing Returns Net": {
-   "2026": "5.4",
-   "1M": "0.1",
-   "3M": "3.2",
-   "1Y": "9.4",
-   "2Y": "9.1",
-   "3Y": "6.4",
+   "2026": "5.3",
+   "1M": "0.7",
+   "3M": "2.0",
+   "1Y": "9.6",
+   "2Y": "8.6",
+   "3Y": "5.9",
    "5Y": "5.6",
-   "SI": "7.6"
+   "SI": "7.7"
   },
   "Monthly Returns Net": {
    "2019": {
@@ -276,18 +276,18 @@
     "05-May": "-1.1%",
     "06-Jun": "2.4%",
     "07-Jul": "0.7%",
-    "08-Aug": "0.1%",
+    "08-Aug": "nan",
     "09-Sep": "nan",
     "10-Oct": "nan",
     "11-Nov": "nan",
     "12-Dec": "nan",
-    "YTD": "5.4%"
+    "YTD": "5.3%"
    }
   },
   "Portfolio Snapshot": {
    "Statistics Gross": {
-    "Annualized Returns": "7.6%",
-    "Annualized St. Dev.": "6.5%",
+    "Annualized Returns": "7.7%",
+    "Annualized St. Dev.": "6.6%",
     "Annualized Downside Dev.": "3.4%",
     "Sharpe Ratio": "1.2",
     "Sortino Ratio": "2.3",
@@ -299,12 +299,12 @@
     "Calmar Ratio": "0.6"
    },
    "Statistics Gross 3Y": {
-    "Annualized Returns": "6.4%",
-    "Annualized St. Dev.": "7.0%",
-    "Annualized Downside Dev.": "3.5%",
-    "Sharpe Ratio": "0.9",
-    "Sortino Ratio": "1.8",
-    "% Positive Months": "61%",
+    "Annualized Returns": "5.9%",
+    "Annualized St. Dev.": "7.1%",
+    "Annualized Downside Dev.": "3.4%",
+    "Sharpe Ratio": "0.8",
+    "Sortino Ratio": "1.7",
+    "% Positive Months": "58%",
     "Average of Positive Months": "1.2%",
     "Average of Negative Months": "-1.0%",
     "Max Drawdown": "-10%",
@@ -312,8 +312,8 @@
     "Calmar Ratio": "0.6"
    },
    "Statistics Net": {
-    "Annualized Returns": "7.6%",
-    "Annualized St. Dev.": "6.5%",
+    "Annualized Returns": "7.7%",
+    "Annualized St. Dev.": "6.6%",
     "Annualized Downside Dev.": "3.4%",
     "Sharpe Ratio": "1.2",
     "Sortino Ratio": "2.3",
@@ -325,12 +325,12 @@
     "Calmar Ratio": "0.6"
    },
    "Statistics Net 3Y": {
-    "Annualized Returns": "6.4%",
-    "Annualized St. Dev.": "7.0%",
-    "Annualized Downside Dev.": "3.5%",
-    "Sharpe Ratio": "0.9",
-    "Sortino Ratio": "1.8",
-    "% Positive Months": "61%",
+    "Annualized Returns": "5.9%",
+    "Annualized St. Dev.": "7.1%",
+    "Annualized Downside Dev.": "3.4%",
+    "Sharpe Ratio": "0.8",
+    "Sortino Ratio": "1.7",
+    "% Positive Months": "58%",
     "Average of Positive Months": "1.2%",
     "Average of Negative Months": "-1.0%",
     "Max Drawdown": "-10%",
@@ -437,17 +437,17 @@
    "2023": "5.3",
    "2024": "3.7",
    "2025": "9.4",
-   "2026": "4.8"
+   "2026": "2.8"
   },
   "Trailing Returns Gross": {
-   "2026": "4.8",
-   "1M": "2.0",
-   "3M": "4.0",
-   "1Y": "6.1",
-   "2Y": "6.5",
-   "3Y": "6.8",
-   "5Y": "7.2",
-   "SI": "8.2"
+   "2026": "2.8",
+   "1M": "-1.5",
+   "3M": "2.6",
+   "1Y": "4.4",
+   "2Y": "4.4",
+   "3Y": "6.0",
+   "5Y": "6.7",
+   "SI": "8.1"
   },
   "Value of $10M Investment Gross": {},
   "Monthly Returns Gross": {
@@ -624,21 +624,21 @@
     "05-May": "0.6%",
     "06-Jun": "3.5%",
     "07-Jul": "-1.5%",
-    "08-Aug": "2.0%",
+    "08-Aug": "nan",
     "09-Sep": "nan",
     "10-Oct": "nan",
     "11-Nov": "nan",
     "12-Dec": "nan",
-    "YTD": "4.8%"
+    "YTD": "2.8%"
    }
   },
   "Portfolio Snapshot": {
    "Statistics Gross": {
-    "Annualized Returns": "8.2%",
+    "Annualized Returns": "8.1%",
     "Annualized St. Dev.": "5.5%",
     "Annualized Downside Dev.": "2.4%",
     "Sharpe Ratio": "1.5",
-    "Sortino Ratio": "3.5",
+    "Sortino Ratio": "3.4",
     "% Positive Months": "65%",
     "Average of Positive Months": "1.2%",
     "Average of Negative Months": "-1.0%",
@@ -647,12 +647,12 @@
     "Calmar Ratio": "0.6"
    },
    "Statistics Gross 3Y": {
-    "Annualized Returns": "6.8%",
-    "Annualized St. Dev.": "5.4%",
-    "Annualized Downside Dev.": "2.5%",
-    "Sharpe Ratio": "1.3",
-    "Sortino Ratio": "2.7",
-    "% Positive Months": "67%",
+    "Annualized Returns": "6.0%",
+    "Annualized St. Dev.": "5.3%",
+    "Annualized Downside Dev.": "2.6%",
+    "Sharpe Ratio": "1.1",
+    "Sortino Ratio": "2.3",
+    "% Positive Months": "64%",
     "Average of Positive Months": "1.2%",
     "Average of Negative Months": "-1.0%",
     "Max Drawdown": "-6%",

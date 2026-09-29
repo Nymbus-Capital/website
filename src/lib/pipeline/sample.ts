@@ -41,7 +41,7 @@ function fillForUi(data: SiteData): void {
     const base = `funds.${f.key}`;
     const filled: string[] = [];
     if (!f.nav) {
-      f.nav = { asOf: data.asOf.nav, classes: [{ fundserv: "SAMPLE01", display: "F", currency: "CAD", nav: 10.1234, date: data.asOf.nav, prevNav: 10.1111, change: 0.0123, changePct: 0.0123 / 10.1111 }] };
+      f.nav = { asOf: data.asOf.nav, classes: [{ fundserv: "SAMPLE01", display: "F", currency: "CAD", nav: 10.1234, date: data.asOf.nav, prevNav: 10.1111, prevDate: "2026-09-25", change: 0.0123, changePct: 0.0012165 }] };
       filled.push("nav");
     }
     if (!f.aum) {

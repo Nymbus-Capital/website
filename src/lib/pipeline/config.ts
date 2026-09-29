@@ -25,18 +25,48 @@ export const PIPELINE_FUNDS: Record<FundKey, PipelineFundSpec> = {
   "global-minimum-volatility": { trackStart: null, apexKey: null, method: "arithmetic" },
 };
 
+/** Labels of the dataplatform track-record classes (monthly-net-returns `class_code`), per fund. */
+export const RETURN_CLASS_LABELS: Partial<Record<FundKey, Record<string, string>>> = {
+  // dataplatform nav_timeseries: STRATEGY = the class with nav-token "F" (SEST's F token is its FP class);
+  // STRATEGY_H = SEB's H class (the series its factsheet publishes)
+  "monthly-income": { STRATEGY: "Series FP" },
+  "sustainable-enhanced-bonds": { STRATEGY_H: "Series H" },
+  "multi-strategy": { STRATEGY: "Series F" },
+};
+
+/**
+ * The factsheet producer's index series is the XSB / XBB ETF until 2026-04-30 and FTSE (short_corp / univ)
+ * afterwards (factsheet-generator FTSE_RETURNS_LEGACY_CUTOFF). FTSE months are comparable with the
+ * published index from this month on.
+ */
+export const FTSE_COMPARABLE_FROM = "2026-05-31";
+
+/** difference between two published-precision monthly index returns (2 decimals in %) */
+export const INDEX_MONTHLY_TOL = 0.00006;
+
+const SHORT_PERIODS = new Set(["1M", "3M", "YTD", "1Y"]);
+
+/**
+ * Tolerances of a computed trailing return vs the published factsheet figure with `decimals` decimals
+ * (percent units): up to `round` it is rounding; up to `block` a warning; beyond, blocking.
+ */
+export function factsheetTolerance(period: string, decimals = 1): { round: number; block: number } {
+  const half = (0.5 * 10 ** -decimals) / 100;
+  return { round: half + 1e-9, block: half + (SHORT_PERIODS.has(period) ? 0.0005 : 0.001) + 1e-9 };
+}
+
 /** Tolerances (decimal returns). */
 export const TOL = {
-  /** factsheet figures carry one decimal in percent: anything beyond rounding is worth a warning */
-  factsheetWarn: 0.0006,
-  /** beyond this, a computed trailing return disagrees with the published factsheet: blocking */
-  factsheetBlock: 0.005,
   /** a monthly return beyond ±25 % is treated as a data error */
   maxMonthly: 0.25,
   /** a NAV moving more than 10 % in one valuation day is treated as a data error (class dropped) */
   maxNavDayChange: 0.1,
-  /** NAV older than this (days) is flagged */
+  /** NAV / AUM older than this (days) is an alert-level issue */
   navStaleDays: 7,
+  /** analytics vs dataplatform monthly return difference worth a warning */
+  analyticsVsDataplatform: 5e-6,
+  /** revision of an already published month worth a warning + alert */
+  revision: 1e-6,
 };
 
 export const DEFAULT_SCHEDULE = "06:45,12:45,18:45";

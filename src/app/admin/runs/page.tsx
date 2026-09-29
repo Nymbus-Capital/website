@@ -1,10 +1,12 @@
 import { Head } from "@/components/admin/Head";
+import { requireAdminPage } from "@/lib/auth/server";
 import { RunsTable } from "@/components/admin/runs";
 import { safeRuns, safeStatus } from "../_lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function RunsPage() {
+  await requireAdminPage("/admin/runs"); // defence in depth: every page re-verifies the session (not only the layout)
   const [status, runs] = await Promise.all([safeStatus(), safeRuns(100)]);
   return (
     <>

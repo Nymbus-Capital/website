@@ -5,6 +5,16 @@ import {
   parseHoldings, parseMonthlyTable, parseNumber, parsePct, parsePeriodMap, parseStatistics, parseText, parseTrailingTable,
 } from "../../../src/lib/pipeline/parse.ts";
 import { parseLooseJson } from "../../../src/lib/pipeline/sources/factsheets.ts";
+import { fundMonthlyTableKey, indexMonthlyTableKey } from "../../../src/lib/pipeline/parse.ts";
+
+test("monthly table keys: fund vs index", () => {
+  const b = { "Monthly Returns: Nymbus QCFI-SEB Net": {}, "Monthly Returns: Nymbus QCFI-SEB Gross": {}, "Monthly Returns: FTSE Canada Universe Bond Index": {}, "Monthly Value Added vs FTSE Canada Universe Bond Index Net": {} };
+  assert.equal(fundMonthlyTableKey(b, "Net"), "Monthly Returns: Nymbus QCFI-SEB Net");
+  assert.equal(indexMonthlyTableKey(b), "Monthly Returns: FTSE Canada Universe Bond Index");
+  assert.equal(indexMonthlyTableKey(b, "FTSE Canada Universe Bond Index"), "Monthly Returns: FTSE Canada Universe Bond Index");
+  assert.equal(fundMonthlyTableKey({ "Monthly Returns Net": {} }, "Net"), "Monthly Returns Net");
+  assert.equal(indexMonthlyTableKey({ "Monthly Returns Net": {} }), null);
+});
 
 test("parseNumber / parsePct: every string format seen in the archives", () => {
   assert.equal(parsePct("4.82%"), 0.0482);
@@ -102,6 +112,8 @@ test("trailing tables: nested (bonds) and flat (strategies), YTD label = year", 
   assert.deepEqual(nested.fund, { "1M": 0.004, YTD: 0.031, "1Y": 0.05, SI: 0.042 });
   assert.deepEqual(nested.index, { "1M": 0.003, YTD: 0.02, "1Y": null, SI: 0.03 });
   assert.deepEqual(nested.va, { "1M": 0.001, YTD: 0.011, SI: 0.012 });
+  assert.deepEqual(nested.decimals.fund, { "1M": 1, YTD: 1, "1Y": 1, SI: 1 });
+  assert.deepEqual(nested.decimals.index, { "1M": 1, YTD: 1, SI: 1 }, "nan has no decimals");
   const flat = parseTrailingTable({ "1M": "1.1", "3M": "−0.8", "2026": "4.8", SI: "7.4", "2025": "9.9" }, "2026")!;
   assert.deepEqual(flat.fund, { "1M": 0.011, "3M": -0.008, YTD: 0.048, SI: 0.074 }, "other year labels ignored");
   assert.equal(parseTrailingTable({}, "2026"), null);
@@ -130,7 +142,7 @@ test("calendar tables (nested / flat) and statistics", () => {
   assert.deepEqual(c["2026"], { fund: 0.01, index: null, va: null });
   assert.deepEqual(parseCalendarTable({ "2024": "9.9", "2025": "nan" }), { "2024": { fund: 0.099 }, "2025": { fund: null } });
   const st = parseStatistics({ "Annualized Returns": "7.4%", "Annualized St. Dev.": "5.5%", "Sharpe Ratio": "1.3", "Sortino Ratio": "nan", "% Positive Months": "66%", "Max Drawdown": "-9%" })!;
-  assert.deepEqual(st, { annReturn: 0.074, annVol: 0.055, downsideDev: null, sharpe: 1.3, sortino: null, positiveMonths: 0.66, maxDrawdown: -0.09 });
+  assert.deepEqual(st, { annReturn: 0.074, annVol: 0.055, downsideDev: null, sharpe: 1.3, sortino: null, positiveMonths: 0.66, maxDrawdown: -0.09, decimals: { annReturn: 1, annVol: 1, sharpe: 1, positiveMonths: 0, maxDrawdown: 0 } });
 });
 
 test("Python json.dump NaN / Infinity tokens are read as null (not inside strings)", () => {

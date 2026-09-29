@@ -57,7 +57,7 @@ export function parseLooseJson(text: string): unknown {
   }
 }
 
-export async function fetchFactsheets(targetMonth: string, fetchImpl: FetchImpl, env: NodeJS.ProcessEnv = process.env): Promise<SourceResult<FactsheetFiles>> {
+export async function fetchFactsheets(targetMonth: string, fetchImpl: FetchImpl, env: Record<string, string | undefined> = process.env): Promise<SourceResult<FactsheetFiles>> {
   const tried = candidateFiles(targetMonth);
   const files: Record<string, unknown> = {};
   const errors: string[] = [];

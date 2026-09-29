@@ -7,17 +7,18 @@ import type { DpShort, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
 import { dpClient, fetchApexFunds, fetchAum, fetchFtse, fetchMonthlyNetReturns, fetchNav, fetchUnitholderFunds } from "./dataplatform.ts";
 import { fetchFactsheets } from "./factsheets.ts";
+import { fetchAnalytics } from "./analytics.ts";
 import type { FetchImpl } from "./http.ts";
 
 /** FTSE short name per fund, with the env override for the Monthly Income benchmark. */
-export function ftseIndexFor(key: FundKey, env: NodeJS.ProcessEnv = process.env): string | null {
+export function ftseIndexFor(key: FundKey, env: Record<string, string | undefined> = process.env): string | null {
   const spec = FUNDS.find((f) => f.key === key);
   if (!spec?.sources.ftseIndex) return null;
   if (key === "monthly-income" && env.FTSE_INDEX_SEST) return env.FTSE_INDEX_SEST.trim();
   return spec.sources.ftseIndex;
 }
 
-export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: NodeJS.ProcessEnv }): Promise<RawPayloads> {
+export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Record<string, string | undefined> }): Promise<RawPayloads> {
   const env = opts.env ?? process.env;
   const target = lastClosedMonth(opts.now);
   const shorts = FUNDS.map((f) => f.sources.dataplatform).filter((s): s is DpShort => !!s);
@@ -43,6 +44,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: No
   const uhP = c ? fetchUnitholderFunds(c) : Promise.resolve(noDp<never>());
   const aumP = c ? fetchAum(c) : Promise.resolve(noDp<never>());
   const fsP = fetchFactsheets(target, opts.fetchImpl, env);
-  const [apexFunds, unitholderFunds, aum, factsheets] = await Promise.all([apexP, uhP, aumP, fsP, ...jobs]);
-  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, nav, apexFunds, unitholderFunds, aum, ftse, factsheets };
+  const anP = fetchAnalytics(opts.fetchImpl, env);
+  const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
+  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics };
 }

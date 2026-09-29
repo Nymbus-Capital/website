@@ -15,8 +15,11 @@
  *      downsideDev  = pstdev(negative months only) * sqrt(12)       (factsheet convention, not semi-deviation)
  *      sharpe       = annReturn / annVol          (NO risk-free rate: same as the published factsheets)
  *      sortino      = annReturn / downsideDev     (idem)
- *      maxDrawdown  = min over months of value / running peak - 1, the running peak starting at the
- *                     initial investment (a loss in the first month counts as a drawdown)
+ *      maxDrawdown  = min over months of value / running peak - 1, with the standard definition: the
+ *                     running peak starts at the initial investment, so a loss in the first month counts.
+ *                     The factsheet producer (get_max_drawdown) takes the peak over month-END values only,
+ *                     so it ignores a drawdown that starts in the very first month: the two can differ
+ *                     for a fund that lost money in its first month(s). Stated in the provenance.
  *      positiveMonths = share of months with r > 0 (all months counted)
  *  - "arithmetic" method (GMV overlay: returns on notional, no reinvestment, as in the factsheet
  *    `compounded=False` path): periods are sums, annualized = sum / years, growth = 1 + cumsum,
@@ -243,52 +246,77 @@ export interface FtseRow { date: string; total_return?: number | null; rating?: 
 
 /**
  * Date -> total-return level of the index itself, from index-summary rows (which may repeat a date per
- * rating/term/sector grouping): the aggregate row (every grouping blank/All/Overall/Total), else the
- * rating-"All" row (same selection as the deck engine).
+ * rating/term/sector/group breakdown). Only the aggregate row counts: EVERY grouping dimension blank or
+ * All/Overall/Total. A day without such a row is dropped (a sub-index level is never used).
  */
 export function ftseLevels(rows: FtseRow[]): Record<string, number> {
-  const agg: Record<string, number> = {};
-  const fallback: Record<string, number> = {};
+  const out: Record<string, number> = {};
   for (const r of rows) {
     const v = r.total_return;
-    if (typeof v !== "number" || !Number.isFinite(v) || !AGG.has(r.rating)) continue;
+    if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) continue;
+    if (!AGG.has(r.rating) || !AGG.has(r.term) || !AGG.has(r.industry_sector) || !AGG.has(r.industry_group)) continue;
     const d = String(r.date).slice(0, 10);
-    if (!(d in fallback)) fallback[d] = v;
-    if (AGG.has(r.term) && AGG.has(r.industry_sector) && AGG.has(r.industry_group) && !(d in agg)) agg[d] = v;
+    if (!(d in out)) out[d] = v;
   }
-  const out: Record<string, number> = {};
-  for (const d of Object.keys(fallback).sort()) out[d] = d in agg ? agg[d] : fallback[d];
-  return out;
+  return Object.fromEntries(Object.keys(out).sort().map((d) => [d, out[d]]));
 }
 
+const isWeekday = (t: number): boolean => { const w = new Date(t).getUTCDay(); return w !== 0 && w !== 6; };
+
+/** last weekday (Mon-Fri) of the month of `ym`, and the weekday `back` weekdays before it */
+export function lastWeekdays(ym: string, back = 2): { last: string; earliest: string } {
+  let t = Date.parse(toMonthEnd(ym));
+  while (!isWeekday(t)) t -= 86_400_000;
+  const last = new Date(t).toISOString().slice(0, 10);
+  for (let n = 0; n < back; ) {
+    t -= 86_400_000;
+    if (isWeekday(t)) n++;
+  }
+  return { last, earliest: new Date(t).toISOString().slice(0, 10) };
+}
+
+export interface MonthEndReturns { series: Series; dropped: { month: string; reason: string }[] }
+
 /**
- * Daily levels -> month-end to month-end returns. A month whose last observation is more than
- * `maxDaysBeforeMonthEnd` days before its month-end (data still loading, partial month) is dropped, and
- * so is the following month (its base level would be wrong).
+ * Daily levels -> month-end to month-end returns. A month's closing level is accepted only when
+ *  - the month is closed: an observation exists in a later month (never an open-month return), and
+ *  - its last observation is the last weekday of the month or at most 2 weekdays before it (Canadian
+ *    market holidays; the dataplatform exposes no holiday calendar).
+ * A month without an accepted closing level produces no return for itself nor for the next month.
  */
-export function levelsToMonthly(levels: Record<string, number>, maxDaysBeforeMonthEnd = 4): Series {
+export function monthEndReturns(levels: Record<string, number>): MonthEndReturns {
   const last: Record<string, { d: string; v: number }> = {};
   for (const d of Object.keys(levels).sort()) {
     const v = levels[d];
     if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) continue;
     last[d.slice(0, 7)] = { d, v };
   }
-  const complete = (ym: string): boolean => {
-    const me = toMonthEnd(ym);
-    const gap = (Date.parse(me) - Date.parse(last[ym].d)) / 86_400_000;
-    return gap <= maxDaysBeforeMonthEnd;
-  };
   const months = Object.keys(last).sort();
-  const out: Series = {};
+  const dropped: MonthEndReturns["dropped"] = [];
+  const closing = new Map<string, number>();
+  months.forEach((ym, i) => {
+    if (i === months.length - 1) return; // not closed yet (no later observation)
+    const { earliest } = lastWeekdays(ym);
+    if (last[ym].d < earliest) {
+      dropped.push({ month: toMonthEnd(ym), reason: `last level ${last[ym].d} is more than 2 weekdays before the month-end` });
+      return;
+    }
+    closing.set(ym, last[ym].v);
+  });
+  const series: Series = {};
   for (let i = 1; i < months.length; i++) {
     const a = months[i - 1];
     const b = months[i];
     if (addMonths(a, 1) !== toMonthEnd(b)) continue; // gap in the level history
-    if (!complete(a) || !complete(b)) continue;
-    out[toMonthEnd(b)] = last[b].v / last[a].v - 1;
+    const va = closing.get(a);
+    const vb = closing.get(b);
+    if (va === undefined || vb === undefined) continue;
+    series[toMonthEnd(b)] = vb / va - 1;
   }
-  return out;
+  return { series, dropped };
 }
+
+export const levelsToMonthly = (levels: Record<string, number>): Series => monthEndReturns(levels).series;
 
 /** Round to 12 significant decimals (hides float noise such as 0.048200000000000004). */
 export const clean = (x: number): number => Math.round(x * 1e12) / 1e12;

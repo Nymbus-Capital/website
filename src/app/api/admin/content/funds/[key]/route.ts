@@ -11,6 +11,7 @@ import { getRun } from "@/lib/pipeline";
 import { fail, isResponse, ok, parseJson } from "../../../_lib/http";
 import { fundKeySchema, saveFundSchema } from "../../../_lib/schemas";
 import { contentError } from "../../../_lib/save";
+import { isPinnable } from "@/components/admin/summary";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,9 @@ export async function PUT(request: NextRequest, ctx: { params: Promise<{ key: st
   if (fund.pinnedSnapshot) {
     const run = await getRun(fund.pinnedSnapshot).catch(() => null);
     if (!run) return fail(400, "invalid_input", "fund.pinnedSnapshot: no such run.");
+    if (!isPinnable(run.report, run.data)) {
+      return fail(400, "invalid_input", "fund.pinnedSnapshot: only runs that were published (live data) can be pinned.");
+    }
     if (!run.data.funds?.[key]) return fail(400, "invalid_input", "fund.pinnedSnapshot: this run has no data for the fund.");
   } else {
     delete fund.pinnedSnapshot;

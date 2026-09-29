@@ -141,10 +141,12 @@ export function orderedBuckets(b: Bucket[] | undefined | null): Bucket[] {
 
 export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "esg", "other"];
 
-/** Group documents by type (fixed order), newest first within a group; the display language first. */
-export function groupDocuments(docs: DocumentMeta[], lang: "en" | "fr"): { type: DocType; docs: DocumentMeta[] }[] {
-  const pub = docs.filter((d) => d.published);
-  const rank = (d: DocumentMeta) => (d.lang === lang || d.lang === "both" ? 0 : 1);
+/** Group documents by type (fixed order), newest first within a group; the display language first. Documents that
+ * carry `published: false` are dropped (the public DTO has no flag: it only ever contains published ones). */
+type GroupableDoc = Pick<DocumentMeta, "id" | "type" | "lang" | "date"> & { published?: boolean };
+export function groupDocuments<D extends GroupableDoc>(docs: D[], lang: "en" | "fr"): { type: DocType; docs: D[] }[] {
+  const pub = docs.filter((d) => d.published !== false);
+  const rank = (d: D) => (d.lang === lang || d.lang === "both" ? 0 : 1);
   return DOC_ORDER.map((type) => ({
     type,
     docs: pub.filter((d) => d.type === type).sort((a, b) => b.date.localeCompare(a.date) || rank(a) - rank(b)),

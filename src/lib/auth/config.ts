@@ -3,7 +3,7 @@
  * Dependency-free (unit tested): refuses to enable auth when anything is missing or weak, so a misconfigured
  * deployment fails CLOSED (the admin answers 503) instead of running with a guessable secret.
  */
-import { isGuid, parseAllowedDomains, parseGroupIds } from "./policy.ts";
+import { isGuid, parseAllowedDomains, parseGroupIds, parseRequiredRole, policyVersion } from "./policy.ts";
 import { isLocalhostUrl, originOf, sessionCookieSpec, type CookieSpec } from "./guards.ts";
 
 export interface AuthConfig {
@@ -23,12 +23,22 @@ export interface AuthConfig {
   secret: string;
   allowedDomains: string[];
   allowedGroupIds: string[];
+  /** app role required in the `roles` claim ("" = none) */
+  requiredRole: string;
+  /** fingerprint of the authorization policy, stored in sessions (`pv`) */
+  policyVersion: string;
   cookie: CookieSpec;
 }
 
 export type AuthConfigResult = { ok: true; config: AuthConfig } | { ok: false; error: string };
 
 export const MIN_SECRET_LENGTH = 32;
+
+/**
+ * AUTH_SECRET values committed to this public repository (the e2e server's). Refused unless the process is the
+ * e2e / localhost setup (localhost PUBLIC_URL + the explicit insecure-cookie opt-in).
+ */
+export const KNOWN_PUBLIC_SECRETS: readonly string[] = ["e2e-auth-secret-0123456789abcdef0123456789abcdef"];
 
 type Env = Record<string, string | undefined>;
 
@@ -47,12 +57,21 @@ export function loadAuthConfig(env: Env): AuthConfigResult {
   const origin = originOf(publicUrl);
   if (!origin) return { ok: false, error: "PUBLIC_URL is missing or invalid" };
   if (!origin.startsWith("https://") && !isLocalhostUrl(origin)) return { ok: false, error: "PUBLIC_URL must be https (except localhost)" };
+  const localTestSetup = isLocalhostUrl(origin) && env.AUTH_INSECURE_COOKIES_FOR_LOCALHOST === "1";
+  if (env.NODE_ENV === "production" && isLocalhostUrl(origin) && !localTestSetup) {
+    return { ok: false, error: "PUBLIC_URL is localhost in production (set the public https origin)" };
+  }
+  if (KNOWN_PUBLIC_SECRETS.includes(secret) && !localTestSetup) {
+    return { ok: false, error: "AUTH_SECRET is the public test value committed in the repository: generate a new one" };
+  }
 
   let allowedDomains: string[];
   let allowedGroupIds: string[];
+  let requiredRole: string;
   try {
     allowedDomains = parseAllowedDomains(env.ADMIN_ALLOWED_DOMAINS);
     allowedGroupIds = parseGroupIds(env.ADMIN_ALLOWED_GROUP_IDS);
+    requiredRole = parseRequiredRole(env.ADMIN_REQUIRED_ROLE);
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
@@ -75,6 +94,8 @@ export function loadAuthConfig(env: Env): AuthConfigResult {
       secret,
       allowedDomains,
       allowedGroupIds,
+      requiredRole,
+      policyVersion: policyVersion({ tenantId, allowedDomains, allowedGroupIds, requiredRole }),
       cookie: sessionCookieSpec(env),
     },
   };

@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FundPage } from "@/components/fund/FundPage";
 import type { FundDoc, FundLink } from "@/components/fund/types";
-import { documentUrl, listPublishedDocuments } from "@/lib/data/documents";
+import { documentUrl, listPublishedDocuments, toPublicDocument } from "@/lib/data/documents";
 import { getAllFundViews, getFundView } from "@/lib/data/site";
 import type { DocumentMeta } from "@/lib/data/types";
 
@@ -18,7 +18,8 @@ type Params = { params: Promise<{ slug: string }> };
 async function documentsFor(scope: DocumentMeta["scope"]): Promise<FundDoc[]> {
   try {
     const [own, firm] = await Promise.all([listPublishedDocuments(scope), listPublishedDocuments("firm")]);
-    return [...own, ...firm].map((meta) => ({ meta, url: documentUrl(meta) }));
+    // public DTO only: uploader, hash and publication flag never reach the client bundle
+    return [...own, ...firm].map((d) => ({ meta: toPublicDocument(d), url: documentUrl(d) }));
   } catch {
     // documents are optional on this page: a broken index must not take the fund page down
     return [];
@@ -49,5 +50,8 @@ export default async function StrategyPage({ params }: Params) {
   const [docs, all] = await Promise.all([documentsFor(view.spec.key), getAllFundViews()]);
   const funds: FundLink[] = all.map(({ spec }) => ({ key: spec.key, name: spec.name, short: spec.short, color: spec.color }));
 
-  return <FundPage spec={view.spec} content={view.content} data={view.data} sample={view.sample} docs={docs} funds={funds} />;
+  // the snapshot pin is internal (admin) state: strip it before the props cross to the client
+  const { pinnedSnapshot: _pin, ...content } = view.content;
+  void _pin;
+  return <FundPage spec={view.spec} content={content} data={view.data} sample={view.sample} docs={docs} funds={funds} />;
 }

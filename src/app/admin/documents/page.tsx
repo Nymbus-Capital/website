@@ -1,4 +1,5 @@
 import { FUNDS } from "@/config/funds";
+import { requireAdminPage } from "@/lib/auth/server";
 import { documentUrl, listDocuments } from "@/lib/data/documents";
 import { Head } from "@/components/admin/Head";
 import { DocumentsManager } from "@/components/admin/DocumentsManager";
@@ -6,6 +7,7 @@ import { DocumentsManager } from "@/components/admin/DocumentsManager";
 export const dynamic = "force-dynamic";
 
 export default async function DocumentsPage() {
+  await requireAdminPage("/admin/documents"); // defence in depth: every page re-verifies the session (not only the layout)
   const docs = (await listDocuments()).sort((a, b) => b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt));
   return (
     <>

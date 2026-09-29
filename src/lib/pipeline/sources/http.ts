@@ -25,7 +25,7 @@ export interface RetryOpts {
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
-export const retryBaseMs = (env: NodeJS.ProcessEnv = process.env): number => {
+export const retryBaseMs = (env: Record<string, string | undefined> = process.env): number => {
   const v = Number(env.PIPELINE_RETRY_BASE_MS);
   return Number.isFinite(v) && v >= 0 ? v : 500;
 };

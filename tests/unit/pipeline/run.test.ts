@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { getRun, listRuns, pipelineStatus, publishRun, pruneSnapshots, runPipeline, type RunReport } from "../../../src/lib/pipeline/index.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
-import { fixtureEnv, json, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 let dir = "";
@@ -13,7 +13,7 @@ let dir = "";
 beforeEach(async () => {
   dir = await mkdtemp(path.join(os.tmpdir(), "site-data-"));
   const env = fixtureEnv({ SITE_DATA_DIR: dir });
-  for (const k of ["DATAPLATFORM_TOKEN", "DATAPLATFORM_USERNAME", "GRAPH_TENANT_ID", "PIPELINE_ALERT_WEBHOOK", "FTSE_INDEX_SEST", "PIPELINE_SCHEDULE"]) delete process.env[k];
+  for (const k of ["DATAPLATFORM_TOKEN", "DATAPLATFORM_USERNAME", "GRAPH_TENANT_ID", "PIPELINE_ALERT_WEBHOOK", "FTSE_INDEX_SEST", "PIPELINE_SCHEDULE", "PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH", "GITHUB_TOKEN"]) delete process.env[k];
   Object.assign(process.env, env);
 });
 
@@ -41,7 +41,11 @@ test("auto mode: run is snapshotted and published; audit and meta written", asyn
   const snap = await readdir(path.join(dir, "snapshots", r.id));
   assert.deepEqual(snap.sort(), ["raw", "report.json", "site-data.json"]);
   const published = await readJ<SiteData>("published", "site-data.json");
-  assert.deepEqual(published, await readJ<SiteData>("snapshots", r.id, "site-data.json"));
+  const { publishedAt, publishedBy, ...rest } = published;
+  assert.deepEqual(rest, await readJ<SiteData>("snapshots", r.id, "site-data.json"));
+  assert.equal(published.runId, r.id, "self-describing");
+  assert.equal(publishedAt, r.publishedAt);
+  assert.equal(publishedBy, "pipeline (manual, tester@nymbus.ca)");
   assert.equal((await readJ<{ runId: string }>("published", "meta.json")).runId, r.id);
   const auditLog = await readFile(path.join(dir, "audit", "audit.jsonl"), "utf8");
   assert.match(auditLog, /"action":"pipeline.run"/);
@@ -81,7 +85,9 @@ test("review mode: run waits, publishRun approves it; rollback to an older run",
   const back = await publishRun(first.id, "approver@nymbus.ca");
   assert.equal(back.id, first.id);
   assert.equal((await readJ<{ runId: string }>("published", "meta.json")).runId, first.id);
-  assert.deepEqual(await readJ<SiteData>("published", "site-data.json"), await readJ<SiteData>("snapshots", first.id, "site-data.json"));
+  const pubBack = await readJ<SiteData>("published", "site-data.json");
+  assert.equal(pubBack.runId, first.id);
+  assert.deepEqual(pubBack.funds, (await readJ<SiteData>("snapshots", first.id, "site-data.json")).funds);
   const auditLog = await readFile(path.join(dir, "audit", "audit.jsonl"), "utf8");
   assert.match(auditLog, /"action":"pipeline.publish"/);
   assert.match(auditLog, /"action":"pipeline.rollback"/);
@@ -109,27 +115,104 @@ test("lock: a concurrent run is refused; a stale lock is taken over", async () =
   assert.equal(r2.status, "published");
 });
 
-test("a failed source produces issues, not a crash; everything down -> failed, nothing published", async () => {
+test("a failed source produces issues and a BLOCKED (not silently published) run; everything down -> failed", async () => {
   const first = await run();
+  const posted: string[] = [];
+  process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
   const aumDown: Route = (u) => (u.pathname === "/api/unitholders/aum" ? json({ detail: "x" }, 500) : undefined);
-  const r = await run({ routes: [aumDown], now: new Date("2026-09-30T14:00:00Z") });
-  assert.equal(r.status, "published");
+  const r = await run({ routes: [hook, aumDown], now: new Date("2026-09-30T14:00:00Z") });
+  assert.equal(r.status, "blocked", "AUM carried over: needs attention");
+  assert.ok(r.publishedAt, "still published in auto mode (other data fresh)");
   assert.ok(r.sources.some((s) => s.name === "dataplatform unitholders/aum" && !s.ok && /HTTP 500/.test(s.detail!)));
-  assert.ok(r.issues.some((i) => i.key === "funds.monthly-income.aum" && i.level === "warn"));
+  assert.ok(r.issues.some((i) => i.key === "funds.monthly-income" && i.message === "needs attention: aum carried over"));
+  assert.equal(posted.length, 1);
   const pub = await readJ<SiteData>("published", "site-data.json");
   const prev = await readJ<SiteData>("snapshots", first.id, "site-data.json");
   assert.deepEqual(pub.funds["monthly-income"]!.aum, prev.funds["monthly-income"]!.aum, "AUM carried over");
+  delete process.env.PIPELINE_ALERT_WEBHOOK;
 
   process.env.FACTSHEET_DATA_DIR = path.join(dir, "no-such-dir");
   const allDown: Route = () => { throw new TypeError("fetch failed"); };
   const r2 = await run({ routes: [allDown], now: new Date("2026-10-01T14:00:00Z") });
   assert.equal(r2.status, "failed");
   assert.equal(r2.publishedAt, undefined);
-  assert.ok(r2.sources.every((s) => !s.ok));
+  assert.ok(r2.sources.filter((s) => s.name !== "analytics fund_returns.json").every((s) => !s.ok));
   assert.ok(r2.issues.some((i) => i.key === "run" && /nothing published/.test(i.message)));
-  assert.deepEqual(r2.funds, { "monthly-income": "kept-previous", "sustainable-enhanced-bonds": "kept-previous", "multi-strategy": "kept-previous", "global-minimum-volatility": "kept-previous" });
   assert.equal((await readJ<{ runId: string }>("published", "meta.json")).runId, r.id, "published data untouched");
   await assert.rejects(publishRun(r2.id, "a"), /failed/);
+});
+
+test("H1/H3: a held month (waiting for its factsheet) is published without alert; stale performance alerts", async () => {
+  const fsDir = path.join(dir, "fs");
+  await mkdir(fsDir, { recursive: true });
+  for (const f of ["bonds_data_2026-07.json", "factsheet_data_2026-07.json"]) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
+  process.env.FACTSHEET_DATA_DIR = fsDir;
+  const posted: string[] = [];
+  process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
+  const r = await run({ routes: [hook] });
+  // performance at 2026-07 (held until the August factsheet), factsheet parts from July: not an alert
+  assert.equal(r.asOf.performance, "2026-07-31");
+  assert.equal(r.status, "published", JSON.stringify(r.issues.filter((i) => i.level === "error")));
+  assert.equal(posted.length, 0);
+  // two months later nothing moved: stale -> blocked + alert
+  const late = await run({ routes: [hook], now: new Date("2026-11-03T14:00:00Z") });
+  assert.equal(late.status, "blocked");
+  assert.ok(late.issues.some((i) => /stale: performance as of 2026-07 while 2026-10 is closed/.test(i.message)));
+  assert.equal(posted.length, 1);
+  delete process.env.PIPELINE_ALERT_WEBHOOK;
+});
+
+test("M5: revision of an already published month -> blocked (auto: published + alert; review: waits)", async () => {
+  const first = await run();
+  await setMode("review");
+  const revise: Route = (u) => {
+    if (u.pathname !== "/api/performance/monthly-net-returns" || u.searchParams.get("short_name") !== "SEST") return undefined;
+    const j = loadFixture("dataplatform/mnr_SEST.json") as { rows: { month: string; status: string; net_return: number | null }[] };
+    Object.assign(j.rows.find((x) => x.month === "2026-07-31")!, { status: "ready", net_return: -0.0012 });
+    return json(j);
+  };
+  const r = await run({ routes: [revise], now: new Date("2026-09-30T14:00:00Z") });
+  assert.equal(r.status, "blocked");
+  assert.equal(r.publishedAt, undefined, "review mode: waits for approval");
+  assert.ok(r.issues.some((i) => /revised month\(s\) already published: 2026-07 -0\.14% → -0\.12%/.test(i.message)));
+  assert.equal((await readJ<{ runId: string }>("published", "meta.json")).runId, first.id);
+  const ok = await publishRun(r.id, "approver@nymbus.ca");
+  assert.equal(ok.publishedBy, "approver@nymbus.ca");
+});
+
+test("H2: retention never deletes a pinned snapshot", async () => {
+  const pinned = "20200101T000000-00000001";
+  await mkdir(path.join(dir, "snapshots", pinned), { recursive: true });
+  await writeFile(path.join(dir, "snapshots", pinned, "report.json"), JSON.stringify({ id: pinned, status: "published" }));
+  await mkdir(path.join(dir, "content"), { recursive: true });
+  await writeFile(path.join(dir, "content", "site-content.json"), JSON.stringify({ version: 1, updatedAt: "x", updatedBy: "x", firm: {}, funds: { "multi-strategy": { pinnedSnapshot: pinned } }, pipeline: { publishMode: "auto" } }));
+  for (let i = 0; i < 125; i++) {
+    const id = `2027${String(i).padStart(4, "0")}T000000-${(0x10000000 + i).toString(16)}`;
+    await mkdir(path.join(dir, "snapshots", id), { recursive: true });
+  }
+  const removed = await pruneSnapshots();
+  assert.equal(removed.length, 5);
+  assert.ok((await readdir(path.join(dir, "snapshots"))).includes(pinned));
+});
+
+test("LOW: lock owner token; a taken-over holder does not delete its successor's lock; published meta tolerant", async () => {
+  const { withLock } = await import("../../../src/lib/data/store.ts");
+  let inner: unknown = null;
+  const outer = await withLock("t", async () => {
+    // simulate a takeover: another process replaced the lock with its own token
+    await writeFile(path.join(dir, "locks", "t.lock", "owner"), "someone-else");
+    inner = await withLock("t", async () => "x");
+    return "done";
+  });
+  assert.equal(outer, "done");
+  assert.deepEqual(inner, { locked: true });
+  assert.ok((await readdir(path.join(dir, "locks"))).includes("t.lock"), "successor's lock left in place");
+  // published site-data.json newer than meta.json (crash between the two writes): the data wins
+  const r = await run();
+  await writeFile(path.join(dir, "published", "meta.json"), JSON.stringify({ runId: "20000101T000000-aaaaaaaa", publishedAt: "x", publishedBy: "x" }));
+  assert.equal((await pipelineStatus(NOW)).publishedRunId, r.id);
 });
 
 test("blocked fund: others published (auto), blocked fund keeps previous, alert posted without secrets", async () => {
@@ -137,33 +220,39 @@ test("blocked fund: others published (auto), blocked fund keeps previous, alert 
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/services/SECRET-PATH";
   process.env.DATAPLATFORM_PASSWORD = "pw-should-not-leak";
   const posted: string[] = [];
-  const bad: Route = (u, init) => {
-    if (u.hostname === "hooks.example.test") {
-      posted.push(String(init?.body));
-      return new Response("ok");
-    }
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
+  // GMV: a 40 % month in the published monthly table -> validation gate (±25 %) blocks the fund
+  const fsDir = path.join(dir, "fs-gmv");
+  await mkdir(fsDir, { recursive: true });
+  for (const f of await readdir(FIXTURE_FACTSHEETS_DIR)) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
+  const f8 = path.join(fsDir, "factsheet_data_2026-08.json");
+  const j = JSON.parse(await readFile(f8, "utf8"));
+  j.GMV_6pct["Monthly Returns Gross"]["2020"]["03-Mar"] = "40.0%";
+  await writeFile(f8, JSON.stringify(j));
+  process.env.FACTSHEET_DATA_DIR = fsDir;
+  // SEB: the dataplatform August return changes to 40 % after publication: the factsheet contradicts it -> withheld
+  const bad: Route = (u) => {
     if (u.pathname === "/api/performance/monthly-net-returns" && u.searchParams.get("short_name") === "SEB") {
-      return (async () => {
-        const res = await import("../../fixtures/pipeline/mock-fetch.ts");
-        const j = res.loadFixture("dataplatform/mnr_SEB.json") as { rows: { month: string; net_return: number }[] };
-        j.rows[j.rows.length - 3].net_return = 0.4;
-        return json(j);
-      })();
+      const m = loadFixture("dataplatform/mnr_SEB.json") as { rows: { month: string; net_return: number | null }[] };
+      Object.assign(m.rows[m.rows.length - 1], { net_return: 0.4 });
+      return json(m);
     }
     return undefined;
   };
-  const r = await run({ routes: [bad], now: new Date("2026-09-30T14:00:00Z") });
+  const r = await run({ routes: [hook, bad], now: new Date("2026-09-30T14:00:00Z") });
   assert.equal(r.status, "blocked");
   assert.ok(r.publishedAt, "other funds published in auto mode");
-  assert.equal(r.funds["sustainable-enhanced-bonds"], "kept-previous");
+  assert.equal(r.funds["global-minimum-volatility"], "kept-previous");
   assert.equal(r.funds["monthly-income"], "updated");
   const pub = await readJ<SiteData>("published", "site-data.json");
   const prev = await readJ<SiteData>("snapshots", first.id, "site-data.json");
-  assert.deepEqual(pub.funds["sustainable-enhanced-bonds"], prev.funds["sustainable-enhanced-bonds"]);
+  assert.deepEqual(pub.funds["global-minimum-volatility"], prev.funds["global-minimum-volatility"]);
+  assert.equal(pub.funds["sustainable-enhanced-bonds"]!.performance, null, "withheld rather than a contradicted number");
+  assert.ok(pub.funds["sustainable-enhanced-bonds"]!.nav, "other SEB parts still published");
   assert.equal(posted.length, 1);
   const msg = JSON.parse(posted[0]) as { text: string };
   assert.match(msg.text, /BLOCKED/);
-  assert.match(msg.text, /sustainable-enhanced-bonds: kept-previous/);
+  assert.match(msg.text, /global-minimum-volatility: kept-previous/);
   assert.ok(!posted[0].includes("pw-should-not-leak") && !posted[0].includes("SECRET-PATH"));
   delete process.env.DATAPLATFORM_PASSWORD;
 });

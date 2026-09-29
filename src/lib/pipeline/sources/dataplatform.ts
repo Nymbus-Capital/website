@@ -21,7 +21,7 @@ export interface DpClient {
   backoffMs: number;
 }
 
-export function dpClient(fetchImpl: FetchImpl, env: NodeJS.ProcessEnv = process.env): DpClient | null {
+export function dpClient(fetchImpl: FetchImpl, env: Record<string, string | undefined> = process.env): DpClient | null {
   const base = (env.DATAPLATFORM_URL || "").trim().replace(/\/+$/, "");
   if (!base) return null;
   const headers: Record<string, string> = { Accept: "application/json", "User-Agent": "nymbus-web-pipeline/1.0" };
@@ -87,7 +87,7 @@ export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: st
   });
 }
 
-const NAV_FIELDS = ["date", "source", "fundserv", "class_display", "class_code", "currency", "nav_per_share_local", "nav_per_share_cad", "net_daily_return", "nav_type", "short_name"] as const;
+const NAV_FIELDS = ["date", "source", "fundserv", "class_display", "class_code", "currency", "nav_per_share_local", "nav_per_share_cad", "net_daily_return", "net_return_method", "return_start_date", "nav_type", "short_name"] as const;
 
 export function fetchNav(c: DpClient, short: DpShort, now: Date, lookbackDays = 21): Promise<SourceResult<NavSeriesResponse>> {
   const label = `nav-timeseries ${short}`;
@@ -104,6 +104,7 @@ export function fetchNav(c: DpClient, short: DpShort, now: Date, lookbackDays = 
         const o: Record<string, unknown> = {};
         for (const k of NAV_FIELDS) o[k] = (r as NavPoint)[k] ?? null;
         o.date = String(r.date).slice(0, 10);
+        if (typeof o.return_start_date === "string") o.return_start_date = o.return_start_date.slice(0, 10);
         return o as NavPoint;
       });
     return { ok: true, data: { rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [] }, detail: `${rows.length} class row(s) since ${start}` };
@@ -168,15 +169,104 @@ export function fetchAum(c: DpClient): Promise<SourceResult<AumTotals>> {
   });
 }
 
-export function fetchFtse(c: DpClient, short: string, endDate: string, startDate = "2018-12-01"): Promise<SourceResult<FtseLevels>> {
+export const FTSE_START = "2000-01-01";
+/** a renamed index continues its level: a bigger jump at the seam means another index */
+export const MAX_SEAM_JUMP = 0.03;
+/** ... and continues it within a few days */
+export const MAX_SEAM_GAP_DAYS = 7;
+const OVERLAP_TOL = 1e-4;
+
+const dayDiff = (a: string, b: string): number => Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
+
+/**
+ * Aggregate daily levels of one FTSE index over its whole history (port of nymbus-decks
+ * sources._ftse_history). ftse.bond_index_summary names an index by a slug of its published name, so
+ * the years before a rename sit under another short_name with the same index_id: such a name is joined
+ * in front only if it stopped publishing right where the current name starts (gap <= 7 days) at the same
+ * level (jump <= 3 %), or overlaps it with identical levels (1e-4).
+ */
+export function fetchFtse(c: DpClient, short: string, endDate: string): Promise<SourceResult<FtseLevels>> {
   const label = `ftse index-summary ${short}`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/ftse/index-summary", { short_name: short, start_date: startDate, end_date: endDate });
-    if (status !== 200) return fail(`${label}: HTTP ${status}`);
-    if (!Array.isArray(body)) return fail(`${label}: unexpected payload`);
-    const levels = ftseLevels(body as FtseRow[]);
-    const days = Object.keys(levels);
-    if (!days.length) return fail(`${label}: no aggregate total-return level in ${body.length} row(s)`);
-    return { ok: true, data: { levels, rowCount: body.length, first: days[0], last: days[days.length - 1] }, detail: `${days.length} day(s), ${days[0]} to ${days[days.length - 1]}` };
+    const rowsOf = async (name: string): Promise<Record<string, number>> => {
+      const { status, body } = await get(c, "/api/ftse/index-summary", { short_name: name, start_date: FTSE_START, end_date: endDate });
+      if (status !== 200) throw new Error(`${name}: HTTP ${status}`);
+      if (!Array.isArray(body)) throw new Error(`${name}: unexpected payload`);
+      return ftseLevels(body as FtseRow[]);
+    };
+    let cur = await rowsOf(short);
+    if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level`);
+    const notes: string[] = [];
+    let names: { short_name: string; index_id?: number | null }[] = [];
+    try {
+      const { status, body } = await get(c, "/api/ftse/index-summary/short-names", {});
+      if (status === 200 && Array.isArray(body)) names = body as typeof names;
+      else notes.push(`short-names: HTTP ${status} (history under earlier names not joined)`);
+    } catch (e: unknown) {
+      notes.push(`short-names: ${errMsg(e)} (history under earlier names not joined)`);
+    }
+    const iid = names.find((n) => n.short_name === short)?.index_id;
+    const pending = iid == null ? [] : names.filter((n) => n.index_id === iid && n.short_name !== short).map((n) => n.short_name).sort();
+    const used: string[] = [];
+    const skipped: string[] = [];
+    const cache = new Map<string, Record<string, number>>();
+    while (pending.length) {
+      const first = Object.keys(cur)[0];
+      const cands: { last: string; name: string; lv: Record<string, number> }[] = [];
+      for (const a of [...pending]) {
+        let lv: Record<string, number>;
+        try {
+          lv = cache.get(a) ?? (await rowsOf(a));
+          cache.set(a, lv);
+        } catch (e: unknown) {
+          skipped.push(`${a} (${errMsg(e)})`);
+          pending.splice(pending.indexOf(a), 1);
+          continue;
+        }
+        let days = Object.keys(lv);
+        if (!days.length) { pending.splice(pending.indexOf(a), 1); continue; }
+        const lastA = days[days.length - 1];
+        if (dayDiff(first, lastA) > MAX_SEAM_GAP_DAYS) {
+          skipped.push(`${a} (published until ${lastA})`); // still published alongside: a sibling
+          pending.splice(pending.indexOf(a), 1);
+          continue;
+        }
+        if (lastA >= first) {
+          const both = days.filter((d) => d in cur);
+          if (!both.length || both.some((d) => Math.abs(cur[d] / lv[d] - 1) > OVERLAP_TOL)) {
+            skipped.push(`${a} (overlaps ${first} to ${lastA} with other levels)`);
+            pending.splice(pending.indexOf(a), 1);
+            continue;
+          }
+          lv = Object.fromEntries(days.filter((d) => d < first).map((d) => [d, lv[d]]));
+          days = Object.keys(lv);
+          if (!days.length) { pending.splice(pending.indexOf(a), 1); continue; }
+        }
+        cands.push({ last: days[days.length - 1], name: a, lv });
+      }
+      if (!cands.length) break;
+      cands.sort((x, y) => (x.last < y.last ? 1 : x.last > y.last ? -1 : x.name < y.name ? 1 : -1));
+      const { last, name, lv } = cands[0];
+      pending.splice(pending.indexOf(name), 1);
+      const gap = dayDiff(last, first);
+      const jump = cur[first] / lv[last] - 1;
+      if (gap > MAX_SEAM_GAP_DAYS) {
+        skipped.push(`${name} (ends ${last}, ${gap} days before ${first})`);
+        break;
+      }
+      if (!Number.isFinite(jump) || Math.abs(jump) > MAX_SEAM_JUMP) {
+        skipped.push(`${name} (level jumps ${(jump * 100).toFixed(1)}% at ${first})`);
+        continue;
+      }
+      cur = { ...lv, ...cur };
+      cur = Object.fromEntries(Object.keys(cur).sort().map((d) => [d, cur[d]]));
+      used.push(name);
+    }
+    const days = Object.keys(cur);
+    let detail = `${days.length} day(s), ${days[0]} to ${days[days.length - 1]}`;
+    if (used.length) detail += `; earlier years under ${used.join(", ")} (index_id ${iid})`;
+    if (skipped.length) detail += `; not joined: ${skipped.join(", ")}`;
+    if (notes.length) detail += `; ${notes.join("; ")}`;
+    return { ok: true, data: { levels: cur, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: used }, detail };
   });
 }

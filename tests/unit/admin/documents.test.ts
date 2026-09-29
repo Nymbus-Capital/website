@@ -114,3 +114,40 @@ test("concurrent creates do not lose index entries", async () => {
   await Promise.all(Array.from({ length: 8 }, (_, i) => docs.createDocument(base, `f${i}.pdf`, PDF, "x@nymbus.ca")));
   assert.equal((await docs.listPublishedDocuments("firm")).length, 8);
 });
+
+test("single byte-range parsing", () => {
+  const { parseRange } = docs;
+  assert.equal(parseRange(null, 100), "none");
+  assert.deepEqual(parseRange("bytes=0-9", 100), { start: 0, end: 9 });
+  assert.deepEqual(parseRange("bytes=90-", 100), { start: 90, end: 99 });
+  assert.deepEqual(parseRange("bytes=-10", 100), { start: 90, end: 99 });
+  assert.deepEqual(parseRange("bytes=-500", 100), { start: 0, end: 99 });
+  assert.deepEqual(parseRange("bytes=50-5000", 100), { start: 50, end: 99 });
+  assert.equal(parseRange("bytes=100-", 100), "unsatisfiable");
+  assert.equal(parseRange("bytes=20-10", 100), "unsatisfiable");
+  assert.equal(parseRange("bytes=-0", 100), "unsatisfiable");
+  assert.equal(parseRange("bytes=0-1,5-6", 100), "none", "multi-range served in full");
+  assert.equal(parseRange("items=0-1", 100), "none");
+  assert.equal(parseRange("bytes=-", 100), "none");
+  assert.equal(parseRange("bytes=99999999999999999999-", 100), "none");
+});
+
+test("public DTO drops internal fields", async () => {
+  const full = {
+    id: "20260929T043000-1a2b3c4d", scope: "firm" as const, type: "other" as const, lang: "en" as const, title: { en: "t", fr: "" },
+    date: "2026-01-01", fileName: "a.pdf", size: 3, sha256: "x".repeat(64), published: true, uploadedBy: "alice@nymbus.ca", uploadedAt: "2026-01-01T00:00:00Z",
+  };
+  const pub = docs.toPublicDocument(full);
+  assert.deepEqual(Object.keys(pub).sort(), ["date", "fileName", "id", "lang", "scope", "size", "title", "type"]);
+  assert.equal(JSON.stringify(pub).includes("alice"), false);
+  assert.equal(docs.documentUrl(pub), "/api/documents/20260929T043000-1a2b3c4d/a.pdf");
+});
+
+test("file stat for streaming", async () => {
+  const d = await docs.createDocument(
+    { scope: "firm", type: "other", lang: "en", title: { en: "s", fr: "" }, date: "2026-01-01", published: true }, "s.pdf", PDF, "x@nymbus.ca",
+  );
+  const st = await docs.documentFileStat(d.id);
+  assert.equal(st?.size, PDF.length);
+  assert.equal(await docs.documentFileStat("../index.json"), null);
+});

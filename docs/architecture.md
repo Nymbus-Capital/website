@@ -59,6 +59,7 @@ never calls the dataplatform from the browser.
 `/admin` (pages) and `/api/admin/*` (JSON API) require a Microsoft Entra ID sign-in on the Nymbus tenant
 with an account in an allowed domain (`nymbus.ca`). Checks are done server-side on every request
 (`src/proxy.ts` + route handlers): signed session cookie, tenant id, domain, optional group allow-list.
+Setup of the Entra app registration and the security model: [docs/admin.md](admin.md).
 
 ## Environment
 
@@ -67,9 +68,11 @@ with an account in an allowed domain (`nymbus.ca`). Checks are done server-side 
 | `SITE_DATA_DIR` | persistent volume (default `./var`) |
 | `PUBLIC_URL` | public origin, used for the OIDC redirect URI (`<PUBLIC_URL>/api/auth/callback`) |
 | `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` | Entra ID app registration (single tenant) |
-| `AUTH_SECRET` | ≥ 32 random bytes, signs the admin session |
-| `ADMIN_ALLOWED_DOMAINS` | comma separated, default `nymbus.ca` |
+| `AUTH_SECRET` | ≥ 32 random characters (e.g. `openssl rand -base64 48`), signs the admin session; the committed e2e value is refused |
+| `ADMIN_ALLOWED_DOMAINS` | comma separated, default `nymbus.ca`; matched exactly on `preferred_username` / `upn` |
 | `ADMIN_ALLOWED_GROUP_IDS` | optional: only members of these Entra groups (needs the `groups` claim) |
+| `ADMIN_REQUIRED_ROLE` | optional: app role value that must be in the `roles` claim (e.g. `Admin.Web`) |
+| `AUTH_INSECURE_COOKIES_FOR_LOCALHOST` | `1` only for the local e2e server (`PUBLIC_URL` on localhost): non-Secure cookies |
 | `DATAPLATFORM_URL` | internal dataplatform base URL |
 | `DATAPLATFORM_USERNAME`, `DATAPLATFORM_PASSWORD` / `DATAPLATFORM_TOKEN` | optional, if the API gets auth |
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | factsheet archives (app-only, `Sites.Selected` read) |

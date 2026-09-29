@@ -1,4 +1,5 @@
 import { Head, Pill } from "@/components/admin/Head";
+import { requireAdminPage } from "@/lib/auth/server";
 import { readAuditTail } from "@/components/admin/audit-read";
 import { when } from "@/components/admin/format";
 
@@ -14,6 +15,7 @@ function detail(d: unknown): string {
 }
 
 export default async function AuditPage() {
+  await requireAdminPage("/admin/audit"); // defence in depth: every page re-verifies the session (not only the layout)
   const entries = await readAuditTail(200);
   return (
     <>

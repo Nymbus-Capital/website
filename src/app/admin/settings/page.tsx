@@ -1,4 +1,5 @@
 import { getContent } from "@/lib/data/content";
+import { requireAdminPage } from "@/lib/auth/server";
 import { Head } from "@/components/admin/Head";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { when } from "@/components/admin/format";
@@ -6,6 +7,7 @@ import { when } from "@/components/admin/format";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
+  await requireAdminPage("/admin/settings"); // defence in depth: every page re-verifies the session (not only the layout)
   const c = await getContent();
   return (
     <>

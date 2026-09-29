@@ -36,6 +36,10 @@ export interface NavPoint {
   nav_per_share_local?: number | null;
   nav_per_share_cad?: number | null;
   net_daily_return?: number | null;
+  /** "apex_distribution_aware" | "nav_price_ratio" | "legacy_stored" */
+  net_return_method?: string | null;
+  /** valuation date the daily return starts from (previous valuation day) */
+  return_start_date?: string | null;
   nav_type?: string | null;
   short_name?: string | null;
   [k: string]: unknown;
@@ -57,7 +61,10 @@ export interface FundRef { short_name: string; name: string; apex_account?: stri
 /** AUM reduced to fund-level totals (the only thing ever stored or published). */
 export interface AumTotals { snapshot_date: string | null; warningCount: number; totals: Record<string, number> }
 
-export interface FtseLevels { levels: Record<string, number>; rowCount: number; first: string | null; last: string | null }
+export interface FtseLevels { levels: Record<string, number>; rowCount: number; first: string | null; last: string | null; joined?: string[] }
+
+/** analytics repo fund_returns.json, reduced to the series the website uses */
+export interface AnalyticsReturns { dates: string[]; returns: Record<string, (number | null)[]>; where: string }
 
 export interface FactsheetFiles {
   /** file name (e.g. `bonds_data_2026-08.json`) -> parsed JSON */
@@ -90,4 +97,6 @@ export interface RawPayloads {
   aum: SourceResult<AumTotals>;
   ftse: Record<string, SourceResult<FtseLevels>>;
   factsheets: SourceResult<FactsheetFiles>;
+  /** official monthly history before the Apex cutover (analytics repo) */
+  analytics: SourceResult<AnalyticsReturns>;
 }

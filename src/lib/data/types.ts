@@ -48,6 +48,15 @@ export interface Performance {
   calendar: CalendarRow[];
   /** growth of 10 000 $, month-end points */
   growth: GrowthPoint[];
+  /**
+   * class whose returns form the track record, as the source names it (dataplatform monthly-net-returns
+   * `class_code`: "STRATEGY" = the F class, "STRATEGY_H" = SEB's H class); optional
+   */
+  returnClass?: string;
+  /** human-readable label of `returnClass`, e.g. "Series F"; optional */
+  returnClassLabel?: string;
+  /** name of the benchmark series as published (factsheet label); optional */
+  indexName?: string;
 }
 
 export interface RiskStats {
@@ -61,6 +70,11 @@ export interface RiskStats {
   positiveMonths: number | null;
   bestMonth: number | null;
   worstMonth: number | null;
+  /**
+   * when a value is a published figure (factsheet string), the number of decimals it was published with,
+   * in display units (percent points for percentages): render at that precision. Optional.
+   */
+  decimals?: Partial<Record<"annReturn" | "annVol" | "downsideDev" | "sharpe" | "sortino" | "maxDrawdown" | "positiveMonths" | "bestMonth" | "worstMonth", number>>;
 }
 
 export interface NavClass {
@@ -69,10 +83,18 @@ export interface NavClass {
   display: string;
   currency: string;
   nav: number | null;
+  /** valuation date of `nav` (each class has its own date) */
   date: string | null;
   prevNav: number | null;
+  /** valuation date of `prevNav` (the previous valuation day) */
+  prevDate?: string | null;
+  /** NAV difference in class currency; null whenever `changePct` is null */
   change: number | null;
-  /** relative change vs previous valuation day (decimal) */
+  /**
+   * daily TOTAL return vs the previous valuation day (decimal): the administrator's distribution-aware
+   * net daily return (Apex `apex_distribution_aware`), so a distribution does not show as a loss. null
+   * when that return is not available for exactly the previous valuation day.
+   */
   changePct: number | null;
 }
 
@@ -117,6 +139,11 @@ export interface FundData {
 export interface SiteData {
   schemaVersion: 1;
   generatedAt: string;
+  /** pipeline run that produced this dataset (optional; present in published/ and snapshots/) */
+  runId?: string;
+  /** when / by whom this dataset was published (optional; set only in published/site-data.json) */
+  publishedAt?: string;
+  publishedBy?: string;
   /** "live" = produced by the pipeline; "sample" = illustrative seed shipped in the repo */
   mode: "live" | "sample";
   asOf: { performance: string | null; nav: string | null; aum: string | null; factsheet: string | null };

@@ -1,8 +1,10 @@
 /**
  * Admin session + OIDC flow cookies (jose). Server only, Node runtime (used by src/proxy.ts and route handlers).
  *
- *  - session: HS256 JWT signed with AUTH_SECRET, 8 h, claims { sub (oid), email, name, tid, iat, exp },
+ *  - session: HS256 JWT signed with AUTH_SECRET, 4 h, claims { sub (oid), email, name, tid, jti, pv, iat, exp },
  *    iss/aud "nymbus-admin", in the `__Host-nymbus_admin` cookie (HttpOnly, Secure, SameSite=Lax, Path=/).
+ *    `jti` can be revoked server-side (logout, src/lib/auth/revocation.ts); `pv` is the policy fingerprint at sign-in
+ *    (a tightened policy — new group / role requirement, removed domain — invalidates older sessions).
  *  - OIDC transient state (state, nonce, PKCE verifier, returnTo): encrypted + authenticated JWE
  *    (dir / A256GCM, key derived from AUTH_SECRET), 10 min, in `__Host-nymbus_oidc`.
  *
@@ -12,6 +14,8 @@ import { EncryptJWT, SignJWT, jwtDecrypt, jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 import { loadAuthConfig, type AuthConfig } from "./config.ts";
 import { evaluateSession, type PolicyResult } from "./policy.ts";
+import { isRevoked } from "./revocation.ts";
+import { randomToken } from "./pkce.ts";
 import { FLOW_TTL_SECONDS, SESSION_TTL_SECONDS, checkCsrf, sanitizeReturnTo } from "./guards.ts";
 
 export const SESSION_ISSUER = "nymbus-admin";
@@ -22,6 +26,11 @@ export interface AdminUser {
   email: string;
   name: string;
   tid: string;
+}
+
+export interface SessionInfo {
+  jti: string;
+  exp: number;
 }
 
 export function authConfig(): ReturnType<typeof loadAuthConfig> {
@@ -44,8 +53,9 @@ async function flowKey(cfg: AuthConfig): Promise<Uint8Array> {
 /* ------------------------------------------------------------------ session */
 
 export async function createSessionToken(user: AdminUser, cfg: AuthConfig): Promise<string> {
-  return new SignJWT({ email: user.email, name: user.name, tid: user.tid })
+  return new SignJWT({ email: user.email, name: user.name, tid: user.tid, pv: cfg.policyVersion })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setJti(randomToken(24))
     .setSubject(user.oid)
     .setIssuer(SESSION_ISSUER)
     .setAudience(SESSION_AUDIENCE)
@@ -55,7 +65,7 @@ export async function createSessionToken(user: AdminUser, cfg: AuthConfig): Prom
 }
 
 export type SessionCheck =
-  | { status: "ok"; user: AdminUser }
+  | { status: "ok"; user: AdminUser; session: SessionInfo }
   | { status: "none" } // no / invalid / expired cookie → sign in
   | { status: "denied"; message: string } // valid signature but the policy refuses → 403
   | { status: "misconfigured"; message: string }; // auth disabled (fail closed) → 503
@@ -70,18 +80,28 @@ export async function verifySessionToken(token: string | undefined, cfg: AuthCon
       audience: SESSION_AUDIENCE,
       clockTolerance: 30,
       maxTokenAge: `${SESSION_TTL_SECONDS + 60}s`,
-      requiredClaims: ["sub", "iat", "exp", "email", "tid"],
+      requiredClaims: ["sub", "iat", "exp", "email", "tid", "jti", "pv"],
     });
     payload = r.payload as Record<string, unknown>;
   } catch {
     return { status: "none" };
   }
+  // sessions issued under another authorization policy must sign in again
+  if (payload.pv !== cfg.policyVersion) return { status: "none" };
+  const jti = payload.jti;
+  const exp = payload.exp;
+  if (typeof jti !== "string" || typeof exp !== "number") return { status: "none" };
+  try {
+    if (await isRevoked(jti)) return { status: "none" };
+  } catch {
+    return { status: "none" }; // fail closed
+  }
   const res: PolicyResult = evaluateSession(
     { sub: payload.sub, email: payload.email, name: payload.name, tid: payload.tid },
-    { tenantId: cfg.tenantId, allowedDomains: cfg.allowedDomains, allowedGroupIds: cfg.allowedGroupIds },
+    { tenantId: cfg.tenantId, allowedDomains: cfg.allowedDomains, allowedGroupIds: cfg.allowedGroupIds, requiredRole: cfg.requiredRole },
   );
   if (!res.ok) return { status: "denied", message: res.message };
-  return { status: "ok", user: { oid: res.oid, email: res.email, name: res.name, tid: res.tid } };
+  return { status: "ok", user: { oid: res.oid, email: res.email, name: res.name, tid: res.tid }, session: { jti, exp } };
 }
 
 export async function checkRequestSession(req: NextRequest): Promise<SessionCheck> {

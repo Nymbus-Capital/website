@@ -127,3 +127,24 @@ test("factsheets through Graph: client credentials, encoded path, 429 Retry-Afte
   assert.match(d.error!, /Graph token: HTTP 401/);
   assert.ok(!d.error!.includes("s3cr3t"));
 });
+
+test("analytics: GitHub contents API (raw media type, bearer token), only registry series kept; errors explained", async () => {
+  const { fetchAnalytics } = await import("../../../src/lib/pipeline/sources/analytics.ts");
+  const seen: { url: string; headers: Headers }[] = [];
+  const body = { dates: ["2026-06-30", "2026-07-31"], returns: { "Nymbus Monthly Income": [0.001, null], "Some Peer": [0.1, 0.2], "Nymbus Sustainable Enhanced Bonds": [0.002] } };
+  const f = (async (input: string | URL | Request, init?: RequestInit) => {
+    seen.push({ url: String(input), headers: new Headers(init?.headers) });
+    return new Response(JSON.stringify(body), { status: 200 });
+  }) as typeof fetch;
+  const r = await fetchAnalytics(f, { GITHUB_TOKEN: "ghs_x", PIPELINE_RETRY_BASE_MS: "0" });
+  assert.ok(r.ok, r.error);
+  assert.equal(seen[0].url, "https://api.github.com/repos/Nymbus-Capital/analytics/contents/fund-analytics-app/backend/data/fund_returns.json?ref=main");
+  assert.equal(seen[0].headers.get("accept"), "application/vnd.github.raw+json");
+  assert.equal(seen[0].headers.get("authorization"), "Bearer ghs_x");
+  assert.deepEqual(r.data!.returns, { "Nymbus Monthly Income": [0.001, null] }, "peer dropped; length-mismatched series dropped");
+  const e404 = await fetchAnalytics((async () => new Response("", { status: 404 })) as typeof fetch, { GITHUB_TOKEN: "ghs_x", ANALYTICS_REPO: "o/r", PIPELINE_RETRY_BASE_MS: "0" });
+  assert.match(e404.error!, /GitHub HTTP 404: the GITHUB_TOKEN cannot see o\/r/);
+  assert.ok(!e404.error!.includes("ghs_x"));
+  const none = await fetchAnalytics(fetch, {});
+  assert.match(none.error!, /neither ANALYTICS_RETURNS_FILE nor GITHUB_TOKEN/);
+});

@@ -56,6 +56,25 @@ test.describe("sign-in gate", () => {
     expect(r.headers()["set-cookie"] ?? "").not.toMatch(/nymbus_admin=[^;]/);
   });
 
+  test("pages get a nonce-based CSP without script 'unsafe-inline'", async ({ request, page }) => {
+    const r1 = await request.get("/");
+    const r2 = await request.get("/");
+    const csp1 = r1.headers()["content-security-policy"] ?? "";
+    const csp2 = r2.headers()["content-security-policy"] ?? "";
+    const script = csp1.split(/;\s*/).find((d) => d.startsWith("script-src")) ?? "";
+    expect(script).toMatch(/'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+    expect(script).not.toContain("unsafe-inline");
+    expect(csp1).not.toBe(csp2); // fresh nonce per request
+    const nonce = /'nonce-([^']+)'/.exec(script)![1];
+    expect(await r1.text()).toContain(`nonce="${nonce}"`);
+    // no CSP violation while the page runs (theme script + Next bootstrap carry the nonce)
+    const violations: string[] = [];
+    page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) violations.push(m.text()); });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    expect(violations).toEqual([]);
+  });
+
   test("/api/health is public and minimal", async ({ request }) => {
     const r = await request.get("/api/health");
     expect(r.status()).toBe(200);
@@ -82,8 +101,9 @@ test.describe("API guards", () => {
     }
   });
 
-  test("forged, expired or wrongly signed sessions answer 401", async ({ request }) => {
+  test("forged, expired, wrongly signed or outdated-policy sessions answer 401", async ({ request }) => {
     const bad = [
+      await mintSession({ email: "alice@nymbus.ca", pv: "0000000000000000" }),
       await mintSession({ email: "alice@nymbus.ca", secret: "another-secret-0123456789abcdef0123456789" }),
       await mintSession({ email: "alice@nymbus.ca", expSeconds: -120 }),
       "eyJhbGciOiJub25lIn0.eyJlbWFpbCI6ImFsaWNlQG55bWJ1cy5jYSJ9.",
@@ -224,6 +244,18 @@ test.describe("admin flows", () => {
     expect(dl.status()).toBe(200);
     expect(dl.headers()["content-type"]).toBe("application/pdf");
     expect(dl.headers()["x-content-type-options"]).toContain("nosniff");
+    expect(dl.headers()["cache-control"]).toBe("public, no-cache");
+    expect(dl.headers()["accept-ranges"]).toBe("bytes");
+    const etag = dl.headers()["etag"];
+    expect((await request.get(`/api/documents/${id}`, { headers: { "if-none-match": etag } })).status()).toBe(304);
+    const part = await request.get(`/api/documents/${id}`, { headers: { range: "bytes=0-4" } });
+    expect(part.status()).toBe(206);
+    expect(part.headers()["content-range"]).toMatch(/^bytes 0-4\/\d+$/);
+    expect((await part.body()).toString("latin1")).toBe("%PDF-");
+    expect((await request.get(`/api/documents/${id}`, { headers: { range: "bytes=999999-" } })).status()).toBe(416);
+    const head = await request.head(`/api/documents/${id}`);
+    expect(head.status()).toBe(200);
+    expect(Number(head.headers()["content-length"])).toBe(tinyPdf().length);
     expect(dl.headers()["content-disposition"]).toMatch(/^inline; filename="Fund Facts _e2e_\.pdf"; filename\*=UTF-8''Fund%20Facts%20_e2e_\.pdf$/);
     expect((await dl.body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
     expect((await request.get(`/api/documents/${id}/Fund%20Facts%20_e2e_.pdf`)).status()).toBe(200);
@@ -241,11 +273,14 @@ test.describe("admin flows", () => {
     expect(del.status()).toBe(200);
   });
 
-  test("logout clears the session", async ({ request }) => {
+  test("logout clears and revokes the session", async ({ request }) => {
     const t = await mintSession({ email: "alice@nymbus.ca" });
+    expect((await request.get("/api/admin/me", { headers: { cookie: `${SESSION_COOKIE}=${t}` } })).status()).toBe(200);
     const r = await request.post("/api/auth/logout", { headers: { cookie: `${SESSION_COOKIE}=${t}`, origin: BASE, accept: "application/json" } });
     expect(r.status()).toBe(200);
     expect(r.headers()["set-cookie"]).toMatch(/nymbus_admin=;.*Max-Age=0/i);
+    // the same token replayed after logout is rejected server-side
+    expect((await request.get("/api/admin/me", { headers: { cookie: `${SESSION_COOKIE}=${t}` } })).status()).toBe(401);
     const x = await request.post("/api/auth/logout", { headers: { origin: "https://evil.example" } });
     expect(x.status()).toBe(403);
   });

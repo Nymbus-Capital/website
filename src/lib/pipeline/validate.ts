@@ -19,10 +19,19 @@ import type { FundData, FundKey, Issue, NavClass, PeriodMap, SiteData } from "..
 import { PERIODS } from "../data/types.ts";
 import type { FundContext } from "./build.ts";
 import { computeAsOf } from "./build.ts";
-import { PIPELINE_FUNDS, TOL } from "./config.ts";
+import { factsheetTolerance, PIPELINE_FUNDS, TOL } from "./config.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
-export interface FundValidation { fund: FundKey; blocking: Issue[]; warnings: Issue[] }
+export interface FundValidation {
+  fund: FundKey;
+  blocking: Issue[];
+  warnings: Issue[];
+  /**
+   * reasons a human must look at although the fund is published (performance carried over / withheld /
+   * stale, carried NAV / AUM / factsheet, revised months, error-level issues): run status "blocked" + alert
+   */
+  alerts: string[];
+}
 
 const days = (a: string, b: Date): number => (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
 const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
@@ -81,7 +90,8 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
       const a = p.trailing.fund[per];
       const b = fs[per];
       if (a == null || b == null) continue;
-      if (Math.abs(a - b) > TOL.factsheetBlock) blocking.push({ key: `${base}.trailing.${per}`, level: "error", message: `trailing ${per}: computed ${pct(a)} vs factsheet ${ctx.factsheetTrailingFile ?? ""} ${pct(b)} (difference > ${TOL.factsheetBlock * 100}%)` });
+      const tol = factsheetTolerance(per, ctx.factsheetTrailingDecimals?.[per] ?? 1);
+      if (Math.abs(a - b) > tol.block) blocking.push({ key: `${base}.trailing.${per}`, level: "error", message: `trailing ${per}: computed ${pct(a)} vs factsheet ${ctx.factsheetTrailingFile ?? ""} ${pct(b)} (difference > ${(tol.block * 100).toFixed(3)}%)` });
     }
   }
   // growth consistent with the monthly returns
@@ -91,7 +101,7 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
     if (last.date !== p.asOf || Math.abs(last.fund - expected) > 0.01) blocking.push({ key: `${base}.performance.growth`, level: "error", message: `growth of 10 000 ends at ${last.date} ${last.fund.toFixed(2)}, expected ${p.asOf} ${expected.toFixed(2)}` });
   }
   const closed = lastClosedMonth(now);
-  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "warn", message: `performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
+  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
 }
 
 function checkNav(f: FundData, prev: FundData | undefined, base: string, repairs: Issue[], warnings: Issue[], now: Date): void {
@@ -106,7 +116,7 @@ function checkNav(f: FundData, prev: FundData | undefined, base: string, repairs
       continue;
     }
     kept.push(k);
-    if (k.date && days(k.date, now) > TOL.navStaleDays) warnings.push({ key: `${base}.nav.${k.fundserv}`, level: "warn", message: `NAV ${k.display} (${k.fundserv}) dated ${k.date} is older than ${TOL.navStaleDays} days` });
+    if (k.date && days(k.date, now) > TOL.navStaleDays) warnings.push({ key: `${base}.nav.${k.fundserv}`, level: "error", message: `stale: NAV ${k.display} (${k.fundserv}) dated ${k.date} is older than ${TOL.navStaleDays} days` });
   }
   f.nav.classes = kept;
   if (!kept.length) f.nav = null;
@@ -120,7 +130,7 @@ function checkAum(f: FundData, prev: FundData | undefined, base: string, repairs
     f.aum = prev?.aum && Number.isFinite(prev.aum.cad) && prev.aum.cad >= 0 ? prev.aum : null;
     return;
   }
-  if (days(f.aum.asOf, now) > TOL.navStaleDays) warnings.push({ key: `${base}.aum`, level: "warn", message: `AUM snapshot ${f.aum.asOf} is older than ${TOL.navStaleDays} days` });
+  if (days(f.aum.asOf, now) > TOL.navStaleDays) warnings.push({ key: `${base}.aum`, level: "error", message: `stale: AUM snapshot ${f.aum.asOf} is older than ${TOL.navStaleDays} days` });
 }
 
 export interface ValidationOutcome {
@@ -151,7 +161,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     if (!f) {
       funds[key] = prev ? "kept-previous" : "unavailable";
       if (prev) data.funds[key] = prev;
-      results.push({ fund: key, blocking, warnings });
+      results.push({ fund: key, blocking, warnings, alerts: [...(ctx?.alerts ?? []), prev ? "fund carried over" : "fund unavailable"] });
       continue;
     }
     const repairs: Issue[] = [];
@@ -173,10 +183,14 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       }
     } else {
       const parts = ctx?.parts;
-      const allCarried = parts ? Object.values(parts).every((s) => s !== "fresh") : false;
+      const allCarried = parts ? Object.values(parts).every((s) => s !== "fresh" && s !== "held") : false;
       funds[key] = allCarried && prev ? "kept-previous" : "updated";
     }
-    results.push({ fund: key, blocking, warnings: [...repairs, ...warnings] });
+    const alerts = [...(ctx?.alerts ?? [])];
+    if (blocking.length) alerts.push("blocked by validation");
+    for (const i of [...repairs, ...warnings]) if (i.level === "error") alerts.push(i.message);
+    for (const i of input.issues) if (i.level === "error" && (i.key === base || i.key.startsWith(`${base}.`))) alerts.push(i.message);
+    results.push({ fund: key, blocking, warnings: [...repairs, ...warnings], alerts: [...new Set(alerts)] });
   }
   data.issues = [...data.issues, ...extraIssues];
   data.asOf = computeAsOf(data.funds);

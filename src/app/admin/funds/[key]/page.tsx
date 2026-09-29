@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAdminPage } from "@/lib/auth/server";
 import { notFound } from "next/navigation";
 import { FUNDS } from "@/config/funds";
 import { getContent } from "@/lib/data/content";
@@ -6,13 +7,14 @@ import { getSiteData } from "@/lib/data/site";
 import type { FundKey } from "@/lib/data/types";
 import { Head, Pill } from "@/components/admin/Head";
 import { FundEditor } from "@/components/admin/FundEditor";
-import { summarizeFund } from "@/components/admin/summary";
+import { isPinnable, summarizeFund } from "@/components/admin/summary";
 import { money, num, pct, when } from "@/components/admin/format";
 import { safeRuns } from "../../_lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function FundPage({ params }: { params: Promise<{ key: string }> }) {
+  await requireAdminPage("/admin/funds"); // defence in depth: every page re-verifies the session (not only the layout)
   const { key } = await params;
   const spec = FUNDS.find((f) => f.key === key);
   if (!spec) notFound();
@@ -20,7 +22,8 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
   const fc = content.funds[spec.key as FundKey] ?? {};
   const live = summarizeFund(spec.key, site?.funds?.[spec.key]);
   const pinnable = runs
-    .filter((r) => (r.status === "published" || r.status === "pending-review") && r.funds?.[spec.key] === "updated")
+    // live-data check happens on save (the list only has reports)
+    .filter((r) => isPinnable(r, { mode: "live" }) && r.funds?.[spec.key] === "updated")
     .map((r) => ({ id: r.id, label: `${when(r.startedAt)} · perf ${r.asOf?.performance ?? "—"} · ${r.status}` }));
   if (fc.pinnedSnapshot && !pinnable.some((p) => p.id === fc.pinnedSnapshot)) pinnable.unshift({ id: fc.pinnedSnapshot, label: `${fc.pinnedSnapshot} (current pin)` });
   return (

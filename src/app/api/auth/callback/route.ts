@@ -2,7 +2,7 @@
  * GET /api/auth/callback?code&state — completes the Entra ID sign-in:
  *   flow cookie (encrypted, ≤ 10 min) → state match → code exchange with the PKCE verifier (confidential client) →
  *   id_token verification (RS256 / JWKS, issuer, audience, nonce, tid) → admin policy (member, domain, groups) →
- *   8 h session cookie → redirect to the sanitised returnTo.
+ *   4 h session cookie → redirect to the sanitised returnTo.
  * The flow cookie is single use (cleared on every outcome). Tokens are never logged.
  */
 import { NextResponse, type NextRequest } from "next/server";
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     return fail(oe.code === "tenant" ? 403 : 401, "sign-in failed", oe.message);
   }
 
-  const decision = evaluateLogin(claims, { tenantId: cfg.tenantId, allowedDomains: cfg.allowedDomains, allowedGroupIds: cfg.allowedGroupIds });
+  const decision = evaluateLogin(claims, { tenantId: cfg.tenantId, allowedDomains: cfg.allowedDomains, allowedGroupIds: cfg.allowedGroupIds, requiredRole: cfg.requiredRole });
   if (!decision.ok) {
     console.warn(`[auth] admin access denied: ${decision.reason}`);
     await audit({ by: "anonymous", action: "auth.denied", detail: { reason: decision.reason } }).catch(() => undefined);

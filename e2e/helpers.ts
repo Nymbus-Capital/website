@@ -1,11 +1,12 @@
 /**
  * e2e helpers for the admin. A session is minted with AUTH_SECRET exactly as /api/auth/callback would after a
- * successful Microsoft sign-in (HS256, iss/aud "nymbus-admin", 8 h). There is no auth bypass in the application:
+ * successful Microsoft sign-in (HS256, iss/aud "nymbus-admin", jti, policy version `pv`, 4 h max). There is no auth bypass in the application:
  * these tests only work because the test knows the (test-only) secret of the e2e server.
  */
 import { SignJWT } from "jose";
 import type { BrowserContext, Page } from "@playwright/test";
 import { E2E_ENV } from "../playwright.config";
+import { parseAllowedDomains, policyVersion } from "../src/lib/auth/policy.ts";
 
 export const BASE = E2E_ENV.PUBLIC_URL;
 export const TENANT = E2E_ENV.AZURE_TENANT_ID;
@@ -13,10 +14,19 @@ export const OTHER_TENANT = "22222222-2222-2222-2222-22222222e2e2";
 /** name of the session cookie on the e2e server (AUTH_INSECURE_COOKIES_FOR_LOCALHOST=1, http://localhost) */
 export const SESSION_COOKIE = "nymbus_admin";
 
-export async function mintSession(o: { email: string; tid?: string; oid?: string; name?: string; expSeconds?: number; secret?: string }): Promise<string> {
+/** policy fingerprint of the e2e server (same inputs as loadAuthConfig) */
+export const E2E_POLICY_VERSION = policyVersion({
+  tenantId: E2E_ENV.AZURE_TENANT_ID,
+  allowedDomains: parseAllowedDomains(E2E_ENV.ADMIN_ALLOWED_DOMAINS),
+  allowedGroupIds: [],
+  requiredRole: "",
+});
+
+export async function mintSession(o: { email: string; tid?: string; oid?: string; name?: string; expSeconds?: number; secret?: string; pv?: string; jti?: string }): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({ email: o.email, name: o.name ?? o.email.split("@")[0], tid: o.tid ?? TENANT })
+  return new SignJWT({ email: o.email, name: o.name ?? o.email.split("@")[0], tid: o.tid ?? TENANT, pv: o.pv ?? E2E_POLICY_VERSION })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setJti(o.jti ?? `e2e${crypto.randomUUID().replace(/-/g, "")}`)
     .setSubject(o.oid ?? "33333333-3333-3333-3333-33333333e2e3")
     .setIssuer("nymbus-admin")
     .setAudience("nymbus-admin")

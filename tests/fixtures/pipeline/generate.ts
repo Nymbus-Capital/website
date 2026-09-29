@@ -15,7 +15,7 @@
  * The factsheet figures are computed from the same synthetic series (rounded like the producer), so the
  * pipeline cross-checks pass on the fixtures.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addMonths, annualize, calendarYears, compound, downsideDeviation, maxDrawdown, monthEnd, pstdev, sum, trailing, window, type Method, type Series } from "../../../src/lib/pipeline/metrics.ts";
@@ -60,13 +60,24 @@ for (const m of months("2019-01-31", LAST_MONTH)) {
   idxShort[m] = r8(0.0019 + 0.0055 * common);
   idxUniv[m] = r8(0.0021 + 0.0145 * (0.8 * common + 0.6 * g()));
 }
+/** FTSE series (dataplatform): equal to the published index from the FTSE cutover (2026-05), a different definition before */
+const FTSE_FROM = "2026-05-31";
+const ftseShortCorp: Series = {};
+const ftseUniv: Series = {};
+for (const m of months("2019-01-31", LAST_MONTH)) {
+  const d = g();
+  ftseShortCorp[m] = m >= FTSE_FROM ? idxShort[m] : r8(idxShort[m] + 0.0004 * d);
+  ftseUniv[m] = m >= FTSE_FROM ? idxUniv[m] : r8(idxUniv[m] + 0.0006 * d);
+}
 const sest: Series = {};
 for (const m of months("2019-01-31", LAST_MONTH)) sest[m] = r8(0.0008 + 0.8 * idxShort[m] + 0.0035 * g());
 const seb: Series = {};
 for (const m of months("2019-02-28", LAST_MONTH)) seb[m] = r8(0.0006 + 0.9 * idxUniv[m] + 0.0045 * g());
 const multi: Series = {};
+const multiAll = multi;
 for (const m of months("2019-01-31", LAST_MONTH)) multi[m] = r8(0.0055 + 0.019 * g());
 const gmv: Series = {};
+const gmvAll = gmv;
 for (const m of months("2015-01-31", LAST_MONTH)) gmv[m] = r8(0.0042 + 0.016 * g());
 
 /* ------------------------------------------------------------------ formatting like convert_to_percent_str */
@@ -74,23 +85,26 @@ const pyRound1 = (x: number): string => (Math.round(x * 10) / 10).toFixed(1);
 const pctStr = (x: number | null, plus = false): string => (x === null ? "nan" : `${plus && x > 0 ? "+" : ""}${pyRound1(x * 100)}%`);
 const numStr = (x: number | null): string => (x === null ? "nan" : pyRound1(x * 100));
 
+let END = LAST_MONTH;
+const upTo = (s: Series, end: string): Series => Object.fromEntries(Object.keys(s).filter((k) => k <= end).sort().map((k) => [k, s[k]]));
+
 function trailingStrings(s: Series, method: Method, withPct: boolean, plus = false): Record<string, string> {
-  const t = trailing(s, LAST_MONTH, { method });
+  const t = trailing(s, END, { method });
   const out: Record<string, string> = {};
   const fmt = (v: number | null): string => (withPct ? pctStr(v, plus) : numStr(v));
   out["1M"] = fmt(t["1M"]);
   out["3M"] = fmt(t["3M"]);
-  out["2026"] = fmt(t.YTD);
+  out[END.slice(0, 4)] = fmt(t.YTD);
   for (const p of ["1Y", "2Y", "3Y", "5Y"] as const) if (t[p] !== null) out[p] = fmt(t[p]);
   out["SI"] = fmt(t.SI);
   return out;
 }
 function vaStrings(f: Series, i: Series): Record<string, string> {
-  const tf = trailing(f, LAST_MONTH);
+  const tf = trailing(f, END);
   const first = Object.keys(f).sort()[0];
-  const ti = trailing(i, LAST_MONTH, { siStart: first });
+  const ti = trailing(i, END, { siStart: first });
   const out: Record<string, string> = {};
-  const labels: [string, keyof typeof tf][] = [["1M", "1M"], ["3M", "3M"], ["2026", "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
+  const labels: [string, keyof typeof tf][] = [["1M", "1M"], ["3M", "3M"], [END.slice(0, 4), "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
   for (const [lab, k] of labels) {
     const a = tf[k];
     const b = ti[k];
@@ -102,17 +116,17 @@ function vaStrings(f: Series, i: Series): Record<string, string> {
 }
 function indexTrailingStrings(f: Series, i: Series): Record<string, string> {
   const first = Object.keys(f).sort()[0];
-  const ti = trailing(i, LAST_MONTH, { siStart: first });
-  const tf = trailing(f, LAST_MONTH);
+  const ti = trailing(i, END, { siStart: first });
+  const tf = trailing(f, END);
   const out: Record<string, string> = {};
-  const labels: [string, keyof typeof ti][] = [["1M", "1M"], ["3M", "3M"], ["2026", "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
+  const labels: [string, keyof typeof ti][] = [["1M", "1M"], ["3M", "3M"], [END.slice(0, 4), "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
   for (const [lab, k] of labels) if (tf[k] !== null) out[lab] = pctStr(ti[k]);
   return out;
 }
 function calendarStrings(f: Series, i: Series | null, fundName: string, indexName: string | null): Record<string, Record<string, string>> {
   const first = Object.keys(f).sort()[0];
-  const cf = calendarYears(f, LAST_MONTH, { first });
-  const ci = i ? new Map(calendarYears(i, LAST_MONTH, { first }).map((y) => [y.year, y.value])) : null;
+  const cf = calendarYears(f, END, { first });
+  const ci = i ? new Map(calendarYears(i, END, { first }).map((y) => [y.year, y.value])) : null;
   const out: Record<string, Record<string, string>> = { [fundName]: {} };
   if (indexName) {
     out[indexName] = {};
@@ -129,7 +143,9 @@ function calendarStrings(f: Series, i: Series | null, fundName: string, indexNam
   return out;
 }
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function monthlyTable(s: Series, method: Method): Record<string, Record<string, string>> {
+const pctN = (x: number, n: number): string => `${(Math.round(x * 100 * 10 ** n) / 10 ** n).toFixed(n)}%`;
+function monthlyTable(s0: Series, method: Method, dec = 1): Record<string, Record<string, string>> {
+  const s = upTo(s0, END);
   const out: Record<string, Record<string, string>> = {};
   const years = [...new Set(Object.keys(s).map((k) => k.slice(0, 4)))].sort().reverse();
   for (const y of years) {
@@ -138,7 +154,7 @@ function monthlyTable(s: Series, method: Method): Record<string, Record<string, 
     for (let m = 1; m <= 12; m++) {
       const k = monthEnd(Number(y), m);
       if (k in s) {
-        row[`${String(m).padStart(2, "0")}-${MON[m - 1]}`] = pctStr(s[k]);
+        row[`${String(m).padStart(2, "0")}-${MON[m - 1]}`] = dec === 1 ? pctStr(s[k]) : pctN(s[k], dec);
         rs.push(s[k]);
       } else {
         row[`${String(m).padStart(2, "0")}-${MON[m - 1]}`] = "nan";
@@ -150,7 +166,7 @@ function monthlyTable(s: Series, method: Method): Record<string, Record<string, 
   return out;
 }
 function statistics(s: Series, method: Method, months?: number): Record<string, string> {
-  const rs = months ? window(s, LAST_MONTH, months)! : window(s, LAST_MONTH)!;
+  const rs = months ? window(s, END, months)! : window(s, END)!;
   const ann = method === "arithmetic" ? (sum(rs) / rs.length) * 12 : annualize(rs);
   const vol = pstdev(rs) * Math.sqrt(12);
   const dd = downsideDeviation(rs)!;
@@ -170,10 +186,12 @@ function statistics(s: Series, method: Method, months?: number): Record<string, 
 }
 
 /* ------------------------------------------------------------------ dataplatform payloads */
+/** Apex cutover: the distribution-aware daily chain exists from this month on */
+export const APEX_READY_FROM = "2026-08-31";
 function mnr(short: string, s: Series, first: string): unknown {
-  const rows = months(first, LAST_MONTH).map((m) => ({
-    month: m, net_return: s[m], status: "ready", method: "compounded_apex_net_daily", source_dates: [], source_row_ids: [], issue: null,
-  }));
+  const rows = months(first, LAST_MONTH).map((m) => (m >= APEX_READY_FROM
+    ? { month: m, net_return: s[m], status: "ready", method: "compounded_apex_net_daily", source_dates: [], source_row_ids: [], issue: null }
+    : { month: m, net_return: null, status: "unavailable", method: m >= "2026-06-30" ? "compounded_apex_net_daily" : null, source_dates: [], source_row_ids: [], issue: m >= "2026-06-30" ? "Incomplete Apex valuation-day coverage; no partial-month compounding" : "A complete distribution-aware Apex net-return chain is unavailable" }));
   return { short_name: short, class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
 }
 
@@ -206,19 +224,36 @@ const CLASSES: Record<string, { fundserv: string; display: string; currency: str
   ],
 };
 
+/**
+ * NAV rows over the last 3 weeks. Apex rows carry the distribution-aware daily return
+ * (`apex_distribution_aware`, return_start_date = previous valuation day) for CAD classes; the USD class
+ * gets `nav_price_ratio` (as the dataplatform does). LDM021 pays a 0.0400 distribution on the last day
+ * (NAV drops, total return positive). SEB LDM205 misses 2026-09-25 (its last return starts from a day not shown).
+ */
 function navPayload(short: string): unknown {
   const days = businessDays("2026-09-08", "2026-09-28");
   const rnd = gauss(mulberry32(short.length * 7919 + 13));
   const rows: Record<string, unknown>[] = [];
   for (const k of CLASSES[short]) {
     let v = k.nav;
+    let prevDay: string | null = "2026-09-07";
     for (const d of days) {
       const r = (short === "Multistrat" ? 0.004 : 0.0012) * rnd();
+      const before = v;
       v = Math.round(v * (1 + r) * 1e4) / 1e4;
+      let ret = r8(v / before - 1);
+      if (k.fundserv === "LDM021" && d === "2026-09-28") {
+        ret = r8(v / before - 1); // total return of the day
+        v = Math.round((v - 0.04) * 1e4) / 1e4; // ex-distribution NAV
+      }
+      const start = prevDay;
+      prevDay = d;
+      if (k.fundserv === "LDM205" && d === "2026-09-25") continue;
+      const usd = k.currency === "USD";
       const base = { date: d, fundserv: k.fundserv, class_display: k.display, class_code: k.display, currency: k.currency, short_name: short, nav_type: "FINAL_NAV", fund_mapped: true, account: "SYNTHETIC", fund_name: `SYNTHETIC ${short}`, class_name_raw: k.display };
-      rows.push({ ...base, source: "apex", nav_per_share_local: v, nav_per_share_cad: k.currency === "USD" ? Math.round(v * 1.37 * 1e4) / 1e4 : v, net_daily_return: r6(r) });
+      rows.push({ ...base, source: "apex", nav_per_share_local: v, nav_per_share_cad: usd ? Math.round(v * 1.37 * 1e4) / 1e4 : v, net_daily_return: ret, net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: start, return_source_count: 1 });
       // a lagging second source on some days: must lose against apex
-      if (d >= "2026-09-24") rows.push({ ...base, source: "cibc", nav_per_share_local: Math.round(v * 1.003 * 1e4) / 1e4, nav_per_share_cad: null, net_daily_return: null });
+      if (d >= "2026-09-24") rows.push({ ...base, source: "cibc", nav_per_share_local: Math.round(v * 1.003 * 1e4) / 1e4, nav_per_share_cad: null, net_daily_return: null, net_return_method: "nav_price_ratio", return_start_date: null });
     }
   }
   return { short_name: short, start_date: "2026-09-08", end_date: "2026-09-29", nav_type: "FINAL_NAV", include_unmapped: true, sources: ["apex", "cibc"], row_count: rows.length, rows, warnings: [] };
@@ -247,25 +282,60 @@ const aum = {
   rows: [aumRow("SEST", "APEX", 212_345_678.9, 812), aumRow("SEST", "CIBC", 1_234_567.1, 9), aumRow("SEB", "APEX", 148_765_432.1, 402), aumRow("Multistrat", "APEX", 61_234_567.5, 233), aumRow("OTHER", "CIBC", 5_000_000, 12)],
 };
 
-function ftseRows(short: string, indexName: string, s: Series): unknown[] {
-  // monthly -> levels; daily levels on the last 3 business days of each month (flat within those days)
-  const rows: unknown[] = [];
+/**
+ * FTSE index-summary rows: aggregate row + sub-index rows (rating "All" but term "Short", rating "AAA")
+ * on the last 3 weekdays of each month. `split`: rows before that date are published under `oldName`
+ * (a rename with the same index_id: the history must be joined).
+ */
+function ftseRows(short: string, indexName: string, s: Series, split?: { date: string; oldName: string }): { current: unknown[]; old: unknown[] } {
+  const current: unknown[] = [];
+  const old: unknown[] = [];
   let level = 1000;
   const push = (d: string, v: number): void => {
-    const base = { date: d, short_name: short, index_name: indexName, index_content: "synthetic", term: null, industry_sector: null, industry_group: null, price_index: Math.round(v * 0.62 * 1000) / 1000, average_yield: 3.9, modified_duration: short === "univ" ? 7.1 : 2.7 };
-    rows.push({ ...base, rating: null, total_return: Math.round(v * 1e6) / 1e6 });
-    rows.push({ ...base, rating: "All", term: "Short", total_return: Math.round(v * 1.01 * 1e6) / 1e6 });
-    rows.push({ ...base, rating: "AAA", total_return: Math.round(v * 0.97 * 1e6) / 1e6 });
+    const name = split && d < split.date ? split.oldName : short;
+    const into = name === short ? current : old;
+    const base = { date: d, short_name: name, index_name: indexName, index_content: "synthetic", term: null, industry_sector: null, industry_group: null, price_index: Math.round(v * 0.62 * 1000) / 1000, average_yield: 3.9, modified_duration: short === "univ" ? 7.1 : 2.7 };
+    into.push({ ...base, rating: null, total_return: Math.round(v * 1e6) / 1e6 });
+    into.push({ ...base, rating: "All", term: "Short", total_return: Math.round(v * 1.01 * 1e6) / 1e6 });
+    into.push({ ...base, rating: "AAA", total_return: Math.round(v * 0.97 * 1e6) / 1e6 });
   };
-  const decDays = businessDays("2018-12-01", "2018-12-31").slice(-3);
-  for (const d of decDays) push(d, level);
+  for (const d of businessDays("2018-12-01", "2018-12-31").slice(-3)) push(d, level);
   for (const m of months("2019-01-31", LAST_MONTH)) {
+    const before = level;
     level *= 1 + s[m];
-    for (const d of businessDays(`${m.slice(0, 7)}-01`, m).slice(-3)) push(d, level);
+    const days = businessDays(`${m.slice(0, 7)}-01`, m);
+    // the month of a rename is published every weekday (flat until the last 3 days), so the seam is continuous
+    if (split && split.date.slice(0, 7) === m.slice(0, 7)) for (const d of days.slice(0, -3)) push(d, before);
+    for (const d of days.slice(-3)) push(d, level);
   }
-  // a few September days (partial month: not a monthly return)
+  // a few September days (open month: never a monthly return)
   for (const d of businessDays("2026-09-01", "2026-09-28").slice(-3)) push(d, level * 1.002);
-  return rows;
+  return { current, old };
+}
+
+/* ------------------------------------------------------------------ analytics repo fund_returns.json */
+export const ANALYTICS_LAST = "2026-07-31";
+function analyticsPayload(): unknown {
+  const dates = ["2014-12-31", ...months("2015-01-31", ANALYTICS_LAST)];
+  const col = (s: Series): (number | null)[] => dates.map((d) => (d in s ? Math.round(s[d] * 1e6) / 1e6 : null));
+  const spy: Series = {};
+  const rs = gauss(mulberry32(7));
+  for (const d of dates.slice(1)) spy[d] = r8(0.009 + 0.04 * rs());
+  return {
+    funds: [
+      { name: "Nymbus Monthly Income", category: "nymbus", start_date: "2019-01-31", end_date: ANALYTICS_LAST },
+      { name: "Nymbus Sustainable Enhanced Bonds", category: "nymbus", start_date: "2019-02-28", end_date: ANALYTICS_LAST },
+      { name: "Nymbus Multistrategy (Inc. discretionary strats history)", category: "nymbus", start_date: "2019-01-31", end_date: ANALYTICS_LAST },
+      { name: "Synthetic Peer ETF", category: "peer", start_date: "2015-01-31", end_date: ANALYTICS_LAST },
+    ],
+    dates,
+    returns: {
+      "Nymbus Monthly Income": col(sest),
+      "Nymbus Sustainable Enhanced Bonds": col(seb),
+      "Nymbus Multistrategy (Inc. discretionary strats history)": col(multi),
+      "Synthetic Peer ETF": col(spy),
+    },
+  };
 }
 
 /* ------------------------------------------------------------------ factsheets */
@@ -275,13 +345,14 @@ const SEB_NAME = "Nymbus Sustainable Enhanced Bonds Fund";
 const SEB_IDX = "FTSE Canada Universe Bond Index";
 
 function bondBlock(kind: "SEST" | "SEB"): unknown {
-  const f = kind === "SEST" ? sest : seb;
-  const i = kind === "SEST" ? idxShort : idxUniv;
+  const f = upTo(kind === "SEST" ? sest : seb, END);
+  const i = upTo(kind === "SEST" ? idxShort : idxUniv, END);
   const name = kind === "SEST" ? SEST_NAME : SEB_NAME;
   const idx = kind === "SEST" ? SEST_IDX : SEB_IDX;
   const first = Object.keys(f).sort()[0];
   const iAligned: Series = {};
   for (const k of Object.keys(i)) if (k >= first) iAligned[k] = i[k];
+  void iAligned;
   const trailingNet = { [name]: trailingStrings(f, "compounded", true), [idx]: indexTrailingStrings(f, i), "Value Added": vaStrings(f, i) };
   const short = kind === "SEST";
   return {
@@ -320,17 +391,19 @@ function bondBlock(kind: "SEST" | "SEB"): unknown {
         Index: {},
       },
     },
-    [`Monthly Returns: Nymbus ${kind} Net`]: monthlyTable(f, "compounded"),
+    [`Monthly Returns: Nymbus ${kind === "SEB" ? "QCFI-SEB" : kind} Net`]: monthlyTable(f, "compounded", 2),
+    [`Monthly Returns: ${idx}`]: monthlyTable(i, "compounded", 2),
   };
 }
 
 function multiBlock(): unknown {
+  const multi = upTo(multiAll, END);
   const trailingNet = trailingStrings(multi, "compounded", false);
   return {
-    "Calendar Performance Gross": Object.fromEntries(calendarYears(multi, LAST_MONTH).map((y) => [String(y.year), numStr(y.value! + 0.012)])),
+    "Calendar Performance Gross": Object.fromEntries(calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value! + 0.012)])),
     "Trailing Returns Gross": trailingStrings(Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])), "compounded", false),
     "Monthly Returns Gross": monthlyTable(Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])), "compounded"),
-    "Calendar Performance Net": Object.fromEntries(calendarYears(multi, LAST_MONTH).map((y) => [String(y.year), numStr(y.value)])),
+    "Calendar Performance Net": Object.fromEntries(calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value)])),
     "Trailing Returns Net": trailingNet,
     "Monthly Returns Net": monthlyTable(multi, "compounded"),
     "Portfolio Snapshot": {
@@ -353,9 +426,10 @@ function multiBlock(): unknown {
 }
 
 function gmvBlock(): unknown {
+  const gmv = upTo(gmvAll, END);
   const t = trailingStrings(gmv, "arithmetic", false);
   return {
-    "Calendar Performance Gross": Object.fromEntries(calendarYears(gmv, LAST_MONTH, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)])),
+    "Calendar Performance Gross": Object.fromEntries(calendarYears(gmv, END, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)])),
     "Trailing Returns Gross": t,
     "Value of $10M Investment Gross": {},
     "Monthly Returns Gross": monthlyTable(gmv, "arithmetic"),
@@ -373,11 +447,19 @@ function gmvBlock(): unknown {
 }
 
 /* ------------------------------------------------------------------ write */
+export const FTSE_SHORT_NAMES = [
+  { short_name: "short_corp", index_id: 1101, index_name: "FTSE Canada Short Term Corporate Bond Index" },
+  { short_name: "univ", index_id: 2001, index_name: "FTSE Canada Universe Bond Index" },
+  { short_name: "ftse_tmx_canada_univ", index_id: 2001, index_name: "FTSE TMX Canada Universe Bond Index" },
+  { short_name: "univ_corp", index_id: 2002, index_name: "FTSE Canada Universe Corporate Bond Index" },
+];
+
 export function generate(dir = HERE): void {
   const dp = path.join(dir, "dataplatform");
   const fs = path.join(dir, "factsheets");
   mkdirSync(dp, { recursive: true });
   mkdirSync(fs, { recursive: true });
+  for (const f of ["ftse_short_overall.json"]) rmSync(path.join(dp, f), { force: true });
   const w = (p: string, v: unknown): void => writeFileSync(p, JSON.stringify(v, null, 1) + "\n");
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
@@ -386,10 +468,19 @@ export function generate(dir = HERE): void {
   w(path.join(dp, "apex_funds.json"), apexFunds);
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);
   w(path.join(dp, "aum.json"), aum);
-  w(path.join(dp, "ftse_short_overall.json"), ftseRows("short_overall", "FTSE Canada Short Term Overall Bond Index (synthetic)", idxShort));
-  w(path.join(dp, "ftse_univ.json"), ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", idxUniv));
-  w(path.join(fs, "bonds_data_2026-08.json"), { SEST: bondBlock("SEST"), "QCFI-SEB": bondBlock("SEB") });
-  w(path.join(fs, "factsheet_data_2026-08.json"), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock() });
+  w(path.join(dp, "ftse_short_names.json"), FTSE_SHORT_NAMES);
+  w(path.join(dp, "ftse_short_corp.json"), ftseRows("short_corp", "FTSE Canada Short Term Corporate Bond Index (synthetic)", ftseShortCorp).current);
+  const univ = ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", ftseUniv, { date: "2024-12-05", oldName: "ftse_tmx_canada_univ" });
+  w(path.join(dp, "ftse_univ.json"), univ.current);
+  w(path.join(dp, "ftse_ftse_tmx_canada_univ.json"), univ.old);
+  w(path.join(dir, "analytics_fund_returns.json"), analyticsPayload());
+  for (const end of ["2026-07-31", LAST_MONTH]) {
+    END = end;
+    const ymd = end.slice(0, 7);
+    w(path.join(fs, `bonds_data_${ymd}.json`), { SEST: bondBlock("SEST"), "QCFI-SEB": bondBlock("SEB") });
+    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock() });
+  }
+  END = LAST_MONTH;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {

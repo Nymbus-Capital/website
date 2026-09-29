@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  evaluateLogin, evaluateSession, guestReason, isAllowedEmail, normalizeEmail, parseAllowedDomains, parseGroupIds,
+  evaluateLogin, evaluateSession, guestReason, isAllowedEmail, normalizeEmail, parseAllowedDomains, parseGroupIds, parseRequiredRole, policyVersion,
   type Claims, type PolicyConfig,
 } from "../../../src/lib/auth/policy.ts";
 
@@ -12,7 +12,7 @@ const G1 = "aaaaaaaa-0000-0000-0000-000000000001";
 const G2 = "aaaaaaaa-0000-0000-0000-000000000002";
 
 const cfg: PolicyConfig = { tenantId: TID, allowedDomains: ["nymbus.ca"] };
-const base = (o: Claims = {}): Claims => ({ tid: TID, oid: OID, email: "alice@nymbus.ca", name: "Alice", preferred_username: "alice@nymbus.ca", ...o });
+const base = (o: Claims = {}): Claims => ({ tid: TID, oid: OID, acct: 0, email: "alice@nymbus.ca", name: "Alice", preferred_username: "alice@nymbus.ca", ...o });
 const deny = (claims: Claims, c: PolicyConfig = cfg) => {
   const r = evaluateLogin(claims, c);
   assert.equal(r.ok, false, `expected deny for ${JSON.stringify(claims)}`);
@@ -49,7 +49,7 @@ test("missing oid is denied", () => {
 test("guest accounts (#EXT#) are denied whatever the claim", () => {
   assert.equal(deny(base({ upn: "alice_gmail.com#EXT#@nymbus.onmicrosoft.com" })), "guest");
   assert.equal(deny(base({ preferred_username: "bob_evil.com#ext#@nymbus.ca" })), "guest");
-  assert.equal(deny(base({ email: "x#EXT#@nymbus.ca" })), "guest");
+  assert.equal(deny(base({ email: "x#EXT#@nymbus.ca" })), "guest"); // guest marker anywhere denies
   assert.equal(deny(base({ unique_name: "live.com#alice#EXT#@nymbus.ca" })), "guest");
 });
 
@@ -67,6 +67,18 @@ test("acct = 1 (guest) is denied, acct = 0 allowed, unexpected values denied", (
   assert.equal(deny(base({ acct: "1" })), "guest");
   assert.equal(deny(base({ acct: 2 })), "guest");
   assert.equal(evaluateLogin(base({ acct: 0 }), cfg).ok, true);
+  assert.equal(evaluateLogin(base({ acct: "0" }), cfg).ok, true);
+});
+
+test("missing acct claim fails closed with a configuration hint", () => {
+  for (const acct of [undefined, null]) {
+    const r = evaluateLogin(base({ acct }), cfg);
+    assert.equal(r.ok, false);
+    if (!r.ok) {
+      assert.equal(r.reason, "acct-missing");
+      assert.match(r.message, /acct optional claim/);
+    }
+  }
 });
 
 test("domain must match exactly: look-alikes, suffixes, subdomains are denied", () => {
@@ -90,23 +102,49 @@ test("domain must match exactly: look-alikes, suffixes, subdomains are denied", 
 });
 
 test("domain match is case-insensitive", () => {
-  const r = evaluateLogin(base({ email: "Alice@NYMBUS.CA" }), cfg);
+  const r = evaluateLogin(base({ preferred_username: "Alice@NYMBUS.CA" }), cfg);
   assert.equal(r.ok, true);
   if (r.ok) assert.equal(r.email, "alice@nymbus.ca");
 });
 
-test("email falls back to preferred_username then upn", () => {
+test("the domain is checked on preferred_username, else upn; the email claim is never trusted", () => {
   assert.equal(evaluateLogin(base({ email: undefined, preferred_username: "p@nymbus.ca" }), cfg).ok, true);
   assert.equal(evaluateLogin(base({ email: undefined, preferred_username: undefined, upn: "u@nymbus.ca" }), cfg).ok, true);
   assert.equal(deny(base({ email: undefined, preferred_username: undefined, upn: undefined })), "email");
-  // the `email` claim wins even when preferred_username is in-domain
-  assert.equal(deny(base({ email: "a@evil.com", preferred_username: "a@nymbus.ca" })), "domain");
+  // an in-domain `email` (user/admin-editable) cannot rescue an out-of-domain sign-in name
+  assert.equal(deny(base({ email: "alice@nymbus.ca", preferred_username: "alice@evil.com", upn: "alice@evil.com" })), "domain");
+  assert.equal(deny(base({ email: "alice@nymbus.ca", preferred_username: undefined, upn: undefined })), "email");
+  // a different `email` is ignored: identity = sign-in name
+  const r = evaluateLogin(base({ email: "someone.else@evil.com", preferred_username: "Alice@Nymbus.ca" }), cfg);
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.email, "alice@nymbus.ca");
+});
+
+test("required app role", () => {
+  const c = { ...cfg, requiredRole: "Admin.Web" };
+  assert.equal(evaluateLogin(base({ roles: ["Reader", "Admin.Web"] }), c).ok, true);
+  assert.equal(deny(base({ roles: ["admin.web"] }), c), "role");
+  assert.equal(deny(base({ roles: [] }), c), "role");
+  assert.equal(deny(base({ roles: "Admin.Web" }), c), "role");
+  assert.equal(deny(base({}), c), "role");
+  assert.equal(parseRequiredRole(" Admin.Web "), "Admin.Web");
+  assert.equal(parseRequiredRole(undefined), "");
+  assert.throws(() => parseRequiredRole("bad role"));
+});
+
+test("policy version changes when the policy changes, not with ordering / case", () => {
+  const v = policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1, G2] });
+  assert.match(v, /^[0-9a-f]{16}$/);
+  assert.equal(policyVersion({ tenantId: TID.toUpperCase(), allowedDomains: ["b.ca", "NYMBUS.ca"], allowedGroupIds: [G2, G1] }), v);
+  assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca"], allowedGroupIds: [G1, G2] }), v);
+  assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1] }), v);
+  assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1, G2], requiredRole: "Admin" }), v);
 });
 
 test("listed subdomains are allowed only when explicitly configured", () => {
   const c = { ...cfg, allowedDomains: parseAllowedDomains("nymbus.ca, research.nymbus.ca") };
-  assert.equal(evaluateLogin(base({ email: "x@research.nymbus.ca" }), c).ok, true);
-  assert.equal(deny(base({ email: "x@other.nymbus.ca" }), c), "domain");
+  assert.equal(evaluateLogin(base({ preferred_username: "x@research.nymbus.ca" }), c).ok, true);
+  assert.equal(deny(base({ preferred_username: "x@other.nymbus.ca" }), c), "domain");
 });
 
 test("group allow-list requires an intersection with the groups claim", () => {

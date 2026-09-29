@@ -22,24 +22,17 @@ const legacy: [string, string][] = [
   ["/index.html", "/"],
 ];
 
-const csp = [
-  "default-src 'self'",
-  // Next injects inline bootstrap scripts; no third-party scripts are loaded
-  "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""),
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https://www.nymbus.ca",
-  "connect-src 'self'",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self' https://login.microsoftonline.com",
-  "object-src 'none'",
-].join("; ");
+// The Content-Security-Policy is set per request by src/proxy.ts (nonce-based: no script 'unsafe-inline').
 
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   images: { unoptimized: true },
+  experimental: {
+    // bodies of requests matched by src/proxy.ts are buffered up to this size; nothing it matches needs a large
+    // body (PDF uploads under /api/admin/upload are excluded from the matcher)
+    proxyClientMaxBodySize: "1mb",
+  },
   async redirects() {
     return legacy.map(([source, destination]) => ({ source, destination, permanent: true }));
   },
@@ -48,7 +41,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },

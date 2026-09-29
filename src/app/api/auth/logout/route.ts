@@ -1,11 +1,12 @@
 /**
- * POST /api/auth/logout — clears the admin session. Same-origin only (Origin must equal PUBLIC_URL when present,
+ * POST /api/auth/logout — revokes the session server-side (jti) and clears the cookie. Same-origin only (Origin must equal PUBLIC_URL when present,
  * so a cross-site page cannot log admins out). `?sso=1` (or form field sso=1) also signs out of Microsoft.
  * Responds 303 to "/" (or the Entra logout endpoint) for form posts, JSON for fetch calls.
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { authConfig, checkRequestSession } from "@/lib/auth/session";
 import { audit } from "@/lib/data/store";
+import { revokeSession } from "@/lib/auth/revocation";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,11 @@ export async function POST(request: NextRequest) {
   if (origin && origin !== cfg.origin) return NextResponse.json({ error: "csrf" }, { status: 403 });
 
   const s = await checkRequestSession(request);
-  if (s.status === "ok") await audit({ by: s.user.email, action: "auth.logout" }).catch(() => undefined);
+  if (s.status === "ok") {
+    // server-side revocation: a copied cookie stops working too
+    await revokeSession(s.session.jti, s.session.exp).catch((e: unknown) => console.error("[auth] revocation failed:", e instanceof Error ? e.message : e));
+    await audit({ by: s.user.email, action: "auth.logout" }).catch(() => undefined);
+  }
 
   let sso = request.nextUrl.searchParams.get("sso") === "1";
   const ct = request.headers.get("content-type") || "";

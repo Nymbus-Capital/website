@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 export const FIXTURES_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const FIXTURE_FACTSHEETS_DIR = path.join(FIXTURES_DIR, "factsheets");
 export const FIXTURE_BASE_URL = "http://dataplatform.test";
+export const FIXTURE_ANALYTICS_FILE = path.join(FIXTURES_DIR, "analytics_fund_returns.json");
 
 export const loadFixture = (rel: string): unknown => JSON.parse(readFileSync(path.join(FIXTURES_DIR, rel), "utf8"));
 
@@ -39,6 +40,7 @@ export function fixtureRoute(url: URL): Response | undefined {
   if (p === "/api/apex/funds") return json(loadFixture("dataplatform/apex_funds.json"));
   if (p === "/api/unitholders/funds") return json(loadFixture("dataplatform/unitholders_funds.json"));
   if (p === "/api/unitholders/aum") return json(loadFixture("dataplatform/aum.json"));
+  if (p === "/api/ftse/index-summary/short-names") return json(loadFixture("dataplatform/ftse_short_names.json"));
   if (p === "/api/ftse/index-summary") {
     const sn = q.get("short_name");
     try {
@@ -72,7 +74,7 @@ export function mockFetch(...overrides: Route[]): MockFetch {
   return { fetch: f as typeof fetch, calls };
 }
 
-/** env for a run against the fixtures (no Graph) */
-export function fixtureEnv(extra: Record<string, string | undefined> = {}): NodeJS.ProcessEnv {
-  return { DATAPLATFORM_URL: FIXTURE_BASE_URL, FACTSHEET_DATA_DIR: FIXTURE_FACTSHEETS_DIR, PIPELINE_RETRY_BASE_MS: "0", ...extra };
+/** env for a run against the fixtures (no Graph, analytics from the local fixture file) */
+export function fixtureEnv(extra: Record<string, string | undefined> = {}): Record<string, string | undefined> {
+  return { DATAPLATFORM_URL: FIXTURE_BASE_URL, FACTSHEET_DATA_DIR: FIXTURE_FACTSHEETS_DIR, ANALYTICS_RETURNS_FILE: FIXTURE_ANALYTICS_FILE, PIPELINE_RETRY_BASE_MS: "0", ...extra };
 }

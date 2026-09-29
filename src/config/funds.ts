@@ -20,8 +20,13 @@ export interface FundSpec {
   sources: {
     /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
     dataplatform: "SEST" | "SEB" | "Multistrat" | null;
-    /** FTSE index-summary short_name used for monthly index returns (null: no benchmark) */
+    /**
+     * FTSE index-summary short_name, used for index months the published factsheet does not cover yet
+     * (the factsheet's own index tables are the primary source of every index figure). null: no benchmark
+     */
     ftseIndex: string | null;
+    /** series name in the analytics repo fund_returns.json (official monthly history before the Apex cutover) */
+    analytics: string | null;
     /** factsheet archive: file prefix and fund key inside it */
     factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
     /** strategies without a fund vehicle only have gross figures in the factsheet archive */
@@ -48,9 +53,12 @@ export const FUNDS: FundSpec[] = [
     aliases: ["sustainable-enhanced-short-term-bonds", "sest"],
     sources: {
       dataplatform: "SEST",
-      // The factsheet labels the benchmark "Short Term Corporate"; the deck engine found its published
-      // figures match the FTSE short-term *overall* series. Configurable: FTSE_INDEX_SEST.
-      ftseIndex: "short_overall",
+      // Same definition as the factsheet producer (factsheet-generator funds_benchmark.csv: SEST -> XSB
+      // ETF daily returns until 2026-04-30, then FTSE `short_corp`). Index figures are read from the
+      // published factsheet first; this series only fills months it does not cover yet.
+      // Override with FTSE_INDEX_SEST.
+      ftseIndex: "short_corp",
+      analytics: "Nymbus Monthly Income",
       factsheet: { file: "bonds_data", key: "SEST" },
       basis: "net",
     },
@@ -76,6 +84,7 @@ export const FUNDS: FundSpec[] = [
     sources: {
       dataplatform: "SEB",
       ftseIndex: "univ",
+      analytics: "Nymbus Sustainable Enhanced Bonds",
       factsheet: { file: "bonds_data", key: "QCFI-SEB" },
       basis: "net",
     },
@@ -101,6 +110,7 @@ export const FUNDS: FundSpec[] = [
     sources: {
       dataplatform: "Multistrat",
       ftseIndex: null,
+      analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
       factsheet: { file: "factsheet_data", key: "Multistrategy" },
       basis: "net",
     },
@@ -126,6 +136,7 @@ export const FUNDS: FundSpec[] = [
     sources: {
       dataplatform: null,
       ftseIndex: null,
+      analytics: null,
       factsheet: { file: "factsheet_data", key: "GMV_6pct" },
       basis: "gross",
     },

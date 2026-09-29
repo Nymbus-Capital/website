@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAdminPage } from "@/lib/auth/server";
 import { FUNDS } from "@/config/funds";
 import { getContent } from "@/lib/data/content";
 import { getSiteData } from "@/lib/data/site";
@@ -12,6 +13,7 @@ import { safeRuns, safeStatus } from "./_lib/data";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  await requireAdminPage("/admin"); // defence in depth: every page re-verifies the session (not only the layout)
   const [status, runs, content, site, docs] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments()]);
   const published = docs.filter((d) => d.published).length;
   return (

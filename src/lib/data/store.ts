@@ -68,26 +68,55 @@ export async function removePath(rel: string[]): Promise<void> {
 }
 
 /**
- * Exclusive lock through `mkdir` (atomic on POSIX volumes). A lock older than `staleMs` is considered
- * abandoned (crashed run) and taken over.
+ * Exclusive lock through `mkdir` (atomic on POSIX volumes). The holder writes a random owner token in
+ * the lock directory and touches it periodically (heartbeat), so a long run is never mistaken for an
+ * abandoned one. A lock whose heartbeat is older than `staleMs` is considered abandoned (crashed run)
+ * and taken over. On release the directory is removed only if it still carries our token (a holder
+ * that was taken over never deletes its successor's lock).
  */
 export async function withLock<T>(name: string, fn: () => Promise<T>, staleMs = 30 * 60_000): Promise<T | { locked: true }> {
   const dir = p("locks", `${name}.lock`);
+  const ownerFile = path.join(dir, "owner");
+  const token = crypto.randomBytes(12).toString("hex");
   await fs.mkdir(path.dirname(dir), { recursive: true });
+  const lastBeat = async (): Promise<number | null> => {
+    const st = (await fs.stat(ownerFile).catch(() => null)) ?? (await fs.stat(dir).catch(() => null));
+    return st ? st.mtimeMs : null;
+  };
   try {
     await fs.mkdir(dir);
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
-    const st = await fs.stat(dir).catch(() => null);
-    if (st && Date.now() - st.mtimeMs < staleMs) return { locked: true };
+    const beat = await lastBeat();
+    if (beat !== null && Date.now() - beat < staleMs) return { locked: true };
     await fs.rm(dir, { recursive: true, force: true });
-    await fs.mkdir(dir);
+    try {
+      await fs.mkdir(dir);
+    } catch (e2: unknown) {
+      if ((e2 as NodeJS.ErrnoException).code === "EEXIST") return { locked: true }; // another process won the takeover
+      throw e2;
+    }
   }
+  await fs.writeFile(ownerFile, token);
+  const heartbeat = setInterval(() => {
+    const now = new Date();
+    fs.readFile(ownerFile, "utf8").then((t) => (t === token ? fs.utimes(ownerFile, now, now) : undefined)).catch(() => undefined);
+  }, Math.max(1000, Math.min(60_000, Math.floor(staleMs / 4))));
+  heartbeat.unref?.();
   try {
     return await fn();
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    clearInterval(heartbeat);
+    const current = await fs.readFile(ownerFile, "utf8").catch(() => null);
+    if (current === token) await fs.rm(dir, { recursive: true, force: true });
   }
+}
+
+/** Heartbeat time (ms) of a held lock, or null when free. */
+export async function lockHeartbeat(name: string): Promise<number | null> {
+  const dir = p("locks", `${name}.lock`);
+  const st = (await fs.stat(path.join(dir, "owner")).catch(() => null)) ?? (await fs.stat(dir).catch(() => null));
+  return st ? st.mtimeMs : null;
 }
 
 export interface AuditEntry { at: string; by: string; action: string; target?: string; detail?: unknown }

@@ -214,7 +214,25 @@ export function parsePeriodMap(d: Json, ytdYear: string): PeriodMap {
   return out;
 }
 
-export interface TrailingTable { fund: PeriodMap; index?: PeriodMap; va?: PeriodMap; fundName?: string; indexName?: string }
+export type PeriodDecimals = Partial<Record<keyof PeriodMap, number>>;
+
+export interface TrailingTable {
+  fund: PeriodMap; index?: PeriodMap; va?: PeriodMap; fundName?: string; indexName?: string;
+  /** published decimals (percent units) per period, for rounding tolerances */
+  decimals: { fund: PeriodDecimals; index: PeriodDecimals; va: PeriodDecimals };
+}
+
+/** decimals of each published period value (current-year label maps to YTD) */
+export function periodDecimals(d: Json, ytdYear: string): PeriodDecimals {
+  const out: PeriodDecimals = {};
+  if (!isObj(d)) return out;
+  for (const [k, v] of Object.entries(d)) {
+    const key = (k === ytdYear ? "YTD" : k) as keyof PeriodMap;
+    const n = decimals(v);
+    if (n !== null && parsePct(v) !== null) out[key] = n;
+  }
+  return out;
+}
 
 /**
  * "Trailing Returns Net|Gross": either nested {<fund>: {...}, <index>: {...}, "Value Added": {...}}
@@ -223,14 +241,18 @@ export interface TrailingTable { fund: PeriodMap; index?: PeriodMap; va?: Period
 export function parseTrailingTable(section: Json, ytdYear: string): TrailingTable | null {
   if (!isObj(section) || !Object.keys(section).length) return null;
   const vals = Object.values(section);
-  if (!isObj(vals[0])) return { fund: parsePeriodMap(section, ytdYear) };
+  if (!isObj(vals[0])) return { fund: parsePeriodMap(section, ytdYear), decimals: { fund: periodDecimals(section, ytdYear), index: {}, va: {} } };
   const names = Object.keys(section).filter((k) => k !== "Value Added" && isObj(section[k]));
-  const out: TrailingTable = { fund: parsePeriodMap(section[names[0]], ytdYear), fundName: names[0] };
+  const out: TrailingTable = { fund: parsePeriodMap(section[names[0]], ytdYear), fundName: names[0], decimals: { fund: periodDecimals(section[names[0]], ytdYear), index: {}, va: {} } };
   if (names[1]) {
     out.index = parsePeriodMap(section[names[1]], ytdYear);
     out.indexName = names[1];
+    out.decimals.index = periodDecimals(section[names[1]], ytdYear);
   }
-  if (isObj(section["Value Added"])) out.va = parsePeriodMap(section["Value Added"], ytdYear);
+  if (isObj(section["Value Added"])) {
+    out.va = parsePeriodMap(section["Value Added"], ytdYear);
+    out.decimals.va = periodDecimals(section["Value Added"], ytdYear);
+  }
   return out;
 }
 
@@ -286,19 +308,40 @@ export function parseCalendarTable(section: Json): Record<string, { fund: number
   return out;
 }
 
-/** "Statistics Net|Gross" dict -> numbers (percent strings as decimals, ratios as numbers). */
-export function parseStatistics(section: Json): {
+export interface PublishedStatistics {
   annReturn: number | null; annVol: number | null; downsideDev: number | null; sharpe: number | null;
   sortino: number | null; positiveMonths: number | null; maxDrawdown: number | null;
-} | null {
+  /** published decimals (display units) of each value present */
+  decimals: Partial<Record<"annReturn" | "annVol" | "downsideDev" | "sharpe" | "sortino" | "positiveMonths" | "maxDrawdown", number>>;
+}
+
+const STAT_FIELDS = [
+  ["annReturn", "Annualized Returns", "pct"], ["annVol", "Annualized St. Dev.", "pct"], ["downsideDev", "Annualized Downside Dev.", "pct"],
+  ["sharpe", "Sharpe Ratio", "num"], ["sortino", "Sortino Ratio", "num"], ["positiveMonths", "% Positive Months", "pct"], ["maxDrawdown", "Max Drawdown", "pct"],
+] as const;
+
+/** "Statistics Net|Gross" dict -> numbers (percent strings as decimals, ratios as numbers) + published decimals. */
+export function parseStatistics(section: Json): PublishedStatistics | null {
   if (!isObj(section)) return null;
-  return {
-    annReturn: parsePct(section["Annualized Returns"]),
-    annVol: parsePct(section["Annualized St. Dev."]),
-    downsideDev: parsePct(section["Annualized Downside Dev."]),
-    sharpe: parseNumber(section["Sharpe Ratio"]),
-    sortino: parseNumber(section["Sortino Ratio"]),
-    positiveMonths: parsePct(section["% Positive Months"]),
-    maxDrawdown: parsePct(section["Max Drawdown"]),
-  };
+  const out: PublishedStatistics = { annReturn: null, annVol: null, downsideDev: null, sharpe: null, sortino: null, positiveMonths: null, maxDrawdown: null, decimals: {} };
+  for (const [k, label, unit] of STAT_FIELDS) {
+    const raw = section[label];
+    const v = unit === "pct" ? parsePct(raw) : parseNumber(raw);
+    out[k] = v;
+    const d = decimals(raw);
+    if (v !== null && d !== null) out.decimals[k] = d;
+  }
+  return out;
+}
+
+/** the factsheet table of fund monthly returns (bonds: "Monthly Returns: Nymbus <X> Net"; strategies: "Monthly Returns Net") */
+export function fundMonthlyTableKey(block: Obj, basis: "Net" | "Gross"): string | null {
+  if (isObj(block[`Monthly Returns ${basis}`])) return `Monthly Returns ${basis}`;
+  return Object.keys(block).find((k) => k.startsWith("Monthly Returns: Nymbus ") && k.endsWith(` ${basis}`) && isObj(block[k])) ?? null;
+}
+
+/** the factsheet table of index monthly returns ("Monthly Returns: <index name>") */
+export function indexMonthlyTableKey(block: Obj, indexName?: string): string | null {
+  if (indexName && isObj(block[`Monthly Returns: ${indexName}`])) return `Monthly Returns: ${indexName}`;
+  return Object.keys(block).find((k) => k.startsWith("Monthly Returns: ") && !k.startsWith("Monthly Returns: Nymbus ") && isObj(block[k])) ?? null;
 }

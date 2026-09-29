@@ -3,6 +3,17 @@
  */
 import type { FundData, FundKey, SiteData } from "../../lib/data/types.ts";
 
+/**
+ * A run may be pinned (public numbers frozen on it) only if its data went through publication: status
+ * "published", or "blocked" that an admin explicitly published (publishedAt set), and live (not sample) data.
+ * Never pending-review, failed or dry-run snapshots.
+ */
+export function isPinnable(report: { status: string; publishedAt?: string }, data: { mode?: string } | null | undefined): boolean {
+  if (!data || data.mode !== "live") return false;
+  if (report.status === "published") return true;
+  return report.status === "blocked" && typeof report.publishedAt === "string" && report.publishedAt.length > 0;
+}
+
 export interface FundSummary {
   key: FundKey;
   performanceAsOf: string | null;

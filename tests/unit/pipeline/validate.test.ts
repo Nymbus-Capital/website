@@ -17,7 +17,10 @@ const clone = <T>(x: T): T => structuredClone(x);
 test("clean fixtures pass every gate", async () => {
   const b = await built();
   const v = validateSite(b.data, b.context, null, NOW);
-  for (const r of v.results) assert.deepEqual(r.blocking, [], `${r.fund}: ${JSON.stringify(r.blocking)}`);
+  for (const r of v.results) {
+    assert.deepEqual(r.blocking, [], `${r.fund}: ${JSON.stringify(r.blocking)}`);
+    assert.deepEqual(r.alerts, [], `${r.fund}: ${JSON.stringify(r.alerts)}`);
+  }
   assert.deepEqual(v.funds, { "monthly-income": "updated", "sustainable-enhanced-bonds": "updated", "multi-strategy": "updated", "global-minimum-volatility": "updated" });
   assert.deepEqual(v.data.funds, b.data.funds);
   assert.equal(validateFund(b.data.funds["multi-strategy"]!, b.context["multi-strategy"], null, NOW).blocking.length, 0);
@@ -62,12 +65,18 @@ test("blocking: trailing in data differs from recomputation", async () => {
   assert.ok(r2.blocking.some((i) => i.key === "funds.monthly-income.trailing.10Y"), "a value where the track record is too short");
 });
 
-test("blocking: computed trailing vs factsheet > 0.5 %", async () => {
-  const { r, v } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! + 0.0051; });
+test("blocking: computed trailing vs factsheet beyond the per-period tolerance (1Y: 0.1 %, 3Y: 0.15 %)", async () => {
+  // 1Y: tolerance 0.0005 (rounding) + 0.0005 = 0.001
+  const { r, v } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! + 0.00101; });
   assert.ok(r.blocking.some((i) => i.key === "funds.monthly-income.trailing.1Y" && /factsheet/.test(i.message)));
   assert.equal(v.funds["monthly-income"], "kept-previous");
-  const { r: ok } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! - 0.0049; });
+  const { r: ok } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! - 0.00099; });
   assert.deepEqual(ok.blocking, []);
+  // 3Y: 0.0005 + 0.001 = 0.0015
+  const { r: ok3 } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["3Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["3Y"]! + 0.00149; });
+  assert.deepEqual(ok3.blocking, []);
+  const { r: bad3 } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["3Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["3Y"]! + 0.00151; });
+  assert.ok(bad3.blocking.some((i) => i.key === "funds.monthly-income.trailing.3Y"));
 });
 
 test("blocking: non-finite number anywhere", async () => {
@@ -106,13 +115,16 @@ test("NAV day change > 10 %: class dropped, previous value kept, rest of the fun
   assert.equal(v2.data.funds["sustainable-enhanced-bonds"]!.nav!.classes.some((c) => c.fundserv === k.fundserv), false);
 });
 
-test("NAV older than 7 days: warning only", async () => {
+test("NAV / AUM older than 7 days: alert-level issue (not blocking), per-class dates kept", async () => {
   const b = await built();
   const later = new Date("2026-10-08T14:00:00Z");
   const v = validateSite(b.data, b.context, null, later);
   const r = v.results.find((x) => x.fund === "monthly-income")!;
   assert.deepEqual(r.blocking, []);
-  assert.ok(r.warnings.some((i) => i.level === "warn" && /older than 7 days/.test(i.message) && i.key.includes(".nav.")));
+  assert.ok(r.warnings.some((i) => i.level === "error" && /^stale: NAV/.test(i.message) && i.key.includes(".nav.")));
+  assert.ok(r.warnings.some((i) => i.level === "error" && /^stale: AUM/.test(i.message)));
+  assert.ok(r.alerts.some((a) => /^stale: NAV/.test(a)));
+  assert.ok(v.data.funds["monthly-income"]!.nav!.classes.every((c) => c.date === "2026-09-28"));
 });
 
 test("AUM negative or NaN: dropped (previous kept when available)", async () => {

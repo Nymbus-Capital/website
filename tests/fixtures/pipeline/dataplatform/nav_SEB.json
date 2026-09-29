@@ -8,7 +8,7 @@
   "apex",
   "cibc"
  ],
- "row_count": 54,
+ "row_count": 52,
  "rows": [
   {
    "date": "2026-09-08",
@@ -25,7 +25,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6058,
    "nav_per_share_cad": 9.6058,
-   "net_daily_return": -0.00069
+   "net_daily_return": -0.00068661,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-09",
@@ -42,7 +45,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6116,
    "nav_per_share_cad": 9.6116,
-   "net_daily_return": 0.000601
+   "net_daily_return": 0.0006038,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-10",
@@ -59,7 +65,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5975,
    "nav_per_share_cad": 9.5975,
-   "net_daily_return": -0.001471
+   "net_daily_return": -0.00146698,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-11",
@@ -76,7 +85,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5974,
    "nav_per_share_cad": 9.5974,
-   "net_daily_return": -0.00001
+   "net_daily_return": -0.00001042,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-14",
@@ -93,7 +105,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5785,
    "nav_per_share_cad": 9.5785,
-   "net_daily_return": -0.001968
+   "net_daily_return": -0.00196928,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-15",
@@ -110,7 +125,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5856,
    "nav_per_share_cad": 9.5856,
-   "net_daily_return": 0.000743
+   "net_daily_return": 0.00074124,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-16",
@@ -127,7 +145,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5828,
    "nav_per_share_cad": 9.5828,
-   "net_daily_return": -0.000296
+   "net_daily_return": -0.0002921,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-17",
@@ -144,7 +165,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5726,
    "nav_per_share_cad": 9.5726,
-   "net_daily_return": -0.00106
+   "net_daily_return": -0.00106441,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-18",
@@ -161,7 +185,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5733,
    "nav_per_share_cad": 9.5733,
-   "net_daily_return": 0.000078
+   "net_daily_return": 0.00007313,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-21",
@@ -178,7 +205,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5909,
    "nav_per_share_cad": 9.5909,
-   "net_daily_return": 0.001839
+   "net_daily_return": 0.00183845,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-22",
@@ -195,7 +225,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5908,
    "nav_per_share_cad": 9.5908,
-   "net_daily_return": -0.000015
+   "net_daily_return": -0.00001043,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-23",
@@ -212,7 +245,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5726,
    "nav_per_share_cad": 9.5726,
-   "net_daily_return": -0.001902
+   "net_daily_return": -0.00189765,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -229,7 +265,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5807,
    "nav_per_share_cad": 9.5807,
-   "net_daily_return": 0.000848
+   "net_daily_return": 0.00084617,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -246,7 +285,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.6094,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-25",
@@ -263,7 +304,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5899,
    "nav_per_share_cad": 9.5899,
-   "net_daily_return": 0.000965
+   "net_daily_return": 0.00096026,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-25",
@@ -280,7 +324,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.6187,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-28",
@@ -297,7 +343,10 @@
    "source": "apex",
    "nav_per_share_local": 9.5816,
    "nav_per_share_cad": 9.5816,
-   "net_daily_return": -0.000867
+   "net_daily_return": -0.00086549,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-28",
@@ -314,7 +363,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.6103,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-08",
@@ -331,7 +382,10 @@
    "source": "apex",
    "nav_per_share_local": 9.3262,
    "nav_per_share_cad": 9.3262,
-   "net_daily_return": -0.000602
+   "net_daily_return": -0.0006001,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-09",
@@ -348,7 +402,10 @@
    "source": "apex",
    "nav_per_share_local": 9.3266,
    "nav_per_share_cad": 9.3266,
-   "net_daily_return": 0.000038
+   "net_daily_return": 0.00004289,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-10",
@@ -365,7 +422,10 @@
    "source": "apex",
    "nav_per_share_local": 9.3124,
    "nav_per_share_cad": 9.3124,
-   "net_daily_return": -0.00152
+   "net_daily_return": -0.00152253,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-11",
@@ -382,7 +442,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2973,
    "nav_per_share_cad": 9.2973,
-   "net_daily_return": -0.001618
+   "net_daily_return": -0.00162149,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-14",
@@ -399,7 +462,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2784,
    "nav_per_share_cad": 9.2784,
-   "net_daily_return": -0.002038
+   "net_daily_return": -0.00203285,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-15",
@@ -416,7 +482,10 @@
    "source": "apex",
    "nav_per_share_local": 9.3032,
    "nav_per_share_cad": 9.3032,
-   "net_daily_return": 0.002672
+   "net_daily_return": 0.00267287,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-16",
@@ -433,7 +502,10 @@
    "source": "apex",
    "nav_per_share_local": 9.283,
    "nav_per_share_cad": 9.283,
-   "net_daily_return": -0.00217
+   "net_daily_return": -0.0021713,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-17",
@@ -450,7 +522,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2781,
    "nav_per_share_cad": 9.2781,
-   "net_daily_return": -0.000529
+   "net_daily_return": -0.00052785,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-18",
@@ -467,7 +542,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2627,
    "nav_per_share_cad": 9.2627,
-   "net_daily_return": -0.001661
+   "net_daily_return": -0.00165982,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-21",
@@ -484,7 +562,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2683,
    "nav_per_share_cad": 9.2683,
-   "net_daily_return": 0.0006
+   "net_daily_return": 0.00060458,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-22",
@@ -501,7 +582,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2796,
    "nav_per_share_cad": 9.2796,
-   "net_daily_return": 0.001215
+   "net_daily_return": 0.00121921,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-23",
@@ -518,7 +602,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2679,
    "nav_per_share_cad": 9.2679,
-   "net_daily_return": -0.001258
+   "net_daily_return": -0.00126083,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -535,7 +622,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2603,
    "nav_per_share_cad": 9.2603,
-   "net_daily_return": -0.000823
+   "net_daily_return": -0.00082003,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -552,41 +642,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.2881,
    "nav_per_share_cad": null,
-   "net_daily_return": null
-  },
-  {
-   "date": "2026-09-25",
-   "fundserv": "LDM205",
-   "class_display": "A",
-   "class_code": "A",
-   "currency": "CAD",
-   "short_name": "SEB",
-   "nav_type": "FINAL_NAV",
-   "fund_mapped": true,
-   "account": "SYNTHETIC",
-   "fund_name": "SYNTHETIC SEB",
-   "class_name_raw": "A",
-   "source": "apex",
-   "nav_per_share_local": 9.2594,
-   "nav_per_share_cad": 9.2594,
-   "net_daily_return": -0.000101
-  },
-  {
-   "date": "2026-09-25",
-   "fundserv": "LDM205",
-   "class_display": "A",
-   "class_code": "A",
-   "currency": "CAD",
-   "short_name": "SEB",
-   "nav_type": "FINAL_NAV",
-   "fund_mapped": true,
-   "account": "SYNTHETIC",
-   "fund_name": "SYNTHETIC SEB",
-   "class_name_raw": "A",
-   "source": "cibc",
-   "nav_per_share_local": 9.2872,
-   "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-28",
@@ -603,7 +661,10 @@
    "source": "apex",
    "nav_per_share_local": 9.2591,
    "nav_per_share_cad": 9.2591,
-   "net_daily_return": -0.000037
+   "net_daily_return": -0.0000324,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-28",
@@ -620,7 +681,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.2869,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-08",
@@ -637,7 +700,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7009,
    "nav_per_share_cad": 9.7009,
-   "net_daily_return": -0.000375
+   "net_daily_return": -0.00037096,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-09",
@@ -654,7 +720,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6949,
    "nav_per_share_cad": 9.6949,
-   "net_daily_return": -0.000621
+   "net_daily_return": -0.0006185,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-10",
@@ -671,7 +740,10 @@
    "source": "apex",
    "nav_per_share_local": 9.712,
    "nav_per_share_cad": 9.712,
-   "net_daily_return": 0.001767
+   "net_daily_return": 0.00176381,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-11",
@@ -688,7 +760,10 @@
    "source": "apex",
    "nav_per_share_local": 9.712,
    "nav_per_share_cad": 9.712,
-   "net_daily_return": 0
+   "net_daily_return": 0,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-14",
@@ -705,7 +780,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7094,
    "nav_per_share_cad": 9.7094,
-   "net_daily_return": -0.000263
+   "net_daily_return": -0.00026771,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-15",
@@ -722,7 +800,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7121,
    "nav_per_share_cad": 9.7121,
-   "net_daily_return": 0.000275
+   "net_daily_return": 0.00027808,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-16",
@@ -739,7 +820,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7018,
    "nav_per_share_cad": 9.7018,
-   "net_daily_return": -0.001065
+   "net_daily_return": -0.00106053,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-17",
@@ -756,7 +840,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6995,
    "nav_per_share_cad": 9.6995,
-   "net_daily_return": -0.00024
+   "net_daily_return": -0.00023707,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-18",
@@ -773,7 +860,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6873,
    "nav_per_share_cad": 9.6873,
-   "net_daily_return": -0.001254
+   "net_daily_return": -0.0012578,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-21",
@@ -790,7 +880,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6931,
    "nav_per_share_cad": 9.6931,
-   "net_daily_return": 0.000597
+   "net_daily_return": 0.00059872,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-22",
@@ -807,7 +900,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6929,
    "nav_per_share_cad": 9.6929,
-   "net_daily_return": -0.000022
+   "net_daily_return": -0.00002063,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-23",
@@ -824,7 +920,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7056,
    "nav_per_share_cad": 9.7056,
-   "net_daily_return": 0.001313
+   "net_daily_return": 0.00131024,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -841,7 +940,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6873,
    "nav_per_share_cad": 9.6873,
-   "net_daily_return": -0.001887
+   "net_daily_return": -0.00188551,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-24",
@@ -858,7 +960,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.7164,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-25",
@@ -875,7 +979,10 @@
    "source": "apex",
    "nav_per_share_local": 9.7153,
    "nav_per_share_cad": 9.7153,
-   "net_daily_return": 0.002887
+   "net_daily_return": 0.00289038,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-25",
@@ -892,7 +999,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.7444,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   },
   {
    "date": "2026-09-28",
@@ -909,7 +1018,10 @@
    "source": "apex",
    "nav_per_share_local": 9.6982,
    "nav_per_share_cad": 9.6982,
-   "net_daily_return": -0.001764
+   "net_daily_return": -0.00176011,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1
   },
   {
    "date": "2026-09-28",
@@ -926,7 +1038,9 @@
    "source": "cibc",
    "nav_per_share_local": 9.7273,
    "nav_per_share_cad": null,
-   "net_daily_return": null
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
   }
  ],
  "warnings": []

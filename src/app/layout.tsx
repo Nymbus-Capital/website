@@ -3,6 +3,7 @@
  * lives in app/(site)/layout.tsx so the admin (/admin) does not get it.
  */
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { themeScript } from "@/components/site/theme-script";
 import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
@@ -45,10 +46,12 @@ const fonts = [400, 500, 600]
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
+  // per-request CSP nonce set by src/proxy.ts (inline scripts need it: script-src has no 'unsafe-inline')
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preload" href="/fonts/poppins-500.woff" as="font" type="font/woff" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/poppins-400.woff" as="font" type="font/woff" crossOrigin="anonymous" />
         <style dangerouslySetInnerHTML={{ __html: fonts }} />

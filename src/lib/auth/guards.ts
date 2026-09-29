@@ -11,7 +11,7 @@ export const SESSION_COOKIE_INSECURE = "nymbus_admin";
 export const FLOW_COOKIE = "__Host-nymbus_oidc";
 export const FLOW_COOKIE_INSECURE = "nymbus_oidc";
 export const CSRF_HEADER = "x-nymbus-admin";
-export const SESSION_TTL_SECONDS = 8 * 60 * 60;
+export const SESSION_TTL_SECONDS = 4 * 60 * 60;
 export const FLOW_TTL_SECONDS = 10 * 60;
 
 const DEFAULT_RETURN = "/admin";

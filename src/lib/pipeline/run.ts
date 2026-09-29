@@ -2,19 +2,21 @@
  * Pipeline orchestration: fetch -> build -> validate -> snapshot -> publish (auto) or wait for review.
  *
  * Status of a run (RunReport.status)
- *  - "published"      no fund blocked; published (auto mode, or approved later in the admin)
- *  - "pending-review" review mode, no fund blocked: waits for publishRun()
- *  - "blocked"        at least one fund failed a blocking gate. Its merged data (blocked funds keep their
- *                     previously published values) IS published in auto mode (`publishedAt` set) so the
- *                     other funds stay fresh; in review mode it waits like a pending run. Alert sent.
+ *  - "published"      every fund updated cleanly (no alert); published (auto mode, or approved later)
+ *  - "pending-review" review mode, nothing needing attention: waits for publishRun()
+ *  - "blocked"        something needs a human: a fund failed a blocking gate, or its performance was
+ *                     carried over / withheld / is stale, a NAV / AUM / factsheet part was carried over or
+ *                     is stale, a published month was revised, or any error-level issue. In auto mode the
+ *                     merged data is still published (`publishedAt` set: blocked funds keep their previous
+ *                     values, other funds stay fresh); in review mode it waits for approval. Alert sent.
  *  - "failed"         no fund could be updated (every source down, or a crash): nothing published. Alert sent.
  *  - "dry-run"        computed and stored for inspection, never published.
- * `publishedRunId` (pipelineStatus / published/meta.json) is the source of truth for what is live.
+ * `publishedRunId` (pipelineStatus / published/meta.json, also `runId` inside published/site-data.json)
+ * is the source of truth for what is live.
  */
 import crypto from "node:crypto";
-import { promises as fs } from "node:fs";
 import type { FundKey, Issue, SiteContent, SiteData } from "../data/types.ts";
-import { audit, listDir, p, readJson, removePath, withLock, writeJson } from "../data/store.ts";
+import { audit, listDir, lockHeartbeat, readJson, removePath, withLock, writeJson } from "../data/store.ts";
 import { buildSiteData } from "./build.ts";
 import { DEFAULT_SCHEDULE, SNAPSHOT_RETENTION, TIMEZONE } from "./config.ts";
 import type { RawPayloads, SourceResult } from "./raw.ts";
@@ -52,10 +54,15 @@ export function runId(now: Date): string {
 
 const emptySite = (now: Date): SiteData => ({ schemaVersion: 1, generatedAt: now.toISOString(), mode: "live", asOf: { ...EMPTY_ASOF }, funds: {}, provenance: {}, issues: [] });
 
-async function publishMode(): Promise<"auto" | "review"> {
-  const c = await readJson<Partial<SiteContent> | null>(["content", "site-content.json"], null).catch(() => null);
-  return c?.pipeline?.publishMode === "review" ? "review" : "auto";
+async function readContent(): Promise<Partial<SiteContent> | null> {
+  return readJson<Partial<SiteContent> | null>(["content", "site-content.json"], null).catch(() => null);
 }
+
+async function publishMode(): Promise<"auto" | "review"> {
+  return (await readContent())?.pipeline?.publishMode === "review" ? "review" : "auto";
+}
+
+export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "1").trim() !== "0";
 
 /** sources summary for the report */
 function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
@@ -71,6 +78,7 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
   add("dataplatform unitholders/aum", raw.aum);
   for (const [s, r] of Object.entries(raw.ftse)) add(`dataplatform ftse index-summary ${s}`, r);
   add("factsheet archives", raw.factsheets);
+  add("analytics fund_returns.json", raw.analytics);
   return out;
 }
 
@@ -90,6 +98,7 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
     for (const [fn, d] of Object.entries(raw.factsheets.data.files)) files[`factsheets_${fn}`] = d;
     files["factsheets.json"] = { ok: true, where: raw.factsheets.data.where, tried: raw.factsheets.data.tried, found: Object.keys(raw.factsheets.data.files) };
   } else files["factsheets.json"] = { ok: false, error: raw.factsheets.error };
+  files["analytics.json"] = raw.analytics;
   return files;
 }
 
@@ -99,22 +108,33 @@ async function writeSnapshot(id: string, report: RunReport, data: SiteData | nul
   await writeJson(["snapshots", id, "report.json"], report);
 }
 
+/** What is live: published/meta.json, or (older layouts / a crash between the two writes) the ids inside published/site-data.json. */
 async function publishedMeta(): Promise<PublishedMeta | null> {
-  return readJson<PublishedMeta | null>(["published", "meta.json"], null).catch(() => null);
+  const [meta, site] = await Promise.all([
+    readJson<PublishedMeta | null>(["published", "meta.json"], null).catch(() => null),
+    readJson<SiteData | null>(["published", "site-data.json"], null).catch(() => null),
+  ]);
+  if (site?.runId && site.publishedAt && (!meta || meta.runId !== site.runId)) return { runId: site.runId, publishedAt: site.publishedAt, publishedBy: site.publishedBy ?? "" };
+  return meta;
 }
 
+/** data first (self-describing), then meta; both writes are atomic (temp file + rename) */
 async function publishData(id: string, data: SiteData, by: string, at: string): Promise<void> {
-  await writeJson(["published", "site-data.json"], data);
+  await writeJson(["published", "site-data.json"], { ...data, runId: id, publishedAt: at, publishedBy: by } satisfies SiteData);
   await writeJson(["published", "meta.json"], { runId: id, publishedAt: at, publishedBy: by } satisfies PublishedMeta);
 }
 
-/** Keep the newest `keep` snapshots, never the published one. */
+/** Keep the newest `keep` snapshots; never the published one nor any snapshot a fund is pinned on. */
 export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[]> {
   const ids = (await listDir(["snapshots"])).filter((x) => ID_RE.test(x)).sort().reverse();
+  const protect = new Set<string>();
   const pub = (await publishedMeta())?.runId;
+  if (pub) protect.add(pub);
+  const content = await readContent();
+  for (const fc of Object.values(content?.funds ?? {})) if (fc?.pinnedSnapshot) protect.add(fc.pinnedSnapshot);
   const removed: string[] = [];
   for (const id of ids.slice(keep)) {
-    if (id === pub) continue;
+    if (protect.has(id)) continue;
     await removePath(["snapshots", id]);
     removed.push(id);
   }
@@ -124,7 +144,7 @@ export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[
 async function alert(report: RunReport, fetchImpl: typeof fetch): Promise<void> {
   const url = process.env.PIPELINE_ALERT_WEBHOOK;
   if (!url || (report.status !== "failed" && report.status !== "blocked")) return;
-  const errors = report.issues.filter((i) => i.level === "error").slice(0, 8).map((i) => `• ${i.key}: ${i.message}`);
+  const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
   const text = [
     `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.publishedAt ? ", other funds published" : ", nothing published"})`,
     ...Object.entries(report.funds).map(([k, v]) => `${k}: ${v}`),
@@ -151,14 +171,15 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       const previous = await readJson<SiteData | null>(["published", "site-data.json"], null);
       raw = await fetchAll({ fetchImpl, now });
       report.sources = sourcesSummary(raw);
-      const built = buildSiteData(raw, previous, now);
+      const built = buildSiteData(raw, previous, now, { requireFactsheetForNewMonth: requireFactsheetForNewMonth() });
       const v = validateSite(built.data, built.context, previous, now);
-      data = v.data;
+      data = { ...v.data, runId: id };
       report.funds = v.funds;
       report.asOf = data.asOf;
-      report.issues = data.issues;
+      const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
+      report.issues = [...data.issues, ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i)];
       const updated = Object.values(v.funds).some((s) => s === "updated");
-      const blocked = v.results.some((r) => r.blocking.length > 0);
+      const blocked = v.results.some((r) => r.blocking.length > 0 || r.alerts.length > 0);
       const mode = await publishMode();
       if (!updated) {
         report.status = opts.dryRun ? "dry-run" : "failed";
@@ -239,12 +260,8 @@ export async function publishRun(id: string, by: string): Promise<RunReport> {
 }
 
 async function lockActive(staleMs = 30 * 60_000): Promise<boolean> {
-  try {
-    const st = await fs.stat(p("locks", `${LOCK}.lock`));
-    return Date.now() - st.mtimeMs < staleMs;
-  } catch {
-    return false;
-  }
+  const beat = await lockHeartbeat(LOCK).catch(() => null);
+  return beat !== null && Date.now() - beat < staleMs;
 }
 
 export async function pipelineStatus(now: Date = new Date()): Promise<{ running: boolean; schedule: string[]; timezone: "America/Toronto"; nextRunAt: string | null; lastRun: RunReport | null; publishedRunId: string | null }> {

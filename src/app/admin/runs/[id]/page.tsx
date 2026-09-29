@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { requireAdminPage } from "@/lib/auth/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FUNDS } from "@/config/funds";
@@ -11,6 +12,7 @@ import { safeRun, safeStatus } from "../../_lib/data";
 export const dynamic = "force-dynamic";
 
 export default async function RunDetail({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdminPage("/admin/runs"); // defence in depth: every page re-verifies the session (not only the layout)
   const { id } = await params;
   if (!/^[0-9A-Za-z][0-9A-Za-z-]{0,79}$/.test(id)) notFound();
   const [run, status] = await Promise.all([safeRun(id), safeStatus()]);
