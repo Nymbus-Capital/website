@@ -95,7 +95,7 @@ test("FR toggle switches the labels", async ({ page }) => {
   }
   await expect(page.getByRole("heading", { level: 1, name: "fonds nymbus revenu mensuel" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "rendements cumulatifs" })).toBeAttached();
-  await expect(page.getByTestId("basis")).toHaveText("net de frais");
+  await expect(page.getByTestId("basis")).toHaveText(/^net de frais( · (série|classe) \S+)?$/i);
   // French number formatting: decimal comma and a (narrow) no-break space before %
   await expect(page.locator(".fx-bigfig .odo")).toHaveAttribute("aria-label", /^−?\d+,\d\s%$/);
 });

@@ -49,7 +49,7 @@ jobs:
         env:
           SHOW_SAMPLE_DATA: "1"
       - name: Docker image builds
-        if: github.event_name == 'push'
+        if: always() && github.event_name == 'push'
         run: set -o pipefail; docker build -t nymbus-web:ci . 2>&1 | tail -40 | tee ci-out/docker.log
       - name: Upload screenshots and report
         if: always()

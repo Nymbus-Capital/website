@@ -44,6 +44,9 @@ export function vaRounded(va: number | null | undefined, decimals = 1): number |
 /** Label of the class the performance is published for: "Series F", else "class FP", else null. */
 export function perfClassLabel(perf: { returnClass?: string; returnClassLabel?: string } | null | undefined, classWord: string): string | null {
   if (!perf) return null;
+  // labels arrive in English ("Series FP"): keep only the class code and use the localised word
+  const m = perf.returnClassLabel?.match(/^(?:series|class|s\u00e9rie|classe)\s+(.+)$/i);
+  if (m) return `${classWord} ${m[1]}`;
   if (perf.returnClassLabel) return perf.returnClassLabel;
   return perf.returnClass ? `${classWord} ${perf.returnClass}` : null;
 }
