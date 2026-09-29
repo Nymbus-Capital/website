@@ -194,7 +194,9 @@ test("value added rounds to the displayed precision", () => {
 });
 
 test("performance class label", () => {
-  assert.equal(perfClassLabel({ returnClass: "FP", returnClassLabel: "Series FP" }, "class"), "Series FP");
+  assert.equal(perfClassLabel({ returnClass: "FP", returnClassLabel: "Series FP" }, "class"), "class FP");
+  assert.equal(perfClassLabel({ returnClass: "FP", returnClassLabel: "Series FP" }, "classe"), "classe FP");
+  assert.equal(perfClassLabel({ returnClassLabel: "Strategy composite" }, "class"), "Strategy composite");
   assert.equal(perfClassLabel({ returnClass: "FP" }, "class"), "class FP");
   assert.equal(perfClassLabel({}, "class"), null);
   assert.equal(perfClassLabel(null, "class"), null);
