@@ -29,7 +29,8 @@ never calls the dataplatform from the browser.
 
 ## Data flow
 
-1. **Fetch** (`src/lib/pipeline/sources/*`): dataplatform (monthly net returns — only `status: ready`
+1. **Fetch** (`src/lib/pipeline/sources/*`): analytics `fund_returns.json` (monthly history before the Apex
+   cut-over), dataplatform (monthly net returns — only `status: ready`
    months —, NAV per class, AUM per fund, FTSE benchmark levels, fund/class register) and the monthly
    factsheet archives on SharePoint (characteristics, credit/sector/curve breakdowns, top holdings,
    ESG metrics, published trailing returns used as a cross-check).
@@ -78,7 +79,11 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | factsheet archives (app-only, `Sites.Selected` read) |
 | `FICHES_BASE_PATH` | default `Business Development/Fiches d'infos` |
 | `FACTSHEET_DATA_DIR` | optional local folder of factsheet archives (overrides Graph) |
-| `FTSE_INDEX_SEST` | FTSE short name for the Monthly Income benchmark (default `short_overall`) |
+| `FTSE_INDEX_SEST` | FTSE short name used as fallback for the Monthly Income benchmark (default `short_corp`); the factsheet's published index tables are the primary source |
+| `GITHUB_TOKEN` | contents:read on the analytics repo: pre-Apex monthly history (`fund_returns.json`) |
+| `ANALYTICS_REPO`, `ANALYTICS_BRANCH`, `ANALYTICS_RETURNS_PATH` | defaults `Nymbus-Capital/analytics`, `main`, `fund-analytics-app/backend/data/fund_returns.json` |
+| `ANALYTICS_RETURNS_FILE` | optional local copy of `fund_returns.json` (overrides GitHub) |
+| `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH` | default `1`: a new performance month goes live only once its factsheet exists and cross-checks |
 | `PIPELINE_SCHEDULE` | `HH:MM,HH:MM` America/Toronto, or `off` (default `06:45,12:45,18:45`) |
 | `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs |
 | `SHOW_SAMPLE_DATA` | `1` to allow the synthetic sample in production (demo environments only) |

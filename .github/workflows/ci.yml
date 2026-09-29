@@ -48,6 +48,9 @@ jobs:
         run: set -o pipefail; npm run e2e 2>&1 | tee ci-out/e2e.log
         env:
           SHOW_SAMPLE_DATA: "1"
+      - name: Docker image builds
+        if: github.event_name == 'push'
+        run: set -o pipefail; docker build -t nymbus-web:ci . 2>&1 | tail -40 | tee ci-out/docker.log
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v4

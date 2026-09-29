@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { Reveal, RevealTitle, reducedMotion } from "@/components/v3/motion";
+import { Reveal, RevealTitle, onScrollFrame, reducedMotion } from "@/components/v3/motion";
 import { formatDay, useTranslation } from "@/lib/i18n";
 import { HOME } from "../copy";
 import type { FundCard } from "../home/data";
@@ -21,7 +21,16 @@ function Universe() {
     const c = ref.current;
     if (!c) return;
     const u = createBondUniverse(c, { still: reducedMotion(), onReady: () => setReady(true) });
-    return () => u.destroy();
+    // scroll hand-off: as the hero leaves, the surface collapses into one glowing yield curve that the
+    // next screen's light trail picks up
+    const host = c.closest(".screen") as HTMLElement | null;
+    const off = reducedMotion() || !host ? () => {} : onScrollFrame((vh) => {
+      const r = host.getBoundingClientRect();
+      const k = Math.min(1, Math.max(0, -r.top / (r.height * 0.55)));
+      u.setFlatten(k);
+      host.style.setProperty("--flat", k.toFixed(3));
+    });
+    return () => { off(); u.destroy(); };
   }, []);
   return <canvas ref={ref} className={`hero-canvas ${ready ? "on" : ""}`} aria-hidden="true" />;
 }

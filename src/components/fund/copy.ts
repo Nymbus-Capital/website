@@ -48,6 +48,8 @@ export const T = {
       "Les rendements présentés pour cette stratégie sont bruts de frais et représentent des comptes gérés; il ne s’agit pas des rendements d’un fonds d’investissement. Les rendements des clients sont réduits par les frais de gestion et autres frais, et varient d’un compte à l’autre.",
     ),
     explore: l("explore the numbers", "explorer les chiffres"),
+    inLine: l("in line with benchmark", "en ligne avec l’indice"),
+    noChange: l("no daily change published", "aucune variation quotidienne publiée"),
     day: l("vs previous valuation day", "vs jour d’évaluation précédent"),
   },
   trailing: {
@@ -192,6 +194,7 @@ export const T = {
     ),
     provenance: l("Updated daily from Nymbus’ data platform", "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus"),
     provenanceFactsheet: l("portfolio data from the monthly factsheet of", "données de portefeuille selon la fiche mensuelle de"),
+    classShown: l("Performance shown", "Rendements présentés"),
     perfAsOf: l("performance as of", "rendements au"),
     navAsOf: l("net asset values as of", "valeurs liquidatives au"),
     aumAsOf: l("assets as of", "actif au"),

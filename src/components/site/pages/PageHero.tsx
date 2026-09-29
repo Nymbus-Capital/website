@@ -10,7 +10,7 @@ export function PageHero({
 }) {
   return (
     <section className={`screen dark page-hero ${compact ? "compact" : ""}`} data-swap="" aria-labelledby={id}>
-      {trail ? <LightTrail d="M-60 640 C 320 600, 640 640, 900 560 C 1080 505, 1180 420, 1340 380" /> : null}
+      {trail ? <LightTrail d="M-60 690 C 320 660, 640 690, 900 630 C 1080 590, 1180 540, 1340 500" /> : null}
       <Spotlight />
       <div className="wrap wide">
         {eyebrow ? <Reveal className="eyebrow" self>{eyebrow}</Reveal> : null}

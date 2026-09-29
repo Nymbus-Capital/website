@@ -68,7 +68,7 @@ for (const r of ROUTES) {
     await page.goto(r.path);
     await scrollThrough(page);
     // freeze the keynote swap so every screen is at rest in the capture
-    await page.addStyleTag({ content: ".screen{transform:none!important;filter:none!important;opacity:1!important}" });
+    await page.addStyleTag({ content: ".screen{transform:none!important;filter:none!important;opacity:1!important;clip-path:none!important;animation:none!important}" });
     await page.screenshot({ path: `${SHOTS}/site-${r.name}-${info.project.name}.png`, fullPage: true });
   });
 }
@@ -79,6 +79,14 @@ test("unknown route: 404 page in the site chrome", async ({ page }, info) => {
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/this bond has matured/);
   await expect(page.getByRole("link", { name: /back to home/ })).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/site-404-${info.project.name}.png`, fullPage: true });
+});
+
+test("odometer: the figure's accessible name is the final value", async ({ page }) => {
+  await page.goto("/");
+  const odo = page.locator('[data-testid^="strategy-"] .odo').first();
+  if (!(await odo.count())) test.skip(true, "no published figures in this environment");
+  await odo.scrollIntoViewIfNeeded();
+  await expect(odo).toHaveAttribute("aria-label", /^[+−]?\d+\.\d%$/);
 });
 
 test("home: live figures come from the data, never invented", async ({ page }) => {
@@ -175,6 +183,10 @@ test("reduced motion: content is visible without animations", async ({ browser, 
     Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *")).filter((e) => getComputedStyle(e).opacity === "0").length,
   );
   expect(hidden).toBe(0);
+  // the pinned "why an overlay" story unpins and shows every step
+  await expect(page.locator(".story-pin")).toHaveCSS("position", "relative");
+  await expect(page.locator(".story-steps li")).toHaveCount(4);
+  for (const li of await page.locator(".story-steps li").all()) await expect(li).toHaveCSS("opacity", "1");
   await ctx.close();
 });
 

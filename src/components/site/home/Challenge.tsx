@@ -41,7 +41,7 @@ export function Challenge() {
                 const I = ICONS[i];
                 return (
                   <li key={i} className="fic-r">
-                    <span className="ring sm"><I size={26} strokeWidth={1.6} aria-hidden="true" /></span>
+                    <span className="fic-ring sm"><I size={26} strokeWidth={1.6} aria-hidden="true" /></span>
                     <span className="fic-rt">{pick(r)}</span>
                   </li>
                 );
@@ -58,16 +58,16 @@ export function Challenge() {
 
           <Reveal className="fic-vol" kind="zoom" self delay={500}>
             <span className="lbl">{pick(X.thread)}</span>
-            <div className="ring big">
+            <div className="fic-ring big">
               <svg viewBox="0 0 120 60" className="vol-trace" aria-hidden="true"><path d={volPath(120, 60)} /></svg>
-              <span className="ring-pulse" aria-hidden="true" />
+              <span className="fic-ring-pulse" aria-hidden="true" />
             </div>
             <span className="fic-volt">{pick(X.vol)}</span>
           </Reveal>
         </div>
 
         <Reveal className="fic-sol" kind="pop" self delay={200}>
-          <span className="ring sol"><ShieldCheck size={30} strokeWidth={1.6} aria-hidden="true" /></span>
+          <span className="fic-ring sol"><ShieldCheck size={30} strokeWidth={1.6} aria-hidden="true" /></span>
           <div>
             <span className="lbl brand">{pick(X.solution)}</span>
             <p className="h3">{pick(X.solT)}</p>

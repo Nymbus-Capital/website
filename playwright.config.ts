@@ -35,8 +35,12 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    { name: "desktop", testIgnore: /admin\.spec/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "mobile", testIgnore: /admin\.spec/, use: { ...devices["Pixel 7"] } },
+    // the admin tests write content (taglines, documents) to the shared data volume: they run after the public
+    // page tests so no public screenshot or assertion ever sees test content
+    { name: "admin-desktop", testMatch: /admin\.spec/, dependencies: ["desktop", "mobile"], use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "admin-mobile", testMatch: /admin\.spec/, dependencies: ["desktop", "mobile"], use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
     command: `rm -rf ./var-e2e && npx next start -p ${PORT}`,

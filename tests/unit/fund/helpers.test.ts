@@ -4,7 +4,7 @@ import { fmt, pct, money, compactMoney, monthLabel, dateLabel, charValue, charCo
 import { nice, linear, barPath, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
 import {
   trailingPeriods, isAnnualized, headlineClass, availableRanges, growthRange, heatmapGrid, heatScale, heatCell, groupDocuments,
-  visibleBlocks, riskIndex, calendarRows, riskWindows, bucketRows,
+  visibleBlocks, riskIndex, calendarRows, riskWindows, bucketRows, vaRounded, perfClassLabel,
 } from "../../../src/components/fund/lib/data.ts";
 import type { DocumentMeta, FundData, GrowthPoint, NavClass } from "../../../src/lib/data/types.ts";
 
@@ -140,6 +140,8 @@ test("heatmap grid and colours", () => {
   assert.equal(heatCell(0.02, 0.02).alpha, 1);
   assert.equal(heatCell(-0.03, 0.02).tone, "neg");
   assert.ok(heatCell(0.001, 0.02).alpha >= 0.1);
+  assert.equal(heatCell(0.008, 0.008).strong, false, "under 1 % keeps ink text even when saturated");
+  assert.equal(heatCell(0.02, 0.02).strong, true);
 });
 
 test("calendar rows and buckets drop empty values", () => {
@@ -181,4 +183,19 @@ test("visible blocks follow data and admin switches", () => {
   assert.equal(v.documents, false);
   assert.equal(visibleBlocks(data, { hide: { performance: true, growth: true } }, 2).trailing, false);
   assert.equal(visibleBlocks(null, {}, 0).trailing, false);
+});
+
+test("value added rounds to the displayed precision", () => {
+  assert.equal(vaRounded(-0.0004, 1), 0, "−0.04 pp shows as in line");
+  assert.equal(vaRounded(0.0004, 1), 0);
+  assert.equal(vaRounded(0.0006, 1), 0.001);
+  assert.equal(vaRounded(-0.0126, 1), -0.013);
+  assert.equal(vaRounded(null), null);
+});
+
+test("performance class label", () => {
+  assert.equal(perfClassLabel({ returnClass: "FP", returnClassLabel: "Series FP" }, "class"), "Series FP");
+  assert.equal(perfClassLabel({ returnClass: "FP" }, "class"), "class FP");
+  assert.equal(perfClassLabel({}, "class"), null);
+  assert.equal(perfClassLabel(null, "class"), null);
 });

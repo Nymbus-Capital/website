@@ -35,7 +35,7 @@ const P = {
 
 const inDept = (m: TeamMember, d: Department | "all") => d === "all" || m.department === d || !!m.additionalDepartments?.includes(d);
 
-function Portrait({ m, size = "m" }: { m: TeamMember; size?: "m" | "l" }) {
+function Portrait({ m, size = "m", badge = false }: { m: TeamMember; size?: "m" | "l"; badge?: boolean }) {
   const [broken, setBroken] = useState(false);
   const img = useRef<HTMLImageElement>(null);
   // an image that failed before hydration never fires onError: check once mounted
@@ -47,6 +47,7 @@ function Portrait({ m, size = "m" }: { m: TeamMember; size?: "m" | "l" }) {
       ) : (
         <span className="pt-i" aria-hidden="true">{m.initials}</span>
       )}
+      {badge ? <span className="person-go" aria-hidden="true"><ArrowUpRight size={15} /></span> : null}
     </span>
   );
 }
@@ -143,11 +144,10 @@ export function Team() {
             {shown.map((m) => (
               <li key={m.name}>
                 <button type="button" className="person" onClick={(e) => openBio(m, e.currentTarget)} aria-label={`${pick(P.open)} ${m.name}`} aria-haspopup="dialog">
-                  <Portrait m={m} />
+                  <Portrait m={m} badge />
                   <span className="person-n">{m.name}</span>
                   <span className="person-t small">{fr ? m.titleFr ?? m.title : m.title}</span>
                   <span className="person-s small">{fr ? m.summaryFr ?? m.summary : m.summary}</span>
-                  <span className="person-go" aria-hidden="true"><ArrowUpRight size={16} /></span>
                 </button>
               </li>
             ))}

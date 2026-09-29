@@ -12,7 +12,7 @@ import { l, useTranslation } from "@/lib/i18n";
 const C = {
   kicker: l("error 404", "erreur 404"),
   title: l("this bond", "cette obligation"), accent: l("has matured", "est arrivée à échéance"),
-  lead: l("The page you are looking for does not exist, or it moved.", "La page que vous cherchez n’existe pas, ou elle a été déplacée."),
+  lead: l("the page you are looking for does not exist, or it moved.", "la page que vous cherchez n’existe pas, ou elle a été déplacée."),
   home: l("back to home", "retour à l’accueil"), strategies: l("our strategies", "nos stratégies"),
 };
 

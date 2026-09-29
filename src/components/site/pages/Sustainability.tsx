@@ -16,8 +16,8 @@ import { PageHero } from "./PageHero";
 const S = {
   eyebrow: l("sustainability", "durabilité"),
   title: l("modernity meets", "la modernité rencontre"), accent: l("responsibility", "la responsabilité"),
-  lead: l("Responsible investing is not a separate strategy at Nymbus: it is woven into the systematic process behind every portfolio decision.",
-    "L’investissement responsable n’est pas une stratégie à part chez Nymbus : il est intégré au processus systématique derrière chaque décision de portefeuille."),
+  lead: l("responsible investing is not a separate strategy at Nymbus: it is woven into the systematic process behind every portfolio decision.",
+    "l’investissement responsable n’est pas une stratégie à part chez Nymbus : il est intégré au processus systématique derrière chaque décision de portefeuille."),
   how: l("integration in practice", "l’intégration en pratique"), howT: l("three layers,", "trois couches,"), howA: l("one process", "un seul processus"),
   layers: [
     { icon: Ban, t: l("exclusion screening", "filtrage d’exclusion"), d: l("securities are systematically excluded from our sustainable portfolios on strict ESG criteria, tobacco included", "des titres sont systématiquement exclus de nos portefeuilles durables selon des critères ESG stricts, y compris le tabac") },
@@ -32,8 +32,8 @@ const S = {
   ],
   solutions: l("sustainable solutions", "solutions durables"),
   seb: l("sustainable enhanced bonds", "obligations durables bonifiées"),
-  sebD: l("A core Canadian bond portfolio built systematically, integrating sustainability criteria and a protection overlay that tends to perform when bonds struggle.",
-    "Un portefeuille obligataire canadien de base construit systématiquement, intégrant des critères de durabilité et une stratégie de protection qui tend à performer quand les obligations souffrent."),
+  sebD: l("a core Canadian bond portfolio built systematically, integrating sustainability criteria and a protection overlay that tends to perform when bonds struggle.",
+    "un portefeuille obligataire canadien de base construit systématiquement, intégrant des critères de durabilité et une stratégie de protection qui tend à performer quand les obligations souffrent."),
   sebGo: l("explore the fund", "découvrir le fonds"),
   chapter: l("capital with a conscience", "du capital avec une conscience"),
 };

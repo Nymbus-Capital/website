@@ -32,14 +32,16 @@ const TRAILS = [
   "M-40 600 C 300 575, 560 575, 700 560 C 860 540, 820 470, 560 462 C 470 460, 420 470, 400 480",
   "M1320 610 C 1000 590, 760 600, 600 575 C 420 548, 470 470, 700 468 C 800 466, 860 480, 880 494",
   "M-40 520 C 240 640, 520 660, 760 600 C 980 545, 1120 470, 1320 430",
+  // hand-off from the hero: enters at the height where the hero's flattened yield curve left the screen
+  "M-40 150 C 260 140, 520 200, 700 330 C 860 450, 1000 560, 1320 600",
 ];
 
 /** Black chapter screen with the glowing light trail drawing itself as it scrolls in. */
-export function Chapter({ no, title, kicker, variant = 0, id }: { no: number; title: string; kicker?: string; variant?: number; id?: string }) {
+export function Chapter({ no, title, kicker, variant = 0, id, handoff = false }: { no: number; title: string; kicker?: string; variant?: number; id?: string; handoff?: boolean }) {
   const { t } = useTranslation();
   const label = kicker ?? t("ui.chapter");
   return (
-    <section className="screen dark center chapter" data-swap="" aria-labelledby={id}>
+    <section className={`screen dark center chapter ${handoff ? "handoff" : ""}`} data-swap="" aria-labelledby={id}>
       <LightTrail d={TRAILS[variant % TRAILS.length]} scrub />
       <div className="wrap narrow chapter-in">
         <Reveal className="kicker" self><span className="mark" aria-hidden="true" /><span>{String(no).padStart(2, "0")} · {label}</span></Reveal>

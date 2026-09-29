@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { ArrowUpRight } from "lucide-react";
-import { CountUp, Reveal, useTilt } from "@/components/v3/motion";
+import { Odometer, Reveal, useTilt } from "@/components/v3/motion";
 import { formatMonth, useTranslation } from "@/lib/i18n";
 import { HOME, RISK } from "../copy";
 import type { FundCard } from "./data";
@@ -46,7 +46,7 @@ export function StrategyCard({ f, sample, index }: { f: FundCard; sample: boolea
       <span className="strat-fig">
         {f.si !== null ? (
           <>
-            <span className="fig l g-fund"><CountUp value={f.si} pct sign decimals={1} lang={locale} /></span>
+            <span className="fig l g-fund"><Odometer value={f.si} pct sign decimals={1} lang={locale} /></span>
             <span className="fig-label">{pick(label)} · {pick(S.since)}</span>
             {f.asOf ? <span className="small strat-asof">{formatMonth(f.asOf, locale)}</span> : null}
           </>

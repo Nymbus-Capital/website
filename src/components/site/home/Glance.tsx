@@ -3,7 +3,7 @@
  * nymbus at a glance: approach / team / firm, three columns on the screen (no boxes), figures in gradient.
  * AUM comes from the admin content (firm.aumLabel); the other figures are the deck's approved wording.
  */
-import { CountUp, Reveal, RevealTitle, Spotlight } from "@/components/v3/motion";
+import { Odometer, Reveal, RevealTitle, Spotlight } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import type { L10n } from "@/lib/data/types";
 import { HOME } from "../copy";
@@ -27,7 +27,7 @@ export function Glance({ aumLabel }: { aumLabel: L10n | null }) {
             <span className="gplus" aria-hidden="true">+</span>
             <p className="gt grad">{pick(G.a2)}</p>
             <div className="gfig">
-              <span className="fig l g-cyan"><CountUp value={10} decimals={0} suffix="+" lang={locale} /></span>
+              <span className="fig l g-cyan"><Odometer value={10} decimals={0} suffix="+" lang={locale} /></span>
               <span className="fig-label">{pick(G.a3)}</span>
             </div>
           </div>
@@ -38,7 +38,7 @@ export function Glance({ aumLabel }: { aumLabel: L10n | null }) {
             <span className="gplus" aria-hidden="true">+</span>
             <p className="gt grad">{pick(G.t2)}</p>
             <div className="gfig">
-              <span className="fig l g-green"><CountUp value={23} decimals={0} lang={locale} /></span>
+              <span className="fig l g-green"><Odometer value={23} decimals={0} lang={locale} /></span>
               <span className="fig-label">{pick(G.t2s)}</span>
             </div>
           </div>

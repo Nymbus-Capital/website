@@ -32,11 +32,11 @@ for (const f of FUNDS) {
     await expect(page.getByRole("heading", { level: 1, name: f.en.toLowerCase() })).toBeVisible();
     // hero: since-inception figure and its label
     await expect(page.locator(".fx-bigfig")).toBeVisible();
-    await expect(page.locator(".fx-bigfig")).toHaveText(/^−?\d+\.\d%$/, { timeout: 5_000 });
+    await expect(page.locator(".fx-bigfig .odo")).toHaveAttribute("aria-label", /^−?\d+\.\d%$/);
     await expect(page.getByTestId("hero-figure-label")).toContainText(f.gross ? "gross" : "net");
     await expect(page.getByTestId("basis")).toContainText(f.gross ? "gross of fees" : "net of fees");
-    // sample data is flagged
-    await expect(page.locator(".fx-ribbon")).toBeVisible();
+    // sample data is flagged (corner ribbon on desktop, hero chip everywhere)
+    await expect(page.locator(".fx-hero .fx-sample")).toBeVisible();
 
     // trailing returns: chart mounts when scrolled near, one focusable group per period
     const chart = page.getByTestId("trailing-chart");
@@ -97,5 +97,5 @@ test("FR toggle switches the labels", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "rendements cumulatifs" })).toBeAttached();
   await expect(page.getByTestId("basis")).toHaveText("net de frais");
   // French number formatting: decimal comma and a (narrow) no-break space before %
-  await expect(page.locator(".fx-bigfig")).toHaveText(/^−?\d+,\d\s%$/, { timeout: 5_000 });
+  await expect(page.locator(".fx-bigfig .odo")).toHaveAttribute("aria-label", /^−?\d+,\d\s%$/);
 });

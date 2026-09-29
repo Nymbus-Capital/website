@@ -35,7 +35,7 @@ export const team: TeamMember[] = [
     previousRoles: ["President, National Bank Financial Markets", "Chairman of the Board, Ontario Teachers' Pension Plan", "Queen Elizabeth II Diamond Jubilee Medal"],
     previousRolesFr: ["Président, Marchés financiers Banque Nationale", "Président du c.a., Régime de retraite des enseignants de l'Ontario", "Médaille du jubilé de diamant de la reine Élisabeth II"],
     initials: "JT",
-    color: "#1e3a5f",
+    color: "#0b57d0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/JEAN.png",
   },
   {
@@ -52,7 +52,7 @@ export const team: TeamMember[] = [
     previousRoles: ["President, Montrusco Bolton", "President, Association des économistes québécois"],
     previousRolesFr: ["Président, Montrusco Bolton", "Président, Association des économistes québécois"],
     initials: "JL",
-    color: "#2d4a3e",
+    color: "#1a73e8",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/JEAN-LUC.png",
   },
   {
@@ -70,7 +70,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Président, Groupe ARB", "Négociateur, revenu fixe"],
     yearJoined: 2013,
     initials: "MR",
-    color: "#1a365d",
+    color: "#0277bd",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/MARC.png",
   },
   {
@@ -89,7 +89,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Associé et gestionnaire de portefeuille, GC Capital", "Gestionnaire de portefeuille, dérivés taux d'intérêt et actions, Groupe ARB"],
     yearJoined: 2013,
     initials: "GC",
-    color: "#0066FF",
+    color: "#00a3e0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/GABRIEL.png",
   },
   {
@@ -108,7 +108,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Vice-président, Perseus Capital", "Consultant, intervention en allocation d'actifs"],
     yearJoined: 2021,
     initials: "MP",
-    color: "#4a5568",
+    color: "#0b57d0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/MATHIEU.png",
   },
   {
@@ -125,7 +125,7 @@ export const team: TeamMember[] = [
     previousRoles: ["President & Portfolio Manager, Gestion Sodagep", "Executive Vice-President, Canagex", "Assistant Director, Bonds — CDPQ"],
     previousRolesFr: ["Président et gest. de portefeuille, Gestion Sodagep", "Vice-président exécutif, Canagex", "Sous-directeur, obligations — CDPQ"],
     initials: "GL",
-    color: "#553c9a",
+    color: "#1a73e8",
     photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/Guy.png",
   },
   {
@@ -142,7 +142,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Head of Passive Trading, Capital Markets", "Institutional & Equity Proprietary Trader"],
     previousRolesFr: ["Chef du trading de passifs, marchés des capitaux", "Négociateur institutionnel et actions, compte propre"],
     initials: "FL",
-    color: "#2b6cb0",
+    color: "#0277bd",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/FRANCOIS-OLIVIER.png",
   },
   {
@@ -158,7 +158,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Ingénieur logiciel principal sénior, Vertex AI — Google", "Ingénieur sénior, Watson — IBM"],
     yearJoined: 2025,
     initials: "LH",
-    color: "#2d3748",
+    color: "#00a3e0",
   },
   {
     name: "Jessica Martins",
@@ -176,7 +176,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Trading quantitatif et couvertures, Tower Research Capital"],
     yearJoined: 2022,
     initials: "JM",
-    color: "#9b2c2c",
+    color: "#0b57d0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/JESSICA.png",
   },
   {
@@ -194,7 +194,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Investment Analytics, PSP Investments", "Performance Analyst, CDPQ", "Risk Analyst — Hedge Funds"],
     previousRolesFr: ["Analytiques d'investissement, PSP Investissements", "Analyste de performance, CDPQ", "Analyste de risque — Fonds spéculatifs"],
     initials: "JPL",
-    color: "#276749",
+    color: "#1a73e8",
     photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/Jean-Philippe.png",
   },
   {
@@ -213,7 +213,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Analyste quantitatif, revenu fixe — CDPQ", "Analyste, investissements et risque — Trans-Canada Capital"],
     yearJoined: 2023,
     initials: "OC",
-    color: "#744210",
+    color: "#0277bd",
     photo: "https://www.nymbus.ca/wp-content/uploads/2023/10/OLIVIER_new.png",
   },
   {
@@ -230,7 +230,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Senior Director, Compliance", "Head of Compliance, Asset Management", "Senior Analyst, Portfolio Compliance & Operations"],
     previousRolesFr: ["Directrice sénior, Conformité", "Responsable Conformité, Gestion d'actifs", "Analyste sénior, Conformité Portefeuille et Opérations"],
     initials: "DD",
-    color: "#702459",
+    color: "#00a3e0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2025/07/DIANE.png",
   },
   {
@@ -246,7 +246,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Portfolio Administrator, Sodagep", "Accounting Consultant"],
     previousRolesFr: ["Administratrice de portefeuille, Sodagep", "Consultante en comptabilité"],
     initials: "JP",
-    color: "#285e61",
+    color: "#0b57d0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/Jennifer.png",
   },
   {
@@ -262,8 +262,8 @@ export const team: TeamMember[] = [
     designations: ["CFA", "M.Sc. Finance"],
     previousRoles: ["Landry Investment Management", "Bank of America", "GE Capital"],
     previousRolesFr: ["Landry Investment Management", "Bank of America", "GE Capital"],
-    initials: "JL2",
-    color: "#2c5282",
+    initials: "JL",
+    color: "#1a73e8",
   },
   {
     name: "Fraser Coburn",
@@ -278,7 +278,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Vice-President, Eastern Canada — BlackRock", "Regional Vice-President, Sales — Invesco", "Investment Specialist — RBC"],
     previousRolesFr: ["Vice-président, Est du Canada — BlackRock", "Vice-président régional, Ventes — Invesco", "Spécialiste, investissements — RBC"],
     initials: "FC",
-    color: "#3182ce",
+    color: "#0277bd",
   },
   {
     name: "Luca Ieraci",
@@ -290,7 +290,7 @@ export const team: TeamMember[] = [
     summary: "Building the technology infrastructure powering systematic investment strategies",
     summaryFr: "Construit l'infrastructure technologique alimentant les stratégies d'investissement systématiques",
     initials: "LI",
-    color: "#4c51bf",
+    color: "#00a3e0",
   },
   {
     name: "Xavier Girard",
@@ -306,7 +306,7 @@ export const team: TeamMember[] = [
     previousRolesFr: ["Directeur, développement des affaires — Mackenzie Investments", "Représentant d'épargne collective — Sun Life"],
     yearJoined: 2024,
     initials: "XG",
-    color: "#38a169",
+    color: "#0b57d0",
     photo: "https://www.nymbus.ca/wp-content/uploads/2024/01/XAVIER.png",
   },
   {
@@ -322,7 +322,7 @@ export const team: TeamMember[] = [
     previousRoles: ["Coordinator — National Bank", "Coordinator — iA Financial Group", "Coordinator — Desjardins"],
     previousRolesFr: ["Coordonnatrice — Banque Nationale", "Coordonnatrice — Groupe financier iA", "Coordonnatrice — Desjardins"],
     initials: "DC",
-    color: "#d53f8c",
+    color: "#1a73e8",
     photo: "https://www.nymbus.ca/wp-content/uploads/2024/08/DANIRA.png",
   },
 ];

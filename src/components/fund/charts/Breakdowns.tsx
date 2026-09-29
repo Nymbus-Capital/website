@@ -53,7 +53,7 @@ export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: 
   const focus = on ?? 0;
   return (
     <div ref={ref} className={`fx-donut${on != null ? " focus" : ""}`}>
-      <div className="ring" style={{ width: size, height: size }}>
+      <div className="fx-ring-wrap" style={{ width: size, height: size }}>
         <svg ref={svgRef} viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label={`${label}: ${parts.map((p) => `${p.label} ${pctF(p.fund ?? 0, lang)}`).join(", ")}`}>
           <defs>
             <filter id={`${id}g`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>

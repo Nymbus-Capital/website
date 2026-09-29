@@ -17,7 +17,7 @@ type Action = (prev: ContactState, form: FormData) => Promise<ContactState>;
 const C = {
   eyebrow: l("contact", "contact"),
   title: l("let’s", "parlons"), accent: l("talk", "ensemble"),
-  lead: l("Interested in our strategies or a custom mandate? Our team is here to help.", "Nos stratégies ou un mandat sur mesure vous intéressent? Notre équipe est là pour vous aider."),
+  lead: l("interested in our strategies or a custom mandate? our team is here to help.", "nos stratégies ou un mandat sur mesure vous intéressent? notre équipe est là pour vous aider."),
   office: l("montreal office", "bureau de montréal"),
   write: l("write to us", "écrivez-nous"),
   name: l("full name", "nom complet"), email: l("email", "courriel"), company: l("organization (optional)", "organisation (facultatif)"),

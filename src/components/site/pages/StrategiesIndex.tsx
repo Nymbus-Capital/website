@@ -105,17 +105,19 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                       </Link>
                       <span className="small cmp-asset">{pick(f.assetClass)}</span>
                     </td>
-                    <td>
-                      {f.si !== null ? (
-                        <b className="g-fund cmp-si">{pctText(f.si)}</b>
-                      ) : <span className="small">{pick(C.soon)}</span>}
-                      {f.si !== null ? <span className="small cmp-basis">{f.basis === "gross" ? pick(f.siAnnualized ? S.gross : S.grossCum) : pick(f.siAnnualized ? S.net : S.netCum)}</span> : null}
+                    <td data-label={pick(C.cols.si)}>
+                      <span className="cmp-sic">
+                        {f.si !== null ? (
+                          <b className="g-fund cmp-si">{pctText(f.si)}</b>
+                        ) : <span className="small">{pick(C.soon)}</span>}
+                        {f.si !== null ? <span className="small cmp-basis">{f.basis === "gross" ? pick(f.siAnnualized ? S.gross : S.grossCum) : pick(f.siAnnualized ? S.net : S.netCum)}</span> : null}
+                      </span>
                     </td>
-                    <td>{f.asOf ? formatMonth(f.asOf, locale) : "—"}</td>
-                    <td><span className="cmp-risk"><RiskMeter risk={f.risk} label={`${pick(S.risk)}: ${pick(RISK[f.risk])}`} />{pick(RISK[f.risk])}</span></td>
-                    <td className="tabnum">{f.code ?? "—"}</td>
-                    <td>{f.vehicle === "fund" ? pick(S.fund) : pick(S.sma)}</td>
-                    <td className="cmp-bench">{f.benchmark ? pick(f.benchmark) : pick(C.none)}</td>
+                    <td data-label={pick(C.cols.asOf)}>{f.asOf ? formatMonth(f.asOf, locale) : "—"}</td>
+                    <td data-label={pick(C.cols.risk)}><span className="cmp-risk"><RiskMeter risk={f.risk} label={`${pick(S.risk)}: ${pick(RISK[f.risk])}`} />{pick(RISK[f.risk])}</span></td>
+                    <td className="tabnum" data-label={pick(C.cols.code)}>{f.code ?? "—"}</td>
+                    <td data-label={pick(C.cols.vehicle)}>{f.vehicle === "fund" ? pick(S.fund) : pick(S.sma)}</td>
+                    <td className="cmp-bench" data-label={pick(C.cols.bench)}>{f.benchmark ? pick(f.benchmark) : pick(C.none)}</td>
                   </tr>
                 ))}
               </tbody>

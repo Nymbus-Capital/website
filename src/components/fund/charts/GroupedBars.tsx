@@ -44,18 +44,18 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
 
   const hasIndex = cats.some((c) => c.index != null);
   const hasVa = cats.some((c) => c.va != null);
-  const series = (["fund", ...(hasIndex ? ["index"] : []), ...(hasVa ? ["va"] : [])] as ("fund" | "index" | "va")[]);
+  // value added is not a third bar: it rides above each fund / index pair as a small ± pill
+  const series = (["fund", ...(hasIndex ? ["index"] : [])] as ("fund" | "index")[]);
 
   const narrow = w > 0 && w < 560;
   const H = narrow ? Math.round(height * 0.82) : height;
-  const pad = { l: narrow ? 38 : 48, r: 8, t: 30, b: cats.some((c) => c.flag) ? 50 : 38 };
+  const pad = { l: narrow ? 38 : 48, r: 8, t: hasVa ? 58 : 30, b: cats.some((c) => c.flag) ? 50 : 38 };
   const geo = useMemo(() => {
-    const all = cats.flatMap((c) => [c.fund, hasIndex ? c.index : null, hasVa ? c.va : null]).filter((v): v is number => typeof v === "number");
+    const all = cats.flatMap((c) => [c.fund, hasIndex ? c.index : null]).filter((v): v is number => typeof v === "number");
     const sc = nice(Math.min(0, ...all), Math.max(0, ...all), narrow ? 4 : 5);
     const W = Math.max(0, w - pad.l - pad.r), IH = H - pad.t - pad.b;
     const y = (v: number) => pad.t + IH - ((v - sc.lo) / (sc.hi - sc.lo || 1)) * IH;
-    // value added is drawn thinner, so give it a smaller slot
-    const weights = series.map((s) => (s === "va" ? 0.55 : 1));
+    const weights = series.map(() => 1);
     const totalW = weights.reduce((a, b) => a + b, 0);
     const b = bands(cats.length, pad.l, W, 1, cats.length <= 4 ? 0.5 : narrow ? 0.22 : 0.3);
     return { sc, W, IH, y, b, weights, totalW };
@@ -66,6 +66,8 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
   const pctF = (v: number) => fmt(v, { pct: true, decimals: 1, lang });
   const tickF = (v: number) => fmt(v, { pct: true, decimals: geo.sc.step * 100 >= 1 && Number.isInteger(+(geo.sc.step * 100).toFixed(6)) ? 0 : 1, lang });
   const showVals = values && w > 0 && geo.b.inner / series.length >= 26;
+  // below 640 px only the fund values are labelled (the index stays in the tooltip and the table)
+  const showIndexVals = showVals && w >= 640;
 
   const focusCat = (i: number | null, el?: Element | null) => {
     setOn(i);
@@ -115,7 +117,7 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
             let acc = 0;
             const y0 = geo.y(0);
             const bars = series.map((s, si) => {
-              const v = s === "fund" ? c.fund : s === "index" ? c.index : c.va;
+              const v = s === "fund" ? c.fund : c.index;
               const slot = unit * geo.weights[si];
               const x = x0 + acc;
               acc += slot;
@@ -123,18 +125,31 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
               const bw = Math.max(2, slot - (narrow ? 2 : 4));
               const bx = x + (slot - bw) / 2;
               const yv = geo.y(v);
-              const d = barPath(bx, y0, bw, yv, Math.min(s === "va" ? 3 : 7, bw / 3));
-              const fill = s === "fund" ? `url(#${id}${v >= 0 ? "f" : "fd"})` : s === "index" ? `url(#${id}i)` : "var(--fx-va)";
-              const txt = s === "va" ? fmt(v, { pct: true, decimals: 1, sign: true, lang }) : pctF(v);
+              const d = barPath(bx, y0, bw, yv, Math.min(7, bw / 3));
+              const fill = s === "fund" ? `url(#${id}${v >= 0 ? "f" : "fd"})` : `url(#${id}i)`;
+              const txt = pctF(v);
               return (
                 <g key={s}>
                   {d ? <path d={d} fill={fill} filter={s === "fund" ? `url(#${id}g)` : undefined} data-grow={v >= 0 ? "up" : "down"} /> : null}
-                  {showVals ? (
+                  {showVals && (s === "fund" || showIndexVals) ? (
                     <text x={bx + bw / 2} y={v >= 0 ? yv - 8 : yv + 15} className={`vl ${s}`} textAnchor="middle" data-lab="">{txt.replace("%", "").replace(" ", "")}</text>
                   ) : null}
                 </g>
               );
             });
+            const vaPill = hasVa && c.va != null ? (() => {
+              const top = Math.min(...[c.fund, c.index].filter((v): v is number => typeof v === "number").map((v) => geo.y(Math.max(0, v))));
+              const txt = fmt(c.va!, { pct: true, decimals: 1, sign: true, lang });
+              const pw = Math.min(geo.b.inner + 8, txt.length * 6.6 + 16);
+              const cx = x0 + geo.b.inner / 2, cy = top - (showVals ? 38 : 16);
+              const tone = Math.abs(c.va!) < 0.0005 ? "zero" : c.va! > 0 ? "pos" : "neg";
+              return (
+                <g className={`vapill ${tone}`} data-lab="">
+                  <rect x={cx - pw / 2} y={cy - 10} width={pw} height={20} rx={10} />
+                  <text x={cx} y={cy + 0.5} textAnchor="middle" dominantBaseline="central">{txt}</text>
+                </g>
+              );
+            })() : null;
             const aria = [
               c.long + (c.flag ? ` (${c.flag})` : ""),
               c.fund != null ? `${names.fund} ${pctF(c.fund)}` : "",
@@ -146,6 +161,7 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
                 onPointerEnter={() => focusCat(i)} onFocus={() => focusCat(i)} onBlur={() => focusCat(null)} onKeyDown={(e) => onKey(e, i)}>
                 <rect className="hit" x={geo.b.x(i)} y={pad.t - 20} width={geo.b.band} height={geo.IH + 20} rx={12} />
                 {bars}
+                {vaPill}
                 <text x={geo.b.x(i) + geo.b.band / 2} y={H - pad.b + 22} className="tk x" textAnchor="middle">{c.label}</text>
                 {c.flag ? <text x={geo.b.x(i) + geo.b.band / 2} y={H - pad.b + 38} className="tk" textAnchor="middle" style={{ fill: "var(--fund)", fontWeight: 600 }}>{c.flag}</text> : null}
               </g>

@@ -18,8 +18,8 @@ import { PageHero } from "./PageHero";
 const A = {
   eyebrow: l("our approach", "notre approche"),
   title: l("where science", "là où la science"), accent: l("meets bonds", "rencontre les obligations"),
-  lead: l("We process vast quantities of public market data. Using statistical analysis and machine learning, we perform pattern recognition across billions of data points to find opportunities where humans cannot process the sheer volume of information.",
-    "Nous traitons d'immenses volumes de données des marchés publics. À l'aide d'analyses statistiques et d'apprentissage automatique, nous effectuons de la reconnaissance de tendances sur des milliards de points de données pour trouver des occasions là où l'humain ne peut traiter un tel volume d'information."),
+  lead: l("we process vast quantities of public market data. using statistical analysis and machine learning, we perform pattern recognition across billions of data points to find opportunities where humans cannot process the sheer volume of information.",
+    "nous traitons d'immenses volumes de données des marchés publics. à l'aide d'analyses statistiques et d'apprentissage automatique, nous effectuons de la reconnaissance de tendances sur des milliards de points de données pour trouver des occasions là où l'humain ne peut traiter un tel volume d'information."),
   engine: l("the engine", "le moteur"), engineT: l("from data", "des données"), engineA: l("to portfolios", "aux portefeuilles"),
   steps: [
     { icon: Database, t: l("data & research", "données et recherche"), d: l("pricing, fundamental credit metrics, macroeconomic indicators and cross-asset relationships, cleaned and stored at scale", "prix, indicateurs de crédit fondamentaux, indicateurs macroéconomiques et relations inter-actifs, nettoyés et stockés à grande échelle") },
@@ -56,10 +56,10 @@ export function Approach() {
         </div>
       </section>
 
-      <Chapter no={1} title={pick(HOME.chapters.bonds)} id="ap-ch1" variant={0} />
+      <Chapter no={1} title={pick(HOME.chapters.bonds)} kicker={pick(HOME.chapters.k1)} id="ap-ch1" variant={0} />
       <Pillars />
       <Process />
-      <Chapter no={2} title={pick(HOME.chapters.overlay)} id="ap-ch2" variant={1} />
+      <Chapter no={2} title={pick(HOME.chapters.overlay)} kicker={pick(HOME.chapters.k2)} id="ap-ch2" variant={1} />
       <Challenge />
       <Overlay />
 

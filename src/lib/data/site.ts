@@ -13,7 +13,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   updatedAt: "1970-01-01T00:00:00.000Z",
   updatedBy: "system",
   firm: {
-    aumLabel: { en: "1.8 B$+", fr: "1,8 G$+" },
+    aumLabel: { en: "$1.8B+", fr: "1,8 G$+" },
     announcement: null,
   },
   funds: {},

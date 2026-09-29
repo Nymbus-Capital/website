@@ -187,7 +187,7 @@ test.describe("admin flows", () => {
 
   test("save fund content (and a stale version conflicts)", async ({ page, context, request }, info) => {
     // the content version is global: mutate from one project only so parallel projects cannot conflict
-    test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
+    test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
     await page.goto("/admin/funds/multi-strategy");
     await expect(page.getByTestId("fund-editor")).toBeVisible();
@@ -218,7 +218,7 @@ test.describe("admin flows", () => {
   });
 
   test("upload a PDF, publish it and download it publicly", async ({ page, context, request }, info) => {
-    test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
+    test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
     await page.goto("/admin/documents");
     await expect(page.getByTestId("upload-form")).toBeVisible();

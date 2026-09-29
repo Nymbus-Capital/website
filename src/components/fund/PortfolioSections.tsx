@@ -10,7 +10,7 @@ import { T, tr } from "./copy";
 import { SectionHead } from "./PerformanceSections";
 import { Donut, HBars, Holdings } from "./charts/Breakdowns";
 import { bigMoney, charCount, charValue, dateLabel, fileSize, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
-import { bucketRows, groupDocuments, headlineClass, orderedBuckets, riskIndex } from "./lib/data.ts";
+import { bucketRows, groupDocuments, headlineClass, orderedBuckets, perfClassLabel, riskIndex } from "./lib/data.ts";
 import type { FundDoc } from "./types";
 
 /* ------------------------------------------------------------------ portfolio */
@@ -42,7 +42,7 @@ export function PortfolioSection({ data, content, lang }: { data: FundData; cont
   const [tab, setTab] = useState(0);
   const cur = bks[Math.min(tab, bks.length - 1)];
   const names = { fund: tr(T.portfolio.fund, lang), index: tr(T.portfolio.index, lang) };
-  const tones = ["g-fund", "g-cyan", "g-fund", "g-cyan", "g-fund", "g-cyan"];
+  const tones = ["g-fund"];
   const factsheet = data.factsheetMonth ? `${tr(T.portfolio.factsheet, lang)} ${monthLabel(data.factsheetMonth, lang)}` : undefined;
 
   return (
@@ -82,7 +82,7 @@ export function PortfolioSection({ data, content, lang }: { data: FundData; cont
         ) : null}
 
         {holdings.length || esg.length ? (
-          <div className={`fx-block ${holdings.length && esg.length ? "fx-two" : "wrap narrow"}`}>
+          <div className={`fx-block ${holdings.length && esg.length >= 4 ? "fx-two" : "fx-stack"}`}>
             {holdings.length ? (
               <div>
                 <h3 className="h3" style={{ marginBottom: 18 }}>{tr(T.portfolio.holdings, lang)}</h3>
@@ -140,7 +140,7 @@ export function FactsSection({ spec, content, data, lang }: { spec: FundSpec; co
     [tr(T.facts.vehicle, lang), tr(spec.vehicle === "fund" ? T.hero.vehicleFund : T.hero.vehicleStrategy, lang)],
     [tr(T.facts.assetClass, lang), tr(spec.assetClass, lang)],
     [tr(T.facts.inception, lang), perf?.firstMonth ? monthLabel(perf.firstMonth, lang) : null],
-    [tr(T.facts.benchmark, lang), spec.benchmark ? tr(spec.benchmark, lang) : null],
+    [tr(T.facts.benchmark, lang), perf?.indexName || (spec.benchmark ? tr(spec.benchmark, lang) : null)],
     [tr(T.facts.risk, lang), tr(T.hero.levels[risk], lang)],
     [tr(T.facts.managementFee, lang), content.managementFee],
     [tr(T.facts.performanceFee, lang), content.performanceFee],
@@ -166,7 +166,7 @@ export function FactsSection({ spec, content, data, lang }: { spec: FundSpec; co
           <Reveal self className="fx-block" style={{ marginTop: 0 }}>
             <h3 className="h3" style={{ textAlign: "center", marginBottom: 18 }}>{tr(T.facts.classes, lang)}</h3>
             <div className="scroll-x">
-              <table className="table" data-testid="classes-table">
+              <table className="table fx-classes" data-testid="classes-table">
                 <caption className="sr-only">{tr(T.facts.classes, lang)}</caption>
                 <thead>
                   <tr>
@@ -179,14 +179,14 @@ export function FactsSection({ spec, content, data, lang }: { spec: FundSpec; co
                     const isHl = hl?.fundserv === c.fundserv;
                     return (
                       <tr key={c.fundserv} className={isHl ? "hl" : undefined} aria-current={isHl ? "true" : undefined}>
-                        <td>{isHl ? <span className="fx-hl-dot" title={tr(T.facts.headline, lang)} /> : null}<code style={{ font: "inherit", letterSpacing: ".02em" }}>{c.fundserv}</code>{isHl ? <span className="sr-only"> ({tr(T.facts.headline, lang)})</span> : null}</td>
-                        <td>{c.display}</td>
-                        <td>{c.currency}</td>
-                        <td>{c.nav != null ? money(c.nav, c.currency, lang, 4) : "—"}</td>
-                        <td className={c.changePct == null ? undefined : c.changePct > 0 ? "pos" : c.changePct < 0 ? "neg" : undefined}>
+                        <td data-label={tr(T.facts.fundserv, lang)}>{isHl ? <span className="fx-hl-dot" title={tr(T.facts.headline, lang)} /> : null}<code style={{ font: "inherit", letterSpacing: ".02em" }}>{c.fundserv}</code>{isHl ? <span className="sr-only"> ({tr(T.facts.headline, lang)})</span> : null}</td>
+                        <td data-label={tr(T.facts.class, lang)}>{c.display}</td>
+                        <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
+                        <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, 4) : "—"}</td>
+                        <td data-label={tr(T.facts.change, lang)} className={c.changePct == null ? undefined : c.changePct > 0 ? "pos" : c.changePct < 0 ? "neg" : undefined}>
                           {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : "—"}
                         </td>
-                        <td>{c.date ? dateLabel(c.date, lang) : "—"}</td>
+                        <td data-label={tr(T.facts.date, lang)}>{c.date ? dateLabel(c.date, lang) : "—"}</td>
                       </tr>
                     );
                   })}
@@ -256,9 +256,13 @@ export function DisclosureSection({ spec, content, data, lang, sample }: { spec:
         <Reveal>
           {sample ? <p className="note" style={{ color: "#ffd66b" }}>{tr(T.disclosure.sample, lang)}</p> : null}
           {content.performanceNote ? <p className="note">{tr(content.performanceNote, lang)}</p> : null}
+          {(() => {
+            const cl = perfClassLabel(perf, tr(T.hero.class, lang));
+            return cl ? <p className="note" data-testid="perf-class">{tr(T.disclosure.classShown, lang)}: {tr(gross ? T.hero.basisGross : T.hero.basisNet, lang)} · {cl}{perf?.indexName ? ` · vs ${perf.indexName}` : ""}</p> : null;
+          })()}
           <p>{gross ? tr(T.hero.grossNote, lang) : tr(T.disclosure.net, lang)}</p>
           {spec.vehicle === "fund" ? <p>{tr(T.disclosure.standard, lang)}</p> : null}
-          {spec.benchmark ? <p>{tr(T.disclosure.index, lang)}</p> : null}
+          {spec.benchmark || perf?.indexName ? <p>{tr(T.disclosure.index, lang)}</p> : null}
           <p>{tr(T.disclosure.general, lang)}</p>
           <div className="prov" data-testid="provenance">
             <span className="live-dot" aria-hidden="true" />

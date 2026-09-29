@@ -1,0 +1,9 @@
+node_modules
+.next
+var
+var-e2e
+test-results
+playwright-report
+e2e/screenshots
+.git
+.env*

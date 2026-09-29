@@ -30,6 +30,24 @@ export function monthsBetween(a: string, b: string): number {
   return (yb - ya) * 12 + (mb - ma);
 }
 
+/**
+ * Value added rounded to the precision it is displayed at (percent points, `decimals`), as a decimal
+ * fraction; 0 means "in line with the benchmark" (never "−0.0%").
+ */
+export function vaRounded(va: number | null | undefined, decimals = 1): number | null {
+  if (!isNum(va)) return null;
+  const k = Math.pow(10, decimals);
+  const r = +(Math.round(va * 100 * k) / k / 100).toFixed(decimals + 2);
+  return Math.abs(r) < 1e-12 ? 0 : r;
+}
+
+/** Label of the class the performance is published for: "Series F", else "class FP", else null. */
+export function perfClassLabel(perf: { returnClass?: string; returnClassLabel?: string } | null | undefined, classWord: string): string | null {
+  if (!perf) return null;
+  if (perf.returnClassLabel) return perf.returnClassLabel;
+  return perf.returnClass ? `${classWord} ${perf.returnClass}` : null;
+}
+
 export const RISK_LEVELS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
 export type RiskLevel = (typeof RISK_LEVELS)[number];
 export const riskIndex = (r: string | null | undefined) => Math.max(0, RISK_LEVELS.indexOf((r ?? "low") as RiskLevel));
@@ -122,7 +140,8 @@ export function heatCell(r: number | null, scale: number): { tone: "pos" | "neg"
   if (Math.abs(r) < 5e-5) return { tone: "zero", alpha: 0.1, strong: false };
   const k = Math.min(1, Math.abs(r) / (scale || 1));
   const alpha = +(0.1 + 0.9 * Math.pow(k, 0.8)).toFixed(3);
-  return { tone: r > 0 ? "pos" : "neg", alpha, strong: alpha >= 0.62 };
+  // white text only on saturated cells of at least 1 %: smaller returns keep the ink colour
+  return { tone: r > 0 ? "pos" : "neg", alpha, strong: alpha >= 0.62 && Math.abs(r) >= 0.01 };
 }
 
 /* ------------------------------------------------------------------ breakdowns */

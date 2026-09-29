@@ -35,8 +35,8 @@ const TYPES: { key: Kind; icon: typeof Building2; name: L; desc: L; share: numbe
 const C = {
   eyebrow: l("solutions", "solutions"),
   title: l("solutions for", "des solutions pour"), accent: l("every mandate", "chaque mandat"),
-  lead: l("Whether you manage institutional capital, run a family office or advise individual investors, our systematic strategies fit your mandate.",
-    "Que vous gériez du capital institutionnel, un family office ou que vous conseilliez des investisseurs, nos stratégies systématiques s’adaptent à votre mandat."),
+  lead: l("whether you manage institutional capital, run a family office or advise individual investors, our systematic strategies fit your mandate.",
+    "que vous gériez du capital institutionnel, un family office ou que vous conseilliez des investisseurs, nos stratégies systématiques s’adaptent à votre mandat."),
   who: l("who we work with", "avec qui nous travaillons"), whoT: l("which investor", "quel investisseur"), whoA: l("are you?", "êtes-vous?"),
   mix: l("of our aum", "de notre ASG"),
   how: l("how to invest", "comment investir"), fit: l("strategies that fit", "stratégies adaptées"),

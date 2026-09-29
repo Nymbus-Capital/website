@@ -20,7 +20,11 @@ export interface BondUniverseOptions {
   onReady?: () => void;
 }
 
-export interface BondUniverse { destroy(): void; }
+export interface BondUniverse {
+  destroy(): void;
+  /** 0 = the living surface, 1 = collapsed into one glowing yield curve (scroll hand-off to the next screen) */
+  setFlatten(k: number): void;
+}
 
 // brand ramp (dark keynote): deep blue → blue → cyan → ice
 const RAMP: [number, number, number][] = [
@@ -53,7 +57,7 @@ function sprite(rgb: [number, number, number], size: number): HTMLCanvasElement 
 
 export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverseOptions = {}): BondUniverse {
   const ctx = canvas.getContext("2d", { alpha: true });
-  if (!ctx) return { destroy() {} };
+  if (!ctx) return { destroy() {}, setFlatten() {} };
 
   const SPRITES = 12;
   const sprites = Array.from({ length: SPRITES }, (_, i) => sprite(ramp(i / (SPRITES - 1)), 64));
@@ -69,6 +73,8 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
 
   // sparse floating "data dust" for depth
   let dust: Float32Array = new Float32Array(0);
+  let flat = 0, flatT = 0;
+  let frameNo = 0;
   const pointer = { x: 0.62, y: 0.55, tx: 0.62, ty: 0.55, active: 0, tactive: 0 };
   const ripples: { x: number; y: number; t0: number }[] = [];
 
@@ -92,6 +98,7 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
     }
     proj = new Float32Array(n * 6);
     order = new Uint32Array(n);
+    frameNo = 0;
     const nd = Math.round((small ? 70 : 160) * k);
     dust = new Float32Array(nd * 4);
     for (let i = 0; i < nd; i++) { dust[i * 4] = Math.random(); dust[i * 4 + 1] = Math.random(); dust[i * 4 + 2] = 0.3 + Math.random(); dust[i * 4 + 3] = Math.random(); }
@@ -99,7 +106,7 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
 
   function resize() {
     const r = canvas.getBoundingClientRect();
-    dpr = Math.min(2, window.devicePixelRatio || 1);
+    dpr = Math.min(1.5, window.devicePixelRatio || 1);
     W = Math.max(1, r.width);
     H = Math.max(1, r.height);
     canvas.width = Math.round(W * dpr);
@@ -122,6 +129,9 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
 
   function frame(now: number) {
     const t = now;
+    flat += (flatT - flat) * 0.12;
+    if (Math.abs(flatT - flat) < 0.001) flat = flatT;
+    const f = flat * flat * (3 - 2 * flat); // smoothstep
     pointer.x += (pointer.tx - pointer.x) * 0.06;
     pointer.y += (pointer.ty - pointer.y) * 0.06;
     pointer.active += (pointer.tactive - pointer.active) * 0.05;
@@ -131,8 +141,8 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
     ctx!.globalCompositeOperation = "lighter";
 
     // camera: slow yaw oscillation + pointer parallax
-    const yaw = -0.5 + 0.12 * Math.sin(t * 0.00006) + (pointer.x - 0.5) * 0.22 * pointer.active;
-    const pitch = 0.36 + (pointer.y - 0.5) * 0.1 * pointer.active;
+    const yaw = (-0.5 + 0.12 * Math.sin(t * 0.00006) + (pointer.x - 0.5) * 0.22 * pointer.active) * (1 - f);
+    const pitch = (0.36 + (pointer.y - 0.5) * 0.1 * pointer.active) * (1 - f);
     const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
     const narrow = W < 700;
     const scale = Math.min(W * (narrow ? 1.05 : 0.56), H * 1.15);
@@ -141,17 +151,19 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
 
     // travelling pulse (a "trade" of light running down the curve), and a credit sweep
     const pulseM = ((t * 0.00007) % 1.3) - 0.15;
-    const sweepQ = (Math.sin(t * 0.00021) + 1) / 2;
+    const sweepQ = ((Math.sin(t * 0.00021) + 1) / 2) * (1 - f) + 0.5 * f;
 
     const n = cols * rows;
     for (let i = 0; i < n; i++) {
       const m = pts[i * 3], q = pts[i * 3 + 1], j = pts[i * 3 + 2];
-      const h = yieldAt(m, q, t);
+      // flattening: every credit row folds onto the middle curve
+      const qq = q + (0.5 - q) * f;
+      const h = yieldAt(m, qq, t);
       // twinkle: brightness only, so the surface itself stays smooth
       const tw = 0.75 + 0.25 * Math.sin(t * 0.0016 + j * 60);
       // world coordinates centered
       const wx = (m - 0.5) * 1.9;
-      const wz = (q - 0.5) * 1.05;
+      const wz = (qq - 0.5) * 1.05;
       let wy = -(h - 0.45) * 1.55;
       // rotate (yaw around y, then pitch around x)
       let x = wx * cy - wz * sy;
@@ -191,11 +203,10 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
       proj[o] = sx;
       proj[o + 1] = syy;
       proj[o + 2] = (1.5 + 2.6 * persp * persp) * (1 + glow * 1.4) * (narrow ? 0.9 : 1);
-      proj[o + 3] = Math.min(1, (0.16 + 0.55 * (1 - depth)) * (0.55 + 0.45 * (1 - q * 0.4)) * tw + glow * 0.7);
+      proj[o + 3] = Math.min(1, ((0.16 + 0.55 * (1 - depth)) * (0.55 + 0.45 * (1 - q * 0.4)) * tw + glow * 0.7) * (1 - 0.55 * f) + f * 0.12);
       // colour: along credit (AAA blue → BB cyan) lifted to ice where it glows
       proj[o + 4] = Math.min(SPRITES - 1, Math.round((q * 0.72 + glow * 0.5 + m * 0.12) * (SPRITES - 1)));
       proj[o + 5] = z;
-      order[i] = i;
     }
 
     // faint curve lines every few credit rows (structure, drawn under the points)
@@ -221,9 +232,9 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
       g.addColorStop(0.8, "rgba(79,209,255,0.55)");
       g.addColorStop(1, "rgba(232,244,255,0.2)");
       ctx!.strokeStyle = g;
-      ctx!.lineWidth = 1.6;
+      ctx!.lineWidth = 1.6 + 3.4 * f;
       ctx!.shadowColor = "rgba(79,209,255,0.9)";
-      ctx!.shadowBlur = 12;
+      ctx!.shadowBlur = 12 + 18 * f;
       ctx!.beginPath();
       for (let c = 0; c < cols; c++) {
         const o = (r * cols + c) * 6;
@@ -245,7 +256,7 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
     }
 
     // points (far first)
-    order.sort((a, b) => proj[b * 6 + 5] - proj[a * 6 + 5]);
+    if ((frameNo++ & 3) === 0) { for (let i = 0; i < n; i++) order[i] = i; order.sort((a, b) => proj[b * 6 + 5] - proj[a * 6 + 5]); }
     for (let k = 0; k < n; k++) {
       const o = order[k] * 6;
       const s = proj[o + 2] * 4.2;
@@ -316,6 +327,10 @@ export function createBondUniverse(canvas: HTMLCanvasElement, opts: BondUniverse
   }
 
   return {
+    setFlatten(k: number) {
+      flatT = Math.min(1, Math.max(0, k));
+      if (opts.still) { flat = flatT; frame(18000); }
+    },
     destroy() {
       stop();
       ro?.disconnect();

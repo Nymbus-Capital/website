@@ -4,13 +4,14 @@
  * value added vs benchmark, headline class NAV with its daily change, chips (vehicle, asset class,
  * risk meter, inception, FundServ) and the basis label (net / gross, with the managed-accounts note).
  */
-import { useEffect, useRef } from "react";
-import { CountUp, EASE, Reveal, RevealTitle, Spotlight, reducedMotion } from "@/components/v3/motion";
-import type { FundContent, FundData } from "@/lib/data/types";
+import { useEffect, useMemo, useRef, type PointerEvent } from "react";
+import { CountUp, EASE, Odometer, Reveal, RevealTitle, Spotlight, reducedMotion } from "@/components/v3/motion";
+import type { FundContent, FundData, GrowthPoint } from "@/lib/data/types";
 import type { FundSpec } from "@/config/funds";
 import { T, tr } from "./copy";
 import { dateLabel, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
-import { headlineClass, isAnnualized, riskIndex, RISK_LEVELS } from "./lib/data.ts";
+import { headlineClass, isAnnualized, perfClassLabel, riskIndex, RISK_LEVELS, vaRounded } from "./lib/data.ts";
+import { monotonePath } from "./lib/scale.ts";
 
 export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean }) {
   const perf = data?.performance ?? null;
@@ -27,13 +28,21 @@ export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; co
   const tagline = content.tagline ?? spec.defaults.tagline;
   const inception = perf?.firstMonth ?? null;
 
+  const vaR = vaRounded(va, 1);
+  const bench = perf?.indexName || (spec.benchmark ? tr(spec.benchmark, lang) : null);
+  const classLabel = perfClassLabel(perf, tr(T.hero.class, lang));
+  const glow = (e: PointerEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--gx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--gy", `${e.clientY - r.top}px`);
+  };
   const dir = cls?.changePct == null ? "flat" : cls.changePct > 0 ? "up" : cls.changePct < 0 ? "down" : "flat";
 
   return (
     <section className="screen dark center fx-hero" id="overview" data-section="overview" data-swap="" aria-labelledby="fx-name">
       <div className="orb a" aria-hidden="true" />
       <div className="orb b" aria-hidden="true" />
-      <FundTrail />
+      <FundTrail growth={showPerf ? perf!.growth : null} />
       <Spotlight />
       <div className="wrap">
         <Reveal className="kicker" style={{ justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
@@ -48,8 +57,8 @@ export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; co
           <div>
             {si != null ? (
               <Reveal kind="zoom" delay={200} self>
-                <div>
-                  <CountUp value={si} pct decimals={1} lang={lang} duration={1800} delay={250} className="fx-bigfig g-fund" />
+                <div className="fx-bigwrap" onPointerMove={glow}>
+                  <span className="fx-bigfig g-fund" data-testid="hero-figure"><Odometer value={si} pct decimals={1} lang={lang} duration={1800} delay={250} /></span>
                 </div>
                 <div className="fx-figlabel" data-testid="hero-figure-label">
                   {tr(heroLabel, lang)} · {tr(T.hero.since, lang)}
@@ -61,31 +70,33 @@ export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; co
             )}
           </div>
           <Reveal className="fx-side" delay={500}>
-            {va != null ? (
-              <div>
-                <CountUp value={va} pct sign decimals={1} lang={lang} delay={700} className={`fig m ${va >= 0 ? "g-cyan" : "g-red"}`} />
-                <div className="fx-figlabel">{tr(T.hero.va, lang)}{spec.benchmark ? <><br /><span style={{ fontSize: 12.5 }}>vs {tr(spec.benchmark, lang)}</span></> : null}</div>
+            {va != null && vaR != null ? (
+              <div data-testid="hero-va">
+                {vaR === 0
+                  ? <span className="fig s fx-inline">{tr(T.hero.inLine, lang)}</span>
+                  : <CountUp value={vaR} pct sign decimals={1} lang={lang} delay={700} className={`fig m ${vaR > 0 ? "g-cyan" : "g-red"}`} />}
+                <div className="fx-figlabel">{vaR === 0 ? null : tr(T.hero.va, lang)}{bench ? <>{vaR === 0 ? null : <br />}<span style={{ fontSize: 12.5 }}>vs {bench}</span></> : null}</div>
               </div>
             ) : null}
             {cls && cls.nav != null ? (
               <div>
                 <div className="fx-nav">
                   <span className="v" data-testid="hero-nav">{money(cls.nav, cls.currency, lang, 4)}</span>
-                  {cls.changePct != null ? (
+                  {cls.changePct == null ? <span className="fx-delta flat" aria-label={tr(T.hero.noChange, lang)}>—</span> : (
                     <span className={`fx-delta ${dir}`} aria-label={`${fmt(cls.changePct, { pct: true, decimals: 2, sign: true, lang })} ${tr(T.hero.day, lang)}`}>
                       {dir !== "flat" ? (
                         <svg viewBox="0 0 10 10" aria-hidden="true"><path d={dir === "up" ? "M5 1 9 8H1Z" : "M5 9 1 2H9Z"} fill="currentColor" /></svg>
                       ) : null}
                       {cls.change != null ? `${fmt(cls.change, { decimals: 4, sign: true, lang })} · ` : ""}{fmt(cls.changePct, { pct: true, decimals: 2, sign: true, lang })}
                     </span>
-                  ) : null}
+                  )}
                 </div>
                 <div className="fx-figlabel">
                   {tr(T.hero.nav, lang)} · {tr(T.hero.class, lang)} <span className="code">{cls.display} ({cls.fundserv})</span>{cls.date ? <> · <b>{dateLabel(cls.date, lang)}</b></> : null}
                 </div>
               </div>
             ) : null}
-            <div><span className={`fx-basis${gross ? " gross" : ""}`} data-testid="basis">{tr(gross ? T.hero.basisGross : T.hero.basisNet, lang)}</span></div>
+            <div><span className={`fx-basis${gross ? " gross" : ""}`} data-testid="basis">{tr(gross ? T.hero.basisGross : T.hero.basisNet, lang)}{classLabel ? ` · ${classLabel}` : ""}</span></div>
           </Reveal>
         </div>
 
@@ -108,29 +119,46 @@ export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; co
   );
 }
 
-/** The chapter light trail, drawn in the fund's own gradient. */
-function FundTrail() {
+/**
+ * "Data as light": the glowing trail is the fund's own growth-of-10 000 $ path, normalised into the lower
+ * third of the screen and drawn in while the since-inception figure counts up. Decorative path without data.
+ */
+export function trailPath(growth: GrowthPoint[] | null | undefined): string | null {
+  const pts = (growth ?? []).filter((p) => typeof p.fund === "number" && Number.isFinite(p.fund));
+  if (pts.length < 3) return null;
+  const vs = pts.map((p) => p.fund);
+  const lo = Math.min(...vs), hi = Math.max(...vs);
+  const n = pts.length;
+  // x from just off the left edge to just off the right; y in the bottom band, 640 (high) to 712 (low) of 720,
+  // so it runs behind the (opaque, dark) chips and never through the figures
+  const xy: [number, number][] = vs.map((v, i) => [-30 + (i / (n - 1)) * 1340, 712 - (hi === lo ? 0.5 : (v - lo) / (hi - lo)) * 72]);
+  return monotonePath(xy);
+}
+
+function FundTrail({ growth }: { growth: GrowthPoint[] | null }) {
   const ref = useRef<SVGPathElement>(null);
+  const d = useMemo(() => trailPath(growth), [growth]);
   useEffect(() => {
     const el = ref.current;
     if (!el || reducedMotion()) return;
     const len = el.getTotalLength();
     el.style.strokeDasharray = `${len}`;
-    const a = el.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 2600, delay: 300, easing: EASE, fill: "both" });
+    const a = el.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: d ? 1900 : 2600, delay: d ? 250 : 300, easing: EASE, fill: "both" });
     return () => a.cancel();
-  }, []);
+  }, [d]);
   return (
-    <svg className="fx-trail" viewBox="0 0 1280 720" preserveAspectRatio="none" aria-hidden="true">
+    <svg className="fx-trail" viewBox="0 0 1280 720" preserveAspectRatio="none" aria-hidden="true" data-growth={d ? "" : undefined}>
       <defs>
         <linearGradient id="fx-trail-g" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="var(--fund-to)" stopOpacity="0" /><stop offset=".35" stopColor="var(--fund-to)" />
-          <stop offset=".75" stopColor="var(--fund-from)" /><stop offset="1" stopColor="#ffffff" stopOpacity=".5" />
+          <stop offset="0" stopColor="var(--fund-to)" stopOpacity="0" /><stop offset=".3" stopColor="var(--fund-to)" />
+          <stop offset=".8" stopColor="var(--fund-from)" /><stop offset="1" stopColor="#ffffff" stopOpacity=".6" />
         </linearGradient>
         <filter id="fx-trail-f" x="-10%" y="-50%" width="120%" height="200%">
           <feGaussianBlur stdDeviation="9" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
-      <path ref={ref} d="M-40 660 C 260 640, 520 650, 720 610 C 930 566, 1060 520, 1320 430" fill="none" stroke="url(#fx-trail-g)" strokeWidth={5} strokeLinecap="round" filter="url(#fx-trail-f)" opacity=".85" />
+      <path ref={ref} d={d ?? "M-40 690 C 260 676, 520 684, 720 660 C 930 634, 1060 606, 1320 560"} fill="none" stroke="url(#fx-trail-g)" strokeWidth={d ? 4 : 5}
+        strokeLinecap="round" strokeLinejoin="round" filter="url(#fx-trail-f)" opacity=".85" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

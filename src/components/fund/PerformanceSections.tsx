@@ -53,7 +53,7 @@ export function TrailingSection({ spec, perf, lang }: { spec: FundSpec; perf: Pe
           <div className="fx-legend">
             <span><i className="fund" />{n.fund}</span>
             {hasIndex ? <span><i className="index" />{n.index}</span> : null}
-            {hasVa ? <span><i className="va" />{n.va}</span> : null}
+            {hasVa ? <span><i className="va pill" />{n.va}</span> : null}
           </div>
         </Reveal>
         <div data-testid="trailing-chart">
@@ -117,7 +117,7 @@ export function CalendarSection({ spec, perf, lang }: { spec: FundSpec; perf: Pe
           <div className="fx-legend">
             <span><i className="fund" />{n.fund}</span>
             {hasIndex ? <span><i className="index" />{n.index}</span> : null}
-            {hasVa ? <span><i className="va" />{n.va}</span> : null}
+            {hasVa ? <span><i className="va pill" />{n.va}</span> : null}
           </div>
         </Reveal>
         <GroupedBars cats={cats} names={n} lang={lang} label={tr(T.calendar.title, lang)} height={360} values={rows.length <= 10} />
@@ -162,10 +162,11 @@ export function HeatmapSection({ spec, perf, lang }: { spec: FundSpec; perf: Per
 /* ------------------------------------------------------------------ risk */
 
 type RiskKey = Exclude<keyof RiskStats, "window" | "decimals">;
-const RISK_FIGS: { k: RiskKey; kind: "pct" | "ratio"; tone: "fund" | "cyan" | "neg" | "pos" }[] = [
+/** colour carries meaning: return & ratios in the fund colour, dispersion in plain ink, losses red, best month green */
+const RISK_FIGS: { k: RiskKey; kind: "pct" | "ratio"; tone: "fund" | "ink" | "neg" | "pos" }[] = [
   { k: "annReturn", kind: "pct", tone: "fund" },
-  { k: "annVol", kind: "pct", tone: "cyan" },
-  { k: "downsideDev", kind: "pct", tone: "cyan" },
+  { k: "annVol", kind: "pct", tone: "ink" },
+  { k: "downsideDev", kind: "pct", tone: "ink" },
   { k: "sharpe", kind: "ratio", tone: "fund" },
   { k: "sortino", kind: "ratio", tone: "fund" },
   { k: "maxDrawdown", kind: "pct", tone: "neg" },
@@ -177,7 +178,7 @@ export function RiskSection({ windows, lang, perf }: { windows: RiskStats[]; lan
   const [w, setW] = useState(0);
   const risk = windows[Math.min(w, windows.length - 1)];
   const figs = useMemo(() => RISK_FIGS.filter((f) => typeof risk[f.k] === "number"), [risk]);
-  const cls = (tone: string, v: number) => (tone === "fund" ? (v < 0 ? "g-red" : "g-fund") : tone === "cyan" ? "g-cyan" : tone === "pos" ? (v < 0 ? "g-red" : "g-green") : "g-red");
+  const cls = (tone: string, v: number) => (tone === "fund" ? (v < 0 ? "g-red" : "g-fund") : tone === "ink" ? "fx-ink" : tone === "pos" ? "g-green" : "g-red");
   return (
     <section className="screen dark auto" id="risk" data-section="risk" data-swap="" aria-labelledby="fx-risk-t">
       <div className="wrap">

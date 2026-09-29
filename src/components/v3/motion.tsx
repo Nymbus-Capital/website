@@ -14,6 +14,40 @@ export const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 export const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ------------------------------------------------------------------ one shared scroll loop
+ * Every scroll-linked effect (screen swap, iris, light-trail scrub, useScrub) subscribes here: one passive
+ * scroll/resize listener and at most one rAF per frame for the whole page, instead of one per component.
+ */
+type FrameFn = (vh: number) => void;
+const subscribers = new Set<FrameFn>();
+let loopRaf = 0;
+let loopBound = false;
+function runFrame() {
+  loopRaf = 0;
+  const vh = window.innerHeight;
+  subscribers.forEach((fn) => fn(vh));
+}
+function schedule() { if (!loopRaf) loopRaf = requestAnimationFrame(runFrame); }
+/** Subscribe to the shared scroll/resize loop; the callback runs once right away. Returns the unsubscribe. */
+export function onScrollFrame(fn: FrameFn): () => void {
+  subscribers.add(fn);
+  if (!loopBound && typeof window !== "undefined") {
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    loopBound = true;
+  }
+  fn(window.innerHeight);
+  return () => {
+    subscribers.delete(fn);
+    if (!subscribers.size && loopBound) {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      loopBound = false;
+      if (loopRaf) { cancelAnimationFrame(loopRaf); loopRaf = 0; }
+    }
+  };
+}
+
 /**
  * Fire once when the element enters the viewport: `threshold` of it is visible, or it fills a quarter of
  * the viewport (so elements taller than the screen still trigger).
@@ -96,10 +130,12 @@ export function RevealTitle({
     el.querySelectorAll<HTMLElement>(".w").forEach((w, i) => {
       w.style.opacity = "1";
       if (reducedMotion()) return;
-      w.animate(
+      w.style.willChange = "transform, opacity, filter";
+      const a = w.animate(
         [{ opacity: 0, transform: "translateY(.45em) scale(.98)", filter: "blur(12px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }],
         { duration: 1000, delay: delay + i * step, easing: EASE, fill: "backwards" },
       );
+      a.onfinish = () => { w.style.willChange = ""; };
     });
   }, [seen, delay, step, ref, text, accent]);
   const words = (s: string, cls?: string, offset = 0) =>
@@ -156,6 +192,44 @@ export function CountUp({
 }
 
 /**
+ * Odometer: the figure rolls in digit by digit (each digit a vertical strip 0-9, spring easing, 60 ms stagger
+ * from the right), tabular digits so nothing shifts. Same props as <CountUp/>; the accessible text is the final
+ * formatted value. Static under reduced motion or before it scrolls into view.
+ *   <Odometer value={0.0412} pct sign decimals={1} lang={lang} />
+ */
+export function Odometer({
+  value, decimals = 1, pct = false, sign = false, prefix, suffix, lang = "en", duration = 1400, delay = 0, className, style,
+}: {
+  value: number; decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: "en" | "fr";
+  duration?: number; delay?: number; className?: string; style?: CSSProperties;
+}) {
+  const [ref, seen] = useInView<HTMLSpanElement>();
+  const final = fmt(value, { decimals, pct, sign, prefix, suffix, lang });
+  const [roll, setRoll] = useState(false);
+  useLayoutEffect(() => { if (seen && !reducedMotion()) setRoll(true); }, [seen]);
+  const chars = Array.from(final);
+  let digitIndex = 0;
+  const nDigits = chars.filter((c) => /\d/.test(c)).length;
+  return (
+    <span ref={ref} className={`odo ${className ?? ""}`} style={style} aria-label={final} role="text" data-rolling={roll ? "" : undefined}>
+      {chars.map((c, i) => {
+        if (!/\d/.test(c)) return <span key={i} className="odo-c" aria-hidden="true">{c}</span>;
+        const d = Number(c);
+        const order = nDigits - 1 - digitIndex++; // rightmost digit first
+        return (
+          <span key={i} className="odo-d" aria-hidden="true">
+            <span className="odo-ph">{c}</span>
+            <span className="odo-s" style={{ ["--d" as string]: d, ["--t" as string]: `${duration}ms`, ["--w" as string]: `${delay + order * 60}ms` }}>
+              {"0123456789".split("").map((x) => <span key={x}>{x}</span>)}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+/**
  * The deck's chapter light trail: a glowing blue→cyan stroke that draws itself.
  * `scrub`: the drawing follows the scroll position of the parent screen instead of playing once.
  */
@@ -175,19 +249,12 @@ export function LightTrail({ d, className, scrub = false, width = 7, viewBox = "
     el.style.strokeDashoffset = `${len}`;
     const host = el.closest(".screen") as HTMLElement | null;
     if (scrub && host) {
-      let raf = 0;
-      const onScroll = () => {
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => {
-          const r = host.getBoundingClientRect();
-          const vh = window.innerHeight;
-          const k = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.9)));
-          el.style.strokeDashoffset = `${len * (1 - k)}`;
-        });
-      };
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+      // the trail is already a quarter drawn when the screen enters: a chapter screen is never empty
+      return onScrollFrame((vh) => {
+        const r = host.getBoundingClientRect();
+        const k = 0.25 + 0.75 * Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.9)));
+        el.style.strokeDashoffset = `${len * (1 - k)}`;
+      });
     }
     const io = new IntersectionObserver((es) => {
       if (es.some((e) => e.isIntersecting)) {
@@ -235,34 +302,40 @@ export function Spotlight() {
 
 /**
  * Keynote page swap on scroll: while a screen scrolls out under the next one it recedes
- * (scale .94, blur, fade) — the same move as swapPages() in the deck, scrubbed by the scroll position.
- * Mount once per page; it drives every `.screen[data-swap]`.
+ * (scale .94, a light blur on desktop, fade) — the same move as swapPages() in the deck, scrubbed by the scroll.
+ * Screens also enter through an "iris": their rounded frame opens from inset(4% 3% round 40px) to full size.
+ * The iris uses CSS scroll-driven animations where supported (globals.css, `.screen[data-swap]`) and this
+ * loop otherwise. Mount once per page; it drives every `.screen[data-swap]`.
  */
 export function ScreenSwap() {
   useEffect(() => {
     if (reducedMotion()) return;
     const screens = Array.from(document.querySelectorAll<HTMLElement>(".screen[data-swap]"));
     if (!screens.length) return;
-    // blur repaints a whole screen each frame: keep it for large, fine-pointer displays
-    const blur = !window.matchMedia("(pointer: coarse)").matches && window.innerWidth >= 700;
-    let raf = 0;
-    const update = () => {
-      const vh = window.innerHeight;
+    // blur repaints a whole screen each frame: only on large, fine-pointer displays, and capped at 4px
+    const blur = !window.matchMedia("(pointer: coarse)").matches && window.innerWidth >= 1024;
+    const cssIris = typeof CSS !== "undefined" && CSS.supports("animation-timeline: view()");
+    const first = screens[0];
+    return onScrollFrame((vh) => {
       for (const s of screens) {
         const r = s.getBoundingClientRect();
-        // 0 while the screen's bottom edge is below 60 % of the viewport, 1 when it reaches the top
+        // exit: 0 while the bottom edge is below 60 % of the viewport, 1 when it reaches the top
         const k = Math.min(1, Math.max(0, (vh * 0.6 - r.bottom) / (vh * 0.6)));
-        if (k <= 0.001) { s.style.transform = ""; s.style.filter = ""; s.style.opacity = ""; continue; }
-        s.style.transform = `scale(${1 - 0.06 * k})`;
-        s.style.filter = blur ? `blur(${(10 * k).toFixed(2)}px)` : "";
-        s.style.opacity = `${1 - 0.6 * k}`;
+        if (k <= 0.001) {
+          if (s.style.transform) { s.style.transform = ""; s.style.filter = ""; s.style.opacity = ""; s.style.willChange = ""; }
+        } else {
+          s.style.willChange = "transform, opacity";
+          s.style.transform = `scale(${1 - 0.06 * k})`;
+          s.style.filter = blur ? `blur(${(4 * k).toFixed(2)}px)` : "";
+          s.style.opacity = `${1 - 0.6 * k}`;
+        }
+        // entrance iris (JS fallback): 0 when the top edge is at the bottom of the viewport, 1 at 55 %
+        if (!cssIris && s !== first) {
+          const e = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.45)));
+          s.style.clipPath = e >= 1 ? "" : `inset(${(4 * (1 - e)).toFixed(2)}% ${(3 * (1 - e)).toFixed(2)}% round ${(28 + 12 * (1 - e)).toFixed(1)}px)`;
+        }
       }
-    };
-    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
+    });
   }, []);
   return null;
 }
@@ -281,18 +354,11 @@ export function useScrub<T extends HTMLElement>(onProgress: (k: number, el: T) =
     const el = ref.current;
     if (!el) return;
     if (reducedMotion()) { cb.current(1, el); return; }
-    let raf = 0;
-    const update = () => {
+    return onScrollFrame((vh) => {
       const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const k = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.5 + r.height * 0.5)));
-      cb.current(k, el);
-    };
-    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
+      if (r.bottom < -vh || r.top > vh * 2) return; // far away: skip the work
+      cb.current(Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.5 + r.height * 0.5))), el);
+    });
   }, []);
   return ref;
 }

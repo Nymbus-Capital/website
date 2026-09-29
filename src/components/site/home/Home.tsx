@@ -9,8 +9,7 @@ import type { HomeData } from "./data";
 import { Glance } from "./Glance";
 import { Pillars } from "./Pillars";
 import { Process } from "./Process";
-import { Challenge } from "./Challenge";
-import { Overlay } from "./Overlay";
+import { OverlayStory } from "./OverlayStory";
 import { Strategies } from "./Strategies";
 import { Investors } from "./Investors";
 import { ContactCta, Summary } from "./Summary";
@@ -22,15 +21,14 @@ export function Home({ data }: { data: HomeData }) {
     <div className="stage home">
       <ScreenSwap />
       <Hero funds={data.funds} navAsOf={data.navAsOf} sample={data.sample} />
-      <Glance aumLabel={data.aumLabel} />
-      <Chapter no={1} title={pick(C.bonds)} id="ch1-t" variant={0} />
+      <Chapter no={1} title={pick(C.bonds)} kicker={pick(C.k1)} id="ch1-t" variant={3} handoff />
       <Pillars />
       <Process />
-      <Chapter no={2} title={pick(C.overlay)} id="ch2-t" variant={1} />
-      <Challenge />
-      <Overlay />
-      <Chapter no={3} title={pick(C.strategies)} id="ch3-t" variant={2} />
+      <Chapter no={2} title={pick(C.overlay)} kicker={pick(C.k2)} id="ch2-t" variant={1} />
+      <OverlayStory />
+      <Chapter no={3} title={pick(C.strategies)} kicker={pick(C.k3)} id="ch3-t" variant={2} />
       <Strategies funds={data.funds} sample={data.sample} />
+      <Glance aumLabel={data.aumLabel} />
       <Investors />
       <Summary />
       <ContactCta />

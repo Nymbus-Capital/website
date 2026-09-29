@@ -205,8 +205,6 @@
 /* donut (strategy allocation) */
 .fx-donut { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
 @media (max-width: 720px) { .fx-donut { grid-template-columns: 1fr; justify-items: center; } }
-.fx-donut .ring { position: relative; }
-.fx-donut .ring svg { overflow: visible; }
 .fx-donut .ctr { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
 .fx-donut .ctr .v { font-size: 38px; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
 .fx-donut .ctr .l { font-size: 12.5px; color: var(--mute); max-width: 150px; text-transform: lowercase; }
@@ -289,3 +287,73 @@
 @media (prefers-reduced-motion: reduce) {
   .fx-chart .pulse { animation: none; opacity: 0; }
 }
+
+/* =================================================================== design review round 2 */
+/* gradient figures reach 3:1 on light screens (darker ramp on the fund colour), bright on black */
+.fund-page { --fund-dark: color-mix(in srgb, var(--fund-to) 72%, #000); }
+.fund-page .screen:not(.dark) .g-fund, .fund-page .screen:not(.dark) .g-fund .odo :is(.odo-c, .odo-s > span) {
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--fund-to) 85%, #000), var(--fund-dark)); }
+:root[data-theme="dark"] .fund-page .screen .g-fund, :root[data-theme="dark"] .fund-page .screen .g-fund .odo :is(.odo-c, .odo-s > span),
+.fund-page .screen.dark .g-fund, .fund-page .screen.dark .g-fund .odo :is(.odo-c, .odo-s > span) {
+  background-image: linear-gradient(135deg, var(--fund-from), var(--fund-to)); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fund-page .screen .g-fund, :root:not([data-theme="light"]) .fund-page .screen .g-fund .odo :is(.odo-c, .odo-s > span) {
+    background-image: linear-gradient(135deg, var(--fund-from), var(--fund-to)); }
+}
+.fx-ink { color: var(--ink); }
+.fx-inline { color: var(--ink2); display: inline-block; font-weight: 500; letter-spacing: -0.02em; }
+
+/* sample ribbon: never over the mobile menu button */
+/* below 900px the hero chip and the dock badge already say "sample": no corner ribbon over the menu button */
+@media (max-width: 899px) { .fx-ribbon { display: none; } }
+
+/* hero big figure: odometer + a soft glow that follows the pointer */
+.fx-bigwrap { position: relative; display: inline-block; isolation: isolate; }
+.fx-bigwrap::before { content: ""; position: absolute; z-index: -1; width: 320px; height: 320px; left: var(--gx, 50%); top: var(--gy, 50%); transform: translate(-50%, -50%);
+  border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--fund) 40%, transparent), transparent 65%); opacity: 0; transition: opacity .5s var(--ease); pointer-events: none; }
+.fx-bigwrap:hover::before { opacity: 1; }
+.fx-bigfig .odo { display: inline-flex; }
+
+/* hero text stays legible over the light trail */
+.fx-hero .fx-figlabel, .fx-hero .lead, .fx-hero .fx-nav, .fx-hero .fx-chip { text-shadow: 0 0 18px #000, 0 0 6px #000; }
+.fx-hero .fx-chip { background: rgba(10,12,16,.82); }
+.fx-hero { padding-bottom: clamp(96px, 13vh, 140px); }
+.fx-hero .fx-chips { position: relative; z-index: 1; }
+
+/* value-added pill on the trailing / calendar chart */
+.fx-chart .vapill rect { fill: color-mix(in srgb, var(--fx-va) 12%, var(--bg)); stroke: color-mix(in srgb, var(--fx-va) 45%, transparent); stroke-width: 1; }
+.fx-chart .vapill text { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; fill: var(--fx-va); }
+.fx-chart .vapill.neg rect { fill: color-mix(in srgb, var(--neg) 10%, var(--bg)); stroke: color-mix(in srgb, var(--neg) 45%, transparent); }
+.fx-chart .vapill.neg text { fill: var(--neg); }
+.fx-chart .vapill.zero rect { fill: var(--surf); stroke: var(--line); }
+.fx-chart .vapill.zero text { fill: var(--mute); }
+.fx-legend i.va.pill { width: 20px; height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--fx-va) 14%, var(--bg)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fx-va) 50%, transparent); }
+
+/* segmented controls: 40px targets */
+.fx-seg button { height: 40px; padding: 0 16px; }
+
+/* holdings full width when there are few ESG metrics */
+.fx-stack { display: grid; gap: clamp(48px, 7vh, 72px); max-width: 1180px; margin-left: auto; margin-right: auto; }
+
+/* mobile hero chips: 2 × 2 */
+@media (max-width: 560px) {
+  .fx-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fx-chip { border-radius: 18px; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 14px; white-space: normal; }
+  .fx-chip .k { font-size: 11.5px; }
+  .fx-chip .fx-risk { flex-wrap: wrap; gap: 6px 10px; }
+}
+
+/* classes table: stacked label / value cards below 640px */
+@media (max-width: 639px) {
+  .fx-classes thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fx-classes, .fx-classes tbody, .fx-classes tr, .fx-classes td { display: block; width: 100%; }
+  .fx-classes tr { padding: 10px 14px; margin-bottom: 10px; border-radius: 16px; background: var(--surf); }
+  .fund-page .fx-classes tr.hl { background: color-mix(in srgb, var(--fund) 10%, var(--surf)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fund) 40%, transparent); }
+  .fund-page .fx-classes tr.hl td { background: none; }
+  .fx-classes td { display: flex; justify-content: space-between; gap: 16px; text-align: right; padding: 7px 0; border-top: 1px solid var(--line); white-space: normal; }
+  .fx-classes td:first-child { border-top: 0; padding-left: 0; font-weight: 600; justify-content: flex-start; align-items: center; }
+  .fx-classes td::before { content: attr(data-label); color: var(--mute); font-size: 12.5px; font-weight: 400; text-transform: lowercase; text-align: left; }
+  .fx-classes td:first-child::before { display: none; }
+}
+.fx-donut .fx-ring-wrap { position: relative; }
+.fx-donut .fx-ring-wrap svg { overflow: visible; }

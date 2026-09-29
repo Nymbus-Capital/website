@@ -31,10 +31,11 @@
   /* text-safe accent tones (AA on white) and the button fill (white text stays >= 4.5:1 across it) */
   --orange-t: #c2410c; --g-btn: linear-gradient(100deg, #0b57d0 0%, #1a73e8 55%, #0277bd 100%);
   --g-brand: linear-gradient(100deg, #0b57d0 0%, #1a73e8 45%, #00a3e0 100%);
-  --g-blue: linear-gradient(135deg, #6ea8ff, #1a5cff);
-  --g-cyan: linear-gradient(135deg, #5ad2ff, #0086c3);
-  --g-orange: linear-gradient(135deg, #ffc043, #f4511e);
-  --g-green: linear-gradient(135deg, #5be08f, #0f9d58);
+  /* light screens: deeper ramps so gradient figures keep >= 3:1 on white; the bright deck ramps are the dark variant */
+  --g-blue: linear-gradient(135deg, #3b82f6, #0b57d0);
+  --g-cyan: linear-gradient(135deg, #0284c7, #0369a1);
+  --g-orange: linear-gradient(135deg, #e8710a, #c2410c);
+  --g-green: linear-gradient(135deg, #16a34a, #0b7a3e);
   --g-red: linear-gradient(135deg, #ff8a80, #d93025);
   --glow: 0 0 0 1px rgba(26,115,232,.18), 0 10px 30px -10px rgba(26,115,232,.45);
   --radius-screen: 28px;
@@ -53,6 +54,10 @@
   --bg: #000; --ink: #ffffff; --ink2: #eef1f6; --mute: #aeb6c3; --line: #2c313a; --surf: #151920; --surf2: #1d222b;
   --blue: #6ea2ff; --cyan: #4fd1ff; --red: #ff8a80; --green: #4cd07d; --orange: #ffa24a;
   --pos: #5ee08f; --neg: #ff8a80; --orange-t: #ffa24a;
+  --g-blue: linear-gradient(135deg, #6ea8ff, #1a5cff);
+  --g-cyan: linear-gradient(135deg, #5ad2ff, #0086c3);
+  --g-orange: linear-gradient(135deg, #ffc043, #f4511e);
+  --g-green: linear-gradient(135deg, #5be08f, #0f9d58);
   --g-brand: linear-gradient(100deg, #8ab4ff 0%, #4c8dff 45%, #4fd1ff 100%);
   --glow: 0 0 0 1px rgba(110,162,255,.3), 0 0 28px -4px rgba(76,141,255,.55);
 }
@@ -63,6 +68,10 @@
     --bg: #000; --ink: #ffffff; --ink2: #eef1f6; --mute: #aeb6c3; --line: #2c313a; --surf: #151920; --surf2: #1d222b;
     --blue: #6ea2ff; --cyan: #4fd1ff; --red: #ff8a80; --green: #4cd07d; --orange: #ffa24a;
     --pos: #5ee08f; --neg: #ff8a80; --orange-t: #ffa24a;
+    --g-blue: linear-gradient(135deg, #6ea8ff, #1a5cff);
+    --g-cyan: linear-gradient(135deg, #5ad2ff, #0086c3);
+    --g-orange: linear-gradient(135deg, #ffc043, #f4511e);
+    --g-green: linear-gradient(135deg, #5be08f, #0f9d58);
     --g-brand: linear-gradient(100deg, #8ab4ff 0%, #4c8dff 45%, #4fd1ff 100%);
     --glow: 0 0 0 1px rgba(110,162,255,.3), 0 0 28px -4px rgba(76,141,255,.55);
   }
@@ -89,7 +98,7 @@ img, svg { display: block; max-width: 100%; }
   background: var(--bg); color: var(--ink); min-height: min(100svh - 2 * var(--gutter), 1100px);
   padding: clamp(72px, 10vh, 128px) var(--pad-x);
   display: flex; flex-direction: column; justify-content: center;
-  transform-origin: 50% 0%; will-change: transform;
+  transform-origin: 50% 0%;
 }
 .screen.auto { min-height: 0; }
 .screen.dark { background: #000; color: var(--ink); }
@@ -218,7 +227,7 @@ img, svg { display: block; max-width: 100%; }
    Elements start hidden only once JS has marked the document ready (html.js), so no-JS / crawlers see content.
    <Reveal> renders `data-reveal` (itself) or `data-reveal-kids` (its children) and `data-shown` once revealed. */
 .js [data-reveal]:not([data-shown]), .js [data-reveal-kids]:not([data-shown]) > * { opacity: 0; }
-.w { display: inline-block; white-space: pre; will-change: transform, opacity, filter; }
+.w { display: inline-block; white-space: pre; }
 .js .reveal-title .w { opacity: 0; }
 @keyframes rise { from { opacity: 0; transform: translateY(.45em) scale(.98); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @keyframes float-in { from { opacity: 0; transform: translateY(28px); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
@@ -228,6 +237,35 @@ img, svg { display: block; max-width: 100%; }
 @keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 rgba(52,168,83,.55); } 50% { box-shadow: 0 0 0 6px rgba(52,168,83,0); } }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #34a853; animation: pulse-dot 2.2s infinite; flex: none; }
 .skeleton { background: linear-gradient(90deg, var(--surf) 25%, var(--surf2) 37%, var(--surf) 63%); background-size: 400% 100%; animation: shimmer 1.6s linear infinite; border-radius: 8px; }
+
+
+/* odometer (<Odometer/>): each digit is a 0-9 strip that rolls to its value */
+.odo { display: inline-flex; align-items: flex-start; font-variant-numeric: tabular-nums; line-height: 1; }
+.odo-d { display: inline-block; height: 1em; line-height: 1; overflow: hidden; vertical-align: top; position: relative; }
+.odo-c { display: inline-block; line-height: 1; height: 1em; }
+.odo-ph { visibility: hidden; display: inline-block; line-height: 1; }
+.odo-s { position: absolute; left: 50%; top: 0; margin-left: -.5em; width: 1em; text-align: center; display: flex; flex-direction: column; transform: translateY(calc(var(--d) * -1em)); }
+.odo-s > span { display: block; height: 1em; line-height: 1; }
+.odo[data-rolling] .odo-s { animation: odo-roll var(--t) var(--spring) var(--w) both; }
+/* gradient figures: every digit strip carries the parent's gradient itself (clipped per glyph) */
+:is(.grad, .g-blue, .g-cyan, .g-orange, .g-green, .g-red, .g-fund) .odo :is(.odo-c, .odo-s > span) { padding: 0;
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.grad .odo :is(.odo-c, .odo-s > span) { background-image: var(--g-brand); }
+.g-blue .odo :is(.odo-c, .odo-s > span) { background-image: var(--g-blue); }
+.g-cyan .odo :is(.odo-c, .odo-s > span) { background-image: var(--g-cyan); }
+.g-orange .odo :is(.odo-c, .odo-s > span) { background-image: var(--g-orange); }
+.g-green .odo :is(.odo-c, .odo-s > span) { background-image: var(--g-green); }
+.g-fund .odo :is(.odo-c, .odo-s > span) { background-image: linear-gradient(135deg, var(--fund-from, #6ea8ff), var(--fund-to, #0b57d0)); }
+@keyframes odo-roll { from { transform: translateY(0); filter: blur(2px); } 60% { filter: blur(0); } to { transform: translateY(calc(var(--d) * -1em)); } }
+
+/* iris entrance: screens open from a smaller rounded frame as they scroll in (CSS scroll-driven animation
+   where supported; ScreenSwap sets clip-path from the shared scroll loop otherwise) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .stage > .screen[data-swap]:not(:first-child) { animation: iris linear both; animation-timeline: view(); animation-range: entry 0% entry 90%; }
+  }
+}
+@keyframes iris { from { clip-path: inset(4% 3% round 40px); } to { clip-path: inset(0 0 round var(--radius-screen)); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }

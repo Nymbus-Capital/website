@@ -9,18 +9,18 @@ import { useTranslation } from "@/lib/i18n";
 import { HOME } from "../copy";
 import { Foot, Head } from "../ui";
 
-const INST = [
-  { src: "/logos/fondaction.png", alt: "Fondaction" },
-  { src: "/logos/fmoq.png", alt: "Fonds FMOQ" },
-  { src: "/logos/qemp.png", alt: "QEMP by Innocap", star: true },
-  { src: "/logos/securitas.png", alt: "Caisse de retraite et d'épargne du Groupe Securitas" },
-  { src: "/logos/gardaworld.png", alt: "GardaWorld" },
-  { src: "/logos/batirente.png", alt: "Bâtirente" },
+const INST: { src: string; s: number; alt: string; star?: boolean }[] = [
+  { src: "/logos/fondaction.png", s: 1, alt: "Fondaction" },
+  { src: "/logos/fmoq.png", s: 1.05, alt: "Fonds FMOQ" },
+  { src: "/logos/qemp.png", s: 0.9, alt: "QEMP by Innocap", star: true },
+  { src: "/logos/securitas.png", s: 0.62, alt: "Caisse de retraite et d'épargne du Groupe Securitas" },
+  { src: "/logos/gardaworld.png", s: 0.7, alt: "GardaWorld" },
+  { src: "/logos/batirente.png", s: 1.08, alt: "Bâtirente" },
 ];
-const PLAT = [
-  { src: "/logos/nbf.png", alt: "National Bank Financial Wealth Management" },
-  { src: "/logos/rbc-ds.png", alt: "RBC Dominion Securities Wealth Management" },
-  { src: "/logos/ia.png", alt: "iA Financial Group" },
+const PLAT: { src: string; s: number; alt: string }[] = [
+  { src: "/logos/nbf.png", s: 1.05, alt: "National Bank Financial Wealth Management" },
+  { src: "/logos/rbc-ds.png", s: 1.02, alt: "RBC Dominion Securities Wealth Management" },
+  { src: "/logos/ia.png", s: 1.12, alt: "iA Financial Group" },
 ];
 const COLORS = ["#1a73e8", "#4fa3ff", "#9cc8ff"];
 
@@ -83,14 +83,14 @@ export function Investors() {
               <Reveal self><h3 className="h3">{pick(I.inst)}</h3><p className="small">{pick(I.instS)}</p></Reveal>
               <Reveal as="ul" className="logos two" kind="pop" stagger={80}>
                 {INST.map((l) => (
-                  <li key={l.src}><img src={l.src} alt={l.alt} loading="lazy" decoding="async" />{l.star ? <b className="star" aria-hidden="true">*</b> : null}</li>
+                  <li key={l.src} style={{ ["--s" as string]: l.s }}><img src={l.src} alt={l.alt} loading="lazy" decoding="async" />{l.star ? <b className="star" aria-hidden="true">*</b> : null}</li>
                 ))}
               </Reveal>
             </div>
             <div>
               <Reveal self><h3 className="h3">{pick(I.plat)}</h3><p className="small">{pick(I.platS)}</p></Reveal>
               <Reveal as="ul" className="logos" kind="pop" stagger={80} delay={200}>
-                {PLAT.map((l) => <li key={l.src}><img src={l.src} alt={l.alt} loading="lazy" decoding="async" /></li>)}
+                {PLAT.map((l) => <li key={l.src} style={{ ["--s" as string]: l.s }}><img src={l.src} alt={l.alt} loading="lazy" decoding="async" /></li>)}
               </Reveal>
             </div>
             <Reveal as="p" className="inv-more" self>{pick(I.more)}</Reveal>

@@ -39,6 +39,9 @@ export const HOME = {
     overlay: l("why add a protection overlay to a bond portfolio?", "pourquoi ajouter une stratégie de protection à un fonds obligataire"),
     strategies: l("our investment strategies", "nos stratégies de placement"),
     kicker: l("chapter", "chapitre"),
+    k1: l("bonds investment process", "processus d’investissement"),
+    k2: l("protection strategy", "stratégie de protection"),
+    k3: l("strategies", "stratégies"),
   },
   pillars: {
     eyebrow: l("our investment philosophy", "notre philosophie de placement"),
@@ -108,7 +111,7 @@ export const HOME = {
     title: l("trusted by", "reconnu par des"), accent: l("leading institutions", "institutions de renom"),
     inst: l("institutions", "institutions"), instS: l("vetted by sophisticated capital", "approuvé par des investisseurs qualifiés"),
     plat: l("platforms", "plateformes"), platS: l("available on leading platforms", "disponible sur des plateformes de premier plan"),
-    more: l("… and many more!", "… et plusieurs autres!"),
+    more: l("… and many more", "… et plusieurs autres"),
     mix: l("investor mix", "investisseurs"), mixS: l("(as % of aum)", "(en % de notre ASG)"),
     parts: [
       { v: 45, label: l("institutions", "institutions") },
