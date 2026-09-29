@@ -10,7 +10,7 @@
  * NAV to the fields used.
  */
 import type { AumTotals, DpShort, FtseLevels, FundRef, MonthlyNetReturnsResponse, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
-import { ftseLevels, type FtseRow } from "../metrics.ts";
+import { ftseGroupingSummary, ftseLevels, type FtseRow } from "../metrics.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
 export interface DpClient {
@@ -192,10 +192,12 @@ export function fetchFtse(c: DpClient, short: string, endDate: string): Promise<
       const { status, body } = await get(c, "/api/ftse/index-summary", { short_name: name, start_date: FTSE_START, end_date: endDate });
       if (status !== 200) throw new Error(`${name}: HTTP ${status}`);
       if (!Array.isArray(body)) throw new Error(`${name}: unexpected payload`);
+      if (name === short) lastRows = body as FtseRow[];
       return ftseLevels(body as FtseRow[]);
     };
+    let lastRows: FtseRow[] = [];
     let cur = await rowsOf(short);
-    if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level`);
+    if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level (${ftseGroupingSummary(lastRows)})`);
     const notes: string[] = [];
     let names: { short_name: string; index_id?: number | null; index_name?: string | null }[] = [];
     try {

@@ -261,6 +261,19 @@ export function ftseLevels(rows: FtseRow[]): Record<string, number> {
   return Object.fromEntries(Object.keys(out).sort().map((d) => [d, out[d]]));
 }
 
+/** Why no aggregate row was found: row count and the grouping values seen on the latest date (FTSE metadata only). */
+export function ftseGroupingSummary(rows: FtseRow[]): string {
+  if (!rows.length) return "0 rows";
+  const last = rows.map((r) => String(r.date).slice(0, 10)).sort().at(-1);
+  const day = rows.filter((r) => String(r.date).slice(0, 10) === last);
+  const vals = (k: string): string => {
+    const set = [...new Set(day.map((r) => (r[k] == null ? "null" : JSON.stringify(r[k]))))].sort();
+    return `${k}=[${set.slice(0, 8).join(",")}${set.length > 8 ? `,…+${set.length - 8}` : ""}]`;
+  };
+  const withTr = day.filter((r) => typeof r.total_return === "number").length;
+  return `${rows.length} rows; ${last}: ${day.length} rows, ${withTr} with total_return; ${["rating", "term", "industry_sector", "industry_group", "index_content"].map(vals).join(" ")}`;
+}
+
 const isWeekday = (t: number): boolean => { const w = new Date(t).getUTCDay(); return w !== 0 && w !== 6; };
 
 /** last weekday (Mon-Fri) of the month of `ym`, and the weekday `back` weekdays before it */
