@@ -161,7 +161,7 @@ export function HeatmapSection({ spec, perf, lang }: { spec: FundSpec; perf: Per
 
 /* ------------------------------------------------------------------ risk */
 
-type RiskKey = Exclude<keyof RiskStats, "window">;
+type RiskKey = Exclude<keyof RiskStats, "window" | "decimals">;
 const RISK_FIGS: { k: RiskKey; kind: "pct" | "ratio"; tone: "fund" | "cyan" | "neg" | "pos" }[] = [
   { k: "annReturn", kind: "pct", tone: "fund" },
   { k: "annVol", kind: "pct", tone: "cyan" },
@@ -197,7 +197,7 @@ export function RiskSection({ windows, lang, perf }: { windows: RiskStats[]; lan
             const v = risk[f.k] as number;
             return (
               <div key={f.k}>
-                <CountUp value={v} pct={f.kind === "pct"} decimals={f.kind === "pct" ? 1 : 2} lang={lang} className={`fig l ${cls(f.tone, v)}`} />
+                <CountUp value={v} pct={f.kind === "pct"} decimals={risk.decimals?.[f.k] ?? (f.kind === "pct" ? 1 : 2)} lang={lang} className={`fig l ${cls(f.tone, v)}`} />
                 <div className="fig-label">{tr(T.risk[f.k], lang)}</div>
               </div>
             );
