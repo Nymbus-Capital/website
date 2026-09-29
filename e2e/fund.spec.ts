@@ -90,7 +90,7 @@ test("FR toggle switches the labels", async ({ page }) => {
   if (await toggle.isVisible().catch(() => false)) await toggle.click();
   else {
     // the site shell owns the toggle; fall back to the persisted choice it reads on load
-    await page.evaluate(() => localStorage.setItem("nymbus-locale", "fr"));
+    await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
     await page.reload();
   }
   await expect(page.getByRole("heading", { level: 1, name: "fonds nymbus revenu mensuel" })).toBeVisible();

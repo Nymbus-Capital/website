@@ -122,7 +122,8 @@ export function fmt(v: number, o: { decimals?: number; pct?: boolean; sign?: boo
   const d = o.decimals ?? 1;
   const x = o.pct ? v * 100 : v;
   const s = Math.abs(x).toLocaleString(o.lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const sign = x < 0 ? "−" : o.sign && x > 0 ? "+" : "";
+  const zero = Number(Math.abs(x).toFixed(d)) === 0; // "−0.0%" reads as a loss: no sign once rounded to zero
+  const sign = zero ? "" : x < 0 ? "−" : o.sign && x > 0 ? "+" : "";
   const pct = o.pct ? (o.lang === "fr" ? " %" : "%") : "";
   return `${sign}${o.prefix ?? ""}${s}${pct}${o.suffix ?? ""}`;
 }

@@ -1560,20 +1560,6 @@
       "fund": 0.024,
       "index": null
      }
-    ],
-    "assetClass": [
-     {
-      "label": "Fixed income",
-      "fund": 0.9
-     },
-     {
-      "label": "Protection overlay",
-      "fund": 0.06
-     },
-     {
-      "label": "Cash",
-      "fund": 0.04
-     }
     ]
    },
    "topHoldings": [
@@ -3200,20 +3186,6 @@
       "fund": 0.024,
       "index": null
      }
-    ],
-    "assetClass": [
-     {
-      "label": "Fixed income",
-      "fund": 0.9
-     },
-     {
-      "label": "Protection overlay",
-      "fund": 0.06
-     },
-     {
-      "label": "Cash",
-      "fund": 0.04
-     }
     ]
    },
    "topHoldings": [
@@ -4293,38 +4265,6 @@
       "label": "Commodities",
       "fund": 0.1175
      }
-    ],
-    "credit": [
-     {
-      "label": "AAA",
-      "fund": 0.2
-     },
-     {
-      "label": "AA",
-      "fund": 0.3
-     },
-     {
-      "label": "A",
-      "fund": 0.3
-     },
-     {
-      "label": "BBB",
-      "fund": 0.2
-     }
-    ],
-    "curve": [
-     {
-      "label": "0-3 yrs",
-      "fund": 0.4
-     },
-     {
-      "label": "3-10 yrs",
-      "fund": 0.4
-     },
-     {
-      "label": ">10 yrs",
-      "fund": 0.2
-     }
     ]
    },
    "topHoldings": [
@@ -4369,28 +4309,7 @@
      "weight": 0.035
     }
    ],
-   "esg": [
-    {
-     "id": "spGlobalEsgRank",
-     "label": {
-      "en": "S&P Global ESG rank",
-      "fr": "Rang ESG S&P Global"
-     },
-     "fund": 68.2,
-     "index": 61.5,
-     "unit": "num"
-    },
-    {
-     "id": "carbonIntensity",
-     "label": {
-      "en": "Carbon intensity",
-      "fr": "Intensité carbone"
-     },
-     "fund": 88.1,
-     "index": 131.4,
-     "unit": "num"
-    }
-   ],
+   "esg": [],
    "factsheetMonth": "2026-08"
   },
   "global-minimum-volatility": {
@@ -5639,46 +5558,9 @@
      "positiveMonths": 0
     }
    },
-   "nav": {
-    "asOf": "2026-09-28",
-    "classes": [
-     {
-      "fundserv": "SAMPLE01",
-      "display": "F",
-      "currency": "CAD",
-      "nav": 10.1234,
-      "date": "2026-09-28",
-      "prevNav": 10.1111,
-      "prevDate": "2026-09-25",
-      "change": 0.0123,
-      "changePct": 0.0012165
-     }
-    ]
-   },
-   "aum": {
-    "cad": 25000000,
-    "asOf": "2026-09-28"
-   },
-   "characteristics": [
-    {
-     "id": "numberOfContracts",
-     "label": {
-      "en": "Number of futures contracts",
-      "fr": "Nombre de contrats à terme"
-     },
-     "fund": 24,
-     "unit": "int"
-    },
-    {
-     "id": "targetDownsideVol",
-     "label": {
-      "en": "Target downside volatility",
-      "fr": "Volatilité baissière cible"
-     },
-     "fund": 0.06,
-     "unit": "pct"
-    }
-   ],
+   "nav": null,
+   "aum": null,
+   "characteristics": [],
    "breakdowns": {
     "assetClass": [
      {
@@ -5696,66 +5578,6 @@
      {
       "label": "Commodities",
       "fund": 0.12
-     }
-    ],
-    "credit": [
-     {
-      "label": "AAA",
-      "fund": 0.2
-     },
-     {
-      "label": "AA",
-      "fund": 0.3
-     },
-     {
-      "label": "A",
-      "fund": 0.3
-     },
-     {
-      "label": "BBB",
-      "fund": 0.2
-     }
-    ],
-    "sectors": [
-     {
-      "label": "Sector A",
-      "fund": 0.5
-     },
-     {
-      "label": "Sector B",
-      "fund": 0.3
-     },
-     {
-      "label": "Sector C",
-      "fund": 0.2
-     }
-    ],
-    "curve": [
-     {
-      "label": "0-3 yrs",
-      "fund": 0.4
-     },
-     {
-      "label": "3-10 yrs",
-      "fund": 0.4
-     },
-     {
-      "label": ">10 yrs",
-      "fund": 0.2
-     }
-    ],
-    "country": [
-     {
-      "label": "Canada",
-      "fund": 0.6
-     },
-     {
-      "label": "United States",
-      "fund": 0.3
-     },
-     {
-      "label": "Other",
-      "fund": 0.1
      }
     ]
    },
@@ -5793,28 +5615,7 @@
      "weight": 0.041
     }
    ],
-   "esg": [
-    {
-     "id": "spGlobalEsgRank",
-     "label": {
-      "en": "S&P Global ESG rank",
-      "fr": "Rang ESG S&P Global"
-     },
-     "fund": 68.2,
-     "index": 61.5,
-     "unit": "num"
-    },
-    {
-     "id": "carbonIntensity",
-     "label": {
-      "en": "Carbon intensity",
-      "fr": "Intensité carbone"
-     },
-     "fund": 88.1,
-     "index": 131.4,
-     "unit": "num"
-    }
-   ],
+   "esg": [],
    "factsheetMonth": "2026-08"
   }
  },
@@ -5838,11 +5639,7 @@
   "funds.global-minimum-volatility.performance": "SYNTHETIC sample: factsheet factsheet_data_2026-08.json (GMV_6pct): gross, non-compounded (overlay on notional); trailing and calendar as published; monthly table (1 decimal) for the monthly series and growth chart",
   "funds.global-minimum-volatility.risk": "SYNTHETIC sample: factsheet factsheet_data_2026-08.json \"Statistics Gross\" (published precision in risk.decimals; best/worst month from the monthly table)",
   "funds.global-minimum-volatility.breakdowns.assetClass": "SYNTHETIC sample: factsheet factsheet_data_2026-08.json \"Systematic Strategies Allocation\" averaged over 2026-06-01 to 2026-08-03",
-  "funds.global-minimum-volatility.factsheet": "SYNTHETIC sample: factsheet archive factsheet_data_2026-08.json (local folder), key GMV_6pct: characteristics, breakdowns, top holdings",
-  "funds.monthly-income.sampleFill": "SYNTHETIC sample: placeholders for UI testing only (this block does not exist for this fund in the real sources): breakdowns.assetClass",
-  "funds.sustainable-enhanced-bonds.sampleFill": "SYNTHETIC sample: placeholders for UI testing only (this block does not exist for this fund in the real sources): breakdowns.assetClass",
-  "funds.multi-strategy.sampleFill": "SYNTHETIC sample: placeholders for UI testing only (this block does not exist for this fund in the real sources): esg, breakdowns.credit, breakdowns.curve",
-  "funds.global-minimum-volatility.sampleFill": "SYNTHETIC sample: placeholders for UI testing only (this block does not exist for this fund in the real sources): nav, aum, characteristics, esg, breakdowns.credit, breakdowns.sectors, breakdowns.curve, breakdowns.country"
+  "funds.global-minimum-volatility.factsheet": "SYNTHETIC sample: factsheet archive factsheet_data_2026-08.json (local folder), key GMV_6pct: characteristics, breakdowns, top holdings"
  },
  "issues": [
   {
