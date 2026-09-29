@@ -53,7 +53,8 @@ private network, like the IMS frontend.
 | `GITHUB_TOKEN` | fine-grained token, contents:read on `Nymbus-Capital/analytics` only |
 | `PIPELINE_ALERT_WEBHOOK` | optional Teams incoming webhook for blocked/failed runs |
 
-Already filled: `PUBLIC_URL`, `AUTH_SECRET`, `DATAPLATFORM_URL`, `ADMIN_ALLOWED_DOMAINS=nymbus.ca`,
+`AUTH_SECRET` is optional: without it the server generates one on first start and keeps it on the
+volume (`/data/secrets/auth-secret`). Already filled: `PUBLIC_URL`, `DATAPLATFORM_URL`, `ADMIN_ALLOWED_DOMAINS=nymbus.ca`,
 `PIPELINE_SCHEDULE`, `FICHES_BASE_PATH`. Never set `SHOW_SAMPLE_DATA` or
 `AUTH_INSECURE_COOKIES_FOR_LOCALHOST` in production.
 

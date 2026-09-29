@@ -10,6 +10,7 @@
  *
  * Every verification re-applies the tenant / member / domain policy (src/lib/auth/policy.ts) to the claims.
  */
+import { withAuthSecret } from "./volume-secret.ts";
 import { EncryptJWT, SignJWT, jwtDecrypt, jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 import { loadAuthConfig, type AuthConfig } from "./config.ts";
@@ -34,7 +35,8 @@ export interface SessionInfo {
 }
 
 export function authConfig(): ReturnType<typeof loadAuthConfig> {
-  return loadAuthConfig(process.env);
+  // AUTH_SECRET may be omitted in production: the server then keeps a generated one on the data volume
+  return loadAuthConfig(withAuthSecret(process.env));
 }
 
 const enc = new TextEncoder();
