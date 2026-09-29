@@ -1,0 +1,10 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+tests/unit/deploy/provision.test.ts(130,92): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Property 'NODE_ENV' is missing in type '{ PATH: string | undefined; }' but required in type 'ProcessEnv'.
+tests/unit/deploy/provision.test.ts(131,7): error TS2339: Property 'on' does not exist on type 'never'.
+  The intersection 'ChildProcessWithoutNullStreams & ChildProcessByStdio<Writable, Readable, Readable> & ... 7 more ... & ChildProcess' was reduced to 'never' because property 'stdin' has conflicting types in some constituents.
+tests/unit/deploy/provision.test.ts(131,20): error TS7006: Parameter 'c' implicitly has an 'any' type.
