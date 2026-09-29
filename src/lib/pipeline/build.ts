@@ -11,10 +11,10 @@
  *    exists and the fund trailing cross-check passes (per-period tolerances, config.factsheetTolerance);
  *    until then the previous month is kept ("held", info). An already published month that the factsheet
  *    contradicts is withheld (null + error).
- *  - Index figures: the factsheet's own published tables first (monthly "Monthly Returns: <index>",
- *    trailing index row, calendar index row: producer's definition, ETF until 2026-04 then FTSE), FTSE
- *    dataplatform levels only for months the factsheet does not cover yet (warn + provenance).
- *    Value added = displayed fund − displayed index; published VA is a cross-check.
+ *  - Index figures (monthly, growth, calendar, trailing): computed from the dataplatform FTSE
+ *    index-summary levels (short_corp / univ). A period FTSE does not cover is null (issue). The
+ *    factsheet's published index figures are a cross-check only (info before 2026-05, when its index
+ *    was the XSB/XBB ETF; warn after). Value added = displayed fund − FTSE index.
  *  - GMV (no fund vehicle): gross figures from the factsheet archive (factsheet_data), arithmetic
  *    (non-compounded) convention; trailing, calendar and statistics as published.
  *  - Compliance: a track record shorter than 12 months is not shown (performance and risk null).
@@ -24,7 +24,7 @@
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
 import type { Bucket, CalendarRow, Characteristic, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
-import { factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, RETURN_CLASS_LABELS, TOL } from "./config.ts";
+import { factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
 import {
   addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, monthsBetween, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
   type Method, type RiskResult, type Series,
@@ -275,89 +275,81 @@ function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): Fun
   return { series, last, firstMonth: first, sources, returnClass, mismatches: mismatches.filter((m) => m <= last).sort(), factsheetMonths, alerts };
 }
 
-/* ------------------------------------------------------------------ index (published factsheet first) */
+/* ------------------------------------------------------------------ index (FTSE) */
+
+/** first month of a trailing window (a difference is expected when the window starts before the FTSE cutover) */
+function periodStart(p: string, asOf: string, firstMonth: string): string {
+  const n: Record<string, number> = { "1M": 1, "3M": 3, "1Y": 12, "2Y": 24, "3Y": 36, "5Y": 60, "10Y": 120 };
+  if (p === "SI") return firstMonth;
+  if (p === "YTD") return `${asOf.slice(0, 4)}-01-31`;
+  return addMonths(asOf, -(n[p] - 1));
+}
 
 interface IndexBuild {
+  /** FTSE monthly returns (month-end to month-end levels), first month to as-of */
   monthly: Series;
-  /** published trailing figures of the factsheet of the as-of month, when available */
-  fsTrailing: PeriodMap | null;
-  fsVa: PeriodMap | null;
-  fsDecimals: TrailingTable["decimals"] | null;
-  fsCalendar: Record<string, { index?: number | null }>;
-  fsCalendarYearMax: number | null;
   name: string | null;
-  /** months taken from FTSE (not covered by the factsheet table) */
-  ftseMonths: string[];
-  /** FTSE months used before the producer's FTSE cutover (a different definition from the published figures) */
-  mixed: string[];
+  source: string | null;
   prov: string;
+  /** published figures of the factsheet (cross-check only) */
+  pub: { file: string; month: string; monthly: Series; trailing: PeriodMap | null; va: PeriodMap | null; decimals: TrailingTable["decimals"] | null; calendar: Record<string, { index?: number | null }> } | null;
+}
+
+/** info before the producer's FTSE cutover (its index was the ETF then), warn after */
+function indexNote(c: Ctx, key: string, month: string, msg: string): void {
+  if (month < FTSE_COMPARABLE_FROM) c.info(key, `${msg} (expected before ${ym(FTSE_COMPARABLE_FROM)}: the factsheet index was the ETF)`);
+  else c.warn(key, msg);
 }
 
 /**
- * Index monthly returns as the factsheet publishes them ("Monthly Returns: <index>", producer's own
- * definition: XSB/XBB ETF until 2026-04, FTSE afterwards), FTSE dataplatform levels only for the months
- * the factsheet does not cover yet. Both are compared where they overlap and are comparable.
+ * Index monthly returns computed from the dataplatform FTSE index-summary levels (seam-joined history,
+ * closed month-ends only). The factsheet's published index tables are read for cross-checks only.
  */
-function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month: string; block: Obj } | null, firstMonth: string, asOf: string, prevPerf: Performance | null | undefined, c: Ctx, base: string): IndexBuild {
+function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month: string; block: Obj } | null, firstMonth: string, asOf: string, c: Ctx, base: string): IndexBuild {
   const key = `${base}.performance.index`;
-  const out: IndexBuild = { monthly: {}, fsTrailing: null, fsVa: null, fsDecimals: null, fsCalendar: {}, fsCalendarYearMax: null, name: null, ftseMonths: [], mixed: [], prov: "" };
-  const parts: string[] = [];
-  if (fsb) {
-    const tt = parseTrailingTable(fsb.block["Trailing Returns Net"], fsb.month.slice(0, 4));
-    out.name = tt?.indexName ?? null;
-    if (tt?.index && fsb.month === ym(asOf)) {
-      out.fsTrailing = tt.index;
-      out.fsVa = tt.va ?? null;
-      out.fsDecimals = tt.decimals;
-    }
-    const cal = parseCalendarTable(fsb.block["Calendar Performance Net"]);
-    out.fsCalendar = cal;
-    out.fsCalendarYearMax = Number(fsb.month.slice(0, 4));
-    const tk = indexMonthlyTableKey(fsb.block, out.name ?? undefined);
-    if (tk) {
-      out.name ??= tk.slice("Monthly Returns: ".length);
-      for (const p of parseMonthlyTable(fsb.block[tk]).points) if (p.month >= firstMonth && p.month <= asOf) out.monthly[p.month] = p.r;
-      parts.push(`factsheet ${fsb.name} "${tk}" (${Object.keys(out.monthly).length} month(s))`);
-    } else c.warn(key, `factsheet ${fsb.name} has no index monthly table`);
-  }
-  // FTSE (dataplatform) months: fallback and cross-check
-  const ftseName = raw.ftseIndex[spec.key];
-  let ftse: Series = {};
+  const ftseName = raw.ftseIndex[spec.key] ?? null;
+  const out: IndexBuild = { monthly: {}, name: null, source: ftseName, prov: "", pub: null };
   if (ftseName) {
     const res = raw.ftse[ftseName];
     if (res?.ok && res.data) {
+      out.name = res.data.indexName ?? null;
       const me = monthEndReturns(res.data.levels);
-      ftse = me.series;
       for (const d of me.dropped) if (d.month >= firstMonth && d.month <= asOf) c.warn(key, `FTSE ${ftseName} ${ym(d.month)}: ${d.reason}; month not used`);
-    } else if (prevPerf?.indexMonthly?.length) {
-      c.warn(key, `FTSE ${ftseName} unavailable (${res?.error ?? "not fetched"}); previously published index months reused`);
-      for (const p of prevPerf.indexMonthly) ftse[p.month] = p.r;
+      for (const m of sortedKeys(me.series)) if (m >= firstMonth && m <= asOf) out.monthly[m] = me.series[m];
+      const missing: string[] = [];
+      for (let m = firstMonth; m <= asOf; m = addMonths(m, 1)) if (!(m in out.monthly)) missing.push(m);
+      if (missing.length) c.warn(key, `FTSE ${ftseName} has no monthly return for ${monthRanges(missing)}: index figures needing these months are not shown`);
+      const joined = res.data.joined?.length ? ` (history joined over ${res.data.joined.join(", ")})` : "";
+      out.prov = `FTSE ${ftseName} via dataplatform /api/ftse/index-summary, aggregate total-return level, month-end to month-end${joined}`;
     } else {
-      c.warn(key, `FTSE ${ftseName} unavailable (${res?.error ?? "not fetched"})`);
+      c.warn(key, `FTSE ${ftseName} unavailable (${res?.error ?? "not fetched"}): no index figure shown`);
+      out.prov = `FTSE ${ftseName} unavailable`;
     }
   }
-  const covered = new Set(Object.keys(out.monthly));
-  for (let m = firstMonth; m <= asOf; m = addMonths(m, 1)) {
-    const f = ftse[m];
-    if (covered.has(m)) {
-      if (f !== undefined && m >= FTSE_COMPARABLE_FROM && Math.abs(f - out.monthly[m]) > INDEX_MONTHLY_TOL) {
-        c.warn(key, `${ym(m)}: published index ${pct(out.monthly[m])} vs FTSE ${ftseName} ${pct(f)} (published used)`);
-      }
-      continue;
+  out.name ??= spec.benchmark?.en ?? null;
+  if (fsb) {
+    const tt = parseTrailingTable(fsb.block["Trailing Returns Net"], fsb.month.slice(0, 4));
+    const tk = indexMonthlyTableKey(fsb.block, tt?.indexName);
+    const monthly: Series = {};
+    if (tk) for (const p of parseMonthlyTable(fsb.block[tk]).points) monthly[p.month] = p.r;
+    out.pub = {
+      file: fsb.name, month: fsb.month, monthly,
+      trailing: tt?.index && fsb.month === ym(asOf) ? tt.index : null,
+      va: tt?.va && fsb.month === ym(asOf) ? tt.va : null,
+      decimals: tt?.decimals ?? null,
+      calendar: parseCalendarTable(fsb.block["Calendar Performance Net"]),
+    };
+    const off: string[] = [];
+    for (const m of sortedKeys(monthly)) {
+      const f = out.monthly[m];
+      if (f === undefined || m < firstMonth || m > asOf) continue;
+      if (Math.abs(f - monthly[m]) > INDEX_MONTHLY_TOL) off.push(m);
     }
-    if (f === undefined) continue;
-    if (covered.size && m < FTSE_COMPARABLE_FROM) continue; // never splice FTSE into the ETF-defined part of a published series
-    out.monthly[m] = f;
-    out.ftseMonths.push(m);
+    const early = off.filter((m) => m < FTSE_COMPARABLE_FROM);
+    const late = off.filter((m) => m >= FTSE_COMPARABLE_FROM);
+    if (early.length) c.info(key, `published index months differ from FTSE ${ftseName} for ${monthRanges(early)} (expected before ${ym(FTSE_COMPARABLE_FROM)}: the factsheet index was the ETF); FTSE used`);
+    if (late.length) c.warn(key, `published index months differ from FTSE ${ftseName} for ${monthRanges(late)} (${late.slice(0, 3).map((m) => `${ym(m)}: published ${pct(monthly[m])} vs FTSE ${pct(out.monthly[m])}`).join("; ")}); FTSE used`);
   }
-  out.mixed = out.ftseMonths.filter((m) => m < FTSE_COMPARABLE_FROM);
-  if (out.ftseMonths.length) {
-    const what = covered.size ? `not covered by the published factsheet yet` : `no published factsheet index table: the whole index series is FTSE ${ftseName}, which differs from the factsheet's definition (ETF) before ${ym(FTSE_COMPARABLE_FROM)}`;
-    c.warn(key, `index ${monthRanges(out.ftseMonths)} from FTSE ${ftseName} (${what})`);
-    parts.push(`FTSE ${ftseName} via dataplatform /api/ftse/index-summary for ${monthRanges(out.ftseMonths)}${raw.ftse[ftseName ?? ""]?.data?.joined?.length ? ` (history joined over ${raw.ftse[ftseName ?? ""]!.data!.joined!.join(", ")})` : ""}`);
-  }
-  out.monthly = Object.fromEntries(sortedKeys(out.monthly).map((m) => [m, out.monthly[m]]));
-  out.prov = parts.join("; ");
   return out;
 }
 
@@ -476,18 +468,12 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   let idx: Series = {};
   let indexName: string | undefined;
   const provParts: string[] = [];
-  let idxCalendarFrom: IndexBuild | null = null;
-  let idxMixed: string | null = null;
+  let ib: IndexBuild | null = null;
   if (spec.sources.ftseIndex) {
-    // newest factsheet up to the as-of month for the published index tables
+    // newest factsheet up to the as-of month (cross-checks only)
     const blk = fsBlock ?? factsheetFilesFor(raw, spec.sources.factsheet!.file).map((f) => ({ ...f, block: f.data[spec.sources.factsheet!.key] })).find((f) => f.month <= ym(asOf!) && isObj(f.block)) as { name: string; month: string; block: Obj } | undefined ?? null;
-    const ib = buildIndex(raw, spec, blk, firstMonth, asOf, prev?.performance, c, base);
-    idxCalendarFrom = ib;
+    ib = buildIndex(raw, spec, blk, firstMonth, asOf, c, base);
     idx = ib.monthly;
-    if (ib.mixed.length) {
-      idxMixed = `index months ${monthRanges(ib.mixed)} from FTSE ${raw.ftseIndex[spec.key]}, a different definition from the published index (ETF before ${ym(FTSE_COMPARABLE_FROM)})`;
-      c.error(`${base}.performance.index`, `${idxMixed}: growth / calendar / monthly index figures may not match the published trailing`);
-    }
     indexName = ib.name ?? undefined;
     const computedIdx = fromTrailingMap(trailingOf(idx, asOf, { siStart: firstMonth }));
     const index: PeriodMap = {};
@@ -495,44 +481,41 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     for (const p of PERIOD_LIST) {
       const k = p as keyof PeriodMap;
       if (fund[k] == null) { index[k] = null; va[k] = null; continue; }
-      let iv: number | null;
-      if (ib.fsTrailing) {
-        iv = ib.fsTrailing[k] ?? null;
-        const comp = computedIdx[k];
-        const half = (0.5 * 10 ** -(ib.fsDecimals?.index[k] ?? 1)) / 100;
-        if (iv != null && comp != null && Math.abs(comp - iv) > half + 0.0002) c.warn(`${base}.trailing.index.${p}`, `index ${p}: recomputed from the index months ${pct(comp)} vs published ${pct(iv)} (published used)`);
-      } else iv = computedIdx[k] ?? null;
+      const iv = computedIdx[k] ?? null;
       index[k] = iv;
       va[k] = iv != null ? clean((fund[k] as number) - iv) : null;
-      // published value added: cross-check only
-      const pv = ib.fsVa?.[k];
+      const pub = ib.pub?.trailing?.[k];
+      if (pub != null && iv != null) {
+        const tol = (0.5 * 10 ** -(ib.pub?.decimals?.index[k] ?? 1)) / 100 + 1e-9;
+        if (Math.abs(iv - pub) > tol) indexNote(c, `${base}.trailing.index.${p}`, periodStart(p, asOf, firstMonth), `index ${p}: FTSE ${pct(iv)} vs factsheet ${ib.pub!.file} ${pct(pub)} (FTSE shown)`);
+      }
+      const pv = ib.pub?.va?.[k];
       if (pv != null && va[k] != null) {
-        const tol = (0.5 * 10 ** -(ib.fsDecimals?.va[k] ?? 1)) / 100 + (0.5 * 10 ** -(ib.fsDecimals?.index[k] ?? 1)) / 100 + 1e-9;
-        if (Math.abs((va[k] as number) - pv) > tol) c.warn(`${base}.trailing.va.${p}`, `value added ${p}: fund − index ${pct(va[k] as number)} vs published ${pct(pv)}`);
+        const tol = (0.5 * 10 ** -(ib.pub?.decimals?.va[k] ?? 1)) / 100 + 1e-9;
+        if (Math.abs((va[k] as number) - pv) > tol) indexNote(c, `${base}.trailing.va.${p}`, periodStart(p, asOf, firstMonth), `value added ${p}: fund − FTSE ${pct(va[k] as number)} vs factsheet ${pct(pv)}`);
       }
     }
     trailing.index = index;
     trailing.va = va;
     indexMonthly = toPoints(idx);
     const missingIdx = PERIOD_LIST.filter((p) => fund[p as keyof PeriodMap] != null && index[p as keyof PeriodMap] == null);
-    if (missingIdx.length) c.warn(`${base}.trailing.index`, `index ${missingIdx.join(", ")} unavailable (index history incomplete for the window, no published figure)`);
-    if (!ib.fsTrailing) c.warn(`${base}.trailing.index`, `no published index trailing for ${ym(asOf)}: computed from the index monthly returns (${ib.prov || "none"})`);
-    provParts.push(`index "${indexName ?? spec.benchmark?.en ?? "?"}": ${ib.fsTrailing ? `trailing as published in factsheet ${fsBlock!.name}; ` : "trailing computed from the index months; "}monthly: ${ib.prov || "none"}; value added = fund − index as displayed`);
+    if (missingIdx.length) c.warn(`${base}.trailing.index`, `index ${missingIdx.join(", ")} not shown: FTSE ${ib.source} does not cover the whole period`);
+    provParts.push(`index "${indexName ?? "?"}": computed from ${ib.prov || "no FTSE data"}; value added = fund − FTSE index${ib.pub ? `; factsheet ${ib.pub.file} index figures used as a cross-check only (its index was the XSB/XBB ETF before ${ym(FTSE_COMPARABLE_FROM)})` : ""}`);
   }
 
-  // calendar
+  // calendar (index years computed from FTSE; the published index row is a cross-check)
   const idxCal = spec.sources.ftseIndex ? new Map(calendarYears(idx, asOf, { first: firstMonth }).map((y) => [y.year, y])) : null;
   const calendar: CalendarRow[] = calendarYears(series, asOf, { first: firstMonth }).map((y) => {
     const row: CalendarRow = { year: y.year, fund: y.value };
     if (y.partial) row.partial = true;
-    if (idxCal && idxCalendarFrom) {
-      const pubYear = idxCalendarFrom.fsCalendar[String(y.year)]?.index ?? null;
-      const complete = idxCalendarFrom.fsCalendarYearMax !== null && (y.year < idxCalendarFrom.fsCalendarYearMax || (idxCalendarFrom.fsTrailing !== null && y.year === idxCalendarFrom.fsCalendarYearMax));
+    if (idxCal) {
       const iy = idxCal.get(y.year);
-      const computed = iy && iy.months === y.months ? iy.value : null;
-      const iv = complete && pubYear != null ? pubYear : computed;
+      const iv = iy && iy.months === y.months ? iy.value : null;
       row.index = iv;
       row.va = iv != null && y.value != null ? clean(y.value - iv) : null;
+      const pub = ib?.pub?.calendar[String(y.year)]?.index;
+      const pubComplete = ib?.pub && (y.year < Number(ib.pub.month.slice(0, 4)) || ib.pub.month === ym(asOf));
+      if (pubComplete && pub != null && iv != null && Math.abs(iv - pub) > 0.0005 + 1e-9) indexNote(c, `${base}.calendar.${y.year}.index`, y.year === Number(firstMonth.slice(0, 4)) ? firstMonth : `${y.year}-01-31`, `index ${y.year}: FTSE ${pct(iv)} vs factsheet ${pct(pub)} (FTSE shown)`);
     }
     return row;
   });
@@ -560,15 +543,18 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     for (const [k, a, b, tol] of checks) if (a != null && b != null && Math.abs(a - b) > tol) c.warn(`${base}.risk.${k}`, `${k}: computed ${a.toFixed(4)} vs factsheet ${fsBlock!.name} ${b.toFixed(4)} (computed kept)`);
   }
 
-  const returnClass = fsr.returnClass;
-  const returnClassLabel = returnClass ? RETURN_CLASS_LABELS[spec.key]?.[returnClass] : undefined;
-  c.prov[key] = `monthly net returns ${ym(firstMonth)} to ${ym(asOf)}: ${fsr.sources.join("; ")}${returnClass ? `; track record of class ${returnClass}${returnClassLabel ? ` (${returnClassLabel})` : ""}` : ""}; trailing/calendar/growth computed (compounded, annualized beyond 1 year)${fsTrailing ? `, cross-checked with factsheet ${fsBlock!.name}` : ""}${provParts.length ? `; ${provParts.join("; ")}` : ""}`;
+  const dpClass = fsr.returnClass;
+  const returnClassLabel = spec.sources.returnClassLabel ?? undefined;
+  if (spec.key === "sustainable-enhanced-bonds" && dpClass === "STRATEGY_H") c.info(key, `the dataplatform track record is the STRATEGY_H (class H) series; the site labels it class ${returnClassLabel ?? "?"}`);
+  c.prov[key] = `monthly net returns ${ym(firstMonth)} to ${ym(asOf)}: ${fsr.sources.join("; ")}${dpClass ? `; dataplatform class_code ${dpClass}` : ""}${returnClassLabel ? `; shown as class ${returnClassLabel}` : ""}; trailing/calendar/growth computed (compounded, annualized beyond 1 year)${fsTrailing ? `, cross-checked with factsheet ${fsBlock!.name}` : ""}${provParts.length ? `; ${provParts.join("; ")}` : ""}`;
   c.prov[`${base}.risk`] = `computed from the monthly net returns (SI and 3Y windows; population st.dev. ×√12; downside dev. = st.dev. of negative months ×√12; Sharpe and Sortino without risk-free rate, as in the factsheets; max drawdown from the running peak including the initial investment, whereas the factsheet uses month-end peaks only)`;
   const performance: Performance = { asOf, basis: "net", firstMonth, monthly: toPoints(series), ...(indexMonthly ? { indexMonthly } : {}), trailing, calendar, growth };
-  if (returnClass) performance.returnClass = returnClass;
-  if (returnClassLabel) performance.returnClassLabel = returnClassLabel;
+  if (returnClassLabel) {
+    // returnClass = the class code ("FP" / "F"); the label keeps the "Series <code>" form the UI localises
+    performance.returnClass = returnClassLabel;
+    performance.returnClassLabel = `Series ${returnClassLabel}`;
+  }
   if (indexName) performance.indexName = indexName;
-  if (idxMixed) alerts.push(idxMixed);
   return { performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts };
 }
 

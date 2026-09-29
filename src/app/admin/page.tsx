@@ -6,6 +6,9 @@ import { getSiteData } from "@/lib/data/site";
 import { listDocuments } from "@/lib/data/documents";
 import { Head, Pill } from "@/components/admin/Head";
 import { PipelinePanel } from "@/components/admin/runs";
+import { ComplianceBanner, type BannerText } from "@/components/admin/ComplianceBanner";
+import { complianceState } from "@/components/admin/compliance";
+import { DISCLAIMERS } from "@/content/disclaimers";
 import { summarizeFund } from "@/components/admin/summary";
 import { money, pct, when } from "@/components/admin/format";
 import { safeRuns, safeStatus } from "./_lib/data";
@@ -16,12 +19,40 @@ export default async function AdminDashboard() {
   await requireAdminPage("/admin"); // defence in depth: every page re-verifies the session (not only the layout)
   const [status, runs, content, site, docs] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments()]);
   const published = docs.filter((d) => d.published).length;
+  const comp = complianceState(content);
+  const texts: BannerText[] = DISCLAIMERS.map((d) => ({ id: d.id, label: d.label, en: d.text.en, fr: d.text.fr, where: d.where, review: d.review }));
+  // admin overrides are part of what compliance approves
+  if (content.firm.disclaimer && (content.firm.disclaimer.en || content.firm.disclaimer.fr)) {
+    texts.unshift({
+      id: "firmOverride", label: "Firm disclaimer — ADMIN OVERRIDE (replaces the boilerplate firm text)", en: content.firm.disclaimer.en, fr: content.firm.disclaimer.fr,
+      where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "edit in site settings", href: "/admin/settings" }], review: ["Entire text (written in the admin)."],
+    });
+  }
+  for (const f of FUNDS) {
+    const n = content.funds[f.key]?.performanceNote;
+    if (n && (n.en || n.fr)) {
+      texts.push({
+        id: `perfNote-${f.key}`, label: `Performance note — ${f.short.en} — ADMIN OVERRIDE`, en: n.en, fr: n.fr,
+        where: [{ label: `${f.short.en} page, disclosure`, href: `/strategies/${f.key}#disclosure` }, { label: "edit fund", href: `/admin/funds/${f.key}` }],
+        review: ["Entire text (written in the admin); it replaces the pre-launch boilerplate for this fund, if any."],
+      });
+    }
+  }
   return (
     <>
       <Head title="dashboard" lead="Pipeline health, what the public site shows right now, and shortcuts to the content you manage.">
         <Pill tone={content.pipeline.publishMode === "auto" ? "ok" : "info"}>publish mode: {content.pipeline.publishMode}</Pill>
         {site?.mode === "sample" ? <Pill tone="warn">sample data</Pill> : null}
       </Head>
+
+      <ComplianceBanner
+        status={comp.status}
+        hash={comp.hash}
+        version={content.version}
+        texts={texts}
+        approvedAt={comp.status === "never" ? undefined : comp.approvedAt}
+        approvedBy={comp.status === "never" ? undefined : comp.approvedBy}
+      />
 
       <PipelinePanel initialStatus={status} initialRuns={runs} />
 

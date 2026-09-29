@@ -122,7 +122,7 @@ export function FundEditor({
         <div className="adm-chips">
           {BLOCKS.map((b) => (
             <label key={b} className="adm-chip">
-              <input type="checkbox" checked={!!form.hide[b]} onChange={(e) => set("hide", { ...form.hide, [b]: e.target.checked })} />
+              <input type="checkbox" checked={b === "aum" ? form.hide.aum !== false : !!form.hide[b]} onChange={(e) => set("hide", { ...form.hide, [b]: e.target.checked })} />
               {b}
             </label>
           ))}
@@ -135,7 +135,7 @@ export function FundEditor({
         <L10nInput label="description" hint="empty = registry default" value={form.description} onChange={(v) => set("description", v)} multiline max={2000} />
         <L10nInput label="objective" value={form.objective} onChange={(v) => set("objective", v)} multiline max={2000} />
         <L10nInput label="distributions" value={form.distributions} onChange={(v) => set("distributions", v)} max={300} />
-        <L10nInput label="performance footnote" value={form.performanceNote} onChange={(v) => set("performanceNote", v)} multiline max={1500} />
+        <L10nInput label="performance footnote" hint="replaces the pre-launch boilerplate, if any (needs compliance review)" value={form.performanceNote} onChange={(v) => set("performanceNote", v)} multiline max={1500} />
       </fieldset>
 
       <fieldset className="adm-fieldset">

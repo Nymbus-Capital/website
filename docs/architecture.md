@@ -79,7 +79,7 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | factsheet archives (app-only, `Sites.Selected` read) |
 | `FICHES_BASE_PATH` | default `Business Development/Fiches d'infos` |
 | `FACTSHEET_DATA_DIR` | optional local folder of factsheet archives (overrides Graph) |
-| `FTSE_INDEX_SEST` | FTSE short name used as fallback for the Monthly Income benchmark (default `short_corp`); the factsheet's published index tables are the primary source |
+| `FTSE_INDEX_SEST` | FTSE short name of the Monthly Income benchmark (default `short_corp`; SEB uses `univ`). Every index figure is computed from the dataplatform FTSE levels; the factsheet's published index figures are a cross-check only |
 | `GITHUB_TOKEN` | contents:read on the analytics repo: pre-Apex monthly history (`fund_returns.json`) |
 | `ANALYTICS_REPO`, `ANALYTICS_BRANCH`, `ANALYTICS_RETURNS_PATH` | defaults `Nymbus-Capital/analytics`, `main`, `fund-analytics-app/backend/data/fund_returns.json` |
 | `ANALYTICS_RETURNS_FILE` | optional local copy of `fund_returns.json` (overrides GitHub) |

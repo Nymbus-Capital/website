@@ -16,7 +16,7 @@ import type { Lang } from "./lib/format.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";
 
-export function FundPage({ spec, content, data, sample, docs, funds }: FundPageProps) {
+export function FundPage({ spec, content, data, sample, docs, funds, firmDisclaimer }: FundPageProps) {
   const { locale } = useTranslation();
   const lang: Lang = locale === "fr" ? "fr" : "en";
   const v = visibleBlocks(data, content, docs.length);
@@ -49,7 +49,7 @@ export function FundPage({ spec, content, data, sample, docs, funds }: FundPageP
       {v.portfolio && data ? <PortfolioSection data={data} content={content} lang={lang} /> : null}
       <FactsSection spec={spec} content={content} data={data} lang={lang} />
       {v.documents ? <DocumentsSection docs={docs} lang={lang} /> : null}
-      <DisclosureSection spec={spec} content={content} data={data} lang={lang} sample={sample} />
+      <DisclosureSection spec={spec} content={content} data={data} lang={lang} sample={sample} firmDisclaimer={firmDisclaimer} />
       <FundDock current={spec.key} funds={funds} sections={sections} lang={lang} sample={sample} />
     </div>
   );

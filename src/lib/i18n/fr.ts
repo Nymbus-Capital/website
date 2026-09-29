@@ -38,8 +38,6 @@ export const fr: Record<DictKey, string> = {
   "footer.linkedin": "LinkedIn",
   "footer.pri": "signataire des PRI",
   "footer.rights": "Nymbus Capital Inc. Tous droits réservés.",
-  "footer.disclaimer":
-    "Ce site web est fourni à titre informatif seulement et ne constitue pas un conseil en placement, une offre de vente ou une sollicitation d’achat de titres. Le rendement passé n’est pas indicatif des résultats futurs.",
   "footer.top": "Retour en haut",
 
   // shared UI

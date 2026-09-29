@@ -285,6 +285,56 @@ test.describe("admin flows", () => {
     expect(del.status()).toBe(200);
   });
 
+  test("disclaimers: boilerplate on public pages, compliance banner until reviewed, back after a change", async ({ page, context, request }, info) => {
+    test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
+    // every public page footer carries the boilerplate; the fund disclosure too (with the FTSE notice)
+    for (const path of ["/", "/strategies", "/strategies/monthly-income"]) {
+      await page.goto(path);
+      const f = page.getByTestId("footer-disclaimers");
+      await expect(f).toContainText("not guaranteed");
+      await expect(f).toContainText("FTSE");
+    }
+    await expect(page.locator("#disclosure")).toContainText("October 5, 2021");
+    await expect(page.getByTestId("ftse-notice")).toBeAttached();
+
+    const token = await signIn(context);
+    await page.goto("/admin");
+    const banner = page.getByTestId("compliance-banner");
+    await expect(banner).toBeVisible();
+    await expect(banner.getByTestId("compliance-text-ftse")).toBeVisible();
+    await shot(page, "compliance", info.project.name);
+    await page.getByTestId("mark-reviewed").click();
+    await page.getByRole("button", { name: "mark as reviewed", exact: true }).click();
+    await expect(page.getByTestId("compliance-ok")).toBeVisible();
+
+    const audit = await (await request.get("/api/admin/audit", { headers: adminHeaders(token) })).json();
+    expect(audit.entries.some((e: { action: string }) => e.action === "compliance.disclaimers.reviewed")).toBe(true);
+
+    // an admin override (firm disclaimer) is shown publicly and brings the banner back
+    const { content } = await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json();
+    const firm = { en: "E2E firm disclaimer override.", fr: "Avis de la firme E2E." };
+    const put = await request.put("/api/admin/content/settings", {
+      headers: adminHeaders(token),
+      data: { version: content.version, firm: { aumLabel: content.firm.aumLabel, announcement: null, disclaimer: firm }, publishMode: content.pipeline.publishMode },
+    });
+    expect(put.status()).toBe(200);
+    await page.goto("/");
+    await expect(page.getByTestId("footer-disclaimers")).toContainText(firm.en);
+    await page.goto("/admin");
+    await expect(page.getByTestId("compliance-banner")).toContainText("changed since the last review");
+
+    // restore the boilerplate (empty override)
+    const after = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
+    await request.put("/api/admin/content/settings", {
+      headers: adminHeaders(token),
+      data: { version: after.version, firm: { aumLabel: after.firm.aumLabel, announcement: null, disclaimer: { en: "", fr: "" } }, publishMode: after.pipeline.publishMode },
+    });
+
+    // a stale hash is refused
+    const stale = await request.post("/api/admin/compliance", { headers: adminHeaders(token), data: { version: after.version + 1, textsHash: "0000000000000000", confirm: true } });
+    expect(stale.status()).toBe(409);
+  });
+
   test("logout clears and revokes the session", async ({ request }) => {
     const t = await mintSession({ email: "alice@nymbus.ca" });
     expect((await request.get("/api/admin/me", { headers: { cookie: `${SESSION_COOKIE}=${t}` } })).status()).toBe(200);

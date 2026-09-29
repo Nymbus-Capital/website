@@ -178,7 +178,7 @@ export interface DocumentMeta {
 
 export interface FundContent {
   hidden?: boolean;
-  /** hide specific blocks on the public page */
+  /** hide specific blocks on the public page (fund AUM is hidden unless `aum: false`) */
   hide?: Partial<Record<"performance" | "calendar" | "growth" | "risk" | "nav" | "aum" | "characteristics" | "breakdowns" | "holdings" | "esg", boolean>>;
   tagline?: L10n;
   description?: L10n;
@@ -212,4 +212,9 @@ export interface SiteContent {
     /** "auto": validated runs publish immediately; "review": runs wait for approval in the admin */
     publishMode: "auto" | "review";
   };
+  /**
+   * Compliance sign-off of the disclaimer texts (src/content/disclaimers.ts + admin overrides). The admin shows a
+   * "compliance review required" banner while `textsHash` differs from the current disclaimersHash().
+   */
+  compliance?: { approvedAt: string; approvedBy: string; textsHash: string } | null;
 }

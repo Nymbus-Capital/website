@@ -41,8 +41,6 @@ export const en = {
   "footer.linkedin": "LinkedIn",
   "footer.pri": "PRI signatory",
   "footer.rights": "Nymbus Capital Inc. All rights reserved.",
-  "footer.disclaimer":
-    "This website is for informational purposes only and does not constitute investment advice, an offer to sell, or a solicitation to buy any security. Past performance is not indicative of future results.",
   "footer.top": "Back to top",
 
   // shared UI

@@ -25,19 +25,11 @@ export const PIPELINE_FUNDS: Record<FundKey, PipelineFundSpec> = {
   "global-minimum-volatility": { trackStart: null, apexKey: null, method: "arithmetic" },
 };
 
-/** Labels of the dataplatform track-record classes (monthly-net-returns `class_code`), per fund. */
-export const RETURN_CLASS_LABELS: Partial<Record<FundKey, Record<string, string>>> = {
-  // dataplatform nav_timeseries: STRATEGY = the class with nav-token "F" (SEST's F token is its FP class);
-  // STRATEGY_H = SEB's H class (the series its factsheet publishes)
-  "monthly-income": { STRATEGY: "Series FP" },
-  "sustainable-enhanced-bonds": { STRATEGY_H: "Series H" },
-  "multi-strategy": { STRATEGY: "Series F" },
-};
-
 /**
  * The factsheet producer's index series is the XSB / XBB ETF until 2026-04-30 and FTSE (short_corp / univ)
- * afterwards (factsheet-generator FTSE_RETURNS_LEGACY_CUTOFF). FTSE months are comparable with the
- * published index from this month on.
+ * afterwards (factsheet-generator FTSE_RETURNS_LEGACY_CUTOFF). The site computes every index figure from
+ * FTSE; the published index figures are compared with it: differences before this month are expected
+ * (info), after it they are warnings.
  */
 export const FTSE_COMPARABLE_FROM = "2026-05-31";
 

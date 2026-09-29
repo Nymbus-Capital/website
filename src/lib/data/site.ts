@@ -17,7 +17,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     announcement: null,
   },
   funds: {},
-  pipeline: { publishMode: "auto" },
+  pipeline: { publishMode: "review" },
 };
 
 export async function getContent(): Promise<SiteContent> {

@@ -12,6 +12,9 @@ import { Donut, HBars, Holdings } from "./charts/Breakdowns";
 import { bigMoney, charCount, charValue, dateLabel, fileSize, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
 import { bucketRows, groupDocuments, headlineClass, orderedBuckets, perfClassLabel, riskIndex } from "./lib/data.ts";
 import type { FundDoc } from "./types";
+import { preInceptionNote } from "@/content/disclaimers";
+
+const perf0 = (d: FundData | null) => d?.performance ?? null;
 
 /* ------------------------------------------------------------------ portfolio */
 
@@ -133,7 +136,8 @@ function EsgRows({ items, lang }: { items: Characteristic[]; lang: Lang }) {
 export function FactsSection({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
   const classes = content.hide?.nav ? [] : data?.nav?.classes ?? [];
   const hl = headlineClass(classes, [content.headlineClass, spec.headlineClass]);
-  const aum = content.hide?.aum ? null : data?.aum ?? null;
+  // fund AUM stays off the public page unless an admin explicitly turns it on
+  const aum = content.hide?.aum === false ? data?.aum ?? null : null;
   const perf = data?.performance;
   const risk = riskIndex(content.riskRating ?? spec.defaults.riskRating);
   const facts: [string, string | null | undefined][] = [
@@ -241,13 +245,20 @@ export function DocumentsSection({ docs, lang }: { docs: FundDoc[]; lang: Lang }
 
 /* ------------------------------------------------------------------ disclosure */
 
-export function DisclosureSection({ spec, content, data, lang, sample }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean }) {
+export function DisclosureSection({ spec, content, data, lang, sample, firmDisclaimer }: {
+  spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean; firmDisclaimer?: { en: string; fr: string } | null;
+}) {
+  // regulatory texts come from src/content/disclaimers.ts; the admin may override the firm text and, per fund,
+  // the performance note (which then replaces the pre-launch boilerplate)
+  const preLaunch = preInceptionNote(spec.key);
+  const firm = firmDisclaimer && (firmDisclaimer.en.trim() || firmDisclaimer.fr.trim()) ? firmDisclaimer : T.disclosure.general;
+  const hasBenchmark = !!(spec.benchmark || perf0(data)?.indexName);
   const perf = data?.performance;
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const asOf = [
     perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${monthLabel(perf.asOf, lang)}` : null,
     data?.nav?.asOf && !content.hide?.nav ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang)}` : null,
-    data?.aum?.asOf && !content.hide?.aum ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang)}` : null,
+    data?.aum?.asOf && content.hide?.aum === false ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang)}` : null,
   ].filter(Boolean);
   return (
     <section className="screen dark auto" id="disclosure" data-section="disclosure" aria-labelledby="fx-disc-t">
@@ -255,15 +266,18 @@ export function DisclosureSection({ spec, content, data, lang, sample }: { spec:
         <SectionHead kicker={tr(T.disclosure.kicker, lang)} title={tr(T.disclosure.title, lang)} id="fx-disc-t" />
         <Reveal>
           {sample ? <p className="note" style={{ color: "#ffd66b" }}>{tr(T.disclosure.sample, lang)}</p> : null}
-          {content.performanceNote ? <p className="note">{tr(content.performanceNote, lang)}</p> : null}
+          {content.performanceNote && (content.performanceNote.en || content.performanceNote.fr)
+            ? <p className="note" data-testid="perf-note">{tr(content.performanceNote, lang)}</p>
+            : preLaunch ? <p className="note" data-testid="perf-note">{tr(preLaunch, lang)}</p> : null}
           {(() => {
             const cl = perfClassLabel(perf, tr(T.hero.class, lang));
             return cl ? <p className="note" data-testid="perf-class">{tr(T.disclosure.classShown, lang)}: {tr(gross ? T.hero.basisGross : T.hero.basisNet, lang)} · {cl}{perf?.indexName ? ` · vs ${perf.indexName}` : ""}</p> : null;
           })()}
           <p>{gross ? tr(T.hero.grossNote, lang) : tr(T.disclosure.net, lang)}</p>
           {spec.vehicle === "fund" ? <p>{tr(T.disclosure.standard, lang)}</p> : null}
-          {spec.benchmark || perf?.indexName ? <p>{tr(T.disclosure.index, lang)}</p> : null}
-          <p>{tr(T.disclosure.general, lang)}</p>
+          {hasBenchmark ? <p>{tr(T.disclosure.index, lang)}</p> : null}
+          <p data-testid="firm-disclaimer">{tr(firm, lang)}</p>
+          {hasBenchmark ? <p className="fine" data-testid="ftse-notice">{tr(T.disclosure.ftse, lang)}</p> : null}
           <div className="prov" data-testid="provenance">
             <span className="live-dot" aria-hidden="true" />
             <span>

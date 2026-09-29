@@ -8,8 +8,9 @@ import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { Logo } from "./Logo";
 import { CONTACT, FUND_LINKS } from "./links";
+import { footerDisclaimers } from "@/content/disclaimers";
 
-export function Footer() {
+export function Footer({ firmDisclaimer = null }: { firmDisclaimer?: { en: string; fr: string } | null }) {
   const { t, pick } = useTranslation();
   const year = new Date().getFullYear();
   return (
@@ -69,7 +70,10 @@ export function Footer() {
             </div>
           </div>
 
-          <p className="footer-disc">{t("footer.disclaimer")}</p>
+          {/* regulatory boilerplate: src/content/disclaimers.ts (compliance review); firm text overridable in the admin */}
+          <div className="footer-disc" id="disclaimers" data-testid="footer-disclaimers">
+            {footerDisclaimers(firmDisclaimer).map((d, i) => <p key={i}>{pick(d)}</p>)}
+          </div>
           <p className="footer-copy">© {year} {t("footer.rights")}</p>
         </div>
       </div>

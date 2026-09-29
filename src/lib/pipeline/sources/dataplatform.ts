@@ -197,7 +197,7 @@ export function fetchFtse(c: DpClient, short: string, endDate: string): Promise<
     let cur = await rowsOf(short);
     if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level`);
     const notes: string[] = [];
-    let names: { short_name: string; index_id?: number | null }[] = [];
+    let names: { short_name: string; index_id?: number | null; index_name?: string | null }[] = [];
     try {
       const { status, body } = await get(c, "/api/ftse/index-summary/short-names", {});
       if (status === 200 && Array.isArray(body)) names = body as typeof names;
@@ -267,6 +267,6 @@ export function fetchFtse(c: DpClient, short: string, endDate: string): Promise<
     if (used.length) detail += `; earlier years under ${used.join(", ")} (index_id ${iid})`;
     if (skipped.length) detail += `; not joined: ${skipped.join(", ")}`;
     if (notes.length) detail += `; ${notes.join("; ")}`;
-    return { ok: true, data: { levels: cur, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: used }, detail };
+    return { ok: true, data: { levels: cur, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: used, indexName: names.find((n) => n.short_name === short)?.index_name ?? null }, detail };
   });
 }

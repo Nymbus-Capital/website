@@ -48,7 +48,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0 }: { version:
           <input type="checkbox" checked={bannerOn} onChange={(e) => setBannerOn(e.target.checked)} /> show an announcement banner
         </label>
         {bannerOn ? <L10nInput label="announcement" value={announcement} onChange={setAnn} multiline max={400} /> : null}
-        <L10nInput label="disclaimer" hint="shown in the footer of the fund pages" value={disclaimer} onChange={setDisc} multiline max={4000} />
+        <L10nInput label="firm disclaimer" hint="empty = boilerplate; replaces the firm text in every footer and fund disclosure (needs compliance review)" value={disclaimer} onChange={setDisc} multiline max={4000} />
       </section>
       <section className="adm-panel adm-form">
         <h2 className="adm-h2">publishing</h2>

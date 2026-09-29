@@ -39,7 +39,8 @@ test("end to end: history from analytics + dataplatform ready months, published 
   assert.ok(calls.every((c) => !c.headers.authorization), "no auth header unless configured");
   const { data, context } = buildSiteData(r, null, NOW);
   assert.deepEqual(data.asOf, { performance: "2026-08-31", nav: "2026-09-28", aum: "2026-09-28", factsheet: "2026-08" });
-  assert.deepEqual(data.issues.filter((i) => i.level !== "info"), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
+  // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table)
+  assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !/^funds\.[a-z-]+\.calendar\.2026\.index$/.test(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;
   const p = mi.performance!;
@@ -53,20 +54,28 @@ test("end to end: history from analytics + dataplatform ready months, published 
   near(p.trailing.fund.SI, 0.022692721033146235);
   near(p.trailing.fund.YTD, -0.0006185939561148546);
   assert.equal(p.trailing.fund["10Y"], null);
-  // H5
-  assert.equal(p.returnClass, "STRATEGY");
+  // class label: business decision (FP for Monthly Income); dataplatform class_code in provenance only
+  assert.equal(p.returnClass, "FP");
   assert.equal(p.returnClassLabel, "Series FP");
-  assert.match(data.provenance["funds.monthly-income.performance"], /class STRATEGY \(Series FP\)/);
+  assert.match(data.provenance["funds.monthly-income.performance"], /dataplatform class_code STRATEGY; shown as class FP/);
   assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(91 month/);
-  // C1: index as published (factsheet 2026-08): 1Y "0.0%", SI "2.3%", monthly Aug "0.38%", Jan 2019 "0.28%"
-  assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index");
-  assert.equal(p.trailing.index!["1Y"], 0);
-  assert.equal(p.trailing.index!.SI, 0.023);
-  assert.equal(p.indexMonthly![0].r, 0.0028);
-  assert.equal(p.indexMonthly![p.indexMonthly!.length - 1].r, 0.0038);
-  // C2: VA = displayed fund − displayed index
-  near(p.trailing.va!["1Y"], 0.010394449520831683 - 0, 1e-12);
-  near(p.trailing.va!.SI, 0.022692721033146235 - 0.023, 1e-12);
+  // every index figure computed from FTSE short_corp levels (python3 reference from the fixture rows)
+  assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index", "from /short-names index_name");
+  near(p.trailing.index!["1M"], 0.003790669539088798);
+  near(p.trailing.index!["1Y"], 0.0023965137671608794);
+  near(p.trailing.index!["3Y"], 0.021837070759135324);
+  near(p.trailing.index!.SI, 0.023120001983536698);
+  near(p.trailing.index!.YTD, -0.0030955530445111457);
+  near(p.indexMonthly![p.indexMonthly!.length - 1].r, 0.003790669539088798);
+  assert.equal(p.indexMonthly!.length, 92);
+  // VA = fund − FTSE index
+  near(p.trailing.va!["1Y"], 0.010394449520831683 - 0.0023965137671608794, 1e-12);
+  near(p.trailing.va!.SI, 0.022692721033146235 - 0.023120001983536698, 1e-12);
+  const c2025 = p.calendar.find((r) => r.year === 2025)!;
+  near(c2025.index, 0.02320695456298516);
+  near(p.growth[p.growth.length - 1].index, 11915.266029999995, 1e-6);
+  // published index figures differ (ETF before 2026-05): info only
+  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.monthly-income.trailing.index.1Y" && /expected before 2026-05/.test(i.message)));
   assert.equal(p.calendar[p.calendar.length - 1].partial, true);
   assert.equal(p.growth[0].date, "2018-12-31");
   assert.equal(p.growth[0].index, 10_000);
@@ -96,10 +105,15 @@ test("end to end: history from analytics + dataplatform ready months, published 
   // SEB: STRATEGY_H track record, published universe index
   const seb = data.funds["sustainable-enhanced-bonds"]!.performance!;
   assert.equal(seb.firstMonth, "2019-02-28");
-  assert.equal(seb.returnClass, "STRATEGY_H");
-  assert.equal(seb.returnClassLabel, "Series H");
-  assert.equal(seb.trailing.index!["1Y"], -0.035);
-  assert.equal(seb.indexMonthly![0].r, -0.015);
+  assert.equal(seb.returnClass, "F");
+  assert.equal(seb.returnClassLabel, "Series F");
+  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /STRATEGY_H \(class H\) series; the site labels it class F/.test(i.message)));
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /dataplatform class_code STRATEGY_H; shown as class F/);
+  // FTSE univ, history joined over the renamed index (python3 reference)
+  near(seb.trailing.index!["1Y"], -0.031101481717578983);
+  near(seb.trailing.index!.SI, 0.015257215343614572);
+  assert.equal(seb.indexMonthly!.length, 91);
+  assert.equal(data.funds["multi-strategy"]!.performance!.returnClass, "F");
 
   // Multi-strategy: python3 SI 0.07627897978009623, no benchmark
   const ms = data.funds["multi-strategy"]!.performance!;
@@ -142,38 +156,6 @@ test("FTSE history joined across a rename (same index_id), siblings ignored", as
   const b = await raw({}, broken);
   assert.equal(b.raw.ftse.univ.data!.first, "2024-12-05");
   assert.match(b.raw.ftse.univ.detail!, /not joined: ftse_tmx_canada_univ \(level jumps 11\.1% at 2024-12-05\)/);
-});
-
-test("C1: index months the factsheet does not cover come from FTSE, with a warn and provenance", async () => {
-  const dir = await fsCopy();
-  // the August archive lost its index monthly table: August comes from FTSE short_corp (0.3790669539088798, python)
-  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => { delete j.SEST["Monthly Returns: FTSE Canada Short Term Corporate Bond Index"]; });
-  await rm(path.join(dir, "bonds_data_2026-07.json"));
-  const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
-  const p = data.funds["monthly-income"]!.performance!;
-  // no published table at all: the whole index series is FTSE (one definition), flagged
-  const im = Object.fromEntries(p.indexMonthly!.map((x) => [x.month, x.r]));
-  near(im["2026-08-31"], 0.003790669539088798, 1e-12);
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === "funds.monthly-income.performance.index" && /^index 2019-01 to 2026-08 from FTSE short_corp \(no published factsheet index table/.test(i.message)));
-  assert.match(data.provenance["funds.monthly-income.performance"], /FTSE short_corp via dataplatform \/api\/ftse\/index-summary for 2019-01 to 2026-08/);
-  // published trailing still used for the index figures
-  assert.equal(p.trailing.index!.SI, 0.023);
-});
-
-test("C1: published index months vs FTSE disagreeing beyond rounding (after the FTSE cutover): warn, published used", async () => {
-  const dir = await fsCopy();
-  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => { j["QCFI-SEB"]["Monthly Returns: FTSE Canada Universe Bond Index"]["2026"]["06-Jun"] = "0.90%"; });
-  const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
-  assert.ok(data.issues.some((i) => i.level === "warn" && /2026-06: published index 0\.90% vs FTSE univ/.test(i.message)));
-  assert.equal(data.funds["sustainable-enhanced-bonds"]!.performance!.indexMonthly!.find((x) => x.month === "2026-06-30")!.r, 0.009);
-});
-
-test("C2: value added is fund − displayed index; published VA is only a cross-check", async () => {
-  const dir = await fsCopy();
-  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => { j.SEST["Trailing Returns Net"]["Value Added"]["1Y"] = "+9.9%"; });
-  const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
-  near(data.funds["monthly-income"]!.performance!.trailing.va!["1Y"], 0.010394449520831683, 1e-12);
-  assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.trailing.va.1Y" && i.level === "warn"));
 });
 
 test("H1: a month missing from every source interrupts the track record (error); analytics vs dataplatform difference warns", async () => {
@@ -310,25 +292,7 @@ test("failed sources carry over previous values, with error issues and alerts", 
   assert.equal(fromSample.funds["monthly-income"], undefined, "sample data is never carried into live data");
 });
 
-test("C1: factsheet covers the index up to July; August from FTSE (after the cutover, one definition); no FTSE month spliced before 2026-05", async () => {
-  const dir = await fsCopy();
-  // July archive only (bonds), but the August fund month is allowed without a factsheet (gate off)
-  await rm(path.join(dir, "bonds_data_2026-08.json"));
-  const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW, { requireFactsheetForNewMonth: false });
-  const p = data.funds["monthly-income"]!.performance!;
-  assert.equal(p.asOf, "2026-08-31");
-  const im = Object.fromEntries(p.indexMonthly!.map((x) => [x.month, x.r]));
-  assert.equal(im["2019-01-31"], 0.0028, "published (factsheet table)");
-  near(im["2026-08-31"], 0.003790669539088798, 1e-12);
-  assert.equal(p.indexMonthly!.length, 92);
-  assert.ok(data.issues.some((i) => i.level === "warn" && /^index 2026-08 from FTSE short_corp \(not covered by the published factsheet yet\)/.test(i.message)));
-  // no published trailing for August: index trailing computed from these months (warned)
-  assert.ok(data.issues.some((i) => i.level === "warn" && /no published index trailing for 2026-08/.test(i.message)));
-  // VA consistent with the displayed figures
-  near(p.trailing.va!["1Y"], p.trailing.fund["1Y"]! - p.trailing.index!["1Y"]!, 1e-12);
-});
-
-/* ------------------------------------------------------------------ verifier round (N1, N4, N5) */
+/* ------------------------------------------------------------------ verifier round (N1, N4) */
 
 async function julyOnly(): Promise<SiteData> {
   const d0 = await fsCopy();
@@ -401,12 +365,51 @@ test("N4: analytics unavailable -> factsheet-rebuilt history alerts, risk statis
   assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.risk" && /rounded factsheet figures/.test(i.message)));
 });
 
-test("N5: FTSE months before the FTSE cutover used for the index (no published table) -> alert", async () => {
+
+test("FTSE for all benchmarks: a published index month after the cutover that differs -> warn; FTSE still shown", async () => {
   const dir = await fsCopy();
-  for (const f of ["bonds_data_2026-08.json", "bonds_data_2026-07.json"]) await editJson(path.join(dir, f), (j) => { delete j.SEST["Monthly Returns: FTSE Canada Short Term Corporate Bond Index"]; });
-  const { context } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
-  assert.ok(context["monthly-income"]!.alerts.some((a) => /index months 2019-01 to 2026-04 from FTSE short_corp, a different definition/.test(a)));
-  // with the published table, no such alert
-  const ok = buildSiteData((await raw()).raw, null, NOW);
-  assert.deepEqual(ok.context["monthly-income"]!.alerts, []);
+  await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => { j["QCFI-SEB"]["Monthly Returns: FTSE Canada Universe Bond Index"]["2026"]["06-Jun"] = "0.90%"; });
+  const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
+  assert.ok(data.issues.some((i) => i.level === "warn" && /published index months differ from FTSE univ for 2026-06 \(2026-06: published 0\.90% vs FTSE/.test(i.message)));
+  const jun = data.funds["sustainable-enhanced-bonds"]!.performance!.indexMonthly!.find((x) => x.month === "2026-06-30")!.r;
+  assert.notEqual(jun, 0.009, "FTSE value, not the published one");
+});
+
+test("FTSE for all benchmarks: no factsheet index table / published VA changed -> index still from FTSE; VA = fund − FTSE", async () => {
+  const dir = await fsCopy();
+  for (const f of ["bonds_data_2026-08.json", "bonds_data_2026-07.json"]) await editJson(path.join(dir, f), (j) => {
+    delete j.SEST["Monthly Returns: FTSE Canada Short Term Corporate Bond Index"];
+    j.SEST["Trailing Returns Net"]["Value Added"]["1Y"] = "+9.9%";
+  });
+  const { data, context } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
+  const p = data.funds["monthly-income"]!.performance!;
+  near(p.trailing.index!["1Y"], 0.0023965137671608794);
+  near(p.trailing.va!["1Y"], 0.010394449520831683 - 0.0023965137671608794, 1e-12);
+  assert.deepEqual(context["monthly-income"]!.alerts, [], "no N5 alert any more");
+  assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.trailing.va.1Y" && i.level === "info"), "published VA: cross-check only");
+});
+
+test("FTSE for all benchmarks: a period FTSE does not cover is null with an issue (never filled from the factsheet)", async () => {
+  // FTSE short_corp only from 2024-12: SI / 5Y / 3Y cannot be computed
+  const cut: Route = (url) => {
+    if (url.pathname !== "/api/ftse/index-summary" || url.searchParams.get("short_name") !== "short_corp") return undefined;
+    const rows = loadFixture("dataplatform/ftse_short_corp.json") as { date: string }[];
+    return json(rows.filter((r) => r.date >= "2024-11-27"));
+  };
+  const { data } = buildSiteData((await raw({}, cut)).raw, null, NOW);
+  const t = data.funds["monthly-income"]!.performance!.trailing;
+  assert.equal(t.index!.SI, null);
+  assert.equal(t.index!["5Y"], null);
+  assert.equal(t.index!["3Y"], null);
+  assert.equal(t.va!.SI, null);
+  near(t.index!["1Y"], 0.0023965137671608794);
+  assert.ok(data.issues.some((i) => i.level === "warn" && /index 2Y, 3Y, 5Y, SI not shown: FTSE short_corp does not cover the whole period/.test(i.message)));
+  const cal2019 = data.funds["monthly-income"]!.performance!.calendar.find((r) => r.year === 2019)!;
+  assert.equal(cal2019.index, null);
+  // FTSE unavailable: no index figure at all
+  const down: Route = (url) => (url.pathname === "/api/ftse/index-summary" ? json({ detail: "x" }, 500) : undefined);
+  const d2 = buildSiteData((await raw({}, down)).raw, null, NOW).data;
+  assert.equal(d2.funds["monthly-income"]!.performance!.trailing.index!["1Y"], null);
+  assert.equal(d2.funds["monthly-income"]!.performance!.indexName, "FTSE Canada Short Term Corporate Bond Index", "fallback to the funds.ts benchmark label");
+  assert.ok(d2.issues.some((i) => i.level === "warn" && /FTSE short_corp unavailable .*: no index figure shown/.test(i.message)));
 });

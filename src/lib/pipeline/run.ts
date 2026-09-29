@@ -59,7 +59,8 @@ async function readContent(): Promise<Partial<SiteContent> | null> {
 }
 
 async function publishMode(): Promise<"auto" | "review"> {
-  return (await readContent())?.pipeline?.publishMode === "review" ? "review" : "auto";
+  // until an admin chooses "auto", runs wait for approval (safer for the first live runs)
+  return (await readContent())?.pipeline?.publishMode === "auto" ? "auto" : "review";
 }
 
 export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "1").trim() !== "0";

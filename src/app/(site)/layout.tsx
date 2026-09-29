@@ -4,9 +4,11 @@
  */
 import { SiteShell } from "@/components/site/SiteShell";
 import { getLocale } from "@/lib/i18n/server";
+import { getContent } from "@/lib/data/site";
 import "@/components/site/site.css";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const locale = await getLocale();
-  return <SiteShell locale={locale}>{children}</SiteShell>;
+  const [locale, content] = await Promise.all([getLocale(), getContent().catch(() => null)]);
+  // admin firm disclaimer (settings) replaces the boilerplate firm text in the footer when set
+  return <SiteShell locale={locale} firmDisclaimer={content?.firm.disclaimer ?? null}>{children}</SiteShell>;
 }

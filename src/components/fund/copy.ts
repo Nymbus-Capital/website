@@ -3,6 +3,7 @@
  * and from the current site's fund pages / footer disclaimer. Pure data.
  */
 import type { DocType, Period } from "../../lib/data/types.ts";
+import { DISC } from "../../content/disclaimers.ts";
 
 export type L = { en: string; fr: string };
 const l = (en: string, fr: string): L => ({ en, fr });
@@ -43,10 +44,8 @@ export const T = {
     levels: [l("low", "faible"), l("low to medium", "faible à moyen"), l("medium", "moyen"), l("medium to high", "moyen à élevé"), l("high", "élevé")],
     basisNet: l("net of fees", "net de frais"),
     basisGross: l("gross of fees · managed accounts, not a fund", "brut de frais · comptes gérés, pas un fonds"),
-    grossNote: l(
-      "Returns shown for this strategy are gross of fees and represent managed accounts; they are not the returns of an investment fund. Client returns are reduced by management fees and other expenses, and vary by account.",
-      "Les rendements présentés pour cette stratégie sont bruts de frais et représentent des comptes gérés; il ne s’agit pas des rendements d’un fonds d’investissement. Les rendements des clients sont réduits par les frais de gestion et autres frais, et varient d’un compte à l’autre.",
-    ),
+    // regulatory text: src/content/disclaimers.ts (compliance review)
+    grossNote: DISC.gmvGross,
     explore: l("explore the numbers", "explorer les chiffres"),
     inLine: l("in line with benchmark", "en ligne avec l’indice"),
     noChange: l("no daily change published", "aucune variation quotidienne publiée"),
@@ -176,22 +175,12 @@ export const T = {
   disclosure: {
     kicker: l("important information", "renseignements importants"),
     title: l("disclosure", "mentions importantes"),
-    net: l(
-      "Returns are net of fees for the class shown, in Canadian dollars, and assume the reinvestment of all distributions.",
-      "Les rendements sont nets de frais pour la catégorie présentée, en dollars canadiens, et supposent le réinvestissement de toutes les distributions.",
-    ),
-    standard: l(
-      "Commissions, trailing commissions, management fees and expenses all may be associated with investments in investment funds. Please read the offering documents before investing. Investment funds are not guaranteed, their values change frequently and past performance may not be repeated. The indicated rates of return are the historical annual compounded total returns including changes in unit value and reinvestment of all distributions, and do not take into account sales, redemption, distribution or optional charges or income taxes payable by any securityholder that would have reduced returns.",
-      "Les placements dans les fonds d’investissement peuvent donner lieu à des commissions, des commissions de suivi, des frais de gestion et d’autres frais. Veuillez lire les documents de placement avant d’investir. Les fonds d’investissement ne sont pas garantis, leur valeur fluctue fréquemment et le rendement passé pourrait ne pas se reproduire. Les taux de rendement indiqués sont les rendements totaux annuels composés historiques, compte tenu des fluctuations de la valeur des parts et du réinvestissement de toutes les distributions, et ne tiennent pas compte des frais de vente, de rachat, de distribution ou des frais optionnels ni des impôts sur le revenu payables par le porteur, lesquels auraient pour effet de réduire le rendement.",
-    ),
-    index: l(
-      "Indices are shown for comparison only; they are unmanaged, bear no fees and cannot be invested in directly.",
-      "Les indices ne sont présentés qu’à titre de comparaison; ils ne sont pas gérés, n’assument aucuns frais et on ne peut y investir directement.",
-    ),
-    general: l(
-      "This website is for informational purposes only and does not constitute investment advice, an offer to sell, or a solicitation to buy any security. Past performance is not indicative of future results.",
-      "Ce site Web est fourni à titre informatif uniquement et ne constitue pas un conseil en investissement, une offre de vente ou une sollicitation d’achat d’un titre quelconque. Le rendement passé n’est pas indicatif des rendements futurs.",
-    ),
+    // regulatory texts: src/content/disclaimers.ts (compliance review)
+    net: DISC.returnsNet,
+    standard: DISC.fundStandard,
+    index: DISC.benchmark,
+    ftse: DISC.ftse,
+    general: DISC.firm,
     provenance: l("Updated daily from Nymbus’ data platform", "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus"),
     provenanceFactsheet: l("portfolio data from the monthly factsheet of", "données de portefeuille selon la fiche mensuelle de"),
     classShown: l("Performance shown", "Rendements présentés"),

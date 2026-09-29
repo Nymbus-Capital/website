@@ -15,6 +15,8 @@ beforeEach(async () => {
   const env = fixtureEnv({ SITE_DATA_DIR: dir });
   for (const k of ["DATAPLATFORM_TOKEN", "DATAPLATFORM_USERNAME", "GRAPH_TENANT_ID", "PIPELINE_ALERT_WEBHOOK", "FTSE_INDEX_SEST", "PIPELINE_SCHEDULE", "PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH", "GITHUB_TOKEN"]) delete process.env[k];
   Object.assign(process.env, env);
+  // most scenarios exercise auto publishing; the default without content is covered separately
+  await setMode("auto");
 });
 
 const readJ = async <T>(...parts: string[]): Promise<T> => JSON.parse(await readFile(path.join(dir, ...parts), "utf8")) as T;
@@ -334,4 +336,12 @@ test("N6: stale-lock takeover renames the stale dir atomically; concurrent takeo
   assert.ok(results.filter((x) => x === "ran").length >= 1);
   const left = await readdir(path.join(dir, "locks"));
   assert.ok(!left.some((f) => f.includes(".stale-")), `no stale leftovers: ${left}`);
+});
+
+test("without admin content, runs wait for approval (review is the default)", async () => {
+  const { rm } = await import("node:fs/promises");
+  await rm(path.join(dir, "content"), { recursive: true, force: true });
+  const r = await run();
+  assert.equal(r.status === "pending-review" || (r.status === "blocked" && !r.publishedAt), true, `status ${r.status}`);
+  await assert.rejects(readFile(path.join(dir, "published", "site-data.json"), "utf8"));
 });

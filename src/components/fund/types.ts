@@ -39,4 +39,6 @@ export interface FundPageProps {
   docs: FundDoc[];
   /** every visible fund, for the switcher */
   funds: FundLink[];
+  /** admin override of the firm disclaimer (settings); null → boilerplate of src/content/disclaimers.ts */
+  firmDisclaimer?: L10n | null;
 }

@@ -4,6 +4,7 @@
  * the site are kept neutral (no performance claims).
  */
 import { l, type L } from "@/lib/i18n/config";
+import { DISC } from "@/content/disclaimers";
 
 export type { L };
 
@@ -103,8 +104,9 @@ export const HOME = {
     view: l("view the strategy", "voir la stratégie"),
     all: l("all strategies", "toutes les stratégies"),
     fund: l("fund", "fonds"), sma: l("SMA", "SMA"),
-    perfNote: l("Net of fees, in CAD. Past performance is not indicative of future results.", "Net des frais, en CAD. Le rendement passé n’est pas indicatif des résultats futurs."),
-    grossNote: l("Strategy returns are gross of fees.", "Les rendements de la stratégie sont bruts de frais."),
+    // regulatory texts: src/content/disclaimers.ts (compliance review)
+    perfNote: DISC.summaryNet,
+    grossNote: DISC.summaryGross,
   },
   investors: {
     eyebrow: l("the firm", "la firme"),

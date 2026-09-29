@@ -192,3 +192,12 @@ html:has([data-admin]), body:has([data-admin]) { background: #0b0b0c; }
 @media (prefers-reduced-motion: reduce) {
   .adm *, .adm *::before { animation: none !important; transition: none !important; }
 }
+
+/* ---------------------------------------------------------------- compliance review banner */
+.adm-compliance { box-shadow: 0 0 0 1.5px rgba(253,214,99,.55), 0 0 36px -10px rgba(253,214,99,.4); }
+.adm-comp-list { margin: 0; padding: 0 0 0 20px; display: grid; gap: 14px; }
+.adm-comp-list > li { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.adm-comp-list > li:last-child { border-bottom: 0; }
+.adm-comp-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-bottom: 6px; }
+.adm-comp-list .adm-l10n p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink2); background: var(--surf); border-radius: 10px; padding: 8px 10px; }
+.adm-comp-review { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--yellow); }
