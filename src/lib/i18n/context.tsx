@@ -37,7 +37,7 @@ export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }: { chi
 
   const value = useMemo<I18nContextValue>(() => {
     const t = dict(locale);
-    return { locale, setLocale, t, pick: (x) => (x ? x[locale] ?? x.en : ""), pending };
+    return { locale, setLocale, t, pick: (x) => (x ? x[locale] || x.en : ""), pending };
   }, [locale, setLocale, pending]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

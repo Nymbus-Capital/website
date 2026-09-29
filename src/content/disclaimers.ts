@@ -114,6 +114,17 @@ const SUMMARY_GROSS: Text = {
   fr: "Les rendements de Global Minimum Volatilité sont bruts de frais (comptes gérés, pas un fonds).",
 };
 
+const BASIS_NET: Text = { en: "net of fees", fr: "net de frais" };
+const BASIS_GROSS: Text = { en: "gross of fees · managed accounts, not a fund", fr: "brut de frais · comptes gérés, pas un fonds" };
+
+const SAMPLE: Text = {
+  en: "The figures on this page are illustrative sample data used while the data platform is not connected. They are not the actual returns of the fund.",
+  fr: "Les chiffres de cette page sont des données fictives utilisées tant que la plateforme de données n’est pas branchée. Il ne s’agit pas des rendements réels du fonds.",
+};
+
+const PROVENANCE: Text = { en: "Updated daily from Nymbus’ data platform", fr: "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus" };
+const PROVENANCE_FACTSHEET: Text = { en: "portfolio data from the monthly factsheet of", fr: "données de portefeuille selon la fiche mensuelle de" };
+
 /** Every text of the public site that compliance must approve. */
 export const DISCLAIMERS: Disclaimer[] = [
   {
@@ -181,6 +192,27 @@ export const DISCLAIMERS: Disclaimer[] = [
     review: ["Short notes near figures must not contradict the full disclosure (net of which fees, class)."],
   },
   {
+    id: "basisLabels",
+    label: "Basis labels next to return figures (net / gross, managed accounts)",
+    text: { en: `${BASIS_NET.en} | ${BASIS_GROSS.en}`, fr: `${BASIS_NET.fr} | ${BASIS_GROSS.fr}` },
+    where: [{ label: "fund pages, hero and disclosure", href: "/strategies/global-minimum-volatility#disclosure" }],
+    review: ["Short labels must match the full net/gross disclosure."],
+  },
+  {
+    id: "sample",
+    label: "Sample-data warning (only while the data platform is not connected)",
+    text: SAMPLE,
+    where: [{ label: "fund pages, disclosure (sample mode only)", href: "/strategies/monthly-income#disclosure" }],
+    review: ["Sample data must never appear in production (SHOW_SAMPLE_DATA); wording if it does on a demo site."],
+  },
+  {
+    id: "provenance",
+    label: "Data provenance line (update frequency, factsheet month)",
+    text: { en: `${PROVENANCE.en}; ${PROVENANCE_FACTSHEET.en} <month>.`, fr: `${PROVENANCE.fr}; ${PROVENANCE_FACTSHEET.fr} <mois>.` },
+    where: [{ label: "fund pages, disclosure", href: "/strategies/monthly-income#disclosure" }],
+    review: ["'Updated daily' is accurate (schedule); the as-of dates shown next to it."],
+  },
+  {
     id: "summaryGross",
     label: "Short gross-of-fees note (home, strategies)",
     text: SUMMARY_GROSS,
@@ -201,6 +233,11 @@ export const DISC = {
   ftse: FTSE,
   summaryNet: SUMMARY_NET,
   summaryGross: SUMMARY_GROSS,
+  basisNet: BASIS_NET,
+  basisGross: BASIS_GROSS,
+  sample: SAMPLE,
+  provenance: PROVENANCE,
+  provenanceFactsheet: PROVENANCE_FACTSHEET,
   byId,
 } as const;
 
@@ -210,10 +247,16 @@ export function preInceptionNote(fundKey: string): Text | null {
   return f ? PRE_INCEPTION(f) : null;
 }
 
-/** Texts shown in the footer of every public page, in order. `firmOverride` = admin firm disclaimer (settings). */
-export function footerDisclaimers(firmOverride?: Text | null): Text[] {
+/**
+ * Texts shown in the footer of every public page, in order. `firmOverride` = admin firm disclaimer (settings);
+ * `hiddenFunds` = funds hidden in the admin (their fund-specific paragraphs are omitted).
+ */
+export function footerDisclaimers(firmOverride?: Text | null, hiddenFunds: readonly string[] = []): Text[] {
   const firm = firmOverride && (firmOverride.en.trim() || firmOverride.fr.trim()) ? firmOverride : FIRM;
-  return [firm, FUND_STANDARD, RETURNS_NET, BENCHMARK, PRE_INCEPTION(FUND_INCEPTION["monthly-income"]!), GMV_GROSS, FTSE];
+  const preLaunch = Object.entries(FUND_INCEPTION)
+    .filter(([k, f]) => f && !hiddenFunds.includes(k))
+    .map(([, f]) => PRE_INCEPTION(f!));
+  return [firm, FUND_STANDARD, RETURNS_NET, BENCHMARK, ...preLaunch, GMV_GROSS, FTSE];
 }
 
 export interface DisclaimerOverrides {

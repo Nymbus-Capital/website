@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DISCLAIMERS, FUND_INCEPTION, disclaimersHash, footerDisclaimers, preInceptionNote } from "../../../src/content/disclaimers.ts";
+import { DISC, DISCLAIMERS, FUND_INCEPTION, disclaimersHash, footerDisclaimers, preInceptionNote } from "../../../src/content/disclaimers.ts";
 import { complianceState, currentDisclaimersHash } from "../../../src/components/admin/compliance.ts";
 import { T } from "../../../src/components/fund/copy.ts";
 import type { SiteContent } from "../../../src/lib/data/types.ts";
@@ -78,4 +78,22 @@ test("compliance state: never → approved → changed when an override changes"
   // other content edits do not require a new review
   const otherEdit = { ...approved, firm: { aumLabel: { en: "2 B$", fr: "2 G$" } }, funds: { "multi-strategy": { mer: "1%" } } };
   assert.equal(complianceState(otherEdit).status, "approved");
+});
+
+test("pre-launch footer paragraph is omitted when its fund is hidden", () => {
+  const shown = footerDisclaimers(null).map((t) => t.en).join(" ");
+  const hidden = footerDisclaimers(null, ["monthly-income"]).map((t) => t.en).join(" ");
+  assert.ok(shown.includes("October 5, 2021"));
+  assert.ok(!hidden.includes("October 5, 2021"));
+  assert.ok(hidden.includes("not guaranteed"));
+});
+
+test("other regulatory-sounding fund strings come from the module (covered by the compliance hash)", () => {
+  const ids = DISCLAIMERS.map((d) => d.id);
+  for (const id of ["basisLabels", "sample", "provenance"]) assert.ok(ids.includes(id), id);
+  assert.equal(T.hero.basisGross, DISC.basisGross);
+  assert.equal(T.hero.basisNet, DISC.basisNet);
+  assert.equal(T.disclosure.sample, DISC.sample);
+  assert.equal(T.disclosure.provenance, DISC.provenance);
+  assert.ok(DISCLAIMERS.find((d) => d.id === "basisLabels")!.text.en.includes(DISC.basisGross.en));
 });

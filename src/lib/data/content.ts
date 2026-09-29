@@ -7,6 +7,7 @@
  */
 import { readJson, writeJson, withLock } from "./store.ts";
 import type { SiteContent } from "./types.ts";
+import { DEFAULT_CONTENT, mergeContent } from "./defaults.ts";
 
 export class ContentConflictError extends Error {
   readonly status = 409;
@@ -79,23 +80,6 @@ export async function updateContent(expectedVersion: number, mutate: (current: S
   throw new ContentBusyError();
 }
 
-/** Same merge as site.ts getContent (kept here so this module has no Next-only import at load time). */
-export const EMPTY_CONTENT: SiteContent = {
-  version: 0,
-  updatedAt: "1970-01-01T00:00:00.000Z",
-  updatedBy: "system",
-  firm: { aumLabel: { en: "1.8 B$+", fr: "1,8 G$+" }, announcement: null },
-  funds: {},
-  pipeline: { publishMode: "auto" },
-};
-
-function mergeDefaults(c: SiteContent | null): SiteContent {
-  if (!c) return structuredClone(EMPTY_CONTENT);
-  return {
-    ...EMPTY_CONTENT,
-    ...c,
-    firm: { ...EMPTY_CONTENT.firm, ...c.firm },
-    funds: { ...(c.funds ?? {}) },
-    pipeline: { ...EMPTY_CONTENT.pipeline, ...c.pipeline },
-  };
-}
+/** Defaults shared with the read model (src/lib/data/defaults.ts): publish mode "review", firm AUM label. */
+export const EMPTY_CONTENT: SiteContent = DEFAULT_CONTENT;
+const mergeDefaults = mergeContent;

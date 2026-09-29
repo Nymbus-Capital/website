@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 import { adminHeaders, BASE, mintSession, OTHER_TENANT, SESSION_COOKIE, shot, signIn, TENANT, tinyPdf } from "./helpers";
 import { E2E_ENV } from "../playwright.config";
 
+/** the AUM field of FundData, raw or escaped inside the RSC flight data */
+const CAD_KEY = /\\?"cad\\?"\s*:/;
+
 /**
  * Admin gate, API guards and the main admin flows, against the production build with test-only Entra settings.
  * Microsoft is never contacted: the sign-in redirect is asserted, not followed; sessions are minted with AUTH_SECRET.
@@ -80,6 +83,9 @@ test.describe("sign-in gate", () => {
     for (const leak of ["sourceName", "dataplatform", "ftseIndex", "bonds_data", "pinnedSnapshot", "uploadedBy", "sha256"]) {
       expect(html, leak).not.toContain(leak);
     }
+    // fund AUM is hidden by default: it must not even reach the RSC payload (`"cad"` is the AUM field; quotes are
+    // escaped inside the inline flight data)
+    expect(html).not.toMatch(CAD_KEY);
   });
 
   test("/api/admin/uploadx is still gated by the proxy", async ({ request }) => {
@@ -206,6 +212,7 @@ test.describe("admin flows", () => {
     const mer = `1.${Math.floor(Math.random() * 90 + 10)}%`;
     await page.getByLabel("mer", { exact: true }).fill(mer);
     await page.getByLabel("tagline (EN)", { exact: true }).fill("e2e tagline");
+    await page.getByLabel("tagline (FR)", { exact: true }).fill("slogan e2e");
     await page.getByTestId("save-fund").click();
     await expect(page.locator(".adm-toast.ok")).toContainText("Saved");
     await shot(page, "fund", info.project.name);
@@ -237,6 +244,7 @@ test.describe("admin flows", () => {
     const title = `e2e fund facts ${info.project.name} ${Date.now()}`;
     await page.locator('input[type="file"][name="file"]').setInputFiles({ name: "Fund Facts <e2e>.pdf", mimeType: "application/pdf", buffer: tinyPdf() });
     await page.getByLabel("title (EN)", { exact: true }).fill(title);
+    await page.getByLabel("title (FR)", { exact: true }).fill(`${title} fr`);
     await page.locator('select[name="scope"]').first().selectOption("monthly-income");
     await page.getByTestId("upload-submit").click();
     await expect(page.locator(".adm-toast.ok")).toContainText("Uploaded");
@@ -275,7 +283,7 @@ test.describe("admin flows", () => {
     // not a PDF → 415; unpublish → 404; delete
     const notPdf = await request.post("/api/admin/upload/documents", {
       headers: adminHeaders(token, false),
-      multipart: { file: { name: "x.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html><script>alert(1)</script>") }, scope: "firm", type: "other", lang: "en", titleEn: "x", titleFr: "", date: "2026-01-01", published: "true" },
+      multipart: { file: { name: "x.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html><script>alert(1)</script>") }, scope: "firm", type: "other", lang: "en", titleEn: "x", titleFr: "x", date: "2026-01-01", published: "true" },
     });
     expect(notPdf.status()).toBe(415);
     const unpub = await request.patch(`/api/admin/documents/${id}`, { headers: adminHeaders(token), data: { published: false } });
@@ -333,6 +341,39 @@ test.describe("admin flows", () => {
     // a stale hash is refused
     const stale = await request.post("/api/admin/compliance", { headers: adminHeaders(token), data: { version: after.version + 1, textsHash: "0000000000000000", confirm: true } });
     expect(stale.status()).toBe(409);
+  });
+
+  test("unticking 'hide aum' persists and publishes the fund AUM; ticking it again removes it from the page", async ({ page, context, request }, info) => {
+    test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
+    const token = await signIn(context);
+    const fund = "sustainable-enhanced-bonds";
+    const before = await request.get(`/strategies/${fund}`).then((r) => r.text());
+    expect(before).not.toMatch(CAD_KEY);
+
+    await page.goto(`/admin/funds/${fund}`);
+    const aum = page.getByTestId("fund-editor").locator("label.adm-chip", { hasText: /^aum$/ }).locator("input");
+    await expect(aum).toBeChecked(); // hidden by default
+    await aum.uncheck({ force: true });
+    await page.getByTestId("save-fund").click();
+    await expect(page.locator(".adm-toast.ok")).toContainText("Saved");
+
+    const { content } = await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json();
+    expect(content.funds[fund].hide?.aum).toBe(false);
+    const after = await request.get(`/strategies/${fund}`).then((r) => r.text());
+    expect(after).toMatch(CAD_KEY);
+
+    // restore (hide again)
+    const put = await request.put(`/api/admin/content/funds/${fund}`, {
+      headers: adminHeaders(token),
+      data: { version: content.version, fund: { ...content.funds[fund], hide: { ...(content.funds[fund].hide ?? {}), aum: true } } },
+    });
+    expect(put.status()).toBe(200);
+    expect(await request.get(`/strategies/${fund}`).then((r) => r.text())).not.toMatch(CAD_KEY);
+
+    // a one-language override is rejected
+    const v = (await put.json()).content.version;
+    const bad = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: v, fund: { tagline: { en: "only english", fr: "" } } } });
+    expect(bad.status()).toBe(400);
   });
 
   test("logout clears and revokes the session", async ({ request }) => {

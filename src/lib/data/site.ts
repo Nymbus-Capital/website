@@ -5,24 +5,15 @@
 import "server-only";
 import { FUNDS, fundSpec, type FundSpec } from "@/config/funds";
 import { readJson } from "./store";
+import { mergeContent } from "./defaults";
 import type { FundContent, FundData, FundKey, SiteContent, SiteData } from "./types";
 import sample from "./sample-site-data.json";
 
-export const DEFAULT_CONTENT: SiteContent = {
-  version: 0,
-  updatedAt: "1970-01-01T00:00:00.000Z",
-  updatedBy: "system",
-  firm: {
-    aumLabel: { en: "$1.8B+", fr: "1,8 G$+" },
-    announcement: null,
-  },
-  funds: {},
-  pipeline: { publishMode: "review" },
-};
+export { DEFAULT_CONTENT } from "./defaults";
 
 export async function getContent(): Promise<SiteContent> {
   const c = await readJson<SiteContent | null>(["content", "site-content.json"], null);
-  return c ? { ...DEFAULT_CONTENT, ...c, firm: { ...DEFAULT_CONTENT.firm, ...c.firm }, pipeline: { ...DEFAULT_CONTENT.pipeline, ...c.pipeline } } : DEFAULT_CONTENT;
+  return mergeContent(c);
 }
 
 /** Sample data is illustrative only: never shown in production unless explicitly allowed. */

@@ -4,12 +4,18 @@
 import { z } from "zod";
 import { FUND_KEYS } from "@/config/funds";
 import type { FundKey } from "@/lib/data/types";
+import { bothOrNeither } from "@/components/admin/fund-content";
 
 const FUND_KEY_VALUES = FUND_KEYS as [FundKey, ...FundKey[]];
 export const fundKeySchema = z.enum(FUND_KEY_VALUES);
 
 const text = (max: number) => z.string().trim().max(max);
-export const l10n = (max: number) => z.strictObject({ en: text(max), fr: text(max) });
+/**
+ * Bilingual text. Both empty = "not set" (falls back to the default); otherwise BOTH languages are required, so a
+ * French page never silently shows English (or an empty string) for an admin override.
+ */
+export const l10n = (max: number) =>
+  z.strictObject({ en: text(max), fr: text(max) }).refine(bothOrNeither, "both EN and FR are required (or leave both empty)");
 
 /** ISO date YYYY-MM-DD that is a real calendar date. */
 export const isoDate = z
@@ -71,7 +77,7 @@ export const documentMetaSchema = z.strictObject({
   scope: docScopeSchema,
   type: z.enum(DOC_TYPE_VALUES),
   lang: z.enum(["en", "fr", "both"]),
-  title: l10n(200).refine((t) => t.en.length > 0 || t.fr.length > 0, "a title (EN or FR) is required"),
+  title: l10n(200).refine((t) => t.en.length > 0 && t.fr.length > 0, "a title (EN and FR) is required"),
   date: isoDate,
   published: z.boolean(),
 });

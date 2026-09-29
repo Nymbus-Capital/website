@@ -2,8 +2,7 @@ name: Provision Northflank
 
 # Creates the website's Northflank resources (service, volume, secret group) in the existing project.
 # Create-only and idempotent: existing resources are never modified or deleted.
-# Needs the repository secret NORTHFLANK_API_TOKEN (Northflank → Team settings → API → tokens; a token
-# with project read/write on the target project).
+# Needs NORTHFLANK_API_TOKEN as a secret of the "production" environment (see docs/deploy.md §1).
 
 on:
   workflow_dispatch:
@@ -27,6 +26,9 @@ permissions:
 
 jobs:
   provision:
+    # only from main, and only through the protected "production" environment (required reviewer),
+    # whose environment secret NORTHFLANK_API_TOKEN no other workflow or branch can read
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
@@ -46,4 +48,4 @@ jobs:
           set -euo pipefail
           extra=()
           if [ "$IN_APPLY" = "true" ]; then extra+=(--apply); fi
-          node deploy/northflank/provision.mjs --project "$IN_PROJECT" --branch "$IN_BRANCH" --plan "$IN_PLAN" "${extra[@]}"
+          node deploy/northflank/provision.mjs "--project=$IN_PROJECT" "--branch=$IN_BRANCH" "--plan=$IN_PLAN" "${extra[@]}"

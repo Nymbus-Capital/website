@@ -12,30 +12,9 @@ import { fail, isResponse, ok, parseJson } from "../../../_lib/http";
 import { fundKeySchema, saveFundSchema } from "../../../_lib/schemas";
 import { contentError } from "../../../_lib/save";
 import { isPinnable } from "@/components/admin/summary";
+import { cleanFundContent } from "@/components/admin/fund-content";
 
 export const dynamic = "force-dynamic";
-
-/** Drop empty strings / empty L10n so the public page falls back to the registry defaults. */
-function clean(f: FundContent): FundContent {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(f)) {
-    if (v === undefined) continue;
-    if (typeof v === "string" && v === "") continue;
-    if (v && typeof v === "object" && !Array.isArray(v) && "en" in v && "fr" in v) {
-      const l = v as { en: string; fr: string };
-      if (!l.en && !l.fr) continue;
-    }
-    if (Array.isArray(v) && v.length === 0) continue;
-    if (k === "hide" && v && typeof v === "object") {
-      const h = Object.fromEntries(Object.entries(v).filter(([, b]) => b === true));
-      if (Object.keys(h).length === 0) continue;
-      out[k] = h;
-      continue;
-    }
-    out[k] = v;
-  }
-  return out as FundContent;
-}
 
 export async function PUT(request: NextRequest, ctx: { params: Promise<{ key: string }> }) {
   const user = await requireAdmin(request);
@@ -47,7 +26,7 @@ export async function PUT(request: NextRequest, ctx: { params: Promise<{ key: st
   const body = await parseJson(request, saveFundSchema);
   if (isResponse(body)) return body;
 
-  const fund = clean(body.fund as FundContent);
+  const fund = cleanFundContent(body.fund as FundContent);
   if (fund.pinnedSnapshot) {
     const run = await getRun(fund.pinnedSnapshot).catch(() => null);
     if (!run) return fail(400, "invalid_input", "fund.pinnedSnapshot: no such run.");

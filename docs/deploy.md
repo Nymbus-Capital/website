@@ -18,13 +18,26 @@ existing resources:
 Steps:
 
 1. Merge the pull request (GitHub only offers the workflow once it is on `main`).
-2. Northflank → Team settings → API → **Create token** with read/write access to the `etl` project.
-   GitHub → this repository → Settings → Secrets and variables → Actions → new secret
-   `NORTHFLANK_API_TOKEN` with that token.
-3. GitHub → Actions → **Provision Northflank** → Run workflow, leave **apply** unticked: the summary
-   lists what would be created. Run it again with **apply** ticked.
-4. Northflank → `etl` → Secret groups → `website-secrets`: paste the credentials (table below), then
-   restart the `website` service.
+2. Northflank → Team → **API roles** → new role limited to project `etl` with: Services (create, read,
+   update scale, health checks), Volumes (create, read), Secret groups (create, read — not "read
+   values"). Then Team → API → **Create token** with that role.
+3. GitHub → this repository → Settings → **Environments** → `production`: add yourself as required
+   reviewer, deployment branches = `main` only, and add the environment secret `NORTHFLANK_API_TOKEN`.
+   (An environment secret is readable only by jobs of that environment, after your approval.)
+4. Northflank → Team → Integrations → GitHub: check the Northflank GitHub app can see
+   `Nymbus-Capital/website` (it is public, but the app may be limited to selected repositories).
+5. GitHub → Actions → **Provision Northflank** → Run workflow with **apply** unticked (dry run) and
+   approve it: the run summary lists what would be created. The script **stops** if a secret group in
+   `etl` is not restricted to specific services, because Northflank would also inject it into this
+   public website — restrict those groups to their services first.
+6. Run it again with **apply** ticked. The service is created stopped, then the volume and the secret
+   group, then it is scaled to one instance; it starts when its first build finishes (~5 min).
+7. Northflank → `etl` → Secret groups → `website-secrets`: paste the credentials (table below), then
+   **restart** the `website` service. Enable daily backups on the `website-data` volume.
+8. Revoke the API token (or keep it only in the protected environment for future re-runs).
+
+Re-running is safe: existing resources are left as they are, and the run fails loudly if the volume is
+not attached to the service or the secret group is not restricted to it.
 
 Keep **one instance**: the file store and the in-process scheduler assume a single replica. The
 dataplatform service and its port settings are not modified; the site reads it over the project's
@@ -71,4 +84,4 @@ repository settings once the new address is live.
 - A run that blocks a fund keeps its last validated figures and posts an alert.
 - Roll back: Runs → pick a published run → publish. Freeze one fund: Funds → pin to a run.
 - CLI inside the container: `npm run pipeline -- status | run --dry-run | publish <id>`.
-- Backups: snapshot the `/data` volume (Northflank volume backups, daily).
+- Backups: enable the daily backup schedule on the `website-data` volume (Northflank → Volumes).

@@ -10,7 +10,7 @@ import { Logo } from "./Logo";
 import { CONTACT, FUND_LINKS } from "./links";
 import { footerDisclaimers } from "@/content/disclaimers";
 
-export function Footer({ firmDisclaimer = null }: { firmDisclaimer?: { en: string; fr: string } | null }) {
+export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[] }) {
   const { t, pick } = useTranslation();
   const year = new Date().getFullYear();
   return (
@@ -72,7 +72,7 @@ export function Footer({ firmDisclaimer = null }: { firmDisclaimer?: { en: strin
 
           {/* regulatory boilerplate: src/content/disclaimers.ts (compliance review); firm text overridable in the admin */}
           <div className="footer-disc" id="disclaimers" data-testid="footer-disclaimers">
-            {footerDisclaimers(firmDisclaimer).map((d, i) => <p key={i}>{pick(d)}</p>)}
+            {footerDisclaimers(firmDisclaimer, hiddenFunds).map((d, i) => <p key={i}>{pick(d)}</p>)}
           </div>
           <p className="footer-copy">© {year} {t("footer.rights")}</p>
         </div>

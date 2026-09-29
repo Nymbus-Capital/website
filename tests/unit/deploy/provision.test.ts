@@ -33,12 +33,13 @@ function mockApi(state: { services: Record<string, unknown>; volumes: unknown[];
       }
       if (m && req.method === "POST") return send(200, {});
       if (p === "/v1/projects/etl/volumes" && req.method === "GET") return send(200, { volumes: state.volumes });
-      if (p === "/v1/projects/etl/volumes" && req.method === "POST") { state.volumes.push({ id: body.name }); return send(201, {}); }
+      if (p === "/v1/projects/etl/volumes" && req.method === "POST") { state.volumes.push({ id: body.name, attachedObjects: body.attachedObjects }); return send(201, {}); }
+      if (p === "/v1/projects/etl/secrets" && req.method === "GET") return send(200, { secrets: Object.values(state.secrets) });
       const s = p.match(/^\/v1\/projects\/etl\/secrets\/([a-z-]+)$/);
       if (s && req.method === "GET") return state.secrets[s[1]] ? send(200, state.secrets[s[1]]) : send(404, null);
       if (p === "/v1/projects/etl/secrets" && req.method === "POST") {
         if (state.rejectEmpty && Object.values(body.secrets.variables).some((v) => v === "")) return send(400, { message: "empty value" });
-        state.secrets[body.name] = body;
+        state.secrets[body.name] = { id: body.name, ...body };
         return send(201, {});
       }
       return send(404, null);
@@ -99,18 +100,21 @@ test("apply creates service, health checks, volume, restricted secret group and 
   assert.ok(v.AUTH_SECRET.length >= 48);
   assert.ok(!r.out.includes(v.AUTH_SECRET), "secret must not be printed");
   assert.equal(v.AZURE_CLIENT_SECRET, "");
-  assert.ok(api.calls.some((c) => c.path.endsWith("/website/build") && c.method === "POST"));
+  assert.equal(svc.deployment.instances, 0, "created stopped until wired");
+  const order = api.calls.filter((c) => c.method === "POST").map((c) => c.path.replace("/v1/projects/etl", ""));
+  assert.ok(order.indexOf("/services/website/scale") > order.indexOf("/secrets") && order.indexOf("/secrets") > order.indexOf("/volumes"), order.join(","));
+  assert.deepEqual((api.calls.find((c) => c.path.endsWith("/scale"))!.body as any), { instances: 1 });
 });
 
 test("re-running is idempotent: existing resources are left unchanged", async () => {
-  const state = { services: { ...backend(), website: { id: "website" } } as Record<string, unknown>, volumes: [{ id: "website-data" }], secrets: { "website-secrets": { id: "website-secrets" } } as Record<string, unknown> };
+  const state = { services: { ...backend(), website: { id: "website" } } as Record<string, unknown>, volumes: [{ id: "website-data", attachedObjects: [{ id: "website", type: "service" }] }], secrets: { "website-secrets": { id: "website-secrets", restrictions: { restricted: true, nfObjects: [{ id: "website", type: "service" }] } } } as Record<string, unknown> };
   const api = await mockApi(state);
   const r = await run(api.url, ["--apply"]);
   api.close();
   assert.equal(r.code, 0, r.out);
   const writes = api.calls.filter((c) => c.method === "POST").map((c) => c.path);
   // only the (harmless) build trigger and health-check set when none exist
-  assert.ok(writes.every((p) => p.endsWith("/build") || p.endsWith("/health-checks")), writes.join(","));
+  assert.ok(writes.every((p) => p.endsWith("/health-checks")), writes.join(","));
   assert.match(r.out, /already exists: left unchanged/);
 });
 
@@ -130,9 +134,67 @@ test("refuses to run without a token or against a missing project", async () => 
     const p = spawn(process.execPath, [path.resolve("deploy/northflank/provision.mjs")], { env: { PATH: process.env.PATH ?? "" } as unknown as NodeJS.ProcessEnv });
     p.on("close", (c) => resolve(c ?? 1));
   });
-  const missing = await run(api.url, ["--project", "nope"]);
+  const missing = await run(api.url, ["--project=nope"]);
   api.close();
   assert.equal(noToken, 2);
   assert.equal(missing.code, 1);
   assert.match(missing.out, /project "nope" not found/);
+});
+
+test("refuses when an unrestricted secret group would leak into the public site", async () => {
+  const state = { services: backend() as Record<string, unknown>, volumes: [] as unknown[], secrets: { "dp-secrets": { id: "dp-secrets", restrictions: { restricted: false } } } as Record<string, unknown> };
+  const api = await mockApi(state);
+  const r = await run(api.url, ["--apply"]);
+  const accepted = await run(api.url, ["--apply", "--accept-shared-secrets"]);
+  api.close();
+  assert.equal(r.code, 1);
+  assert.match(r.out, /unrestricted secret group\(s\) in etl: dp-secrets/);
+  assert.equal(accepted.code, 0, accepted.out);
+  assert.match(accepted.out, /WARNING: unrestricted/);
+});
+
+test("existing resources that are wired wrongly fail loudly", async () => {
+  const state = { services: { ...backend(), website: { id: "website" } } as Record<string, unknown>, volumes: [{ id: "website-data", attachedObjects: [] }], secrets: {} as Record<string, unknown> };
+  const api = await mockApi(state);
+  const r = await run(api.url, ["--apply"]);
+  api.close();
+  assert.equal(r.code, 1);
+  assert.match(r.out, /not attached to `website`/);
+});
+
+test("options are strict: a value cannot smuggle --apply, bad branch or plan are refused", async () => {
+  const api = await mockApi({ services: backend(), volumes: [], secrets: {} });
+  const smuggled = await run(api.url, ["--branch", "--apply"]);
+  const badBranch = await run(api.url, ["--branch=-x"]);
+  const badPlan = await run(api.url, ["--plan=big; rm -rf /"]);
+  api.close();
+  assert.equal(smuggled.code, 2);
+  assert.equal(badBranch.code, 2);
+  assert.equal(badPlan.code, 2);
+  assert.equal(api.calls.filter((c) => c.method !== "GET").length, 0);
+});
+
+test("API error bodies never surface the generated secret", async () => {
+  const leaky = http.createServer((req, res) => {
+    let raw = ""; req.on("data", (c) => (raw += c)); req.on("end", () => {
+      const p = new URL(req.url!, "http://x").pathname;
+      const send = (st: number, d: unknown) => { res.writeHead(st, { "content-type": "application/json" }); res.end(JSON.stringify(d)); };
+      if (req.method === "GET" && p === "/v1/projects/etl") return send(200, { data: { id: "etl" } });
+      if (req.method === "GET" && p.endsWith("/ports")) return send(200, { data: { ports: [{ internalPort: 3000, dns: "h.code.run" }] } });
+      if (req.method === "GET" && (p.endsWith("/secrets") || p.endsWith("/volumes"))) return send(200, { data: { secrets: [], volumes: [] } });
+      if (req.method === "GET" && p.endsWith("/website")) return send(200, { data: { id: "website" } });
+      if (req.method === "GET") return send(404, {});
+      if (req.method === "POST" && p.endsWith("/volumes")) return send(201, { data: {} });
+      // echo the whole request back, as some validators do
+      return send(422, { error: { message: `bad value ${raw}` } });
+    });
+  });
+  await new Promise<void>((r) => leaky.listen(0, "127.0.0.1", () => r()));
+  const url = `http://127.0.0.1:${(leaky.address() as { port: number }).port}`;
+  const r = await run(url, ["--apply"]);
+  leaky.close();
+  assert.equal(r.code, 1);
+  const m = r.out.match(/"AUTH_SECRET":"([^"]*)"/);
+  assert.ok(!m || m[1] === "***", `secret leaked: ${m?.[1]}`);
+  assert.ok(!r.out.includes("test-token"));
 });

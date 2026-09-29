@@ -8,6 +8,8 @@ a code change:
 
 - **Firm disclaimer**: *Admin → Site settings → firm disclaimer*. When set, it replaces the boilerplate firm text in
   every footer and in every fund disclosure.
+- Both languages are required for an override (or both left empty, which means "use the default").
+- The pre-launch footer paragraph of a fund is omitted while that fund is hidden in the admin.
 - **Performance note per fund**: *Admin → Funds → performance footnote*. When set, it replaces the pre-launch
   boilerplate for that fund, if the fund has one.
 
@@ -34,6 +36,9 @@ a code change:
 | 7 | FTSE Russell notice (`ftse`): LSE Group trademark and data notice | Footer; fund pages with a benchmark | Exact notice required by the FTSE Russell data licence. Is public redistribution of index levels and returns allowed under the licence? |
 | 8 | Short net note (`summaryNet`) near figures | Home → strategies; `/strategies` | Consistent with the full disclosure. |
 | 9 | Short gross note (`summaryGross`) | Home → strategies; `/strategies` | Gross/net wording. |
+| 10 | Basis labels (`basisLabels`): "net of fees", "gross of fees · managed accounts, not a fund" | Fund pages, hero and disclosure | Consistent with texts 3 and 6. |
+| 11 | Sample-data warning (`sample`) | Fund pages, sample mode only (never in production) | Wording, if a demo site shows sample data. |
+| 12 | Provenance line (`provenance`): "Updated daily from Nymbus’ data platform; portfolio data from the monthly factsheet of …" | Fund pages → *disclosure* | "Daily" is accurate; the as-of dates next to it. |
 | – | Admin overrides: firm disclaimer; per-fund performance notes | As above | Entire text. |
 
 Other statements on the site that compliance may want to see (not boilerplate): taglines and fund descriptions

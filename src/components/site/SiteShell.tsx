@@ -11,7 +11,9 @@ import { Footer } from "./Footer";
 
 declare global { interface Window { __nyReady?: boolean } }
 
-export function SiteShell({ children, locale, firmDisclaimer = null }: { children: ReactNode; locale: Locale; firmDisclaimer?: { en: string; fr: string } | null }) {
+export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds = [] }: {
+  children: ReactNode; locale: Locale; firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[];
+}) {
   // hydrated: the reveal gate (html.js) may stay (see theme-script.ts failsafe)
   useEffect(() => { window.__nyReady = true; document.documentElement.classList.add("js"); }, []);
   return (
@@ -19,7 +21,7 @@ export function SiteShell({ children, locale, firmDisclaimer = null }: { childre
       <ThemeProvider>
         <Nav />
         <main id="main" tabIndex={-1}>{children}</main>
-        <Footer firmDisclaimer={firmDisclaimer} />
+        <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />
       </ThemeProvider>
     </I18nProvider>
   );

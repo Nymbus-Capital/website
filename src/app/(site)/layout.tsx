@@ -10,5 +10,7 @@ import "@/components/site/site.css";
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [locale, content] = await Promise.all([getLocale(), getContent().catch(() => null)]);
   // admin firm disclaimer (settings) replaces the boilerplate firm text in the footer when set
-  return <SiteShell locale={locale} firmDisclaimer={content?.firm.disclaimer ?? null}>{children}</SiteShell>;
+  // fund-specific footer paragraphs are omitted for funds hidden in the admin
+  const hiddenFunds = Object.entries(content?.funds ?? {}).filter(([, f]) => f?.hidden).map(([k]) => k);
+  return <SiteShell locale={locale} firmDisclaimer={content?.firm.disclaimer ?? null} hiddenFunds={hiddenFunds}>{children}</SiteShell>;
 }

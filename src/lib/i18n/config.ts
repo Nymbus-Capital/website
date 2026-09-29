@@ -32,4 +32,4 @@ export function fromAcceptLanguage(header: string | null | undefined): Locale | 
 export type L = { en: string; fr: string };
 export const l = (en: string, fr: string): L => ({ en, fr });
 /** Pick a language from a bilingual string. */
-export const tr = (x: L | null | undefined, locale: Locale): string => (x ? x[locale] ?? x.en : "");
+export const tr = (x: L | null | undefined, locale: Locale): string => (x ? x[locale] || x.en : "");

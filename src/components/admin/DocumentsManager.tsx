@@ -99,7 +99,7 @@ export function DocumentsManager({ initial, funds }: { initial: Doc[]; funds: { 
       return;
     }
     setFile(f);
-    setMeta((m) => (m.title.en || m.title.fr ? m : { ...m, title: { en: f.name.replace(/\.pdf$/i, ""), fr: "" } }));
+    setMeta((m) => (m.title.en || m.title.fr ? m : { ...m, title: { en: f.name.replace(/\.pdf$/i, ""), fr: f.name.replace(/\.pdf$/i, "") } }));
   };
 
   const upload = async (e: React.FormEvent) => {

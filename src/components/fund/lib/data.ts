@@ -42,6 +42,16 @@ export function vaRounded(va: number | null | undefined, decimals = 1): number |
 }
 
 /** Label of the class the performance is published for: "Series F", else "class FP", else null. */
+/**
+ * Benchmark name to display: in French the registry's localized name (the published FTSE `indexName` is English);
+ * in English the published name, else the registry's. The disclosure / provenance keep the raw `indexName`.
+ */
+export function benchmarkLabel(indexName: string | null | undefined, benchmark: { en: string; fr: string } | null | undefined, lang: "en" | "fr"): string | null {
+  const loc = benchmark ? benchmark[lang] || benchmark.en : null;
+  if (lang === "fr") return loc || indexName || null;
+  return indexName || loc || null;
+}
+
 export function perfClassLabel(perf: { returnClass?: string; returnClassLabel?: string } | null | undefined, classWord: string): string | null {
   if (!perf) return null;
   // labels arrive in English ("Series FP"): keep only the class code and use the localised word

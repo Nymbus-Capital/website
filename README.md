@@ -13,6 +13,8 @@ with fund pages refreshed daily from the Nymbus data platform and a Microsoft-au
 - **Admin** (`/admin`): Entra ID sign-in restricted to the Nymbus tenant and @nymbus.ca accounts — pipeline
   status, run / approve / roll back, fund texts, fees and visibility, documents (PDF), site settings, audit log.
 
+Working on this repo with Claude? Start with `CLAUDE.md` and `docs/HANDOFF.md` (shared session log).
+
 Read `docs/architecture.md` (data flow, env vars), `docs/admin.md` (Entra setup, security model) and
 `docs/deploy.md` (Northflank).
 

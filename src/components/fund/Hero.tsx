@@ -10,7 +10,7 @@ import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { dateLabel, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
-import { headlineClass, isAnnualized, perfClassLabel, riskIndex, RISK_LEVELS, vaRounded } from "./lib/data.ts";
+import { headlineClass, isAnnualized, perfClassLabel, riskIndex, RISK_LEVELS, vaRounded, benchmarkLabel } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";
 
 export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean }) {
@@ -29,7 +29,7 @@ export function Hero({ spec, content, data, lang, sample }: { spec: FundSpec; co
   const inception = perf?.firstMonth ?? null;
 
   const vaR = vaRounded(va, 1);
-  const bench = perf?.indexName || (spec.benchmark ? tr(spec.benchmark, lang) : null);
+  const bench = benchmarkLabel(perf?.indexName, spec.benchmark, lang);
   const classLabel = perfClassLabel(perf, tr(T.hero.class, lang));
   const glow = (e: PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();

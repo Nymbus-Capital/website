@@ -10,7 +10,7 @@ import { T, tr } from "./copy";
 import { SectionHead } from "./PerformanceSections";
 import { Donut, HBars, Holdings } from "./charts/Breakdowns";
 import { bigMoney, charCount, charValue, dateLabel, fileSize, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
-import { bucketRows, groupDocuments, headlineClass, orderedBuckets, perfClassLabel, riskIndex } from "./lib/data.ts";
+import { benchmarkLabel, bucketRows, groupDocuments, headlineClass, orderedBuckets, perfClassLabel, riskIndex } from "./lib/data.ts";
 import type { FundDoc } from "./types";
 import { preInceptionNote } from "@/content/disclaimers";
 
@@ -144,7 +144,7 @@ export function FactsSection({ spec, content, data, lang }: { spec: FundSpec; co
     [tr(T.facts.vehicle, lang), tr(spec.vehicle === "fund" ? T.hero.vehicleFund : T.hero.vehicleStrategy, lang)],
     [tr(T.facts.assetClass, lang), tr(spec.assetClass, lang)],
     [tr(T.facts.inception, lang), perf?.firstMonth ? monthLabel(perf.firstMonth, lang) : null],
-    [tr(T.facts.benchmark, lang), perf?.indexName || (spec.benchmark ? tr(spec.benchmark, lang) : null)],
+    [tr(T.facts.benchmark, lang), benchmarkLabel(perf?.indexName, spec.benchmark, lang)],
     [tr(T.facts.risk, lang), tr(T.hero.levels[risk], lang)],
     [tr(T.facts.managementFee, lang), content.managementFee],
     [tr(T.facts.performanceFee, lang), content.performanceFee],
