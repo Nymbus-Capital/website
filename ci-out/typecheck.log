@@ -1,0 +1,6 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+src/components/fund/PerformanceSections.tsx(201,48): error TS7053: Element implicitly has an 'any' type because expression of type 'RiskKey' can't be used to index type '{ readonly kicker: L; readonly title: L; readonly windows: { readonly SI: L; readonly "3Y": L; }; readonly annReturn: L; readonly annVol: L; readonly downsideDev: L; readonly sharpe: L; ... 5 more ...; readonly annualized: L; }'.
+  Property 'decimals' does not exist on type '{ readonly kicker: L; readonly title: L; readonly windows: { readonly SI: L; readonly "3Y": L; }; readonly annReturn: L; readonly annVol: L; readonly downsideDev: L; readonly sharpe: L; ... 5 more ...; readonly annualized: L; }'.
