@@ -95,9 +95,13 @@ Not yet run against live data, not deployed.
    protected `production` environment, dry run, apply). Then paste credentials (§2). If the workflow
    fails, the Actions log shows the Northflank API error message; fix `provision.mjs` field names
    accordingly (the API body shapes were written from docs/conventions, not tested live).
-3. **Entra app registration for the website admin** — Gabriel (steps in `docs/admin.md`; redirect URI
-   `<PUBLIC_URL>/api/auth/callback`; optional claims `acct`, `upn`; optionally an app role + "assignment
-   required").
+3. **Entra app registration for the website admin** — mostly done 2026-09-29 (home session, via the
+   built-in browser): app "Nymbus website admin" (single tenant, Web redirect `<PUBLIC_URL>/api/auth/callback`),
+   ID-token optional claims `acct`, `email`, `upn` (+ Graph `email`/`profile`), enterprise app
+   "Assignment required = Yes". Tenant and client IDs typed into the Northflank `website-secrets` form.
+   **Gabriel still to do**: assign himself (and anyone else) under Enterprise apps → Nymbus website admin →
+   Users and groups; create the client secret and paste it into `AZURE_CLIENT_SECRET`; then create the secret group.
+   If first sign-in asks for consent and users can't consent, grant admin consent on API permissions.
 4. **Dataplatform access decision** — the dataplatform's CLAUDE.md requires an authentication /
    authorization decision for a new consumer. The website service reads, read-only and from inside the
    `etl` project: `/api/performance/monthly-net-returns`, `/api/performance/nav-timeseries`,
@@ -113,6 +117,9 @@ Not yet run against live data, not deployed.
    month-ends (currently weekdays).
 
 ## 6. Session log
+
+- 2026-09-29 13:30 (home): Entra app registration created and configured (see §5 item 3); the
+  Northflank secret-group form is filled but not yet created (waiting on Gabriel's secrets).
 
 - 2026-09-29 midday (home): Northflank setup through the built-in browser — service + volume created;
   AUTH_SECRET now self-generated on the volume (`src/lib/auth/volume-secret.ts`), so nobody pastes it.
