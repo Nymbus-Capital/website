@@ -56,3 +56,26 @@ test("an AUTH_SECRET from the environment, or a weak one, is never printed", () 
   assert.match(bad, /NOT configured: AUTH_SECRET is missing or shorter/);
   assert.ok(!bad.includes(weak));
 });
+
+import { pipelineDiagnostics, dataplatformProbe } from "../../../src/lib/auth/diagnostics.ts";
+
+test("pipeline settings: names only, flags a wrong-case key", () => {
+  const line = pipelineDiagnostics({ dataplatform_url: "http://dp:8000", GITHUB_TOKEN: "ghp_secretvalue" });
+  assert.match(line, /DATAPLATFORM_URL=missing/);
+  assert.match(line, /GITHUB_TOKEN=set/);
+  assert.match(line, /wrong letter case for: DATAPLATFORM_URL/);
+  assert.ok(!line.includes("ghp_") && !line.includes("dp:8000"));
+});
+
+test("dataplatform probe reports status or error kind, never the URL", async () => {
+  const ok = await dataplatformProbe({ DATAPLATFORM_URL: "http://dp:8000/" }, (async (u: string) => {
+    assert.equal(u, "http://dp:8000/api/apex/funds");
+    return new Response("[]", { status: 200 });
+  }) as unknown as typeof fetch);
+  assert.equal(ok, "[pipeline] dataplatform: HTTP 200 (reachable)");
+  const down = await dataplatformProbe({ DATAPLATFORM_URL: "http://dp:8000" }, (async () => {
+    throw Object.assign(new TypeError("fetch failed"), { cause: { code: "ENOTFOUND" } });
+  }) as unknown as typeof fetch);
+  assert.equal(down, "[pipeline] dataplatform: unreachable (ENOTFOUND)");
+  assert.match(await dataplatformProbe({}), /not probed/);
+});
