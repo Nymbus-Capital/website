@@ -118,6 +118,12 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-29 14:00 (home): secret group `website-secrets` created by Gabriel; health check `/api/health` :3000
+  added. New startup diagnostics (`[admin] …`, `[data] …` lines in the runtime logs) showed the container
+  gets AZURE_TENANT_ID and AZURE_CLIENT_SECRET but **not** AZURE_CLIENT_ID, PUBLIC_URL, ADMIN_ALLOWED_DOMAINS
+  → Gabriel to re-check the group's values (password-protected page). Entrypoint now re-owns /data and drops
+  root (`docker/start.mjs`); pipeline logs redact credential query values.
+
 - 2026-09-29 13:30 (home): Entra app registration created and configured (see §5 item 3); the
   Northflank secret-group form is filled but not yet created (waiting on Gabriel's secrets).
 
