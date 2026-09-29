@@ -1,0 +1,21 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+tests/fixtures/pipeline/mock-fetch.ts(77,3): error TS2741: Property 'NODE_ENV' is missing in type '{ DATAPLATFORM_URL: string; FACTSHEET_DATA_DIR: string; PIPELINE_RETRY_BASE_MS: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(45,32): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{}' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(47,31): error TS2345: Argument of type '{ DATAPLATFORM_URL: string; PIPELINE_RETRY_BASE_MS: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ DATAPLATFORM_URL: string; PIPELINE_RETRY_BASE_MS: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(57,31): error TS2345: Argument of type '{ DATAPLATFORM_URL: string; PIPELINE_RETRY_BASE_MS: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ DATAPLATFORM_URL: string; PIPELINE_RETRY_BASE_MS: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(77,56): error TS2345: Argument of type '{ FACTSHEET_DATA_DIR: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ FACTSHEET_DATA_DIR: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(81,59): error TS2345: Argument of type '{ FACTSHEET_DATA_DIR: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ FACTSHEET_DATA_DIR: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(83,61): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{}' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(112,52): error TS2345: Argument of type '{ GRAPH_TENANT_ID: string; GRAPH_CLIENT_ID: string; GRAPH_CLIENT_SECRET: string; GRAPH_DRIVE_ID: string; PIPELINE_RETRY_BASE_MS: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ GRAPH_TENANT_ID: string; GRAPH_CLIENT_ID: string; GRAPH_CLIENT_SECRET: string; GRAPH_DRIVE_ID: string; PIPELINE_RETRY_BASE_MS: string; }' but required in type 'ProcessEnv'.
+tests/unit/pipeline/sources.test.ts(125,57): error TS2345: Argument of type '{ GRAPH_TENANT_ID: string; GRAPH_CLIENT_ID: string; GRAPH_CLIENT_SECRET: string; GRAPH_DRIVE_ID: string; PIPELINE_RETRY_BASE_MS: string; }' is not assignable to parameter of type 'ProcessEnv'.
+  Property 'NODE_ENV' is missing in type '{ GRAPH_TENANT_ID: string; GRAPH_CLIENT_ID: string; GRAPH_CLIENT_SECRET: string; GRAPH_DRIVE_ID: string; PIPELINE_RETRY_BASE_MS: string; }' but required in type 'ProcessEnv'.
