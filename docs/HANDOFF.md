@@ -118,6 +118,13 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-29 16:50 (home): first live runs. All sources reach (dataplatform, SharePoint factsheets, analytics).
+  Fixed: FTSE levels (dataplatform returns one row/day describing the index; `ftseLevels` now anchors on the
+  index signature). short_corp history only from 2024-12 (older name not joined yet: investigate
+  `/api/ftse/index-summary/short-names`). **Open, needs Gabriel**: July 2026 monthly returns in the analytics
+  `fund_returns.json` disagree with the August factsheet's monthly table for SEST, SEB and Multistrat (SEB June
+  too) → performance withheld for those 3 funds (runs `blocked`, nothing published). Which source is right?
+
 - 2026-09-29 16:25 (home): all settings present in the container (startup logs: `[admin] sign-in configured`,
   `[pipeline] settings: …` all set except the optional webhook, `[pipeline] dataplatform: HTTP 200 (reachable)`).
   Northflank **CD is off** on `website` (a manual redeploy turned it off): Gabriel to re-enable the CD toggle on
