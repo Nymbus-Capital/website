@@ -45,7 +45,7 @@ type Env = Record<string, string | undefined>;
 export function loadAuthConfig(env: Env): AuthConfigResult {
   const tenantId = (env.AZURE_TENANT_ID || "").trim().toLowerCase();
   const clientId = (env.AZURE_CLIENT_ID || "").trim().toLowerCase();
-  const clientSecret = env.AZURE_CLIENT_SECRET || "";
+  const clientSecret = (env.AZURE_CLIENT_SECRET || "").trim(); // pasted values often carry a trailing newline
   const secret = env.AUTH_SECRET || "";
   const publicUrl = (env.PUBLIC_URL || "").trim();
 

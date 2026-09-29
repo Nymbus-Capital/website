@@ -113,7 +113,12 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
     try {
       const { runPipeline } = await import("./run.ts");
       const r = await runPipeline({ trigger: "schedule", by: "scheduler" });
-      log("locked" in r ? "scheduled run skipped: another run in progress" : `scheduled run ${r.id}: ${r.status}`);
+      if ("locked" in r) log("scheduled run skipped: another run in progress");
+      else {
+        log(`scheduled run ${r.id}: ${r.status}`);
+        for (const s of r.sources.filter((x) => !x.ok)) log(`  source ${s.name} failed: ${String(s.detail ?? "").slice(0, 300)}`);
+        for (const i of r.issues.filter((x) => x.level === "error").slice(0, 10)) log(`  ${i.key}: ${i.message.slice(0, 300)}`);
+      }
     } catch (e: unknown) {
       log(`scheduled run crashed: ${(e as Error)?.message ?? e}`);
     } finally {

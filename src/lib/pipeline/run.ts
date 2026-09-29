@@ -22,7 +22,7 @@ import { DEFAULT_SCHEDULE, SNAPSHOT_RETENTION, TIMEZONE } from "./config.ts";
 import type { RawPayloads, SourceResult } from "./raw.ts";
 import { formatSchedule, nextRun, parseSchedule } from "./schedule.ts";
 import { fetchAll } from "./sources/index.ts";
-import { errMsg, safeUrl } from "./sources/http.ts";
+import { errMsg } from "./sources/http.ts";
 import { validateSite } from "./validate.ts";
 
 export interface RunReport {
@@ -155,7 +155,7 @@ async function alert(report: RunReport, fetchImpl: typeof fetch): Promise<void> 
     const res = await fetchImpl(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(15_000) });
     await res.body?.cancel().catch(() => undefined);
   } catch (e: unknown) {
-    console.error(`[pipeline] alert webhook failed: ${errMsg(e).replace(url, safeUrl(url))}`);
+    console.error(`[pipeline] alert webhook failed: ${errMsg(e).split(url).join("<webhook>")}`); // the webhook URL is itself the secret
   }
 }
 

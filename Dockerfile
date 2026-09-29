@@ -30,7 +30,8 @@ COPY --from=build --chown=nymbus:nymbus /app/public ./public
 COPY --from=build --chown=nymbus:nymbus /app/src/lib/pipeline ./src/lib/pipeline
 COPY --from=build --chown=nymbus:nymbus /app/src/lib/data ./src/lib/data
 COPY --from=build --chown=nymbus:nymbus /app/src/config ./src/config
-USER nymbus
+COPY --chown=root:root docker/start.mjs ./start.mjs
+# starts as root only to give the mounted volume to `nymbus`, then drops to uid/gid 1001 (docker/start.mjs)
 EXPOSE 3000
 VOLUME ["/data"]
-CMD ["node", "server.js"]
+CMD ["node", "start.mjs"]

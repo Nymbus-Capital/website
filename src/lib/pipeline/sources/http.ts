@@ -30,13 +30,16 @@ export const retryBaseMs = (env: Record<string, string | undefined> = process.en
   return Number.isFinite(v) && v >= 0 ? v : 500;
 };
 
-/** URL without query string credentials / for messages. */
+/** query parameters whose values are credentials (SharePoint `tempauth`, SAS `sig`, OAuth `code` / tokens …) */
+const SECRET_PARAM = /auth|token|sig|secret|key|password|code|credential/i;
+
+/** URL for messages and logs: no host, no userinfo, credential-like query values redacted. */
 export const safeUrl = (url: string): string => {
   try {
     const u = new URL(url);
-    u.username = "";
-    u.password = "";
-    return `${u.pathname}${u.search}`;
+    const params = [...u.searchParams.keys()];
+    for (const k of new Set(params)) if (SECRET_PARAM.test(k)) u.searchParams.set(k, "REDACTED");
+    return `${u.pathname}${params.length ? `?${u.searchParams.toString()}` : ""}`;
   } catch {
     return "<invalid url>";
   }

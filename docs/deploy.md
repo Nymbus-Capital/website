@@ -12,7 +12,7 @@ existing resources:
 | Resource | What |
 | --- | --- |
 | Service `website` (combined) | builds this repository's `Dockerfile` from `main` on every push; port 3000 public (Northflank `*.code.run` address with TLS); health checks on `/api/health`; one instance |
-| Volume `website-data` | 5 GB at `/data`: published data, run snapshots, content, documents, audit log |
+| Volume `website-data` | 4 GB SSD at `/data`: published data, run snapshots, content, documents, audit log |
 | Secret group `website-secrets` | restricted to `website`; `AUTH_SECRET` generated, `PUBLIC_URL` and `DATAPLATFORM_URL` (`http://dataplatform-staging:8000`, private) filled, empty slots for your credentials |
 
 Steps:
@@ -84,5 +84,5 @@ repository settings once the new address is live.
 - Schedule: 06:45, 12:45, 18:45 America/Toronto (NAVs final the next morning, factsheets early month).
 - A run that blocks a fund keeps its last validated figures and posts an alert.
 - Roll back: Runs → pick a published run → publish. Freeze one fund: Funds → pin to a run.
-- CLI inside the container: `npm run pipeline -- status | run --dry-run | publish <id>`.
+- CLI inside the container, as the app user (a shell opens as root): `runuser -u nymbus -- npm run pipeline -- status | run --dry-run | publish <id>`. Files a root shell leaves on `/data` are re-owned at the next start (`docker/start.mjs`).
 - Backups: enable the daily backup schedule on the `website-data` volume (Northflank → Volumes).
