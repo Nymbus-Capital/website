@@ -118,6 +118,11 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-29 16:25 (home): all settings present in the container (startup logs: `[admin] sign-in configured`,
+  `[pipeline] settings: …` all set except the optional webhook, `[pipeline] dataplatform: HTTP 200 (reachable)`).
+  Northflank **CD is off** on `website` (a manual redeploy turned it off): Gabriel to re-enable the CD toggle on
+  the service header, else new pushes build but do not deploy. Next: first sign-in, dry run in review mode.
+
 - 2026-09-29 14:00 (home): secret group `website-secrets` created by Gabriel; health check `/api/health` :3000
   added. New startup diagnostics (`[admin] …`, `[data] …` lines in the runtime logs) showed the container
   gets AZURE_TENANT_ID and AZURE_CLIENT_SECRET but **not** AZURE_CLIENT_ID, PUBLIC_URL, ADMIN_ALLOWED_DOMAINS
