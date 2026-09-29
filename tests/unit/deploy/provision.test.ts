@@ -127,7 +127,7 @@ test("secret group falls back to filled values when the API refuses empty ones",
 test("refuses to run without a token or against a missing project", async () => {
   const api = await mockApi({ services: {}, volumes: [], secrets: {} });
   const noToken = await new Promise<number>((resolve) => {
-    const p = spawn(process.execPath, [path.resolve("deploy/northflank/provision.mjs")], { env: { PATH: process.env.PATH ?? "" } });
+    const p = spawn(process.execPath, [path.resolve("deploy/northflank/provision.mjs")], { env: { PATH: process.env.PATH ?? "" } as unknown as NodeJS.ProcessEnv });
     p.on("close", (c) => resolve(c ?? 1));
   });
   const missing = await run(api.url, ["--project", "nope"]);
