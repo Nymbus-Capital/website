@@ -86,7 +86,12 @@ Not yet run against live data, not deployed.
 ## 5. Open items (claim before starting)
 
 1. **Merge PR #1** — Gabriel.
-2. **Northflank provisioning** — Gabriel runs it (steps in `docs/deploy.md` §1: API role + token,
+2. **Northflank provisioning** — [in progress — home session, 2026-09-29] done through the Northflank UI
+   with Gabriel's approval: service `website` (ETL project, branch `redesign/v3-keynote-live-data`,
+   nf-compute-50, public `https://p01--website--ddyc4hjyxx82.code.run`) and volume `website-data`
+   (4 GB SSD at `/data`) created. Still to do: secret group `website-secrets` (restricted to `website`,
+   runtime), health check `/api/health` on port 3000, switch branch to `main` after the PR merge, then
+   Gabriel pastes credentials. (The original plan was the script below:) Gabriel runs it (steps in `docs/deploy.md` §1: API role + token,
    protected `production` environment, dry run, apply). Then paste credentials (§2). If the workflow
    fails, the Actions log shows the Northflank API error message; fix `provision.mjs` field names
    accordingly (the API body shapes were written from docs/conventions, not tested live).
@@ -108,6 +113,9 @@ Not yet run against live data, not deployed.
    month-ends (currently weekdays).
 
 ## 6. Session log
+
+- 2026-09-29 midday (home): Northflank setup through the built-in browser — service + volume created;
+  AUTH_SECRET now self-generated on the volume (`src/lib/auth/volume-secret.ts`), so nobody pastes it.
 
 - 2026-09-28/29 (home, cloud workspace): built the whole PR (design, pages, fund pages, pipeline,
   admin, CI, Docker). Adversarial reviews: security ×2, data correctness ×2, design/a11y ×1, final
