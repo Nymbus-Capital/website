@@ -222,7 +222,8 @@
 .xs-table td { vertical-align: top; padding-top: 16px; padding-bottom: 16px; }
 .xs-table td.xs-l { text-align: left; white-space: normal; }
 .xs-bench { min-width: 180px; max-width: 240px; }
-.xs-name { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
+.xs-name { display: inline-flex; align-items: flex-start; gap: 10px; color: var(--ink); }
+.xs-name i { margin-top: 7px; }
 .xs-name:hover { color: var(--blue-d); text-decoration: underline; text-underline-offset: 3px; }
 .xs-name i { width: 10px; height: 10px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--fund-from), var(--fund-to)); box-shadow: 0 0 8px color-mix(in srgb, var(--fund) 50%, transparent); }
 .xs-table .fx-sample { margin-left: 8px; }
