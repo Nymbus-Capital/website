@@ -18,6 +18,16 @@ export function nice(min: number, max: number, n = 5): { lo: number; hi: number;
   return { lo: +lo.toFixed(12), hi: +hi.toFixed(12), step, ticks };
 }
 
+/**
+ * Width of a horizontal bar in % of its track: value / max, clamped to [0, 100]. A negative weight (cash overdrawn
+ * by pending settlements, a short position), zero or a missing value draws no bar (its value label still says it);
+ * never an invalid CSS width, which would let the bar stretch to the whole track.
+ */
+export function barWidthPct(v: number | null | undefined, max: number): number {
+  if (typeof v !== "number" || !Number.isFinite(v) || v <= 0 || !(max > 0)) return 0;
+  return Math.min(100, (v / max) * 100);
+}
+
 /** Linear map from a domain to a range. */
 export const linear = (d0: number, d1: number, r0: number, r1: number) => (v: number) =>
   d1 === d0 ? (r0 + r1) / 2 : r0 + ((v - d0) / (d1 - d0)) * (r1 - r0);

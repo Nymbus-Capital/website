@@ -7,6 +7,7 @@
 import { useRef, useState } from "react";
 import type { Bucket } from "@/lib/data/types";
 import { fmt, type Lang } from "../lib/format.ts";
+import { barWidthPct } from "../lib/scale.ts";
 import { useEntrance, useNear, useSvgId } from "./hooks";
 
 const pctF = (v: number, lang: Lang, d = 1) => fmt(v, { pct: true, decimals: d, lang });
@@ -14,7 +15,7 @@ const pctF = (v: number, lang: Lang, d = 1) => fmt(v, { pct: true, decimals: d, 
 export function HBars({ rows, lang, names, label }: { rows: Bucket[]; lang: Lang; names: { fund: string; index: string }; label: string }) {
   const [ref, , seen] = useNear<HTMLDivElement>();
   useEntrance(ref, seen);
-  const max = Math.max(0.0001, ...rows.flatMap((r) => [r.fund ?? 0, r.index ?? 0]));
+  const max = Math.max(0.0001, ...rows.flatMap((r) => [r.fund ?? 0, r.index ?? 0]).filter(Number.isFinite));
   const hasIndex = rows.some((r) => r.index != null);
   return (
     <div ref={ref} className="fx-hbars" role="list" aria-label={label}>
@@ -23,8 +24,8 @@ export function HBars({ rows, lang, names, label }: { rows: Bucket[]; lang: Lang
           aria-label={`${r.label}: ${names.fund} ${r.fund != null ? pctF(r.fund, lang) : "—"}${hasIndex && r.index != null ? `, ${names.index} ${pctF(r.index, lang)}` : ""}`}>
           <span className="lab" title={r.label}>{r.label}</span>
           <span className="track" aria-hidden="true">
-            <span className="b fund" style={{ width: `${((r.fund ?? 0) / max) * 100}%` }} data-grow="right" />
-            {hasIndex ? <span className="b index" style={{ width: `${((r.index ?? 0) / max) * 100}%`, opacity: r.index == null ? 0 : undefined }} data-grow="right" /> : null}
+            <Bar cls="b fund" v={r.fund} max={max} />
+            {hasIndex ? <Bar cls="b index" v={r.index} max={max} hidden={r.index == null} /> : null}
           </span>
           <span className="val" aria-hidden="true">
             {r.fund != null ? pctF(r.fund, lang) : "—"}
@@ -34,6 +35,12 @@ export function HBars({ rows, lang, names, label }: { rows: Bucket[]; lang: Lang
       ))}
     </div>
   );
+}
+
+/** One bar: width clamped to [0, 100 %]; nothing drawn (not even the minimum sliver) for a zero or negative value. */
+function Bar({ cls, v, max, hidden }: { cls: string; v: number | null | undefined; max: number; hidden?: boolean }) {
+  const w = barWidthPct(v, max);
+  return <span className={cls} style={{ width: `${w}%`, minWidth: w > 0 ? undefined : 0, opacity: hidden ? 0 : undefined }} data-grow="right" data-empty={w > 0 ? undefined : ""} />;
 }
 
 /** Colours of the donut slices: the fund gradient first, then neighbouring keynote hues. */
