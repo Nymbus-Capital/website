@@ -237,6 +237,24 @@ test("contact: three steps, validated, then an email is prepared (no backend)", 
   await expect(page.locator("iframe")).toHaveCount(0);
 });
 
+test("approach: the pipeline and the risk flow draw themselves in when scrolled into view", async ({ page }) => {
+  await page.goto("/approach");
+  const pipe = page.getByTestId("approach-pipeline");
+  await pipe.scrollIntoViewIfNeeded();
+  await expect(pipe).toHaveAttribute("data-on", "");
+  const flow = page.getByTestId("overlay-flow");
+  await flow.scrollIntoViewIfNeeded();
+  await expect(flow).toHaveAttribute("data-on", "");
+  await page.waitForTimeout(3500);
+  const probe = await page.evaluate(() => {
+    const cs = (sel: string) => { const e = document.querySelector(sel); if (!e) return null; const c = getComputedStyle(e); return { off: c.strokeDashoffset, clip: c.clipPath, op: c.opacity, anim: c.animationName, disp: c.display, w: (e as Element).getBoundingClientRect().width }; };
+    return { wave: cs(".ap-wave"), loop: cs(".ap-loop-line"), conv: cs(".ap-conv path"), arrow: cs(".ap-arrow path"), vol: cs(".ap-vol path") };
+  });
+  console.log("approach probe", JSON.stringify(probe));
+  for (const k of ["wave", "conv", "arrow", "vol"] as const) expect(probe[k]?.off, k).toMatch(/^0(px)?$/);
+  expect(probe.loop?.clip ?? "none", "loop").toMatch(/^(none|inset\(0(px)?\))$/);
+});
+
 test("legal: table of contents follows both documents; privacy covers Law 25", async ({ page }) => {
   await page.goto("/legal");
   await expect(page.getByRole("heading", { level: 2, name: /complaints policy/i })).toBeVisible();
