@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { SiteShell } from "@/components/site/SiteShell";
 import { NotFoundScreen } from "@/components/site/pages/NotFound";
 import { getLocale } from "@/lib/i18n/server";
-import "@/components/site/site.css";
+import "@/components/site/kit.css";
 
 export const metadata: Metadata = { title: "404", robots: { index: false } };
 

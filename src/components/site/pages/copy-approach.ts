@@ -204,7 +204,7 @@ export const AP = {
       { t: l("Production", "Production"), d: l("Deployed with the same code, monitored daily, retired when its signal decays.", "Déployée avec le même code, surveillée chaque jour, retirée quand son signal s’estompe.") },
     ],
     caps: [
-      { t: l("Data platform", "Plateforme de données"), d: l("Custodian, market and index data consolidated into one audited store every business day.", "Les données des dépositaires, des marchés et des indices consolidées chaque jour ouvrable dans un entrepôt unique et vérifié.") },
+      { t: l("Data platform", "Plateforme de données"), d: l("Custodian, market and index data consolidated into one central store every business day.", "Les données des dépositaires, des marchés et des indices consolidées chaque jour ouvrable dans un entrepôt central.") },
       { t: l("Machine learning", "Apprentissage automatique"), d: l("Regime classification and pattern recognition across the bond universe.", "Classification des régimes et reconnaissance de tendances dans l’univers obligataire.") },
       { t: l("Validation discipline", "Rigueur de validation"), d: l("Cross-validation, walk-forward testing and signal-decay monitoring before and after launch.", "Validation croisée, tests walk-forward et suivi du déclin des signaux, avant et après le lancement.") },
       { t: l("Operations and reporting", "Opérations et rapports"), d: l("Trade reporting and fund analytics built on the same data as research.", "La déclaration des opérations et l’analytique des fonds reposent sur les mêmes données que la recherche.") },

@@ -105,10 +105,7 @@ function Pipeline() {
         })}
       </ol>
       <figcaption className="ap-loop">
-        <svg viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true" className="ap-loop-svg">
-          <path pathLength={1} d="M 875 4 C 875 44, 860 52, 800 52 L 200 52 C 140 52, 125 44, 125 8" />
-          <path className="ap-loop-head" d="M 117 18 L 125 6 L 133 18" />
-        </svg>
+        <span className="ap-loop-line" aria-hidden="true" />
         <span className="ap-loop-t"><Workflow aria-hidden="true" />{pick(AP.pipe.loop)}</span>
       </figcaption>
     </figure>
@@ -129,8 +126,8 @@ function RiskFlow() {
           {O.risks.map((r, i) => <li key={i} style={{ ["--k" as string]: i }}><Activity aria-hidden="true" />{pick(r)}</li>)}
         </ul>
       </div>
-      <svg className="ap-conv" viewBox="0 0 120 240" preserveAspectRatio="none" aria-hidden="true">
-        {[40, 120, 200].map((y, k) => <path key={y} pathLength={1} d={`M0 ${y} C 60 ${y}, 60 120, 120 120`} style={{ ["--k" as string]: k }} />)}
+      <svg className="ap-conv" viewBox="0 0 96 220" aria-hidden="true">
+        {[36, 110, 184].map((y, k) => <path key={y} pathLength={1} d={`M0 ${y} C 50 ${y}, 46 110, 96 110`} style={{ ["--k" as string]: k }} />)}
       </svg>
       <div className="ap-flow-col ap-flow-mid">
         <p className="ap-flow-k">{pick(O.common)}</p>
@@ -139,8 +136,8 @@ function RiskFlow() {
           <span>{pick(O.vol)}</span>
         </div>
       </div>
-      <svg className="ap-arrow" viewBox="0 0 120 240" preserveAspectRatio="none" aria-hidden="true">
-        <path pathLength={1} d="M0 120 L 116 120" />
+      <svg className="ap-arrow" viewBox="0 0 96 220" aria-hidden="true">
+        <path pathLength={1} d="M4 110 L 88 110 M 80 102 L 88 110 L 80 118" />
       </svg>
       <div className="ap-flow-col">
         <p className="ap-flow-k">{pick(O.solution)}</p>
@@ -205,7 +202,6 @@ export function Approach() {
               color: STEP_COLORS[i],
               text: (
                 <div className="ap-step">
-                  <p className="ap-step-k">{pick(s.kicker)}</p>
                   <p>{pick(s.text)}</p>
                   <ul className="pg-ticks">{s.bullets.map((b, k) => <li key={k}>{pick(b)}</li>)}</ul>
                 </div>

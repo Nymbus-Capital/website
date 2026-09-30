@@ -20,7 +20,8 @@ const C = {
   compliance: l("Compliance", "Conformité"),
   legal: l("Legal", "Juridique"),
   legalLead: l("Our complaints policy and our code of ethics.", "Notre politique de traitement des plaintes et notre code d’éthique."),
-  privacyLink: l("How we protect personal information is described in our privacy policy.", "La façon dont nous protégeons les renseignements personnels est décrite dans notre politique de confidentialité."),
+  privacyBefore: l("For personal information, see our", "Pour les renseignements personnels, consultez notre"),
+  privacyLink: l("privacy policy", "politique de confidentialité"),
   privacy: l("Privacy policy", "Politique de confidentialité"),
   toc: l("On this page", "Sur cette page"),
   useful: l("Useful links", "Liens utiles"),
@@ -38,6 +39,12 @@ function ContactLine({ line }: { line: string }) {
   return <>{contactParts(line).map((p, i) => (p.href ? <a key={i} href={p.href}>{p.text}</a> : <Fragment key={i}>{p.text}</Fragment>))}</>;
 }
 
+/** "Person in charge: our …" → bold lead-in before the colon (short lead-ins only). */
+function LeadIn({ text }: { text: string }) {
+  const m = /^([^:]{3,40}?)\s?:\s(.+)$/s.exec(text);
+  return m ? <><strong>{m[1]}{text.includes(" : ") ? " :" : ":"}</strong> {m[2]}</> : <>{text}</>;
+}
+
 function Block({ b }: { b: LegalBlock }) {
   switch (b.kind) {
     case "p":
@@ -47,7 +54,7 @@ function Block({ b }: { b: LegalBlock }) {
     case "list":
       return (
         <>
-          <ul className="pg-ticks lg2-list">{b.items.map((it) => <li key={it}>{it}</li>)}</ul>
+          <ul className="pg-ticks lg2-list">{b.items.map((it) => <li key={it}><LeadIn text={it} /></li>)}</ul>
           {b.note ? <p className="lg2-small">{b.note}</p> : null}
         </>
       );
@@ -152,7 +159,7 @@ export function Legal() {
     <div className="pg lg2">
       <PageHero eyebrow={pick(C.compliance)} title={pick(C.legal)} art="trail"
         crumbs={[{ href: "/", label: pick(C.home) }, { label: pick(C.legal) }]}
-        lead={<>{pick(C.legalLead)} <Link className="inline" href="/privacy">{pick(C.privacyLink)}</Link></>}>
+        lead={<>{pick(C.legalLead)} {pick(C.privacyBefore)} <Link className="inline" href="/privacy">{pick(C.privacyLink)}</Link>.</>}>
         <a className="btn ghost" href="#complaints"><Scale aria-hidden="true" /> {docs[0].title}</a>
         <a className="btn ghost" href="#ethics"><ShieldCheck aria-hidden="true" /> {docs[1].title}</a>
       </PageHero>

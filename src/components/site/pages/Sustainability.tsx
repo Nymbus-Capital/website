@@ -4,7 +4,7 @@
  * (principles, ESG integration, exclusion policy, green bonds, Fondaction, PRI), facts only: the old ESG
  * metrics, green-bond allocation chart and "PRI alignment scorecard" were placeholders and are not shown.
  */
-import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, Zap } from "lucide-react";
+import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
@@ -45,11 +45,11 @@ function EsgRings() {
 
 export function Sustainability() {
   const { locale, pick } = useTranslation();
-  const exIcons = [Flame, Ban, ShieldAlert, Scale];
+  const exIcons = [Flame, Ban, ShieldAlert, TriangleAlert];
   const useIcons = [Sun, Zap, Bus, Building2];
   return (
     <div className="pg su">
-      <PageHero eyebrow={pick(SU.hero.eyebrow)} title={pick(SU.hero.title)} accent={pick(SU.hero.accent)} lead={pick(SU.hero.lead)} art="trail"
+      <PageHero eyebrow={pick(SU.hero.eyebrow)} title={pick(SU.hero.title)} accent={pick(SU.hero.accent)} lead={pick(SU.hero.lead)} art="none"
         crumbs={[{ href: "/", label: locale === "fr" ? "Accueil" : "Home" }, { label: pick(SU.hero.eyebrow) }]} aside={<EsgRings />}>
         <ButtonLink href="/strategies/sustainable-enhanced-bonds">{pick(SU.hero.cta1)}</ButtonLink>
         <ButtonLink href="#exclusions" variant="ghost">{pick(SU.hero.cta2)}</ButtonLink>

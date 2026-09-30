@@ -260,6 +260,15 @@ export function Contact() {
           <div>
             <SectionHead eyebrow={pick(CT.visit.eyebrow)} title={pick(CT.visit.title)} accent={pick(CT.visit.accent)} id="ct-visit-t" />
             <Reveal self><p className="body">{pick(CT.visit.text)}</p></Reveal>
+            <Reveal self delay={120}>
+              <ul className="ct-lines ct-visit-lines">
+                <li><MapPin aria-hidden="true" /><span className="ct-pre">{pick(O.address)}</span></li>
+                <li><Clock aria-hidden="true" /><span>{pick(O.hours)}</span></li>
+              </ul>
+              <div className="actions">
+                <a className="btn ghost" href={mapsLink(ADDRESS)} target="_blank" rel="noopener noreferrer">{pick(O.map)} <ArrowUpRight aria-hidden="true" /></a>
+              </div>
+            </Reveal>
           </div>
           <Reveal self kind="pop"><VisitMap /></Reveal>
         </div>

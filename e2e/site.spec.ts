@@ -139,7 +139,7 @@ test("language toggle switches the page to French and back", async ({ page, isMo
 
 test("mobile menu opens, traps focus, closes with Escape", async ({ page, isMobile }) => {
   test.skip(!isMobile, "the burger menu is the small-screen navigation");
-  await page.goto("/");
+  await page.goto("/approach");
   const toggle = page.getByTestId("menu-toggle");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.click();
