@@ -39,9 +39,9 @@ test("cache: a missing file gives the fallback; the file is parsed once and reus
   await writeJson(["published", "site-data.json"], { v: 1 });
   const opens = countOpens();
   try {
-    const a = await readJsonCached<{ v: number }>(["published", "site-data.json"], null);
-    const b = await readJsonCached<{ v: number }>(["published", "site-data.json"], null);
-    const c = await readJsonCached<{ v: number }>(["published", "site-data.json"], null, { recheckMs: 0 });
+    const a = await readJsonCached<{ v: number } | null>(["published", "site-data.json"], null);
+    const b = await readJsonCached<{ v: number } | null>(["published", "site-data.json"], null);
+    const c = await readJsonCached<{ v: number } | null>(["published", "site-data.json"], null, { recheckMs: 0 });
     assert.deepEqual(a, { v: 1 });
     assert.equal(a, b, "same object: no second parse");
     assert.equal(a, c, "unchanged identity after a re-check: no second parse");
@@ -54,7 +54,7 @@ test("cache: a missing file gives the fallback; the file is parsed once and reus
 
 test("cache: values are frozen (callers cannot corrupt what the next request sees)", async () => {
   await writeJson(["content", "site-content.json"], { funds: { a: { hide: { nav: true } } } });
-  const v = await readJsonCached<{ funds: { a: { hide: { nav: boolean } } } }>(["content", "site-content.json"], null);
+  const v = (await readJsonCached<{ funds: { a: { hide: { nav: boolean } } } } | null>(["content", "site-content.json"], null))!;
   assert.throws(() => { v.funds.a.hide.nav = false; }, TypeError);
 });
 
@@ -83,7 +83,7 @@ test("cache: concurrent requests share one load and all see the same value", asy
   clearDataCache();
   const opens = countOpens();
   try {
-    const all = await Promise.all(Array.from({ length: 25 }, () => readJsonCached<{ big: number[] }>(["published", "site-data.json"], null)));
+    const all = await Promise.all(Array.from({ length: 25 }, () => readJsonCached<{ big: number[] } | null>(["published", "site-data.json"], null)));
     assert.equal(opens.n(), 1);
     assert.ok(all.every((x) => x === all[0]));
   } finally {
@@ -98,7 +98,7 @@ test("cache: a request after a write never gets the value of a load started befo
   await writeJson(["published", "site-data.json"], { runId: "new" });
   const second = await readJsonCached(["published", "site-data.json"], null);
   assert.deepEqual(second, { runId: "new" });
-  assert.ok(["old", "new"].includes(((await first) as { runId: string }).runId));
+  assert.ok(["old", "new"].includes(((await first) as unknown as { runId: string }).runId));
   assert.deepEqual(await readJsonCached(["published", "site-data.json"], null), { runId: "new" }, "the older load did not overwrite the newer entry");
   assert.equal(JSON.parse(await readFile(path.join(dir, "published", "site-data.json"), "utf8")).runId, "new");
 });
