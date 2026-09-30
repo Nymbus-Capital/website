@@ -28,7 +28,7 @@ export function toPublicData(data: FundData | null): PublicFundData | null {
 /** Admin content as the public page receives it: without the internal snapshot pin. */
 export type PublicFundContent = Omit<FundContent, "pinnedSnapshot">;
 
-export interface FundLink { key: FundKey; name: L10n; short: L10n; color: { solid: string; from: string; to: string } }
+export interface FundLink { key: FundKey; name: L10n; short: L10n; assetClass: L10n; tagline: L10n; color: { solid: string; from: string; to: string } }
 
 export interface FundPageProps {
   spec: PublicFundSpec;

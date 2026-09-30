@@ -1,10 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fmt, pct, money, compactMoney, monthLabel, dateLabel, charValue, charCount, pctTick, fileSize, bigMoney } from "../../../src/components/fund/lib/format.ts";
+import { fmt, pct, money, moneyParts, compactMoney, monthLabel, dateLabel, charValue, charCount, pctTick, fileSize, bigMoney } from "../../../src/components/fund/lib/format.ts";
 import { nice, linear, barPath, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
 import {
   trailingPeriods, isAnnualized, headlineClass, availableRanges, growthRange, heatmapGrid, heatScale, heatCell, groupDocuments,
   visibleBlocks, riskIndex, calendarRows, riskWindows, bucketRows, vaRounded, perfClassLabel,
+  returnBadges, trailingRows, navDirection, resolveManagers, initials, sortedClasses, REGULATORY_DOCS,
 } from "../../../src/components/fund/lib/data.ts";
 import type { DocumentMeta, FundData, GrowthPoint, NavClass } from "../../../src/lib/data/types.ts";
 
@@ -32,9 +33,11 @@ test("money and compact money", () => {
 });
 
 test("dates and months", () => {
-  assert.equal(monthLabel("2026-08-31", "en"), "august 2026");
+  assert.equal(monthLabel("2026-08-31", "en"), "August 2026");
   assert.equal(monthLabel("2026-08", "fr"), "août 2026");
-  assert.equal(dateLabel("2026-09-26", "en"), "sep 26, 2026");
+  assert.equal(dateLabel("2026-09-26", "en"), "Sep 26, 2026");
+  assert.equal(dateLabel("2026-08-31", "en", true), "August 31, 2026");
+  assert.equal(dateLabel("2026-08-31", "fr", true), "31 août 2026");
   assert.equal(dateLabel("2026-09-01", "fr"), "1er sept. 2026");
   assert.equal(monthLabel(null, "en"), "");
 });
@@ -200,4 +203,53 @@ test("performance class label", () => {
   assert.equal(perfClassLabel({ returnClass: "FP" }, "class"), "class FP");
   assert.equal(perfClassLabel({}, "class"), null);
   assert.equal(perfClassLabel(null, "class"), null);
+});
+
+test("money parts rebuild money() around fmt()", () => {
+  for (const cur of ["CAD", "USD", "EUR"]) for (const lang of ["en", "fr"] as const) {
+    const p = moneyParts(cur, lang);
+    assert.equal(fmt(10.1905, { decimals: 4, lang, ...p }), money(10.1905, cur, lang, 4), `${cur} ${lang}`);
+  }
+});
+
+test("return badges: published periods only, in order, annualized flag, hidden by the admin", () => {
+  const perf = { trailing: { fund: { SI: 0.05, "1Y": 0.04, "2Y": 0.03, "1M": -0.001, "10Y": null } }, firstMonth: "2019-01-31", asOf: "2026-08-31" };
+  const b = returnBadges(perf);
+  assert.deepEqual(b.map((x) => x.period), ["1M", "1Y", "SI"], "2Y is not a badge, 10Y null is dropped");
+  assert.equal(b[0].value, -0.001);
+  assert.equal(b[2].annualized, true);
+  assert.equal(b[1].annualized, false);
+  assert.deepEqual(returnBadges(perf, true), []);
+  assert.deepEqual(returnBadges(null), []);
+});
+
+test("trailing rows carry benchmark and value added only when published", () => {
+  const rows = trailingRows({ trailing: { fund: { "1Y": 0.04, SI: 0.05 }, index: { "1Y": 0.03 }, va: { "1Y": 0.01, SI: null } }, firstMonth: "2019-01-31", asOf: "2026-08-31" });
+  assert.deepEqual(rows.map((r) => [r.period, r.index, r.va, r.annualized]), [["1Y", 0.03, 0.01, false], ["SI", null, null, true]]);
+  assert.deepEqual(trailingRows(null), []);
+});
+
+test("nav direction rounds like the display", () => {
+  assert.equal(navDirection(0.0011), "up");
+  assert.equal(navDirection(-0.002), "down");
+  assert.equal(navDirection(0.00004), "flat", "rounds to 0.00%");
+  assert.equal(navDirection(null), "flat");
+});
+
+test("managers resolve against the team registry", () => {
+  const team = [{ name: "Gabriel Cefaloni", photo: "g.png" }, { name: "Mathieu Poulin-Brière" }];
+  const r = resolveManagers([" gabriel cefaloni ", "Mathieu Poulin-Briere", "Jane Doe", "", "Gabriel Cefaloni"], team);
+  assert.deepEqual(r.map((x) => x.name), ["Gabriel Cefaloni", "Mathieu Poulin-Brière", "Jane Doe"]);
+  assert.equal(r[0].member?.photo, "g.png");
+  assert.equal(r[2].member, null);
+  assert.deepEqual(resolveManagers(undefined, team), []);
+  assert.equal(initials("Mathieu Poulin-Brière"), "MP");
+  assert.equal(initials("Cher"), "C");
+});
+
+test("series sorted with the headline class first", () => {
+  const cs = [cls("LDM081", 10), cls("LDM001", 10), cls("LDM021", 9)];
+  assert.deepEqual(sortedClasses(cs, "ldm081").map((c) => c.fundserv), ["LDM081", "LDM001", "LDM021"]);
+  assert.deepEqual(sortedClasses(cs, null).map((c) => c.fundserv), ["LDM001", "LDM021", "LDM081"]);
+  assert.deepEqual(REGULATORY_DOCS, ["fund-facts", "prospectus", "annual-report", "interim-report", "mrfp"]);
 });
