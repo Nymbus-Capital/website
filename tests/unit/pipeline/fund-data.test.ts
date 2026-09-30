@@ -406,7 +406,7 @@ test("carried-over funds pass the daily-book age gate again (fund missing from t
   assert.equal(v.data.provenance["funds.monthly-income.portfolio"], undefined);
   // a blocked fund carried over: same gate
   const blocked = structuredClone(prev);
-  blocked.funds["monthly-income"]!.performance!.monthly[0].fund = Number.NaN;
+  blocked.funds["monthly-income"]!.performance!.monthly[0].r = Number.NaN;
   const vb = validateSite(blocked, context, prev, later);
   assert.equal(vb.funds["monthly-income"], "kept-previous");
   assert.equal(vb.data.funds["monthly-income"]!.portfolio, null);

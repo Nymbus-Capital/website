@@ -7,9 +7,10 @@ import assert from "node:assert/strict";
 import sample from "../../../src/lib/data/sample-site-data.json" with { type: "json" };
 import type { FundData, SiteData } from "../../../src/lib/data/types.ts";
 import {
-  dailyBreakdowns, distributionBars, distributionClasses, hasDailyPortfolio, historyRows, partialCoverage, portfolioOrigin, stripHidden, visibleBlocks,
+  amountDecimals, dailyBreakdowns, distributionBars, distributionClasses, fullRowItems, hasDailyPortfolio, isYearToDate, historyRows, partialCoverage, portfolioOrigin, stripHidden, visibleBlocks,
 } from "../../../src/components/fund/lib/data.ts";
 import { categoryLabel } from "../../../src/components/fund/labels.ts";
+import { provenanceLine } from "../../../src/components/fund/lib/provenance.ts";
 
 const site = sample as unknown as SiteData;
 const fund = (k: keyof SiteData["funds"]): FundData => structuredClone(site.funds[k]!);
@@ -91,4 +92,61 @@ test("distributions: headline first, newest-first history (12 or all), last 24 b
   assert.equal(bars.length, 24);
   assert.equal(bars[23].date, "2026-09-28");
   assert.ok(bars[0].date < bars[1].date);
+});
+
+test("provenance line: daily holdings with their date when the daily book is shown, else the factsheet month (EN / FR)", () => {
+  const mi = fund("monthly-income");
+  const seb = fund("sustainable-enhanced-bonds");
+  const ms = fund("multi-strategy");
+  const esgLine = (f: FundData, lang: "en" | "fr") => provenanceLine(f, lang);
+  assert.equal(provenanceLine({ ...mi, esg: [] }, "en"), "Updated daily from Nymbus’ data platform; portfolio data from the daily holdings as of September 28, 2026.");
+  assert.doesNotMatch(provenanceLine(mi, "en"), /portfolio data from the monthly factsheet/, "never the factsheet wording for the daily book");
+  assert.equal(provenanceLine({ ...mi, esg: [] }, "fr"), "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus; données de portefeuille selon les positions quotidiennes au 28 septembre 2026.");
+  // sustainability metrics next to the daily book: they come from the factsheet and say so
+  const withEsg = { ...seb, esg: [{ id: "x", label: { en: "x", fr: "x" }, fund: 1, unit: "num" as const }] };
+  assert.match(esgLine(withEsg, "en"), /daily holdings as of September 28, 2026; sustainability metrics from the monthly factsheet of August 2026\.$/);
+  assert.match(esgLine(withEsg, "fr"), /positions quotidiennes au 28 septembre 2026; indicateurs de durabilité selon la fiche mensuelle d’août 2026\.$/);
+  assert.equal(provenanceLine(ms, "en"), "Updated daily from Nymbus’ data platform; portfolio data from the monthly factsheet of August 2026.");
+  // a stale book dropped at render time falls back to the factsheet wording
+  assert.match(provenanceLine({ ...mi, portfolio: null }, "en"), /monthly factsheet of August 2026\.$/);
+  assert.equal(provenanceLine(null, "en"), "Updated daily from Nymbus’ data platform.");
+  assert.match(provenanceLine(ms, "fr"), /selon la fiche mensuelle d’août 2026\.$/, "French elision");
+  assert.match(provenanceLine({ ...ms, factsheetMonth: "2026-09" }, "fr"), /fiche mensuelle de septembre 2026\.$/);
+});
+
+test("distribution amounts: one precision per series (4 to 6 decimals) at which rows add up to the calendar totals", () => {
+  const c = fund("monthly-income").distributions!.classes.find((x) => x.fundserv === "LDM001")!;
+  const dp = amountDecimals(c);
+  assert.equal(dp, 6, "the sample amounts have 6 decimals");
+  // every calendar year: the sum of its rows as displayed equals its total as displayed
+  for (const y of c.calendarYears) {
+    const rows = c.history.filter((h) => h.date.startsWith(`${y.year}-`)).map((h) => Number(h.amount.toFixed(dp)));
+    assert.equal(Number(rows.reduce((a, v) => a + v, 0).toFixed(dp)), Number(y.amount.toFixed(dp)), `${y.year}`);
+  }
+  const round = { ...c, history: [{ date: "2026-07-31", amount: 0.04 }, { date: "2026-08-31", amount: 0.045 }], last: { date: "2026-08-31", amount: 0.045 }, trailing12m: 0.085, calendarYears: [{ year: 2026, amount: 0.085, count: 2 }] };
+  assert.equal(amountDecimals(round), 4);
+  assert.equal(amountDecimals({ ...round, trailing12m: 0.08512 }), 5);
+  assert.equal(amountDecimals(null), 4);
+});
+
+test("year-to-date tag: the reference year only, and only while it is not over", () => {
+  assert.equal(isYearToDate(2026, "2026-09-29"), true);
+  assert.equal(isYearToDate(2025, "2026-09-29"), false);
+  assert.equal(isYearToDate(2026, "2026-12-31"), false, "the year is complete");
+  assert.equal(isYearToDate(2025, "2026-01-05"), false, "a December distribution read in January: the year is over");
+  assert.equal(isYearToDate(2026, null), false);
+  // the sample: the current year is tagged (read on 2026-09-29)
+  assert.equal(fund("monthly-income").distributions!.checkedAt, "2026-09-29");
+});
+
+test("breakdown grid: an item left alone in a row spans it (odd count, or before a wide item)", () => {
+  const F = false, W = true;
+  assert.deepEqual(fullRowItems([F, F, F, F, F]), [F, F, F, F, W], "5 daily breakdowns: the fifth takes the whole row");
+  assert.deepEqual(fullRowItems([F, F, F, F]), [F, F, F, F]);
+  assert.deepEqual(fullRowItems([W, F, F, F, F]), [W, F, F, F, F], "a donut first, then two pairs");
+  assert.deepEqual(fullRowItems([F, W, F, F]), [W, W, F, F], "alone before a wide item");
+  assert.deepEqual(fullRowItems([F]), [W]);
+  assert.deepEqual(fullRowItems([]), []);
+  // the sample: the SEB daily book has five breakdowns
+  assert.equal(dailyBreakdowns(fund("sustainable-enhanced-bonds").portfolio).length, 5);
 });

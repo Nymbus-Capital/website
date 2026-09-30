@@ -126,6 +126,10 @@ const SAMPLE: Text = {
 
 const PROVENANCE: Text = { en: "Updated daily from Nymbus’ data platform", fr: "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus" };
 const PROVENANCE_FACTSHEET: Text = { en: "portfolio data from the monthly factsheet of", fr: "données de portefeuille selon la fiche mensuelle de" };
+/** when the Portfolio tab shows the daily book computed by the data platform */
+const PROVENANCE_DAILY: Text = { en: "portfolio data from the daily holdings as of", fr: "données de portefeuille selon les positions quotidiennes au" };
+/** next to the daily book, the sustainability metrics still come from the factsheet */
+const PROVENANCE_ESG_FACTSHEET: Text = { en: "sustainability metrics from the monthly factsheet of", fr: "indicateurs de durabilité selon la fiche mensuelle de" };
 
 /** Every text of the public site that compliance must approve. */
 export const DISCLAIMERS: Disclaimer[] = [
@@ -209,10 +213,17 @@ export const DISCLAIMERS: Disclaimer[] = [
   },
   {
     id: "provenance",
-    label: "Data provenance line (update frequency, factsheet month)",
-    text: { en: `${PROVENANCE.en}; ${PROVENANCE_FACTSHEET.en} <month>.`, fr: `${PROVENANCE.fr}; ${PROVENANCE_FACTSHEET.fr} <mois>.` },
+    label: "Data provenance line (update frequency, source and date of the portfolio data)",
+    text: {
+      en: `${PROVENANCE.en}; ${PROVENANCE_FACTSHEET.en} <month>. — or, when the daily holdings are shown: ${PROVENANCE.en}; ${PROVENANCE_DAILY.en} <date>; ${PROVENANCE_ESG_FACTSHEET.en} <month>.`,
+      fr: `${PROVENANCE.fr}; ${PROVENANCE_FACTSHEET.fr} <mois>. — ou, lorsque les positions quotidiennes sont présentées\u00a0: ${PROVENANCE.fr}; ${PROVENANCE_DAILY.fr} <date>; ${PROVENANCE_ESG_FACTSHEET.fr} <mois>.`,
+    },
     where: [{ label: "fund pages, disclosure", href: "/strategies/monthly-income#disclosure" }],
-    review: ["'Updated daily' is accurate (schedule); the as-of dates shown next to it."],
+    review: [
+      "'Updated daily' is accurate (schedule); the as-of dates shown next to it.",
+      "Daily holdings wording: the Portfolio tab of the bond funds shows the data platform's daily book (holdings of the last valuation day) when its coverage is sufficient, else the month-end factsheet.",
+      "The sustainability-metrics clause appears only when those factsheet metrics are shown next to the daily book.",
+    ],
   },
   {
     id: "summaryGross",
@@ -240,6 +251,8 @@ export const DISC = {
   sample: SAMPLE,
   provenance: PROVENANCE,
   provenanceFactsheet: PROVENANCE_FACTSHEET,
+  provenanceDaily: PROVENANCE_DAILY,
+  provenanceEsgFactsheet: PROVENANCE_ESG_FACTSHEET,
   byId,
 } as const;
 

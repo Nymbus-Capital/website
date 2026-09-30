@@ -76,6 +76,13 @@ for (const f of FUNDS) {
 
     await expect(page.getByTestId("other-funds").locator("a")).toHaveCount(3);
     await expect(page.getByTestId("provenance")).toContainText("Updated daily");
+    // the provenance line names the source of the Portfolio tab: the daily holdings with their date, else the factsheet
+    if (f.daily) {
+      await expect(page.getByTestId("provenance")).toContainText("portfolio data from the daily holdings as of September 28, 2026");
+      await expect(page.getByTestId("provenance")).not.toContainText("portfolio data from the monthly factsheet");
+    } else {
+      await expect(page.getByTestId("provenance")).toContainText("portfolio data from the monthly factsheet of August 2026");
+    }
     await expect(page.locator("#disclosure")).toBeVisible();
 
     await settle(page);
@@ -102,6 +109,18 @@ for (const f of FUNDS) {
       await expect(page.getByTestId("breakdown-rating")).toBeVisible();
       await expect(page.getByTestId("holdings-table").locator("tbody tr")).toHaveCount(10);
       await expect(page.getByTestId("holdings-table").locator("thead")).toContainText("Coupon");
+      // no breakdown is left alone in half a row (the SEB book has five: the last one takes the whole row)
+      const panel = page.locator('[role="tabpanel"][data-panel="portfolio"]');
+      const blocks = panel.locator(".bk-grid").first().locator(":scope > [data-testid^='breakdown-']");
+      const n = await blocks.count();
+      const grid = await panel.locator(".bk-grid").first().boundingBox();
+      const last = await blocks.nth(n - 1).boundingBox();
+      if (n % 2 === 1 && info.project.name === "desktop") expect(last!.width).toBeGreaterThan(grid!.width * 0.9);
+      // every bar has a valid width within its track (never stretched by an invalid value)
+      for (const bar of await panel.locator(".fx-hbar .b.fund").all()) {
+        const [b, t] = await Promise.all([bar.boundingBox(), bar.locator("xpath=..").boundingBox()]);
+        expect(b!.width).toBeLessThanOrEqual(t!.width + 0.5);
+      }
     } else {
       await expect(source).toHaveAttribute("data-source", "factsheet");
       await expect(page.getByTestId("factsheet-month")).toContainText("August 2026");
@@ -143,15 +162,36 @@ for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatilit
 
 test("distributions: per-series cards, history chart, calendar years and the full history behind a toggle", async ({ page }) => {
   await page.goto("/strategies/monthly-income#distributions");
-  await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 29, 2026");
+  // the latest distribution of the series shown (not the end of the requested window)
+  await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
   const fp = page.getByTestId("dist-class-LDM001");
   await expect(fp).toHaveClass(/hl/);
-  await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{4}$/);
-  await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{4}$/);
-  await expect(page.getByTestId("dist-class-LDM011").getByTestId("dist-last-amount")).toHaveText(/^US\$0\.\d{4}$/);
+  // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
+  await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
+  await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+  await expect(page.getByTestId("dist-class-LDM011").getByTestId("dist-last-amount")).toHaveText(/^US\$0\.\d{4,6}$/);
+  // cards of one row: the amounts start at the same height even when a series header wraps
+  const tops = await page.getByTestId("distributions-summary").locator(".ds-amt").evaluateAll((els) => els.map((e) => [Math.round(e.getBoundingClientRect().top), Math.round((e.closest(".ds-card") as HTMLElement).getBoundingClientRect().top)]));
+  const byRow = new Map<number, number[]>();
+  for (const [amt, card] of tops) byRow.set(card, [...(byRow.get(card) ?? []), amt]);
+  for (const amts of byRow.values()) expect(Math.max(...amts) - Math.min(...amts)).toBeLessThanOrEqual(1);
   const history = page.getByTestId("distributions-history");
   await history.scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("distribution-chart").locator("svg .cat")).toHaveCount(24);
+  const bars = page.getByTestId("distribution-chart").locator("svg .cat");
+  await expect(bars).toHaveCount(24);
+  // one tab stop for the chart (roving tabindex), on the latest distribution; arrows / Home / End move it
+  await expect(page.getByTestId("distribution-chart").locator('svg .cat[tabindex="0"]')).toHaveCount(1);
+  await expect(bars.nth(23)).toHaveAttribute("tabindex", "0");
+  await bars.nth(23).focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(bars.nth(22)).toBeFocused();
+  await expect(bars.nth(22)).toHaveAttribute("tabindex", "0");
+  await expect(bars.nth(23)).toHaveAttribute("tabindex", "-1");
+  await page.keyboard.press("Home");
+  await expect(bars.nth(0)).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(bars.nth(23)).toBeFocused();
+  await expect(page.getByTestId("dist-ytd")).toHaveCount(1);
   await expect(page.getByTestId("distributions-calendar").locator("tbody tr").first()).toContainText("2026");
   const rows = page.getByTestId("distributions-table").locator("tbody tr");
   await expect(rows).toHaveCount(12);
@@ -236,5 +276,6 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("portfolio-source")).toContainText("Données quotidiennes du portefeuille");
   await expect(page.getByTestId("portfolio-asof")).toHaveText("au 28 septembre 2026");
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
-  await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{4}\s\$$/);
+  await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
+  await expect(page.getByTestId("provenance")).toContainText("données de portefeuille selon les positions quotidiennes au 28 septembre 2026");
 });

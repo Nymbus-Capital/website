@@ -194,7 +194,7 @@ export const T = {
     ),
     weightsNote: l(
       "Weights as a percentage of net assets, cash included. Futures used for the overlay are excluded.",
-      "Pondérations en pourcentage de l’actif net, liquidités comprises. Les contrats à terme de la superposition sont exclus.",
+      "Pondérations en pourcentage de l’actif net, liquidités comprises. Les contrats à terme de la stratégie de superposition sont exclus.",
     ),
     dailyBreakdowns: {
       assetType: l("Asset types", "Types d’actifs"),
@@ -310,6 +310,8 @@ export const T = {
     general: DISC.firm,
     provenance: DISC.provenance,
     provenanceFactsheet: DISC.provenanceFactsheet,
+    provenanceDaily: DISC.provenanceDaily,
+    provenanceEsgFactsheet: DISC.provenanceEsgFactsheet,
     gross: DISC.gmvGross,
     sample: DISC.sample,
     basisNet: DISC.basisNet,

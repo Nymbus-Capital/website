@@ -1950,7 +1950,8 @@
     }
    },
    "distributions": {
-    "asOf": "2026-09-29",
+    "asOf": "2026-09-28",
+    "checkedAt": "2026-09-29",
     "classes": [
      {
       "fundserv": "LDM001",
@@ -5568,7 +5569,8 @@
     }
    },
    "distributions": {
-    "asOf": "2026-09-29",
+    "asOf": "2026-06-30",
+    "checkedAt": "2026-09-29",
     "classes": [
      {
       "fundserv": "LDM201",
@@ -7128,7 +7130,8 @@
    "factsheetMonth": "2026-08",
    "portfolio": null,
    "distributions": {
-    "asOf": "2026-09-29",
+    "asOf": "2025-12-31",
+    "checkedAt": "2026-09-29",
     "classes": [
      {
       "fundserv": "LDM300",

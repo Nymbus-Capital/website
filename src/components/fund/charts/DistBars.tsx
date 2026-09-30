@@ -1,8 +1,10 @@
 "use client";
 /**
  * Distribution history of one series: one bar per distribution (amount per unit, class currency), in the fund
- * gradient, growing from the axis on first view (not under reduced motion). Hovering or focusing a bar (Tab, arrow
- * keys) shows its date and amount; the same figures are in the table under the chart. Mounts lazily near the viewport.
+ * gradient, growing from the axis on first view (not under reduced motion). Hovering or focusing a bar shows its date
+ * and amount; the same figures are in the table under the chart. Keyboard: one tab stop for the whole chart (roving
+ * tabindex, on the latest distribution by default), arrow keys / Home / End move between bars. Mounts lazily near the
+ * viewport.
  */
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { barPath, bands, nice, yearTicks } from "../lib/scale.ts";
@@ -10,14 +12,19 @@ import { dateLabel, money, monthLabel, type Lang } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
 
-export function DistBars({ points, currency, lang, label, seriesName, height = 220 }: {
+export function DistBars({ points, currency, lang, label, seriesName, height = 220, decimals: amountDecimals = 4 }: {
   points: { date: string; amount: number }[]; currency: string; lang: Lang; label: string; seriesName: string; height?: number;
+  /** decimals of the amounts (the series' own precision, as in the tables) */
+  decimals?: number;
 }) {
   const [host, w] = useWidth<HTMLDivElement>();
   const [nearRef, near, seen] = useNear<HTMLDivElement>();
   const svgRef = useRef<SVGSVGElement>(null);
   const id = useSvgId("db");
   const [on, setOn] = useState<number | null>(null);
+  // the one bar in the tab order (roving tabindex): the last one focused, else the latest distribution
+  const [stop, setStop] = useState<number | null>(null);
+  const tabStop = stop != null && stop < points.length ? stop : points.length - 1;
   const [tip, setTip] = useState<TipState | null>(null);
   const narrow = w > 0 && w < 560;
   const pad = { l: narrow ? 44 : 54, r: 8, t: 18, b: 34 };
@@ -31,7 +38,7 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   useEntrance(svgRef, seen && w > 0, points.map((p) => p.date).join());
 
   const decimals = Math.max(2, Math.min(4, -Math.floor(Math.log10(geo.sc.step || 0.01) + 1e-9)));
-  const amount = (v: number) => money(v, currency, lang, 4);
+  const amount = (v: number) => money(v, currency, lang, amountDecimals);
   // the axis says "per unit" in the chart label; ticks carry the currency like the table
   const tick = (v: number) => money(v, currency, lang, v === 0 ? 0 : decimals);
   // labels: every bar when few (quarterly / annual), else the first bar of each year
@@ -46,10 +53,13 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
     setTip({ x: geo.b.x(i) + geo.b.band / 2, y: Math.max(8, geo.y(p.amount)), title: dateLabel(p.date, lang, true), rows: [{ cls: "fund", label: seriesName, value: amount(p.amount) }] });
   };
   const onKey = (e: KeyboardEvent<SVGGElement>, i: number) => {
-    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!d) return;
+    const last = points.length - 1;
+    const next = e.key === "ArrowRight" || e.key === "ArrowUp" ? Math.min(last, i + 1)
+      : e.key === "ArrowLeft" || e.key === "ArrowDown" ? Math.max(0, i - 1)
+      : e.key === "Home" ? 0 : e.key === "End" ? last : null;
+    if (next == null) return;
     e.preventDefault();
-    const next = Math.max(0, Math.min(points.length - 1, i + d));
+    setStop(next);
     svgRef.current?.querySelectorAll<SVGGElement>(".cat")[next]?.focus();
   };
 
@@ -72,8 +82,8 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
             const bx = geo.b.x(i) + (geo.b.band - bw) / 2;
             const d = barPath(bx, geo.y(0), bw, geo.y(p.amount), Math.min(6, bw / 3));
             return (
-              <g key={p.date} className={`cat${on === i ? " on" : ""}`} tabIndex={0} role="img" aria-label={`${dateLabel(p.date, lang, true)}: ${amount(p.amount)}`}
-                onPointerEnter={() => focusBar(i)} onFocus={() => focusBar(i)} onBlur={() => focusBar(null)} onKeyDown={(e) => onKey(e, i)}>
+              <g key={p.date} className={`cat${on === i ? " on" : ""}`} tabIndex={i === tabStop ? 0 : -1} role="img" aria-label={`${dateLabel(p.date, lang, true)}: ${amount(p.amount)}`}
+                onPointerEnter={() => focusBar(i)} onFocus={() => { setStop(i); focusBar(i); }} onBlur={() => focusBar(null)} onKeyDown={(e) => onKey(e, i)}>
                 <rect className="hit" x={geo.b.x(i)} y={pad.t - 10} width={geo.b.band} height={height - pad.t - pad.b + 10} rx={8} />
                 {d ? <path d={d} fill={`url(#${id}f)`} filter={`url(#${id}g)`} data-grow="up" /> : null}
               </g>
@@ -89,5 +99,5 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   );
 }
 
-/** Amount per unit with the currency, as in the tables (4 decimals). */
-export const perUnit = (v: number, currency: string, lang: Lang) => money(v, currency, lang, 4);
+/** Amount per unit with the currency, as in the tables (the series' decimals, see amountDecimals). */
+export const perUnit = (v: number, currency: string, lang: Lang, decimals = 4) => money(v, currency, lang, decimals);

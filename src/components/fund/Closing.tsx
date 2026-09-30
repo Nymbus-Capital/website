@@ -16,6 +16,7 @@ import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec }
 import { FUND_TEXTS, T, tr, type FeatureIcon } from "./copy";
 import { dateLabel, monthLabel, type Lang, colon } from "./lib/format.ts";
 import { perfClassLabel } from "./lib/data.ts";
+import { provenanceLine } from "./lib/provenance.ts";
 
 const ICONS: Record<FeatureIcon, typeof Leaf> = {
   calendar: CalendarClock, timer: Timer, scan: ScanSearch, shield: ShieldCheck, leaf: Leaf, filter: Ban, gauge: Gauge, sprout: Sprout,
@@ -82,8 +83,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
             <p className="fxd-prov" data-testid="provenance">
               <span className="live-dot" aria-hidden="true" />
               <span>
-                {tr(T.disclosure.provenance, lang)}
-                {data?.factsheetMonth ? `; ${tr(T.disclosure.provenanceFactsheet, lang)} ${monthLabel(data.factsheetMonth, lang)}` : ""}.
+                {provenanceLine(data, lang)}
                 {asOf.length ? ` ${asOf.join(" · ")}.` : ""}
               </span>
             </p>

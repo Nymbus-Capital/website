@@ -315,6 +315,21 @@ export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: Por
     .filter((b) => b.rows.length > 0);
 }
 
+/**
+ * Items of a two-column grid that span the full row: the wide ones, and any item that would otherwise sit alone in a
+ * row (an odd count, or before a wide item), so no block is left in half a row next to an empty column.
+ */
+export function fullRowItems(wide: boolean[]): boolean[] {
+  const out = [...wide];
+  let col = 0;
+  for (let i = 0; i < wide.length; i++) {
+    if (wide[i]) { col = 0; continue; }
+    if (col === 0 && (i + 1 >= wide.length || wide[i + 1])) out[i] = true;
+    else col = col === 0 ? 1 : 0;
+  }
+  return out;
+}
+
 /** Characteristics computed over part of the bonds only (coverage < 1): they get a footnote. */
 export const partialCoverage = (metrics: PortfolioMetric[]): PortfolioMetric[] => metrics.filter((m) => isNum(m.coverage) && m.coverage < 0.9995);
 
@@ -324,6 +339,24 @@ export const partialCoverage = (metrics: PortfolioMetric[]): PortfolioMetric[] =
 export function distributionClasses(d: DistributionsData | null | undefined, headline: string | null | undefined): ClassDistribution[] {
   const h = (headline ?? "").toUpperCase();
   return [...(d?.classes ?? [])].sort((a, b) => (a.fundserv.toUpperCase() === h ? -1 : b.fundserv.toUpperCase() === h ? 1 : a.fundserv.localeCompare(b.fundserv)));
+}
+
+/**
+ * Decimals for every amount of one series (cards, chart, tables): the fewest between 4 and 6 at which each amount it
+ * shows (history, last distribution, trailing 12 months, calendar-year totals) is exact, so the rows of a year add up to
+ * its total as displayed. Amounts per unit are recorded with up to 6 decimals.
+ */
+export function amountDecimals(c: ClassDistribution | null | undefined): number {
+  if (!c) return 4;
+  const values = [...c.history.map((h) => h.amount), c.last?.amount, c.trailing12m, ...c.calendarYears.map((y) => y.amount)].filter(isNum);
+  for (let d = 4; d < 6; d++) if (values.every((v) => Math.abs(v - Number(v.toFixed(d))) < 5e-10)) return d;
+  return 6;
+}
+
+/** Tag a calendar year as year to date: the year of the reference date (the last successful read of the source) while that year is not over. */
+export function isYearToDate(year: number, ref: string | null | undefined): boolean {
+  if (!ref || !/^\d{4}-\d{2}-\d{2}$/.test(ref)) return false;
+  return String(year) === ref.slice(0, 4) && ref < `${year}-12-31`;
 }
 
 /** History newest first: the last `limit` distributions, or all of them. */

@@ -16,8 +16,8 @@ import { T, tr } from "./copy";
 import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
-import { charCount, charValue, dateLabel, fmt, monthLabel, type Lang } from "./lib/format.ts";
-import { bucketRows, dailyBreakdowns, hasDailyPortfolio, orderedBuckets, partialCoverage } from "./lib/data.ts";
+import { charCount, charValue, dateLabel, elide, fmt, monthLabel, type Lang } from "./lib/format.ts";
+import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage } from "./lib/data.ts";
 
 type BKey = "credit" | "sectors" | "curve" | "country" | "assetClass";
 const ORDERED: BKey[] = ["credit", "curve"];
@@ -44,6 +44,7 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
     .map((key) => ({ key, rows: ORDERED.includes(key) ? orderedBuckets(data.breakdowns[key]) : bucketRows(data.breakdowns[key]) }))
     .filter((b) => b.rows.length > 0);
   const any = chars.length || esg.length || holdings.length || bks.length;
+  const full = fullRowItems(bks.map((b) => b.key === "assetClass" && isWhole(b.rows)));
 
   if (!any) return <div className="container fp"><p className="notice" data-testid="portfolio-soon">{tr(T.portfolio.none, lang)}</p></div>;
   return (
@@ -63,11 +64,11 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
       ) : null}
       {bks.length ? (
         <div className="bk-grid">
-          {bks.map((b) => {
+          {bks.map((b, i) => {
             const donut = b.key === "assetClass" && isWhole(b.rows);
             const hasIndex = b.rows.some((r) => r.index != null);
             return (
-              <Block key={b.key} title={tr(T.portfolio.breakdowns[b.key], lang)} className={donut ? "bk-wide" : undefined} testId={`breakdown-${b.key}`}
+              <Block key={b.key} title={tr(T.portfolio.breakdowns[b.key], lang)} className={full[i] ? "bk-wide" : undefined} testId={`breakdown-${b.key}`}
                 aside={hasIndex && !donut ? <div className="fx-legend"><span><i className="fund" />{names.fund}</span><span><i className="index" style={{ height: 5 }} />{names.index}</span></div> : null}>
                 {donut
                   ? <Donut rows={b.rows} lang={lang} label={tr(T.portfolio.breakdowns[b.key], lang)} indexName={names.index} />
@@ -99,6 +100,7 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
   const count = p.totals?.holdings;
   const bks = dailyBreakdowns(p).map((b) => ({ ...b, rows: b.rows.map((r) => ({ ...r, label: categoryLabel(r.label, lang, b.key === "term" ? "term" : undefined) })) }));
   const green = typeof p.greenBondsWeight === "number" && Number.isFinite(p.greenBondsWeight) ? p.greenBondsWeight : null;
+  const full = fullRowItems(bks.map(() => false));
   const pctLabel = (v: number, d = 0) => fmt(v, { pct: true, decimals: d, lang });
   return (
     <div className="container fp">
@@ -135,11 +137,12 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
       ) : null}
       {bks.length ? (
         <div className="bk-grid">
-          {bks.map((b) => {
+          {bks.map((b, i) => {
             const title = tr(T.portfolio.dailyBreakdowns[b.key], lang);
-            // bars for every daily breakdown: exact values side by side (a donut hides the small slices)
+            // bars for every daily breakdown: exact values side by side (a donut hides the small slices); an odd last
+            // breakdown takes the whole row rather than half of it
             return (
-              <Block key={b.key} title={title} testId={`breakdown-${b.key}`}>
+              <Block key={b.key} title={title} testId={`breakdown-${b.key}`} className={full[i] ? "bk-wide" : undefined}>
                 <HBars rows={b.rows} lang={lang} names={names} label={title} />
               </Block>
             );
@@ -228,7 +231,7 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Lang 
 function EsgBlock({ esg, month, daily, fundWord, indexWord, lang }: { esg: Characteristic[]; month: string | null; daily: boolean; fundWord: string; indexWord: string; lang: Lang }) {
   const hasIndex = esg.some((c) => c.index != null);
   // next to the daily book, say that these figures come from the month-end factsheet
-  const lead = daily && month ? `${tr(T.portfolio.esgMonth, lang)} ${monthLabel(month, lang)}.` : hasIndex ? tr(T.portfolio.esgLead, lang) : undefined;
+  const lead = daily && month ? `${elide(tr(T.portfolio.esgMonth, lang), monthLabel(month, lang), lang)}.` : hasIndex ? tr(T.portfolio.esgLead, lang) : undefined;
   return (
     <Block title={tr(T.portfolio.esg, lang)} lead={lead} testId="esg">
       <table className="table ft-table">

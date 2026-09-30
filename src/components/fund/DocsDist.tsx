@@ -15,7 +15,7 @@ import { T, tr } from "./copy";
 import { Block } from "./Block";
 import { FL } from "./labels";
 import { dateLabel, fileSize, type Lang, colon } from "./lib/format.ts";
-import { distributionBars, distributionClasses, groupDocuments, historyRows, REGULATORY_DOCS } from "./lib/data.ts";
+import { amountDecimals, distributionBars, distributionClasses, groupDocuments, historyRows, isYearToDate, REGULATORY_DOCS } from "./lib/data.ts";
 import { DistBars, perUnit } from "./charts/DistBars";
 
 const mailto = (subject: string) => `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}`;
@@ -40,7 +40,7 @@ export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec
     <div className="container fp">
       <p className="fp-context" data-testid="distributions-asof">{tr(T.dist.asOf, lang)} {dateLabel(data!.distributions!.asOf, lang, true)}</p>
       <RecentDistributions classes={classes} headline={classes[0].fundserv} lang={lang} />
-      <DistributionHistory classes={classes} asOf={data!.distributions!.asOf} lang={lang} />
+      <DistributionHistory classes={classes} ytdRef={data!.distributions!.checkedAt ?? data!.distributions!.asOf} lang={lang} />
       <div className="ds-grid">{policy}</div>
     </div>
   );
@@ -57,14 +57,17 @@ function RecentDistributions({ classes, headline, lang }: { classes: ClassDistri
               <span className="ds-series">{tr(T.dist.series, lang)} {c.display}</span>
               <code>{c.fundserv}</code>
             </div>
-            {c.last ? (
-              <>
-                <span className="ds-amt" data-testid="dist-last-amount">{perUnit(c.last.amount, c.currency, lang)}</span>
-                <span className="ds-sub">{tr(T.dist.last, lang)} · {dateLabel(c.last.date, lang)}</span>
-              </>
-            ) : <span className="ds-sub ds-none">{tr(T.dist.none2, lang)}</span>}
+            {/* header, last distribution and facts are the three rows of the card: aligned across the cards of a row */}
+            <div className="ds-last">
+              {c.last ? (
+                <>
+                  <span className="ds-amt" data-testid="dist-last-amount">{perUnit(c.last.amount, c.currency, lang, amountDecimals(c))}</span>
+                  <span className="ds-sub">{tr(T.dist.last, lang)} · {dateLabel(c.last.date, lang)}</span>
+                </>
+              ) : <span className="ds-sub ds-none">{tr(T.dist.none2, lang)}</span>}
+            </div>
             <dl className="ds-facts">
-              {c.trailing12m != null ? <div><dt title={tr(T.dist.t12mLong, lang)}>{tr(T.dist.t12m, lang)}</dt><dd data-testid="dist-t12m">{perUnit(c.trailing12m, c.currency, lang)}</dd></div> : null}
+              {c.trailing12m != null ? <div><dt title={tr(T.dist.t12mLong, lang)}>{tr(T.dist.t12m, lang)}</dt><dd data-testid="dist-t12m">{perUnit(c.trailing12m, c.currency, lang, amountDecimals(c))}</dd></div> : null}
               {c.frequency ? <div><dt>{tr(T.dist.frequency, lang)}</dt><dd>{tr(T.dist.frequencies[c.frequency], lang)}</dd></div> : null}
             </dl>
           </div>
@@ -75,7 +78,7 @@ function RecentDistributions({ classes, headline, lang }: { classes: ClassDistri
 }
 
 /** One series at a time (the headline one first): bar chart of the last distributions, calendar-year totals, full history. */
-function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistribution[]; asOf: string; lang: Lang }) {
+function DistributionHistory({ classes, ytdRef, lang }: { classes: ClassDistribution[]; ytdRef: string; lang: Lang }) {
   const [code, setCode] = useState((classes.find((x) => x.history.length > 0) ?? classes[0]).fundserv);
   const [all, setAll] = useState(false);
   const listId = useId();
@@ -83,6 +86,7 @@ function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistributi
   const bars = distributionBars(c);
   const rows = historyRows(c, all);
   const seriesName = `${tr(T.dist.series, lang)} ${c.display}`;
+  const dp = amountDecimals(c);
   const withData = classes.filter((x) => x.history.length > 0);
   if (!withData.length) return null;
   const picker = withData.length > 1 ? (
@@ -99,7 +103,7 @@ function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistributi
       {bars.length ? (
         <>
           <p className="ds-chart-t">{tr(T.dist.chart, lang)}, {seriesName} ({c.currency}){bars.length < c.history.length ? ` · ${tr(T.dist.lastN, lang).replace("{n}", String(bars.length))}` : ""}</p>
-          <DistBars points={bars} currency={c.currency} lang={lang} seriesName={seriesName} label={`${tr(T.dist.chart, lang)}, ${seriesName}`} />
+          <DistBars key={c.fundserv} points={bars} currency={c.currency} decimals={dp} lang={lang} seriesName={seriesName} label={`${tr(T.dist.chart, lang)}, ${seriesName}`} />
         </>
       ) : null}
       <div className="ds-tables">
@@ -110,7 +114,7 @@ function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistributi
               <thead><tr><th scope="col">{tr(T.dist.year, lang)}</th><th scope="col">{tr(T.dist.total, lang)}</th><th scope="col">{tr(T.dist.count, lang)}</th></tr></thead>
               <tbody>
                 {[...c.calendarYears].reverse().map((y) => (
-                  <tr key={y.year}><td>{y.year}{String(y.year) === asOf.slice(0, 4) ? <span className="ds-ytd">{tr(FL.ytdLong, lang)}</span> : null}</td><td className="strong">{perUnit(y.amount, c.currency, lang)}</td><td>{y.count}</td></tr>
+                  <tr key={y.year}><td>{y.year}{isYearToDate(y.year, ytdRef) ? <span className="ds-ytd" data-testid="dist-ytd">{tr(FL.ytdLong, lang)}</span> : null}</td><td className="strong">{perUnit(y.amount, c.currency, lang, dp)}</td><td>{y.count}</td></tr>
                 ))}
               </tbody>
             </table>
@@ -121,7 +125,7 @@ function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistributi
             <caption className="ds-cap">{tr(T.dist.all, lang)}</caption>
             <thead><tr><th scope="col">{tr(T.dist.date, lang)}</th><th scope="col">{tr(T.dist.amount, lang)}</th></tr></thead>
             <tbody>
-              {rows.map((r) => <tr key={r.date}><td>{dateLabel(r.date, lang)}</td><td className="strong">{perUnit(r.amount, c.currency, lang)}</td></tr>)}
+              {rows.map((r) => <tr key={r.date}><td>{dateLabel(r.date, lang)}</td><td className="strong">{perUnit(r.amount, c.currency, lang, dp)}</td></tr>)}
             </tbody>
           </table>
           {c.history.length > 12 ? (
