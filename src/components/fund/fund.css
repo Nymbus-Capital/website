@@ -267,13 +267,6 @@ html:not(.js) .ft-bar { display: none; }
 /* distributions */
 .ds-grid { display: grid; max-width: 860px; }
 .ds-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
-@media (max-width: 560px) {
-  .ds-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .ds-card { padding: 16px 14px 14px; }
-  .ds-amt { font-size: clamp(16px, 4.6vw, 21px); overflow-wrap: anywhere; }
-  .ds-card-h { flex-wrap: wrap; }
-  .ds-facts div { flex-direction: column; gap: 0; }
-}
 .ds-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 18px 18px 16px; border-radius: 16px;
   background: var(--surf); border: 1px solid transparent; }
 .ds-card.hl { background: #fff; border-color: color-mix(in srgb, var(--fund) 30%, var(--line)); box-shadow: 0 10px 28px -18px var(--fund); }
@@ -295,6 +288,16 @@ html:not(.js) .ft-bar { display: none; }
 .ds-facts div { display: flex; justify-content: space-between; gap: 10px; }
 .ds-facts dt { color: var(--mute); }
 .ds-facts dd { margin: 0; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+/* phones: after the base rules so they apply */
+@media (max-width: 560px) {
+  .ds-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .ds-card { padding: 16px 14px 14px; }
+  /* the amount scales with its card so "US$0.044840" stays on one line on a phone (wraps only as a last resort) */
+  .ds-card { container-type: inline-size; }
+  .ds-amt { font-size: min(21px, 11.5cqi); overflow-wrap: anywhere; }
+  .ds-card-h { flex-wrap: wrap; }
+  .ds-facts div { flex-direction: column; gap: 0; }
+}
 .ds-chart-t { margin: 0 0 6px; font-size: 13px; color: var(--mute); }
 .ds-chart { margin-bottom: 8px; }
 .ds-tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 2.4vw, 32px); align-items: start; margin-top: 12px; }

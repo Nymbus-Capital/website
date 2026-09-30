@@ -178,6 +178,8 @@ test("distributions: per-series cards, history chart, calendar years and the ful
   // nothing clipped inside a card (amounts with 6 decimals and a currency prefix fit on phones)
   const overflow = await page.getByTestId("distributions-summary").locator(".ds-card").evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1 || [...e.querySelectorAll("*")].some((c) => c.getBoundingClientRect().right > e.getBoundingClientRect().right + 1)).map((e) => e.getAttribute("data-testid")));
   expect(overflow).toEqual([]);
+  const wrapped = await page.getByTestId("distributions-summary").locator(".ds-amt").evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().height > 1.6 * parseFloat(getComputedStyle(e).lineHeight)).map((e) => e.textContent));
+  expect(wrapped, "each amount on one line").toEqual([]);
   const history = page.getByTestId("distributions-history");
   await history.scrollIntoViewIfNeeded();
   const bars = page.getByTestId("distribution-chart").locator("svg .cat");
