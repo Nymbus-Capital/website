@@ -15,7 +15,7 @@ import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./t
 import { T, tr } from "./copy";
 import { categoryLabel } from "./labels";
 import { Block } from "./Block";
-import { Donut, HBars, Ring } from "./charts/Breakdowns";
+import { Donut, HBars } from "./charts/Breakdowns";
 import { charCount, charValue, dateLabel, fmt, monthLabel, type Lang } from "./lib/format.ts";
 import { bucketRows, dailyBreakdowns, hasDailyPortfolio, orderedBuckets, partialCoverage } from "./lib/data.ts";
 
@@ -127,11 +127,9 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
       {green != null ? (
         <Block title={tr(T.portfolio.greenTitle, lang)} testId="green-bonds" className="pf-green">
           <div className="pf-green-body">
-            <Ring value={green} lang={lang} label={tr(T.portfolio.greenTitle, lang)} />
-            <div>
-              <p className="pf-green-v"><b>{pctLabel(green, 1)}</b> {tr(T.portfolio.greenOf, lang)}</p>
-              <p className="fxb-text sm">{tr(T.portfolio.greenLead, lang)}</p>
-            </div>
+            <p className="pf-green-v"><Leaf aria-hidden="true" /><b data-testid="green-weight">{pctLabel(green, 1)}</b> {tr(T.portfolio.greenOf, lang)}</p>
+            <span className="pf-meter" aria-hidden="true"><i style={{ width: `${Math.min(100, green * 100)}%` }} /></span>
+            <p className="fxb-text sm">{tr(T.portfolio.greenLead, lang)}</p>
           </div>
         </Block>
       ) : null}

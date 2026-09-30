@@ -59,7 +59,7 @@ test("visibleBlocks: portfolio visible with a daily book only; distributions fol
 test("daily breakdowns: display order, rating and term order kept, weights as the bar value; FR labels", () => {
   const p = fund("sustainable-enhanced-bonds").portfolio!;
   const b = dailyBreakdowns(p);
-  assert.deepEqual(b.map((x) => x.key), ["assetType", "sector", "rating", "term", "country"]);
+  assert.deepEqual(b.map((x) => x.key), ["assetType", "country", "sector", "rating", "term"]);
   assert.deepEqual(b.find((x) => x.key === "rating")!.rows.map((r) => r.label), ["AAA", "AA", "A", "BBB", "BB", "Cash"]);
   assert.deepEqual(b.find((x) => x.key === "term")!.rows.map((r) => r.label), ["0-1", "1-3", "3-5", "5-7", "7-10", "10+", "Cash"]);
   for (const x of b) assert.ok(Math.abs(x.rows.reduce((a, r) => a + (r.fund ?? 0), 0) - 1) < 0.001, x.key);

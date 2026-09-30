@@ -300,8 +300,8 @@ export function portfolioOrigin(data: Pick<FundData, "portfolio" | "factsheetMon
   return data?.factsheetMonth ? { kind: "factsheet", month: data.factsheetMonth } : null;
 }
 
-/** Breakdowns of the daily book in display order, as bars (the weights as the fund value). */
-export const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "sector", "rating", "term", "country"];
+/** Breakdowns of the daily book in display order (paired by typical length in the two-column grid), as bars. */
+export const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sector", "rating", "term"];
 export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
   if (!p) return [];
   return DAILY_BREAKDOWNS.map((key) => ({ key, rows: (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight })) }))
