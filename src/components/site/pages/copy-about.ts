@@ -3,15 +3,15 @@
  * unused src/data/timeline.ts, rewritten and translated), verifiable milestones only (the old timeline mixed
  * inconsistent AUM figures and launch dates: see docs/site-rebuild.md), and the people (src/data/team.ts).
  */
-import { l, type L } from "@/lib/i18n/config";
-import type { Department } from "@/data/team";
+import { l, type L } from "../../../lib/i18n/config.ts";
+import type { Department } from "../../../data/team.ts";
 
 export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital is a Montreal investment manager founded in 2013: scientists and market veterans building systematic fixed income and multi-asset strategies. Meet the team.",
-      "Nymbus Capital est un gestionnaire de placements montréalais fondé en 2013 : des scientifiques et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et multi-actifs. Rencontrez l’équipe.",
+      "Nymbus Capital is a Montreal portfolio manager founded in 2013: scientists and market veterans building systematic fixed income and alternative strategies. Meet the team.",
+      "Nymbus Capital est un gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et alternatives. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -19,8 +19,8 @@ export const AB = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Nymbus Capital is an independent investment manager based in Montreal. Since 2013, our team of scientists, engineers and experienced portfolio managers has built systematic fixed income and multi-asset strategies for institutions, family offices and financial advisors.",
-      "Nymbus Capital est un gestionnaire de placements indépendant établi à Montréal. Depuis 2013, notre équipe de scientifiques, d’ingénieurs et de gestionnaires de portefeuille chevronnés bâtit des stratégies systématiques de revenu fixe et multi-actifs pour des institutions, des bureaux de gestion familiale et des conseillers financiers.",
+      "Nymbus Capital is an independent portfolio manager based in Montreal. Since 2013, our team of scientists, engineers and experienced portfolio managers has built systematic fixed income and alternative strategies for institutions, family offices and financial advisors.",
+      "Nymbus Capital est un gestionnaire de portefeuille indépendant établi à Montréal. Depuis 2013, notre équipe de scientifiques, d’ingénieurs et de gestionnaires de portefeuille chevronnés bâtit des stratégies systématiques de revenu fixe et alternatives pour des institutions, des bureaux de gestion familiale et des conseillers financiers.",
     ),
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
@@ -35,18 +35,18 @@ export const AB = {
     accent: l("investment firm", "axée sur la recherche"),
     p1: l(
       "Nymbus was founded in 2013 by Marc Rivet and Gabriel Cefaloni on a simple idea: fixed income markets generate far more data than a traditional team can analyze, and a scientific process can put that data to work for investors.",
-      "Nymbus a été fondée en 2013 par Marc Rivet et Gabriel Cefaloni autour d’une idée simple : les marchés des titres à revenu fixe produisent bien plus de données qu’une équipe traditionnelle ne peut en analyser, et un processus scientifique peut mettre ces données au service des investisseurs.",
+      "Nymbus a été fondée en 2013 par Marc Rivet et Gabriel Cefaloni autour d’une idée simple : les marchés des titres à revenu fixe produisent bien plus de données qu’une équipe traditionnelle ne peut en analyser, et un processus scientifique peut mettre ces données au service des investisseurs.",
     ),
     p2: l(
-      "Today, quantitative researchers with backgrounds in physics and computer science work alongside portfolio managers with decades of experience in fixed income and derivatives. Together they run systematic bond strategies, a multi-strategy fund and protection overlays, on technology built in-house.",
-      "Aujourd’hui, des chercheurs quantitatifs formés en physique et en informatique travaillent aux côtés de gestionnaires de portefeuille qui comptent des décennies d’expérience en revenu fixe et en produits dérivés. Ensemble, ils gèrent des stratégies obligataires systématiques, un fonds multistratégies et des stratégies de protection, sur une technologie conçue à l’interne.",
+      "Today, quantitative researchers with backgrounds in physics and computer science work alongside portfolio managers who have spent their careers in fixed income and derivatives. Together they run systematic bond strategies, a multi-strategy fund and futures overlays, on technology built in-house.",
+      "Aujourd’hui, des chercheurs quantitatifs formés en physique et en informatique travaillent aux côtés de gestionnaires de portefeuille qui ont fait carrière en revenu fixe et en produits dérivés. Ensemble, ils gèrent des stratégies obligataires systématiques, un fonds multistratégies et des stratégies de superposition de contrats à terme, sur une technologie conçue à l’interne.",
     ),
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
     directions: l("Directions", "Itinéraire"),
     facts: [
       [l("Founded", "Fondation"), l("2013, Montreal", "2013, Montréal")],
-      [l("Signatory", "Signataire"), l("UN PRI, since 2018", "PRI de l’ONU, depuis 2018")],
+      [l("Signatory", "Signataire"), l("PRI, since 2018", "PRI, depuis 2018")],
       [l("Clients", "Clientèle"), l("Institutions, family offices, advisors", "Institutions, bureaux de gestion familiale, conseillers")],
     ] as [L, L][],
   },
@@ -68,10 +68,10 @@ export const AB = {
     accent: l("so far", "à ce jour"),
     items: [
       { y: "2013", t: l("Nymbus is founded", "Fondation de Nymbus"), d: l("Marc Rivet and Gabriel Cefaloni found the firm in Montreal and start building systematic fixed income models.", "Marc Rivet et Gabriel Cefaloni fondent la firme à Montréal et commencent à bâtir des modèles systématiques de revenu fixe.") },
-      { y: "2018", t: l("UN PRI signatory", "Signataire des PRI de l’ONU"), d: l("Nymbus signs the Principles for Responsible Investment.", "Nymbus signe les Principes pour l’investissement responsable.") },
+      { y: "2018", t: l("PRI signatory", "Signataire des PRI"), d: l("Nymbus signs the UN-supported Principles for Responsible Investment (PRI).", "Nymbus signe les Principes pour l’investissement responsable (PRI), soutenus par les Nations Unies.") },
       { y: "2021", t: l("Monthly Income fund launched", "Lancement du Fonds Revenu Mensuel"), d: l("The Nymbus Monthly Income Fund is launched.", "Le Fonds Nymbus Revenu Mensuel est lancé.") },
       { y: "2023", t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"), d: l("Nymbus supports Dans la rue, which helps homeless and at-risk youth in Montreal.", "Nymbus soutient Dans la rue, qui vient en aide aux jeunes sans-abri ou à risque de Montréal.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Nymbus commits to excluding tobacco companies from all of its portfolios.", "Nymbus s’engage à exclure les entreprises du tabac de tous ses portefeuilles.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Nymbus commits to excluding tobacco companies from the securities it selects directly.", "Nymbus s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.") },
       { y: "2025", t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"), d: l("Mageska entrusts Nymbus with a portion of the Mageska Fund to implement a portable alpha strategy.", "Mageska confie à Nymbus une partie du Fonds Mageska pour mettre en œuvre une stratégie d’alpha portable.") },
     ],
   },

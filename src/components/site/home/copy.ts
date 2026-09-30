@@ -4,8 +4,8 @@
  * outcome ("superior risk-adjusted returns" → what the method does). Regulatory texts come from
  * src/content/disclaimers.ts (compliance review), never from here.
  */
-import { l, type L } from "@/lib/i18n";
-import { DISC } from "@/content/disclaimers";
+import { l, type L } from "../../../lib/i18n/config.ts";
+import { DISC } from "../../../content/disclaimers.ts";
 
 export const HOME_COPY = {
   hero: {
@@ -14,11 +14,11 @@ export const HOME_COPY = {
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
     lead: l(
-      "Nymbus Capital is a Montreal investment manager that builds fixed income and alternative strategies with quantitative research, systematic portfolio construction and continuous risk management.",
-      "Nymbus Capital est un gestionnaire de placements montréalais qui bâtit des stratégies de revenu fixe et alternatives grâce à la recherche quantitative, à la construction systématique de portefeuilles et à une gestion continue des risques.",
+      "Nymbus Capital is a Montreal portfolio manager that builds fixed income and alternative strategies with quantitative research, systematic portfolio construction and continuous risk management.",
+      "Nymbus Capital est un gestionnaire de portefeuille montréalais qui bâtit des stratégies de revenu fixe et alternatives grâce à la recherche quantitative, à la construction systématique de portefeuilles et à une gestion continue des risques.",
     ),
     cta1: l("Explore strategies", "Explorer les stratégies"),
-    cta2: l("Investment solutions", "Solutions d’investissement"),
+    cta2: l("Investment solutions", "Solutions de placement"),
     live: l("Daily NAVs as of", "VL quotidiennes au"),
   },
   figures: {
@@ -33,8 +33,8 @@ export const HOME_COPY = {
     title: l("At the intersection of", "À l’intersection de"),
     accent: l("technology, data and finance", "la technologie, des données et de la finance"),
     lead: l(
-      "We apply the scientific method to investing: form a hypothesis, test it on data, and keep only what holds up out of sample. Our team combines decades of institutional experience with research in machine learning, signal processing and portfolio optimization.",
-      "Nous appliquons la méthode scientifique au placement : formuler une hypothèse, la tester sur les données et ne retenir que ce qui résiste hors échantillon. Notre équipe allie des décennies d’expérience institutionnelle à la recherche en apprentissage automatique, en traitement du signal et en optimisation de portefeuille.",
+      "We apply the scientific method to investing: form a hypothesis, test it on data, and keep only what holds up out of sample. Our team combines institutional investment experience with research in machine learning, signal processing and portfolio optimization.",
+      "Nous appliquons la méthode scientifique au placement : formuler une hypothèse, la tester sur les données et ne retenir que ce qui résiste hors échantillon. Notre équipe allie une expérience de la gestion institutionnelle à la recherche en apprentissage automatique, en traitement du signal et en optimisation de portefeuille.",
     ),
     cards: [
       {
@@ -47,15 +47,15 @@ export const HOME_COPY = {
       {
         title: l("Systematic construction", "Construction systématique"),
         text: l(
-          "Portfolios built by explicit rules and optimization models, with disciplined allocation and rebalancing instead of discretionary calls.",
-          "Des portefeuilles bâtis selon des règles explicites et des modèles d’optimisation, avec une répartition et un rééquilibrage disciplinés plutôt que des décisions discrétionnaires.",
+          "Portfolios built by explicit rules and optimization models, with disciplined allocation and rebalancing, under human oversight.",
+          "Des portefeuilles bâtis selon des règles explicites et des modèles d’optimisation, avec une répartition et un rééquilibrage disciplinés, sous supervision humaine.",
         ),
       },
       {
         title: l("Dynamic risk management", "Gestion dynamique des risques"),
         text: l(
-          "Continuous monitoring, market-regime classification and protection strategies designed to soften drawdowns.",
-          "Une surveillance continue, une classification des régimes de marché et des stratégies de protection conçues pour atténuer les replis.",
+          "Continuous monitoring, market-regime classification, explicit risk limits and hedging strategies designed to offset part of the losses in a decline. Risk management does not eliminate the risk of loss.",
+          "Une surveillance continue, une classification des régimes de marché, des limites de risque explicites et des stratégies de couverture conçues pour compenser une partie des pertes lors d’un repli. La gestion des risques n’élimine pas le risque de perte.",
         ),
       },
     ] as { title: L; text: L }[],
@@ -67,13 +67,13 @@ export const HOME_COPY = {
     title: l("Our funds and", "Nos fonds et"),
     accent: l("strategies", "stratégies"),
     lead: l(
-      "Four strategies built by the same research process: two bond funds, a multi-strategy fund and a protection overlay for managed accounts.",
-      "Quatre stratégies issues du même processus de recherche : deux fonds obligataires, un fonds multistratégies et une stratégie de protection pour comptes gérés.",
+      "Four strategies built by the same research process: two bond funds, a multi-strategy fund and a futures overlay for managed accounts.",
+      "Quatre stratégies issues du même processus de recherche : deux fonds obligataires, un fonds multistratégies et une stratégie de superposition de contrats à terme pour comptes gérés.",
     ),
     all: l("View all strategies", "Voir toutes les stratégies"),
   },
   process: {
-    eyebrow: l("Investment process", "Processus d’investissement"),
+    eyebrow: l("Investment process", "Processus de placement"),
     title: l("One pipeline, from data", "Un seul processus, des données"),
     accent: l("to portfolio", "au portefeuille"),
     lead: l(
@@ -84,7 +84,7 @@ export const HOME_COPY = {
       {
         title: l("Data and research", "Données et recherche"),
         text: l(
-          "Market, security and fundamental data gathered, cleaned and studied to identify persistent drivers of return.",
+          "Market, security and fundamental data collected, cleaned and studied to identify persistent drivers of return.",
           "Des données de marché, de titres et fondamentales recueillies, nettoyées et étudiées pour repérer les moteurs de rendement persistants.",
         ),
       },
@@ -119,7 +119,7 @@ export const HOME_COPY = {
     platforms: l("Our funds are available through", "Nos fonds sont offerts par l’entremise de"),
     note: l(
       "Source: Nymbus Capital Inc. Representative list; not all clients are shown. QEMP: Quebec Emerging Managers Program (Innocap). Inclusion does not imply endorsement.",
-      "Source : Nymbus Capital inc. Liste représentative; tous les clients ne sont pas présentés. QEMP : Programme des gestionnaires en émergence du Québec (Innocap). Leur présence ne constitue pas une recommandation.",
+      "Source : Nymbus Capital inc. Liste représentative; tous les clients ne sont pas présentés. QEMP : Programme des gestionnaires en émergence du Québec (Innocap). Leur présence ne constitue pas une recommandation.",
     ),
     marquee: l("Logos of institutions and platforms we work with", "Logos des institutions et plateformes avec qui nous travaillons"),
   },
@@ -148,7 +148,7 @@ export const HOME_COPY = {
 export const FUND_COPY = {
   nav: l("NAV", "VL"),
   navSeries: l("Series", "Série"),
-  ytd: l("YTD", "Cumul annuel"),
+  ytd: l("YTD", "DDA"),
   y1: l("1 year", "1 an"),
   si: l("Since inception, annualized", "Depuis la création, annualisé"),
   siCum: l("Since inception (cumulative)", "Depuis la création (cumulatif)"),
@@ -156,8 +156,8 @@ export const FUND_COPY = {
   siAnn: l("since inception, annualized", "depuis la création, annualisé"),
   siCumShort: l("since inception, cumulative", "depuis la création, cumulatif"),
   annualized: l("annualized", "annualisé"),
-  net: l("Net of fees", "Nets de frais"),
-  gross: l("Gross of fees", "Bruts de frais"),
+  net: l("Net of fees", "Après déduction des frais"),
+  gross: l("Gross of fees", "Avant déduction des frais"),
   asOf: l("Returns as of", "Rendements au"),
   navAsOf: l("as of", "au"),
   view: l("View the strategy", "Voir la stratégie"),

@@ -1,5 +1,5 @@
 /** Copy of /strategies, EN + FR side by side (rewritten from the previous site's strategies page). */
-import { l } from "@/lib/i18n";
+import { l } from "../../../lib/i18n/config.ts";
 
 export const STRAT_COPY = {
   home: l("Home", "Accueil"),
@@ -22,7 +22,7 @@ export const STRAT_COPY = {
   cmpAccent: l("comparison", "stratégies"),
   cmpLead: l(
     "The main facts and published returns of each strategy in one table. Select a name for the full fund page: objectives, fees, portfolio, risk statistics and documents.",
-    "Les principales caractéristiques et les rendements publiés de chaque stratégie dans un seul tableau. Sélectionnez un nom pour la page complète du fonds : objectifs, frais, portefeuille, statistiques de risque et documents.",
+    "Les principales caractéristiques et les rendements publiés de chaque stratégie dans un seul tableau. Sélectionnez un nom pour la page complète du fonds : objectifs, frais, portefeuille, statistiques de risque et documents.",
   ),
   cols: {
     fund: l("Strategy", "Stratégie"),
@@ -37,16 +37,16 @@ export const STRAT_COPY = {
   cumulative: l("cumulative", "cumulatif"),
   siNote: l(
     "Since-inception returns are annualized when the track record covers at least 12 months, cumulative otherwise. Year to date and 1 year are not annualized.",
-    "Les rendements depuis la création sont annualisés lorsque l’historique couvre au moins 12 mois, cumulatifs sinon. Le cumul annuel et le rendement sur 1 an ne sont pas annualisés.",
+    "Les rendements depuis la création sont annualisés lorsque l’historique couvre au moins 12 mois, cumulatifs sinon. Les rendements depuis le début de l’année et sur 1 an ne sont pas annualisés.",
   ),
   dashNote: l(
-    "— : not published yet. A figure appears once it is available and validated; we never show an estimate in its place.",
-    "— : pas encore publié. Un chiffre apparaît une fois disponible et validé; nous n’affichons jamais d’estimation à sa place.",
+    "— : not published yet. A figure appears once it is available and validated; we never show an estimate in its place.",
+    "— : pas encore publié. Un chiffre apparaît une fois disponible et validé; nous n’affichons jamais d’estimation à sa place.",
   ),
   ctaTitle: l("Which strategy fits", "Quelle stratégie convient à"),
   ctaAccent: l("your mandate?", "votre mandat?"),
   ctaText: l(
     "Our team can walk you through each strategy, its documents and how it is offered to institutions, family offices and advisors.",
-    "Notre équipe peut vous présenter chaque stratégie, ses documents et la façon dont elle est offerte aux institutions, aux family offices et aux conseillers.",
+    "Notre équipe peut vous présenter chaque stratégie, ses documents et la façon dont elle est offerte aux institutions, aux bureaux de gestion familiale et aux conseillers.",
   ),
 };

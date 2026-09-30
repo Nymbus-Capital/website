@@ -3,7 +3,7 @@
  * and trimmed to the facts. The old images and "read on nymbus.ca" links pointed at the WordPress site that this
  * site replaces on www.nymbus.ca, so they are not used (the cards carry an illustration by category instead).
  */
-import { l, type L } from "@/lib/i18n";
+import { l, type L } from "../../../lib/i18n/config.ts";
 
 export type NewsCategory = "partnership" | "esg" | "recognition" | "community";
 
@@ -33,11 +33,11 @@ export const NEWS: NewsItem[] = [
     title: l("Mageska Capital and Nymbus Capital announce a partnership", "Mageska Capital et Nymbus Capital annoncent un partenariat"),
     summary: l(
       "Mageska entrusts Nymbus with a portion of the Mageska Fund to implement a portable alpha strategy.",
-      "Mageska confie à Nymbus la gestion d’une portion du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable.",
+      "Mageska confie à Nymbus la gestion d’une partie du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable.",
     ),
     body: l(
-      "Mageska Capital Inc., an investment management firm, announced a partnership with Nymbus Capital Inc., an asset manager known for its systematic strategies and rigorous risk management.\n\nUnder this agreement, Mageska Capital entrusts Nymbus Capital with the management of a specific portion of the Mageska Fund to implement a portable alpha strategy. The collaboration draws on Nymbus Capital’s expertise in low-volatility strategies that are uncorrelated with traditional indices, with the aim of improving the fund’s overall return potential while reducing its correlation with its benchmark.\n\nBoth firms share an approach to investing that combines innovation, technology and discipline.",
-      "Mageska Capital inc., une société de gestion de placements, a annoncé un partenariat avec Nymbus Capital inc., un gestionnaire d’actifs reconnu pour ses stratégies systématiques et sa gestion rigoureuse des risques.\n\nAux termes de cette entente, Mageska Capital confie à Nymbus Capital la gestion d’une portion déterminée du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable. La collaboration s’appuie sur l’expertise de Nymbus Capital en stratégies à faible volatilité, non corrélées aux indices traditionnels, dans le but d’améliorer le potentiel de rendement global du fonds tout en réduisant sa corrélation avec son indice de référence.\n\nLes deux firmes partagent une approche du placement qui allie innovation, technologie et discipline.",
+      "Mageska Capital Inc., an investment management firm, announced a partnership with Nymbus Capital Inc., a Montreal portfolio manager that runs systematic strategies.\n\nUnder this agreement, Mageska Capital entrusts Nymbus Capital with the management of a specific portion of the Mageska Fund to implement a portable alpha strategy. The mandate uses Nymbus Capital’s low-volatility strategies, which are designed to have low correlation with traditional indices.",
+      "Mageska Capital inc., une société de gestion de placements, a annoncé un partenariat avec Nymbus Capital inc., un gestionnaire de portefeuille montréalais qui applique des stratégies systématiques.\n\nAux termes de cette entente, Mageska Capital confie à Nymbus Capital la gestion d’une partie déterminée du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable. Le mandat fait appel aux stratégies à faible volatilité de Nymbus Capital, conçues pour avoir une faible corrélation avec les indices traditionnels.",
     ),
   },
   {
@@ -46,26 +46,12 @@ export const NEWS: NewsItem[] = [
     category: "esg",
     title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire du Tobacco-Free Finance Pledge"),
     summary: l(
-      "Nymbus commits to excluding tobacco companies from all of its portfolios.",
-      "Nymbus s’engage à exclure les entreprises du tabac de tous ses portefeuilles.",
+      "Nymbus commits to excluding tobacco companies from the securities it selects directly.",
+      "Nymbus s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.",
     ),
     body: l(
-      "Nymbus has become a signatory of the Tobacco-Free Finance Pledge led by Tobacco Free Portfolios, and is committed to excluding tobacco companies from all of its portfolios.\n\nPublic health programs around the world spend billions every year treating cancer, emphysema, heart disease and other illnesses linked to tobacco use. We believe institutional investors and asset managers can play an active role in the global effort against tobacco.\n\nTobacco-related illnesses cause some eight million deaths worldwide each year. Global, multi-stakeholder collaboration is needed to address its impact on society and on the environment.",
-      "Nymbus est devenue signataire du Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios, et s’engage à exclure les entreprises du tabac de tous ses portefeuilles.\n\nPartout dans le monde, les programmes de santé publique consacrent chaque année des milliards au traitement du cancer, de l’emphysème, des maladies cardiaques et d’autres maladies liées au tabagisme. Nous croyons que les investisseurs institutionnels et les gestionnaires d’actifs peuvent jouer un rôle actif dans la lutte mondiale contre le tabac.\n\nLes maladies liées au tabac causent quelque huit millions de décès chaque année dans le monde. Une collaboration mondiale entre toutes les parties prenantes est nécessaire pour en limiter les effets sur la société et sur l’environnement.",
-    ),
-  },
-  {
-    id: "rbc-study",
-    date: "2023-11-16",
-    category: "recognition",
-    title: l("Nymbus fixed income strategies ranked in the RBC fund study", "Les stratégies de revenu fixe de Nymbus classées dans l’étude de fonds de RBC"),
-    summary: l(
-      "All three fixed income strategies managed by Nymbus ranked in the top percentiles of the RBC fund study.",
-      "Les trois stratégies de revenu fixe gérées par Nymbus se sont classées dans les premiers centiles de l’étude de fonds de RBC.",
-    ),
-    body: l(
-      "All three fixed income strategies managed by Nymbus Capital were ranked in the top percentiles of the RBC fund study, an analysis of Canadian investment fund performance.\n\nThe strategies share the same disciplined, quantitative approach to fixed income: systematic credit analysis combined with rigorous risk management. Past performance may not be repeated.",
-      "Les trois stratégies de revenu fixe gérées par Nymbus Capital se sont classées dans les premiers centiles de l’étude de fonds de RBC, une analyse du rendement des fonds de placement canadiens.\n\nCes stratégies partagent la même approche quantitative et disciplinée du revenu fixe : une analyse systématique du crédit alliée à une gestion rigoureuse des risques. Le rendement passé pourrait ne pas se reproduire.",
+      "Nymbus has become a signatory of the Tobacco-Free Finance Pledge led by Tobacco Free Portfolios, and is committed to excluding tobacco companies from the securities it selects directly.\n\nWe believe institutional investors and asset managers can play an active role in the global effort against tobacco.",
+      "Nymbus est devenue signataire du Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios, et s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.\n\nNous croyons que les investisseurs institutionnels et les gestionnaires d’actifs peuvent jouer un rôle actif dans la lutte mondiale contre le tabac.",
     ),
   },
   {

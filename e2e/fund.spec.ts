@@ -11,7 +11,7 @@ const FUNDS = [
   { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 3 },
   { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3 },
   // managed accounts, not a fund: gross figures, no NAV / FundServ series
-  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatilité", gross: true, series: 0 },
+  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0 },
 ];
 const TABS = ["overview", "performance", "portfolio", "distributions", "documents"] as const;
 
@@ -178,7 +178,7 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Fonds Nymbus Revenu Mensuel" })).toBeVisible();
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="overview"]')).toHaveText("Aperçu");
-  await expect(page.getByTestId("basis")).toContainText("net de frais");
+  await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
   // decimal comma and a no-break space before % / $
   await expect(page.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+,\d{2}\s%$/);
   await expect(page.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText(/^\d+,\d{4}\s\$$/);
