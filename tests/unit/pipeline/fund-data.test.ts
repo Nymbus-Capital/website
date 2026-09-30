@@ -324,6 +324,26 @@ test("build: daily book primary for covered funds, factsheet kept for the others
   assert.deepEqual(data.issues.filter((i) => i.key.includes("crossCheck")), []);
 });
 
+test("build: the month-end book is requested with a full date (last day of the closed month) and is cross-checked", async () => {
+  const m = mockFetch();
+  await fetchAll({ fetchImpl: m.fetch, now: NOW, env: fixtureEnv() });
+  const dated = m.calls.map((c) => new URL(c.url)).filter((u) => u.pathname === "/api/apex/fund-portfolio" && u.searchParams.has("date"));
+  assert.deepEqual(dated.map((u) => `${u.searchParams.get("fund")} ${u.searchParams.get("date")}`).sort(), ["Multistrat 2026-08-31", "SEB 2026-08-31", "SEST 2026-08-31"]);
+
+  // a month-end book that disagrees with the August factsheet produces cross-check warnings (the check really runs)
+  const divergent: Route = (u) => {
+    if (u.pathname !== "/api/apex/fund-portfolio" || u.searchParams.get("fund") !== "SEST" || u.searchParams.get("date") !== "2026-08-31") return undefined;
+    const me = structuredClone(loadFixture("dataplatform/portfolio_SEST_2026-08-31.json")) as { characteristics: { modified_duration: { value: number } } };
+    me.characteristics.modified_duration.value = 4.9;
+    return json(me);
+  };
+  const { data } = await build(divergent);
+  const cc = data.issues.filter((i) => i.key.startsWith("funds.monthly-income.portfolio.crossCheck"));
+  assert.deepEqual(cc.map((i) => [i.key, i.level]), [["funds.monthly-income.portfolio.crossCheck.duration", "warn"]]);
+  assert.match(cc[0].message, /month-end cross-check 2026-08-31: duration 4.90 \(daily book\) vs 2.41 \(factsheet 2026-08\)/);
+  assert.equal(data.funds["monthly-income"]!.portfolio?.source, "daily", "a cross-check warning never withholds the daily book");
+});
+
 test("build: endpoints not deployed (404) → one info issue each, everything else exactly as before", async () => {
   const before = await build(notDeployed);
   const after = await build();

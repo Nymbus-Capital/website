@@ -40,6 +40,8 @@ export function fixtureRoute(url: URL): Response | undefined {
   if (p === "/api/apex/fund-portfolio") {
     const fund = q.get("fund") ?? "";
     const date = q.get("date");
+    // like the real endpoint: `date` must be a full ISO date
+    if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ detail: [{ loc: ["query", "date"], msg: "Input should be a valid date" }] }, 422);
     try {
       return json(loadFixture(`dataplatform/portfolio_${fund}${date ? `_${date}` : ""}.json`));
     } catch {

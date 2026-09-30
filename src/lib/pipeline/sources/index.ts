@@ -62,6 +62,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
  * Latest portfolio book, plus the book of the last closed month-end for the factsheet cross-check (skipped when the
  * latest book already is in that month, or when the latest call failed: the endpoint is then down or not deployed).
  */
+/** `monthEnd`: the last closed month-end as a full date (lastClosedMonth returns YYYY-MM-DD; the endpoint rejects YYYY-MM). */
 async function fetchPortfolios(c: NonNullable<ReturnType<typeof dpClient>>, s: DpShort, monthEnd: string): Promise<{ latest: SourceResult<FundPortfolio>; monthEnd: SourceResult<FundPortfolio> | null }> {
   const latest = await fetchFundPortfolio(c, s);
   if (!latest.ok || !latest.data || latest.data.as_of.slice(0, 7) === monthEnd.slice(0, 7)) return { latest, monthEnd: null };
