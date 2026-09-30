@@ -11,13 +11,13 @@ import { signIn } from "./helpers";
 const ROUTES = [
   { path: "/", name: "home", en: /scientific investing/, fr: /investissement scientifique/ },
   { path: "/strategies", name: "strategies", en: /our investment strategies/, fr: /nos stratégies de placement/ },
-  { path: "/approach", name: "approach", en: /where science meets bonds/, fr: /là où la science rencontre les obligations/ },
-  { path: "/sustainability", name: "sustainability", en: /modernity meets responsibility/, fr: /la modernité rencontre la responsabilité/ },
-  { path: "/team", name: "team", en: /scientists and market veterans/, fr: /des scientifiques et des vétérans des marchés/ },
-  { path: "/contact", name: "contact", en: /let’s talk/, fr: /parlons ensemble/ },
+  { path: "/approach", name: "approach", en: /at the intersection of technology, data and finance/i, fr: /à l’intersection de la technologie, des données et de la finance/i },
+  { path: "/sustainability", name: "sustainability", en: /responsible investing, built into the process/i, fr: /l’investissement responsable, intégré au processus/i },
+  { path: "/team", name: "team", en: /scientists and market veterans/i, fr: /des scientifiques et des vétérans des marchés/i },
+  { path: "/contact", name: "contact", en: /get in touch/i, fr: /communiquez avec nous/i },
   { path: "/solutions", name: "solutions", en: /solutions for every mandate/, fr: /des solutions pour chaque mandat/ },
-  { path: "/legal", name: "legal", en: /legal/, fr: /juridique/ },
-  { path: "/privacy", name: "privacy", en: /privacy policy/, fr: /politique de confidentialité/ },
+  { path: "/legal", name: "legal", en: /^legal$/i, fr: /^juridique$/i },
+  { path: "/privacy", name: "privacy", en: /^privacy policy$/i, fr: /^politique de confidentialité$/i },
 ];
 
 const SHOTS = "e2e/screenshots";
@@ -47,6 +47,19 @@ async function scrollThrough(page: Page) {
   await page.waitForTimeout(300);
 }
 
+/** Jump every finite animation (CSS and Web Animations) to its end state, so full-page captures are at rest. */
+async function settle(page: Page) {
+  await page.evaluate(() => {
+    for (const a of document.getAnimations()) {
+      try {
+        const end = a.effect?.getComputedTiming().endTime;
+        if (typeof end === "number" && Number.isFinite(end)) a.finish();
+      } catch { /* infinite or detached: leave it */ }
+    }
+  });
+  await page.waitForTimeout(150);
+}
+
 for (const r of ROUTES) {
   for (const locale of ["en", "fr"] as const) {
     test(`${r.path} renders its heading (${locale})`, async ({ page, baseURL }) => {
@@ -67,8 +80,7 @@ for (const r of ROUTES) {
     await page.context().addCookies([{ name: "nymbus-locale", value: "en", url: baseURL! }]);
     await page.goto(r.path);
     await scrollThrough(page);
-    // freeze the keynote swap so every screen is at rest in the capture
-    await page.addStyleTag({ content: ".screen{transform:none!important;filter:none!important;opacity:1!important;clip-path:none!important;animation:none!important}" });
+    await settle(page);
     await page.screenshot({ path: `${SHOTS}/site-${r.name}-${info.project.name}.png`, fullPage: true });
   });
 }
@@ -76,8 +88,11 @@ for (const r of ROUTES) {
 test("unknown route: 404 page in the site chrome", async ({ page }, info) => {
   const res = await page.goto("/this-page-does-not-exist");
   expect(res?.status()).toBe(404);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/this bond has matured/);
-  await expect(page.getByRole("link", { name: /back to home/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/this page has matured/i);
+  await expect(page.getByRole("link", { name: /back to home/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /our strategies/i })).toHaveAttribute("href", "/strategies");
+  await expect(page.getByTestId("site-nav")).toBeVisible();
+  await page.waitForTimeout(3200);
   await page.screenshot({ path: `${SHOTS}/site-404-${info.project.name}.png`, fullPage: true });
 });
 
@@ -131,7 +146,7 @@ test("mobile menu opens, traps focus, closes with Escape", async ({ page, isMobi
   const menu = page.getByTestId("mobile-menu");
   await expect(menu).toBeVisible();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
-  await expect(menu.getByRole("link", { name: "team" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: /^about$/i })).toBeVisible();
   // focus starts inside the menu and stays there
   expect(await page.evaluate(() => !!document.activeElement?.closest("#site-menu"))).toBe(true);
   for (let i = 0; i < 20; i++) await page.keyboard.press("Tab");
@@ -141,7 +156,7 @@ test("mobile menu opens, traps focus, closes with Escape", async ({ page, isMobi
   await expect(toggle).toBeFocused();
   // navigating from the menu
   await toggle.click();
-  await menu.getByRole("link", { name: "team" }).click();
+  await menu.getByRole("link", { name: /^about$/i }).click();
   await expect(page).toHaveURL(/\/team$/);
   await expect(menu).toBeHidden();
 });
@@ -149,58 +164,88 @@ test("mobile menu opens, traps focus, closes with Escape", async ({ page, isMobi
 test("reduced motion: content is visible without animations", async ({ browser, baseURL }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
-  await page.goto("/");
-  for (const sel of ["#hero-t", "#glance-t", "#process-t", "#strat-t", "#sum-t"]) {
-    const el = page.locator(sel);
-    await el.scrollIntoViewIfNeeded();
-    const opacity = await el.evaluate((n) => {
-      const w = n.querySelector(".w") ?? n;
-      return Number(getComputedStyle(w).opacity);
-    });
-    expect(opacity, sel).toBe(1);
+  for (const path of ["/approach", "/sustainability", "/team", "/contact", "/legal", "/privacy"]) {
+    await page.goto(path);
+    // the H1 words and every revealed block are visible at once, even before they scroll into view
+    const h1 = page.getByRole("heading", { level: 1 }).first();
+    expect(await h1.evaluate((n) => Number(getComputedStyle(n.querySelector(".w") ?? n).opacity)), path).toBe(1);
+    const hidden = await page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *, .ap-node, .ap-risks li, .ap-seg, .ab-person, .ab-tl-i, .ct-opt, .lg2-sec"))
+        .filter((e) => getComputedStyle(e).opacity === "0").length,
+    );
+    expect(hidden, path).toBe(0);
   }
-  // revealed blocks are visible even before they scroll in
-  const hidden = await page.evaluate(() =>
-    Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *")).filter((e) => getComputedStyle(e).opacity === "0").length,
-  );
-  expect(hidden).toBe(0);
-  // the pinned "why an overlay" story unpins and shows every step
-  await expect(page.locator(".story-pin")).toHaveCSS("position", "relative");
-  await expect(page.locator(".story-steps li")).toHaveCount(4);
-  for (const li of await page.locator(".story-steps li").all()) await expect(li).toHaveCSS("opacity", "1");
+  // the pipeline illustrations are drawn, not waiting for a scroll
+  await page.goto("/approach");
+  const wave = page.locator(".ap-wave").first();
+  expect(await wave.evaluate((n) => getComputedStyle(n).strokeDashoffset)).toMatch(/^0(px)?$/);
   await ctx.close();
 });
 
 test("team: filter by department and open a bio", async ({ page }) => {
   await page.goto("/team");
-  const people = page.locator(".people > li");
+  const people = page.getByTestId("people").locator(":scope > li");
   await people.first().scrollIntoViewIfNeeded();
   const all = await people.count();
-  await page.getByRole("button", { name: /^board/ }).click();
+  expect(all).toBeGreaterThan(10);
+  const board = page.getByRole("button", { name: /^board/i });
+  await board.click();
+  await expect(board).toHaveAttribute("aria-pressed", "true");
   await expect.poll(() => people.count()).toBeLessThan(all);
-  await page.getByRole("button", { name: /^everyone/ }).click();
+  await page.getByRole("button", { name: /^everyone/i }).click();
   await expect.poll(() => people.count()).toBe(all);
-  await people.first().getByRole("button").click();
+  const first = people.first().getByRole("button");
+  await first.click();
   const dialog = page.getByTestId("bio-dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { level: 2 })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  await expect(first).toBeFocused();
 });
 
-test("contact: validates, then prepares an email (no backend)", async ({ page }) => {
+test("contact: three steps, validated, then an email is prepared (no backend)", async ({ page }) => {
   await page.goto("/contact");
   const form = page.getByTestId("contact-form");
   await form.scrollIntoViewIfNeeded();
-  await form.getByRole("button", { name: /prepare my email/ }).click();
-  await expect(page.getByText("please enter a valid email")).toBeVisible();
-  await page.getByLabel("full name").fill("Test Person");
-  await page.getByLabel("email").fill("test@example.com");
-  await page.getByLabel("message").fill("Hello, I would like to learn more about your funds.");
+  await expect(form).toHaveAttribute("data-live", "");
+  // step 1: an investor type is required
+  await form.getByRole("button", { name: /^continue/i }).click();
+  await expect(form.getByText("Please choose an investor type.")).toBeVisible();
+  await form.getByText("Family office", { exact: true }).click();
+  await form.getByRole("button", { name: /^continue/i }).click();
+  // step 2: at least one interest
+  await expect(form.getByRole("group", { name: /what are you interested in/i })).toBeVisible();
+  await form.getByRole("button", { name: /^continue/i }).click();
+  await expect(form.getByText("Please choose at least one interest.")).toBeVisible();
+  await form.getByText("Monthly Income", { exact: true }).click();
+  await form.getByRole("button", { name: /^continue/i }).click();
+  // step 3: name and a valid email
+  await form.getByRole("button", { name: /prepare my email/i }).click();
+  await expect(form.getByText("Please enter a valid email address.")).toBeVisible();
+  await page.getByLabel("Full name").fill("Test Person");
+  await page.getByLabel("Email address").fill("test@example.com");
+  await page.getByLabel(/^Message/).fill("Hello, I would like to learn more about your funds.");
   // the mailto: hand-off opens the mail app (a no-op in the test browser); the ready state must show
-  await form.getByRole("button", { name: /prepare my email/ }).click();
-  await expect(page.getByTestId("contact-ready")).toBeVisible();
-  await expect(page.getByTestId("contact-ready").getByRole("link")).toHaveAttribute("href", /^mailto:info@nymbus\.ca\?subject=/);
+  await form.getByRole("button", { name: /prepare my email/i }).click();
+  const ready = page.getByTestId("contact-ready");
+  await expect(ready).toBeVisible();
+  await expect(ready.getByRole("link")).toHaveAttribute("href", /^mailto:info@nymbus\.ca\?subject=Website%20inquiry%20%C2%B7%20Family%20office/);
+  // office details and a map link (no third-party frame)
+  await expect(page.locator('a[href^="tel:+15149851138"]').first()).toBeVisible();
+  await expect(page.locator('a[href^="https://www.google.com/maps/search/"]').first()).toBeAttached();
+  await expect(page.locator("iframe")).toHaveCount(0);
+});
+
+test("legal: table of contents follows both documents; privacy covers Law 25", async ({ page }) => {
+  await page.goto("/legal");
+  await expect(page.getByRole("heading", { level: 2, name: /complaints policy/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /code of ethics/i })).toBeAttached();
+  await expect(page.getByText("514-985-1138 or 1-833-227-2656").first()).toBeAttached();
+  await expect(page.getByText(/514-931-1138/)).toHaveCount(0);
+  await page.goto("/privacy");
+  await expect(page.getByRole("heading", { level: 2, name: /law 25/i })).toBeAttached();
+  await expect(page.locator('a[href="/legal#complaints"]').first()).toBeAttached();
 });
 
 test("admin does not get the public chrome", async ({ page, context }) => {
