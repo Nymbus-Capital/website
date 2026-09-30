@@ -1,95 +1,129 @@
 "use client";
 /**
- * /solutions: who we work with and how each can access the strategies. Neutral wording, no minimums or
- * fees (those live in the fund documents), investor mix from the deck.
+ * /solutions: institutional investors, family offices and advisors. Hero · the three profiles (cards linking to
+ * their section) · one section per profile (how we work with you, vehicles, strategies that usually fit, with a
+ * link to each fund page and its minimum when the admin provides one) · call to action. All content is in the
+ * page (no hidden panels), so it reads without JavaScript.
  */
 import Link from "next/link";
-import { useState, type CSSProperties } from "react";
-import { ArrowUpRight, Briefcase, Building2, Users } from "lucide-react";
-import { Reveal, ScreenSwap } from "@/components/v3/motion";
-import { l, useTranslation, type L } from "@/lib/i18n";
-import { FUNDS } from "@/config/funds";
+import { ArrowDown, ArrowRight, Briefcase, Building2, Check, Users } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 import type { FundKey } from "@/lib/data/types";
-import { HOME } from "../copy";
-import { Overlay } from "../home/Overlay";
-import { ContactCta } from "../home/Summary";
-import { Head } from "../ui";
-import { PageHero } from "./PageHero";
+import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
+import type { FundCard, HomeData } from "../home/data";
+import { Intro } from "../home/Intro";
+import { FUND_COPY as F } from "../home/copy";
+import { fundStyle } from "../home/FundTile";
+import { monthText, pctText } from "../home/figures";
+import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
+import "../home/home.css";
 
-type Kind = "institutional" | "family" | "advisor";
-const TYPES: { key: Kind; icon: typeof Building2; name: L; desc: L; share: number; ways: L[]; funds: FundKey[] }[] = [
-  { key: "institutional", icon: Building2, name: l("institutions", "institutions"), share: 45,
-    desc: l("Pension funds, endowments, foundations and insurance companies.", "Caisses de retraite, fonds de dotation, fondations et compagnies d’assurance."),
-    ways: [l("segregated mandates tailored to your investment policy", "mandats distincts adaptés à votre politique de placement"), l("protection overlay on an existing bond portfolio", "stratégie de protection sur un portefeuille obligataire existant"), l("pooled funds", "fonds communs")],
-    funds: ["sustainable-enhanced-bonds", "monthly-income", "global-minimum-volatility", "multi-strategy"] },
-  { key: "family", icon: Users, name: l("family offices", "family offices"), share: 35,
-    desc: l("Single and multi-family offices seeking systematic, diversified sources of return.", "Family offices uniques et multiples à la recherche de sources de rendement systématiques et diversifiées."),
-    ways: [l("pooled funds", "fonds communs"), l("managed accounts", "comptes gérés"), l("direct access to the investment team", "accès direct à l’équipe d’investissement")],
-    funds: ["multi-strategy", "monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"] },
-  { key: "advisor", icon: Briefcase, name: l("financial advisors", "conseillers en placements"), share: 20,
-    desc: l("Advisors building client portfolios, through FundServ.", "Les conseillers qui bâtissent les portefeuilles de leurs clients, via FundServ."),
-    ways: [l("funds available on FundServ", "fonds offerts sur FundServ"), l("available on leading platforms", "disponible sur des plateformes de premier plan"), l("due diligence documentation on request", "documentation de vérification diligente sur demande")],
-    funds: ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy"] },
-];
+const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
+const TONE: Record<Audience, string> = { institutional: "#1a73e8", family: "#0b8fd6", advisor: "#00a3e0" };
 
-const C = {
-  eyebrow: l("solutions", "solutions"),
-  title: l("solutions for", "des solutions pour"), accent: l("every mandate", "chaque mandat"),
-  lead: l("whether you manage institutional capital, run a family office or advise individual investors, our systematic strategies fit your mandate.",
-    "que vous gériez du capital institutionnel, un family office ou que vous conseilliez des investisseurs, nos stratégies systématiques s’adaptent à votre mandat."),
-  who: l("who we work with", "avec qui nous travaillons"), whoT: l("which investor", "quel investisseur"), whoA: l("are you?", "êtes-vous?"),
-  mix: l("of our aum", "de notre ASG"),
-  how: l("how to invest", "comment investir"), fit: l("strategies that fit", "stratégies adaptées"),
-};
-
-export function Solutions() {
-  const { pick } = useTranslation();
-  const [k, setK] = useState<Kind>("institutional");
-  const cur = TYPES.find((x) => x.key === k)!;
+function FundLink({ f, sample }: { f: FundCard; sample: boolean }) {
+  const { locale, pick } = useTranslation();
+  const si = pctText(f.si, locale);
   return (
-    <div className="stage">
-      <ScreenSwap />
-      <PageHero eyebrow={pick(C.eyebrow)} title={pick(C.title)} accent={pick(C.accent)} lead={pick(C.lead)} />
-      <section className="screen glow auto" data-swap="" aria-labelledby="sol-t">
-        <div className="wrap wide">
-          <Head eyebrow={pick(C.who)} title={pick(C.whoT)} accent={pick(C.whoA)} id="sol-t" size="h1" className="center-head" />
-          <Reveal className="sol-types" role="tablist" aria-label={pick(C.who)} kind="pop" stagger={110}>
-            {TYPES.map((x) => {
-              const I = x.icon;
-              return (
-                <button key={x.key} type="button" role="tab" aria-selected={k === x.key} aria-controls="sol-panel" className={`sol-type ${k === x.key ? "on" : ""}`} onClick={() => setK(x.key)}>
-                  <span className="bubble" aria-hidden="true"><I size={22} strokeWidth={1.7} /></span>
-                  <span className="h3">{pick(x.name)}</span>
-                  <span className="small">{pick(x.desc)}</span>
-                  <span className="sol-share"><b className="tabnum grad">{x.share}%</b> <span className="small">{pick(C.mix)}</span></span>
-                </button>
-              );
-            })}
+    <li style={fundStyle(f)}>
+      <Link href={`/strategies/${f.key}`} className="sl-fund" data-testid={`solution-fund-${f.key}`}>
+        <i aria-hidden="true" />
+        <span className="sl-fund-n">
+          <b>{pick(f.short)}</b>
+          <span>{pick(f.assetClass)}</span>
+          {f.minInvestment ? <span>{pick(S.minimum)}: {f.minInvestment}</span> : null}
+        </span>
+        {si ? (
+          <span className="sl-fund-f">
+            <b className="tabnum">{si}</b>
+            <span>{pick(F.siShort)}{f.siAnnualized ? ` · ${pick(F.annualized)}` : ""}{f.asOf ? ` · ${monthText(f.asOf, locale)}` : ""}{sample ? ` · ${pick(F.sample)}` : ""}</span>
+          </span>
+        ) : null}
+        <ArrowRight aria-hidden="true" className="sl-fund-go" />
+      </Link>
+    </li>
+  );
+}
+
+function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: Map<FundKey, FundCard>; sample: boolean; tone: "white" | "tint" }) {
+  const { pick } = useTranslation();
+  const I = ICON[a.key];
+  const list = a.funds.map((k) => funds.get(k)).filter((f): f is FundCard => !!f);
+  return (
+    <Section tone={tone} id={a.key} labelledBy={`${a.key}-t`} className="sl-aud">
+      <div className="sl-aud-grid">
+        <div>
+          <Reveal self>
+            <span className="bubble sl-bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "64px" }}><I /></span>
           </Reveal>
-          <div id="sol-panel" role="tabpanel" className="sol-panel" key={k}>
-            <div>
-              <h3 className="lbl">{pick(C.how)}</h3>
-              <ul className="sol-ways">{cur.ways.map((w, i) => <li key={i} style={{ ["--i" as string]: i }}>{pick(w)}</li>)}</ul>
-            </div>
-            <div>
-              <h3 className="lbl">{pick(C.fit)}</h3>
-              <ul className="sol-funds">
-                {cur.funds.map((key, i) => {
-                  const f = FUNDS.find((x) => x.key === key)!;
-                  return (
-                    <li key={key} style={{ ["--i" as string]: i, "--fund-from": f.color.from, "--fund-to": f.color.to, "--fund": f.color.solid } as CSSProperties}>
-                      <Link href={`/strategies/${key}`}><i aria-hidden="true" />{pick(f.short)}<span className="small">{pick(f.assetClass)}</span><ArrowUpRight size={16} aria-hidden="true" /></Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-          <p className="foot fine">{pick(HOME.investors.foot)}</p>
+          <SectionHead title={pick(a.name)} lead={pick(a.intro)} id={`${a.key}-t`} />
+          <Reveal self delay={120}><p className="sl-who">{pick(a.who)}</p></Reveal>
+          <Reveal self delay={200} className="card flat sl-benefits">
+            <h3 className="h4">{pick(S.benefits)}</h3>
+            <ul>{a.benefits.map((b, i) => <li key={i}><Check aria-hidden="true" />{pick(b)}</li>)}</ul>
+          </Reveal>
         </div>
-      </section>
-      <Overlay />
-      <ContactCta />
+        <div className="sl-side">
+          <Reveal self kind="pop" className="card sl-block">
+            <h3 className="h4">{pick(S.vehicles)}</h3>
+            <dl className="sl-veh">
+              {a.vehicles.map((v, i) => <div key={i}><dt>{pick(v.name)}</dt><dd>{pick(v.text)}</dd></div>)}
+            </dl>
+          </Reveal>
+          <Reveal self kind="pop" delay={140} className="card sl-block">
+            <h3 className="h4">{pick(S.suitable)}</h3>
+            <ul className="sl-funds">{list.map((f) => <FundLink key={f.key} f={f} sample={sample} />)}</ul>
+          </Reveal>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+export function Solutions({ data }: { data: HomeData }) {
+  const { pick } = useTranslation();
+  const funds = new Map(data.funds.map((f) => [f.key, f] as const));
+  const anyFig = data.funds.some((f) => f.si !== null);
+  const anyGross = data.funds.some((f) => f.si !== null && f.basis === "gross");
+  return (
+    <div className="hm">
+      <Intro
+        crumbs={[{ href: "/", label: pick(S.home) }, { label: pick(S.crumb) }]}
+        eyebrow={pick(S.eyebrow)} title={pick(S.title)} accent={pick(S.accent)} lead={pick(S.lead)} id="solutions-t"
+      >
+        <ButtonLink href="/contact">{pick(S.talk)}</ButtonLink>
+        <ButtonLink href="/strategies" variant="ghost">{pick(S.strategies)}</ButtonLink>
+      </Intro>
+
+      <Section labelledBy="who-t" glow="tr" className="sl-who-s">
+        <SectionHead eyebrow={pick(S.whoEyebrow)} title={pick(S.whoTitle)} accent={pick(S.whoAccent)} lead={pick(S.whoLead)} id="who-t" center />
+        <Reveal kind="pop" stagger={110} className="sl-types">
+          {AUDIENCES.map((a) => {
+            const I = ICON[a.key];
+            return (
+              <a key={a.key} href={`#${a.key}`} className="card ring sl-type" data-testid={`audience-${a.key}`}>
+                <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key] }}><I /></span>
+                <span className="h4 sl-type-n">{pick(a.name)}</span>
+                <span className="sl-type-d">{pick(a.who)}</span>
+                <span className="link">{pick(S.see)} <ArrowDown aria-hidden="true" /></span>
+              </a>
+            );
+          })}
+        </Reveal>
+      </Section>
+
+      {AUDIENCES.map((a, i) => (
+        <AudienceSection key={a.key} a={a} funds={funds} sample={data.sample} tone={i % 2 === 0 ? "tint" : "white"} />
+      ))}
+
+      <Section tight className="sl-notes">
+        <p className="fine">{pick(S.minNote)}</p>
+        {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
+      </Section>
+
+      <CtaBand title={pick(S.ctaTitle)} accent={pick(S.ctaAccent)} text={pick(S.ctaText)}>
+        <ButtonLink href="/contact">{pick(S.cta)}</ButtonLink>
+      </CtaBand>
     </div>
   );
 }

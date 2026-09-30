@@ -1,133 +1,131 @@
 "use client";
 /**
- * /strategies: the four strategies with their live since-inception figures, what each one is built from
- * (the deck's layer "cakes", rising layer by layer) and a side-by-side table. Figures come from the data
- * only; a fund without published figures says so.
+ * /strategies: our funds and strategies. Hero · filter (all / fixed income / alternatives) · one card per fund with
+ * its published figures (NAV, YTD, 1 year, since inception, calendar years) · comparison table. Every figure comes
+ * from the published data; a missing one is "figures coming soon" on a card and an em dash in the table.
  */
 import Link from "next/link";
-import type { CSSProperties } from "react";
-import { ArrowUpRight } from "lucide-react";
-import { Reveal, ScreenSwap, useInView } from "@/components/v3/motion";
-import { formatMonth, l, useTranslation } from "@/lib/i18n";
-import { HOME, RISK, STACKS } from "../copy";
-import type { FundCard, HomeData } from "../home/data";
-import { RiskMeter, StrategyGrid } from "../home/Strategies";
-import { ContactCta } from "../home/Summary";
-import { Head } from "../ui";
-import { PageHero } from "./PageHero";
+import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
+import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
+import type { HomeData } from "../home/data";
+import { Intro } from "../home/Intro";
+import { CATEGORY_COPY, FUND_COPY as F, HOME_COPY, VEHICLE_COPY } from "../home/copy";
+import { STRAT_COPY as S } from "./strategies-copy";
+import { FundTile, RiskScale, SampleTag, fundStyle } from "../home/FundTile";
+import { cell, dayText, filterFunds, monthText, navText, type Filter } from "../home/figures";
+import "../home/home.css";
 
-const C = {
-  eyebrow: l("strategies", "stratégies"),
-  title: l("our investment", "nos stratégies"), accent: l("strategies", "de placement"),
-  lead: l("systematic fixed income and uncorrelated strategies, built by the same scientific process.",
-    "du revenu fixe systématique et des stratégies non corrélées, bâtis par le même processus scientifique."),
-  inside: l("what's inside", "leur composition"), insideT: l("built in", "bâties en"), insideA: l("layers", "couches"),
-  insideS: l("every strategy stacks independent sources of return, each with its own role", "chaque stratégie superpose des sources de rendement indépendantes, chacune avec son rôle"),
-  compare: l("side by side", "côte à côte"), compareT: l("compare the", "comparer les"), compareA: l("strategies", "stratégies"),
-  cols: { strategy: l("strategy", "stratégie"), vehicle: l("vehicle", "véhicule"), asset: l("asset class", "classe d’actifs"), si: l("since inception", "depuis la création"),
-    asOf: l("as of", "au"), risk: l("risk", "risque"), code: l("fund code", "code de fonds"), bench: l("benchmark", "indice de référence") },
-  soon: l("coming soon", "à venir"),
-  none: l("none", "aucun"),
-};
-
-/** Deck strategy "cake": isometric layers that stack up one after the other. */
-function Cake({ f, index }: { f: FundCard; index: number }) {
-  const { pick } = useTranslation();
-  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.35 });
-  const blocks = STACKS[f.key]?.blocks ?? [];
-  const style = { "--fund-from": f.color.from, "--fund-to": f.color.to, "--fund": f.color.solid } as CSSProperties;
-  return (
-    <div ref={ref} className={`cake ${seen ? "go" : ""}`} style={style}>
-      <div className="cake-stack" aria-hidden="true">
-        {blocks.map((b, i) => (
-          <div key={i} className="cake-l" style={{ ["--i" as string]: blocks.length - 1 - i, ["--k" as string]: (i / Math.max(1, blocks.length - 1)).toFixed(3) }}>
-            <span>{pick(b)}</span>
-          </div>
-        ))}
-      </div>
-      <ul className="sr-only">{blocks.map((b, i) => <li key={i}>{pick(b)}</li>)}</ul>
-      <Link href={`/strategies/${f.key}`} className="cake-name">
-        <span className="small">0{index + 1}</span> {pick(f.short)} <ArrowUpRight size={15} aria-hidden="true" />
-      </Link>
-    </div>
-  );
-}
+const FILTERS: Filter[] = ["all", "fixed-income", "alternatives"];
 
 export function StrategiesIndex({ data }: { data: HomeData }) {
   const { locale, pick } = useTranslation();
-  const S = HOME.strategies;
-  const pctText = (v: number) => {
-    const x = v * 100;
-    const s = Math.abs(x).toLocaleString(locale === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    return `${x < 0 ? "−" : "+"}${s}${locale === "fr" ? " %" : "%"}`;
+  const [filter, setFilter] = useState<Filter>("all");
+  // the filter survives a reload / can be linked (#fixed-income, #alternatives)
+  useEffect(() => {
+    const h = window.location.hash.slice(1) as Filter;
+    if (FILTERS.includes(h)) setFilter(h);
+  }, []);
+  const choose = (f: Filter) => {
+    setFilter(f);
+    history.replaceState(null, "", f === "all" ? window.location.pathname : `#${f}`);
   };
+  const shown = filterFunds(data.funds, filter);
+  const missing = data.funds.some((f) => f.ytd === null || f.y1 === null || f.si === null || !f.nav);
+  const anyFig = data.funds.some((f) => f.si !== null || f.y1 !== null || f.ytd !== null);
+  const anyGross = data.funds.some((f) => f.basis === "gross" && (f.si !== null || f.y1 !== null || f.ytd !== null));
   return (
-    <div className="stage">
-      <ScreenSwap />
-      <PageHero eyebrow={pick(C.eyebrow)} title={pick(C.title)} accent={pick(C.accent)} lead={pick(C.lead)} />
+    <div className="hm">
+      <Intro
+        crumbs={[{ href: "/", label: pick(S.home) }, { label: pick(S.crumb) }]}
+        eyebrow={pick(S.eyebrow)} title={pick(S.title)} accent={pick(S.accent)} lead={pick(S.lead)} id="strategies-t"
+      >
+        <ButtonLink href="#compare" variant="ghost">{pick(S.toTable)}</ButtonLink>
+        <ButtonLink href="/solutions">{pick(HOME_COPY.hero.cta2)}</ButtonLink>
+      </Intro>
 
-      <section className="screen glow" data-swap="" aria-labelledby="si-grid-t">
-        <div className="wrap wide">
-          <h2 id="si-grid-t" className="sr-only">{pick(C.title)} {pick(C.accent)}</h2>
-          <StrategyGrid funds={data.funds} sample={data.sample} />
+      <Section tone="tint" labelledBy="funds-t" className="xs-funds">
+        <h2 id="funds-t" className="sr-only">{pick(S.fundsTitle)}</h2>
+        <div className="xs-bar">
+          <div className="xf-pills" role="group" aria-label={pick(S.filterLabel)}>
+            {FILTERS.map((k) => {
+              const n = filterFunds(data.funds, k).length;
+              return (
+                <button key={k} type="button" className="xf-pill" aria-pressed={filter === k} onClick={() => choose(k)} data-filter={k}>
+                  {pick(CATEGORY_COPY[k])}<span className="xf-n" aria-hidden="true">{n}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="small xs-count" aria-live="polite">{shown.length} {pick(shown.length === 1 ? S.one : S.many)}</p>
         </div>
-      </section>
+        {shown.length ? (
+          <Reveal kind="pop" stagger={100} className="fx-grid fx-grid-2" key={filter}>
+            {shown.map((f) => <FundTile key={f.key} f={f} sample={data.sample} index={data.funds.indexOf(f)} variant="full" />)}
+          </Reveal>
+        ) : <p className="notice">{pick(S.none)}</p>}
+        {anyFig ? <p className="fine hm-note">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
+      </Section>
 
-      <section className="screen dark auto" data-swap="" aria-labelledby="si-cake-t">
-        <div className="wrap wide">
-          <Head eyebrow={pick(C.inside)} title={pick(C.insideT)} accent={pick(C.insideA)} sub={pick(C.insideS)} id="si-cake-t" size="h1" className="center-head" />
-          <div className="cakes">{data.funds.map((f, i) => <Cake key={f.key} f={f} index={i} />)}</div>
-        </div>
-      </section>
-
-      <section className="screen glow auto" data-swap="" aria-labelledby="si-cmp-t">
-        <div className="wrap wide">
-          <Head eyebrow={pick(C.compare)} title={pick(C.compareT)} accent={pick(C.compareA)} id="si-cmp-t" size="h1" className="center-head" />
-          <Reveal className="scroll-x" self>
-            <table className="table cmp">
+      <Section labelledBy="compare-t" id="compare" className="xs-compare">
+        <SectionHead eyebrow={pick(S.cmpEyebrow)} title={pick(S.cmpTitle)} accent={pick(S.cmpAccent)} lead={pick(S.cmpLead)} id="compare-t" />
+        <Reveal self className="xs-table-w">
+          <div className="scroll-x" tabIndex={0} role="region" aria-labelledby="compare-t">
+            <table className="table xs-table" data-testid="compare-table">
+              <caption className="sr-only">{pick(S.cmpTitle)} {pick(S.cmpAccent)}</caption>
               <thead>
                 <tr>
-                  <th scope="col">{pick(C.cols.strategy)}</th>
-                  <th scope="col">{pick(C.cols.si)}</th>
-                  <th scope="col">{pick(C.cols.asOf)}</th>
-                  <th scope="col">{pick(C.cols.risk)}</th>
-                  <th scope="col">{pick(C.cols.code)}</th>
-                  <th scope="col">{pick(C.cols.vehicle)}</th>
-                  <th scope="col">{pick(C.cols.bench)}</th>
+                  <th scope="col">{pick(S.cols.fund)}</th>
+                  <th scope="col">{pick(S.cols.asset)}</th>
+                  <th scope="col">{pick(S.cols.vehicle)}</th>
+                  <th scope="col">{pick(S.cols.bench)}</th>
+                  <th scope="col">{pick(F.ytd)}</th>
+                  <th scope="col">{pick(F.y1)}</th>
+                  <th scope="col">{pick(S.cols.si)}</th>
+                  <th scope="col">{pick(S.cols.risk)}</th>
+                  <th scope="col">{pick(S.cols.nav)}</th>
                 </tr>
               </thead>
               <tbody>
                 {data.funds.map((f) => (
-                  <tr key={f.key} style={{ "--fund-from": f.color.from, "--fund-to": f.color.to, "--fund": f.color.solid } as CSSProperties}>
+                  <tr key={f.key} style={fundStyle(f)}>
+                    <th scope="row">
+                      <Link href={`/strategies/${f.key}`} className="xs-name"><i aria-hidden="true" />{pick(f.short)}</Link>
+                      {data.sample && (f.si !== null || f.nav) ? <SampleTag /> : null}
+                      {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
+                    </th>
+                    <td className="xs-l">{pick(f.assetClass)}</td>
+                    <td className="xs-l">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}{f.code ? <span className="xs-sub tabnum">{f.code}</span> : null}</td>
+                    <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>
+                    <td>{cell(f.ytd, locale)}</td>
+                    <td>{cell(f.y1, locale)}</td>
+                    <td>{cell(f.si, locale)}{f.si !== null ? <span className="xs-sub">{f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}</span> : null}</td>
+                    <td className="xs-l"><RiskScale risk={f.risk} /></td>
                     <td>
-                      <Link className="cmp-name" href={`/strategies/${f.key}`}>
-                        <i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />{pick(f.short)}
-                      </Link>
-                      <span className="small cmp-asset">{pick(f.assetClass)}</span>
+                      {f.nav ? (
+                        <>
+                          {navText(f.nav.nav, f.nav.currency, locale)}
+                          <span className="xs-sub">{pick(F.navSeries)} {f.nav.display}{f.nav.date ? ` · ${dayText(f.nav.date, locale)}` : ""}</span>
+                        </>
+                      ) : "—"}
                     </td>
-                    <td data-label={pick(C.cols.si)}>
-                      <span className="cmp-sic">
-                        {f.si !== null ? (
-                          <b className="g-fund cmp-si">{pctText(f.si)}</b>
-                        ) : <span className="small">{pick(C.soon)}</span>}
-                        {f.si !== null ? <span className="small cmp-basis">{f.basis === "gross" ? pick(f.siAnnualized ? S.gross : S.grossCum) : pick(f.siAnnualized ? S.net : S.netCum)}</span> : null}
-                      </span>
-                    </td>
-                    <td data-label={pick(C.cols.asOf)}>{f.asOf ? formatMonth(f.asOf, locale) : "—"}</td>
-                    <td data-label={pick(C.cols.risk)}><span className="cmp-risk"><RiskMeter risk={f.risk} label={`${pick(S.risk)}: ${pick(RISK[f.risk])}`} />{pick(RISK[f.risk])}</span></td>
-                    <td className="tabnum" data-label={pick(C.cols.code)}>{f.code ?? "—"}</td>
-                    <td data-label={pick(C.cols.vehicle)}>{f.vehicle === "fund" ? pick(S.fund) : pick(S.sma)}</td>
-                    <td className="cmp-bench" data-label={pick(C.cols.bench)}>{f.benchmark ? pick(f.benchmark) : pick(C.none)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </Reveal>
-          {data.funds.some((f) => f.si !== null) ? <p className="foot fine">{pick(S.perfNote)}{data.funds.some((f) => f.si !== null && f.basis === "gross") ? ` ${pick(S.grossNote)}` : ""}</p> : null}
+          </div>
+        </Reveal>
+        <div className="xs-notes">
+          {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
+          {missing ? <p className="fine">{pick(S.dashNote)}</p> : null}
+          {anyFig ? <p className="fine">{pick(S.siNote)}</p> : null}
         </div>
-      </section>
+      </Section>
 
-      <ContactCta />
+      <CtaBand title={pick(S.ctaTitle)} accent={pick(S.ctaAccent)} text={pick(S.ctaText)}>
+        <ButtonLink href="/contact">{pick(HOME_COPY.cta.contact)}</ButtonLink>
+        <ButtonLink href="/solutions" variant="ghost">{pick(HOME_COPY.cta.solutions)}</ButtonLink>
+      </CtaBand>
     </div>
   );
 }

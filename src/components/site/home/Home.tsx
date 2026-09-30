@@ -1,37 +1,32 @@
 "use client";
-/** The home page: a keynote you scroll through, one rounded screen per idea. */
-import { ScreenSwap } from "@/components/v3/motion";
+/**
+ * Home: the previous site's sections as an informational, light corporate page with the v3 keynote motion.
+ * hero · key figures · approach · strategies (live figures) · investment process · institutions and partners ·
+ * news and milestones · call to action.
+ */
 import { useTranslation } from "@/lib/i18n";
-import { HOME } from "../copy";
-import { Hero } from "../hero/Hero";
-import { Chapter } from "../ui";
+import { ButtonLink, CtaBand } from "../kit";
 import type { HomeData } from "./data";
-import { Glance } from "./Glance";
-import { Pillars } from "./Pillars";
-import { Process } from "./Process";
-import { OverlayStory } from "./OverlayStory";
-import { Strategies } from "./Strategies";
-import { Investors } from "./Investors";
-import { ContactCta, Summary } from "./Summary";
+import { HOME_COPY as C } from "./copy";
+import { HomeHero } from "./HomeHero";
+import { Approach, KeyFigures, News, Partners, Process, StrategiesBand } from "./Sections";
+import "./home.css";
 
 export function Home({ data }: { data: HomeData }) {
   const { pick } = useTranslation();
-  const C = HOME.chapters;
   return (
-    <div className="stage home">
-      <ScreenSwap />
-      <Hero funds={data.funds} navAsOf={data.navAsOf} sample={data.sample} />
-      <Chapter no={1} title={pick(C.bonds)} kicker={pick(C.k1)} id="ch1-t" variant={3} handoff />
-      <Pillars />
+    <div className="hm">
+      <HomeHero data={data} />
+      <KeyFigures data={data} />
+      <Approach />
+      <StrategiesBand data={data} />
       <Process />
-      <Chapter no={2} title={pick(C.overlay)} kicker={pick(C.k2)} id="ch2-t" variant={1} />
-      <OverlayStory />
-      <Chapter no={3} title={pick(C.strategies)} kicker={pick(C.k3)} id="ch3-t" variant={2} />
-      <Strategies funds={data.funds} sample={data.sample} />
-      <Glance aumLabel={data.aumLabel} />
-      <Investors />
-      <Summary />
-      <ContactCta />
+      <Partners />
+      <News />
+      <CtaBand title={pick(C.cta.title)} accent={pick(C.cta.accent)} text={pick(C.cta.text)}>
+        <ButtonLink href="/contact">{pick(C.cta.contact)}</ButtonLink>
+        <ButtonLink href="/solutions" variant="ghost">{pick(C.cta.solutions)}</ButtonLink>
+      </CtaBand>
     </div>
   );
 }

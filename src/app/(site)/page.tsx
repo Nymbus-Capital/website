@@ -1,20 +1,28 @@
 /**
  * Home. Reads the published data + admin content at request time (the pipeline refreshes it daily), then
- * hands plain JSON to the client keynote.
+ * hands plain JSON to the client page.
  */
 import type { Metadata } from "next";
 import { Home } from "@/components/site/home/Home";
 import { toHomeData } from "@/components/site/home/data";
 import { getAllFundViews, getContent } from "@/lib/data/site";
+import { getLocale } from "@/lib/i18n/server";
+import { team } from "@/data/team";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: { absolute: "Nymbus Capital · scientific investing" },
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const fr = (await getLocale()) === "fr";
+  return {
+    title: { absolute: fr ? "Nymbus Capital · Investissement scientifique" : "Nymbus Capital · Scientific investing" },
+    description: fr
+      ? "Gestionnaire de placements montréalais : stratégies de revenu fixe et alternatives bâties par la recherche quantitative et la construction systématique de portefeuilles."
+      : "Montreal investment manager: fixed income and alternative strategies built with quantitative research and systematic portfolio construction.",
+    alternates: { canonical: "/" },
+  };
+}
 
 export default async function HomePage() {
   const [views, content] = await Promise.all([getAllFundViews(), getContent()]);
-  return <Home data={toHomeData(views, content)} />;
+  return <Home data={toHomeData(views, content, { teamSize: team.length })} />;
 }

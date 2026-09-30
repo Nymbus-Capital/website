@@ -9,13 +9,13 @@ import { signIn } from "./helpers";
  * e2e/screenshots/site-<route>-<project>.png.
  */
 const ROUTES = [
-  { path: "/", name: "home", en: /scientific investing/, fr: /investissement scientifique/ },
-  { path: "/strategies", name: "strategies", en: /our investment strategies/, fr: /nos stratégies de placement/ },
+  { path: "/", name: "home", en: /scientific investing/i, fr: /investissement scientifique/i },
+  { path: "/strategies", name: "strategies", en: /our funds and strategies/i, fr: /nos fonds et stratégies/i },
   { path: "/approach", name: "approach", en: /where science meets bonds/, fr: /là où la science rencontre les obligations/ },
   { path: "/sustainability", name: "sustainability", en: /modernity meets responsibility/, fr: /la modernité rencontre la responsabilité/ },
   { path: "/team", name: "team", en: /scientists and market veterans/, fr: /des scientifiques et des vétérans des marchés/ },
   { path: "/contact", name: "contact", en: /let’s talk/, fr: /parlons ensemble/ },
-  { path: "/solutions", name: "solutions", en: /solutions for every mandate/, fr: /des solutions pour chaque mandat/ },
+  { path: "/solutions", name: "solutions", en: /solutions tailored to your mandate/i, fr: /des solutions adaptées à votre mandat/i },
   { path: "/legal", name: "legal", en: /legal/, fr: /juridique/ },
   { path: "/privacy", name: "privacy", en: /privacy policy/, fr: /politique de confidentialité/ },
 ];
@@ -94,28 +94,28 @@ test("home: live figures come from the data, never invented", async ({ page }) =
   const cards = page.locator('[data-testid^="strategy-"]');
   await cards.first().scrollIntoViewIfNeeded();
   await expect(cards).toHaveCount(4);
-  // each card shows either a published figure or the "figures coming soon" state
+  // each card shows either its published figures or the "figures coming soon" state, never both
   for (let i = 0; i < 4; i++) {
     const card = cards.nth(i);
     await card.scrollIntoViewIfNeeded();
-    const hasFig = await card.locator(".fig").count();
+    const figs = await card.getByTestId("fund-figure").count();
     const soon = await card.getByTestId("figures-soon").count();
-    expect(hasFig + soon).toBe(1);
+    expect(figs + soon).toBe(1);
   }
-  // the NAV ribbon only exists when NAVs are published
-  const ribbon = page.getByTestId("nav-ribbon");
-  if (await ribbon.count()) await expect(ribbon).toContainText(/nav as of/);
+  // the NAV panel only exists when NAVs are published
+  const panel = page.getByTestId("nav-panel");
+  if (await panel.count()) await expect(panel).toContainText(/daily navs as of/i);
 });
 
 test("language toggle switches the page to French and back", async ({ page, isMobile }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/scientific investing/);
+  await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/scientific investing/i);
   if (isMobile) await page.getByTestId("menu-toggle").click();
   const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
   await toggle.click();
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   if (isMobile) await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/investissement scientifique/);
+  await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/investissement scientifique/i);
   const cookies = await page.context().cookies();
   expect(cookies.find((c) => c.name === "nymbus-locale")?.value).toBe("fr");
   await page.reload();
@@ -150,7 +150,7 @@ test("reduced motion: content is visible without animations", async ({ browser, 
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
   await page.goto("/");
-  for (const sel of ["#hero-t", "#glance-t", "#process-t", "#strat-t", "#sum-t"]) {
+  for (const sel of ["#hero-t", "#glance-t", "#approach-t", "#strat-t", "#process-t", "#partners-t", "#news-t"]) {
     const el = page.locator(sel);
     await el.scrollIntoViewIfNeeded();
     const opacity = await el.evaluate((n) => {
@@ -164,10 +164,6 @@ test("reduced motion: content is visible without animations", async ({ browser, 
     Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *")).filter((e) => getComputedStyle(e).opacity === "0").length,
   );
   expect(hidden).toBe(0);
-  // the pinned "why an overlay" story unpins and shows every step
-  await expect(page.locator(".story-pin")).toHaveCSS("position", "relative");
-  await expect(page.locator(".story-steps li")).toHaveCount(4);
-  for (const li of await page.locator(".story-steps li").all()) await expect(li).toHaveCSS("opacity", "1");
   await ctx.close();
 });
 
