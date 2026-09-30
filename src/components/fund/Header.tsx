@@ -13,7 +13,7 @@ import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
-import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, type Lang } from "./lib/format.ts";
+import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, headlineClass, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS, sortedClasses } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";
 
@@ -106,7 +106,7 @@ function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundC
             </div>
           ) : null}
           <div className="nc-fig" data-testid="hero-nav" aria-live="polite">
-            <Odometer key={`${cls.fundserv}-${lang}`} value={cls.nav} decimals={4} prefix={parts.prefix} suffix={parts.suffix} lang={lang} duration={1300} />
+            <Odometer key={`${cls.fundserv}-${lang}`} value={cls.nav} decimals={NAV_DECIMALS} prefix={parts.prefix} suffix={parts.suffix} lang={lang} duration={1300} />
           </div>
           <p className={`nc-change ${dir}`} data-testid="nav-change">
             {cls.changePct == null ? <span>{tr(T.nav.noChange, lang)}</span> : (

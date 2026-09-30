@@ -1,7 +1,8 @@
 /**
- * Static registry of the funds shown on the website: identity, where each data point comes from,
- * brand colours. Everything editable by the business (fees, descriptions, visibility, documents) lives
- * in the admin-managed content store instead (see SiteContent), so this file only changes with code.
+ * Static registry of the funds shown on the website: identity, performance basis, brand colours. Holds nothing
+ * internal: where each data point comes from is in src/lib/pipeline/fund-sources.ts (server only); client
+ * components use the projection in funds-public.ts. Everything editable by the business (fees, descriptions,
+ * visibility, documents) lives in the admin-managed content store instead (see SiteContent), so this file only changes with code.
  *
  * Dependency-free (plain TS) so the pipeline can import it under Node type stripping.
  */
@@ -18,20 +19,10 @@ export interface FundSpec {
   /** legacy slugs that should redirect here */
   aliases: string[];
   sources: {
-    /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
-    dataplatform: "SEST" | "SEB" | "Multistrat" | null;
     /**
-     * FTSE index-summary short_name, used for index months the published factsheet does not cover yet
-     * (the factsheet's own index tables are the primary source of every index figure). null: no benchmark
+     * strategies without a fund vehicle only have gross figures in the factsheet archive. The internal source
+     * names / keys (dataplatform, FTSE, analytics, factsheet) live in src/lib/pipeline/fund-sources.ts, server only.
      */
-    ftseIndex: string | null;
-    /** series name in the analytics repo fund_returns.json (official monthly history before the Apex cutover) */
-    analytics: string | null;
-    /** class the published performance is labelled with on the site (business decision: FP / F) */
-    returnClassLabel: "FP" | "F" | null;
-    /** factsheet archive: file prefix and fund key inside it */
-    factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
-    /** strategies without a fund vehicle only have gross figures in the factsheet archive */
     basis: "net" | "gross";
   };
   benchmark: L10n | null;
@@ -53,17 +44,7 @@ export const FUNDS: FundSpec[] = [
     assetClass: { en: "Short-term fixed income", fr: "Revenu fixe à court terme" },
     color: { solid: "#1a73e8", from: "#6ea8ff", to: "#0b57d0" },
     aliases: ["sustainable-enhanced-short-term-bonds", "sest"],
-    sources: {
-      dataplatform: "SEST",
-      // Every index figure is computed from this FTSE series (dataplatform index-summary levels). The
-      // factsheet producer used the XSB ETF until 2026-04 and FTSE short_corp afterwards: its published
-      // index figures are only a cross-check. Override with FTSE_INDEX_SEST.
-      ftseIndex: "short_corp",
-      analytics: "Nymbus Monthly Income",
-      returnClassLabel: "FP",
-      factsheet: { file: "bonds_data", key: "SEST" },
-      basis: "net",
-    },
+    sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Short Term Corporate Bond Index", fr: "Indice FTSE Canada des obligations corporatives à court terme" },
     headlineClass: "LDM001",
     defaults: {
@@ -83,15 +64,7 @@ export const FUNDS: FundSpec[] = [
     assetClass: { en: "Core fixed income", fr: "Revenu fixe de base" },
     color: { solid: "#00a3e0", from: "#5ad2ff", to: "#0086c3" },
     aliases: ["seb", "core-bond"],
-    sources: {
-      dataplatform: "SEB",
-      ftseIndex: "univ",
-      analytics: "Nymbus Sustainable Enhanced Bonds",
-      // the dataplatform track record is the STRATEGY_H (class H) series; the site labels it class F
-      returnClassLabel: "F",
-      factsheet: { file: "bonds_data", key: "QCFI-SEB" },
-      basis: "net",
-    },
+    sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Universe Bond Index", fr: "Indice FTSE Canada des obligations universelles" },
     headlineClass: "LDM201",
     defaults: {
@@ -111,14 +84,7 @@ export const FUNDS: FundSpec[] = [
     assetClass: { en: "Alternative strategies", fr: "Stratégies alternatives" },
     color: { solid: "#fa7b17", from: "#ffc043", to: "#f4511e" },
     aliases: ["multistrategy", "multistrat"],
-    sources: {
-      dataplatform: "Multistrat",
-      ftseIndex: null,
-      analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
-      returnClassLabel: "F",
-      factsheet: { file: "factsheet_data", key: "Multistrategy" },
-      basis: "net",
-    },
+    sources: { basis: "net" },
     benchmark: null,
     headlineClass: "LDM301",
     defaults: {
@@ -138,14 +104,7 @@ export const FUNDS: FundSpec[] = [
     assetClass: { en: "Protection overlay (managed accounts)", fr: "Stratégie de protection (comptes gérés)" },
     color: { solid: "#34a853", from: "#5be08f", to: "#0f9d58" },
     aliases: ["gmv"],
-    sources: {
-      dataplatform: null,
-      ftseIndex: null,
-      analytics: null,
-      returnClassLabel: null,
-      factsheet: { file: "factsheet_data", key: "GMV_6pct" },
-      basis: "gross",
-    },
+    sources: { basis: "gross" },
     benchmark: null,
     headlineClass: null,
     defaults: {

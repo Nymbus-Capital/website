@@ -35,6 +35,9 @@ export function pctTick(v: number, lang: Lang, step: number): string {
 }
 
 /** Money with currency: EN "$10.52", "US$10.52"; FR "10,52 $", "10,52 $ US". */
+/** Decimals of a NAV per unit everywhere on the site (fund page NAV card and series table, cards, tables). */
+export const NAV_DECIMALS = 4;
+
 export function money(v: number, currency: string, lang: Lang, decimals = 2): string {
   const n = Math.abs(v).toLocaleString(lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const sign = v < 0 && Number(Math.abs(v).toFixed(decimals)) !== 0 ? MINUS : "";

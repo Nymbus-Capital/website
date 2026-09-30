@@ -15,13 +15,15 @@ import { useEntrance, useNear } from "./hooks";
 export interface HeatmapProps {
   monthly: MonthlyPoint[];
   calendar?: CalendarRow[] | null;
+  /** month-end of the published performance: only its year is flagged YTD */
+  asOf?: string | null;
   lang: Lang;
-  labels: { year: string; total: string; ytd: string; neg: string; pos: string; fund: string };
+  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string };
   caption: string;
 }
 
-export function Heatmap({ monthly, calendar, lang, labels, caption }: HeatmapProps) {
-  const rows = useMemo(() => heatmapGrid(monthly, calendar), [monthly, calendar]);
+export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption }: HeatmapProps) {
+  const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
   const [ref, near, seen] = useNear<HTMLDivElement>("200px 0px");
   const tableRef = useRef<HTMLTableElement>(null);
@@ -72,7 +74,7 @@ export function Heatmap({ monthly, calendar, lang, labels, caption }: HeatmapPro
                   })}
                   <td className="tot">
                     {row.total != null ? <span className={row.total >= 0 ? undefined : "neg"}>{fmt(row.total, { pct: true, decimals: 1, lang })}</span> : "—"}
-                    {row.partial ? <small>{labels.ytd}</small> : null}
+                    {row.kind ? <small>{row.kind === "ytd" ? labels.ytd : labels.launch}</small> : null}
                   </td>
                 </tr>
               ))}

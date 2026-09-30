@@ -40,6 +40,11 @@ export interface Performance {
   /** month-end of the last closed, validated month */
   asOf: string;
   basis: "net" | "gross";
+  /**
+   * how returns aggregate over time: "compounded" (the funds) or "arithmetic" (GMV overlay on notional, growth =
+   * 10 000 × (1 + Σr)). Optional (older datasets): absent → arithmetic for a gross series, else compounded.
+   */
+  method?: "compounded" | "arithmetic";
   /** first month of the track record (month-end) */
   firstMonth: string;
   monthly: MonthlyPoint[];

@@ -6,7 +6,7 @@
  */
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { GrowthPoint } from "@/lib/data/types";
-import { availableRanges, growthRange, type Range } from "../lib/data.ts";
+import { availableRanges, growthRange, type GrowthMethod, type Range } from "../lib/data.ts";
 import { monotonePath, nearestIndex, nice, yearTicks, monthTicks } from "../lib/scale.ts";
 import { compactMoney, fmt, money, monthLabel, type Lang } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
@@ -21,10 +21,12 @@ export interface GrowthChartProps {
   label: string;
   keysHint: string;
   rebasedNote: string;
+  /** how the series aggregates (arithmetic: rebased additively, see growthRange) */
+  method?: GrowthMethod;
   height?: number;
 }
 
-export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel, label, keysHint, rebasedNote, height = 440 }: GrowthChartProps) {
+export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel, label, keysHint, rebasedNote, method = "compounded", height = 440 }: GrowthChartProps) {
   const ranges = useMemo(() => availableRanges(points), [points]);
   const [range, setRange] = useState<Range>("SI");
   const [host, w] = useWidth<HTMLDivElement>();
@@ -33,7 +35,7 @@ export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel,
   const id = useSvgId("gr");
   const [hi, setHi] = useState<number | null>(null);
 
-  const s = useMemo(() => growthRange(points, range), [points, range]);
+  const s = useMemo(() => growthRange(points, range, method), [points, range, method]);
   const narrow = w > 0 && w < 560;
   const H = narrow ? Math.round(height * 0.78) : height;
   const endLabelW = narrow ? 0 : 86;
@@ -82,7 +84,7 @@ export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel,
       ...(s.index[hi] != null ? [{ cls: "index" as const, label: names.index, value: cur(s.index[hi]!) }] : []),
     ],
   };
-  const change = (a: number, b: number) => fmt(b / a - 1, { pct: true, decimals: 1, sign: true, lang });
+  const changeText = s.change != null ? ` (${fmt(s.change, { pct: true, decimals: 1, sign: true, lang })})` : "";
 
   return (
     <div>
@@ -102,7 +104,7 @@ export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel,
       <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
         {near && w > 0 ? (
           <svg ref={svgRef} width={w} height={H} viewBox={`0 0 ${w} ${H}`} tabIndex={0} role="img"
-            aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])} (${change(s.fund[0], s.fund[last])}), ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}
+            aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])}${changeText}, ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}
             onPointerMove={onMove} onPointerLeave={() => pick(null)} onKeyDown={onKey} onBlur={() => pick(null)} style={{ touchAction: "pan-y" }}>
             <defs>
               <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--fund-from)" /><stop offset="1" stopColor="var(--fund-to)" /></linearGradient>

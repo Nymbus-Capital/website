@@ -7,8 +7,8 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FundPage } from "@/components/fund/FundPage";
 import { toPublicData, toPublicSpec, type FundDoc, type FundLink } from "@/components/fund/types";
+import { stripHidden } from "@/components/fund/lib/data";
 import { documentUrl, listPublishedDocuments, toPublicDocument } from "@/lib/data/documents";
-import { aumPublic } from "@/components/admin/fund-content";
 import { getAllFundViews, getContent, getFundView } from "@/lib/data/site";
 import type { DocumentMeta } from "@/lib/data/types";
 
@@ -56,9 +56,9 @@ export default async function StrategyPage({ params }: Params) {
   // the snapshot pin is internal (admin) state: strip it before the props cross to the client
   const { pinnedSnapshot: _pin, ...content } = view.content;
   void _pin;
-  // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client, and the
-  // fund AUM only when the admin explicitly published it (hide.aum === false)
-  const data = toPublicData(view.data);
-  if (data && !aumPublic(content)) data.aum = null;
+  // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client, nor any
+  // block the admin hid (performance, growth, calendar, risk, NAV, portfolio blocks; the fund AUM unless explicitly
+  // published): hidden data is not in the RSC payload
+  const data = stripHidden(toPublicData(view.data), content);
   return <FundPage spec={toPublicSpec(view.spec)} content={content} data={data} sample={view.sample} docs={docs} funds={funds} firmDisclaimer={siteContent.firm.disclaimer ?? null} />;
 }

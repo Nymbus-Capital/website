@@ -7,6 +7,7 @@
 import type { FundView } from "@/lib/data/site";
 import type { FundKey, L10n, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
+import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
 
 export type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
@@ -54,10 +55,6 @@ export interface HomeData {
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
-function monthsBetween(a: string, b: string): number {
-  return (+b.slice(0, 4) - +a.slice(0, 4)) * 12 + (+b.slice(5, 7) - +a.slice(5, 7));
-}
-
 function pickClass(classes: NavClass[] | undefined, preferred: (string | null | undefined)[]): NavClass | null {
   if (!classes?.length) return null;
   for (const code of preferred) {
@@ -69,13 +66,14 @@ function pickClass(classes: NavClass[] | undefined, preferred: (string | null | 
 }
 
 export function toFundCard(v: FundView): FundCard {
-  const { spec, content, data } = v;
-  const hide = content.hide ?? {};
-  const perf = hide.performance ? null : data?.performance ?? null;
+  const { spec, content } = v;
+  // every block the admin hid is removed first (same rule as the fund page): hidden figures never reach the props
+  const data = stripHidden(v.data, content);
+  const perf = data?.performance ?? null;
   const si = perf?.trailing.fund.SI;
   const ytd = perf?.trailing.fund.YTD;
   const y1 = perf?.trailing.fund["1Y"];
-  const cls = hide.nav ? null : pickClass(data?.nav?.classes, [content.headlineClass, spec.headlineClass]);
+  const cls = pickClass(data?.nav?.classes, [content.headlineClass, spec.headlineClass]);
   return {
     key: spec.key,
     name: spec.name,
@@ -89,11 +87,11 @@ export function toFundCard(v: FundView): FundCard {
     code: content.headlineClass ?? spec.headlineClass,
     benchmark: spec.benchmark,
     si: isNum(si) ? si : null,
-    siAnnualized: perf ? monthsBetween(perf.firstMonth, perf.asOf) >= 12 : true,
+    siAnnualized: perf ? siAnnualized(perf.firstMonth, perf.asOf) : true,
     ytd: isNum(ytd) ? ytd : null,
     // a 1-year figure needs 12 months of track record
-    y1: isNum(y1) && perf && monthsBetween(perf.firstMonth, perf.asOf) >= 11 ? y1 : null,
-    calendar: perf && !hide.calendar ? lastYears(perf.calendar, 6) : [],
+    y1: isNum(y1) && perf && trackMonths(perf.firstMonth, perf.asOf) >= 12 ? y1 : null,
+    calendar: perf ? lastYears(perf.calendar, 6, perf.asOf) : [],
     basis: perf?.basis ?? spec.sources.basis,
     asOf: perf?.asOf ?? null,
     firstMonth: perf?.firstMonth ?? null,

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FUNDS } from "../../../src/config/funds.ts";
+import { FUND_SOURCES } from "../../../src/lib/pipeline/fund-sources.ts";
 import { toPublicData, toPublicSpec } from "../../../src/components/fund/types.ts";
 import type { FundData } from "../../../src/lib/data/types.ts";
 
@@ -9,7 +10,8 @@ test("public fund spec keeps only the basis of the internal sources", () => {
     const pub = toPublicSpec(spec);
     assert.deepEqual(pub.sources, { basis: spec.sources.basis });
     const json = JSON.stringify(pub);
-    for (const secret of [spec.sources.dataplatform, spec.sources.ftseIndex, spec.sources.factsheet?.key, spec.sources.factsheet?.file]) {
+    const src = FUND_SOURCES[spec.key];
+    for (const secret of [src.dataplatform, src.ftseIndex, src.analytics, src.factsheet?.key, src.factsheet?.file]) {
       if (secret) assert.equal(json.includes(`"${secret}"`), false, `${spec.key} leaks ${secret}`);
     }
     assert.equal(pub.name.en, spec.name.en);

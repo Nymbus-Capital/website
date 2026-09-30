@@ -14,6 +14,7 @@ import { CATEGORY_COPY, FUND_COPY as F, HOME_COPY, VEHICLE_COPY } from "../home/
 import { STRAT_COPY as S } from "./strategies-copy";
 import { FundTile, RiskScale, SampleTag, fundStyle } from "../home/FundTile";
 import { cell, dayText, filterFunds, monthText, navText, type Filter } from "../home/figures";
+import { HL } from "../home/labels";
 import "../home/home.css";
 
 const FILTERS: Filter[] = ["all", "fixed-income", "alternatives"];
@@ -34,6 +35,9 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
   const missing = data.funds.some((f) => f.ytd === null || f.y1 === null || f.si === null || !f.nav);
   const anyFig = data.funds.some((f) => f.si !== null || f.y1 !== null || f.ytd !== null);
   const anyGross = data.funds.some((f) => f.basis === "gross" && (f.si !== null || f.y1 !== null || f.ytd !== null));
+  // gross-of-fees figures sit among net ones in the table: each carries an inline marker
+  const gross = (f: HomeData["funds"][number]) => f.basis === "gross";
+  const mark = <abbr title={pick(HL.grossLong)} data-testid="gross-marker">{pick(HL.gross)}</abbr>;
   return (
     <div className="hm">
       <Intro
@@ -95,9 +99,9 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                     </th>
                     <td className="xs-l">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}{f.code ? <span className="xs-sub tabnum">{f.code}</span> : null}</td>
                     <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>
-                    <td>{cell(f.ytd, locale)}</td>
-                    <td>{cell(f.y1, locale)}</td>
-                    <td>{cell(f.si, locale)}{f.si !== null ? <span className="xs-sub">{f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}</span> : null}</td>
+                    <td>{cell(f.ytd, locale)}{gross(f) && f.ytd !== null ? <span className="xs-sub">{mark}</span> : null}</td>
+                    <td>{cell(f.y1, locale)}{gross(f) && f.y1 !== null ? <span className="xs-sub">{mark}</span> : null}</td>
+                    <td>{cell(f.si, locale)}{f.si !== null ? <span className="xs-sub">{f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}{gross(f) ? <> · {mark}</> : null}</span> : null}</td>
                     <td className="xs-l"><RiskScale risk={f.risk} /></td>
                     <td>
                       {f.nav ? (

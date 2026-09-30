@@ -6,6 +6,7 @@
  */
 import { readFile } from "node:fs/promises";
 import { FUNDS } from "../../../config/funds.ts";
+import { FUND_SOURCES } from "../fund-sources.ts";
 import type { AnalyticsReturns, SourceResult } from "../raw.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 import { parseLooseJson } from "./factsheets.ts";
@@ -19,7 +20,7 @@ export const ANALYTICS_DEFAULTS = {
 export function reduceAnalytics(body: unknown, where: string): AnalyticsReturns | null {
   const j = body as { dates?: unknown; returns?: unknown };
   if (!j || !Array.isArray(j.dates) || !j.returns || typeof j.returns !== "object") return null;
-  const wanted = new Set(FUNDS.map((f) => f.sources.analytics).filter((x): x is string => !!x));
+  const wanted = new Set(FUNDS.map((f) => FUND_SOURCES[f.key].analytics).filter((x): x is string => !!x));
   const returns: Record<string, (number | null)[]> = {};
   for (const [name, arr] of Object.entries(j.returns as Record<string, unknown>)) {
     if (!wanted.has(name) || !Array.isArray(arr) || arr.length !== j.dates.length) continue;

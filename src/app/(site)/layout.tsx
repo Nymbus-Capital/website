@@ -5,12 +5,13 @@
 import { SiteShell } from "@/components/site/SiteShell";
 import { getLocale } from "@/lib/i18n/server";
 import { getContent } from "@/lib/data/site";
+import { hiddenFundKeys } from "@/config/funds-public";
 import "@/components/site/kit.css";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [locale, content] = await Promise.all([getLocale(), getContent().catch(() => null)]);
   // admin firm disclaimer (settings) replaces the boilerplate firm text in the footer when set
   // fund-specific footer paragraphs are omitted for funds hidden in the admin
-  const hiddenFunds = Object.entries(content?.funds ?? {}).filter(([, f]) => f?.hidden).map(([k]) => k);
+  const hiddenFunds = hiddenFundKeys(content);
   return <SiteShell locale={locale} firmDisclaimer={content?.firm.disclaimer ?? null} hiddenFunds={hiddenFunds}>{children}</SiteShell>;
 }

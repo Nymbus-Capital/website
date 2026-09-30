@@ -13,7 +13,7 @@ import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { FUND_TEXTS, T, tr } from "./copy";
 import { Block } from "./Block";
-import { bigMoney, dateLabel, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
+import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, headlineClass, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -169,7 +169,7 @@ function SeriesTable({ spec, content, data, lang }: Props) {
                   <td data-label={tr(T.facts.series, lang)}>{isHl ? <span className="fx-hl-dot" aria-hidden="true" /> : null}{c.display}{isHl ? <span className="sr-only"> ({tr(T.facts.headline, lang)})</span> : null}</td>
                   <td data-label={tr(T.facts.fundserv, lang)}><code>{c.fundserv}</code></td>
                   <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
-                  <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, 4) : "—"}</td>
+                  <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : "—"}</td>
                   <td data-label={tr(T.facts.change, lang)} className={dir === "up" ? "pos" : dir === "down" ? "neg" : undefined}>
                     {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : "—"}
                   </td>

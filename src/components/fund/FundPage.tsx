@@ -16,14 +16,17 @@ import { PortfolioTab } from "./Portfolio";
 import { DistributionsTab, DocumentsTab } from "./DocsDist";
 import { Disclosures, FeatureSection, FundCta, OtherFunds } from "./Closing";
 import type { Lang } from "./lib/format.ts";
+import { stripHidden } from "./lib/data.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";
 
-export function FundPage({ spec, content, data, sample, docs, funds, firmDisclaimer }: FundPageProps) {
+export function FundPage({ spec, content, data: published, sample, docs, funds, firmDisclaimer }: FundPageProps) {
   const { locale } = useTranslation();
   const lang: Lang = locale === "fr" ? "fr" : "en";
   const isFund = spec.vehicle === "fund";
   const style = { "--fund-from": spec.color.from, "--fund-to": spec.color.to, "--fund": spec.color.solid } as CSSProperties;
+  // the server already strips hidden blocks; stripping again here keeps every block consistent whatever the caller
+  const data = stripHidden(published, content);
   const props = { spec, content, data, lang };
   const tabs = [
     { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} /> },

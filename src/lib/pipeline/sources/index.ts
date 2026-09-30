@@ -2,6 +2,7 @@
  * Fetch every source for a run. Never throws: each failure is a SourceResult with ok=false.
  */
 import { FUNDS } from "../../../config/funds.ts";
+import { FUND_SOURCES } from "../fund-sources.ts";
 import type { FundKey } from "../../data/types.ts";
 import type { DpShort, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
@@ -12,16 +13,16 @@ import type { FetchImpl } from "./http.ts";
 
 /** FTSE short name per fund, with the env override for the Monthly Income benchmark. */
 export function ftseIndexFor(key: FundKey, env: Record<string, string | undefined> = process.env): string | null {
-  const spec = FUNDS.find((f) => f.key === key);
-  if (!spec?.sources.ftseIndex) return null;
+  const src = FUND_SOURCES[key];
+  if (!src?.ftseIndex) return null;
   if (key === "monthly-income" && env.FTSE_INDEX_SEST) return env.FTSE_INDEX_SEST.trim();
-  return spec.sources.ftseIndex;
+  return src.ftseIndex;
 }
 
 export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Record<string, string | undefined> }): Promise<RawPayloads> {
   const env = opts.env ?? process.env;
   const target = lastClosedMonth(opts.now);
-  const shorts = FUNDS.map((f) => f.sources.dataplatform).filter((s): s is DpShort => !!s);
+  const shorts = FUNDS.map((f) => FUND_SOURCES[f.key].dataplatform).filter((s): s is DpShort => !!s);
   const ftseIndex: RawPayloads["ftseIndex"] = {};
   for (const f of FUNDS) ftseIndex[f.key] = ftseIndexFor(f.key, env);
   const ftseNames = [...new Set(Object.values(ftseIndex).filter((x): x is string => !!x))];

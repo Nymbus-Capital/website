@@ -12,7 +12,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { FUNDS } from "@/config/funds";
+import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
 import { CONTACT } from "../links";
 import { CT } from "./copy-contact";
@@ -22,7 +22,7 @@ import "./pages.css";
 const ADDRESS = "1002 Sherbrooke Street West, Suite 1900, Montreal, Quebec H3A 3L6";
 const EMPTY: Inquiry = { profile: "", interests: [], name: "", email: "", phone: "", company: "", message: "" };
 
-function InquiryForm() {
+function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
   const { locale, pick } = useTranslation();
   const F = CT.form;
   const [live, setLive] = useState(false);
@@ -39,7 +39,7 @@ function InquiryForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  const interests = [...FUNDS.map((f) => ({ v: f.short.en, t: f.short })), { v: "Custom mandate", t: F.custom }, { v: "General inquiry", t: F.general }];
+  const interests = [...visibleFunds(PUBLIC_FUNDS, hiddenFunds).map((f) => ({ v: f.short.en, t: f.short })), { v: "Custom mandate", t: F.custom }, { v: "General inquiry", t: F.general }];
   const set = <K extends keyof Inquiry>(k: K, v: Inquiry[K]) => {
     setQ((x) => ({ ...x, [k]: v }));
     setErrs((e) => { const n = { ...e }; delete n[k as keyof InquiryErrors]; return n; });
@@ -201,7 +201,7 @@ function VisitMap() {
   );
 }
 
-export function Contact() {
+export function Contact({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
   const { locale, pick } = useTranslation();
   const O = CT.office;
   return (
@@ -217,7 +217,7 @@ export function Contact() {
           <Reveal self kind="pop" className="card ct-card">
             <h2 id="ct-form-t" className="h2">{pick(CT.form.title)}</h2>
             <p className="ct-lead">{pick(CT.form.lead)}</p>
-            <InquiryForm />
+            <InquiryForm hiddenFunds={hiddenFunds} />
           </Reveal>
           <Reveal as="aside" className="ct-side" stagger={120} aria-label={pick(O.title)}>
             <div className="card ct-office">

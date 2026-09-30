@@ -14,6 +14,7 @@ import { useTranslation, type L } from "@/lib/i18n";
 import type { FundCard } from "./data";
 import { FUND_COPY as F, RISK_COPY, VEHICLE_COPY } from "./copy";
 import { dayText, miniBars, monthText, navText, pctText } from "./figures";
+import { HL } from "./labels";
 
 export const fundStyle = (f: Pick<FundCard, "color">) =>
   ({ "--fund": f.color.solid, "--fund-from": f.color.from, "--fund-to": f.color.to }) as CSSProperties;
@@ -62,6 +63,9 @@ export function MiniBars({ f }: { f: FundCard }) {
   if (!f.calendar.length) return null;
   const g = miniBars(f.calendar);
   const ytdWord = locale === "fr" ? "CA" : "YTD";
+  // YTD only for the as-of year; an earlier partial year is the launch year
+  const flag = (b: (typeof g.bars)[number]) => (b.kind === "ytd" ? ytdWord : b.kind === "launch" ? pick(HL.launchShort) : null);
+  const flagLong = (b: (typeof g.bars)[number]) => (b.kind === "ytd" ? pick(F.ytdMark) : b.kind === "launch" ? pick(HL.sinceLaunch) : null);
   return (
     <figure className="fx-bars-w">
       <figcaption className="fx-lbl">{pick(F.calendar)}</figcaption>
@@ -75,10 +79,10 @@ export function MiniBars({ f }: { f: FundCard }) {
         ))}
       </div>
       <div className="fx-bars-x" aria-hidden="true">
-        {g.bars.map((b) => <span key={b.year}>{b.partial ? `${b.year} ${ytdWord}` : b.year}</span>)}
+        {g.bars.map((b) => <span key={b.year}>{flag(b) ? `${b.year} ${flag(b)}` : b.year}</span>)}
       </div>
       <ul className="sr-only">
-        {g.bars.map((b) => <li key={b.year}>{b.year}{b.partial ? ` (${pick(F.ytdMark)})` : ""}: {pctText(b.r, locale, false)}</li>)}
+        {g.bars.map((b) => <li key={b.year}>{b.year}{flagLong(b) ? ` (${flagLong(b)})` : ""}: {pctText(b.r, locale, false)}</li>)}
       </ul>
     </figure>
   );
@@ -106,7 +110,8 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
         <span className="fx-no" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <span className="fx-class">{pick(f.assetClass)}</span>
         <span className="fx-chips">
-          {sample && perf ? <SampleTag /> : null}
+          {/* any sample figure on the card (returns or NAV) carries the tag */}
+          {sample && (perf || f.nav) ? <SampleTag /> : null}
           <span className="fx-chip">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}</span>
         </span>
       </span>

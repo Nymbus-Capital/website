@@ -16,12 +16,25 @@ export function trailingPeriods(fund: PeriodMap | undefined | null): Period[] {
   return PERIOD_ORDER.filter((p) => isNum(fund[p]));
 }
 
-/** Periods that are annualized (2 years and more, and since inception when the record exceeds a year). */
+/** Monthly returns in a track record from `firstMonth` to `asOf` (both month-ends, inclusive). */
+export function trackMonths(firstMonth: string, asOf: string): number {
+  return monthsBetween(firstMonth, asOf) + 1;
+}
+
+/**
+ * Since-inception return is annualized when the record has at least 12 monthly returns: the pipeline's rule
+ * (metrics.trailing: `si.length >= 12`). Unknown dates: annualized (the pipeline's default for long records).
+ */
+export function siAnnualized(firstMonth?: string | null, asOf?: string | null): boolean {
+  if (!firstMonth || !asOf) return true;
+  return trackMonths(firstMonth, asOf) >= 12;
+}
+
+/** Periods that are annualized (2 years and more, and since inception from 12 monthly returns). */
 export function isAnnualized(p: Period, firstMonth?: string | null, asOf?: string | null): boolean {
   if (p === "2Y" || p === "3Y" || p === "5Y" || p === "10Y") return true;
   if (p !== "SI") return false;
-  if (!firstMonth || !asOf) return true;
-  return monthsBetween(firstMonth, asOf) >= 12;
+  return siAnnualized(firstMonth, asOf);
 }
 
 export function monthsBetween(a: string, b: string): number {
@@ -88,13 +101,29 @@ export function availableRanges(points: GrowthPoint[]): Range[] {
   return [...out, "SI"];
 }
 
-export interface GrowthSeries { dates: string[]; fund: number[]; index: (number | null)[]; hasIndex: boolean; start: number }
+export type GrowthMethod = "compounded" | "arithmetic";
 
 /**
- * Points of a range, rebased so the range starts at the same amount as the published series
- * (10 000 $ at inception). SI returns the published values untouched.
+ * How the published growth series aggregates returns: the published `method`, else arithmetic for a gross series
+ * (the GMV overlay, computed on notional without reinvestment), else compounded.
  */
-export function growthRange(points: GrowthPoint[], range: Range): GrowthSeries {
+export function growthMethod(perf: { method?: string | null; basis?: string | null } | null | undefined, specBasis?: "net" | "gross"): GrowthMethod {
+  if (perf?.method === "arithmetic" || perf?.method === "compounded") return perf.method;
+  return (perf?.basis ?? specBasis) === "gross" ? "arithmetic" : "compounded";
+}
+
+export interface GrowthSeries {
+  dates: string[]; fund: number[]; index: (number | null)[]; hasIndex: boolean; start: number;
+  /** fund return over the range shown (decimal), consistent with the method: what the end label / aria state */
+  change: number | null;
+}
+
+/**
+ * Points of a range, rebased so the range starts at 10 000 $ like the published series (10 000 $ at inception).
+ * A compounded series is rebased by ratio (p / p0 × 10 000); an arithmetic one (10 000 × (1 + Σr), no reinvestment)
+ * additively (10 000 + p − p0), which is 10 000 × (1 + Σr over the range). SI returns the published values untouched.
+ */
+export function growthRange(points: GrowthPoint[], range: Range, method: GrowthMethod = "compounded"): GrowthSeries {
   const clean = points.filter((p) => isNum(p.fund));
   const n = RANGE_MONTHS[range];
   const slice = n === Infinity || clean.length <= n + 1 ? clean : clean.slice(clean.length - (n + 1));
@@ -103,9 +132,15 @@ export function growthRange(points: GrowthPoint[], range: Range): GrowthSeries {
   const f0 = slice[0]?.fund;
   const i0 = slice.find((p) => isNum(p.index))?.index ?? null;
   const rebased = range !== "SI" && slice !== clean;
-  const fund = slice.map((p) => (rebased && f0 ? (p.fund / f0) * start : p.fund));
-  const index = slice.map((p) => (isNum(p.index) ? (rebased && i0 ? (p.index / i0) * start : p.index) : null));
-  return { dates: slice.map((p) => p.date), fund, index, hasIndex: index.some(isNum), start: rebased ? start : base };
+  const add = method === "arithmetic";
+  const rb = (v: number, v0: number | null | undefined) => (!rebased || !isNum(v0) || !v0 ? v : add ? start + (v - v0) : (v / v0) * start);
+  const fund = slice.map((p) => rb(p.fund, f0));
+  const index = slice.map((p) => (isNum(p.index) ? rb(p.index, i0) : null));
+  const s0 = rebased ? start : base;
+  const last = fund[fund.length - 1];
+  // arithmetic: Σr over the range = (p − p0) / notional; compounded: p / p0 − 1 (the notional is 10 000 $ either way)
+  const change = fund.length > 1 && isNum(last) && s0 ? (add ? (last - fund[0]) / start : last / fund[0] - 1) : null;
+  return { dates: slice.map((p) => p.date), fund, index, hasIndex: index.some(isNum), start: s0, change };
 }
 
 /* ------------------------------------------------------------------ calendar */
@@ -114,12 +149,24 @@ export function calendarRows(rows: CalendarRow[] | undefined | null): CalendarRo
   return (rows ?? []).filter((r) => isNum(r.fund) || isNum(r.index)).sort((a, b) => a.year - b.year);
 }
 
+/** Why a calendar year is incomplete: "ytd" only for the as-of year, "launch" for an earlier partial (inception) year. */
+export type PartialKind = "ytd" | "launch" | null;
+
+export function partialKind(year: number, partial: boolean | null | undefined, asOf: string | null | undefined): PartialKind {
+  if (!partial) return null;
+  const y = asOf && /^\d{4}/.test(asOf) ? +asOf.slice(0, 4) : null;
+  return y != null && year === y ? "ytd" : "launch";
+}
+
 /* ------------------------------------------------------------------ monthly heatmap */
 
-export interface HeatRow { year: number; cells: (number | null)[]; total: number | null; partial: boolean }
+export interface HeatRow { year: number; cells: (number | null)[]; total: number | null; partial: boolean; kind: PartialKind }
 
-/** Years × 12 months grid of monthly returns, with the calendar-year return when published. */
-export function heatmapGrid(monthly: MonthlyPoint[] | undefined | null, calendar?: CalendarRow[] | null): HeatRow[] {
+/**
+ * Years × 12 months grid of monthly returns, with the calendar-year return when published. A partial row is
+ * "ytd" only for the as-of year (default: the last published month), "launch" for a partial inception year.
+ */
+export function heatmapGrid(monthly: MonthlyPoint[] | undefined | null, calendar?: CalendarRow[] | null, asOf?: string | null): HeatRow[] {
   const byYear = new Map<number, (number | null)[]>();
   for (const p of monthly ?? []) {
     if (!isNum(p.r)) continue;
@@ -129,10 +176,13 @@ export function heatmapGrid(monthly: MonthlyPoint[] | undefined | null, calendar
     byYear.get(y)![m - 1] = p.r;
   }
   const cal = new Map((calendar ?? []).map((c) => [c.year, c]));
+  const lastMonth = (monthly ?? []).filter((p) => isNum(p.r)).map((p) => p.month).sort().pop() ?? null;
+  const end = asOf ?? lastMonth;
   return [...byYear.keys()].sort((a, b) => b - a).map((year) => {
     const c = cal.get(year);
     const cells = byYear.get(year)!;
-    return { year, cells, total: c && isNum(c.fund) ? c.fund : null, partial: !!c?.partial || cells[11] == null };
+    const partial = !!c?.partial || cells[11] == null;
+    return { year, cells, total: c && isNum(c.fund) ? c.fund : null, partial, kind: partialKind(year, partial, end) };
   });
 }
 
@@ -189,7 +239,34 @@ export function groupDocuments<D extends GroupableDoc>(docs: D[], lang: "en" | "
 
 export type Block = "hero" | "trailing" | "growth" | "calendar" | "heatmap" | "risk" | "portfolio" | "facts" | "documents" | "disclosure";
 
-/** Which blocks render: the data must exist and the admin must not have hidden it. */
+/**
+ * The fund data with every block the admin hid removed (null / empty), so hidden figures never cross the server →
+ * client boundary and every consumer (header, badges, tabs, cards) sees the same thing. `hide.performance` removes
+ * everything derived from the returns: trailing, monthly, growth, calendar and the risk statistics. The fund AUM is
+ * kept only when the admin explicitly published it (`hide.aum === false`). Pure; never mutates its input.
+ */
+export function stripHidden<D extends Omit<FundData, "sourceName">>(data: D | null | undefined, content: Pick<FundContent, "hide"> | null | undefined): D | null {
+  if (!data) return null;
+  const h = content?.hide ?? {};
+  const out: D = { ...data };
+  if (h.performance) out.performance = null;
+  else if (out.performance && (h.growth || h.calendar)) {
+    out.performance = { ...out.performance, ...(h.growth ? { growth: [] } : {}), ...(h.calendar ? { calendar: [] } : {}) };
+  }
+  if (h.performance || h.risk) {
+    out.risk = null;
+    if ("risk3Y" in out) out.risk3Y = null;
+  }
+  if (h.nav) out.nav = null;
+  if (h.aum !== false) out.aum = null;
+  if (h.characteristics) out.characteristics = [];
+  if (h.breakdowns) out.breakdowns = {};
+  if (h.holdings) out.topHoldings = [];
+  if (h.esg) out.esg = [];
+  return out;
+}
+
+/** Which blocks render: the data must exist and the admin must not have hidden it (hiding performance hides every returns-derived block). */
 export function visibleBlocks(data: Omit<FundData, "sourceName"> | null, content: FundContent, docCount: number): Record<Block, boolean> {
   const h = content.hide ?? {};
   const perf = data?.performance ?? null;
@@ -204,10 +281,10 @@ export function visibleBlocks(data: Omit<FundData, "sourceName"> | null, content
   return {
     hero: true,
     trailing: !h.performance && trailingPeriods(perf?.trailing.fund).length > 0,
-    growth: !h.growth && (perf?.growth.filter((p) => isNum(p.fund)).length ?? 0) > 1,
-    calendar: !h.calendar && calendarRows(perf?.calendar).length > 0,
+    growth: !h.performance && !h.growth && (perf?.growth.filter((p) => isNum(p.fund)).length ?? 0) > 1,
+    calendar: !h.performance && !h.calendar && calendarRows(perf?.calendar).length > 0,
     heatmap: !h.performance && has(perf?.monthly),
-    risk: !h.risk && riskOk,
+    risk: !h.performance && !h.risk && riskOk,
     portfolio,
     facts: true,
     documents: docCount > 0,

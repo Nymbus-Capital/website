@@ -27,9 +27,11 @@ test("dates: sentence case in English, French as written", () => {
 });
 
 test("navText: class currency", () => {
-  assert.equal(navText(10.1905, "CAD", "en"), "$10.19");
-  assert.equal(navText(10.1905, "USD", "en"), "US$10.19");
-  assert.equal(sp(navText(10.1905, "CAD", "fr")), "10,19 $");
+  // 4 decimals everywhere, like the fund page (NAV card, series table)
+  assert.equal(navText(10.1905, "CAD", "en"), "$10.1905");
+  assert.equal(navText(10.1905, "USD", "en"), "US$10.1905");
+  assert.equal(sp(navText(10.1905, "CAD", "fr")), "10,1905 $");
+  assert.equal(navText(10.2, "CAD", "en"), "$10.2000");
 });
 
 test("filterFunds: every registered fund has a category; filters keep order", () => {

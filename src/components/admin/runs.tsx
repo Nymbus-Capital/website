@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Play, RefreshCw, Upload } from "lucide-react";
 import type { RunReport } from "@/lib/pipeline";
-import { FUNDS } from "@/config/funds";
+import { PUBLIC_FUNDS as FUNDS } from "@/config/funds-public";
 import { api, ApiError, useConfirm, useToast } from "./client";
 import { Pill } from "./Head";
 import { duration, fundStateTone, levelTone, runTone, when } from "./format";

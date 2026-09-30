@@ -9,13 +9,14 @@ import type { FundContent, Performance as Perf, RiskStats } from "@/lib/data/typ
 import { preInceptionNote } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
+import { FL } from "./labels";
 import { Block } from "./Block";
 import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
 import { GrowthChart } from "./charts/GrowthChart";
 import { Heatmap } from "./charts/Heatmap";
 import { Ring } from "./charts/Breakdowns";
 import { dateLabel, fmt, type Lang } from "./lib/format.ts";
-import { benchmarkLabel, calendarRows, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
+import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
 
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }
 
@@ -48,15 +49,15 @@ export function PerformanceTab({ spec, content, data, lang }: Props) {
         <Block title={tr(T.perf.growth, lang)} lead={tr(gross ? T.perf.growthLeadGross : T.perf.growthLead, lang)} testId="growth">
           <GrowthChart points={perf.growth} lang={lang} names={names} rangeGroupLabel={tr(T.perf.range, lang)} label={tr(T.perf.growth, lang)}
             rangeLabels={Object.fromEntries((["1Y", "3Y", "5Y", "SI"] as Range[]).map((r) => [r, tr(T.perf.ranges[r], lang)])) as Record<Range, string>}
-            keysHint={tr(T.perf.keys, lang)} rebasedNote={tr(T.perf.rebased, lang)} />
+            keysHint={tr(T.perf.keys, lang)} rebasedNote={tr(T.perf.rebased, lang)} method={growthMethod(perf, spec.sources.basis)} />
         </Block>
       ) : null}
       {v.trailing && perf ? <TrailingBlock perf={perf} names={names} lang={lang} /> : null}
       {v.calendar && perf ? <CalendarBlock perf={perf} names={names} lang={lang} /> : null}
       {v.heatmap && perf ? (
         <Block title={tr(T.perf.monthly, lang)} lead={tr(T.perf.monthlyLead, lang)} testId="heatmap">
-          <Heatmap monthly={perf.monthly} calendar={perf.calendar} lang={lang} caption={tr(T.perf.monthly, lang)}
-            labels={{ year: tr(T.perf.year, lang), total: tr(T.perf.year, lang), ytd: tr(T.perf.ytd, lang), neg: tr(T.perf.negative, lang), pos: tr(T.perf.positive, lang), fund: names.fund }} />
+          <Heatmap monthly={perf.monthly} calendar={perf.calendar} asOf={perf.asOf} lang={lang} caption={tr(T.perf.monthly, lang)}
+            labels={{ year: tr(T.perf.year, lang), total: tr(T.perf.year, lang), ytd: tr(T.perf.ytd, lang), launch: tr(FL.sinceLaunch, lang), neg: tr(T.perf.negative, lang), pos: tr(T.perf.positive, lang), fund: names.fund }} />
         </Block>
       ) : null}
       {v.risk ? <RiskBlock windows={windows} lang={lang} /> : null}
@@ -116,8 +117,10 @@ function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
   const rows = calendarRows(perf.calendar);
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
+  const kind = (r: (typeof rows)[number]) => partialKind(r.year, r.partial, perf.asOf);
+  const flag = (r: (typeof rows)[number]) => { const k = kind(r); return k === "ytd" ? tr(T.perf.ytd, lang) : k === "launch" ? tr(FL.sinceLaunch, lang) : undefined; };
   const cats: BarCategory[] = rows.map((r) => ({
-    key: String(r.year), label: String(r.year), long: String(r.year), flag: r.partial ? tr(T.perf.ytd, lang) : undefined,
+    key: String(r.year), label: String(r.year), long: String(r.year), flag: flag(r),
     fund: r.fund, index: r.index ?? null, va: r.va ?? null,
   }));
   return (
@@ -132,7 +135,7 @@ function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
             <tbody>
               {rows.map((r) => (
                 <tr key={r.year}>
-                  <td>{r.year}{r.partial ? ` (${tr(T.perf.partial, lang)})` : ""}</td>
+                  <td>{r.year}{kind(r) ? ` (${tr(kind(r) === "ytd" ? FL.ytdLong : FL.sinceLaunch, lang)})` : ""}</td>
                   <td>{P(r.fund, lang)}</td>
                   {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                   {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}

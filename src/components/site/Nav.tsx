@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { Logo } from "./Logo";
+import { visibleFunds } from "@/config/funds-public";
 import { CONTACT, FUND_LINKS, NAV_LINKS } from "./links";
 
 export function LangToggle({ className }: { className?: string }) {
@@ -25,8 +26,10 @@ export function LangToggle({ className }: { className?: string }) {
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 
-export function Nav() {
+export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
   const { t, pick } = useTranslation();
+  // funds hidden in the admin are left out of the dropdown and the mobile menu
+  const funds = visibleFunds(FUND_LINKS, hiddenFunds);
   const path = usePathname() || "/";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -90,7 +93,7 @@ export function Nav() {
                         {t(l.key)} <ChevronDown size={14} aria-hidden="true" style={{ marginLeft: 4 }} />
                       </Link>
                       <div className="nav-drop-panel">
-                        {FUND_LINKS.map((f) => (
+                        {funds.map((f) => (
                           <Link key={f.href} href={f.href} aria-current={path === f.href ? "page" : undefined}>
                             <i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />
                             <span><b>{pick(f.short)}</b><small>{pick(f.tagline)}</small></span>
@@ -135,7 +138,7 @@ export function Nav() {
             ))}
           </ul>
           <ul className="menu-funds" style={{ ["--i" as string]: NAV_LINKS.length + 1 }}>
-            {FUND_LINKS.map((f) => (
+            {funds.map((f) => (
               <li key={f.href}>
                 <Link href={f.href} onClick={() => setOpen(false)}>
                   <i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />

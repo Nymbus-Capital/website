@@ -17,7 +17,7 @@ export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds
   useEffect(() => { window.__nyReady = true; document.documentElement.classList.add("js"); }, []);
   return (
     <I18nProvider initialLocale={locale}>
-      <Nav />
+      <Nav hiddenFunds={hiddenFunds} />
       <main id="main" tabIndex={-1}>{children}</main>
       <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />
     </I18nProvider>
