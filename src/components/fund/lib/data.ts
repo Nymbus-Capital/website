@@ -229,3 +229,75 @@ export function riskWindows(risk: unknown): RiskStats[] {
   const seen = new Set<string>();
   return ok.filter((r) => (seen.has(r.window) ? false : (seen.add(r.window), true))).sort((a, b) => (a.window === "SI" ? -1 : b.window === "SI" ? 1 : 0));
 }
+
+/* ------------------------------------------------------------------ fund page (light rebuild) */
+
+/** Periods shown as return badges under the header (6M is not published by the pipeline). */
+export const BADGE_PERIODS: Period[] = ["1M", "3M", "YTD", "1Y", "3Y", "5Y", "10Y", "SI"];
+
+export interface Badge { period: Period; value: number; annualized: boolean }
+
+/** Return badges: published fund returns only, in display order; none when the admin hid performance. */
+export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string } | null | undefined, hidden = false): Badge[] {
+  if (!perf || hidden) return [];
+  return BADGE_PERIODS.filter((p) => isNum(perf.trailing.fund[p])).map((p) => ({
+    period: p, value: perf.trailing.fund[p] as number, annualized: isAnnualized(p, perf.firstMonth, perf.asOf),
+  }));
+}
+
+export interface TrailingRow { period: Period; fund: number; index: number | null; va: number | null; annualized: boolean }
+
+/** Rows of the trailing / annualized returns table: fund, benchmark and value added per published period. */
+export function trailingRows(perf: { trailing: { fund: PeriodMap; index?: PeriodMap; va?: PeriodMap }; firstMonth?: string; asOf?: string } | null | undefined): TrailingRow[] {
+  if (!perf) return [];
+  return trailingPeriods(perf.trailing.fund).map((p) => {
+    const index = perf.trailing.index?.[p];
+    const va = perf.trailing.va?.[p];
+    return { period: p, fund: perf.trailing.fund[p] as number, index: isNum(index) ? index : null, va: isNum(va) ? va : null, annualized: isAnnualized(p, perf.firstMonth, perf.asOf) };
+  });
+}
+
+/** Direction of a daily NAV change (null / rounded-to-zero changes are flat). */
+export function navDirection(changePct: number | null | undefined, decimals = 2): "up" | "down" | "flat" {
+  if (!isNum(changePct)) return "flat";
+  const r = +(changePct * 100).toFixed(decimals);
+  return r > 0 ? "up" : r < 0 ? "down" : "flat";
+}
+
+const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+
+/**
+ * Portfolio managers named in the admin content, matched with the team registry (accents, case and
+ * punctuation ignored). Unknown names are kept (shown without photo); blanks and duplicates are dropped.
+ */
+export function resolveManagers<T extends { name: string }>(names: string[] | undefined | null, team: readonly T[]): { name: string; member: T | null }[] {
+  const seen = new Set<string>();
+  const out: { name: string; member: T | null }[] = [];
+  for (const raw of names ?? []) {
+    const name = (raw ?? "").trim();
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    const member = team.find((m) => norm(m.name) === key) ?? null;
+    out.push({ name: member?.name ?? name, member });
+  }
+  return out;
+}
+
+/** Initials for an avatar without a photo ("Mathieu Poulin-Brière" → "MP"). */
+export function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "";
+  const first = parts[0][0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] ?? "" : "";
+  return (first + last).toUpperCase();
+}
+
+/** Regulatory documents of a Canadian mutual fund (NI 81-101 / 81-106), listed as available on request when none is uploaded. */
+export const REGULATORY_DOCS: DocType[] = ["fund-facts", "prospectus", "annual-report", "interim-report", "mrfp"];
+
+/** Series (NAV classes) sorted for the facts table: the headline class first, then by FundServ code. */
+export function sortedClasses(classes: NavClass[] | undefined | null, headline: string | null | undefined): NavClass[] {
+  const h = (headline ?? "").toUpperCase();
+  return [...(classes ?? [])].sort((a, b) => (a.fundserv.toUpperCase() === h ? -1 : b.fundserv.toUpperCase() === h ? 1 : a.fundserv.localeCompare(b.fundserv)));
+}

@@ -1,6 +1,6 @@
 /**
  * Fund detail page: /strategies/<fund key>. Reads the published pipeline data + admin content at request
- * time (the pipeline refreshes the data daily; no rebuild), then hands plain JSON to the client keynote.
+ * time (the pipeline refreshes the data daily; no rebuild), then hands plain JSON to the client page.
  * Legacy slugs are redirected by next.config.ts; registry aliases (e.g. /strategies/sest) redirect here.
  */
 import type { Metadata } from "next";
@@ -49,7 +49,9 @@ export default async function StrategyPage({ params }: Params) {
   if (view.spec.key !== slug) permanentRedirect(`/strategies/${view.spec.key}`);
 
   const [docs, all, siteContent] = await Promise.all([documentsFor(view.spec.key), getAllFundViews(), getContent()]);
-  const funds: FundLink[] = all.map(({ spec }) => ({ key: spec.key, name: spec.name, short: spec.short, color: spec.color }));
+  const funds: FundLink[] = all.map(({ spec, content }) => ({
+    key: spec.key, name: spec.name, short: spec.short, assetClass: spec.assetClass, tagline: content.tagline ?? spec.defaults.tagline, color: spec.color,
+  }));
 
   // the snapshot pin is internal (admin) state: strip it before the props cross to the client
   const { pinnedSnapshot: _pin, ...content } = view.content;

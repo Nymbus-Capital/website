@@ -164,7 +164,7 @@ function EndLabels({ geo, last, lastIdx, s, cur }: {
   const fw = ft.length * 7.6 + 22;
   return (
     <g data-pop="">
-      <rect x={x} y={fy - 14} width={fw} height={28} rx={14} fill="var(--fund)" style={{ filter: "drop-shadow(0 6px 14px color-mix(in srgb, var(--fund) 50%, transparent))" }} />
+      <rect x={x} y={fy - 14} width={fw} height={28} rx={14} fill="var(--fund-ink)" style={{ filter: "drop-shadow(0 6px 14px color-mix(in srgb, var(--fund) 50%, transparent))" }} />
       <text x={x + fw / 2} y={fy + 0.5} textAnchor="middle" dominantBaseline="central" fill="#fff" style={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{ft}</text>
       {iy != null && lastIdx >= 0 ? (
         <text x={x + 4} y={iy} dominantBaseline="central" className="vl index">{cur(s.index[lastIdx]!)}</text>

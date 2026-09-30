@@ -2,10 +2,10 @@
 /**
  * Portfolio breakdowns: animated horizontal bars (fund in its gradient, index as a thin muted bar under it)
  * and a glowing donut for allocations that add up to a whole (strategy allocation of the multi-strategy
- * fund). Top-10 holdings as a ranked list with weight bars. All values come straight from the factsheet data.
+ * fund). All values come straight from the factsheet data.
  */
 import { useRef, useState } from "react";
-import type { Bucket, Holding } from "@/lib/data/types";
+import type { Bucket } from "@/lib/data/types";
 import { fmt, type Lang } from "../lib/format.ts";
 import { useEntrance, useNear, useSvgId } from "./hooks";
 
@@ -90,25 +90,6 @@ export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: 
         ))}
       </div>
     </div>
-  );
-}
-
-export function Holdings({ items, lang, label }: { items: Holding[]; lang: Lang; label: string }) {
-  const [ref, , seen] = useNear<HTMLOListElement>();
-  useEntrance(ref, seen);
-  const top = items.slice(0, 10);
-  const max = Math.max(0.0001, ...top.map((h) => h.weight));
-  return (
-    <ol ref={ref} className="fx-holdings" aria-label={label}>
-      {top.map((h, i) => (
-        <li key={`${h.name}-${i}`}>
-          <span className="n">{String(i + 1).padStart(2, "0")}</span>
-          <span className="nm" title={h.name}>{h.name}</span>
-          <span className="wt" aria-hidden="true"><span className="w" style={{ display: "block", width: `${(h.weight / max) * 100}%` }} data-grow="right" /></span>
-          <span className="p">{pctF(h.weight, lang, 2)}</span>
-        </li>
-      ))}
-    </ol>
   );
 }
 

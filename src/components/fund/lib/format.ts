@@ -43,6 +43,13 @@ export function money(v: number, currency: string, lang: Lang, decimals = 2): st
   return `${sign}${cur === "CAD" ? "" : cur === "USD" ? "US" : `${cur} `}$${n}`;
 }
 
+/** Prefix / suffix around a formatted amount so that `fmt(v, { decimals, prefix, suffix })` equals `money(v, …)` for v ≥ 0. */
+export function moneyParts(currency: string, lang: Lang): { prefix: string; suffix: string } {
+  const cur = (currency || "CAD").toUpperCase();
+  if (lang === "fr") return { prefix: "", suffix: ` $${cur === "CAD" ? "" : ` ${cur === "USD" ? "US" : cur}`}` };
+  return { prefix: `${cur === "CAD" ? "" : cur === "USD" ? "US" : `${cur} `}$`, suffix: "" };
+}
+
 /** Compact dollars for axes: 12 500 → "$12.5k" / "12,5 k$"; 1 250 000 → "$1.25M" / "1,25 M$". */
 export function compactMoney(v: number, lang: Lang): string {
   const a = Math.abs(v);
@@ -62,17 +69,17 @@ export function bigMoney(v: number, lang: Lang): string {
 }
 
 const MONTHS: Record<Lang, string[]> = {
-  en: ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"],
+  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
   fr: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
 };
 const MONTHS_SHORT: Record<Lang, string[]> = {
-  en: ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
   fr: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
 };
 /** One-letter month headers for the heatmap. */
 export const MONTH_INITIALS: Record<Lang, string[]> = {
-  en: ["j", "f", "m", "a", "m", "j", "j", "a", "s", "o", "n", "d"],
-  fr: ["j", "f", "m", "a", "m", "j", "j", "a", "s", "o", "n", "d"],
+  en: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+  fr: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
 };
 export const monthName = (m: number, lang: Lang, short = false) => (short ? MONTHS_SHORT : MONTHS)[lang][m - 1] ?? "";
 
@@ -83,17 +90,17 @@ export function ym(iso: string): { y: number; m: number; d: number } | null {
   return { y: +r[1], m: +r[2], d: r[3] ? +r[3] : 1 };
 }
 
-/** "2026-08-31" or "2026-08" → "august 2026" / "août 2026". */
+/** "2026-08-31" or "2026-08" → "August 2026" / "août 2026" (French months stay lowercase). */
 export function monthLabel(iso: string | null | undefined, lang: Lang, short = false): string {
   const p = iso ? ym(iso) : null;
   return p ? `${monthName(p.m, lang, short)} ${p.y}` : "";
 }
 
-/** "2026-09-26" → "sep 26, 2026" / "26 sept. 2026". */
-export function dateLabel(iso: string | null | undefined, lang: Lang): string {
+/** "2026-09-26" → "Sep 26, 2026" / "26 sept. 2026"; `long`: "September 26, 2026" / "26 septembre 2026". */
+export function dateLabel(iso: string | null | undefined, lang: Lang, long = false): string {
   const p = iso ? ym(iso) : null;
   if (!p) return "";
-  return lang === "fr" ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, true)} ${p.y}` : `${monthName(p.m, lang, true)} ${p.d}, ${p.y}`;
+  return lang === "fr" ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, !long)} ${p.y}` : `${monthName(p.m, lang, !long)} ${p.d}, ${p.y}`;
 }
 
 export function fileSize(bytes: number, lang: Lang): string {
