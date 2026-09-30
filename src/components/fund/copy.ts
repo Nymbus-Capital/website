@@ -249,12 +249,11 @@ export const T = {
     calendar: l("Calendar-year totals", "Totaux par année civile"),
     year: l("Year", "Année"),
     total: l("Total per unit", "Total par part"),
-    count: l("Number of distributions", "Nombre de distributions"),
+    count: l("Distributions", "Distributions"),
     date: l("Date", "Date"),
     all: l("All distributions", "Toutes les distributions"),
     showAll: l("Show all ({n})", "Tout afficher ({n})"),
     showLess: l("Show the last 12", "Afficher les 12 dernières"),
-    noteTitle: l("About these figures", "À propos de ces chiffres"),
     note: l(
       "Amounts are per unit, in the currency of each series, by valuation date. Past distributions do not guarantee future distributions: amounts and frequency may change. The tax character of distributions (income, capital gains or return of capital) is not shown here; it is reported on the annual tax slips.",
       "Les montants sont par part, dans la devise de chaque série, par date d’évaluation. Les distributions passées ne garantissent pas les distributions futures\u00a0: les montants et la fréquence peuvent changer. La nature fiscale des distributions (revenu, gains en capital ou remboursement de capital) n’est pas présentée ici; elle figure sur les feuillets fiscaux annuels.",

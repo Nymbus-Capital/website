@@ -146,22 +146,22 @@
   "country": [
    {
     "label": "Canada",
-    "weight": 0.914,
+    "weight": 0.8586,
     "count": 2
    },
    {
     "label": "Cash",
-    "weight": 0.042,
+    "weight": 0.1,
     "count": 0
    },
    {
     "label": "United States",
-    "weight": 0.037,
+    "weight": 0.0348,
     "count": 9
    },
    {
     "label": "Other",
-    "weight": 0.007,
+    "weight": 0.0066,
     "count": 3
    }
   ],

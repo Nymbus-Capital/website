@@ -13,6 +13,7 @@ import type { ClassDistribution, FundContent } from "@/lib/data/types";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { Block } from "./Block";
+import { FL } from "./labels";
 import { dateLabel, fileSize, type Lang, colon } from "./lib/format.ts";
 import { distributionBars, distributionClasses, groupDocuments, historyRows, REGULATORY_DOCS } from "./lib/data.ts";
 import { DistBars, perUnit } from "./charts/DistBars";
@@ -28,6 +29,7 @@ export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec
       {text ? <p className="fxb-text" data-testid="distribution-policy">{text}</p>
         : <p className="fxb-text" data-testid="distribution-none">{tr(isFund ? T.dist.none : T.dist.noneStrategy, lang)}</p>}
       {isFund ? <p className="fine fxb-foot">{tr(T.dist.reinvest, lang)}</p> : null}
+      {classes.length ? <p className="fine ds-note" data-testid="distributions-note">{tr(T.dist.note, lang)}</p> : null}
       <div className="actions sm">
         <a className="btn ghost sm" href={mailto(`${tr(spec.name, lang)} · ${tr(T.dist.title, lang)}`)}><Mail aria-hidden="true" />{tr(T.dist.ask, lang)}</a>
       </div>
@@ -38,13 +40,8 @@ export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec
     <div className="container fp">
       <p className="fp-context" data-testid="distributions-asof">{tr(T.dist.asOf, lang)} {dateLabel(data!.distributions!.asOf, lang, true)}</p>
       <RecentDistributions classes={classes} headline={classes[0].fundserv} lang={lang} />
-      <DistributionHistory classes={classes} lang={lang} />
-      <div className="bk-grid ds-foot">
-        {policy}
-        <Block title={tr(T.dist.noteTitle, lang)} card={false} className="ds-note">
-          <p className="fine" data-testid="distributions-note">{tr(T.dist.note, lang)}</p>
-        </Block>
-      </div>
+      <DistributionHistory classes={classes} asOf={data!.distributions!.asOf} lang={lang} />
+      <div className="ds-grid">{policy}</div>
     </div>
   );
 }
@@ -78,7 +75,7 @@ function RecentDistributions({ classes, headline, lang }: { classes: ClassDistri
 }
 
 /** One series at a time (the headline one first): bar chart of the last distributions, calendar-year totals, full history. */
-function DistributionHistory({ classes, lang }: { classes: ClassDistribution[]; lang: Lang }) {
+function DistributionHistory({ classes, asOf, lang }: { classes: ClassDistribution[]; asOf: string; lang: Lang }) {
   const [code, setCode] = useState((classes.find((x) => x.history.length > 0) ?? classes[0]).fundserv);
   const [all, setAll] = useState(false);
   const listId = useId();
@@ -113,7 +110,7 @@ function DistributionHistory({ classes, lang }: { classes: ClassDistribution[]; 
               <thead><tr><th scope="col">{tr(T.dist.year, lang)}</th><th scope="col">{tr(T.dist.total, lang)}</th><th scope="col">{tr(T.dist.count, lang)}</th></tr></thead>
               <tbody>
                 {[...c.calendarYears].reverse().map((y) => (
-                  <tr key={y.year}><td>{y.year}</td><td className="strong">{perUnit(y.amount, c.currency, lang)}</td><td>{y.count}</td></tr>
+                  <tr key={y.year}><td>{y.year}{String(y.year) === asOf.slice(0, 4) ? <span className="ds-ytd">{tr(FL.ytdLong, lang)}</span> : null}</td><td className="strong">{perUnit(y.amount, c.currency, lang)}</td><td>{y.count}</td></tr>
                 ))}
               </tbody>
             </table>

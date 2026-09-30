@@ -1697,44 +1697,44 @@
      "sector": [
       {
        "label": "Financials",
-       "weight": 0.4013,
+       "weight": 0.4021,
        "count": 2
       },
       {
        "label": "Government",
-       "weight": 0.1826,
+       "weight": 0.1829,
        "count": 9
       },
       {
        "label": "Energy",
-       "weight": 0.1224,
+       "weight": 0.1226,
        "count": 3
       },
       {
        "label": "Utilities",
-       "weight": 0.0965,
+       "weight": 0.0966,
        "count": 10
       },
       {
        "label": "Communications",
-       "weight": 0.0903,
+       "weight": 0.0904,
        "count": 4
       },
       {
        "label": "Industrials",
-       "weight": 0.0633,
+       "weight": 0.0634,
        "count": 11
       },
       {
        "label": "Cash",
-       "weight": 0.0436,
+       "weight": 0.042,
        "count": 0
       }
      ],
      "rating": [
       {
        "label": "AAA",
-       "weight": 0.0816,
+       "weight": 0.0817,
        "count": 2
       },
       {
@@ -1744,7 +1744,7 @@
       },
       {
        "label": "A",
-       "weight": 0.4277,
+       "weight": 0.4276,
        "count": 3
       },
       {
@@ -1771,7 +1771,7 @@
      "term": [
       {
        "label": "0-1",
-       "weight": 0.1856,
+       "weight": 0.1855,
        "count": 2
       },
       {
@@ -1791,14 +1791,14 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0419,
+       "weight": 0.042,
        "count": 0
       }
      ],
      "country": [
       {
        "label": "Canada",
-       "weight": 0.9148,
+       "weight": 0.9144,
        "count": 2
       },
       {
@@ -1813,14 +1813,14 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0416,
+       "weight": 0.042,
        "count": 0
       }
      ],
      "assetType": [
       {
        "label": "Corporate bonds",
-       "weight": 0.7837,
+       "weight": 0.7834,
        "count": 2
       },
       {
@@ -1840,7 +1840,7 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0417,
+       "weight": 0.042,
        "count": 0
       }
      ]
@@ -5315,12 +5315,12 @@
       },
       {
        "label": "Government",
-       "weight": 0.2887,
+       "weight": 0.2886,
        "count": 9
       },
       {
        "label": "Energy",
-       "weight": 0.1175,
+       "weight": 0.1174,
        "count": 3
       },
       {
@@ -5340,24 +5340,24 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0408,
+       "weight": 0.041,
        "count": 0
       }
      ],
      "rating": [
       {
        "label": "AAA",
-       "weight": 0.2159,
+       "weight": 0.216,
        "count": 2
       },
       {
        "label": "AA",
-       "weight": 0.3302,
+       "weight": 0.3301,
        "count": 9
       },
       {
        "label": "A",
-       "weight": 0.2853,
+       "weight": 0.2852,
        "count": 3
       },
       {
@@ -5372,14 +5372,14 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0409,
+       "weight": 0.041,
        "count": 0
       }
      ],
      "term": [
       {
        "label": "0-1",
-       "weight": 0.03,
+       "weight": 0.0299,
        "count": 2
       },
       {
@@ -5409,14 +5409,14 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0409,
+       "weight": 0.041,
        "count": 0
       }
      ],
      "country": [
       {
        "label": "Canada",
-       "weight": 0.915,
+       "weight": 0.9155,
        "count": 2
       },
       {
@@ -5431,14 +5431,14 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0415,
+       "weight": 0.041,
        "count": 0
       }
      ],
      "assetType": [
       {
        "label": "Corporate bonds",
-       "weight": 0.4119,
+       "weight": 0.4118,
        "count": 3
       },
       {
@@ -5458,7 +5458,7 @@
       },
       {
        "label": "Cash",
-       "weight": 0.0409,
+       "weight": 0.041,
        "count": 0
       }
      ]

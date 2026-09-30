@@ -166,12 +166,12 @@
   "country": [
    {
     "label": "Canada",
-    "weight": 0.914,
+    "weight": 0.915,
     "count": 2
    },
    {
     "label": "Cash",
-    "weight": 0.042,
+    "weight": 0.041,
     "count": 0
    },
    {

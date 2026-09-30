@@ -346,10 +346,12 @@ const r4 = (x: number): number => Math.round(x * 1e4) / 1e4;
 
 /** label -> weight rows that add up to exactly 1 (4 decimals), in the given order, with synthetic counts */
 function rows(parts: [string, number][], order: "desc" | "given" = "desc"): { label: string; weight: number; count: number }[] {
-  const total = parts.reduce((a, [, w]) => a + w, 0);
-  const out = parts.map(([label, w], i) => ({ label, weight: r4(w / total), count: label === "Cash" ? 0 : 2 + ((i * 7) % 13) }));
+  // the cash row keeps its weight (the same in every breakdown); the securities share the rest
+  const cash = parts.find(([label]) => label === "Cash")?.[1] ?? 0;
+  const total = parts.reduce((a, [label, w]) => a + (label === "Cash" ? 0 : w), 0);
+  const out = parts.map(([label, w], i) => ({ label, weight: label === "Cash" ? cash : r4((w / total) * (1 - cash)), count: label === "Cash" ? 0 : 2 + ((i * 7) % 13) }));
   const drift = r4(1 - out.reduce((a, r) => a + r.weight, 0));
-  out[0].weight = r4(out[0].weight + drift);
+  out[out[0].label === "Cash" ? 1 : 0].weight = r4(out[out[0].label === "Cash" ? 1 : 0].weight + drift);
   return order === "desc" ? out.sort((a, b) => b.weight - a.weight) : out;
 }
 
@@ -374,7 +376,7 @@ function portfolioPayload(short: "SEST" | "SEB" | "Multistrat", b: BookSpec): un
   const term = rows(seb
     ? [["0-1", 0.03], ["1-3", 0.211 * k], ["3-5", 0.18], ["5-7", 0.14], ["7-10", 0.126], ["10+", 0.272], ["Cash", 0.041]]
     : [["0-1", 0.184 * k], ["1-3", 0.579], ["3-5", 0.152], ["5-7", 0.043], ["7-10", 0.0], ["Cash", 0.042]], "given").filter((r) => r.weight > 0);
-  const country = rows([["Canada", 0.914 * k], ["United States", 0.037], ["Other", 0.007], ["Cash", 0.042]]);
+  const country = rows([["Canada", 0.914 * k], ["United States", 0.037], ["Other", 0.007], ["Cash", seb ? 0.041 : short === "SEST" ? 0.042 : 0.1]]);
   const assetType = rows(seb
     ? [["Federal bonds", 0.228 * k], ["Provincial bonds", 0.297], ["Corporate bonds", 0.413], ["Municipal bonds", 0.021], ["Cash", 0.041]]
     : [["Corporate bonds", 0.782 * k], ["Provincial bonds", 0.091], ["Federal bonds", 0.064], ["Municipal bonds", 0.021], ["Cash", 0.042]]);

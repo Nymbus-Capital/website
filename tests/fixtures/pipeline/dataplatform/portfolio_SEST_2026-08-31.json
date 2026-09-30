@@ -60,37 +60,37 @@
   "sector": [
    {
     "label": "Financials",
-    "weight": 0.399,
+    "weight": 0.3996,
     "count": 2
    },
    {
     "label": "Government",
-    "weight": 0.1833,
+    "weight": 0.1837,
     "count": 9
    },
    {
     "label": "Energy",
-    "weight": 0.1229,
+    "weight": 0.1231,
     "count": 3
    },
    {
     "label": "Utilities",
-    "weight": 0.0969,
+    "weight": 0.0971,
     "count": 10
    },
    {
     "label": "Communications",
-    "weight": 0.0906,
+    "weight": 0.0908,
     "count": 4
    },
    {
     "label": "Industrials",
-    "weight": 0.0635,
+    "weight": 0.0637,
     "count": 11
    },
    {
     "label": "Cash",
-    "weight": 0.0438,
+    "weight": 0.042,
     "count": 0
    }
   ],

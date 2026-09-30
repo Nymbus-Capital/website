@@ -108,7 +108,7 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
       </p>
       {metrics.length || count != null ? (
         <Block title={tr(T.portfolio.characteristics, lang)} testId="characteristics">
-          <Reveal className="ch-grid" kind="pop" stagger={55}>
+          <Reveal className="ch-grid pf-metrics" kind="pop" stagger={55}>
             {metrics.map((m) => <MetricTile key={m.id} m={m} marked={partial.includes(m)} lang={lang} />)}
             {count != null ? (
               <div className="ch-tile" data-testid="metric-securities">
@@ -124,25 +124,28 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
           ) : null}
         </Block>
       ) : null}
-      {bks.length || green != null ? (
+      {green != null ? (
+        <Block title={tr(T.portfolio.greenTitle, lang)} testId="green-bonds" className="pf-green">
+          <div className="pf-green-body">
+            <Ring value={green} lang={lang} label={tr(T.portfolio.greenTitle, lang)} />
+            <div>
+              <p className="pf-green-v"><b>{pctLabel(green, 1)}</b> {tr(T.portfolio.greenOf, lang)}</p>
+              <p className="fxb-text sm">{tr(T.portfolio.greenLead, lang)}</p>
+            </div>
+          </div>
+        </Block>
+      ) : null}
+      {bks.length ? (
         <div className="bk-grid">
           {bks.map((b) => {
-            const donut = b.key === "assetType" && isWhole(b.rows);
             const title = tr(T.portfolio.dailyBreakdowns[b.key], lang);
+            // bars for every daily breakdown: exact values side by side (a donut hides the small slices)
             return (
-              <Block key={b.key} title={title} className={donut ? "bk-wide" : undefined} testId={`breakdown-${b.key}`}>
-                {donut ? <Donut rows={b.rows} lang={lang} label={title} indexName={names.index} /> : <HBars rows={b.rows} lang={lang} names={names} label={title} />}
+              <Block key={b.key} title={title} testId={`breakdown-${b.key}`}>
+                <HBars rows={b.rows} lang={lang} names={names} label={title} />
               </Block>
             );
           })}
-          {green != null ? (
-            <Block title={tr(T.portfolio.greenTitle, lang)} testId="green-bonds" className="pf-green">
-              <div className="pf-green-body">
-                <Ring value={green} lang={lang} label={tr(T.portfolio.greenTitle, lang)} />
-                <p className="fxb-text sm">{tr(T.portfolio.greenLead, lang)}</p>
-              </div>
-            </Block>
-          ) : null}
           <p className="fine pf-note bk-wide">{tr(T.portfolio.weightsNote, lang)}</p>
         </div>
       ) : null}
