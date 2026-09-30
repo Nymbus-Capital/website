@@ -180,6 +180,7 @@ test("cross-check: month-end book vs the factsheet of the same month (duration, 
   assert.deepEqual(crossCheckPortfolio(me, fs, "k"), [], "fixture month-end book within tolerances");
   const off = crossCheckPortfolio(me, { ...fs, characteristics: [{ ...fs.characteristics[0], fund: 2.1 }, { ...fs.characteristics[1], fund: 0.0455 }], sectors: [{ label: "Financials", fund: 0.3 }] }, "k");
   assert.deepEqual(off.map((i) => [i.key, i.level]), [["k.duration", "warn"], ["k.ytm", "warn"], ["k.sector", "warn"]]);
+  assert.match(off[1].message, /yield to maturity .* \(daily book\) vs portfolio yield .* the two measures may differ/);
   // duration tolerance: max(0.25 year, 5 %): 7.31 vs 7.0 is within 0.35 (5 % of 7)
   const seb = parseFundPortfolio(loadFixture("dataplatform/portfolio_SEB_2026-08-31.json"))!;
   assert.deepEqual(crossCheckPortfolio(seb, { month: "2026-08", characteristics: [{ ...fs.characteristics[0], fund: 7.0 }] }, "k"), []);

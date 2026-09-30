@@ -198,7 +198,7 @@ export function crossCheckPortfolio(book: FundPortfolio, fs: FactsheetPortfolio,
   const yld = [apiNum("yield_to_maturity"), fsNum("portfolioYield")] as const;
   if (yld[0] !== null && yld[1] !== null) {
     compared++;
-    if (Math.abs(yld[0] - yld[1]) > tol.yield) out.push({ key: `${key}.ytm`, level: "warn", message: `month-end cross-check ${book.as_of}: yield to maturity ${pct(yld[0], 2)} (daily book) vs portfolio yield ${pct(yld[1], 2)} (factsheet ${fs.month}), gap above ${pct(tol.yield, 2)}` });
+    if (Math.abs(yld[0] - yld[1]) > tol.yield) out.push({ key: `${key}.ytm`, level: "warn", message: `month-end cross-check ${book.as_of}: yield to maturity ${pct(yld[0], 2)} (daily book) vs portfolio yield ${pct(yld[1], 2)} (factsheet ${fs.month}), gap above ${pct(tol.yield, 2)}; the two measures may differ (the factsheet figure is not necessarily a yield to maturity): check before reading it as an error` });
   }
   const fsSectors = new Map((fs.sectors ?? []).filter((b) => typeof b.fund === "number").map((b) => [normLabel(b.label), b.fund as number]));
   const top = [...(book.breakdowns.sector ?? [])].filter((r) => normLabel(r.label) !== "cash").sort((a, b) => b.weight - a.weight).slice(0, tol.sectors);
