@@ -191,6 +191,8 @@ export function fetchFundPortfolio(c: DpClient, short: DpShort, date?: string): 
     if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
     const data = parseFundPortfolio(body);
     if (!data) return fail(`${label}: unexpected payload`);
+    // the answer must be the book that was asked for: another fund's figures are never published under this one
+    if (data.fund.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${data.fund}", not ${short}`);
     const cov = data.coverage;
     return { ok: true, data, detail: `book ${data.as_of}, ${data.top_holdings.length} top holding(s), priced ${cov.priced_weight ?? "?"}, resolved ${cov.resolved_weight ?? "?"}${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
   });
@@ -205,6 +207,7 @@ export function fetchDistributions(c: DpClient, short: DpShort): Promise<SourceR
     if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
     const data = parseDistributions(body);
     if (!data) return fail(`${label}: unexpected payload`);
+    if (data.short_name.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${data.short_name || "(none)"}", not ${short}`);
     return { ok: true, data, detail: `${data.rows.length} row(s), ${data.classes.length} class(es)${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
   });
 }

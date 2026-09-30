@@ -412,3 +412,19 @@ test("carried-over funds pass the daily-book age gate again (fund missing from t
   const vf = validateSite(input, context, prev, NOW);
   assert.equal(vf.data.funds["monthly-income"]!.portfolio?.asOf, "2026-09-28");
 });
+
+test("fetchers: a payload for another fund than the one requested is rejected (identity check)", async () => {
+  const wrongBook = client((u) => (u.pathname === "/api/apex/fund-portfolio" ? json({ ...(loadFixture("dataplatform/portfolio_SEB.json") as object) }) : undefined));
+  const p = await fetchFundPortfolio(wrongBook, "SEST");
+  assert.equal(p.ok, false);
+  assert.equal(p.absent, undefined, "a failure, not 'not deployed'");
+  assert.match(p.error!, /payload is for fund "SEB", not SEST/);
+  const wrongDist = client((u) => (u.pathname === "/api/performance/distributions" ? json(loadFixture("dataplatform/distributions_SEB.json")) : undefined));
+  const d = await fetchDistributions(wrongDist, "SEST");
+  assert.equal(d.ok, false);
+  assert.match(d.error!, /payload is for fund "SEB", not SEST/);
+  const noName = client((u) => (u.pathname === "/api/performance/distributions" ? json({ ...(loadFixture("dataplatform/distributions_SEST.json") as object), short_name: undefined }) : undefined));
+  assert.match((await fetchDistributions(noName, "SEST")).error!, /payload is for fund "\(none\)"/);
+  assert.equal((await fetchFundPortfolio(client(), "SEST")).ok, true);
+  assert.equal((await fetchDistributions(client(), "Multistrat")).ok, true);
+});
