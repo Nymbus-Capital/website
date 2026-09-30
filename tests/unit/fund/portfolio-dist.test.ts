@@ -120,8 +120,9 @@ test("distribution amounts: one precision per series (4 to 6 decimals) at which 
   assert.equal(dp, 6, "the sample amounts have 6 decimals");
   // every calendar year: the sum of its rows as displayed equals its total as displayed
   for (const y of c.calendarYears) {
-    const rows = c.history.filter((h) => h.date.startsWith(`${y.year}-`)).map((h) => Number(h.amount.toFixed(dp)));
-    assert.equal(Number(rows.reduce((a, v) => a + v, 0).toFixed(dp)), Number(y.amount.toFixed(dp)), `${y.year}`);
+    const shown: number[] = c.history.filter((h) => h.date.startsWith(`${y.year}-`)).map((h) => Number(h.amount.toFixed(dp)));
+    const total = shown.reduce((a: number, v: number) => a + v, 0);
+    assert.equal(Number(total.toFixed(dp)), Number(y.amount.toFixed(dp)), `${y.year}`);
   }
   const round = { ...c, history: [{ date: "2026-07-31", amount: 0.04 }, { date: "2026-08-31", amount: 0.045 }], last: { date: "2026-08-31", amount: 0.045 }, trailing12m: 0.085, calendarYears: [{ year: 2026, amount: 0.085, count: 2 }] };
   assert.equal(amountDecimals(round), 4);
