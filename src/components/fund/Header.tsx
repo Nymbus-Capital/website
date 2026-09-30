@@ -39,15 +39,15 @@ export function FundHeader({ spec, content, data, lang, sample }: Props) {
             <Reveal self delay={160}><p className="fh-tagline">{tr(tagline, lang)}</p></Reveal>
             <Reveal self delay={240}><p className="lead fh-lead">{tr(description, lang)}</p></Reveal>
             <Reveal className="fh-chips" kind="pop" stagger={60} delay={300}>
-              <span className="chip fh-chip"><span className="fh-dot" aria-hidden="true" />{tr(isFund ? T.header.vehicleFund : T.header.vehicleStrategy, lang)}</span>
-              <span className="chip fh-chip" data-testid="risk-chip">
+              <span className="fx-chip fh-chip"><span className="fh-dot" aria-hidden="true" />{tr(isFund ? T.header.vehicleFund : T.header.vehicleStrategy, lang)}</span>
+              <span className="fx-chip fh-chip" data-testid="risk-chip">
                 <span className="fh-chip-k">{tr(T.header.risk, lang)}</span>
                 <span className="fh-risk" aria-hidden="true">
                   {RISK_LEVELS.map((_, i) => <i key={i} className={i <= risk ? "on" : undefined} />)}
                 </span>
                 {tr(T.header.levels[risk], lang)}
               </span>
-              {sample ? <span className="chip fh-sample" title={tr(T.sample.note, lang)} data-testid="sample-chip">{tr(T.sample.ribbon, lang)}</span> : null}
+              {sample ? <span className="fx-chip fh-sample" title={tr(T.sample.note, lang)} data-testid="sample-chip">{tr(T.sample.ribbon, lang)}</span> : null}
             </Reveal>
             <Reveal self delay={420}>
               <div className="actions fh-actions">

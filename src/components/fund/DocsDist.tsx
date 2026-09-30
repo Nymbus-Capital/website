@@ -72,7 +72,7 @@ export function DocumentsTab({ spec, docs, lang }: { spec: FundSpec; docs: FundD
                 <div key={type} className="dc-req-item">
                   <span className="dc-ic" aria-hidden="true"><FileText /></span>
                   <span className="dc-t">{tr(T.docs.single[type], lang)}<small>{tr(T.docs.regulatoryText[type], lang)}</small></span>
-                  <span className="chip">{tr(T.docs.onRequest, lang)}</span>
+                  <span className="fx-chip">{tr(T.docs.onRequest, lang)}</span>
                   <a className="link" href={mailto(`${tr(spec.name, lang)} · ${tr(T.docs.single[type], lang)}`)}>
                     {tr(T.docs.request, lang)}<span className="sr-only">: {tr(T.docs.single[type], lang)}</span> <ArrowRight aria-hidden="true" />
                   </a>

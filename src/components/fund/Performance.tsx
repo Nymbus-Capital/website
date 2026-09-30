@@ -166,7 +166,7 @@ function RiskBlock({ windows, lang }: { windows: RiskStats[]; lang: Lang }) {
     <div className="fx-seg" role="group" aria-label={tr(T.perf.risk, lang)}>
       {windows.map((x, i) => <button type="button" key={x.window} aria-pressed={i === w} onClick={() => setW(i)}>{tr(T.perf.windows[x.window], lang)}</button>)}
     </div>
-  ) : <span className="chip">{tr(T.perf.windows[risk.window], lang)}</span>;
+  ) : <span className="fx-chip">{tr(T.perf.windows[risk.window], lang)}</span>;
   return (
     <Block title={tr(T.perf.risk, lang)} lead={tr(T.perf.riskLead, lang)} aside={toggle} testId="risk">
       <Reveal className="rk-grid" kind="pop" stagger={60} key={risk.window}>

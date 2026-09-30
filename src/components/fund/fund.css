@@ -16,6 +16,9 @@
   position: relative;
 }
 .fund-page code { font: inherit; letter-spacing: .02em; }
+/* own chip (the legacy site.css redefines .chip as a filter button) */
+.fx-chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 99px; font-size: 13px; font-weight: 500; line-height: 1;
+  background: var(--surf); color: var(--ink2); white-space: nowrap; }
 
 /* ---------------------------------------------------------------- header band */
 .fh { position: relative; isolation: isolate; overflow: hidden; padding: clamp(24px, 3.5vw, 40px) 0 clamp(96px, 9vw, 128px);
@@ -37,13 +40,13 @@
 .fh-tagline { margin: 16px 0 0; font-size: clamp(17px, 1.4vw, 19px); font-weight: 500; letter-spacing: -.01em; color: var(--fund-ink); }
 .fh-lead { margin-top: 10px; font-size: clamp(16px, 1.2vw, 18px); }
 .fh-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-.fh-chip { background: rgba(255,255,255,.85); box-shadow: inset 0 0 0 1px var(--line2); color: var(--ink); gap: 8px; }
+.fh-chip { text-transform: none; background: rgba(255,255,255,.85); box-shadow: inset 0 0 0 1px var(--line2); color: var(--ink); gap: 8px; }
 .fh-chip-k { color: var(--mute); }
 .fh-dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, var(--fund-from), var(--fund-to)); box-shadow: 0 0 8px var(--fund); }
 .fh-risk { display: inline-flex; gap: 3px; }
 .fh-risk i { width: 12px; height: 6px; border-radius: 4px; background: var(--surf2); }
 .fh-risk i.on { background: linear-gradient(90deg, var(--fund-from), var(--fund-to)); }
-.fh-sample { background: linear-gradient(90deg, #ffe7a0, #fcd34d); color: #4a3200; font-weight: 600; }
+.fh-sample { text-transform: none; background: linear-gradient(90deg, #ffe7a0, #fcd34d); color: #4a3200; font-weight: 600; }
 .fh-actions { margin-top: 28px; }
 .fh-actions .btn.ghost svg { width: 17px; height: 17px; }
 
@@ -266,7 +269,7 @@ html:not(.js) .ft-bar { display: none; }
 .dc-req-item:hover { border-color: color-mix(in srgb, var(--fund) 35%, var(--line)); box-shadow: 0 12px 28px -20px var(--fund); }
 .dc-req-item .dc-ic { grid-row: 1 / span 2; align-self: start; }
 .dc-req-item .dc-t { grid-column: 2 / -1; }
-.dc-req-item .chip { grid-column: 2; justify-self: start; height: 26px; font-size: 12px; }
+.dc-req-item .fx-chip { grid-column: 2; justify-self: start; height: 26px; font-size: 12px; }
 .dc-req-item .link { grid-column: 3; font-size: 14px; }
 
 /* ---------------------------------------------------------------- fund section, disclosures, others */
@@ -431,3 +434,4 @@ html:not(.js) .ft-bar { display: none; }
   .navcard { transform: none; }
   .ft-ink { transition: none; }
 }
+
