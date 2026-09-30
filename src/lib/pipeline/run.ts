@@ -78,6 +78,9 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
   add("dataplatform unitholders/funds", raw.unitholderFunds);
   add("dataplatform unitholders/aum", raw.aum);
   for (const [s, r] of Object.entries(raw.ftse)) add(`dataplatform ftse index-summary ${s}`, r);
+  for (const [s, r] of Object.entries(raw.portfolio ?? {})) add(`dataplatform fund-portfolio ${s}`, r);
+  for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) add(`dataplatform fund-portfolio ${s} (month-end)`, r);
+  for (const [s, r] of Object.entries(raw.distributions ?? {})) add(`dataplatform distributions ${s}`, r);
   add("factsheet archives", raw.factsheets);
   add("analytics fund_returns.json", raw.analytics);
   return out;
@@ -95,6 +98,9 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
   for (const [s, r] of Object.entries(raw.monthlyReturns)) files[`monthly-net-returns_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.nav)) files[`nav_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.ftse)) files[`ftse_${s}.json`] = r;
+  for (const [s, r] of Object.entries(raw.portfolio ?? {})) files[`fund-portfolio_${s}.json`] = r;
+  for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) files[`fund-portfolio-month-end_${s}.json`] = r;
+  for (const [s, r] of Object.entries(raw.distributions ?? {})) files[`distributions_${s}.json`] = r;
   if (raw.factsheets.ok && raw.factsheets.data) {
     for (const [fn, d] of Object.entries(raw.factsheets.data.files)) files[`factsheets_${fn}`] = d;
     files["factsheets.json"] = { ok: true, where: raw.factsheets.data.where, tried: raw.factsheets.data.tried, found: Object.keys(raw.factsheets.data.files) };

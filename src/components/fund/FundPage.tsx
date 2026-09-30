@@ -32,7 +32,7 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} /> },
     { id: "performance", label: tr(T.tabs.performance, lang), content: <PerformanceTab {...props} /> },
     { id: "portfolio", label: tr(T.tabs.portfolio, lang), content: <PortfolioTab {...props} /> },
-    { id: "distributions", label: tr(T.tabs.distributions, lang), content: <DistributionsTab spec={spec} content={content} lang={lang} /> },
+    { id: "distributions", label: tr(T.tabs.distributions, lang), content: <DistributionsTab spec={spec} content={content} data={data} lang={lang} /> },
     { id: "documents", label: tr(T.tabs.documents, lang), content: <DocumentsTab spec={spec} docs={docs} lang={lang} /> },
   ];
   return (

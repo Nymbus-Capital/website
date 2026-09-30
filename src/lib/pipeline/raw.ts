@@ -80,6 +80,8 @@ export interface SourceResult<T> {
   data: T | null;
   /** failure reason (never contains credentials) */
   error?: string;
+  /** the route or the resource does not exist (HTTP 404): for a new endpoint, "not deployed yet" */
+  absent?: boolean;
   /** informational detail for the run report */
   detail?: string;
 }
@@ -99,4 +101,63 @@ export interface RawPayloads {
   factsheets: SourceResult<FactsheetFiles>;
   /** official monthly history before the Apex cutover (analytics repo) */
   analytics: SourceResult<AnalyticsReturns>;
+  /** latest daily portfolio analytics per fund (/api/apex/fund-portfolio); optional (older snapshots, tests) */
+  portfolio?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
+  /** the same at the last closed month-end, for the factsheet cross-check (absent when the latest book is that month-end) */
+  portfolioMonthEnd?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
+  /** per-class distributions (/api/performance/distributions); optional */
+  distributions?: Partial<Record<DpShort, SourceResult<ClassDistributions>>>;
+}
+
+/* ------------------------------------------------------------------ fund portfolio (dataplatform contract A) */
+
+export type PortfolioMeasureKey = "modified_duration" | "yield_to_maturity" | "coupon" | "average_maturity" | "average_rating";
+export const PORTFOLIO_MEASURES: readonly PortfolioMeasureKey[] = ["modified_duration", "yield_to_maturity", "coupon", "average_maturity", "average_rating"];
+export type BreakdownKey = "sector" | "rating" | "term" | "country" | "asset_type";
+export const BREAKDOWN_KEYS: readonly BreakdownKey[] = ["sector", "rating", "term", "country", "asset_type"];
+
+/** one characteristic: value (number, or a rating notch), and the share of the bond weight that had an input */
+export interface PortfolioMeasure { value: number | string; coverage: number | null }
+export interface WeightRow { label: string; weight: number; count: number | null }
+export interface PortfolioHoldingRow {
+  name: string; issuer: string | null; weight: number; coupon: number | null; maturity: string | null;
+  rating: string | null; sector: string | null; green_bond: boolean | null;
+}
+
+/** FundPortfolioResponse, parsed tolerantly (sources/contracts.ts): invalid rows and fields are dropped and noted */
+export interface FundPortfolio {
+  fund: string;
+  as_of: string;
+  currency: string | null;
+  net_assets_cad: number | null;
+  totals: { holdings_count: number | null; bonds_count: number | null; cash_weight: number | null; derivatives_count: number | null; other_weight: number | null };
+  characteristics: Partial<Record<PortfolioMeasureKey, PortfolioMeasure>>;
+  breakdowns: Partial<Record<BreakdownKey, WeightRow[]>>;
+  top_holdings: PortfolioHoldingRow[];
+  green_bonds_weight: number | null;
+  coverage: { resolved_weight: number | null; priced_weight: number | null };
+  /** the method strings as documented by the endpoint (provenance) */
+  method: Record<string, string>;
+  warnings: string[];
+  /** what the tolerant parser dropped */
+  notes: string[];
+}
+
+/* ------------------------------------------------------------------ class distributions (dataplatform contract B) */
+
+export interface DistributionRow { date: string; fundserv: string; class_display: string | null; currency: string | null; amount_per_unit: number }
+export interface DistributionYear { year: number; per_unit: number; count: number }
+export interface DistributionClassSummary {
+  fundserv: string; class_display: string | null; currency: string | null; frequency_observed: string | null;
+  last_date: string | null; last_amount_per_unit: number | null; trailing_12m_per_unit: number | null; calendar_years: DistributionYear[];
+}
+export interface ClassDistributions {
+  short_name: string;
+  start_date: string | null;
+  end_date: string | null;
+  method: string | null;
+  rows: DistributionRow[];
+  classes: DistributionClassSummary[];
+  warnings: string[];
+  notes: string[];
 }

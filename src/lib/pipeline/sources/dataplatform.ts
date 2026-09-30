@@ -9,7 +9,8 @@
  * AUM to fund totals (no investor-level field ever leaves this module), FTSE to aggregate daily levels,
  * NAV to the fields used.
  */
-import type { AumTotals, DpShort, FtseLevels, FundRef, MonthlyNetReturnsResponse, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
+import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, MonthlyNetReturnsResponse, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
+import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
 import { ftseGroupingSummary, ftseLevels, type FtseRow } from "../metrics.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
@@ -166,6 +167,45 @@ export function fetchAum(c: DpClient): Promise<SourceResult<AumTotals>> {
     const data = reduceAum(body);
     if (!data) return fail("unitholders/aum: unexpected payload");
     return { ok: true, data, detail: `snapshot ${data.snapshot_date ?? "?"}, ${Object.keys(data.totals).length} fund total(s)` };
+  });
+}
+
+/**
+ * 404 on the newer fund-data routes: the route is not deployed yet (FastAPI detail "Not Found") or the fund has
+ * no data on or before the date asked. Either way the caller falls back (factsheet / policy text): `absent`.
+ */
+const absent = <T>(label: string, body: unknown): SourceResult<T> => ({
+  ok: false, data: null, absent: true,
+  error: `${label}: HTTP 404 (${body === "Not Found" || body == null ? "endpoint not deployed yet" : body})`,
+});
+
+/**
+ * Daily portfolio analytics of one fund (contract A): characteristics with coverage, breakdowns, top holdings.
+ * `date` asks for the book on or before that day (month-end cross-check); default: the latest FINAL_NAV book.
+ */
+export function fetchFundPortfolio(c: DpClient, short: DpShort, date?: string): Promise<SourceResult<FundPortfolio>> {
+  const label = `fund-portfolio ${short}${date ? ` ${date}` : ""}`;
+  return guarded(label, async () => {
+    const { status, body } = await get(c, "/api/apex/fund-portfolio", { fund: short, date, top: 10 });
+    if (status === 404) return absent(label, body);
+    if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
+    const data = parseFundPortfolio(body);
+    if (!data) return fail(`${label}: unexpected payload`);
+    const cov = data.coverage;
+    return { ok: true, data, detail: `book ${data.as_of}, ${data.top_holdings.length} top holding(s), priced ${cov.priced_weight ?? "?"}, resolved ${cov.resolved_weight ?? "?"}${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
+  });
+}
+
+/** Distributions per unit of every class of one fund (contract B), keyed by FundServ code. */
+export function fetchDistributions(c: DpClient, short: DpShort): Promise<SourceResult<ClassDistributions>> {
+  const label = `distributions ${short}`;
+  return guarded(label, async () => {
+    const { status, body } = await get(c, "/api/performance/distributions", { short_name: short });
+    if (status === 404) return absent(label, body);
+    if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
+    const data = parseDistributions(body);
+    if (!data) return fail(`${label}: unexpected payload`);
+    return { ok: true, data, detail: `${data.rows.length} row(s), ${data.classes.length} class(es)${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
   });
 }
 

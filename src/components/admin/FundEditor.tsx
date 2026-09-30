@@ -2,10 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Save } from "lucide-react";
-import type { FundContent, FundKey, L10n } from "@/lib/data/types";
+import { HIDE_BLOCKS, type FundContent, type FundKey, type L10n } from "@/lib/data/types";
 import { api, ApiError, L10nInput, useToast } from "./client";
 
-const BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg"] as const;
+const BLOCKS = HIDE_BLOCKS;
 const RISKS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
 const E: L10n = { en: "", fr: "" };
 

@@ -3,7 +3,7 @@
  */
 import { z } from "zod";
 import { FUND_KEYS } from "@/config/funds";
-import type { FundKey } from "@/lib/data/types";
+import { HIDE_BLOCKS, type FundKey } from "@/lib/data/types";
 import { bothOrNeither } from "@/components/admin/fund-content";
 
 const FUND_KEY_VALUES = FUND_KEYS as [FundKey, ...FundKey[]];
@@ -29,7 +29,7 @@ export const isoDate = z
 /** Pipeline run / snapshot id: same charset as site.ts accepts for pins; no dots, slashes or traversal. */
 export const runIdSchema = z.string().regex(/^[0-9A-Za-z][0-9A-Za-z-]{0,79}$/, "invalid run id");
 
-export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg"] as const;
+export { HIDE_BLOCKS };
 export const RISK_RATINGS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
 
 export const fundContentSchema = z.strictObject({
