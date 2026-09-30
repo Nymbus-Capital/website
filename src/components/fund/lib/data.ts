@@ -276,6 +276,8 @@ function stripPortfolio(p: PortfolioData | null | undefined, h: NonNullable<Fund
   const out: PortfolioData = {
     ...p,
     characteristics: h.characteristics ? [] : p.characteristics,
+    // the number of securities is shown with the characteristics: hidden with them
+    totals: h.characteristics && p.totals ? { ...p.totals, holdings: null } : p.totals,
     breakdowns: h.breakdowns ? {} : p.breakdowns,
     greenBondsWeight: h.breakdowns ? null : p.greenBondsWeight,
     topHoldings: h.holdings ? [] : p.topHoldings,

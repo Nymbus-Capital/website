@@ -29,6 +29,9 @@ test("stripHidden: the portfolio flags apply to the daily block too; `distributi
   const f = fund("sustainable-enhanced-bonds");
   const chars = stripHidden(f, { hide: { characteristics: true } })!;
   assert.deepEqual(chars.portfolio!.characteristics, []);
+  assert.equal(chars.portfolio!.totals!.holdings, null, "the securities count goes with the characteristics block");
+  assert.equal(chars.portfolio!.totals!.cashWeight, f.portfolio!.totals!.cashWeight);
+  assert.equal(stripHidden(f, {})!.portfolio!.totals!.holdings, f.portfolio!.totals!.holdings);
   assert.ok(chars.portfolio!.topHoldings.length > 0);
   const bks = stripHidden(f, { hide: { breakdowns: true } })!;
   assert.deepEqual(bks.portfolio!.breakdowns, {});
