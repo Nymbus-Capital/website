@@ -6,12 +6,13 @@ import { mkdirSync } from "node:fs";
  * (SHOW_SAMPLE_DATA=1 in the e2e server env, empty data volume). Also saves full-page screenshots
  * (e2e/screenshots/fund-<slug>-<project>.png, and one per tab for two funds) for design review.
  */
+// daily: the sample has a daily portfolio book (bond funds); the multi-strategy book is below the coverage thresholds
 const FUNDS = [
-  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4 },
-  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 3 },
-  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3 },
+  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, daily: true, green: false },
+  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 3, daily: true, green: true },
+  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3, daily: false, green: false },
   // managed accounts, not a fund: gross figures, no NAV / FundServ series
-  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0 },
+  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0, daily: false, green: false },
 ];
 const TABS = ["overview", "performance", "portfolio", "distributions", "documents"] as const;
 
@@ -89,10 +90,25 @@ for (const f of FUNDS) {
     await expect(page.getByTestId("trailing-table")).toBeAttached();
     await expect(page.getByTestId("risk")).toBeVisible();
 
-    // portfolio tab: from the factsheet
+    // portfolio tab: the daily book with its date and source label, else the month-end factsheet
     await openTab(page, "portfolio");
-    await expect(page.getByTestId("factsheet-month")).toContainText("August 2026");
+    const source = page.getByTestId("portfolio-source");
+    if (f.daily) {
+      await expect(source).toHaveAttribute("data-source", "daily");
+      await expect(source).toContainText("Daily portfolio data");
+      await expect(page.getByTestId("portfolio-asof")).toHaveText("as of September 28, 2026");
+      await expect(page.getByTestId("metric-duration")).toBeVisible();
+      await expect(page.getByTestId("coverage-note")).toContainText("of the bond holdings by market value");
+      await expect(page.getByTestId("breakdown-rating")).toBeVisible();
+      await expect(page.getByTestId("holdings-table").locator("tbody tr")).toHaveCount(10);
+      await expect(page.getByTestId("holdings-table").locator("thead")).toContainText("Coupon");
+    } else {
+      await expect(source).toHaveAttribute("data-source", "factsheet");
+      await expect(page.getByTestId("factsheet-month")).toContainText("August 2026");
+    }
     await expect(page.getByTestId("holdings-table").locator("tbody tr").first()).toBeVisible();
+    await expect(page.getByTestId("green-bonds")).toHaveCount(f.green ? 1 : 0);
+    if (f.green) await expect(page.getByTestId("green-marker").first()).toBeVisible();
 
     // documents: nothing uploaded in e2e → regulatory list on request (funds) or the mandate-holder note
     await openTab(page, "documents");
@@ -101,21 +117,55 @@ for (const f of FUNDS) {
 
     await openTab(page, "distributions");
     await expect(page.getByTestId("distributions")).toBeVisible();
+    if (f.series) {
+      await expect(page.getByTestId("distributions-summary").locator(".ds-card")).toHaveCount(f.series);
+      await expect(page.getByTestId("distributions-summary").locator(".ds-card.hl")).toHaveCount(1);
+      await expect(page.getByTestId("distributions-note")).toContainText("tax slips");
+      await expect(page.getByTestId("distributions-history")).toBeVisible();
+    } else {
+      await expect(page.getByTestId("distributions-summary")).toHaveCount(0);
+    }
 
     expect(errors).toEqual([]);
   });
 }
 
-for (const slug of ["monthly-income", "global-minimum-volatility"]) {
+for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatility", TABS], ["sustainable-enhanced-bonds", ["portfolio", "distributions"]], ["multi-strategy", ["portfolio"]]] as const) {
   test(`every tab at rest (screenshots): ${slug}`, async ({ page }, info) => {
     await page.goto(`/strategies/${slug}`);
-    for (const id of TABS) {
+    for (const id of tabs) {
       await openTab(page, id);
       await settle(page);
       await shot(page, `${slug}-tab-${id}`, info.project.name);
     }
   });
 }
+
+test("distributions: per-series cards, history chart, calendar years and the full history behind a toggle", async ({ page }) => {
+  await page.goto("/strategies/monthly-income#distributions");
+  await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 29, 2026");
+  const fp = page.getByTestId("dist-class-LDM001");
+  await expect(fp).toHaveClass(/hl/);
+  await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{4}$/);
+  await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{4}$/);
+  await expect(page.getByTestId("dist-class-LDM011").getByTestId("dist-last-amount")).toHaveText(/^US\$0\.\d{4}$/);
+  const history = page.getByTestId("distributions-history");
+  await history.scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("distribution-chart").locator("svg .cat")).toHaveCount(24);
+  await expect(page.getByTestId("distributions-calendar").locator("tbody tr").first()).toContainText("2026");
+  const rows = page.getByTestId("distributions-table").locator("tbody tr");
+  await expect(rows).toHaveCount(12);
+  const toggle = page.getByTestId("distributions-show-all");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  expect(await rows.count()).toBeGreaterThan(12);
+  // another series: its own history
+  await page.getByTestId("dist-series-LDM021").click();
+  await expect(page.getByTestId("dist-series-LDM021")).toHaveAttribute("aria-pressed", "true");
+  await expect(rows.first()).toContainText("Sep 28, 2026");
+  await expect(page.getByTestId("distributions-note")).not.toContainText(/yield/i);
+});
 
 test("series selector switches the NAV card", async ({ page }) => {
   await page.goto("/strategies/monthly-income");
@@ -182,4 +232,9 @@ test("French: labels, names and number formatting", async ({ page }) => {
   // decimal comma and a no-break space before % / $
   await expect(page.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+,\d{2}\s%$/);
   await expect(page.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText(/^\d+,\d{4}\s\$$/);
+  await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="portfolio"]').click();
+  await expect(page.getByTestId("portfolio-source")).toContainText("Données quotidiennes du portefeuille");
+  await expect(page.getByTestId("portfolio-asof")).toHaveText("au 28 septembre 2026");
+  await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
+  await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{4}\s\$$/);
 });

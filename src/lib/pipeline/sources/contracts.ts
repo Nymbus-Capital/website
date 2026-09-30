@@ -45,7 +45,9 @@ const strings = (v: unknown, max = 20): string[] => (Array.isArray(v) ? v.filter
 
 function measure(v: unknown): PortfolioMeasure | null {
   if (!isObj(v)) return null;
-  const value = typeof v.value === "string" ? text(v.value, 8) : num(v.value);
+  // a number (or numeric string), else a letter notch such as "A-" (average rating)
+  const n = num(v.value);
+  const value = n ?? (typeof v.value === "string" && /^[A-Za-z]{1,4}[+-]?$/.test(v.value.trim()) ? v.value.trim() : null);
   if (value === null) return null;
   const coverage = num(v.coverage);
   return { value, coverage };

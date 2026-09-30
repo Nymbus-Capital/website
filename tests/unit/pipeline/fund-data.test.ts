@@ -1,0 +1,359 @@
+/**
+ * Daily portfolio and per-series distributions (dataplatform fund-data contract A and B): tolerant parsers,
+ * fetchers (404 = not deployed yet), selection thresholds and fallback, month-end cross-check, validation gates,
+ * and the build against the synthetic fixtures. Expected values are literals read from the fixture files.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { parseDistributions, parseFundPortfolio } from "../../../src/lib/pipeline/sources/contracts.ts";
+import { dpClient, fetchDistributions, fetchFundPortfolio } from "../../../src/lib/pipeline/sources/dataplatform.ts";
+import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfolio, termRank } from "../../../src/lib/pipeline/portfolio.ts";
+import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
+import { checkDistributions, checkPortfolio, distributionProblem, validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
+import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
+import type { ClassDistributions, FundPortfolio, SourceResult } from "../../../src/lib/pipeline/raw.ts";
+import type { ClassDistribution, FundData, SiteData } from "../../../src/lib/data/types.ts";
+import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+
+const NOW = new Date("2026-09-29T14:00:00Z");
+const client = (...routes: Route[]) => dpClient(mockFetch(...routes).fetch, { DATAPLATFORM_URL: "http://dataplatform.test", PIPELINE_RETRY_BASE_MS: "0" })!;
+const book = (over: Record<string, unknown> = {}): FundPortfolio => parseFundPortfolio({ ...(loadFixture("dataplatform/portfolio_SEST.json") as object), ...over })!;
+const ok = <T>(data: T): SourceResult<T> => ({ ok: true, data });
+const O = { base: "funds.monthly-income", short: "SEST", now: NOW, greenBonds: false };
+
+/* ------------------------------------------------------------------ parsers */
+
+test("parseFundPortfolio: the fixture parses; numeric strings accepted; bad rows dropped and noted; never a 0 default", () => {
+  const b = book();
+  assert.equal(b.fund, "SEST");
+  assert.equal(b.as_of, "2026-09-28");
+  assert.deepEqual(b.characteristics.modified_duration, { value: 2.38, coverage: 0.97 });
+  assert.deepEqual(b.characteristics.average_rating, { value: "A-", coverage: 1 });
+  assert.equal(b.top_holdings.length, 10);
+  assert.deepEqual(b.coverage, { resolved_weight: 0.99, priced_weight: 0.97 });
+
+  const p = parseFundPortfolio({
+    fund: "SEB", as_of: "2026-09-28T00:00:00", net_assets_cad: "12.5",
+    characteristics: { modified_duration: { value: "7.1", coverage: "0.95" }, coupon: { value: "n/a", coverage: 1 }, yield_to_maturity: null },
+    breakdowns: { sector: [{ label: "Financials", weight: 0.5 }, { label: "", weight: 0.2 }, { label: "Cash", weight: "abc" }], term: "nope" },
+    top_holdings: [{ name: "X 1% 2030", weight: 0.03, maturity: "2030-02-30", coupon: "0.01", green_bond: "yes" }, { weight: 0.02 }],
+    totals: { holdings_count: 3.5, bonds_count: 2 }, coverage: {}, warnings: ["w", 3],
+  })!;
+  assert.equal(p.as_of, "2026-09-28");
+  assert.equal(p.net_assets_cad, 12.5);
+  assert.deepEqual(p.characteristics, { modified_duration: { value: 7.1, coverage: 0.95 } });
+  assert.deepEqual(p.breakdowns, { sector: [{ label: "Financials", weight: 0.5, count: null }] });
+  assert.deepEqual(p.top_holdings, [{ name: "X 1% 2030", weight: 0.03, issuer: null, coupon: 0.01, maturity: null, rating: null, sector: null, green_bond: null }]);
+  assert.equal(p.totals.holdings_count, null, "3.5 is not a count");
+  assert.equal(p.totals.bonds_count, 2);
+  assert.equal(p.totals.cash_weight, null);
+  assert.deepEqual(p.coverage, { resolved_weight: null, priced_weight: null });
+  assert.equal(p.green_bonds_weight, null);
+  assert.deepEqual(p.warnings, ["w"]);
+  assert.ok(p.notes.some((n) => n.startsWith("characteristics.coupon")));
+  assert.ok(p.notes.some((n) => n.startsWith("breakdowns.sector")));
+  assert.ok(p.notes.some((n) => n.startsWith("top_holdings")));
+
+  for (const bad of [null, [], "x", { fund: "SEST" }, { as_of: "2026-09-28" }, { fund: "SEST", as_of: "28/09/2026" }]) assert.equal(parseFundPortfolio(bad), null);
+});
+
+test("parseDistributions: rows sorted, invalid rows / classes / years dropped and noted; shape required", () => {
+  const d = parseDistributions({
+    short_name: "SEST", start_date: "2019-01-01", end_date: "2026-09-29", method: "m",
+    rows: [
+      { date: "2026-08-31", fundserv: "LDM001", amount_per_unit: "0.0415" },
+      { date: "2026-07-31", fundserv: "LDM001", class_display: "FP", currency: "CAD", amount_per_unit: 0.041 },
+      { date: "2026-07-31", fundserv: "LDM001", amount_per_unit: null },
+      { date: "bad", fundserv: "LDM001", amount_per_unit: 1 },
+    ],
+    classes: [
+      { fundserv: "LDM001", last_date: "2026-08-31", last_amount_per_unit: 0.0415, trailing_12m_per_unit: 0.5, calendar_years: [{ year: 2026, per_unit: 0.0825, count: 2 }, { year: "x" }] },
+      { class_display: "no code" },
+    ],
+  })!;
+  assert.deepEqual(d.rows.map((r) => [r.date, r.amount_per_unit]), [["2026-07-31", 0.041], ["2026-08-31", 0.0415]]);
+  assert.equal(d.classes.length, 1);
+  assert.deepEqual(d.classes[0].calendar_years, [{ year: 2026, per_unit: 0.0825, count: 2 }]);
+  assert.equal(d.classes[0].frequency_observed, null);
+  assert.equal(d.notes.length, 3);
+  assert.equal(parseDistributions({ rows: [] }), null);
+  assert.equal(parseDistributions(null), null);
+});
+
+/* ------------------------------------------------------------------ fetchers */
+
+test("fetchers: 404 route (not deployed) and 404 resource are `absent`; 5xx / network / garbage are failures", async () => {
+  const notFound = client((u) => (u.pathname.startsWith("/api/apex/fund-portfolio") || u.pathname.endsWith("/distributions") ? json({ detail: "Not Found" }, 404) : undefined));
+  const a = await fetchFundPortfolio(notFound, "SEST");
+  assert.equal(a.ok, false);
+  assert.equal(a.absent, true);
+  assert.match(a.error!, /HTTP 404 \(endpoint not deployed yet\)/);
+  const d = await fetchDistributions(notFound, "SEB");
+  assert.equal(d.absent, true);
+
+  const noBook = await fetchFundPortfolio(client(), "SEST", "2026-07-31");
+  assert.equal(noBook.absent, true);
+  assert.match(noBook.error!, /No FINAL_NAV book for SEST on or before 2026-07-31/);
+
+  let calls = 0;
+  const down = client((u) => (u.pathname === "/api/apex/fund-portfolio" ? (calls++, new Response("x", { status: 503 })) : undefined));
+  const e = await fetchFundPortfolio(down, "SEST");
+  assert.equal(e.ok, false);
+  assert.equal(e.absent, undefined);
+  assert.match(e.error!, /HTTP 503/);
+  assert.equal(calls, 3, "5xx retried");
+
+  const garbage = await fetchDistributions(client((u) => (u.pathname.endsWith("/distributions") ? json({ rows: "x" }) : undefined)), "SEST");
+  assert.equal(garbage.ok, false);
+  assert.match(garbage.error!, /unexpected payload/);
+  const net = await fetchFundPortfolio(client(() => { throw new TypeError("fetch failed"); }), "SEST");
+  assert.equal(net.ok, false);
+  assert.match(net.error!, /network error/);
+
+  const fine = await fetchFundPortfolio(client(), "SEB", "2026-08-31");
+  assert.equal(fine.ok, true);
+  assert.equal(fine.data!.as_of, "2026-08-31");
+});
+
+/* ------------------------------------------------------------------ selection, ordering */
+
+test("ordering: ratings AAA → D, then not rated, then cash; terms in bucket order; others largest first, cash last", () => {
+  assert.ok(ratingRank("AAA") < ratingRank("AA+") && ratingRank("AA-") < ratingRank("A") && ratingRank("BBB") < ratingRank("D"));
+  assert.ok(ratingRank("D") < ratingRank("Weird") && ratingRank("Weird") < ratingRank("Not rated") && ratingRank("NR") < ratingRank("Cash"));
+  assert.ok(termRank("0-1") < termRank("1-3") && termRank("7-10") < termRank("10+") && termRank("10+") < termRank("Cash"));
+  const r = (labels: [string, number][]) => labels.map(([label, weight]) => ({ label, weight, count: null }));
+  assert.deepEqual(orderRows("rating", r([["Cash", 0.04], ["BBB", 0.3], ["Not rated", 0.01], ["AAA", 0.05], ["A", 0.6]])).map((x) => x.label), ["AAA", "A", "BBB", "Not rated", "Cash"]);
+  assert.deepEqual(orderRows("term", r([["10+", 0.1], ["Cash", 0.04], ["0-1", 0.2], ["3-5", 0.66]])).map((x) => x.label), ["0-1", "3-5", "10+", "Cash"]);
+  assert.deepEqual(orderRows("sector", r([["Cash", 0.5], ["B", 0.2], ["A", 0.3]])).map((x) => x.label), ["A", "B", "Cash"]);
+});
+
+test("selectPortfolio: thresholds (priced >= 90 %, resolved >= 95 %), freshness, per-characteristic coverage >= 90 %", () => {
+  const sel = selectPortfolio(ok(book()), O);
+  assert.equal(sel.portfolio?.source, "daily");
+  assert.equal(sel.portfolio?.asOf, "2026-09-28");
+  assert.deepEqual(sel.portfolio?.characteristics.map((m) => [m.id, m.value, m.coverage]), [["duration", 2.38, 0.97], ["ytm", 0.0414, 0.97], ["coupon", 0.0398, 1], ["maturity", 2.71, 1], ["rating", "A-", 1]]);
+  assert.equal(sel.portfolio?.greenBondsWeight, null, "green weight only for the funds that publish it");
+  assert.deepEqual(sel.portfolio?.totals, { holdings: 86, bonds: 84, cashWeight: 0.042, derivatives: 2 });
+  assert.equal(sel.portfolio?.topHoldings.length, 10);
+  assert.match(sel.provenance!, /fund-portfolio SEST \(FINAL_NAV book 2026-09-28; priced 97.0%, resolved 99.0%/);
+  assert.deepEqual(sel.issues, []);
+
+  const fallback = (over: Record<string, unknown>) => selectPortfolio(ok(book(over)), O);
+  const low = fallback({ coverage: { priced_weight: 0.89, resolved_weight: 0.99 } });
+  assert.equal(low.portfolio, null);
+  assert.equal(low.issues[0].level, "warn");
+  assert.match(low.issues[0].message, /priced 89.0% < 90%.*factsheet figures shown/);
+  assert.equal(fallback({ coverage: { priced_weight: 0.99, resolved_weight: 0.949 } }).portfolio, null);
+  assert.equal(fallback({ coverage: { priced_weight: 0.99 } }).portfolio, null, "unknown coverage is not enough");
+  assert.equal(fallback({ coverage: { priced_weight: 0.9, resolved_weight: 0.95 } }).portfolio?.source, "daily", "thresholds are inclusive");
+  const stale = fallback({ as_of: "2026-09-21" });
+  assert.equal(stale.portfolio, null);
+  assert.match(stale.issues[0].message, /8 days old/);
+  assert.equal(fallback({ as_of: "2026-09-22" }).portfolio?.asOf, "2026-09-22", "7 days old is still daily");
+  assert.equal(fallback({ as_of: "2026-10-02" }).portfolio, null, "future book");
+
+  const partial = fallback({ characteristics: { modified_duration: { value: 2.4, coverage: 0.89 }, yield_to_maturity: { value: 0.04, coverage: 0.9 }, coupon: { value: "A", coverage: 1 }, average_rating: { value: "A", coverage: null } } });
+  assert.deepEqual(partial.portfolio?.characteristics.map((m) => m.id), ["ytm"]);
+  assert.match(partial.issues.find((i) => i.key.endsWith(".characteristics"))!.message, /modified_duration \(coverage 89.0%\), coupon \(value of the wrong type\), average_rating \(coverage unknown\)/);
+
+  const absent = selectPortfolio({ ok: false, data: null, absent: true, error: "x: HTTP 404" }, O);
+  assert.deepEqual(absent, { portfolio: null, issues: [], provenance: null, absent: true });
+  const failed = selectPortfolio({ ok: false, data: null, error: "fund-portfolio SEST: HTTP 500" }, O);
+  assert.equal(failed.issues[0].level, "warn");
+  assert.equal(selectPortfolio(undefined, O).portfolio, null);
+  assert.equal(selectPortfolio(ok(book()), { ...O, greenBonds: true }).portfolio?.greenBondsWeight, 0);
+});
+
+/* ------------------------------------------------------------------ month-end cross-check */
+
+test("cross-check: month-end book vs the factsheet of the same month (duration, yield, top sectors)", () => {
+  const me = parseFundPortfolio(loadFixture("dataplatform/portfolio_SEST_2026-08-31.json"))!;
+  const fs = {
+    month: "2026-08",
+    characteristics: [
+      { id: "duration", label: { en: "", fr: "" }, fund: 2.41, unit: "num" as const },
+      { id: "portfolioYield", label: { en: "", fr: "" }, fund: 0.0421, unit: "pct" as const },
+    ],
+    sectors: [{ label: "Financial", fund: 0.382 }, { label: "Energy", fund: 0.121 }, { label: "Utilities", fund: 0.094 }],
+  };
+  assert.deepEqual(crossCheckPortfolio(me, fs, "k"), [], "fixture month-end book within tolerances");
+  const off = crossCheckPortfolio(me, { ...fs, characteristics: [{ ...fs.characteristics[0], fund: 2.1 }, { ...fs.characteristics[1], fund: 0.0455 }], sectors: [{ label: "Financials", fund: 0.3 }] }, "k");
+  assert.deepEqual(off.map((i) => [i.key, i.level]), [["k.duration", "warn"], ["k.ytm", "warn"], ["k.sector", "warn"]]);
+  // duration tolerance: max(0.25 year, 5 %): 7.31 vs 7.0 is within 0.35 (5 % of 7)
+  const seb = parseFundPortfolio(loadFixture("dataplatform/portfolio_SEB_2026-08-31.json"))!;
+  assert.deepEqual(crossCheckPortfolio(seb, { month: "2026-08", characteristics: [{ ...fs.characteristics[0], fund: 7.0 }] }, "k"), []);
+  assert.equal(crossCheckPortfolio(seb, { month: "2026-08", characteristics: [{ ...fs.characteristics[0], fund: 6.9 }] }, "k")[0].key, "k.duration");
+  assert.deepEqual(crossCheckPortfolio(me, { month: "2026-08", characteristics: [] }, "k").map((i) => i.level), ["info"], "nothing comparable");
+
+  assert.equal(monthEndBook([null, me], "2026-08"), me);
+  assert.equal(monthEndBook([book()], "2026-08"), null, "a September book is not the August month-end");
+  assert.equal(monthEndBook([book({ as_of: "2026-08-20" })], "2026-08"), null, "too far from the month-end");
+});
+
+/* ------------------------------------------------------------------ distributions */
+
+const distFixture = (): ClassDistributions => parseDistributions(loadFixture("dataplatform/distributions_SEST.json"))!;
+
+test("distributions: per live series by FundServ code; non-live series hidden; register labels win", () => {
+  const live = [
+    { fundserv: "LDM001", display: "FP", currency: "CAD" }, { fundserv: "LDM021", display: "A", currency: "CAD" },
+    { fundserv: "LDM011", display: "F USD", currency: "USD" }, { fundserv: "LDM999", display: "Z", currency: "CAD" },
+  ];
+  const sel = selectDistributions(ok(distFixture()), { base: "b", short: "SEST", live, today: "2026-09-29" });
+  assert.deepEqual(sel.distributions!.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021"]);
+  assert.equal(sel.distributions!.asOf, "2026-09-29");
+  const a = sel.distributions!.classes.find((c) => c.fundserv === "LDM021")!;
+  assert.deepEqual(a.last, { date: "2026-09-28", amount: 0.04 });
+  assert.equal(a.history.length, 93);
+  assert.equal(a.frequency, "monthly");
+  assert.equal(sel.distributions!.classes.find((c) => c.fundserv === "LDM011")!.currency, "USD");
+  assert.deepEqual(sel.issues.map((i) => i.message), ["series not live, not shown: LDM031, LDM081", "live series without distribution data: LDM999"]);
+
+  // matched by FundServ code only: a payload that relabels the class letters still maps to the right series
+  const d = distFixture();
+  const swapped: ClassDistributions = { ...d, rows: d.rows.map((r) => ({ ...r, class_display: r.class_display === "FP" ? "A" : "FP" })), classes: d.classes.map((c) => ({ ...c, class_display: "?" })) };
+  const fp = classDistribution(swapped, { fundserv: "LDM001", display: "FP", currency: "CAD" })!;
+  assert.equal(fp.display, "FP");
+  assert.deepEqual(fp.last, { date: "2026-08-31", amount: d.classes.find((c) => c.fundserv === "LDM001")!.last_amount_per_unit! });
+
+  assert.equal(selectDistributions(ok(d), { base: "b", short: "SEST", live: null, today: "2026-09-29" }).issues[0].level, "warn");
+  assert.equal(selectDistributions({ ok: false, data: null, absent: true }, { base: "b", short: "SEST", live, today: "2026-09-29" }).absent, true);
+  assert.deepEqual(["monthly", "Quarterly", "semi_annual", "yearly", "weird", null].map(frequency), ["monthly", "quarterly", "semi-annual", "annual", null, null]);
+});
+
+test("distributions gates: amount vs NAV, dates, last row, trailing 12 months, calendar-year totals", () => {
+  const base = (): ClassDistribution => ({
+    fundserv: "LDM001", display: "FP", currency: "CAD", frequency: "monthly",
+    last: { date: "2026-08-31", amount: 0.05 }, trailing12m: 0.1,
+    calendarYears: [{ year: 2026, amount: 0.1, count: 2 }],
+    history: [{ date: "2026-07-31", amount: 0.05 }, { date: "2026-08-31", amount: 0.05 }],
+  });
+  const today = "2026-09-29";
+  assert.equal(distributionProblem(base(), 10, today), null);
+  assert.equal(distributionProblem(base(), null, today), null, "no NAV: the ratio gate cannot run, the others do");
+  assert.match(distributionProblem(base(), 1, today)!, /5.00% of the NAV per unit/);
+  const mut = (f: (c: ClassDistribution) => void) => { const c = base(); f(c); return distributionProblem(c, 10, today); };
+  assert.match(mut((c) => { c.history[0].amount = -0.01; })!, /amount -0.01/);
+  assert.match(mut((c) => { c.history[0].amount = 0; })!, /amount 0 /);
+  assert.match(mut((c) => { c.history[1].date = "2026-07-31"; })!, /not ascending/);
+  assert.match(mut((c) => { c.history.push({ date: "2026-10-30", amount: 0.05 }); })!, /invalid date 2026-10-30/);
+  assert.match(mut((c) => { c.last = { date: "2026-08-31", amount: 0.06 }; })!, /differs from the last row/);
+  assert.match(mut((c) => { c.last = null; })!, /no last distribution/);
+  assert.match(mut((c) => { c.trailing12m = 2.6; })!, /trailing 12 months 2.6 is 26.00%/);
+  assert.match(mut((c) => { c.calendarYears[0].amount = 0.11; })!, /calendar year 2026/);
+  assert.match(mut((c) => { c.calendarYears[0].count = 3; })!, /calendar year 2026/);
+  assert.equal(mut((c) => { c.calendarYears[0].amount = 0.100001; }), null, "6-decimal rounding tolerated");
+
+  const f = { key: "monthly-income", nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", nav: 1 }, { fundserv: "LDM021", nav: 10 }] }, distributions: { asOf: today, classes: [base(), { ...base(), fundserv: "LDM021", display: "A" }] } } as unknown as FundData;
+  const issues = checkDistributions(f, "funds.monthly-income", NOW);
+  assert.deepEqual(f.distributions!.classes.map((c) => c.fundserv), ["LDM021"]);
+  assert.deepEqual(issues.map((i) => [i.key, i.level]), [["funds.monthly-income.distributions.LDM001", "warn"]]);
+  (f.nav!.classes[1] as { nav: number }).nav = 0.5;
+  checkDistributions(f, "b", NOW);
+  assert.equal(f.distributions, null, "no plausible series left");
+});
+
+/* ------------------------------------------------------------------ portfolio gates */
+
+test("portfolio gates: implausible parts dropped one by one, the block when nothing is left, never the fund", async () => {
+  const b = buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  const fund = () => structuredClone(b.data.funds["monthly-income"]!);
+  const run = (f: (x: FundData) => void) => { const x = fund(); f(x); return { x, issues: checkPortfolio(x, "p", NOW) }; };
+
+  assert.deepEqual(run(() => undefined).issues, []);
+  const dur = run((x) => { x.portfolio!.characteristics[0].value = 31; });
+  assert.deepEqual(dur.x.portfolio!.characteristics.map((m) => m.id), ["ytm", "coupon", "maturity", "rating"]);
+  assert.equal(dur.issues[0].key, "p.portfolio.characteristics.duration");
+  assert.equal(run((x) => { x.portfolio!.characteristics[1].value = 0.26; }).x.portfolio!.characteristics.length, 4, "YTM above 25 %");
+  assert.equal(run((x) => { x.portfolio!.characteristics[1].value = -0.051; }).x.portfolio!.characteristics.length, 4, "YTM below -5 %");
+  assert.equal(run((x) => { x.portfolio!.characteristics[4].value = "Q+"; }).x.portfolio!.characteristics.length, 4, "not a rating");
+  assert.equal(run((x) => { x.portfolio!.characteristics[2].coverage = 1.2; }).x.portfolio!.characteristics.length, 4, "coverage above 1");
+  const sum = run((x) => { x.portfolio!.breakdowns.sector![0].weight -= 0.05; });
+  assert.equal(sum.x.portfolio!.breakdowns.sector, undefined);
+  assert.match(sum.issues[0].message, /sector breakdown not shown: weights add up to 95/);
+  assert.ok(run((x) => { x.portfolio!.breakdowns.country![0].weight += 0.02; }).x.portfolio!.breakdowns.country, "within ±3 %");
+  const nan = run((x) => { x.portfolio!.breakdowns.term![0].weight = Number.NaN; });
+  assert.equal(nan.x.portfolio!.breakdowns.term, undefined);
+  const top = run((x) => { x.portfolio!.topHoldings[0].weight = 0.3; });
+  assert.deepEqual(top.x.portfolio!.topHoldings, []);
+  const detail = run((x) => { x.portfolio!.topHoldings[0].coupon = 0.9; x.portfolio!.topHoldings[1].maturity = "soon"; });
+  assert.equal(detail.x.portfolio!.topHoldings[0].coupon, null);
+  assert.equal(detail.x.portfolio!.topHoldings[1].maturity, null);
+  assert.deepEqual(detail.issues, [], "details are blanked quietly");
+  assert.equal(run((x) => { x.portfolio!.asOf = "2026-09-10"; }).x.portfolio, null, "stale book");
+  assert.equal(run((x) => { x.portfolio!.asOf = "yesterday"; }).x.portfolio, null);
+  const empty = run((x) => { x.portfolio!.characteristics = []; x.portfolio!.breakdowns = {}; x.portfolio!.topHoldings[0].weight = -1; });
+  assert.equal(empty.x.portfolio, null);
+  assert.match(empty.issues[empty.issues.length - 1].message, /nothing plausible left/);
+
+  // through validateSite: a NaN inside the portfolio never blocks the fund
+  const site = structuredClone(b.data);
+  site.funds["monthly-income"]!.portfolio!.breakdowns.sector![0].weight = Number.NaN;
+  site.funds["monthly-income"]!.distributions!.classes[0].history[0].amount = Number.NaN;
+  const v = validateSite(site, b.context, null, NOW);
+  assert.equal(v.funds["monthly-income"], "updated");
+  assert.deepEqual(v.results.find((r) => r.fund === "monthly-income")!.blocking, []);
+  assert.deepEqual(v.results.find((r) => r.fund === "monthly-income")!.alerts, [], "warn only: the run is not blocked");
+  assert.equal(v.data.funds["monthly-income"]!.portfolio!.breakdowns.sector, undefined);
+});
+
+/* ------------------------------------------------------------------ build */
+
+async function build(...routes: Route[]): Promise<{ data: SiteData }> {
+  return buildSiteData(await fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+}
+const notDeployed: Route = (u) => (u.pathname.startsWith("/api/apex/fund-portfolio") || u.pathname === "/api/performance/distributions" ? json({ detail: "Not Found" }, 404) : undefined);
+
+test("build: daily book primary for covered funds, factsheet kept for the others; distributions per series", async () => {
+  const { data } = await build();
+  const mi = data.funds["monthly-income"]!;
+  assert.equal(mi.portfolio?.source, "daily");
+  assert.equal(mi.portfolio?.asOf, "2026-09-28");
+  assert.deepEqual(mi.portfolio?.breakdowns.term?.map((r) => r.label), ["0-1", "1-3", "3-5", "5-7", "Cash"]);
+  assert.equal(mi.factsheetMonth, "2026-08", "the factsheet figures are still published alongside (ESG, fallback)");
+  assert.equal(data.funds["sustainable-enhanced-bonds"]!.portfolio?.greenBondsWeight, 0.0734);
+  assert.deepEqual(data.funds["sustainable-enhanced-bonds"]!.portfolio?.characteristics.map((m) => m.id), ["duration", "ytm", "coupon", "rating"], "maturity coverage 85 %");
+  assert.equal(data.funds["multi-strategy"]!.portfolio, null, "coverage below the thresholds");
+  assert.equal(data.funds["global-minimum-volatility"]!.portfolio, null);
+  assert.deepEqual(mi.distributions?.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM081"]);
+  assert.deepEqual(data.funds["multi-strategy"]!.distributions?.classes[0].calendarYears.map((y) => y.year), [2019, 2020, 2021, 2023, 2024, 2025]);
+  assert.match(data.provenance["funds.monthly-income.portfolio"], /^dataplatform \/api\/apex\/fund-portfolio SEST/);
+  assert.match(data.provenance["funds.monthly-income.distributions"], /^dataplatform \/api\/performance\/distributions SEST/);
+  // the month-end cross-check ran and passed for both bond funds (no issue under the crossCheck keys)
+  assert.deepEqual(data.issues.filter((i) => i.key.includes("crossCheck")), []);
+});
+
+test("build: endpoints not deployed (404) → one info issue each, everything else exactly as before", async () => {
+  const before = await build(notDeployed);
+  const after = await build();
+  const infos = before.data.issues.filter((i) => i.key.startsWith("sources."));
+  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
+  assert.match(infos[0].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
+  for (const [k, f] of Object.entries(before.data.funds)) {
+    assert.equal(f!.portfolio, null, k);
+    assert.equal(f!.distributions, null, k);
+    const { portfolio: _p, distributions: _d, ...rest } = f!;
+    const { portfolio: _p2, distributions: _d2, ...rest2 } = after.data.funds[k as keyof SiteData["funds"]]!;
+    assert.deepEqual(rest, rest2, `${k}: the other blocks do not depend on the new endpoints`);
+  }
+  const strip = (issues: SiteData["issues"]) => issues.filter((i) => !/\.portfolio|\.distributions|^sources\./.test(i.key));
+  assert.deepEqual(strip(before.data.issues), strip(after.data.issues));
+  assert.ok(!before.data.issues.some((i) => i.level !== "info" && /portfolio|distributions/.test(i.key)));
+});
+
+test("build: a failing endpoint keeps the previous daily book and distributions; validation drops a book once too old", async () => {
+  const prev = (await build()).data;
+  const down: Route = (u) => (u.pathname === "/api/apex/fund-portfolio" || u.pathname === "/api/performance/distributions" ? new Response("x", { status: 500 }) : undefined);
+  const raw = await fetchAll({ fetchImpl: mockFetch(down).fetch, now: NOW, env: fixtureEnv() });
+  const { data, context } = buildSiteData(raw, prev, NOW);
+  assert.deepEqual(data.funds["monthly-income"]!.portfolio, prev.funds["monthly-income"]!.portfolio);
+  assert.deepEqual(data.funds["monthly-income"]!.distributions, prev.funds["monthly-income"]!.distributions);
+  assert.match(data.provenance["funds.monthly-income.portfolio"], /^carried over/);
+  assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && i.level === "warn"));
+  // ten days later the carried book is stale: dropped by validation (factsheet shown), fund still updated
+  const later = new Date("2026-10-09T14:00:00Z");
+  const v = validateSite(data, context, prev, later);
+  assert.equal(v.data.funds["monthly-income"]!.portfolio, null);
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && /older than 7 days/.test(i.message)));
+});
