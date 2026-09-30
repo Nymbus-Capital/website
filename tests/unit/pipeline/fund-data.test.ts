@@ -428,3 +428,28 @@ test("fetchers: a payload for another fund than the one requested is rejected (i
   assert.equal((await fetchFundPortfolio(client(), "SEST")).ok, true);
   assert.equal((await fetchDistributions(client(), "Multistrat")).ok, true);
 });
+
+test("distributions: the currency is never defaulted; a series is dropped when it is unknown or register and payload disagree", () => {
+  const d = distFixture();
+  const noCur: ClassDistributions = { ...d, rows: d.rows.map((r) => ({ ...r, currency: null })), classes: d.classes.map((c) => ({ ...c, currency: null })) };
+  const problems: string[] = [];
+  assert.equal(classDistribution(noCur, { fundserv: "LDM001", display: "FP", currency: null }, problems), null, "no currency anywhere: not CAD by default");
+  assert.match(problems[0], /FP \(LDM001\): currency unknown/);
+  assert.equal(classDistribution(noCur, { fundserv: "LDM001", display: "FP", currency: "CAD" })!.currency, "CAD", "the register alone is enough");
+  assert.equal(classDistribution(d, { fundserv: "LDM011", display: "F USD", currency: null })!.currency, "USD", "the payload alone is enough");
+
+  const clash: string[] = [];
+  assert.equal(classDistribution(d, { fundserv: "LDM011", display: "F USD", currency: "CAD" }, clash), null);
+  assert.match(clash[0], /currency USD in the payload vs CAD in the fund register/);
+  const mixed: ClassDistributions = { ...d, rows: d.rows.map((r, i) => (r.fundserv === "LDM001" && i === 0 ? { ...r, currency: "USD" } : r)) };
+  const mixedP: string[] = [];
+  assert.equal(classDistribution(mixed, { fundserv: "LDM001", display: "FP", currency: null }, mixedP), null);
+  assert.match(mixedP[0], /currencies disagree within the payload \(CAD, USD\)/);
+
+  const live = [{ fundserv: "LDM001", display: "FP", currency: "CAD" }, { fundserv: "LDM011", display: "F USD", currency: "CAD" }];
+  const sel = selectDistributions(ok(d), { base: "b", short: "SEST", live, today: "2026-09-29" });
+  assert.deepEqual(sel.distributions!.classes.map((c) => c.fundserv), ["LDM001"]);
+  const w = sel.issues.find((i) => i.key === "b.distributions.LDM011")!;
+  assert.equal(w.level, "warn");
+  assert.match(w.message, /distributions of series F USD \(LDM011\): currency USD in the payload vs CAD in the fund register: not shown/);
+});

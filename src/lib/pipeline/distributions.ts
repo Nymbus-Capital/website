@@ -30,12 +30,33 @@ export function frequency(v: string | null | undefined): DistributionFrequency |
   return null;
 }
 
-/** One live class: summary and history from the payload, labels and currency from the fund register. */
-export function classDistribution(data: ClassDistributions, live: LiveClass): ClassDistribution | null {
+/**
+ * The currency of one series: the fund register's and the payload's (summary and every row) must agree, and one of them
+ * must say it. Never a default: an amount in an unknown or disputed currency is not shown.
+ */
+export function seriesCurrency(live: LiveClass, payload: (string | null | undefined)[]): { currency: string } | { problem: string } {
+  const reg = live.currency?.trim().toUpperCase() || null;
+  const inPayload = [...new Set(payload.filter((c): c is string => !!c?.trim()).map((c) => c.trim().toUpperCase()))].sort();
+  if (inPayload.length > 1) return { problem: `currencies disagree within the payload (${inPayload.join(", ")})` };
+  if (reg && inPayload.length && inPayload[0] !== reg) return { problem: `currency ${inPayload[0]} in the payload vs ${reg} in the fund register` };
+  const currency = reg ?? inPayload[0] ?? null;
+  return currency ? { currency } : { problem: "currency unknown (neither the fund register nor the payload gives it)" };
+}
+
+/**
+ * One live class: summary and history from the payload, labels and currency from the fund register. Null when the
+ * payload has nothing for it, or when its currency is unknown or disputed (the reason is appended to `problems`).
+ */
+export function classDistribution(data: ClassDistributions, live: LiveClass, problems: string[] = []): ClassDistribution | null {
   const code = live.fundserv.toUpperCase();
   const summary = data.classes.find((c) => c.fundserv.toUpperCase() === code) ?? null;
   const rows = data.rows.filter((r) => r.fundserv.toUpperCase() === code);
   if (!summary && !rows.length) return null;
+  const cur = seriesCurrency(live, [summary?.currency, ...rows.map((r) => r.currency)]);
+  if ("problem" in cur) {
+    problems.push(`${live.display ?? live.fundserv} (${live.fundserv}): ${cur.problem}`);
+    return null;
+  }
   const history = rows.map((r) => ({ date: r.date, amount: r.amount_per_unit })).slice(-DISTRIBUTIONS.maxHistory);
   // a capped history no longer holds every row of its first year: calendar years from the next one only
   const firstFullYear = rows.length > history.length ? +history[0].date.slice(0, 4) + 1 : 0;
@@ -43,7 +64,7 @@ export function classDistribution(data: ClassDistributions, live: LiveClass): Cl
   return {
     fundserv: live.fundserv,
     display: live.display ?? summary?.class_display ?? rows[0]?.class_display ?? live.fundserv,
-    currency: live.currency ?? summary?.currency ?? rows[0]?.currency ?? "CAD",
+    currency: cur.currency,
     frequency: frequency(summary?.frequency_observed),
     last,
     trailing12m: summary?.trailing_12m_per_unit ?? null,
@@ -68,8 +89,10 @@ export function selectDistributions(res: SourceResult<ClassDistributions> | unde
   const classes: ClassDistribution[] = [];
   const missing: string[] = [];
   for (const l of [...o.live].sort((a, b) => a.fundserv.localeCompare(b.fundserv))) {
-    const c = classDistribution(data, l);
+    const problems: string[] = [];
+    const c = classDistribution(data, l, problems);
     if (c) classes.push(c);
+    else if (problems.length) for (const p of problems) issues.push({ key: `${key}.${l.fundserv}`, level: "warn", message: `distributions of series ${p}: not shown` });
     else missing.push(l.fundserv);
   }
   const liveCodes = new Set(o.live.map((l) => l.fundserv.toUpperCase()));
