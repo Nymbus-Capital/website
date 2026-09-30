@@ -270,7 +270,7 @@ html:not(.js) .ft-bar { display: none; }
 @media (max-width: 560px) {
   .ds-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .ds-card { padding: 16px 14px 14px; }
-  .ds-amt { font-size: 21px; }
+  .ds-amt { font-size: clamp(16px, 4.6vw, 21px); overflow-wrap: anywhere; }
   .ds-card-h { flex-wrap: wrap; }
   .ds-facts div { flex-direction: column; gap: 0; }
 }
@@ -282,7 +282,7 @@ html:not(.js) .ft-bar { display: none; }
    name that wraps on a narrow card pushes the whole row down, so amounts and facts stay aligned across the cards */
 .ds-card { grid-row: span 3; }
 @supports (grid-template-rows: subgrid) {
-  .ds-card { display: grid; grid-template-rows: subgrid; row-gap: 4px; align-content: start; }
+  .ds-card { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: subgrid; row-gap: 4px; align-content: start; }
 }
 .ds-card-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 13px; color: var(--ink2); }
 .ds-last { display: flex; flex-direction: column; gap: 4px; }
