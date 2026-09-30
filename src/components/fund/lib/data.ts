@@ -4,8 +4,10 @@
  * rebasing to the start of a range, heatmap colour intensity).
  */
 import type {
-  Bucket, CalendarRow, DocType, DocumentMeta, FundContent, FundData, GrowthPoint, MonthlyPoint, NavClass, Period, PeriodMap, RiskStats,
+  Bucket, CalendarRow, ClassDistribution, DistributionsData, DocType, DocumentMeta, FundContent, FundData, GrowthPoint, MonthlyPoint, NavClass, Period, PeriodMap,
+  PortfolioBreakdownKey, PortfolioData, PortfolioMetric, RiskStats,
 } from "../../../lib/data/types.ts";
+import { isFreshBook } from "../../../lib/data/freshness.ts";
 
 export const PERIOD_ORDER: Period[] = ["1M", "3M", "YTD", "1Y", "2Y", "3Y", "5Y", "10Y", "SI"];
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -237,7 +239,7 @@ export function groupDocuments<D extends GroupableDoc>(docs: D[], lang: "en" | "
 
 /* ------------------------------------------------------------------ visibility */
 
-export type Block = "hero" | "trailing" | "growth" | "calendar" | "heatmap" | "risk" | "portfolio" | "facts" | "documents" | "disclosure";
+export type Block = "hero" | "trailing" | "growth" | "calendar" | "heatmap" | "risk" | "portfolio" | "facts" | "documents" | "distributions" | "disclosure";
 
 /**
  * The fund data with every block the admin hid removed (null / empty), so hidden figures never cross the server →
@@ -263,7 +265,109 @@ export function stripHidden<D extends Omit<FundData, "sourceName">>(data: D | nu
   if (h.breakdowns) out.breakdowns = {};
   if (h.holdings) out.topHoldings = [];
   if (h.esg) out.esg = [];
+  if ("portfolio" in out) out.portfolio = stripPortfolio(out.portfolio, h);
+  if (h.distributions && "distributions" in out) out.distributions = null;
   return out;
+}
+
+/** The daily portfolio without the parts the admin hid (the same flags as the factsheet figures); null when nothing is left. */
+function stripPortfolio(p: PortfolioData | null | undefined, h: NonNullable<FundContent["hide"]>): PortfolioData | null {
+  if (!p) return null;
+  const out: PortfolioData = {
+    ...p,
+    characteristics: h.characteristics ? [] : p.characteristics,
+    // the number of securities is shown with the characteristics: hidden with them
+    totals: h.characteristics && p.totals ? { ...p.totals, holdings: null } : p.totals,
+    breakdowns: h.breakdowns ? {} : p.breakdowns,
+    greenBondsWeight: h.breakdowns ? null : p.greenBondsWeight,
+    topHoldings: h.holdings ? [] : p.topHoldings,
+  };
+  return hasDailyPortfolio(out) ? out : null;
+}
+
+/* ------------------------------------------------------------------ daily portfolio */
+
+/**
+ * A daily portfolio block with something to show. With `now`, the book must also be fresh (data/freshness.ts, the
+ * pipeline's rule): an older book is not "daily" any more.
+ */
+export function hasDailyPortfolio(p: PortfolioData | null | undefined, now?: Date): p is PortfolioData {
+  if (now && p && !isFreshBook(p.asOf, now)) return false;
+  return !!p && p.source === "daily" && (
+    p.characteristics.some((m) => m.value != null) || Object.values(p.breakdowns ?? {}).some((b) => !!b?.length) || p.topHoldings.length > 0 || isNum(p.greenBondsWeight)
+  );
+}
+
+/**
+ * Where the Portfolio tab's figures come from: the daily book (its date), else the month-end factsheet (its month),
+ * else nothing.
+ */
+export function portfolioOrigin(data: Pick<FundData, "portfolio" | "factsheetMonth"> | null | undefined): { kind: "daily"; asOf: string } | { kind: "factsheet"; month: string } | null {
+  if (hasDailyPortfolio(data?.portfolio)) return { kind: "daily", asOf: data!.portfolio!.asOf };
+  return data?.factsheetMonth ? { kind: "factsheet", month: data.factsheetMonth } : null;
+}
+
+/** Breakdowns of the daily book in display order (paired by typical length in the two-column grid), as bars. */
+export const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sector", "rating", "term"];
+export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
+  if (!p) return [];
+  return DAILY_BREAKDOWNS.map((key) => ({ key, rows: (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight })) }))
+    .filter((b) => b.rows.length > 0);
+}
+
+/**
+ * Items of a two-column grid that span the full row: the wide ones, and any item that would otherwise sit alone in a
+ * row (an odd count, or before a wide item), so no block is left in half a row next to an empty column.
+ */
+export function fullRowItems(wide: boolean[]): boolean[] {
+  const out = [...wide];
+  let col = 0;
+  for (let i = 0; i < wide.length; i++) {
+    if (wide[i]) { col = 0; continue; }
+    if (col === 0 && (i + 1 >= wide.length || wide[i + 1])) out[i] = true;
+    else col = col === 0 ? 1 : 0;
+  }
+  return out;
+}
+
+/** Characteristics computed over part of the bonds only (coverage < 1): they get a footnote. */
+export const partialCoverage = (metrics: PortfolioMetric[]): PortfolioMetric[] => metrics.filter((m) => isNum(m.coverage) && m.coverage < 0.9995);
+
+/* ------------------------------------------------------------------ distributions */
+
+/** Series with distribution data, the headline one first, then by FundServ code. */
+export function distributionClasses(d: DistributionsData | null | undefined, headline: string | null | undefined): ClassDistribution[] {
+  const h = (headline ?? "").toUpperCase();
+  return [...(d?.classes ?? [])].sort((a, b) => (a.fundserv.toUpperCase() === h ? -1 : b.fundserv.toUpperCase() === h ? 1 : a.fundserv.localeCompare(b.fundserv)));
+}
+
+/**
+ * Decimals for every amount of one series (cards, chart, tables): the fewest between 4 and 6 at which each amount it
+ * shows (history, last distribution, trailing 12 months, calendar-year totals) is exact, so the rows of a year add up to
+ * its total as displayed. Amounts per unit are recorded with up to 6 decimals.
+ */
+export function amountDecimals(c: ClassDistribution | null | undefined): number {
+  if (!c) return 4;
+  const values = [...c.history.map((h) => h.amount), c.last?.amount, c.trailing12m, ...c.calendarYears.map((y) => y.amount)].filter(isNum);
+  for (let d = 4; d < 6; d++) if (values.every((v) => Math.abs(v - Number(v.toFixed(d))) < 5e-10)) return d;
+  return 6;
+}
+
+/** Tag a calendar year as year to date: the year of the reference date (the last successful read of the source) while that year is not over. */
+export function isYearToDate(year: number, ref: string | null | undefined): boolean {
+  if (!ref || !/^\d{4}-\d{2}-\d{2}$/.test(ref)) return false;
+  return String(year) === ref.slice(0, 4) && ref < `${year}-12-31`;
+}
+
+/** History newest first: the last `limit` distributions, or all of them. */
+export function historyRows(c: ClassDistribution | null | undefined, all: boolean, limit = 12): { date: string; amount: number }[] {
+  const rows = [...(c?.history ?? [])].filter((r) => isNum(r.amount)).reverse();
+  return all ? rows : rows.slice(0, limit);
+}
+
+/** Bars of the history chart: the last `n` distributions, oldest first. */
+export function distributionBars(c: ClassDistribution | null | undefined, n = 24): { date: string; amount: number }[] {
+  return (c?.history ?? []).filter((r) => isNum(r.amount)).slice(-n);
 }
 
 /** Which blocks render: the data must exist and the admin must not have hidden it (hiding performance hides every returns-derived block). */
@@ -273,6 +377,7 @@ export function visibleBlocks(data: Omit<FundData, "sourceName"> | null, content
   const has = (x: unknown[] | undefined | null) => !!x && x.length > 0;
   const riskOk = riskWindows([data?.risk, data?.risk3Y]).length > 0;
   const portfolio = !!data && (
+    hasDailyPortfolio(stripPortfolio(data.portfolio, h)) ||
     (!h.characteristics && data.characteristics.some((c) => c.fund != null)) ||
     (!h.breakdowns && Object.values(data.breakdowns ?? {}).some((b) => has(b))) ||
     (!h.holdings && has(data.topHoldings)) ||
@@ -288,6 +393,7 @@ export function visibleBlocks(data: Omit<FundData, "sourceName"> | null, content
     portfolio,
     facts: true,
     documents: docCount > 0,
+    distributions: !h.distributions && (data?.distributions?.classes.length ?? 0) > 0,
     disclosure: true,
   };
 }

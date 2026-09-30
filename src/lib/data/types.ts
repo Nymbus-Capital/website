@@ -116,6 +116,96 @@ export interface Characteristic {
   unit: "pct" | "num" | "int" | "text";
 }
 
+/* ------------------------------------------------------------------ daily portfolio and distributions */
+
+/** Portfolio characteristic ids of the daily block, in display order. */
+export const PORTFOLIO_METRICS = ["duration", "ytm", "coupon", "maturity", "rating"] as const;
+export type PortfolioMetricId = (typeof PORTFOLIO_METRICS)[number];
+
+export interface PortfolioMetric {
+  id: PortfolioMetricId;
+  /** duration / maturity in years, ytm / coupon as decimal fractions, rating as a letter notch ("A-") */
+  value: number | string;
+  unit: "years" | "pct" | "rating";
+  /** share of the bond weight that had the input (1 = every bond); shown as a footnote below 1 */
+  coverage: number;
+}
+
+export interface WeightBucket { label: string; weight: number; count?: number | null }
+
+export interface PortfolioHolding {
+  name: string;
+  weight: number;
+  coupon: number | null;
+  /** ISO date */
+  maturity: string | null;
+  rating: string | null;
+  sector: string | null;
+  /** green bond flag; null when unknown */
+  green: boolean | null;
+}
+
+/** Breakdown keys of the daily block; rating and term keep their natural order (AAA → D then not rated; 0-1 → 10+). */
+export type PortfolioBreakdownKey = "sector" | "rating" | "term" | "country" | "assetType";
+
+/**
+ * Portfolio figures of one book date, computed by the data platform (the site only displays them). Optional in
+ * FundData (datasets published before it have none): absent or null → the Portfolio tab shows the month-end factsheet
+ * figures (`characteristics`, `breakdowns`, `topHoldings`, `factsheetMonth`), as before.
+ */
+export interface PortfolioData {
+  /** "daily": the fund's daily book; "factsheet": reserved for a month-end factsheet book in this shape */
+  source: "daily" | "factsheet";
+  /** book date (ISO) */
+  asOf: string;
+  characteristics: PortfolioMetric[];
+  /** weights over net assets (fractions), a "Cash" row included */
+  breakdowns: Partial<Record<PortfolioBreakdownKey, WeightBucket[]>>;
+  /** largest securities (cash and derivatives excluded), at most 10 */
+  topHoldings: PortfolioHolding[];
+  /** weight of green bonds (fraction); null when unknown or not shown for this fund */
+  greenBondsWeight: number | null;
+  totals: { holdings: number | null; bonds: number | null; cashWeight: number | null; derivatives: number | null } | null;
+  /** share of the bond weight resolved to the instrument master / priced on the book date */
+  coverage: { resolved: number | null; priced: number | null } | null;
+}
+
+export type DistributionFrequency = "monthly" | "quarterly" | "semi-annual" | "annual" | "irregular";
+
+/** Distributions per unit of one series (class), in the class currency, keyed by its FundServ code. */
+export interface ClassDistribution {
+  fundserv: string;
+  display: string;
+  currency: string;
+  frequency: DistributionFrequency | null;
+  last: { date: string; amount: number } | null;
+  /**
+   * total per unit of the distributions dated in the 12 months ending at DistributionsData.trailingTo (after the same
+   * day one year earlier, up to and including it) — not at the last distribution (null: not published)
+   */
+  trailing12m: number | null;
+  calendarYears: { year: number; amount: number; count: number }[];
+  /** every distribution, oldest first */
+  history: { date: string; amount: number }[];
+}
+
+export interface DistributionsData {
+  /** date of the latest distribution of the series shown ("Data as of") */
+  asOf: string;
+  /**
+   * day the source was last read successfully (YYYY-MM-DD). Distributions carried over after a failed read are dropped
+   * once it is too old (config DISTRIBUTIONS.maxCarryDays); absent in files published before it existed (not carried).
+   */
+  checkedAt?: string;
+  /**
+   * end of the trailing-12-month window (YYYY-MM-DD): the data platform's response end_date, i.e. the day of the read,
+   * not the last distribution. A trailing figure without it cannot be checked and is not shown.
+   */
+  trailingTo?: string;
+  /** live series only, in FundServ order */
+  classes: ClassDistribution[];
+}
+
 export interface FundData {
   key: FundKey;
   /** name as the sources know it (for provenance only) */
@@ -138,6 +228,10 @@ export interface FundData {
   esg: Characteristic[];
   /** month of the factsheet the characteristics / breakdowns come from (YYYY-MM) */
   factsheetMonth: string | null;
+  /** daily portfolio figures (optional, see PortfolioData); when present they take precedence over the factsheet ones */
+  portfolio?: PortfolioData | null;
+  /** per-series distributions (optional; absent in datasets published before it) */
+  distributions?: DistributionsData | null;
 }
 
 /** What the pipeline writes (`published/site-data.json`). */
@@ -181,10 +275,14 @@ export interface DocumentMeta {
   uploadedAt: string;
 }
 
+/** Blocks an admin can hide on a fund page (`characteristics`, `breakdowns`, `holdings` apply to the daily portfolio too). */
+export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions"] as const;
+export type HideBlock = (typeof HIDE_BLOCKS)[number];
+
 export interface FundContent {
   hidden?: boolean;
   /** hide specific blocks on the public page (fund AUM is hidden unless `aum: false`) */
-  hide?: Partial<Record<"performance" | "calendar" | "growth" | "risk" | "nav" | "aum" | "characteristics" | "breakdowns" | "holdings" | "esg", boolean>>;
+  hide?: Partial<Record<HideBlock, boolean>>;
   tagline?: L10n;
   description?: L10n;
   objective?: L10n;

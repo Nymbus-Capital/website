@@ -1,0 +1,316 @@
+{
+ "fund": "Multistrat",
+ "fund_name": "SYNTHETIC Multistrat",
+ "as_of": "2026-09-28",
+ "nav_type": "FINAL_NAV",
+ "currency": "CAD",
+ "method": {
+  "weights": "market_value_cad / net_assets_cad (signed)",
+  "denominator": "net_assets_cad",
+  "duration": "modified duration, market-value weighted over bond positions with a value, renormalised over covered weight",
+  "yield": "yield to maturity, same weighting",
+  "coupon": "coupon rate, same weighting",
+  "rating": "composite rating, notch-scored AAA=1…D=22",
+  "term_buckets": [
+   "0-1",
+   "1-3",
+   "3-5",
+   "5-7",
+   "7-10",
+   "10+"
+  ],
+  "prices_as_of": "market_data price_as_of(as_of) per instrument"
+ },
+ "net_assets_cad": null,
+ "totals": {
+  "holdings_count": 86,
+  "bonds_count": 84,
+  "cash_weight": 0.042,
+  "derivatives_count": 2,
+  "other_weight": 0
+ },
+ "characteristics": {
+  "modified_duration": {
+   "value": 4.1,
+   "unit": "years",
+   "coverage": 0.62
+  },
+  "yield_to_maturity": {
+   "value": 0.0371,
+   "unit": "fraction",
+   "coverage": 0.62
+  },
+  "coupon": {
+   "value": 0.0322,
+   "unit": "fraction",
+   "coverage": 1
+  },
+  "average_maturity": {
+   "value": 5.2,
+   "unit": "years",
+   "coverage": 0.62
+  },
+  "average_rating": {
+   "value": "AA",
+   "unit": "notch",
+   "coverage": 1
+  }
+ },
+ "breakdowns": {
+  "sector": [
+   {
+    "label": "Equities",
+    "weight": 0.55,
+    "count": 2
+   },
+   {
+    "label": "Government",
+    "weight": 0.2,
+    "count": 9
+   },
+   {
+    "label": "Financials",
+    "weight": 0.15,
+    "count": 3
+   },
+   {
+    "label": "Cash",
+    "weight": 0.1,
+    "count": 0
+   }
+  ],
+  "rating": [
+   {
+    "label": "AAA",
+    "weight": 0.081,
+    "count": 2
+   },
+   {
+    "label": "AA",
+    "weight": 0.146,
+    "count": 9
+   },
+   {
+    "label": "A",
+    "weight": 0.428,
+    "count": 3
+   },
+   {
+    "label": "BBB",
+    "weight": 0.262,
+    "count": 10
+   },
+   {
+    "label": "BB",
+    "weight": 0.031,
+    "count": 4
+   },
+   {
+    "label": "Not rated",
+    "weight": 0.01,
+    "count": 11
+   },
+   {
+    "label": "Cash",
+    "weight": 0.042,
+    "count": 0
+   }
+  ],
+  "term": [
+   {
+    "label": "0-1",
+    "weight": 0.184,
+    "count": 2
+   },
+   {
+    "label": "1-3",
+    "weight": 0.579,
+    "count": 9
+   },
+   {
+    "label": "3-5",
+    "weight": 0.152,
+    "count": 3
+   },
+   {
+    "label": "5-7",
+    "weight": 0.043,
+    "count": 10
+   },
+   {
+    "label": "Cash",
+    "weight": 0.042,
+    "count": 0
+   }
+  ],
+  "country": [
+   {
+    "label": "Canada",
+    "weight": 0.8586,
+    "count": 2
+   },
+   {
+    "label": "Cash",
+    "weight": 0.1,
+    "count": 0
+   },
+   {
+    "label": "United States",
+    "weight": 0.0348,
+    "count": 9
+   },
+   {
+    "label": "Other",
+    "weight": 0.0066,
+    "count": 3
+   }
+  ],
+  "asset_type": [
+   {
+    "label": "Corporate bonds",
+    "weight": 0.782,
+    "count": 2
+   },
+   {
+    "label": "Provincial bonds",
+    "weight": 0.091,
+    "count": 9
+   },
+   {
+    "label": "Federal bonds",
+    "weight": 0.064,
+    "count": 3
+   },
+   {
+    "label": "Cash",
+    "weight": 0.042,
+    "count": 0
+   },
+   {
+    "label": "Municipal bonds",
+    "weight": 0.021,
+    "count": 10
+   }
+  ]
+ },
+ "top_holdings": [
+  {
+   "name": "Synthetic Bank North 2.10% 2027-01-01",
+   "issuer": "Synthetic Bank North",
+   "isin": "XS0100000000",
+   "weight": 0.041,
+   "coupon": 0.021,
+   "maturity": "2027-01-01",
+   "rating": "AA",
+   "sector": "Financials",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Bank South 2.90% 2028-06-01",
+   "issuer": "Synthetic Bank South",
+   "isin": "XS0100007919",
+   "weight": 0.0383,
+   "coupon": 0.029,
+   "maturity": "2028-06-01",
+   "rating": "AAA",
+   "sector": "Financials",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Pipeline 3.70% 2029-11-01",
+   "issuer": "Synthetic Pipeline",
+   "isin": "XS0100015838",
+   "weight": 0.0356,
+   "coupon": 0.037,
+   "maturity": "2029-11-01",
+   "rating": "A+",
+   "sector": "Energy",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Telecom 4.50% 2030-04-01",
+   "issuer": "Synthetic Telecom",
+   "isin": "XS0100023757",
+   "weight": 0.0329,
+   "coupon": 0.045,
+   "maturity": "2030-04-01",
+   "rating": "A",
+   "sector": "Communications",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Province East 2.40% 2031-09-01",
+   "issuer": "Synthetic Province East",
+   "isin": "XS0100031676",
+   "weight": 0.0302,
+   "coupon": 0.024,
+   "maturity": "2031-09-01",
+   "rating": "AA-",
+   "sector": "Government",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Power Co 3.20% 2027-02-01",
+   "issuer": "Synthetic Power Co",
+   "isin": "XS0100039595",
+   "weight": 0.0275,
+   "coupon": 0.032,
+   "maturity": "2027-02-01",
+   "rating": "AA",
+   "sector": "Utilities",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Insurance 4.00% 2028-07-01",
+   "issuer": "Synthetic Insurance",
+   "isin": "XS0100047514",
+   "weight": 0.0248,
+   "coupon": 0.04,
+   "maturity": "2028-07-01",
+   "rating": "A",
+   "sector": "Financials",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Rail 4.80% 2029-12-01",
+   "issuer": "Synthetic Rail",
+   "isin": "XS0100055433",
+   "weight": 0.0221,
+   "coupon": 0.048,
+   "maturity": "2029-12-01",
+   "rating": "A-",
+   "sector": "Industrials",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Grocer 2.70% 2030-05-01",
+   "issuer": "Synthetic Grocer",
+   "isin": "XS0100063352",
+   "weight": 0.0194,
+   "coupon": 0.027,
+   "maturity": "2030-05-01",
+   "rating": "BBB+",
+   "sector": "Consumer staples",
+   "green_bond": false
+  },
+  {
+   "name": "Synthetic Hydro 3.50% 2031-10-01",
+   "issuer": "Synthetic Hydro",
+   "isin": "XS0100071271",
+   "weight": 0.0167,
+   "coupon": 0.035,
+   "maturity": "2031-10-01",
+   "rating": "BBB",
+   "sector": "Utilities",
+   "green_bond": false
+  }
+ ],
+ "green_bonds_weight": 0,
+ "coverage": {
+  "resolved_weight": 0.81,
+  "priced_weight": 0.62
+ },
+ "warnings": [
+  "SYNTHETIC: 14 positions not resolved to the instrument master"
+ ]
+}

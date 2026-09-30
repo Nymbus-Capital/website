@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fmt, pct, money, moneyParts, compactMoney, monthLabel, dateLabel, charValue, charCount, pctTick, fileSize, bigMoney } from "../../../src/components/fund/lib/format.ts";
-import { nice, linear, barPath, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
+import { nice, linear, barPath, barWidthPct, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
 import {
   trailingPeriods, isAnnualized, headlineClass, availableRanges, growthRange, heatmapGrid, heatScale, heatCell, groupDocuments,
   visibleBlocks, riskIndex, calendarRows, riskWindows, bucketRows, vaRounded, perfClassLabel,
@@ -252,4 +252,17 @@ test("series sorted with the headline class first", () => {
   assert.deepEqual(sortedClasses(cs, "ldm081").map((c) => c.fundserv), ["LDM081", "LDM001", "LDM021"]);
   assert.deepEqual(sortedClasses(cs, null).map((c) => c.fundserv), ["LDM001", "LDM021", "LDM081"]);
   assert.deepEqual(REGULATORY_DOCS, ["fund-facts", "prospectus", "annual-report", "interim-report", "mrfp"]);
+});
+
+test("horizontal bar width: clamped to [0, 100 %]; a negative weight (negative cash) draws no bar, never an invalid width", () => {
+  // a breakdown with negative cash, as a daily book can have while trades settle
+  const rows = [{ label: "Corporate bonds", fund: 0.62 }, { label: "Federal bonds", fund: 0.4 }, { label: "Cash", fund: -0.02 }];
+  const max = Math.max(0.0001, ...rows.map((r) => r.fund));
+  const widths = rows.map((r) => barWidthPct(r.fund, max));
+  assert.deepEqual(widths.map((w) => +w.toFixed(4)), [100, 64.5161, 0]);
+  for (const w of widths) assert.ok(Number.isFinite(w) && w >= 0 && w <= 100, `${w}`);
+  assert.equal(barWidthPct(null, max), 0);
+  assert.equal(barWidthPct(Number.NaN, max), 0);
+  assert.equal(barWidthPct(0.5, 0), 0);
+  assert.equal(barWidthPct(2, 1), 100);
 });

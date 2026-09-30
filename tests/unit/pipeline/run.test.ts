@@ -65,6 +65,8 @@ test("raw folder: AUM contains fund totals only (no investor-level fields)", asy
   assert.ok(rawFiles.includes("aum.json"));
   assert.ok(rawFiles.includes("monthly-net-returns_SEST.json"));
   assert.ok(rawFiles.includes("factsheets_bonds_data_2026-08.json"));
+  for (const f of ["fund-portfolio_SEST.json", "fund-portfolio-month-end_SEB.json", "distributions_Multistrat.json"]) assert.ok(rawFiles.includes(f), f);
+  assert.ok(r.sources.some((s) => s.name === "dataplatform fund-portfolio SEST" && s.ok));
   const aum = await readFile(path.join(dir, "snapshots", r.id, "raw", "aum.json"), "utf8");
   assert.deepEqual(Object.keys(JSON.parse(aum).data.totals).sort(), ["Multistrat", "OTHER", "SEB", "SEST"]);
   const all = (await Promise.all(rawFiles.map((f) => readFile(path.join(dir, "snapshots", r.id, "raw", f), "utf8")))).join("\n");

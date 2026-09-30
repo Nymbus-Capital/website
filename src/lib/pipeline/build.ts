@@ -20,6 +20,9 @@
  *  - Compliance: a track record shorter than 12 months is not shown (performance and risk null).
  *  - A part whose source failed keeps its previously published value (issue + provenance + alert).
  *  - NAV daily change: Apex distribution-aware daily return from the previous valuation day only.
+ *  - Portfolio: the dataplatform daily book when its coverage passes the thresholds (portfolio.ts, config PORTFOLIO),
+ *    else the month-end factsheet figures (issue); both are cross-checked at month-ends. Distributions: per live
+ *    series by FundServ code (distributions.ts). A 404 on either endpoint (not deployed yet) is one info issue.
  */
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
 import type { Bucket, CalendarRow, Characteristic, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing } from "../data/types.ts";
@@ -35,6 +38,8 @@ import {
   parseFlatCharacteristics, parseHoldings, parseMonthlyTable, parseStatistics, parseTrailingTable, type Obj, type TrailingTable,
 } from "./parse.ts";
 import type { DpShort, FundRef, NavPoint, RawPayloads, RegisteredFund } from "./raw.ts";
+import { crossCheckPortfolio, monthEndBook, selectPortfolio } from "./portfolio.ts";
+import { selectDistributions, type LiveClass } from "./distributions.ts";
 
 export type PartName = "performance" | "nav" | "aum" | "factsheet";
 /** fresh: built this run; held: kept at an older month on purpose (waiting for a factsheet); carried: previous publication reused because a source failed */
@@ -92,6 +97,8 @@ class Ctx {
   prov: Record<string, string> = {};
   prevProv: Record<string, string> = {};
   prevGenerated = "";
+  /** funds whose new fund-data endpoints answered 404 (reported once per run, see absentEndpoints) */
+  absent: { portfolio: string[]; distributions: string[] } = { portfolio: [], distributions: [] };
   info(key: string, message: string): void { this.issues.push({ key, level: "info", message }); }
   warn(key: string, message: string): void { this.issues.push({ key, level: "warn", message }); }
   error(key: string, message: string): void { this.issues.push({ key, level: "error", message }); }
@@ -827,6 +834,68 @@ function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   return { parts, state: "fresh" };
 }
 
+/* ------------------------------------------------------------------ daily portfolio & distributions */
+
+/**
+ * Daily portfolio (primary when usable, see portfolio.ts), and the month-end cross-check with the factsheet of the
+ * same month. A fetch failure keeps the previously published daily book (validation drops it once it is too old);
+ * a 404 means the endpoint is not deployed yet: the factsheet figures are shown, as before it existed.
+ */
+function buildPortfolio(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, fp: { parts: FsParts; state: PartState }, c: Ctx, base: string, now: Date): FundData["portfolio"] {
+  const short = FUND_SOURCES[spec.key].dataplatform as DpShort;
+  const res = raw.portfolio?.[short];
+  const sel = selectPortfolio(res, { base, short, now, greenBonds: !!PIPELINE_FUNDS[spec.key].greenBonds });
+  c.issues.push(...sel.issues);
+  if (sel.absent) c.absent.portfolio.push(short);
+  let portfolio = sel.portfolio;
+  if (portfolio) c.prov[`${base}.portfolio`] = sel.provenance!;
+  else if (res && !res.ok && !res.absent && prev?.portfolio?.source === "daily") {
+    portfolio = prev.portfolio;
+    c.info(`${base}.portfolio`, `previous daily book (${prev.portfolio.asOf}) kept`);
+    c.prov[`${base}.portfolio`] = carriedNoteFor(c, base, "portfolio");
+  }
+  const month = fp.state === "fresh" ? fp.parts.factsheetMonth : null;
+  const book = month ? monthEndBook([raw.portfolioMonthEnd?.[short]?.data, res?.data], month) : null;
+  if (book && month) {
+    // sectors of the factsheet: issuer types ("Sectors") and industries ("Industry"); matched by label
+    const snap = factsheetBlock(raw, spec, month)?.block["Portfolio Snapshot"];
+    const sectors = [...(fp.parts.breakdowns.sectors ?? []), ...(isObj(snap) ? parseBuckets((snap as Obj)["Industry"]) : [])];
+    c.issues.push(...crossCheckPortfolio(book, { month, characteristics: fp.parts.characteristics, sectors }, `${base}.portfolio.crossCheck`));
+  }
+  return portfolio ?? null;
+}
+
+/** Live series: the fund register's active classes, else the NAV classes being published. */
+function liveClasses(raw: RawPayloads, spec: FundSpec, nav: FundData["nav"]): LiveClass[] | null {
+  const reg = registerFund(raw, spec);
+  if (reg) return reg.classes.filter((k) => k.status === "active").map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency }));
+  return nav?.classes.length ? nav.classes.map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency })) : null;
+}
+
+function buildDistributions(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, nav: FundData["nav"], c: Ctx, base: string, now: Date): FundData["distributions"] {
+  const short = FUND_SOURCES[spec.key].dataplatform as DpShort;
+  const res = raw.distributions?.[short];
+  const sel = selectDistributions(res, { base, short, live: liveClasses(raw, spec, nav), today: now.toISOString().slice(0, 10) });
+  c.issues.push(...sel.issues);
+  if (sel.absent) c.absent.distributions.push(short);
+  if (sel.distributions) {
+    c.prov[`${base}.distributions`] = sel.provenance!;
+    return sel.distributions;
+  }
+  if (res && !res.ok && !res.absent && prev?.distributions) {
+    c.info(`${base}.distributions`, `previous distributions (as of ${prev.distributions.asOf}) kept`);
+    c.prov[`${base}.distributions`] = carriedNoteFor(c, base, "distributions");
+    return prev.distributions;
+  }
+  return null;
+}
+
+/** One info issue per run for an endpoint that is not deployed yet (404), instead of one per fund. */
+function absentEndpoints(c: Ctx): void {
+  if (c.absent.portfolio.length) c.info("sources.fund-portfolio", `dataplatform /api/apex/fund-portfolio not available (HTTP 404, not deployed yet?) for ${c.absent.portfolio.join(", ")}: month-end factsheet figures shown`);
+  if (c.absent.distributions.length) c.info("sources.distributions", `dataplatform /api/performance/distributions not available (HTTP 404, not deployed yet?) for ${c.absent.distributions.join(", ")}: distribution policy text only`);
+}
+
 /** provenance of a part carried over from the previous publication */
 function carriedNoteFor(c: Ctx, base: string, part: string): string {
   const old = c.prevProv[`${base}.${part}`];
@@ -912,7 +981,11 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
   ctx.parts.factsheet = fp.state;
   for (const part of ["nav", "aum", "factsheet"] as const) if (ctx.parts[part] === "carried") ctx.alerts.push(`${part} carried over`);
 
-  const hasAny = performance || nav || aum || fp.parts.characteristics.length || fp.parts.topHoldings.length || Object.keys(fp.parts.breakdowns).length;
+  // daily portfolio and distributions (fund vehicles only): never an alert, the page falls back on its own
+  const portfolio = short ? buildPortfolio(raw, spec, prev, fp, c, base, now) : null;
+  const distributions = short ? buildDistributions(raw, spec, prev, nav, c, base, now) : null;
+
+  const hasAny = performance || nav || aum || portfolio || fp.parts.characteristics.length || fp.parts.topHoldings.length || Object.keys(fp.parts.breakdowns).length;
   if (!hasAny) return { fund: null, ctx };
   const fund: FundData = {
     key: spec.key,
@@ -923,6 +996,8 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     topHoldings: fp.parts.topHoldings,
     esg: fp.parts.esg,
     factsheetMonth: fp.parts.factsheetMonth,
+    portfolio,
+    distributions,
   };
   return { fund, ctx };
 }
@@ -955,6 +1030,7 @@ export function buildSiteData(raw: RawPayloads, previous: SiteData | null, now: 
     if (fund) funds[spec.key] = fund;
     else c.warn(`funds.${spec.key}`, `no data available for this fund`);
   }
+  absentEndpoints(c);
   const data: SiteData = {
     schemaVersion: 1,
     generatedAt: now.toISOString(),

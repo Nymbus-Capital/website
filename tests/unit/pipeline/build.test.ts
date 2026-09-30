@@ -39,8 +39,10 @@ test("end to end: history from analytics + dataplatform ready months, published 
   assert.ok(calls.every((c) => !c.headers.authorization), "no auth header unless configured");
   const { data, context } = buildSiteData(r, null, NOW);
   assert.deepEqual(data.asOf, { performance: "2026-08-31", nav: "2026-09-28", aum: "2026-09-28", factsheet: "2026-08" });
-  // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table)
-  assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !/^funds\.[a-z-]+\.calendar\.2026\.index$/.test(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
+  // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table),
+  // and the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown)
+  const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio";
+  assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;
   const p = mi.performance!;

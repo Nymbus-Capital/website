@@ -38,7 +38,7 @@ a code change:
 | 9 | Short gross note (`summaryGross`) | Home → strategies; `/strategies` | Gross/net wording. |
 | 10 | Basis labels (`basisLabels`): "net of fees", "gross of fees · managed accounts, not a fund" | Fund pages, hero and disclosure | Consistent with texts 3 and 6. |
 | 11 | Sample-data warning (`sample`) | Fund pages, sample mode only (never in production) | Wording, if a demo site shows sample data. |
-| 12 | Provenance line (`provenance`): "Updated daily from Nymbus’ data platform; portfolio data from the monthly factsheet of …" | Fund pages → *disclosure* | "Daily" is accurate; the as-of dates next to it. |
+| 12 | Provenance line (`provenance`): "Updated daily from Nymbus’ data platform; portfolio data from the monthly factsheet of …" — or, when the Portfolio tab shows the daily book: "…; portfolio data from the daily holdings as of <date>; sustainability metrics from the monthly factsheet of <month>." (FR: « données de portefeuille selon les positions quotidiennes au <date>; indicateurs de durabilité selon la fiche mensuelle de <mois> ») — **new 2026-09-30, to review** | Fund pages → *disclosure* | "Daily" is accurate; the as-of dates next to it. "Daily holdings" describes the data platform's book of the last valuation day (shown only when its coverage passes the thresholds, else the factsheet). The sustainability clause appears only when those metrics are shown. |
 | – | Admin overrides: firm disclaimer; per-fund performance notes | As above | Entire text. |
 
 Other statements on the site that compliance may want to see (not boilerplate): taglines and fund descriptions

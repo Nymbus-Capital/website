@@ -37,6 +37,24 @@ export function fixtureRoute(url: URL): Response | undefined {
     const j = loadFixture(`dataplatform/nav_${q.get("short_name")}.json`) as { rows: { date: string }[] };
     return json({ ...j, rows: filterDates(j.rows, url) });
   }
+  if (p === "/api/apex/fund-portfolio") {
+    const fund = q.get("fund") ?? "";
+    const date = q.get("date");
+    // like the real endpoint: `date` must be a full ISO date
+    if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ detail: [{ loc: ["query", "date"], msg: "Input should be a valid date" }] }, 422);
+    try {
+      return json(loadFixture(`dataplatform/portfolio_${fund}${date ? `_${date}` : ""}.json`));
+    } catch {
+      return json({ detail: `No FINAL_NAV book for ${fund} on or before ${date ?? "today"}` }, 404);
+    }
+  }
+  if (p === "/api/performance/distributions") {
+    try {
+      return json(loadFixture(`dataplatform/distributions_${q.get("short_name")}.json`));
+    } catch {
+      return json({ detail: "Unsupported official fund" }, 422);
+    }
+  }
   if (p === "/api/apex/funds") return json(loadFixture("dataplatform/apex_funds.json"));
   if (p === "/api/unitholders/funds") return json(loadFixture("dataplatform/unitholders_funds.json"));
   if (p === "/api/unitholders/aum") return json(loadFixture("dataplatform/aum.json"));

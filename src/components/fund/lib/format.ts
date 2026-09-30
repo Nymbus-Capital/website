@@ -106,6 +106,12 @@ export function dateLabel(iso: string | null | undefined, lang: Lang, long = fal
   return lang === "fr" ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, !long)} ${p.y}` : `${monthName(p.m, lang, !long)} ${p.d}, ${p.y}`;
 }
 
+/** "<text ending in « de »> <word>" with the French elision before a vowel: « de août » → « d’août ». */
+export function elide(text: string, next: string, lang: Lang): string {
+  if (lang === "fr" && /\bde$/.test(text) && /^[aeiouyàâéèêîïôûh]/i.test(next)) return `${text.slice(0, -2)}d’${next}`;
+  return `${text} ${next}`;
+}
+
 export function fileSize(bytes: number, lang: Lang): string {
   const [k, en, frU] = bytes >= 1024 * 1024 ? [1024 * 1024, "MB", "Mo"] : [1024, "KB", "Ko"];
   return `${fmt(bytes / k, { decimals: bytes >= 1024 * 1024 ? 1 : 0, lang })} ${lang === "fr" ? frU : en}`;

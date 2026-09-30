@@ -28,6 +28,17 @@ export const p = (...parts: string[]): string => {
   return full;
 };
 
+/**
+ * Write generation of this process, bumped by every write / removal through this module. Read caches
+ * (cache.ts) compare it to revalidate at once after a publish, a rollback or a content save. Kept on
+ * globalThis: Next.js may load this module more than once (route handlers and pages), and every copy must
+ * see the same counter.
+ */
+const GEN = Symbol.for("nymbus.store.generation");
+const g = globalThis as unknown as Record<symbol, number>;
+export const writeGeneration = (): number => g[GEN] ?? 0;
+export const bumpWriteGeneration = (): void => { g[GEN] = writeGeneration() + 1; };
+
 export async function readJson<T>(rel: string[], fallback: T): Promise<T> {
   try {
     return JSON.parse(await fs.readFile(p(...rel), "utf8")) as T;
@@ -43,6 +54,7 @@ export async function writeFileAtomic(rel: string[], data: string | Uint8Array):
   const tmp = `${target}.${process.pid}.${crypto.randomBytes(6).toString("hex")}.tmp`;
   await fs.writeFile(tmp, data);
   await fs.rename(tmp, target);
+  bumpWriteGeneration();
 }
 
 export const writeJson = (rel: string[], value: unknown): Promise<void> =>
@@ -65,6 +77,7 @@ export async function listDir(rel: string[]): Promise<string[]> {
 
 export async function removePath(rel: string[]): Promise<void> {
   await fs.rm(p(...rel), { recursive: true, force: true });
+  bumpWriteGeneration();
 }
 
 /**

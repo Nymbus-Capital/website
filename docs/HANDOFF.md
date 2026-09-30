@@ -106,17 +106,65 @@ Not yet run against live data, not deployed.
    authorization decision for a new consumer. The website service reads, read-only and from inside the
    `etl` project: `/api/performance/monthly-net-returns`, `/api/performance/nav-timeseries`,
    `/api/apex/funds`, `/api/unitholders/funds`, `/api/unitholders/aum` (fund totals only),
-   `/api/ftse/index-summary` (+ `/short-names`). Gabriel to confirm; record the decision in the
+   `/api/ftse/index-summary` (+ `/short-names`), and (branch `feat/api-portfolio-distributions`)
+   `/api/apex/fund-portfolio`, `/api/performance/distributions`. Gabriel to confirm; record the decision in the
    dataplatform repo if required there.
 5. **First live runs in review mode** — compare every figure with the latest factsheet; expect
    index differences before May 2026 (factsheets used XSB/XBB ETFs then).
 6. **Compliance review of disclaimers** — `docs/compliance-review.md`; then "mark as reviewed" in admin.
 7. **Custom domain** `www.nymbus.ca` when approved (`docs/deploy.md`), then disable GitHub Pages.
-8. Nice to have: contact form backend (currently mailto), fund inception dates for funds other than
+8. **Daily portfolio + distributions** (branch `feat/api-portfolio-distributions`, based on the PR #1 branch): the
+   website consumes the two new dataplatform endpoints (contract of 2026-09-30, `docs/architecture.md` § Sources).
+   Until the **dataplatform PR** implementing `/api/apex/fund-portfolio` and `/api/performance/distributions` is
+   deployed, they answer 404: one info issue per run, the site behaves as before. After deployment: run in review
+   mode, compare the Portfolio tab (daily) with the month-end factsheet (the cross-check issues in the run say where
+   they differ), check the distributions per series against the administrator's records, then merge this branch.
+9. **Coverage follow-up**: the daily book is used only when priced ≥ 90 % and resolved ≥ 95 % of the bond weight (and
+   each characteristic ≥ 90 %). Watch the `funds.<fund>.portfolio` warn issues on the first live runs (the
+   multi-strategy fund may stay on the factsheet); raise coverage in the instrument master / market data rather than
+   lowering the thresholds. Distribution yields and types are not in the source (documented gap).
+10. Nice to have: contact form backend (currently mailto), fund inception dates for funds other than
    Monthly Income (`FUND_INCEPTION` in `src/content/disclaimers.ts`), holiday calendar for FTSE
    month-ends (currently weekdays).
 
 ## 6. Session log
+
+- 2026-09-30 (home, branch `feat/api-portfolio-distributions`): regression from the independent verification fixed —
+  the trailing-12-month check used a window ending at the last distribution, but the dataplatform
+  (`distribution_history.py`, `_year_before(end) < date <= end`) ends it at the response `end_date` (day of the read),
+  so monthly / quarterly figures were wrongly hidden on most days. Now `DistributionsData.trailingTo` = payload
+  `end_date`, `trailingProblem(c, trailingTo, today)` uses the same window (29 Feb → 28 Feb), drops the figure when the
+  window end is unknown / in the future or the capped history does not reach the window start. Card label "12 months
+  to <date>" / « 12 mois au <date> » (title gives the full sentence). Tests: verifier scenarios (monthly 2026-09-30
+  with last 2026-08-31 = 11 rows, June date with last 2026-05-29 = 12 rows, quarterly = 3 rows, 29 Feb), e2e label.
+
+- 2026-09-30 (home, branch `feat/api-portfolio-distributions`): fixes after an independent adversarial review of the
+  portfolio / distributions work. One freshness rule for the daily book (`src/lib/data/freshness.ts`, 7 whole days)
+  used by the selection, the validation gate (now also on funds carried over from the previous publication) and a
+  render-time gate in `site.ts` (rollback / pin never shows a stale book as "daily"; the sample is judged at its
+  generation date). Identity check of both payloads (`fund` / `short_name`). Distributions: currency never defaulted
+  (register vs payload must agree), trailing 12 months checked against the rows of the 12 months ending at the last
+  distribution (superseded: see the entry above, window ends at the response end date), carried-over data dropped after 10 days without a successful read (`checkedAt`,
+  `DISTRIBUTIONS.maxCarryDays`), "Data as of" = latest distribution. Page: provenance line says "daily holdings as of
+  <date>" when the daily book is shown (+ sustainability clause) — **new wording in `docs/compliance-review.md` row 12,
+  to review**; negative weights draw no bar (was stretched); hiding characteristics hides the securities count; chart
+  roving tabindex; amounts at the series' own precision (rows add up to calendar totals); YTD tag only while the year
+  is open; odd last breakdown spans the row; distribution cards aligned (subgrid); snapshot cache bounded (8, LRU).
+  Review item "month-end book requested with YYYY-MM" was not reproducible (`lastClosedMonth` returns the month-end
+  date); a test now pins the dated request and a divergent month-end warning. Item "nbsp before « ; »" not applied:
+  the repo's tested convention is Québec (no space before « ; »). Not merged into `redesign/v3-keynote-live-data`
+  (the main session merges after an independent verification).
+
+- 2026-09-30 (home, branch `feat/api-portfolio-distributions`): wired the two new dataplatform endpoints (daily
+  portfolio book, per-series distributions) per the 2026-09-30 contract: tolerant parsers (`sources/contracts.ts`),
+  selection with coverage thresholds and factsheet fallback + month-end cross-check (`portfolio.ts`), distributions
+  by FundServ code for live series (`distributions.ts`), never-blocking gates (`validate.ts`), new `FundData.portfolio`
+  / `FundData.distributions` (optional; old files still read), `hide.distributions`, Portfolio tab (daily source
+  label and date, characteristics with coverage footnote, breakdowns in rating / bucket order, top 10 with coupon /
+  maturity / rating / sector / green marker, green bonds weight) and Distributions tab (per-series cards, history
+  chart, calendar-year totals, full history behind "Show all", note on type / tax character). In-memory cache of the
+  published data and content (`src/lib/data/cache.ts`). Synthetic fixtures + sample extended; unit + e2e tests.
+  Waiting for the dataplatform PR (open item 8).
 
 - 2026-09-30 (home): **public site rebuilt** after Gabriel's feedback ("informational corporate site with the
   previous site's sections, light v3 look and motion, not a deck"): see `docs/site-rebuild.md`. Foundation
