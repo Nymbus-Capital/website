@@ -1,14 +1,11 @@
 /* =====================================================================================================
    Home, strategies index and solutions (src/components/site/home/*, pages/StrategiesIndex, pages/Solutions).
    Light only, v3 motion. Class prefixes are unique to these pages (hm- home, fx- fund cards, xp- page header,
-   xs- strategies index, xf- filter, sl- solutions) so the legacy deck stylesheet (site.css) cannot collide.
+   xs- strategies index, xf- filter, sl- solutions) so page styles cannot collide.
    ===================================================================================================== */
 
 /* the soft corner lights of the bands must not widen the page */
 .hm { overflow-x: clip; }
-/* TEMPORARY (integrator): the legacy site.css sets \`.nav { pointer-events: none }\` for its floating pill, which makes the
-   new nav (kit.css) unclickable. Remove once site.css is deleted or kit.css resets pointer-events on .nav. */
-.nav { pointer-events: auto; }
 
 /* ---------------------------------------------------------------- page headers */
 .hm-hero, .xp-hero { position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid var(--line);

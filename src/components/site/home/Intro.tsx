@@ -2,7 +2,7 @@
 /**
  * Page header of the strategies and solutions pages: breadcrumb, eyebrow, H1 whose words rise out of a blur,
  * lead, actions, the yield curves drawing in behind. A local variant of the kit's PageHero with its own class
- * names (`xp-*`): the legacy site.css still styles `.page-hero` for the dark deck.
+ * names (`xp-*`).
  */
 import type { ReactNode } from "react";
 import { Crumbs, Eyebrow, HeroCurves, Reveal, RevealTitle } from "../kit";

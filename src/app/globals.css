@@ -66,7 +66,8 @@ img, svg { display: block; max-width: 100%; }
 .container { width: 100%; max-width: calc(var(--container) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
 .container.narrow { max-width: calc(860px + 2 * var(--gutter)); }
 .container.wide { max-width: calc(1360px + 2 * var(--gutter)); }
-.section { position: relative; isolation: isolate; padding: var(--section-y) 0; }
+.section { position: relative; isolation: isolate; padding: var(--section-y) 0; overflow-x: clip; }
+.cta-band { overflow-x: clip; }
 .section.tight { padding: calc(var(--section-y) * .6) 0; }
 .section.flush-top { padding-top: 0; }
 .section.tint { background: var(--surf); }

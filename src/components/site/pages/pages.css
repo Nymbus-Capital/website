@@ -1,24 +1,14 @@
 /* =====================================================================================================
    Informational pages: approach, sustainability, about/team, contact, legal, privacy, 404.
    Light only; builds on the tokens of globals.css and the kit (kit.css). Every class is prefixed
-   (pg- shared, ap- approach, su- sustainability, ab- about, ct- contact, lg2- legal, nf2- 404) so the legacy
-   site.css cannot collide with it.
+   (pg- shared, ap- approach, su- sustainability, ab- about, ct- contact, lg2- legal, nf2- 404) so page styles
+   cannot collide.
    Motion: hidden start states exist only with JS (html.js) and without a reduced-motion preference; the
    element (or its parent) gets [data-on] when it scrolls into view and the CSS plays the entrance once.
    ===================================================================================================== */
 
 /* ---------------------------------------------------------------- shared */
-/* the legacy deck stylesheet (site.css, still loaded by the layout) shrinks the gutter to 8px on phones, makes
-   page heroes 88svh tall and greys their lead: undo that on these pages */
-body:has(.pg) { --gutter: clamp(16px, 4vw, 40px); }
-/* site.css also sets .nav { pointer-events: none } (its old floating pill re-enabled them): the new nav was unclickable */
-body:has(.pg) .nav { pointer-events: auto; }
-body:has(.pg) :is(.nav-links a, .menu-links a, .menu-funds a) { text-transform: none; }
-.pg .page-hero { min-height: 0; padding-bottom: clamp(56px, 7vw, 96px); }
-.pg .page-hero .lead { color: var(--ink2); }
 .pg .page-hero > svg { opacity: .9; }
-/* section glows (kit .glow-tr / .glow-bl) must not widen the page */
-.pg .section, .pg .cta-band { overflow-x: clip; }
 .pg-ticks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
 .pg-ticks li { position: relative; padding-left: 26px; color: var(--ink2); font-size: 15px; line-height: 1.55; }
 .pg-ticks li::before { content: ""; position: absolute; left: 3px; top: .5em; width: 12px; height: 12px; border-radius: 50%;

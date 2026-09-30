@@ -16,7 +16,7 @@
   position: relative;
 }
 .fund-page code { font: inherit; letter-spacing: .02em; }
-/* own chip (the legacy site.css redefines .chip as a filter button) */
+/* own chip */
 .fx-chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 99px; font-size: 13px; font-weight: 500; line-height: 1;
   background: var(--surf); color: var(--ink2); white-space: nowrap; }
 
