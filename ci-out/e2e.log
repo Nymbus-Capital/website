@@ -1,0 +1,47 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 126 tests using 2 workers
+
+  ✓    1 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: sustainable-enhanced-bonds (7.0s)
+  ✓    2 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: monthly-income (7.5s)
+  ✓    3 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: multi-strategy (6.5s)
+  ✓    4 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: global-minimum-volatility (6.4s)
+  ✓    5 [desktop] › e2e/fund.spec.ts:67:5 › fund switcher links every fund (919ms)
+  ✓    6 [desktop] › e2e/fund.spec.ts:74:5 › legacy slug redirects to monthly income (825ms)
+  ✓    7 [desktop] › e2e/fund.spec.ts:81:5 › unknown slug is a 404 (641ms)
+  ✓    9 [desktop] › e2e/site.spec.ts:65:9 › / renders its heading (en) (2.3s)
+  ✓   10 [desktop] › e2e/site.spec.ts:65:9 › / renders its heading (fr) (1.4s)
+  ✓   11 [desktop] › e2e/site.spec.ts:79:7 › / full-page screenshot (6.4s)
+  ✓   12 [desktop] › e2e/site.spec.ts:65:9 › /strategies renders its heading (en) (632ms)
+  ✓   13 [desktop] › e2e/site.spec.ts:65:9 › /strategies renders its heading (fr) (612ms)
+  ✓   14 [desktop] › e2e/site.spec.ts:79:7 › /strategies full-page screenshot (4.0s)
+  ✓   15 [desktop] › e2e/site.spec.ts:65:9 › /approach renders its heading (en) (619ms)
+  ✓   16 [desktop] › e2e/site.spec.ts:65:9 › /approach renders its heading (fr) (578ms)
+  ✓   17 [desktop] › e2e/site.spec.ts:79:7 › /approach full-page screenshot (5.3s)
+  ✓   18 [desktop] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (en) (472ms)
+  ✓   19 [desktop] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (fr) (424ms)
+  ✓   20 [desktop] › e2e/site.spec.ts:79:7 › /sustainability full-page screenshot (4.1s)
+  ✓   21 [desktop] › e2e/site.spec.ts:65:9 › /team renders its heading (en) (660ms)
+  ✓   22 [desktop] › e2e/site.spec.ts:65:9 › /team renders its heading (fr) (683ms)
+  ✓   23 [desktop] › e2e/site.spec.ts:79:7 › /team full-page screenshot (4.6s)
+  ✓   24 [desktop] › e2e/site.spec.ts:65:9 › /contact renders its heading (en) (565ms)
+  ✓   25 [desktop] › e2e/site.spec.ts:65:9 › /contact renders its heading (fr) (575ms)
+  ✓   26 [desktop] › e2e/site.spec.ts:79:7 › /contact full-page screenshot (3.7s)
+  ✓   27 [desktop] › e2e/site.spec.ts:65:9 › /solutions renders its heading (en) (949ms)
+  ✓   28 [desktop] › e2e/site.spec.ts:65:9 › /solutions renders its heading (fr) (1.1s)
+  ✓   29 [desktop] › e2e/site.spec.ts:79:7 › /solutions full-page screenshot (4.3s)
+  ✓   30 [desktop] › e2e/site.spec.ts:65:9 › /legal renders its heading (en) (734ms)
+  ✓   31 [desktop] › e2e/site.spec.ts:65:9 › /legal renders its heading (fr) (806ms)
+  ✓   32 [desktop] › e2e/site.spec.ts:79:7 › /legal full-page screenshot (4.3s)
+  ✓   33 [desktop] › e2e/site.spec.ts:65:9 › /privacy renders its heading (en) (932ms)
+  ✓   34 [desktop] › e2e/site.spec.ts:65:9 › /privacy renders its heading (fr) (999ms)
+  ✓   35 [desktop] › e2e/site.spec.ts:79:7 › /privacy full-page screenshot (4.8s)
+  ✘    8 [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels (1.0m)
+  ✓   36 [desktop] › e2e/site.spec.ts:88:5 › unknown route: 404 page in the site chrome (4.4s)
+  ✓   37 [desktop] › e2e/site.spec.ts:99:5 › odometer: the figure's accessible name is the final value (2.1s)
+  ✓   39 [desktop] › e2e/site.spec.ts:107:5 › home: live figures come from the data, never invented (3.3s)
+  ✘   38 [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels (retry #1) (1.0m)
