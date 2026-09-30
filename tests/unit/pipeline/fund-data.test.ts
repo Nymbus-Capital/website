@@ -9,7 +9,8 @@ import { parseDistributions, parseFundPortfolio } from "../../../src/lib/pipelin
 import { dpClient, fetchDistributions, fetchFundPortfolio } from "../../../src/lib/pipeline/sources/dataplatform.ts";
 import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfolio, termRank } from "../../../src/lib/pipeline/portfolio.ts";
 import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
-import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { DISTRIBUTIONS } from "../../../src/lib/pipeline/config.ts";
+import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite, yearBefore } from "../../../src/lib/pipeline/validate.ts";
 import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { ClassDistributions, FundPortfolio, SourceResult } from "../../../src/lib/pipeline/raw.ts";
@@ -205,6 +206,8 @@ test("distributions: per live series by FundServ code; non-live series hidden; r
   assert.deepEqual(sel.distributions!.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021"]);
   assert.equal(sel.distributions!.asOf, "2026-09-28", "the latest distribution shown, not the end of the requested window (2026-09-29)");
   assert.equal(sel.distributions!.checkedAt, "2026-09-29");
+  assert.equal(sel.distributions!.trailingTo, "2026-09-29", "the trailing 12 months end at the response end date, not the last distribution");
+  assert.equal(selectDistributions(ok({ ...distFixture(), end_date: null }), { base: "b", short: "SEST", live, today: "2026-09-29" }).distributions!.trailingTo, undefined);
   const a = sel.distributions!.classes.find((c) => c.fundserv === "LDM021")!;
   assert.deepEqual(a.last, { date: "2026-09-28", amount: 0.04 });
   assert.equal(a.history.length, 93);
@@ -247,7 +250,7 @@ test("distributions gates: amount vs NAV, dates, last row, trailing 12 months, c
   assert.match(mut((c) => { c.calendarYears[0].count = 3; })!, /calendar year 2026/);
   assert.equal(mut((c) => { c.calendarYears[0].amount = 0.100001; }), null, "6-decimal rounding tolerated");
 
-  const f = { key: "monthly-income", nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", nav: 1 }, { fundserv: "LDM021", nav: 10 }] }, distributions: { asOf: today, checkedAt: today, classes: [base(), { ...base(), fundserv: "LDM021", display: "A" }] } } as unknown as FundData;
+  const f = { key: "monthly-income", nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", nav: 1 }, { fundserv: "LDM021", nav: 10 }] }, distributions: { asOf: today, checkedAt: today, trailingTo: today, classes: [base(), { ...base(), fundserv: "LDM021", display: "A" }] } } as unknown as FundData;
   const issues = checkDistributions(f, "funds.monthly-income", NOW);
   assert.deepEqual(f.distributions!.classes.map((c) => c.fundserv), ["LDM021"]);
   assert.deepEqual(issues.map((i) => [i.key, i.level]), [["funds.monthly-income.distributions.LDM001", "warn"]]);
@@ -456,29 +459,70 @@ test("distributions: the currency is never defaulted; a series is dropped when i
   assert.match(w.message, /distributions of series F USD \(LDM011\): currency USD in the payload vs CAD in the fund register: not shown/);
 });
 
-test("distributions gates: the trailing 12 months must equal the rows of the 12 months ending at the last distribution", () => {
-  const monthly = (from: string, n: number, amount: number) => Array.from({ length: n }, (_, i) => {
-    const d = new Date(Date.UTC(+from.slice(0, 4), +from.slice(5, 7) - 1 + i + 1, 0));
-    return { date: d.toISOString().slice(0, 10), amount };
-  });
-  const series = (history: { date: string; amount: number }[], t12: number | null): ClassDistribution => ({
-    fundserv: "LDM001", display: "FP", currency: "CAD", frequency: "monthly", last: { ...history[history.length - 1] }, trailing12m: t12,
+test("distributions gates: the trailing 12 months are checked over the data platform's window, ending at the response end date", () => {
+  const monthEnds = (from: string, n: number) => Array.from({ length: n }, (_, i) => new Date(Date.UTC(+from.slice(0, 4), +from.slice(5, 7) - 1 + i + 1, 0)).toISOString().slice(0, 10));
+  const rows = (dates: string[], amount: (i: number) => number) => dates.map((date, i) => ({ date, amount: amount(i) }));
+  const series = (history: { date: string; amount: number }[], t12: number | null, frequency: ClassDistribution["frequency"] = "monthly"): ClassDistribution => ({
+    fundserv: "LDM001", display: "FP", currency: "CAD", frequency, last: history.length ? { ...history[history.length - 1] } : null, trailing12m: t12,
     calendarYears: [], history,
   });
-  const h = monthly("2025-01", 20, 0.04); // 2025-01-31 … 2026-08-31
-  assert.equal(trailingProblem(series(h, 0.48)), null, "12 × 0.04 after 2025-08-31");
-  assert.match(trailingProblem(series(h, 0.52))!, /0.52 vs 0.48 over the 12 distribution\(s\) after 2025-08-31/);
-  assert.match(trailingProblem(series(h.filter((r) => r.date !== "2026-02-28"), 0.48))!, /vs 0.44 over the 11/, "a gap in the rows");
-  assert.equal(trailingProblem(series(monthly("2026-03", 6, 0.04), 0.24)), null, "a young series: its rows only");
-  assert.equal(trailingProblem(series(h, null)), null);
-  assert.match(trailingProblem({ ...series(h, 0.48), last: null })!, /no last distribution/);
+  // the backend's figure (distribution_history.py): rows with _year_before(end) < date <= end
+  const backend = (h: { date: string; amount: number }[], end: string) => +h.filter((r) => r.date > yearBefore(end) && r.date <= end).reduce((a, r) => a + r.amount, 0).toFixed(6);
 
-  // checkDistributions drops only the figure, the series stays
-  const f = { key: "monthly-income", nav: null, distributions: { asOf: "2026-08-31", checkedAt: "2026-09-29", classes: [series(h, 0.52)] } } as unknown as FundData;
-  const issues = checkDistributions(f, "b", NOW);
-  assert.equal(f.distributions!.classes.length, 1);
-  assert.equal(f.distributions!.classes[0].trailing12m, null);
-  assert.deepEqual(issues.map((i) => [i.key, i.level]), [["b.distributions.LDM001.trailing12m", "warn"]]);
+  assert.equal(yearBefore("2026-09-30"), "2025-09-30");
+  assert.equal(yearBefore("2028-02-29"), "2027-02-28", "29 February: the data platform's _year_before");
+  assert.equal(yearBefore("2027-02-28"), "2026-02-28");
+
+  // monthly on 2026-09-30, last distribution 2026-08-31: 11 rows (2025-10-31 … 2026-08-31), not the 12 ending at the last one
+  const m = rows(monthEnds("2024-01", 32), (i) => +(0.04 + i * 0.0001).toFixed(6)); // 2024-01-31 … 2026-08-31
+  const t = backend(m, "2026-09-30");
+  assert.equal(m.filter((r) => r.date > "2025-09-30" && r.date <= "2026-09-30").length, 11);
+  assert.equal(trailingProblem(series(m, t), "2026-09-30", "2026-09-30"), null, "the backend's figure is kept");
+  const lastAnchored = backend(m, "2026-08-31"); // the 12 months ending at the last distribution: 12 rows, another total
+  assert.notEqual(lastAnchored, t);
+  assert.match(trailingProblem(series(m, lastAnchored), "2026-09-30", "2026-09-30")!, /over the 11 distribution\(s\) after 2025-09-30 up to 2026-09-30/, "a wrong figure is still dropped");
+
+  // a June date, last distribution 2026-05-29: 12 rows 2025-06-30 … 2026-05-29 (the one of 2025-05-30 is outside)
+  const j = rows(["2025-04-30", "2025-05-30", "2025-06-30", "2025-07-31", "2025-08-29", "2025-09-30", "2025-10-31", "2025-11-28", "2025-12-31", "2026-01-30", "2026-02-27", "2026-03-31", "2026-04-30", "2026-05-29"], (i) => +(0.05 + i * 0.001).toFixed(6));
+  const tj = backend(j, "2026-06-15");
+  assert.equal(j.filter((r) => r.date > "2025-06-15").length, 12);
+  assert.equal(trailingProblem(series(j, tj), "2026-06-15", "2026-06-16"), null);
+  assert.match(trailingProblem(series(j, backend(j, "2026-05-29")), "2026-06-15", "2026-06-16")!, /over the 12 distribution\(s\) after 2025-06-15/, "the 13 rows ending at the last distribution");
+
+  // quarterly on 2026-09-30, last 2026-06-30: 3 rows (2025-09-30 itself is outside: strictly after)
+  const q = rows(["2025-03-31", "2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"], (i) => 0.12 + i * 0.01);
+  const tq = backend(q, "2026-09-30");
+  assert.equal(+tq.toFixed(6), +(0.15 + 0.16 + 0.17).toFixed(6));
+  assert.equal(trailingProblem(series(q, tq, "quarterly"), "2026-09-30", "2026-09-30"), null);
+  assert.match(trailingProblem(series(q, backend(q, "2026-06-30"), "quarterly"), "2026-09-30", "2026-09-30")!, /over the 3 distribution\(s\)/);
+
+  // 29 February: the window starts after 28 February of the year before
+  const f = rows(["2027-02-26", "2027-03-31", "2028-01-31", "2028-02-29"], () => 0.1);
+  assert.equal(trailingProblem(series(f, 0.3), "2028-02-29", "2028-03-01"), null, "2027-03-31, 2028-01-31, 2028-02-29");
+
+  // window end unknown or in the future, capped history, gaps, young series
+  assert.match(trailingProblem(series(m, t), undefined, "2026-09-30")!, /window unknown/);
+  assert.match(trailingProblem(series(m, t), "2026-10-01", "2026-09-30")!, /in the future/);
+  const daily = rows(Array.from({ length: DISTRIBUTIONS.maxHistory }, (_, i) => new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)), () => 0.001);
+  assert.match(trailingProblem(series(daily, 0.365), "2026-12-31", "2099-12-31")!, /history does not reach back to 2025-12-31/, "capped history: cannot be checked");
+  assert.equal(trailingProblem(series(daily.slice(1), 0.364), "2026-12-31", "2099-12-31"), null, "uncapped: every row since the data start");
+  assert.match(trailingProblem(series(m.filter((r) => r.date !== "2026-02-28"), t), "2026-09-30", "2026-09-30")!, /over the 10/, "a gap in the rows");
+  const young = rows(monthEnds("2026-03", 6), () => 0.04);
+  assert.equal(trailingProblem(series(young, 0.24), "2026-09-30", "2026-09-30"), null, "a young series: its rows only");
+  assert.equal(trailingProblem(series(m, null), undefined, "2026-09-30"), null);
+
+  // checkDistributions uses the block's window end and drops only the figure, the series stays
+  const fund = (t12: number, trailingTo?: string) => ({ key: "monthly-income", nav: null, distributions: { asOf: "2026-08-31", checkedAt: "2026-09-29", ...(trailingTo ? { trailingTo } : {}), classes: [series(m, t12)] } }) as unknown as FundData;
+  const good = fund(backend(m, "2026-09-29"), "2026-09-29");
+  assert.deepEqual(checkDistributions(good, "b", NOW), []);
+  assert.equal(good.distributions!.classes[0].trailing12m, backend(m, "2026-09-29"));
+  // on 2026-09-29 the row of 2025-09-30 is still inside: the 11-row total of 2026-09-30 is wrong that day
+  for (const bad of [fund(backend(m, "2026-09-30"), "2026-09-29"), fund(backend(m, "2026-09-29"))]) {
+    const issues = checkDistributions(bad, "b", NOW);
+    assert.equal(bad.distributions!.classes.length, 1);
+    assert.equal(bad.distributions!.classes[0].trailing12m, null);
+    assert.deepEqual(issues.map((i) => [i.key, i.level]), [["b.distributions.LDM001.trailing12m", "warn"]]);
+  }
 });
 
 test("distributions carried over after failed reads are dropped after 10 days without a successful read", async () => {

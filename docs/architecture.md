@@ -99,8 +99,10 @@ never calls the dataplatform from the browser.
   (computed by the dataplatform). No yield and no distribution type (not in the source): the page says so.
 - Gates (drop the series, warn): amounts positive and below 5 % of the series' NAV per unit, trailing 12 months below
   25 % of it, dates ascending and not in the future, the last distribution and every calendar-year total equal to
-  the series' own rows. The trailing 12 months must equal the rows dated in the 12 months ending at the last
-  distribution, else that figure alone is dropped. The page shows every amount of a series with one precision (4–6
+  the series' own rows. The trailing 12 months must equal the rows dated in the dataplatform's window — after the same
+  day one year before the response `end_date` (the day of the read; 29 Feb → 28 Feb), up to and including it; stored
+  as `distributions.trailingTo` — else that figure alone is dropped (also when the window end is unknown or the capped
+  history does not reach its start). The page labels it "12 months to <trailingTo>", not the last distribution. The page shows every amount of a series with one precision (4–6
   decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
 
 ## Conventions

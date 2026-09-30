@@ -39,15 +39,18 @@ export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec
   return (
     <div className="container fp">
       <p className="fp-context" data-testid="distributions-asof">{tr(T.dist.asOf, lang)} {dateLabel(data!.distributions!.asOf, lang, true)}</p>
-      <RecentDistributions classes={classes} headline={classes[0].fundserv} lang={lang} />
+      <RecentDistributions classes={classes} headline={classes[0].fundserv} trailingTo={data!.distributions!.trailingTo ?? null} lang={lang} />
       <DistributionHistory classes={classes} ytdRef={data!.distributions!.checkedAt ?? data!.distributions!.asOf} lang={lang} />
       <div className="ds-grid">{policy}</div>
     </div>
   );
 }
 
-/** Every live series: last distribution, trailing 12 months, observed frequency. */
-function RecentDistributions({ classes, headline, lang }: { classes: ClassDistribution[]; headline: string; lang: Lang }) {
+/** Every live series: last distribution, trailing 12 months (to the day the data were read), observed frequency. */
+function RecentDistributions({ classes, headline, trailingTo, lang }: { classes: ClassDistribution[]; headline: string; trailingTo: string | null; lang: Lang }) {
+  const to = trailingTo ? dateLabel(trailingTo, lang) : "";
+  const t12m = to ? tr(T.dist.t12mTo, lang).replace("{date}", to) : tr(T.dist.t12m, lang);
+  const t12mLong = to ? tr(T.dist.t12mToLong, lang).replace("{date}", dateLabel(trailingTo, lang, true)) : tr(T.dist.t12mLong, lang);
   return (
     <Block title={tr(T.dist.recent, lang)} lead={tr(T.dist.recentLead, lang)} testId="distributions-summary">
       <Reveal className="ds-cards" kind="pop" stagger={60}>
@@ -67,7 +70,7 @@ function RecentDistributions({ classes, headline, lang }: { classes: ClassDistri
               ) : <span className="ds-sub ds-none">{tr(T.dist.none2, lang)}</span>}
             </div>
             <dl className="ds-facts">
-              {c.trailing12m != null ? <div><dt title={tr(T.dist.t12mLong, lang)}>{tr(T.dist.t12m, lang)}</dt><dd data-testid="dist-t12m">{perUnit(c.trailing12m, c.currency, lang, amountDecimals(c))}</dd></div> : null}
+              {c.trailing12m != null ? <div><dt title={t12mLong} data-testid="dist-t12m-label">{t12m}</dt><dd data-testid="dist-t12m">{perUnit(c.trailing12m, c.currency, lang, amountDecimals(c))}</dd></div> : null}
               {c.frequency ? <div><dt>{tr(T.dist.frequency, lang)}</dt><dd>{tr(T.dist.frequencies[c.frequency], lang)}</dd></div> : null}
             </dl>
           </div>

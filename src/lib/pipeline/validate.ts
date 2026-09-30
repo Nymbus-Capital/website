@@ -22,7 +22,8 @@
  *   - distributions: a series is dropped when an amount is not positive or reaches 5 % of its NAV per unit, its
  *     trailing 12 months reach 25 % of it, its dates are not ascending / in the future, or its last distribution and
  *     calendar-year totals disagree with its own rows; a trailing-12-month figure that differs from the rows of the 12
- *     months ending at the last distribution is dropped (the series stays); all distributions are dropped when the source
+ *     months ending at the response's end date (trailingTo, the day of the read) is dropped (the series stays), as is one
+ *     whose window end is unknown; all distributions are dropped when the source
  *     has not been read successfully for more than 10 days (carried over) — warn
  *  warnings:
  *   - NAV older than 7 days, AUM older than 7 days, performance older than 2 closed months
@@ -273,26 +274,28 @@ export function distributionProblem(c: ClassDistribution, nav: number | null, to
   return null;
 }
 
-/** Same day `n` months earlier (clamped to the month's last day), YYYY-MM-DD. */
-function monthsBefore(date: string, n: number): string {
-  const y = +date.slice(0, 4), m = +date.slice(5, 7) - 1 - n, d = +date.slice(8, 10);
-  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-  return new Date(Date.UTC(y, m, Math.min(d, last))).toISOString().slice(0, 10);
+/** Same day one year earlier, 29 February → 28 February (the data platform's `_year_before`), YYYY-MM-DD. */
+export function yearBefore(date: string): string {
+  const y = String(+date.slice(0, 4) - 1).padStart(4, "0"), md = date.slice(5);
+  return md === "02-29" ? `${y}-02-28` : `${y}-${md}`;
 }
 
 /**
- * Why the trailing-12-month total disagrees with the series' own rows (the distributions dated in the 12 months ending
- * at the last distribution: after the same day one year earlier, up to and including it), or null.
+ * Why the trailing-12-month total disagrees with the series' own rows, or null. The window is the data platform's: the
+ * distributions dated after the same day one year before `to` (the response's end date, the day of the read — not the
+ * last distribution), up to and including `to`. The rows cover every distribution since the fund's data start; when the
+ * history was capped (DISTRIBUTIONS.maxHistory) short of the window start, the figure cannot be checked.
  */
-export function trailingProblem(c: ClassDistribution): string | null {
+export function trailingProblem(c: ClassDistribution, to: string | null | undefined, today: string): string | null {
   if (c.trailing12m === null) return null;
-  if (!c.last) return "no last distribution to anchor the 12 months";
-  const from = monthsBefore(c.last.date, 12);
-  const rows = c.history.filter((h) => h.date > from && h.date <= c.last!.date);
+  if (typeof to !== "string" || !ISO.test(to)) return "end of the 12-month window unknown";
+  if (to > today) return `end of the 12-month window ${to} is in the future`;
+  const from = yearBefore(to);
   if (c.history.length && c.history[0].date > from && c.history.length >= DISTRIBUTIONS.maxHistory) return `history does not reach back to ${from}`;
+  const rows = c.history.filter((h) => h.date > from && h.date <= to);
   const total = rows.reduce((a, h) => a + h.amount, 0);
   return Math.abs(total - c.trailing12m) > DISTRIBUTIONS.sumTol * Math.max(1, rows.length)
-    ? `${c.trailing12m} vs ${+total.toFixed(6)} over the ${rows.length} distribution(s) after ${from}`
+    ? `${c.trailing12m} vs ${+total.toFixed(6)} over the ${rows.length} distribution(s) after ${from} up to ${to}`
     : null;
 }
 
@@ -319,7 +322,7 @@ export function checkDistributions(f: FundData, base: string, now: Date): Issue[
     return !why;
   });
   for (const c of d.classes) {
-    const why = trailingProblem(c);
+    const why = trailingProblem(c, d.trailingTo, today);
     if (why) {
       issues.push({ key: `${base}.distributions.${c.fundserv}.trailing12m`, level: "warn", message: `trailing 12 months of series ${c.display} (${c.fundserv}) not shown: ${why}` });
       c.trailing12m = null;

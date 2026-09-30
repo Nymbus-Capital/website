@@ -104,5 +104,7 @@ export function selectDistributions(res: SourceResult<ClassDistributions> | unde
   const dates = classes.flatMap((c) => [c.last?.date, c.history[c.history.length - 1]?.date]).filter((d): d is string => !!d && d <= o.today).sort();
   const asOf = dates[dates.length - 1] ?? (data.end_date && data.end_date <= o.today ? data.end_date : o.today);
   const provenance = `dataplatform /api/performance/distributions ${o.short} (${data.rows.length} row(s)${data.start_date ? ` from ${data.start_date}` : ""}; per unit, class currency, keyed by FundServ code${data.method ? `; ${data.method}` : ""}); live series from /api/apex/funds`;
-  return { distributions: { asOf, checkedAt: o.today, classes }, issues, provenance, absent: false };
+  // the trailing 12 months end at the response's end date (the day of the read), not at the last distribution
+  const trailingTo = data.end_date && /^\d{4}-\d{2}-\d{2}$/.test(data.end_date) ? data.end_date : undefined;
+  return { distributions: { asOf, checkedAt: o.today, ...(trailingTo ? { trailingTo } : {}), classes }, issues, provenance, absent: false };
 }

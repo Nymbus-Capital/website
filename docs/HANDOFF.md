@@ -129,13 +129,22 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-30 (home, branch `feat/api-portfolio-distributions`): regression from the independent verification fixed —
+  the trailing-12-month check used a window ending at the last distribution, but the dataplatform
+  (`distribution_history.py`, `_year_before(end) < date <= end`) ends it at the response `end_date` (day of the read),
+  so monthly / quarterly figures were wrongly hidden on most days. Now `DistributionsData.trailingTo` = payload
+  `end_date`, `trailingProblem(c, trailingTo, today)` uses the same window (29 Feb → 28 Feb), drops the figure when the
+  window end is unknown / in the future or the capped history does not reach the window start. Card label "12 months
+  to <date>" / « 12 mois au <date> » (title gives the full sentence). Tests: verifier scenarios (monthly 2026-09-30
+  with last 2026-08-31 = 11 rows, June date with last 2026-05-29 = 12 rows, quarterly = 3 rows, 29 Feb), e2e label.
+
 - 2026-09-30 (home, branch `feat/api-portfolio-distributions`): fixes after an independent adversarial review of the
   portfolio / distributions work. One freshness rule for the daily book (`src/lib/data/freshness.ts`, 7 whole days)
   used by the selection, the validation gate (now also on funds carried over from the previous publication) and a
   render-time gate in `site.ts` (rollback / pin never shows a stale book as "daily"; the sample is judged at its
   generation date). Identity check of both payloads (`fund` / `short_name`). Distributions: currency never defaulted
   (register vs payload must agree), trailing 12 months checked against the rows of the 12 months ending at the last
-  distribution, carried-over data dropped after 10 days without a successful read (`checkedAt`,
+  distribution (superseded: see the entry above, window ends at the response end date), carried-over data dropped after 10 days without a successful read (`checkedAt`,
   `DISTRIBUTIONS.maxCarryDays`), "Data as of" = latest distribution. Page: provenance line says "daily holdings as of
   <date>" when the daily book is shown (+ sustainability clause) — **new wording in `docs/compliance-review.md` row 12,
   to review**; negative weights draw no bar (was stretched); hiding characteristics hides the securities count; chart

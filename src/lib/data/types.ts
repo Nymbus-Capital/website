@@ -179,7 +179,10 @@ export interface ClassDistribution {
   currency: string;
   frequency: DistributionFrequency | null;
   last: { date: string; amount: number } | null;
-  /** total per unit over the trailing 12 months (null: not published) */
+  /**
+   * total per unit of the distributions dated in the 12 months ending at DistributionsData.trailingTo (after the same
+   * day one year earlier, up to and including it) — not at the last distribution (null: not published)
+   */
   trailing12m: number | null;
   calendarYears: { year: number; amount: number; count: number }[];
   /** every distribution, oldest first */
@@ -194,6 +197,11 @@ export interface DistributionsData {
    * once it is too old (config DISTRIBUTIONS.maxCarryDays); absent in files published before it existed (not carried).
    */
   checkedAt?: string;
+  /**
+   * end of the trailing-12-month window (YYYY-MM-DD): the data platform's response end_date, i.e. the day of the read,
+   * not the last distribution. A trailing figure without it cannot be checked and is not shown.
+   */
+  trailingTo?: string;
   /** live series only, in FundServ order */
   classes: ClassDistribution[];
 }

@@ -169,6 +169,9 @@ test("distributions: per-series cards, history chart, calendar years and the ful
   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+  // the trailing 12 months end at the day the data were read (the response end date), not at the last distribution
+  await expect(fp.getByTestId("dist-t12m-label")).toHaveText(/^12 months to Sept?\.? 29, 2026$/);
+  await expect(fp.getByTestId("dist-t12m-label")).toHaveAttribute("title", "Total per unit of the distributions paid in the 12 months to September 29, 2026");
   await expect(page.getByTestId("dist-class-LDM011").getByTestId("dist-last-amount")).toHaveText(/^US\$0\.\d{4,6}$/);
   // cards of one row: the amounts start at the same height even when a series header wraps
   const tops = await page.getByTestId("distributions-summary").locator(".ds-amt").evaluateAll((els) => els.map((e) => [Math.round(e.getBoundingClientRect().top), Math.round((e.closest(".ds-card") as HTMLElement).getBoundingClientRect().top)]));

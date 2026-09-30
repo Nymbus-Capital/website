@@ -234,6 +234,9 @@ export const T = {
     amount: l("Amount per unit", "Montant par part"),
     t12m: l("Trailing 12 months", "12 derniers mois"),
     t12mLong: l("Total per unit over the trailing 12 months", "Total par part des 12 derniers mois"),
+    /* the window ends at the day the data were read, not at the last distribution ("Data as of") */
+    t12mTo: l("12 months to {date}", "12 mois au {date}"),
+    t12mToLong: l("Total per unit of the distributions paid in the 12 months to {date}", "Total par part des distributions versées au cours des 12 mois terminés le {date}"),
     frequency: l("Frequency", "Fréquence"),
     frequencies: {
       monthly: l("Monthly", "Mensuelle"),
