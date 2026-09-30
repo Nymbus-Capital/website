@@ -90,7 +90,6 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                   <tr key={f.key} style={fundStyle(f)}>
                     <th scope="row">
                       <Link href={`/strategies/${f.key}`} className="xs-name"><i aria-hidden="true" />{pick(f.short)}</Link>
-                      {data.sample && (f.si !== null || f.nav) ? <SampleTag /> : null}
                       <span className="xs-sub xs-wrap">{pick(f.assetClass)}</span>
                       {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
                     </th>
@@ -115,6 +114,7 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
           </div>
         </Reveal>
         <div className="xs-notes">
+          {data.sample ? <p className="fine xs-sample"><SampleTag /> {pick(F.sampleLong)}</p> : null}
           {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
           {missing ? <p className="fine">{pick(S.dashNote)}</p> : null}
           {anyFig ? <p className="fine">{pick(S.siNote)}</p> : null}

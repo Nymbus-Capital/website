@@ -213,10 +213,12 @@
 .xf-pill[aria-pressed="true"] .xf-n { background: rgba(255,255,255,.22); color: #fff; }
 .xs-count { margin: 0; }
 .xs-table-w { margin-top: 8px; }
-.xs-table { min-width: 980px; }
+.xs-table { min-width: 940px; }
 .xs-table thead th:nth-child(2), .xs-table thead th:nth-child(3), .xs-table thead th:nth-child(7) { text-align: left; }
 .xs-table .xs-wrap { white-space: normal; max-width: 220px; }
-.xs-table tbody th { text-align: left; font-size: 15px; font-weight: 500; color: var(--ink); padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }
+.xs-table tbody th { text-align: left; font-size: 15px; font-weight: 500; color: var(--ink); padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); white-space: normal; vertical-align: top; min-width: 200px; max-width: 250px; }
+.xs-table .fx-risk { font-size: 13.5px; }
+.xs-sample { display: flex; align-items: center; gap: 8px; }
 .xs-table td { vertical-align: top; padding-top: 16px; padding-bottom: 16px; }
 .xs-table td.xs-l { text-align: left; white-space: normal; }
 .xs-bench { min-width: 180px; max-width: 240px; }
