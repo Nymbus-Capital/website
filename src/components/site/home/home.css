@@ -4,6 +4,12 @@
    xs- strategies index, xf- filter, sl- solutions) so the legacy deck stylesheet (site.css) cannot collide.
    ===================================================================================================== */
 
+/* the soft corner lights of the bands must not widen the page */
+.hm { overflow-x: clip; }
+/* TEMPORARY (integrator): the legacy site.css sets \`.nav { pointer-events: none }\` for its floating pill, which makes the
+   new nav (kit.css) unclickable. Remove once site.css is deleted or kit.css resets pointer-events on .nav. */
+.nav { pointer-events: auto; }
+
 /* ---------------------------------------------------------------- page headers */
 .hm-hero, .xp-hero { position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid var(--line);
   background: radial-gradient(80% 90% at 85% 0%, #e6efff 0%, rgba(230,239,255,0) 60%), linear-gradient(180deg, #f5f8ff 0%, #ffffff 100%); }
@@ -173,9 +179,9 @@
 .hm-news-art { --tone: #1a73e8; position: relative; display: flex; align-items: flex-end; height: 140px; padding: 20px; overflow: hidden;
   background: radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--tone) 22%, #fff) 0%, color-mix(in srgb, var(--tone) 7%, #fff) 55%, #fff 100%);
   border-bottom: 1px solid var(--line); }
-.hm-news-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hm-news-art path { fill: none; stroke: var(--tone); stroke-width: 2; stroke-linecap: round; opacity: .35; }
-.hm-news-art path:first-child { stroke-width: 3; opacity: .6; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tone) 60%, transparent)); }
+.hm-news-art > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hm-news-art > svg path { fill: none; stroke: var(--tone); stroke-width: 2; stroke-linecap: round; opacity: .35; }
+.hm-news-art > svg path:first-child { stroke-width: 3; opacity: .6; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tone) 60%, transparent)); }
 .hm-news-art .bubble { position: relative; }
 .hm-news-art .bubble svg { position: static; width: 44%; height: 44%; }
 .hm-news-body { display: flex; flex-direction: column; gap: 10px; flex: 1; padding: 20px 22px 22px; }
@@ -184,7 +190,7 @@
 .hm-news-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin: 0; font-size: 13px; color: var(--mute); }
 .hm-news-more { align-self: flex-start; margin-top: auto; padding: 4px 0; border: 0; background-color: transparent; cursor: pointer; font: 500 14.5px/1.4 "Poppins", sans-serif; }
 .hm-news-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
-.hm-news-card:hover .hm-news-art path:first-child { opacity: .85; }
+.hm-news-card:hover .hm-news-art > svg path:first-child { opacity: .85; }
 .hm-dialog { width: min(680px, calc(100vw - 32px)); max-height: min(86dvh, 820px); padding: 0; border: 0; border-radius: 24px; background: #fff; color: var(--ink);
   box-shadow: 0 40px 100px -30px rgba(16,24,40,.45); }
 .hm-dialog::backdrop { background: rgba(15,23,42,.42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -207,8 +213,9 @@
 .xf-pill[aria-pressed="true"] .xf-n { background: rgba(255,255,255,.22); color: #fff; }
 .xs-count { margin: 0; }
 .xs-table-w { margin-top: 8px; }
-.xs-table { min-width: 1040px; }
-.xs-table thead th:nth-child(2), .xs-table thead th:nth-child(3), .xs-table thead th:nth-child(4), .xs-table thead th:nth-child(8) { text-align: left; }
+.xs-table { min-width: 980px; }
+.xs-table thead th:nth-child(2), .xs-table thead th:nth-child(3), .xs-table thead th:nth-child(7) { text-align: left; }
+.xs-table .xs-wrap { white-space: normal; max-width: 220px; }
 .xs-table tbody th { text-align: left; font-size: 15px; font-weight: 500; color: var(--ink); padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }
 .xs-table td { vertical-align: top; padding-top: 16px; padding-bottom: 16px; }
 .xs-table td.xs-l { text-align: left; white-space: normal; }
@@ -265,3 +272,4 @@
 .sl-fund:hover .sl-fund-go { color: var(--fund); transform: translateX(3px); }
 @media (max-width: 480px) { .sl-fund { grid-template-columns: 10px minmax(0, 1fr) 18px; } .sl-fund-f { grid-column: 2; align-items: flex-start; text-align: left; } .sl-fund-go { grid-row: 1; grid-column: 3; } }
 .sl-notes .fine { max-width: 900px; margin: 0 0 8px; }
+.sl-asof { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; font-size: 12.5px; color: var(--mute); }

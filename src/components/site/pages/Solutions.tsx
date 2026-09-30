@@ -13,15 +13,15 @@ import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
 import type { FundCard, HomeData } from "../home/data";
 import { Intro } from "../home/Intro";
 import { FUND_COPY as F } from "../home/copy";
-import { fundStyle } from "../home/FundTile";
-import { monthText, pctText } from "../home/figures";
+import { SampleTag, fundStyle } from "../home/FundTile";
+import { latest, monthText, pctText } from "../home/figures";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
 const TONE: Record<Audience, string> = { institutional: "#1a73e8", family: "#0b8fd6", advisor: "#00a3e0" };
 
-function FundLink({ f, sample }: { f: FundCard; sample: boolean }) {
+function FundLink({ f }: { f: FundCard }) {
   const { locale, pick } = useTranslation();
   const si = pctText(f.si, locale);
   return (
@@ -36,7 +36,7 @@ function FundLink({ f, sample }: { f: FundCard; sample: boolean }) {
         {si ? (
           <span className="sl-fund-f">
             <b className="tabnum">{si}</b>
-            <span>{pick(F.siShort)}{f.siAnnualized ? ` · ${pick(F.annualized)}` : ""}{f.asOf ? ` · ${monthText(f.asOf, locale)}` : ""}{sample ? ` · ${pick(F.sample)}` : ""}</span>
+            <span>{pick(f.siAnnualized ? F.siAnn : F.siCumShort)}</span>
           </span>
         ) : null}
         <ArrowRight aria-hidden="true" className="sl-fund-go" />
@@ -46,9 +46,10 @@ function FundLink({ f, sample }: { f: FundCard; sample: boolean }) {
 }
 
 function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: Map<FundKey, FundCard>; sample: boolean; tone: "white" | "tint" }) {
-  const { pick } = useTranslation();
+  const { locale, pick } = useTranslation();
   const I = ICON[a.key];
   const list = a.funds.map((k) => funds.get(k)).filter((f): f is FundCard => !!f);
+  const asOf = latest(list.filter((f) => f.si !== null).map((f) => f.asOf));
   return (
     <Section tone={tone} id={a.key} labelledBy={`${a.key}-t`} className="sl-aud">
       <div className="sl-aud-grid">
@@ -72,7 +73,8 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
           </Reveal>
           <Reveal self kind="pop" delay={140} className="card sl-block">
             <h3 className="h4">{pick(S.suitable)}</h3>
-            <ul className="sl-funds">{list.map((f) => <FundLink key={f.key} f={f} sample={sample} />)}</ul>
+            <ul className="sl-funds">{list.map((f) => <FundLink key={f.key} f={f} />)}</ul>
+            {asOf ? <p className="sl-asof">{pick(F.asOf)} {monthText(asOf, locale)}{sample ? <> · <SampleTag /></> : null}</p> : null}
           </Reveal>
         </div>
       </div>
