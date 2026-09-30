@@ -1,104 +1,152 @@
 "use client";
 /**
- * /sustainability: responsible investing as part of the process. Facts only (commitments the firm has
- * made publicly: PRI signatory since 2018, Tobacco-Free Finance Pledge, Fondaction partnership, exclusions
- * built into the sustainable bond strategies); no invented ESG metrics. Fund-level ESG characteristics are
- * published on the fund pages when the data pipeline provides them.
+ * /sustainability: responsible investing as part of the systematic process. The previous site's sections
+ * (principles, ESG integration, exclusion policy, green bonds, Fondaction, PRI), facts only: the old ESG
+ * metrics, green-bond allocation chart and "PRI alignment scorecard" were placeholders and are not shown.
  */
-import Link from "next/link";
-import { ArrowUpRight, Ban, Leaf, Scale, Sprout } from "lucide-react";
-import { Reveal, ScreenSwap, useTilt } from "@/components/v3/motion";
-import { l, useTranslation, type L } from "@/lib/i18n";
-import { ContactCta } from "../home/Summary";
-import { Chapter, Head } from "../ui";
-import { PageHero } from "./PageHero";
+import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
+import { useInView } from "@/components/v3/motion";
+import { useTranslation } from "@/lib/i18n";
+import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
+import { SU } from "./copy-sustainability";
+import "./pages.css";
 
-const S = {
-  eyebrow: l("sustainability", "durabilité"),
-  title: l("modernity meets", "la modernité rencontre"), accent: l("responsibility", "la responsabilité"),
-  lead: l("responsible investing is not a separate strategy at Nymbus: it is woven into the systematic process behind every portfolio decision.",
-    "l’investissement responsable n’est pas une stratégie à part chez Nymbus : il est intégré au processus systématique derrière chaque décision de portefeuille."),
-  how: l("integration in practice", "l’intégration en pratique"), howT: l("three layers,", "trois couches,"), howA: l("one process", "un seul processus"),
-  layers: [
-    { icon: Ban, t: l("exclusion screening", "filtrage d’exclusion"), d: l("securities are systematically excluded from our sustainable portfolios on strict ESG criteria, tobacco included", "des titres sont systématiquement exclus de nos portefeuilles durables selon des critères ESG stricts, y compris le tabac") },
-    { icon: Sprout, t: l("positive screening", "filtrage positif"), d: l("ESG metrics are integrated directly into our quantitative models, not bolted on as an afterthought", "les métriques ESG sont intégrées directement dans nos modèles quantitatifs, pas ajoutées après coup") },
-    { icon: Scale, t: l("quantitative integration", "intégration quantitative"), d: l("ESG data is embedded into our credit models and systematic security selection", "les données ESG sont intégrées à nos modèles de crédit et à notre sélection systématique de titres") },
-  ] as { icon: typeof Ban; t: L; d: L }[],
-  commit: l("our commitments", "nos engagements"), commitT: l("pledges we", "des engagements"), commitA: l("stand behind", "que nous tenons"),
-  pledges: [
-    { y: "2018", t: l("UN PRI signatory", "signataire des PRI de l’ONU"), d: l("Nymbus became a signatory of the UN Principles for Responsible Investment and reports on its progress.", "Nymbus est devenue signataire des Principes pour l’investissement responsable de l’ONU et rend compte de ses progrès.") },
-    { y: "2023", t: l("sustainable bond funds with Fondaction", "fonds obligataires durables avec Fondaction"), d: l("We partner with Fondaction, a Canadian fund focused on sustainable development, on sustainable bond solutions.", "Nous collaborons avec Fondaction, un fonds canadien axé sur le développement durable, pour offrir des solutions obligataires durables.") },
-    { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Nymbus committed to excluding tobacco companies from all of its portfolios.", "Nymbus s’est engagée à exclure les entreprises du tabac de tous ses portefeuilles.") },
-  ],
-  solutions: l("sustainable solutions", "solutions durables"),
-  seb: l("sustainable enhanced bonds", "obligations durables bonifiées"),
-  sebD: l("a core Canadian bond portfolio built systematically, integrating sustainability criteria and a protection overlay that tends to perform when bonds struggle.",
-    "un portefeuille obligataire canadien de base construit systématiquement, intégrant des critères de durabilité et une stratégie de protection qui tend à performer quand les obligations souffrent."),
-  sebGo: l("explore the fund", "découvrir le fonds"),
-  chapter: l("capital with a conscience", "du capital avec une conscience"),
-};
-
-function Pledge({ p, i }: { p: (typeof S.pledges)[number]; i: number }) {
-  const { pick } = useTranslation();
-  const tilt = useTilt<HTMLLIElement>(5);
+/** Three rings (E, S, G) drawing themselves around the hero. */
+function EsgRings() {
+  const { locale, pick } = useTranslation();
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const rings = [
+    { r: 128, c: "#188038", label: locale === "fr" ? "Environnement" : "Environmental" },
+    { r: 96, c: "#00a3e0", label: locale === "fr" ? "Social" : "Social" },
+    { r: 64, c: "#1a73e8", label: locale === "fr" ? "Gouvernance" : "Governance" },
+  ];
   return (
-    <li ref={tilt} className="pledge" style={{ ["--fund" as string]: ["#34a853", "#1a73e8", "#00a3e0"][i] }}>
-      <span className="pledge-y fig m g-green tabnum">{p.y}</span>
-      <h3 className="h3">{pick(p.t)}</h3>
-      <p className="body">{pick(p.d)}</p>
-    </li>
+    <div ref={ref} className="su-rings" data-on={seen ? "" : undefined}>
+      <svg viewBox="0 0 300 300" aria-hidden="true">
+        <defs>
+          <filter id="su-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        </defs>
+        {rings.map((g, i) => (
+          <g key={i} style={{ ["--k" as string]: i }}>
+            <circle cx="150" cy="150" r={g.r} className="su-ring-track" />
+            <circle cx="150" cy="150" r={g.r} className="su-ring" stroke={g.c} pathLength={1} filter="url(#su-glow)" transform="rotate(-90 150 150)" />
+            <circle cx={150} cy={150 - g.r} r="5.5" className="su-ring-dot" stroke={g.c} />
+          </g>
+        ))}
+        <text x="150" y="160" textAnchor="middle" className="su-ring-c">ESG</text>
+      </svg>
+      <ul className="su-ring-l">
+        {rings.map((g, i) => <li key={i} style={{ ["--c" as string]: g.c, ["--k" as string]: i }}><i aria-hidden="true" />{g.label}</li>)}
+      </ul>
+      <p className="su-badge"><Award aria-hidden="true" />{pick(SU.hero.badge)}</p>
+    </div>
   );
 }
 
 export function Sustainability() {
-  const { pick } = useTranslation();
+  const { locale, pick } = useTranslation();
+  const exIcons = [Flame, Ban, ShieldAlert, TriangleAlert];
+  const useIcons = [Sun, Zap, Bus, Building2];
   return (
-    <div className="stage sustain">
-      <ScreenSwap />
-      <PageHero eyebrow={pick(S.eyebrow)} title={pick(S.title)} accent={pick(S.accent)} lead={pick(S.lead)} />
+    <div className="pg su">
+      <PageHero eyebrow={pick(SU.hero.eyebrow)} title={pick(SU.hero.title)} accent={pick(SU.hero.accent)} lead={pick(SU.hero.lead)} art="none"
+        crumbs={[{ href: "/", label: locale === "fr" ? "Accueil" : "Home" }, { label: pick(SU.hero.eyebrow) }]} aside={<EsgRings />}>
+        <ButtonLink href="/strategies/sustainable-enhanced-bonds">{pick(SU.hero.cta1)}</ButtonLink>
+        <ButtonLink href="#exclusions" variant="ghost">{pick(SU.hero.cta2)}</ButtonLink>
+      </PageHero>
 
-      <section className="screen glow" data-swap="" aria-labelledby="su-how-t">
-        <div className="wrap wide">
-          <Head eyebrow={pick(S.how)} title={pick(S.howT)} accent={pick(S.howA)} id="su-how-t" size="h1" className="center-head" />
-          <Reveal as="ol" className="layers" kind="pop" stagger={150}>
-            {S.layers.map((x, i) => {
-              const I = x.icon;
+      <Section labelledBy="su-pr-t">
+        <SectionHead eyebrow={pick(SU.principles.eyebrow)} title={pick(SU.principles.title)} accent={pick(SU.principles.accent)} lead={pick(SU.principles.lead)} id="su-pr-t" />
+        <CardGrid cols={3}>
+          {SU.principles.items.map((it, i) => {
+            const Icon = [Sprout, Eye, Award][i];
+            return <FeatureCard key={i} icon={<Icon />} title={pick(it.t)} className="ring su-card"><p>{pick(it.d)}</p></FeatureCard>;
+          })}
+        </CardGrid>
+      </Section>
+
+      <Section tone="tint" labelledBy="su-int-t" glow="tr">
+        <SectionHead eyebrow={pick(SU.integration.eyebrow)} title={pick(SU.integration.title)} accent={pick(SU.integration.accent)} lead={pick(SU.integration.lead)} id="su-int-t" />
+        <Steps items={SU.integration.steps.map((s, i) => ({
+          title: pick(s.t), text: pick(s.d), color: ["#188038", "#0f9d58", "#00a3e0"][i],
+          icon: [<Ban key="b" aria-hidden="true" />, <Sprout key="s" aria-hidden="true" />, <Scale key="q" aria-hidden="true" />][i],
+        }))} />
+      </Section>
+
+      <Section id="exclusions" labelledBy="su-ex-t">
+        <SectionHead eyebrow={pick(SU.exclusions.eyebrow)} title={pick(SU.exclusions.title)} accent={pick(SU.exclusions.accent)} lead={pick(SU.exclusions.lead)} id="su-ex-t" />
+        <CardGrid cols={4} className="su-ex">
+          {SU.exclusions.items.map((it, i) => {
+            const Icon = exIcons[i];
+            return <FeatureCard key={i} icon={<Icon />} title={pick(it.t)} className="su-ex-card"><p>{pick(it.d)}</p></FeatureCard>;
+          })}
+        </CardGrid>
+      </Section>
+
+      <Section tone="tint" labelledBy="su-gb-t" glow="bl">
+        <div className="split su-green">
+          <div>
+            <SectionHead eyebrow={pick(SU.green.eyebrow)} title={pick(SU.green.title)} accent={pick(SU.green.accent)} id="su-gb-t" className="su-green-head" />
+            <Reveal self><p className="body">{pick(SU.green.text)}</p></Reveal>
+            <Reveal self delay={120}><p className="small su-note">{pick(SU.green.note)}</p></Reveal>
+            <Reveal self delay={200}><div className="actions"><ButtonLink href="/strategies/sustainable-enhanced-bonds" variant="ghost">{pick(SU.green.go)}</ButtonLink></div></Reveal>
+          </div>
+          <Reveal as="ul" kind="pop" stagger={110} className="su-uses">
+            {SU.green.uses.map((u, i) => {
+              const Icon = useIcons[i];
               return (
-                <li key={i} className="layer">
-                  <span className="bubble" style={{ ["--bc" as string]: ["#0f9d58", "#34a853", "#00a3e0"][i] }} aria-hidden="true"><I size={22} strokeWidth={1.7} /></span>
-                  <span className="lbl">0{i + 1}</span>
-                  <h3 className="h3">{pick(x.t)}</h3>
-                  <p className="body">{pick(x.d)}</p>
+                <li key={i}>
+                  <span className="bubble" style={{ ["--bc" as string]: ["#188038", "#0f9d58", "#00a3e0", "#1a73e8"][i], ["--size" as string]: "52px" }} aria-hidden="true"><Icon /></span>
+                  <span>{pick(u)}</span>
                 </li>
               );
             })}
           </Reveal>
         </div>
-      </section>
+      </Section>
 
-      <Chapter no={1} title={pick(S.chapter)} kicker={pick(S.commit)} id="su-ch" variant={2} />
-
-      <section className="screen glow auto" data-swap="" aria-labelledby="su-commit-t">
-        <div className="wrap wide">
-          <Head eyebrow={pick(S.commit)} title={pick(S.commitT)} accent={pick(S.commitA)} id="su-commit-t" size="h1" className="center-head" />
-          <Reveal as="ol" className="pledges" kind="pop" stagger={140}>
-            {S.pledges.map((p, i) => <Pledge key={i} p={p} i={i} />)}
+      <Section labelledBy="su-fa-t">
+        <div className="split top su-fa">
+          <div>
+            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} id="su-fa-t" />
+            <Reveal self><p className="body">{pick(SU.fondaction.p1)}</p></Reveal>
+            <Reveal self delay={120}><p className="body su-p2">{pick(SU.fondaction.p2)}</p></Reveal>
+          </div>
+          <Reveal self kind="pop" className="card su-commit">
+            <h3 className="h4">{pick(SU.commitments.title)} {pick(SU.commitments.accent)}</h3>
+            <ol className="su-tl">
+              {SU.commitments.items.map((c) => (
+                <li key={c.y}>
+                  <span className="su-tl-y tabnum">{c.y}</span>
+                  <div><p className="su-tl-t">{pick(c.t)}</p><p className="su-tl-d">{pick(c.d)}</p></div>
+                </li>
+              ))}
+              <li>
+                <span className="su-tl-y" aria-hidden="true"><Handshake /></span>
+                <div><p className="su-tl-t">{pick(SU.commitments.fondaction.t)}</p><p className="su-tl-d">{pick(SU.commitments.fondaction.d)}</p></div>
+              </li>
+            </ol>
           </Reveal>
         </div>
-      </section>
+      </Section>
 
-      <section className="screen dark auto su-fund" data-swap="" aria-labelledby="su-fund-t">
-        <div className="wrap narrow" style={{ textAlign: "center" }}>
-          <Reveal className="kicker" self style={{ justifyContent: "center" }}><Leaf size={16} aria-hidden="true" /> {pick(S.solutions)}</Reveal>
-          <Reveal as="h2" className="h1 g-cyan" self id="su-fund-t">{pick(S.seb)}</Reveal>
-          <Reveal as="p" className="lead" self delay={200}>{pick(S.sebD)}</Reveal>
-          <Reveal className="center-row" self delay={350}>
-            <Link className="btn" href="/strategies/sustainable-enhanced-bonds">{pick(S.sebGo)} <ArrowUpRight size={16} aria-hidden="true" /></Link>
-          </Reveal>
-        </div>
-      </section>
+      <Section tone="tint" labelledBy="su-pri-t" glow="tr">
+        <SectionHead eyebrow={pick(SU.pri.eyebrow)} title={pick(SU.pri.title)} accent={pick(SU.pri.accent)} lead={pick(SU.pri.lead)} id="su-pri-t" />
+        <Reveal as="ol" kind="pop" stagger={80} className="su-pri">
+          {SU.pri.items.map((p, i) => (
+            <li key={i}>
+              <span className="bubble" style={{ ["--bc" as string]: i % 2 ? "#00a3e0" : "#188038", ["--size" as string]: "44px" }} aria-hidden="true">{i + 1}</span>
+              <p>{pick(p)}</p>
+            </li>
+          ))}
+        </Reveal>
+        <p className="su-pri-link"><a className="link" href="https://www.unpri.org/" target="_blank" rel="noopener noreferrer">{pick(SU.pri.link)} <ArrowUpRight aria-hidden="true" /></a></p>
+      </Section>
 
-      <ContactCta />
+      <CtaBand title={pick(SU.cta.title)} accent={pick(SU.cta.accent)} text={pick(SU.cta.text)}>
+        <ButtonLink href="/strategies/sustainable-enhanced-bonds">{pick(SU.cta.b1)}</ButtonLink>
+        <ButtonLink href="/contact" variant="ghost">{pick(SU.cta.b2)}</ButtonLink>
+      </CtaBand>
     </div>
   );
 }
