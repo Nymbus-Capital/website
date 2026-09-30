@@ -41,7 +41,7 @@ export function PerformanceTab({ spec, content, data, lang }: Props) {
       {perf && any ? (
         <p className="fp-context" data-testid="perf-context">
           {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
-          {benchmarkLabel(perf.indexName, spec.benchmark, lang) ? <> · {tr(T.perf.index, lang)}: {benchmarkLabel(perf.indexName, spec.benchmark, lang)}</> : null}
+          {benchmarkLabel(perf.indexName, spec.benchmark, lang) ? <> · {tr(T.perf.index, lang)}{colon(lang)}{benchmarkLabel(perf.indexName, spec.benchmark, lang)}</> : null}
         </p>
       ) : null}
       {!any ? <p className="notice" data-testid="perf-soon">{tr(T.perf.none, lang)}</p> : null}

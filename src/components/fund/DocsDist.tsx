@@ -11,7 +11,7 @@ import type { FundContent } from "@/lib/data/types";
 import type { FundDoc, PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { Block } from "./Block";
-import { dateLabel, fileSize, type Lang } from "./lib/format.ts";
+import { dateLabel, fileSize, type Lang, colon } from "./lib/format.ts";
 import { groupDocuments, REGULATORY_DOCS } from "./lib/data.ts";
 
 const mailto = (subject: string) => `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}`;
@@ -50,7 +50,7 @@ export function DocumentsTab({ spec, docs, lang }: { spec: FundSpec; docs: FundD
                   const d = byId.get(m.id)!;
                   return (
                     <a key={m.id} className="dc-item" href={d.url} target="_blank" rel="noopener" download={m.fileName}
-                      aria-label={`${tr(T.docs.download, lang)}: ${tr(m.title, lang)}, ${dateLabel(m.date, lang)}, PDF ${fileSize(m.size, lang)}`}>
+                      aria-label={`${tr(T.docs.download, lang)}${colon(lang)}${tr(m.title, lang)}, ${dateLabel(m.date, lang)}, PDF ${fileSize(m.size, lang)}`}>
                       <span className="dc-ic" aria-hidden="true"><FileText /></span>
                       <span className="dc-t">{tr(m.title, lang)}<small>{m.scope === "firm" ? `${tr(T.docs.firm, lang)} · ` : ""}{tr(T.docs.single[m.type], lang)} · PDF · {fileSize(m.size, lang)}</small></span>
                       <span className="dc-d">{dateLabel(m.date, lang)}</span>

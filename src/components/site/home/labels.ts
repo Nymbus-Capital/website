@@ -12,5 +12,5 @@ export const HL = {
   sinceLaunch: l("since launch", "depuis le lancement"),
   /** inline marker next to a gross-of-fees figure shown among net ones */
   gross: l("gross", "brut"),
-  grossLong: l("gross of fees", "brut de frais"),
+  grossLong: l("gross of fees", "avant déduction des frais"),
 };

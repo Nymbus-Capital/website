@@ -96,7 +96,7 @@ export const AP = {
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
         l("Regime detection (risk-on / risk-off)", "Détection de régime (appétit ou aversion pour le risque)"),
         l("Duration and credit hedging", "Couverture de la duration et du crédit"),
-        l("Tail-risk hedging through futures overlays", "Couverture des risques extrêmes par des stratégies de superposition"),
+        l("Futures overlays designed to offset part of losses in stressed markets", "Stratégies de superposition conçues pour compenser une partie des pertes en période de stress"),
       ],
     },
   ],

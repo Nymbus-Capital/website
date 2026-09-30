@@ -82,7 +82,7 @@ export function MiniBars({ f }: { f: FundCard }) {
         {g.bars.map((b) => <span key={b.year}>{flag(b) ? `${b.year} ${flag(b)}` : b.year}</span>)}
       </div>
       <ul className="sr-only">
-        {g.bars.map((b) => <li key={b.year}>{b.year}{flagLong(b) ? ` (${flagLong(b)})` : ""}: {pctText(b.r, locale, false)}</li>)}
+        {g.bars.map((b) => <li key={b.year}>{b.year}{flagLong(b) ? ` (${flagLong(b)})` : ""}{locale === "fr" ? "\u00a0: " : ": "}{pctText(b.r, locale, false)}</li>)}
       </ul>
     </figure>
   );

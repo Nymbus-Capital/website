@@ -41,8 +41,9 @@ function ContactLine({ line }: { line: string }) {
 
 /** "Person in charge: our …" → bold lead-in before the colon (short lead-ins only). */
 function LeadIn({ text }: { text: string }) {
-  const m = /^([^:]{3,40}?)\s?:\s(.+)$/s.exec(text);
-  return m ? <><strong>{m[1]}{text.includes(" : ") ? " :" : ":"}</strong> {m[2]}</> : <>{text}</>;
+  const m = /^([^:]{3,40}?)(\s?):\s(.+)$/s.exec(text);
+  // keep the (non-breaking) space French puts before the colon
+  return m ? <><strong>{m[1]}{m[2] ? "\u00a0:" : ":"}</strong> {m[3]}</> : <>{text}</>;
 }
 
 function Block({ b }: { b: LegalBlock }) {

@@ -118,6 +118,17 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-30 (home): **public site rebuilt** after Gabriel's feedback ("informational corporate site with the
+  previous site's sections, light v3 look and motion, not a deck"): see `docs/site-rebuild.md`. Foundation
+  (light tokens, kit with v3 motion, old-site nav/footer) + three parallel builders (home/strategies/solutions;
+  fund pages with tabs Overview/Performance/Portfolio/Distributions/Documents; approach/sustainability/about/
+  contact/legal/privacy/404), legacy deck CSS removed. Adversarial reviews (numbers/data, content/compliance) →
+  fixes: GMV arithmetic growth rebasing, hidden blocks stripped server-side, fund sources moved to
+  `src/lib/pipeline/fund-sources.ts` (never in client bundles, test enforces), per-fund as-of/gross markers,
+  compliance wording (no guarantees/"uncorrelated" as fact, leverage disclosure, PRI naming, Law 25, AMF/OBSI),
+  FR typography test. Open decisions for Gabriel/compliance: `docs/compliance-review.md` "Website copy review
+  2026-09-30" (SEB H-series labelled F, Monthly Income pre-launch track record, GMV series nature, client logos).
+
 - 2026-09-29 16:50 (home): first live runs. All sources reach (dataplatform, SharePoint factsheets, analytics).
   Fixed: FTSE levels (dataplatform returns one row/day describing the index; `ftseLevels` now anchors on the
   index signature). short_corp history only from 2024-12 (older name not joined yet: investigate
