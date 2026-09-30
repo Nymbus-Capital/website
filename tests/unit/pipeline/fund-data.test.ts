@@ -375,7 +375,7 @@ test("build: a failing endpoint keeps the previous daily book and distributions;
   const later = new Date("2026-10-09T14:00:00Z");
   const v = validateSite(data, context, prev, later);
   assert.equal(v.data.funds["monthly-income"]!.portfolio, null);
-  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && /older than 7 days/.test(i.message)));
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && /is 11 days old \(more than 7\)/.test(i.message)));
 });
 
 test("distributions: a capped history drops the calendar years it no longer fully holds", () => {
@@ -385,4 +385,30 @@ test("distributions: a capped history drops the calendar years it no longer full
   const c = classDistribution({ ...many, classes: [{ ...d.classes[0], calendar_years: years }] }, { fundserv: "LDM001", display: "FP", currency: "CAD" })!;
   assert.equal(c.history.length, 400);
   assert.ok(c.calendarYears[0].year > +c.history[0].date.slice(0, 4));
+});
+
+test("carried-over funds pass the daily-book age gate again (fund missing from the run, or blocked)", async () => {
+  const { data: prev, context } = buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  const later = new Date("2026-10-09T14:00:00Z"); // the September 28 book is now 11 days old
+  // the fund is missing from this run: the previous publication is carried, without its stale daily book
+  const input = structuredClone(prev);
+  input.generatedAt = later.toISOString();
+  delete input.funds["monthly-income"];
+  const v = validateSite(input, context, prev, later);
+  assert.equal(v.funds["monthly-income"], "kept-previous");
+  const kept = v.data.funds["monthly-income"]!;
+  assert.equal(kept.portfolio, null, "never republished as Daily");
+  assert.ok(kept.nav, "the rest of the previous publication is kept");
+  assert.ok(prev.funds["monthly-income"]!.portfolio, "the previous publication is not mutated");
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && i.level === "warn" && /11 days old/.test(i.message)));
+  assert.equal(v.data.provenance["funds.monthly-income.portfolio"], undefined);
+  // a blocked fund carried over: same gate
+  const blocked = structuredClone(prev);
+  blocked.funds["monthly-income"]!.performance!.monthly[0].fund = Number.NaN;
+  const vb = validateSite(blocked, context, prev, later);
+  assert.equal(vb.funds["monthly-income"], "kept-previous");
+  assert.equal(vb.data.funds["monthly-income"]!.portfolio, null);
+  // a fresh carried book stays
+  const vf = validateSite(input, context, prev, NOW);
+  assert.equal(vf.data.funds["monthly-income"]!.portfolio?.asOf, "2026-09-28");
 });

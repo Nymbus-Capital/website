@@ -10,11 +10,11 @@
  */
 import type { Bucket, Characteristic, Issue, PortfolioBreakdownKey, PortfolioData, PortfolioHolding, PortfolioMetric, PortfolioMetricId, WeightBucket } from "../data/types.ts";
 import { PORTFOLIO } from "./config.ts";
+import { bookAgeProblem } from "../data/freshness.ts";
 import type { BreakdownKey, FundPortfolio, PortfolioMeasureKey, SourceResult, WeightRow } from "./raw.ts";
 
 const DAY = 86_400_000;
 const pct = (x: number, d = 1): string => `${(x * 100).toFixed(d)}%`;
-const daysBetween = (a: string, b: Date): number => Math.floor((b.getTime() - Date.parse(`${a}T00:00:00Z`)) / DAY);
 
 /* ------------------------------------------------------------------ mapping */
 
@@ -132,11 +132,8 @@ export function selectPortfolio(res: SourceResult<FundPortfolio> | undefined, o:
   }
   const book = res.data;
   const issues: Issue[] = book.notes.length ? [{ key, level: "info", message: `fund-portfolio payload: ${book.notes.slice(0, 5).join("; ")}` }] : [];
-  const age = daysBetween(book.as_of, o.now);
-  if (age > PORTFOLIO.maxAgeDays) {
-    return none([...issues, { key, level: "warn", message: `daily portfolio book ${book.as_of} is ${age} days old: month-end factsheet figures shown` }]);
-  }
-  if (age < -1) return none([...issues, { key, level: "warn", message: `daily portfolio book dated in the future (${book.as_of}): not used` }]);
+  const stale = bookAgeProblem(book.as_of, o.now);
+  if (stale) return none([...issues, { key, level: "warn", message: `daily portfolio not used: ${stale}; month-end factsheet figures shown` }]);
   const { priced_weight: priced, resolved_weight: resolved } = book.coverage;
   if (priced === null || resolved === null || priced < PORTFOLIO.minPricedWeight || resolved < PORTFOLIO.minResolvedWeight) {
     const fmt = (v: number | null) => (v === null ? "unknown" : pct(v));

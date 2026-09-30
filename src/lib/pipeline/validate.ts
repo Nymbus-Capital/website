@@ -13,7 +13,9 @@
  *   - NAV class moving more than 10 % in one valuation day: class dropped (previous value kept if any) — error issue
  *   - AUM negative or not a number: dropped (previous kept if any) — error issue
  *   - daily portfolio (never blocks the fund; the page then shows the month-end factsheet figures): the whole block is
- *     dropped when its book is invalid, older than 7 days or dated in the future, or when nothing plausible is left;
+ *     dropped when its book is invalid, older than 7 whole days or dated in the future (data/freshness.ts, one rule with
+ *     the selection and the page), or when nothing plausible is left — also for a fund carried over from the previous
+ *     publication (missing or blocked in this run);
  *     a characteristic outside its plausible range (duration 0–30 y, YTM −5 %–25 %, coupon 0–25 %, average maturity
  *     0–100 y, rating a letter notch, coverage 0–1), a breakdown whose weights do not add up to 100 % ± 3 % (cash
  *     included), and a top-10 list with a weight outside (0, 25 %] or a total above 100 % are dropped one by one — warn
@@ -28,6 +30,7 @@ import { PERIODS } from "../data/types.ts";
 import type { FundContext } from "./build.ts";
 import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
+import { bookAgeProblem } from "../data/freshness.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
 export interface FundValidation {
@@ -198,10 +201,8 @@ export function checkPortfolio(f: FundData, base: string, now: Date): Issue[] {
     f.portfolio = null;
     return issues;
   };
-  if (typeof p.asOf !== "string" || !ISO.test(p.asOf)) return drop(`invalid book date ${p.asOf}`);
-  const age = days(p.asOf, now);
-  if (age > PORTFOLIO.maxAgeDays + 1) return drop(`book ${p.asOf} is older than ${PORTFOLIO.maxAgeDays} days`);
-  if (age < -1) return drop(`book ${p.asOf} is dated in the future`);
+  const stale = bookAgeProblem(p.asOf, now);
+  if (stale) return drop(stale);
 
   p.characteristics = (p.characteristics ?? []).filter((m) => {
     const why = metricProblem(m);
@@ -311,9 +312,20 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const ctx = context[key];
     const blocking: Issue[] = [];
     const warnings: Issue[] = [];
+    // a carried-over fund passes the daily-book gate again: its book may have become too old since it was published
+    const carry = (): FundData => {
+      const c = structuredClone(prev!);
+      const issues = checkPortfolio(c, base, now);
+      if (issues.length) {
+        warnings.push(...issues);
+        extraIssues.push(...issues);
+      }
+      if (!c.portfolio) delete data.provenance[`${base}.portfolio`];
+      return c;
+    };
     if (!f) {
       funds[key] = prev ? "kept-previous" : "unavailable";
-      if (prev) data.funds[key] = prev;
+      if (prev) data.funds[key] = carry();
       results.push({ fund: key, blocking, warnings, alerts: [...(ctx?.alerts ?? []), prev ? "fund carried over" : "fund unavailable"] });
       continue;
     }
@@ -327,10 +339,10 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     if (blocking.length) {
       extraIssues.push(...blocking, { key: base, level: "error", message: `fund blocked by ${blocking.length} validation error(s): ${prev ? "previously published data kept" : "fund withheld (nothing previously published)"}` });
       if (prev) {
-        data.funds[key] = prev;
         funds[key] = "kept-previous";
         for (const k of Object.keys(data.provenance)) if (k === base || k.startsWith(`${base}.`)) delete data.provenance[k];
         for (const [k, v] of Object.entries(prevLive!.provenance)) if (k === base || k.startsWith(`${base}.`)) data.provenance[k] = v.startsWith("carried over") ? v : `carried over from the publication of ${prevLive!.generatedAt} (${v})`;
+        data.funds[key] = carry();
       } else {
         delete data.funds[key];
         funds[key] = "unavailable";

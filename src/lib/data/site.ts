@@ -10,6 +10,7 @@ import "server-only";
 import { FUNDS, fundSpec, type FundSpec } from "@/config/funds";
 import { readJsonCached } from "./cache";
 import { mergeContent } from "./defaults";
+import { dropStalePortfolio } from "./freshness";
 import type { FundContent, FundData, FundKey, SiteContent, SiteData } from "./types";
 import sample from "./sample-site-data.json";
 
@@ -39,9 +40,12 @@ async function fundData(key: FundKey, site: SiteData | null, content: FundConten
   if (pin) {
     if (!/^[0-9A-Za-z-]+$/.test(pin)) return null;
     const pinned = await readJsonCached<SiteData | null>(["snapshots", pin, "site-data.json"], null).catch(() => null);
-    return pinned?.funds[key] ?? null;
+    return dropStalePortfolio(pinned?.funds[key] ?? null, new Date());
   }
-  return site?.funds[key] ?? null;
+  // the daily book must be fresh today (a rollback republishes an old snapshot); the illustrative sample is judged at
+  // its own generation date
+  const now = site?.mode === "sample" ? new Date(site.generatedAt) : new Date();
+  return dropStalePortfolio(site?.funds[key] ?? null, now);
 }
 
 export interface FundView {

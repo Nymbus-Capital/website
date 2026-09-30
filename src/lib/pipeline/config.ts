@@ -4,6 +4,7 @@
  */
 import type { FundKey } from "../data/types.ts";
 import type { Method } from "./metrics.ts";
+import { PORTFOLIO_MAX_AGE_DAYS } from "../data/freshness.ts";
 
 export interface PipelineFundSpec {
   /** first month of the official track record (month-end); null: first month of the source series */
@@ -73,8 +74,11 @@ export const PORTFOLIO = {
   minPricedWeight: 0.9,
   minResolvedWeight: 0.95,
   minMetricCoverage: 0.9,
-  /** a book older than this (calendar days) is not "daily" any more: factsheet shown */
-  maxAgeDays: 7,
+  /**
+   * a book older than this (whole calendar days) is not "daily" any more: factsheet shown. One rule for the selection,
+   * the validation gate and the render-time gate: data/freshness.ts (bookAgeProblem)
+   */
+  maxAgeDays: PORTFOLIO_MAX_AGE_DAYS,
   /** every breakdown must add up to 100 % of net assets (cash included) within ±3 % */
   weightSumTol: 0.03,
   /** plausible ranges (years, decimal fractions) */

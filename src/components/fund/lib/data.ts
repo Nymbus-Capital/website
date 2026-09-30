@@ -7,6 +7,7 @@ import type {
   Bucket, CalendarRow, ClassDistribution, DistributionsData, DocType, DocumentMeta, FundContent, FundData, GrowthPoint, MonthlyPoint, NavClass, Period, PeriodMap,
   PortfolioBreakdownKey, PortfolioData, PortfolioMetric, RiskStats,
 } from "../../../lib/data/types.ts";
+import { isFreshBook } from "../../../lib/data/freshness.ts";
 
 export const PERIOD_ORDER: Period[] = ["1M", "3M", "YTD", "1Y", "2Y", "3Y", "5Y", "10Y", "SI"];
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -284,8 +285,12 @@ function stripPortfolio(p: PortfolioData | null | undefined, h: NonNullable<Fund
 
 /* ------------------------------------------------------------------ daily portfolio */
 
-/** A daily portfolio block with something to show. */
-export function hasDailyPortfolio(p: PortfolioData | null | undefined): p is PortfolioData {
+/**
+ * A daily portfolio block with something to show. With `now`, the book must also be fresh (data/freshness.ts, the
+ * pipeline's rule): an older book is not "daily" any more.
+ */
+export function hasDailyPortfolio(p: PortfolioData | null | undefined, now?: Date): p is PortfolioData {
+  if (now && p && !isFreshBook(p.asOf, now)) return false;
   return !!p && p.source === "daily" && (
     p.characteristics.some((m) => m.value != null) || Object.values(p.breakdowns ?? {}).some((b) => !!b?.length) || p.topHoldings.length > 0 || isNum(p.greenBondsWeight)
   );
