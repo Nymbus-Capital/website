@@ -8,7 +8,9 @@
  dataplatform│  /api/performance/monthly-net-returns   ┐                        │
  (no auth,   │  /api/performance/nav-timeseries        │   pipeline (in-process │
  IP policy)  │  /api/apex/funds  /api/unitholders/aum  ├──▶ scheduler, daily)   │
-             │  /api/ftse/index-summary                ┘        │               │
+             │  /api/ftse/index-summary                │        │               │
+             │  /api/apex/fund-portfolio               │        │               │
+             │  /api/performance/distributions         ┘        │               │
              │                                                  ▼               │
  SharePoint  │  Fiches d'infos/_data/bonds_data_YYYY-MM.json ─▶ build → validate│
  (Graph,     │  Fiches d'infos/_data/factsheet_data_YYYY-MM.json   → snapshot   │
@@ -31,19 +33,65 @@ never calls the dataplatform from the browser.
 
 1. **Fetch** (`src/lib/pipeline/sources/*`): analytics `fund_returns.json` (monthly history before the Apex
    cut-over), dataplatform (monthly net returns — only `status: ready`
-   months —, NAV per class, AUM per fund, FTSE benchmark levels, fund/class register) and the monthly
-   factsheet archives on SharePoint (characteristics, credit/sector/curve breakdowns, top holdings,
-   ESG metrics, published trailing returns used as a cross-check).
+   months —, NAV per class, AUM per fund, FTSE benchmark levels, fund/class register, daily portfolio book and
+   per-class distributions) and the monthly factsheet archives on SharePoint (characteristics,
+   credit/sector/curve breakdowns, top holdings, ESG metrics, published trailing returns used as a cross-check).
+   The two fund-data endpoints follow the contract agreed with the dataplatform (2026-09-30); their payloads are
+   parsed tolerantly in `sources/contracts.ts` (a bad row is dropped and noted, a missing number stays null).
 2. **Build** (`src/lib/pipeline/build.ts`, pure): computes trailing / calendar / growth / risk figures
    from the monthly net returns (same conventions as the factsheets and the deck studio), parses the
    factsheet strings into numbers, and produces `SiteData` (`src/lib/data/types.ts`).
 3. **Validate** (`src/lib/pipeline/validate.ts`, pure): gates per fund (as-of regression, outliers,
    factsheet cross-checks, stale NAV …). A fund that fails a blocking gate keeps its previously
-   published data; the issue is shown in the admin.
+   published data; the issue is shown in the admin. The daily portfolio and the distributions have their own,
+   never-blocking gates: what is implausible is dropped (warn issue) and the page falls back (see below).
 4. **Publish**: every run is stored as `snapshots/<id>/`; validated runs are copied to
    `published/site-data.json` (publish mode `auto`), or wait for approval in the admin (mode `review`).
 5. **Render**: pages read the published file at request time (no rebuild), merged with the
    admin-managed content (`content/site-content.json`) and the static fund registry (`src/config/funds.ts`).
+   The files are served from an in-memory cache (`src/lib/data/cache.ts`): parsed once, reused until the file
+   changes — at once after a publish, rollback or content save in the process (the store bumps a write
+   generation), within a second after a write by another process (file identity re-check: inode, size, mtime).
+   Values are frozen; concurrent requests share one load. No `Cache-Control` on the HTML: every page carries a
+   per-request CSP nonce, so it must not be stored by a shared cache.
+
+## Sources
+
+| Source | Used for | Primary / cross-check | When it is missing |
+| --- | --- | --- | --- |
+| analytics `fund_returns.json` | monthly net returns before the Apex cut-over | primary (history) | factsheet monthly table (rounded) + alert |
+| dataplatform `/api/performance/monthly-net-returns` | monthly net returns, `ready` months | primary | month held / previous kept |
+| dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
+| dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
+| dataplatform `/api/ftse/index-summary` | benchmark figures | primary | index figures not shown |
+| dataplatform `/api/apex/fund-portfolio` | daily portfolio: characteristics with coverage, breakdowns, top 10, green bonds | primary when covered (below) | month-end factsheet figures (issue) |
+| dataplatform `/api/performance/distributions` | distributions per unit per class (FundServ) | primary | policy text only (issue); previous kept on a failure |
+| factsheet archives (SharePoint) | characteristics vs index, breakdowns, top 10, ESG, published returns | ESG / GMV primary; portfolio fallback; cross-check | previous kept + alert |
+
+### Daily portfolio: selection, cross-check, gates (`portfolio.ts`, `validate.ts`, config `PORTFOLIO`)
+
+- **Primary** when the book is at most 7 days old and covers the bond book: `coverage.priced_weight >= 0.90` and
+  `coverage.resolved_weight >= 0.95`. Each characteristic is shown only when its own coverage is `>= 0.90`; below 1 it
+  gets a footnote with its coverage. Otherwise the Portfolio tab keeps the month-end factsheet figures (warn issue).
+- **404** on either new endpoint = not deployed yet: one info issue per run, the site behaves exactly as before.
+  A fetch failure (5xx, network) keeps the previously published daily book / distributions (until the 7-day gate).
+- **Month-end cross-check** with the factsheet of the same month (book within the last 7 days of that month; the
+  pipeline also asks for the month-end book when the latest one is in a later month): modified duration within
+  max(0.25 year, 5 %), yield to maturity vs the factsheet "Portfolio Yield" within 0.30 percentage point, the 3
+  largest daily sectors that the factsheet also names (its "Sectors" and "Industry" tables) within 5 points.
+  Gaps are warn issues, never blocking.
+- **Gates** (drop the part, warn, never the fund): duration 0–30 years, YTM −5 %–25 %, coupon 0–25 %, average maturity
+  0–100 years, rating a letter notch, coverage 0–1; every breakdown adds up to 100 % ± 3 % (cash included); top 10
+  weights in (0, 25 %] and at most 100 % together; green weight 0–1; nothing plausible left → the whole block.
+
+### Distributions (`distributions.ts`, `validate.ts`, config `DISTRIBUTIONS`)
+
+- Keyed by FundServ code only (never by class letter); only the fund register's active classes are published.
+- Per series: last distribution, trailing 12 months, observed frequency, calendar-year totals and the history
+  (computed by the dataplatform). No yield and no distribution type (not in the source): the page says so.
+- Gates (drop the series, warn): amounts positive and below 5 % of the series' NAV per unit, trailing 12 months below
+  25 % of it, dates ascending and not in the future, the last distribution and every calendar-year total equal to
+  the series' own rows.
 
 ## Conventions
 

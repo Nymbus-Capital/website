@@ -98,7 +98,7 @@ for (const f of FUNDS) {
       await expect(source).toContainText("Daily portfolio data");
       await expect(page.getByTestId("portfolio-asof")).toHaveText("as of September 28, 2026");
       await expect(page.getByTestId("metric-duration")).toBeVisible();
-      await expect(page.getByTestId("coverage-note")).toContainText("of the bond holdings by market value");
+      await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
       await expect(page.getByTestId("breakdown-rating")).toBeVisible();
       await expect(page.getByTestId("holdings-table").locator("tbody tr")).toHaveCount(10);
       await expect(page.getByTestId("holdings-table").locator("thead")).toContainText("Coupon");

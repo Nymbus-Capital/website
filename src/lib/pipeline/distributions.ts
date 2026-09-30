@@ -37,6 +37,8 @@ export function classDistribution(data: ClassDistributions, live: LiveClass): Cl
   const rows = data.rows.filter((r) => r.fundserv.toUpperCase() === code);
   if (!summary && !rows.length) return null;
   const history = rows.map((r) => ({ date: r.date, amount: r.amount_per_unit })).slice(-DISTRIBUTIONS.maxHistory);
+  // a capped history no longer holds every row of its first year: calendar years from the next one only
+  const firstFullYear = rows.length > history.length ? +history[0].date.slice(0, 4) + 1 : 0;
   const last = summary?.last_date && summary.last_amount_per_unit !== null ? { date: summary.last_date, amount: summary.last_amount_per_unit } : null;
   return {
     fundserv: live.fundserv,
@@ -45,7 +47,7 @@ export function classDistribution(data: ClassDistributions, live: LiveClass): Cl
     frequency: frequency(summary?.frequency_observed),
     last,
     trailing12m: summary?.trailing_12m_per_unit ?? null,
-    calendarYears: (summary?.calendar_years ?? []).map((y) => ({ year: y.year, amount: y.per_unit, count: y.count })),
+    calendarYears: (summary?.calendar_years ?? []).filter((y) => y.year >= firstFullYear).map((y) => ({ year: y.year, amount: y.per_unit, count: y.count })),
     history,
   };
 }

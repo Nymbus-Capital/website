@@ -119,7 +119,7 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
           </Reveal>
           {partial.length ? (
             <p className="fine pf-foot" data-testid="coverage-note">
-              <sup aria-hidden="true">*</sup> {tr(T.portfolio.coverage, lang).replace("{x}", partial.map((m) => `${tr(T.portfolio.metrics[m.id], lang)} ${pctLabel(m.coverage)}`).join(", "))}
+              <sup aria-hidden="true">*</sup> {tr(T.portfolio.coverage, lang).replace("{x}", partial.map((m) => `${tr(T.portfolio.metrics[m.id], lang).toLowerCase()} ${pctLabel(m.coverage)}`).join(", "))}
             </p>
           ) : null}
         </Block>

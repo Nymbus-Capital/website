@@ -357,3 +357,12 @@ test("build: a failing endpoint keeps the previous daily book and distributions;
   assert.equal(v.data.funds["monthly-income"]!.portfolio, null);
   assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.portfolio" && /older than 7 days/.test(i.message)));
 });
+
+test("distributions: a capped history drops the calendar years it no longer fully holds", () => {
+  const d = distFixture();
+  const many = { ...d, rows: Array.from({ length: 450 }, (_, i) => ({ date: new Date(Date.UTC(1990, 0, 1 + i * 20)).toISOString().slice(0, 10), fundserv: "LDM001", class_display: "FP", currency: "CAD", amount_per_unit: 0.01 })) };
+  const years = [...new Set(many.rows.map((r) => +r.date.slice(0, 4)))].map((year) => ({ year, per_unit: 0, count: 0 }));
+  const c = classDistribution({ ...many, classes: [{ ...d.classes[0], calendar_years: years }] }, { fundserv: "LDM001", display: "FP", currency: "CAD" })!;
+  assert.equal(c.history.length, 400);
+  assert.ok(c.calendarYears[0].year > +c.history[0].date.slice(0, 4));
+});

@@ -189,8 +189,8 @@ export const T = {
     years: l("years", "ans"),
     securities: l("Securities held", "Titres détenus"),
     coverage: l(
-      "Computed over the bonds for which the input is available: {x} of the bond holdings by market value.",
-      "Calculé sur les obligations pour lesquelles la donnée est disponible\u00a0: {x} des obligations détenues, en valeur de marché.",
+      "Computed only over the bonds for which the input is available (share of the bond holdings, by market value): {x}.",
+      "Calculé seulement sur les obligations pour lesquelles la donnée est disponible (part des obligations détenues, en valeur de marché)\u00a0: {x}.",
     ),
     weightsNote: l(
       "Weights as a percentage of net assets, cash included. Futures used for the overlay are excluded.",
