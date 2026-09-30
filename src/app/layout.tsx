@@ -32,10 +32,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eceef2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
-  ],
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 /* Poppins, self-hosted (subset: Latin + French punctuation). Plain @font-face keeps the family name

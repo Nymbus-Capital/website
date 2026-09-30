@@ -1,15 +1,17 @@
 import { FUNDS } from "@/config/funds";
 import type { DictKey } from "@/lib/i18n";
 
+/** Primary navigation, in the order of the previous site: Strategies · Approach · About · Solutions · Sustainability · Contact. */
 export const NAV_LINKS: { href: string; key: DictKey }[] = [
   { href: "/strategies", key: "nav.strategies" },
   { href: "/approach", key: "nav.approach" },
+  { href: "/team", key: "nav.about" },
+  { href: "/solutions", key: "nav.solutions" },
   { href: "/sustainability", key: "nav.sustainability" },
-  { href: "/team", key: "nav.team" },
   { href: "/contact", key: "nav.contact" },
 ];
 
-export const FUND_LINKS = FUNDS.map((f) => ({ href: `/strategies/${f.key}`, name: f.short, color: f.color }));
+export const FUND_LINKS = FUNDS.map((f) => ({ key: f.key, href: `/strategies/${f.key}`, name: f.name, short: f.short, tagline: f.defaults.tagline, color: f.color }));
 
 export const CONTACT = {
   email: "info@nymbus.ca",

@@ -6,6 +6,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { getLocale } from "@/lib/i18n/server";
 import { getContent } from "@/lib/data/site";
 import "@/components/site/site.css";
+import "@/components/site/kit.css";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [locale, content] = await Promise.all([getLocale(), getContent().catch(() => null)]);

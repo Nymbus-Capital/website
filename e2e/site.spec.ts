@@ -4,8 +4,8 @@ import { signIn } from "./helpers";
 
 /**
  * Public site (everything but the fund detail pages, covered by fund.spec.ts): every route answers 200 and
- * shows its main heading in English and in French, without console errors; the mobile menu, the theme
- * toggle and the language toggle work; content is visible under reduced motion. Full-page screenshots go to
+ * shows its main heading in English and in French, without console errors; the mobile menu and the
+ * language toggle work; content is visible under reduced motion. Full-page screenshots go to
  * e2e/screenshots/site-<route>-<project>.png.
  */
 const ROUTES = [
@@ -120,25 +120,6 @@ test("language toggle switches the page to French and back", async ({ page, isMo
   expect(cookies.find((c) => c.name === "nymbus-locale")?.value).toBe("fr");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-});
-
-test("theme toggle cycles system → light → dark and persists", async ({ page, isMobile }) => {
-  await page.goto("/approach");
-  const open = async () => { if (isMobile) await page.getByTestId("menu-toggle").click(); };
-  const btn = () => (isMobile ? page.getByTestId("mobile-menu") : page.getByTestId("site-nav")).locator("button[data-mode]");
-  await open();
-  await expect(btn()).toHaveAttribute("data-mode", "system");
-  await btn().click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await btn().click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  const bg = await page.evaluate(() => getComputedStyle(document.querySelector(".screen.glow")!).backgroundColor);
-  expect(bg).toBe("rgb(0, 0, 0)");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await open();
-  await btn().click();
-  await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
 });
 
 test("mobile menu opens, traps focus, closes with Escape", async ({ page, isMobile }) => {

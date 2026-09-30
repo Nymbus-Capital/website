@@ -250,7 +250,7 @@ export function LightTrail({ d, className, scrub = false, width = 7, viewBox = "
     el.style.strokeDasharray = `${len}`;
     if (reducedMotion()) { el.style.strokeDashoffset = "0"; return; }
     el.style.strokeDashoffset = `${len}`;
-    const host = el.closest(".screen") as HTMLElement | null;
+    const host = el.closest(".screen, .section, [data-trail-host]") as HTMLElement | null;
     if (scrub && host) {
       // the trail is already a quarter drawn when the screen enters: a chapter screen is never empty
       return onScrollFrame((vh) => {

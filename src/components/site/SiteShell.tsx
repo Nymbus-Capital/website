@@ -1,11 +1,10 @@
 "use client";
 /**
- * Public chrome: providers (language, theme) + nav + <main> + footer. Mounted once by app/(site)/layout.tsx;
- * every public page (including the fund pages) renders inside it. The admin lives outside the (site) group.
+ * Public chrome: language provider + header + <main> + footer. Mounted once by app/(site)/layout.tsx; every
+ * public page (including the fund pages) renders inside it. The admin lives outside the (site) group. Light only.
  */
 import { useEffect, type ReactNode } from "react";
 import { I18nProvider, type Locale } from "@/lib/i18n";
-import { ThemeProvider } from "./theme";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 
@@ -18,11 +17,9 @@ export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds
   useEffect(() => { window.__nyReady = true; document.documentElement.classList.add("js"); }, []);
   return (
     <I18nProvider initialLocale={locale}>
-      <ThemeProvider>
-        <Nav />
-        <main id="main" tabIndex={-1}>{children}</main>
-        <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />
-      </ThemeProvider>
+      <Nav />
+      <main id="main" tabIndex={-1}>{children}</main>
+      <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />
     </I18nProvider>
   );
 }
