@@ -1,0 +1,561 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 126 tests using 2 workers
+
+  ✓    1 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: monthly-income (6.5s)
+  ✓    2 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: sustainable-enhanced-bonds (6.7s)
+  ✓    3 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: multi-strategy (5.6s)
+  ✓    4 [desktop] › e2e/fund.spec.ts:26:7 › fund page renders: global-minimum-volatility (5.5s)
+  ✓    6 [desktop] › e2e/fund.spec.ts:74:5 › legacy slug redirects to monthly income (821ms)
+  ✓    5 [desktop] › e2e/fund.spec.ts:67:5 › fund switcher links every fund (941ms)
+  ✓    7 [desktop] › e2e/fund.spec.ts:81:5 › unknown slug is a 404 (621ms)
+  ✓    9 [desktop] › e2e/site.spec.ts:65:9 › / renders its heading (en) (2.3s)
+  ✓   10 [desktop] › e2e/site.spec.ts:65:9 › / renders its heading (fr) (1.5s)
+  ✓   11 [desktop] › e2e/site.spec.ts:79:7 › / full-page screenshot (6.6s)
+  ✓   12 [desktop] › e2e/site.spec.ts:65:9 › /strategies renders its heading (en) (829ms)
+  ✓   13 [desktop] › e2e/site.spec.ts:65:9 › /strategies renders its heading (fr) (778ms)
+  ✓   14 [desktop] › e2e/site.spec.ts:79:7 › /strategies full-page screenshot (4.1s)
+  ✓   15 [desktop] › e2e/site.spec.ts:65:9 › /approach renders its heading (en) (597ms)
+  ✓   16 [desktop] › e2e/site.spec.ts:65:9 › /approach renders its heading (fr) (631ms)
+  ✓   17 [desktop] › e2e/site.spec.ts:79:7 › /approach full-page screenshot (5.5s)
+  ✓   18 [desktop] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (en) (549ms)
+  ✓   19 [desktop] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (fr) (519ms)
+  ✓   20 [desktop] › e2e/site.spec.ts:79:7 › /sustainability full-page screenshot (4.3s)
+  ✓   21 [desktop] › e2e/site.spec.ts:65:9 › /team renders its heading (en) (717ms)
+  ✓   22 [desktop] › e2e/site.spec.ts:65:9 › /team renders its heading (fr) (741ms)
+  ✓   23 [desktop] › e2e/site.spec.ts:79:7 › /team full-page screenshot (4.7s)
+  ✓   24 [desktop] › e2e/site.spec.ts:65:9 › /contact renders its heading (en) (540ms)
+  ✓   25 [desktop] › e2e/site.spec.ts:65:9 › /contact renders its heading (fr) (586ms)
+  ✓   26 [desktop] › e2e/site.spec.ts:79:7 › /contact full-page screenshot (3.7s)
+  ✓   27 [desktop] › e2e/site.spec.ts:65:9 › /solutions renders its heading (en) (724ms)
+  ✓   28 [desktop] › e2e/site.spec.ts:65:9 › /solutions renders its heading (fr) (677ms)
+  ✓   29 [desktop] › e2e/site.spec.ts:79:7 › /solutions full-page screenshot (3.4s)
+  ✓   30 [desktop] › e2e/site.spec.ts:65:9 › /legal renders its heading (en) (469ms)
+  ✓   31 [desktop] › e2e/site.spec.ts:65:9 › /legal renders its heading (fr) (475ms)
+  ✓   32 [desktop] › e2e/site.spec.ts:79:7 › /legal full-page screenshot (3.7s)
+  ✓   33 [desktop] › e2e/site.spec.ts:65:9 › /privacy renders its heading (en) (470ms)
+  ✓   34 [desktop] › e2e/site.spec.ts:65:9 › /privacy renders its heading (fr) (495ms)
+  ✓   35 [desktop] › e2e/site.spec.ts:79:7 › /privacy full-page screenshot (3.8s)
+  ✓   36 [desktop] › e2e/site.spec.ts:88:5 › unknown route: 404 page in the site chrome (3.9s)
+  ✓   37 [desktop] › e2e/site.spec.ts:99:5 › odometer: the figure's accessible name is the final value (1.4s)
+  ✘    8 [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels (1.0m)
+  ✓   38 [desktop] › e2e/site.spec.ts:107:5 › home: live figures come from the data, never invented (2.7s)
+  ✘   39 [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels (retry #1) (1.0m)
+  -   41 [desktop] › e2e/site.spec.ts:140:5 › mobile menu opens, traps focus, closes with Escape
+  ✓   42 [desktop] › e2e/site.spec.ts:164:5 › reduced motion: content is visible without animations (4.4s)
+  ✓   43 [desktop] › e2e/site.spec.ts:185:5 › team: filter by department and open a bio (3.0s)
+  ✘   40 [desktop] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back (1.1m)
+  ✓   44 [desktop] › e2e/site.spec.ts:207:5 › contact: three steps, validated, then an email is prepared (no backend) (6.0s)
+  ✓   46 [desktop] › e2e/site.spec.ts:240:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.5s)
+  ✓   47 [desktop] › e2e/site.spec.ts:251:5 › admin does not get the public chrome (554ms)
+  ✓   48 [mobile] › e2e/fund.spec.ts:26:7 › fund page renders: monthly-income (12.5s)
+  ✓   49 [mobile] › e2e/fund.spec.ts:26:7 › fund page renders: sustainable-enhanced-bonds (12.4s)
+  ✓   50 [mobile] › e2e/fund.spec.ts:26:7 › fund page renders: multi-strategy (11.5s)
+  ✓   51 [mobile] › e2e/fund.spec.ts:26:7 › fund page renders: global-minimum-volatility (10.6s)
+  ✓   52 [mobile] › e2e/fund.spec.ts:67:5 › fund switcher links every fund (2.3s)
+  ✓   53 [mobile] › e2e/fund.spec.ts:74:5 › legacy slug redirects to monthly income (1.7s)
+  ✓   54 [mobile] › e2e/fund.spec.ts:81:5 › unknown slug is a 404 (614ms)
+  ✓   55 [mobile] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels (2.3s)
+  ✓   56 [mobile] › e2e/site.spec.ts:65:9 › / renders its heading (en) (2.1s)
+  ✓   57 [mobile] › e2e/site.spec.ts:65:9 › / renders its heading (fr) (2.2s)
+  ✘   45 [desktop] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back (retry #1) (1.1m)
+  ✓   59 [mobile] › e2e/site.spec.ts:65:9 › /strategies renders its heading (en) (1.0s)
+  ✓   60 [mobile] › e2e/site.spec.ts:65:9 › /strategies renders its heading (fr) (1.0s)
+  ✓   58 [mobile] › e2e/site.spec.ts:79:7 › / full-page screenshot (10.1s)
+  ✓   62 [mobile] › e2e/site.spec.ts:65:9 › /approach renders its heading (en) (1.0s)
+  ✓   63 [mobile] › e2e/site.spec.ts:65:9 › /approach renders its heading (fr) (986ms)
+  ✓   61 [mobile] › e2e/site.spec.ts:79:7 › /strategies full-page screenshot (7.5s)
+  ✓   65 [mobile] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (en) (727ms)
+  ✓   66 [mobile] › e2e/site.spec.ts:65:9 › /sustainability renders its heading (fr) (918ms)
+  ✓   64 [mobile] › e2e/site.spec.ts:79:7 › /approach full-page screenshot (10.8s)
+  ✓   68 [mobile] › e2e/site.spec.ts:65:9 › /team renders its heading (en) (1.2s)
+  ✓   69 [mobile] › e2e/site.spec.ts:65:9 › /team renders its heading (fr) (1.7s)
+  ✓   67 [mobile] › e2e/site.spec.ts:79:7 › /sustainability full-page screenshot (9.1s)
+  ✓   71 [mobile] › e2e/site.spec.ts:65:9 › /contact renders its heading (en) (936ms)
+  ✓   72 [mobile] › e2e/site.spec.ts:65:9 › /contact renders its heading (fr) (975ms)
+  ✓   73 [mobile] › e2e/site.spec.ts:79:7 › /contact full-page screenshot (5.5s)
+  ✓   70 [mobile] › e2e/site.spec.ts:79:7 › /team full-page screenshot (8.7s)
+  ✓   74 [mobile] › e2e/site.spec.ts:65:9 › /solutions renders its heading (en) (1.3s)
+  ✓   75 [mobile] › e2e/site.spec.ts:65:9 › /solutions renders its heading (fr) (1.3s)
+  ✓   77 [mobile] › e2e/site.spec.ts:65:9 › /legal renders its heading (en) (876ms)
+  ✓   78 [mobile] › e2e/site.spec.ts:65:9 › /legal renders its heading (fr) (616ms)
+  ✓   76 [mobile] › e2e/site.spec.ts:79:7 › /solutions full-page screenshot (5.1s)
+  ✓   80 [mobile] › e2e/site.spec.ts:65:9 › /privacy renders its heading (en) (681ms)
+  ✓   81 [mobile] › e2e/site.spec.ts:65:9 › /privacy renders its heading (fr) (764ms)
+  ✓   79 [mobile] › e2e/site.spec.ts:79:7 › /legal full-page screenshot (5.5s)
+  ✓   83 [mobile] › e2e/site.spec.ts:88:5 › unknown route: 404 page in the site chrome (4.5s)
+  ✓   82 [mobile] › e2e/site.spec.ts:79:7 › /privacy full-page screenshot (6.0s)
+  ✓   84 [mobile] › e2e/site.spec.ts:99:5 › odometer: the figure's accessible name is the final value (1.1s)
+  ✓   85 [mobile] › e2e/site.spec.ts:107:5 › home: live figures come from the data, never invented (3.3s)
+  ✘   86 [mobile] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back (1.1m)
+  ✘   87 [mobile] › e2e/site.spec.ts:140:5 › mobile menu opens, traps focus, closes with Escape (1.1m)
+  ✘   88 [mobile] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back (retry #1) (1.1m)
+  ✘   89 [mobile] › e2e/site.spec.ts:140:5 › mobile menu opens, traps focus, closes with Escape (retry #1) (1.1m)
+  ✓   90 [mobile] › e2e/site.spec.ts:164:5 › reduced motion: content is visible without animations (2.7s)
+  ✓   91 [mobile] › e2e/site.spec.ts:185:5 › team: filter by department and open a bio (4.7s)
+  ✓   93 [mobile] › e2e/site.spec.ts:240:5 › legal: table of contents follows both documents; privacy covers Law 25 (757ms)
+  ✓   94 [mobile] › e2e/site.spec.ts:251:5 › admin does not get the public chrome (474ms)
+  ✓   92 [mobile] › e2e/site.spec.ts:207:5 › contact: three steps, validated, then an email is prepared (no backend) (10.7s)
+
+
+  1) [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels ─────────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /toggle language|fr/i }).first()
+        - locator resolved to <button lang="fr" type="button" class="lang-btn " data-testid="lang-toggle" aria-label="Afficher le site en français">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        111 × waiting for element to be visible, enabled and stable
+            - element is visible, enabled and stable
+            - scrolling into view if needed
+            - done scrolling
+            - <body>…</body> intercepts pointer events
+          - retrying click action
+            - waiting 500ms
+
+
+      88 |   await expect(page.getByRole("heading", { name: "trailing returns" })).toBeAttached();
+      89 |   const toggle = page.getByRole("button", { name: /toggle language|fr/i }).first();
+    > 90 |   if (await toggle.isVisible().catch(() => false)) await toggle.click();
+         |                                                                 ^
+      91 |   else {
+      92 |     // the site shell owns the toggle; fall back to the persisted choice it reads on load
+      93 |     await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:90:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-FR-toggle-switches-the-labels-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-FR-toggle-switches-the-labels-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-FR-toggle-switches-the-labels-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-FR-toggle-switches-the-labels-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /toggle language|fr/i }).first()
+        - locator resolved to <button lang="fr" type="button" class="lang-btn " data-testid="lang-toggle" aria-label="Afficher le site en français">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        111 × waiting for element to be visible, enabled and stable
+            - element is visible, enabled and stable
+            - scrolling into view if needed
+            - done scrolling
+            - <body>…</body> intercepts pointer events
+          - retrying click action
+            - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+
+
+      88 |   await expect(page.getByRole("heading", { name: "trailing returns" })).toBeAttached();
+      89 |   const toggle = page.getByRole("button", { name: /toggle language|fr/i }).first();
+    > 90 |   if (await toggle.isVisible().catch(() => false)) await toggle.click();
+         |                                                                 ^
+      91 |   else {
+      92 |     // the site shell owns the toggle; fall back to the persisted choice it reads on load
+      93 |     await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:90:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-FR-toggle-switches-the-labels-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-FR-toggle-switches-the-labels-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-FR-toggle-switches-the-labels-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-FR-toggle-switches-the-labels-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back ─────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('site-nav').getByTestId('lang-toggle')
+        - locator resolved to <button lang="fr" type="button" class="lang-btn " data-testid="lang-toggle" aria-label="Afficher le site en français">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        87 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      128 |   if (isMobile) await page.getByTestId("menu-toggle").click();
+      129 |   const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
+    > 130 |   await toggle.click();
+          |                ^
+      131 |   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+      132 |   if (isMobile) await page.keyboard.press("Escape");
+      133 |   await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/investissement scientifique/);
+        at /home/runner/work/website/website/e2e/site.spec.ts:130:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('site-nav').getByTestId('lang-toggle')
+        - locator resolved to <button lang="fr" type="button" class="lang-btn " data-testid="lang-toggle" aria-label="Afficher le site en français">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        84 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      128 |   if (isMobile) await page.getByTestId("menu-toggle").click();
+      129 |   const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
+    > 130 |   await toggle.click();
+          |                ^
+      131 |   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+      132 |   if (isMobile) await page.keyboard.press("Escape");
+      133 |   await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/investissement scientifique/);
+        at /home/runner/work/website/website/e2e/site.spec.ts:130:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-language-toggle-switches-the-page-to-French-and-back-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back ──────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('menu-toggle')
+        - locator resolved to <button type="button" aria-expanded="false" aria-label="Open menu" aria-controls="site-menu" data-testid="menu-toggle" class="icon-btn nav-burger">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        98 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      126 |   await page.goto("/");
+      127 |   await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/scientific investing/);
+    > 128 |   if (isMobile) await page.getByTestId("menu-toggle").click();
+          |                                                       ^
+      129 |   const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
+      130 |   await toggle.click();
+      131 |   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+        at /home/runner/work/website/website/e2e/site.spec.ts:128:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('menu-toggle')
+        - locator resolved to <button type="button" aria-expanded="false" aria-label="Open menu" aria-controls="site-menu" data-testid="menu-toggle" class="icon-btn nav-burger">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        98 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+
+
+      126 |   await page.goto("/");
+      127 |   await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/scientific investing/);
+    > 128 |   if (isMobile) await page.getByTestId("menu-toggle").click();
+          |                                                       ^
+      129 |   const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
+      130 |   await toggle.click();
+      131 |   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+        at /home/runner/work/website/website/e2e/site.spec.ts:128:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-language-toggle-switches-the-page-to-French-and-back-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile] › e2e/site.spec.ts:140:5 › mobile menu opens, traps focus, closes with Escape ────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('menu-toggle')
+        - locator resolved to <button type="button" aria-expanded="false" aria-label="Open menu" aria-controls="site-menu" data-testid="menu-toggle" class="icon-btn nav-burger">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        99 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      143 |   const toggle = page.getByTestId("menu-toggle");
+      144 |   await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    > 145 |   await toggle.click();
+          |                ^
+      146 |   const menu = page.getByTestId("mobile-menu");
+      147 |   await expect(menu).toBeVisible();
+      148 |   await expect(toggle).toHaveAttribute("aria-expanded", "true");
+        at /home/runner/work/website/website/e2e/site.spec.ts:145:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByTestId('menu-toggle')
+        - locator resolved to <button type="button" aria-expanded="false" aria-label="Open menu" aria-controls="site-menu" data-testid="menu-toggle" class="icon-btn nav-burger">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <body>…</body> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        97 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <body>…</body> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      143 |   const toggle = page.getByTestId("menu-toggle");
+      144 |   await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    > 145 |   await toggle.click();
+          |                ^
+      146 |   const menu = page.getByTestId("mobile-menu");
+      147 |   await expect(menu).toBeVisible();
+      148 |   await expect(toggle).toHaveAttribute("aria-expanded", "true");
+        at /home/runner/work/website/website/e2e/site.spec.ts:145:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/site-mobile-menu-opens-traps-focus-closes-with-Escape-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [desktop] › e2e/fund.spec.ts:86:5 › FR toggle switches the labels ──────────────────────────────
+    [desktop] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back ──────
+    [mobile] › e2e/site.spec.ts:125:5 › language toggle switches the page to French and back ───────
+    [mobile] › e2e/site.spec.ts:140:5 › mobile menu opens, traps focus, closes with Escape ─────────
+  1 skipped
+  36 did not run
+  85 passed (7.0m)
