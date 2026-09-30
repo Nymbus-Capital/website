@@ -9,6 +9,8 @@
  *    never missed even within the same millisecond.
  * Content and identity are taken from the same open file descriptor, so a value is never paired with the identity
  * of another version. Concurrent requests share one load. Values are deep-frozen: callers must copy before changing.
+ * Snapshot files (admin pins to an older publication) are bounded: at most MAX_SNAPSHOT_ENTRIES, least recently used
+ * evicted, so pinning and unpinning many snapshots never grows the process memory without limit.
  */
 import { promises as fs } from "node:fs";
 import { p, writeGeneration } from "./store.ts";
@@ -20,6 +22,8 @@ const g = globalThis as unknown as Record<symbol, { entries: Map<string, Entry>;
 const state = (g[KEY] ??= { entries: new Map(), loading: new Map() });
 
 export const DEFAULT_RECHECK_MS = 1000;
+/** cached snapshot files (paths under snapshots/), least recently used evicted first */
+export const MAX_SNAPSHOT_ENTRIES = 8;
 const ABSENT = "absent";
 
 const signature = (st: { ino: number | bigint; size: number | bigint; mtimeMs: number }): string => `${st.ino}:${st.size}:${st.mtimeMs}`;
@@ -59,6 +63,25 @@ async function load(file: string, gen: number): Promise<Entry> {
   }
 }
 
+const isSnapshot = (rel: string[]): boolean => rel[0] === "snapshots";
+const snapshotFiles = new Set<string>();
+
+/** Marks `file` as most recently used (Map keeps insertion order) and evicts the oldest snapshot entries beyond the bound. */
+function touch(file: string, entry: Entry, snapshot: boolean): void {
+  state.entries.delete(file);
+  state.entries.set(file, entry);
+  if (!snapshot) return;
+  snapshotFiles.add(file);
+  if (snapshotFiles.size <= MAX_SNAPSHOT_ENTRIES) return;
+  for (const f of state.entries.keys()) {
+    if (snapshotFiles.size <= MAX_SNAPSHOT_ENTRIES) break;
+    if (snapshotFiles.has(f) && f !== file) {
+      state.entries.delete(f);
+      snapshotFiles.delete(f);
+    }
+  }
+}
+
 /**
  * The parsed JSON at `rel` under the data directory (`fallback` when the file does not exist), from the cache when
  * the file has not changed. Invalid JSON throws (like store.readJson) and is not cached.
@@ -67,12 +90,17 @@ export async function readJsonCached<T>(rel: string[], fallback: T, opts: { rech
   const file = p(...rel);
   const recheck = opts.recheckMs ?? DEFAULT_RECHECK_MS;
   const gen = writeGeneration();
+  const snap = isSnapshot(rel);
   const hit = state.entries.get(file);
   const now = Date.now();
-  if (hit && hit.gen === gen && now - hit.checkedAt < recheck) return (hit.sig === ABSENT ? fallback : hit.value) as T;
+  if (hit && hit.gen === gen && now - hit.checkedAt < recheck) {
+    if (snap) touch(file, hit, true);
+    return (hit.sig === ABSENT ? fallback : hit.value) as T;
+  }
   if (hit && (await currentSig(file)) === hit.sig) {
     hit.gen = gen;
     hit.checkedAt = now;
+    if (snap) touch(file, hit, true);
     return (hit.sig === ABSENT ? fallback : hit.value) as T;
   }
   // one load per file and write generation: a request after a write never joins a load started before it
@@ -85,7 +113,7 @@ export async function readJsonCached<T>(rel: string[], fallback: T, opts: { rech
   const entry = await pending;
   // a load started before a newer write must not replace a fresher entry
   const cur = state.entries.get(file);
-  if (!cur || cur.gen <= entry.gen) state.entries.set(file, entry);
+  if (!cur || cur.gen <= entry.gen) touch(file, entry, snap);
   return (entry.sig === ABSENT ? fallback : entry.value) as T;
 }
 
@@ -93,6 +121,7 @@ export async function readJsonCached<T>(rel: string[], fallback: T, opts: { rech
 export function clearDataCache(): void {
   state.entries.clear();
   state.loading.clear();
+  snapshotFiles.clear();
 }
 
 /** Number of cached files (tests / diagnostics). */

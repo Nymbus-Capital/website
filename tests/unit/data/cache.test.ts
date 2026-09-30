@@ -8,7 +8,7 @@ import { mkdtemp, readFile, rename, writeFile, mkdir } from "node:fs/promises";
 import { promises as fsp } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { cachedFileCount, clearDataCache, readJsonCached } from "../../../src/lib/data/cache.ts";
+import { cachedFileCount, clearDataCache, MAX_SNAPSHOT_ENTRIES, readJsonCached } from "../../../src/lib/data/cache.ts";
 import { writeJson, removePath } from "../../../src/lib/data/store.ts";
 
 let dir = "";
@@ -109,4 +109,27 @@ test("cache: invalid JSON throws and is not cached", async () => {
   await assert.rejects(readJsonCached(["content", "site-content.json"], null, { recheckMs: 0 }), SyntaxError);
   await writeJson(["content", "site-content.json"], { ok: true });
   assert.deepEqual(await readJsonCached(["content", "site-content.json"], null), { ok: true });
+});
+
+test("cache: pinned snapshots are bounded (least recently used evicted); published data and content are never evicted", async () => {
+  await writeJson(["published", "site-data.json"], { v: "live" });
+  await readJsonCached(["published", "site-data.json"], null);
+  for (let i = 0; i < 12; i++) {
+    await writeJson(["snapshots", `s${i}`, "site-data.json"], { i });
+    await readJsonCached(["snapshots", `s${i}`, "site-data.json"], null);
+    if (i >= 1) await readJsonCached(["snapshots", "s0", "site-data.json"], null); // s0 stays the most recently used
+  }
+  assert.equal(cachedFileCount(), 1 + MAX_SNAPSHOT_ENTRIES);
+  const opens = countOpens();
+  try {
+    assert.deepEqual(await readJsonCached(["published", "site-data.json"], null), { v: "live" });
+    assert.deepEqual(await readJsonCached(["snapshots", "s0", "site-data.json"], null), { i: 0 });
+    assert.deepEqual(await readJsonCached(["snapshots", "s11", "site-data.json"], null), { i: 11 });
+    assert.equal(opens.n(), 0, "live data, the recently used and the newest snapshots are still cached");
+    assert.deepEqual(await readJsonCached(["snapshots", "s1", "site-data.json"], null), { i: 1 });
+    assert.equal(opens.n(), 1, "the least recently used snapshot was evicted and is read again");
+  } finally {
+    opens.restore();
+  }
+  assert.equal(cachedFileCount(), 1 + MAX_SNAPSHOT_ENTRIES);
 });
