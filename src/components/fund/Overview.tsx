@@ -61,7 +61,7 @@ export function Overview({ spec, content, data, lang }: Props) {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
-                        <td>{tr(T.perf.periodsLong[r.period], lang)}{r.annualized ? "*" : ""}</td>
+                        <td><span className="fx-long">{tr(T.perf.periodsLong[r.period], lang)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
                         <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
                         {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                         {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}

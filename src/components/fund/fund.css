@@ -444,3 +444,5 @@ html:not(.js) .ft-bar { display: none; }
   .ft-table th:first-child, .ft-table td:first-child { padding-left: 0; }
   .fund-page .ft-table tr.hl td:first-child { padding-left: 8px; }
 }
+.fx-short { display: none; }
+@media (max-width: 480px) { .fx-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .fx-short { display: inline; } }
