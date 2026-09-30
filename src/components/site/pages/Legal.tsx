@@ -194,7 +194,7 @@ export function Privacy() {
           <Toc docs={[doc]} showDocs={false} />
           <div className="lg2-main">
             <DocView doc={doc} h="h2" showTitle={false} />
-            <p className="lg2-see"><FileText aria-hidden="true" /> {pick(C.seeAlso)}: <Link className="inline" href="/legal">{pick(C.legalPage)}</Link></p>
+            <p className="lg2-see"><FileText aria-hidden="true" /> {pick(C.seeAlso)}{locale === "fr" ? "\u00a0: " : ": "}<Link className="inline" href="/legal">{pick(C.legalPage)}</Link></p>
           </div>
         </div>
       </div>

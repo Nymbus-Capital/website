@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: fr ? "Nos fonds et stratégies" : "Our funds and strategies",
     description: fr
-      ? "Revenu fixe systématique et stratégies alternatives : Revenu Mensuel, Obligations Durables Bonifiées, Multistratégies et Global Minimum Volatilité, avec leurs rendements publiés."
+      ? "Revenu fixe systématique et stratégies alternatives\u00a0: Revenu Mensuel, Obligations Durables Bonifiées, Multistratégies et Nymbus Global Minimum Volatility, avec leurs rendements publiés."
       : "Systematic fixed income and alternative strategies: Monthly Income, Sustainable Enhanced Bonds, Multi-Strategy and Global Minimum Volatility, with their published returns.",
     alternates: { canonical: "/strategies" },
   };

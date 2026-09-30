@@ -14,7 +14,7 @@ import { preInceptionNote } from "@/content/disclaimers";
 import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { FUND_TEXTS, T, tr, type FeatureIcon } from "./copy";
-import { dateLabel, monthLabel, type Lang } from "./lib/format.ts";
+import { dateLabel, monthLabel, type Lang, colon } from "./lib/format.ts";
 import { perfClassLabel } from "./lib/data.ts";
 
 const ICONS: Record<FeatureIcon, typeof Leaf> = {
@@ -71,7 +71,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
               : preLaunch ? <p className="fxd-note" data-testid="perf-note">{tr(preLaunch, lang)}</p> : null}
             {cl || perf ? (
               <p className="fxd-note" data-testid="perf-class">
-                {tr(T.perf.classShown, lang)}: {cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}{perf?.indexName ? ` · ${tr(T.perf.index, lang)}: ${perf.indexName}` : ""}
+                {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}{perf?.indexName ? ` · ${tr(T.perf.index, lang)}${colon(lang)}${perf.indexName}` : ""}
               </p>
             ) : null}
             <p>{gross ? tr(T.disclosure.gross, lang) : tr(T.disclosure.net, lang)}</p>

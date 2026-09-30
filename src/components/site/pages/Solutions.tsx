@@ -32,7 +32,7 @@ function FundLink({ f }: { f: FundCard }) {
         <span className="sl-fund-n">
           <b>{pick(f.short)}</b>
           <span>{pick(f.assetClass)}</span>
-          {f.minInvestment ? <span>{pick(S.minimum)}: {f.minInvestment}</span> : null}
+          {f.minInvestment ? <span>{pick(S.minimum)}{locale === "fr" ? "\u00a0: " : ": "}{f.minInvestment}</span> : null}
         </span>
         {si ? (
           <span className="sl-fund-f">

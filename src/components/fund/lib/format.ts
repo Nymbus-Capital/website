@@ -127,3 +127,6 @@ export function charCount(v: number | string | null | undefined, unit: "pct" | "
   if (typeof v !== "number" || !Number.isFinite(v) || unit === "text") return null;
   return unit === "pct" ? { value: v, decimals: Math.abs(v) >= 0.1 ? 1 : 2, pct: true } : unit === "num" ? { value: v, decimals: 1, pct: false } : { value: v, decimals: 0, pct: false };
 }
+
+/** Label separator: French puts a non-breaking space before the colon. */
+export const colon = (lang: Lang): string => (lang === "fr" ? "\u00a0: " : ": ");

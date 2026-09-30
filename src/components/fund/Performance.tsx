@@ -15,7 +15,7 @@ import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
 import { GrowthChart } from "./charts/GrowthChart";
 import { Heatmap } from "./charts/Heatmap";
 import { Ring } from "./charts/Breakdowns";
-import { dateLabel, fmt, type Lang } from "./lib/format.ts";
+import { dateLabel, fmt, type Lang, colon } from "./lib/format.ts";
 import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
 
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }
@@ -40,7 +40,7 @@ export function PerformanceTab({ spec, content, data, lang }: Props) {
     <div className="container fp">
       {perf && any ? (
         <p className="fp-context" data-testid="perf-context">
-          {tr(T.perf.classShown, lang)}: {cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+          {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
           {benchmarkLabel(perf.indexName, spec.benchmark, lang) ? <> · {tr(T.perf.index, lang)}: {benchmarkLabel(perf.indexName, spec.benchmark, lang)}</> : null}
         </p>
       ) : null}
