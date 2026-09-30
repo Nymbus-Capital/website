@@ -129,6 +129,23 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-30 (home, branch `feat/api-portfolio-distributions`): fixes after an independent adversarial review of the
+  portfolio / distributions work. One freshness rule for the daily book (`src/lib/data/freshness.ts`, 7 whole days)
+  used by the selection, the validation gate (now also on funds carried over from the previous publication) and a
+  render-time gate in `site.ts` (rollback / pin never shows a stale book as "daily"; the sample is judged at its
+  generation date). Identity check of both payloads (`fund` / `short_name`). Distributions: currency never defaulted
+  (register vs payload must agree), trailing 12 months checked against the rows of the 12 months ending at the last
+  distribution, carried-over data dropped after 10 days without a successful read (`checkedAt`,
+  `DISTRIBUTIONS.maxCarryDays`), "Data as of" = latest distribution. Page: provenance line says "daily holdings as of
+  <date>" when the daily book is shown (+ sustainability clause) — **new wording in `docs/compliance-review.md` row 12,
+  to review**; negative weights draw no bar (was stretched); hiding characteristics hides the securities count; chart
+  roving tabindex; amounts at the series' own precision (rows add up to calendar totals); YTD tag only while the year
+  is open; odd last breakdown spans the row; distribution cards aligned (subgrid); snapshot cache bounded (8, LRU).
+  Review item "month-end book requested with YYYY-MM" was not reproducible (`lastClosedMonth` returns the month-end
+  date); a test now pins the dated request and a divergent month-end warning. Item "nbsp before « ; »" not applied:
+  the repo's tested convention is Québec (no space before « ; »). Not merged into `redesign/v3-keynote-live-data`
+  (the main session merges after an independent verification).
+
 - 2026-09-30 (home, branch `feat/api-portfolio-distributions`): wired the two new dataplatform endpoints (daily
   portfolio book, per-series distributions) per the 2026-09-30 contract: tolerant parsers (`sources/contracts.ts`),
   selection with coverage thresholds and factsheet fallback + month-end cross-check (`portfolio.ts`), distributions

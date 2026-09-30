@@ -70,14 +70,20 @@ never calls the dataplatform from the browser.
 
 ### Daily portfolio: selection, cross-check, gates (`portfolio.ts`, `validate.ts`, config `PORTFOLIO`)
 
-- **Primary** when the book is at most 7 days old and covers the bond book: `coverage.priced_weight >= 0.90` and
+- **Primary** when the book is at most 7 whole calendar days old (one rule, `src/lib/data/freshness.ts`, for the
+  selection, the validation gate — also on funds carried over from the previous publication — and a render-time gate
+  in `src/lib/data/site.ts`, so a rollback or a pin to an old snapshot never shows a stale book as "daily") and covers
+  the bond book: `coverage.priced_weight >= 0.90` and
   `coverage.resolved_weight >= 0.95`. Each characteristic is shown only when its own coverage is `>= 0.90`; below 1 it
   gets a footnote with its coverage. Otherwise the Portfolio tab keeps the month-end factsheet figures (warn issue).
 - **404** on either new endpoint = not deployed yet: one info issue per run, the site behaves exactly as before.
-  A fetch failure (5xx, network) keeps the previously published daily book / distributions (until the 7-day gate).
+  A fetch failure (5xx, network) keeps the previously published daily book (until the 7-day gate) / distributions
+  (until 10 days without a successful read: `DistributionsData.checkedAt`, config `DISTRIBUTIONS.maxCarryDays`).
+  A payload for another fund than the one requested (`fund` / `short_name`) is a failure.
 - **Month-end cross-check** with the factsheet of the same month (book within the last 7 days of that month; the
   pipeline also asks for the month-end book when the latest one is in a later month): modified duration within
-  max(0.25 year, 5 %), yield to maturity vs the factsheet "Portfolio Yield" within 0.30 percentage point, the 3
+  max(0.25 year, 5 %), yield to maturity vs the factsheet "Portfolio Yield" within 0.30 percentage point (the two
+  measures may differ: the issue says so), the 3
   largest daily sectors that the factsheet also names (its "Sectors" and "Industry" tables) within 5 points.
   Gaps are warn issues, never blocking.
 - **Gates** (drop the part, warn, never the fund): duration 0–30 years, YTM −5 %–25 %, coupon 0–25 %, average maturity
@@ -87,11 +93,15 @@ never calls the dataplatform from the browser.
 ### Distributions (`distributions.ts`, `validate.ts`, config `DISTRIBUTIONS`)
 
 - Keyed by FundServ code only (never by class letter); only the fund register's active classes are published.
+  Currency: the register's and the payload's must agree and one must give it, else the series is dropped (never a
+  default currency). "Data as of" is the latest distribution of the series shown.
 - Per series: last distribution, trailing 12 months, observed frequency, calendar-year totals and the history
   (computed by the dataplatform). No yield and no distribution type (not in the source): the page says so.
 - Gates (drop the series, warn): amounts positive and below 5 % of the series' NAV per unit, trailing 12 months below
   25 % of it, dates ascending and not in the future, the last distribution and every calendar-year total equal to
-  the series' own rows.
+  the series' own rows. The trailing 12 months must equal the rows dated in the 12 months ending at the last
+  distribution, else that figure alone is dropped. The page shows every amount of a series with one precision (4–6
+  decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
 
 ## Conventions
 
