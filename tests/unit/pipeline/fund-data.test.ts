@@ -9,7 +9,7 @@ import { parseDistributions, parseFundPortfolio } from "../../../src/lib/pipelin
 import { dpClient, fetchDistributions, fetchFundPortfolio } from "../../../src/lib/pipeline/sources/dataplatform.ts";
 import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfolio, termRank } from "../../../src/lib/pipeline/portfolio.ts";
 import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
-import { checkDistributions, checkPortfolio, distributionProblem, validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite } from "../../../src/lib/pipeline/validate.ts";
 import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { ClassDistributions, FundPortfolio, SourceResult } from "../../../src/lib/pipeline/raw.ts";
@@ -202,7 +202,8 @@ test("distributions: per live series by FundServ code; non-live series hidden; r
   ];
   const sel = selectDistributions(ok(distFixture()), { base: "b", short: "SEST", live, today: "2026-09-29" });
   assert.deepEqual(sel.distributions!.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021"]);
-  assert.equal(sel.distributions!.asOf, "2026-09-29");
+  assert.equal(sel.distributions!.asOf, "2026-09-28", "the latest distribution shown, not the end of the requested window (2026-09-29)");
+  assert.equal(sel.distributions!.checkedAt, "2026-09-29");
   const a = sel.distributions!.classes.find((c) => c.fundserv === "LDM021")!;
   assert.deepEqual(a.last, { date: "2026-09-28", amount: 0.04 });
   assert.equal(a.history.length, 93);
@@ -245,7 +246,7 @@ test("distributions gates: amount vs NAV, dates, last row, trailing 12 months, c
   assert.match(mut((c) => { c.calendarYears[0].count = 3; })!, /calendar year 2026/);
   assert.equal(mut((c) => { c.calendarYears[0].amount = 0.100001; }), null, "6-decimal rounding tolerated");
 
-  const f = { key: "monthly-income", nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", nav: 1 }, { fundserv: "LDM021", nav: 10 }] }, distributions: { asOf: today, classes: [base(), { ...base(), fundserv: "LDM021", display: "A" }] } } as unknown as FundData;
+  const f = { key: "monthly-income", nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", nav: 1 }, { fundserv: "LDM021", nav: 10 }] }, distributions: { asOf: today, checkedAt: today, classes: [base(), { ...base(), fundserv: "LDM021", display: "A" }] } } as unknown as FundData;
   const issues = checkDistributions(f, "funds.monthly-income", NOW);
   assert.deepEqual(f.distributions!.classes.map((c) => c.fundserv), ["LDM021"]);
   assert.deepEqual(issues.map((i) => [i.key, i.level]), [["funds.monthly-income.distributions.LDM001", "warn"]]);
@@ -452,4 +453,56 @@ test("distributions: the currency is never defaulted; a series is dropped when i
   const w = sel.issues.find((i) => i.key === "b.distributions.LDM011")!;
   assert.equal(w.level, "warn");
   assert.match(w.message, /distributions of series F USD \(LDM011\): currency USD in the payload vs CAD in the fund register: not shown/);
+});
+
+test("distributions gates: the trailing 12 months must equal the rows of the 12 months ending at the last distribution", () => {
+  const monthly = (from: string, n: number, amount: number) => Array.from({ length: n }, (_, i) => {
+    const d = new Date(Date.UTC(+from.slice(0, 4), +from.slice(5, 7) - 1 + i + 1, 0));
+    return { date: d.toISOString().slice(0, 10), amount };
+  });
+  const series = (history: { date: string; amount: number }[], t12: number | null): ClassDistribution => ({
+    fundserv: "LDM001", display: "FP", currency: "CAD", frequency: "monthly", last: { ...history[history.length - 1] }, trailing12m: t12,
+    calendarYears: [], history,
+  });
+  const h = monthly("2025-01", 20, 0.04); // 2025-01-31 … 2026-08-31
+  assert.equal(trailingProblem(series(h, 0.48)), null, "12 × 0.04 after 2025-08-31");
+  assert.match(trailingProblem(series(h, 0.52))!, /0.52 vs 0.48 over the 12 distribution\(s\) after 2025-08-31/);
+  assert.match(trailingProblem(series(h.filter((r) => r.date !== "2026-02-28"), 0.48))!, /vs 0.44 over the 11/, "a gap in the rows");
+  assert.equal(trailingProblem(series(monthly("2026-03", 6, 0.04), 0.24)), null, "a young series: its rows only");
+  assert.equal(trailingProblem(series(h, null)), null);
+  assert.match(trailingProblem({ ...series(h, 0.48), last: null })!, /no last distribution/);
+
+  // checkDistributions drops only the figure, the series stays
+  const f = { key: "monthly-income", nav: null, distributions: { asOf: "2026-08-31", checkedAt: "2026-09-29", classes: [series(h, 0.52)] } } as unknown as FundData;
+  const issues = checkDistributions(f, "b", NOW);
+  assert.equal(f.distributions!.classes.length, 1);
+  assert.equal(f.distributions!.classes[0].trailing12m, null);
+  assert.deepEqual(issues.map((i) => [i.key, i.level]), [["b.distributions.LDM001.trailing12m", "warn"]]);
+});
+
+test("distributions carried over after failed reads are dropped after 10 days without a successful read", async () => {
+  const { data: prev, context } = buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  assert.equal(prev.funds["monthly-income"]!.distributions!.checkedAt, "2026-09-29");
+  const down: Route = (u) => (u.pathname === "/api/performance/distributions" ? new Response("x", { status: 503 }) : undefined);
+  const at = async (iso: string) => {
+    const now = new Date(iso);
+    const b = buildSiteData(await fetchAll({ fetchImpl: mockFetch(down).fetch, now, env: fixtureEnv() }), prev, now);
+    return validateSite(b.data, b.context, prev, now);
+  };
+  const soon = await at("2026-10-09T14:00:00Z"); // 10 days
+  assert.ok(soon.data.funds["monthly-income"]!.distributions, "10 days: still carried");
+  assert.equal(soon.data.funds["monthly-income"]!.distributions!.checkedAt, "2026-09-29", "a carried block keeps its read date");
+  const late = await at("2026-10-10T14:00:00Z"); // 11 days
+  assert.equal(late.data.funds["monthly-income"]!.distributions, null);
+  assert.ok(late.data.issues.some((i) => i.key === "funds.monthly-income.distributions" && i.level === "warn" && /last read successfully 2026-09-29, more than 10 days ago/.test(i.message)));
+  // a whole fund carried over: same limit
+  const input = structuredClone(prev);
+  delete input.funds["monthly-income"];
+  assert.equal(validateSite(input, context, prev, new Date("2026-10-10T14:00:00Z")).data.funds["monthly-income"]!.distributions, null);
+  // files published before the read date existed: not carried
+  const old = structuredClone(prev);
+  delete old.funds["monthly-income"]!.distributions!.checkedAt;
+  const f = old.funds["monthly-income"]!;
+  checkDistributions(f, "b", NOW);
+  assert.equal(f.distributions, null);
 });

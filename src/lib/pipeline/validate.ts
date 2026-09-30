@@ -21,7 +21,9 @@
  *     included), and a top-10 list with a weight outside (0, 25 %] or a total above 100 % are dropped one by one — warn
  *   - distributions: a series is dropped when an amount is not positive or reaches 5 % of its NAV per unit, its
  *     trailing 12 months reach 25 % of it, its dates are not ascending / in the future, or its last distribution and
- *     calendar-year totals disagree with its own rows — warn
+ *     calendar-year totals disagree with its own rows; a trailing-12-month figure that differs from the rows of the 12
+ *     months ending at the last distribution is dropped (the series stays); all distributions are dropped when the source
+ *     has not been read successfully for more than 10 days (carried over) — warn
  *  warnings:
  *   - NAV older than 7 days, AUM older than 7 days, performance older than 2 closed months
  */
@@ -271,18 +273,58 @@ export function distributionProblem(c: ClassDistribution, nav: number | null, to
   return null;
 }
 
-/** Gates of the distributions: drops the series that fail (see distributionProblem) and returns the issues. */
+/** Same day `n` months earlier (clamped to the month's last day), YYYY-MM-DD. */
+function monthsBefore(date: string, n: number): string {
+  const y = +date.slice(0, 4), m = +date.slice(5, 7) - 1 - n, d = +date.slice(8, 10);
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m, Math.min(d, last))).toISOString().slice(0, 10);
+}
+
+/**
+ * Why the trailing-12-month total disagrees with the series' own rows (the distributions dated in the 12 months ending
+ * at the last distribution: after the same day one year earlier, up to and including it), or null.
+ */
+export function trailingProblem(c: ClassDistribution): string | null {
+  if (c.trailing12m === null) return null;
+  if (!c.last) return "no last distribution to anchor the 12 months";
+  const from = monthsBefore(c.last.date, 12);
+  const rows = c.history.filter((h) => h.date > from && h.date <= c.last!.date);
+  if (c.history.length && c.history[0].date > from && c.history.length >= DISTRIBUTIONS.maxHistory) return `history does not reach back to ${from}`;
+  const total = rows.reduce((a, h) => a + h.amount, 0);
+  return Math.abs(total - c.trailing12m) > DISTRIBUTIONS.sumTol * Math.max(1, rows.length)
+    ? `${c.trailing12m} vs ${+total.toFixed(6)} over the ${rows.length} distribution(s) after ${from}`
+    : null;
+}
+
+/**
+ * Gates of the distributions: drops them all when the source has not been read successfully for too long (carried
+ * over), the series that fail (see distributionProblem), and a trailing-12-month figure that its rows do not add up to.
+ * Returns the issues.
+ */
 export function checkDistributions(f: FundData, base: string, now: Date): Issue[] {
   const d = f.distributions;
   if (!d) return [];
   const today = now.toISOString().slice(0, 10);
   const issues: Issue[] = [];
+  const read = typeof d.checkedAt === "string" && ISO.test(d.checkedAt) ? Math.floor(days(d.checkedAt, now)) : Number.NaN; // whole days
+  if (!(read <= DISTRIBUTIONS.maxCarryDays)) {
+    issues.push({ key: `${base}.distributions`, level: "warn", message: `distributions not shown: source last read successfully ${d.checkedAt ?? "(date unknown)"}, more than ${DISTRIBUTIONS.maxCarryDays} days ago` });
+    f.distributions = null;
+    return issues;
+  }
   d.classes = (d.classes ?? []).filter((c) => {
     const nav = f.nav?.classes.find((k) => k.fundserv.toUpperCase() === c.fundserv.toUpperCase())?.nav ?? null;
     const why = distributionProblem(c, nav, today);
     if (why) issues.push({ key: `${base}.distributions.${c.fundserv}`, level: "warn", message: `distributions of series ${c.display} (${c.fundserv}) not shown: ${why}` });
     return !why;
   });
+  for (const c of d.classes) {
+    const why = trailingProblem(c);
+    if (why) {
+      issues.push({ key: `${base}.distributions.${c.fundserv}.trailing12m`, level: "warn", message: `trailing 12 months of series ${c.display} (${c.fundserv}) not shown: ${why}` });
+      c.trailing12m = null;
+    }
+  }
   if (!d.classes.length) f.distributions = null;
   return issues;
 }
@@ -315,12 +357,13 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     // a carried-over fund passes the daily-book gate again: its book may have become too old since it was published
     const carry = (): FundData => {
       const c = structuredClone(prev!);
-      const issues = checkPortfolio(c, base, now);
+      const issues = [...checkPortfolio(c, base, now), ...checkDistributions(c, base, now)];
       if (issues.length) {
         warnings.push(...issues);
         extraIssues.push(...issues);
       }
       if (!c.portfolio) delete data.provenance[`${base}.portfolio`];
+      if (!c.distributions) delete data.provenance[`${base}.distributions`];
       return c;
     };
     if (!f) {

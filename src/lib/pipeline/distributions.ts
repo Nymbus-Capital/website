@@ -100,8 +100,9 @@ export function selectDistributions(res: SourceResult<ClassDistributions> | unde
   if (notLive.length) issues.push({ key, level: "info", message: `series not live, not shown: ${notLive.sort().join(", ")}` });
   if (missing.length) issues.push({ key, level: "info", message: `live series without distribution data: ${missing.join(", ")}` });
   if (!classes.length) return none([...issues, { key, level: "info", message: "no distribution data for any live series" }]);
-  const lastRow = data.rows.length ? data.rows[data.rows.length - 1].date : null;
-  const asOf = data.end_date && data.end_date <= o.today ? data.end_date : lastRow ?? o.today;
+  // "Data as of": the latest distribution of the series shown (not the end of the requested window)
+  const dates = classes.flatMap((c) => [c.last?.date, c.history[c.history.length - 1]?.date]).filter((d): d is string => !!d && d <= o.today).sort();
+  const asOf = dates[dates.length - 1] ?? (data.end_date && data.end_date <= o.today ? data.end_date : o.today);
   const provenance = `dataplatform /api/performance/distributions ${o.short} (${data.rows.length} row(s)${data.start_date ? ` from ${data.start_date}` : ""}; per unit, class currency, keyed by FundServ code${data.method ? `; ${data.method}` : ""}); live series from /api/apex/funds`;
-  return { distributions: { asOf, classes }, issues, provenance, absent: false };
+  return { distributions: { asOf, checkedAt: o.today, classes }, issues, provenance, absent: false };
 }

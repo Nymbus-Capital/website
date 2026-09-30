@@ -103,6 +103,11 @@ export const DISTRIBUTIONS = {
   sumTol: 2e-6,
   /** history kept per class (the page shows the last 12, all behind a toggle) */
   maxHistory: 400,
+  /**
+   * distributions carried over after failed reads are dropped once the source has not been read successfully for more
+   * than this many days (a new distribution may have been paid in the meantime)
+   */
+  maxCarryDays: 10,
 };
 
 export const DEFAULT_SCHEDULE = "06:45,12:45,18:45";

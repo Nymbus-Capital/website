@@ -187,8 +187,13 @@ export interface ClassDistribution {
 }
 
 export interface DistributionsData {
-  /** last day covered by the data */
+  /** date of the latest distribution of the series shown ("Data as of") */
   asOf: string;
+  /**
+   * day the source was last read successfully (YYYY-MM-DD). Distributions carried over after a failed read are dropped
+   * once it is too old (config DISTRIBUTIONS.maxCarryDays); absent in files published before it existed (not carried).
+   */
+  checkedAt?: string;
   /** live series only, in FundServ order */
   classes: ClassDistribution[];
 }
