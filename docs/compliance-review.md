@@ -29,7 +29,7 @@ a code change:
 |---|---|---|---|
 | 1 | Firm disclaimer (`firm`): registration, not advice, not an offer or solicitation, offering documents | Footer of every public page; fund pages → *disclosure* | Registration categories: portfolio manager and investment fund manager with the **AMF (Québec)**? Other provinces and registrations (OSC, exempt market dealer)? Legal name *Nymbus Capital Inc. / inc.* How each fund is sold: **simplified prospectus + fund facts** vs **offering memorandum** (exempt). Adapt per fund if needed. |
 | 2 | Mutual fund standard warning (`fundStandard`): commissions, trailing commissions, management fees and expenses; read the fund facts and prospectus; not guaranteed; values change frequently; past performance may not be repeated | Footer; fund pages (investment funds only) | Exact prescribed wording (NI 81-102 s. 15.4 style) for prospectus funds vs OM funds. "Fund facts" exists only for prospectus funds. |
-| 3 | Rates of return (`returnsNet`): historical annual compounded total returns, net of fees, including changes in unit value and reinvestment of distributions, excluding sales, redemption, distribution and optional charges and income taxes | Footer; fund pages (net-of-fees funds) | Net of which fees (management fee, expenses, MER). Class shown per fund. Annualization (the site annualizes periods of 2 years and more). |
+| 3 | Rates of return (`returnsNet`): historical annual compounded total returns, net of fees, including changes in unit value and reinvestment of distributions, excluding sales, redemption, distribution and optional charges and income taxes | Footer; fund pages (net-of-fees funds) | Net of which fees (management fee, expenses, MER). Series shown per fund. Annualization (the site annualizes periods of 12 months and more; periods under one year are not annualized). |
 | 4 | Benchmark (`benchmark`): broad-based FTSE Canada index, comparison only, not investable | Footer; fund pages with a benchmark | Benchmark names. Monthly Income: FTSE Canada Short Term Corporate (`short_corp`). All index figures are computed from FTSE data, so they can differ from older factsheets, which used the XSB/XBB ETFs before May 2026. SEB: FTSE Canada Universe. Is "broad-based" accurate? |
 | 5 | Performance before the fund's launch (`preInception`): Monthly Income launched **2021-10-05**, strategy track record since **2019-01** | Footer; Monthly Income page → *disclosure* (unless an admin performance note replaces it) | Both dates. Do other funds (SEB, Multi-Strategy) show pre-launch history? If so, add them to `FUND_INCEPTION`. Is the pre-launch series net of the fund's current fees? Is showing it permitted under the sales-communication rules? |
 | 6 | GMV gross of fees (`gmvGross`): managed accounts, not a fund; client returns reduced by fees | Footer; GMV page → hero + *disclosure* | Gross/net wording. Must a net series accompany it? The 6 % volatility-target variant is the one shown. |
@@ -63,7 +63,7 @@ They are **not** covered by the admin fingerprint banner above: review them here
 | L1 | Complaints policy phone number changed from **514-931-1138** to **514-985-1138** (the firm's number everywhere else) | `/legal#complaints-file` | Which number reaches the designated complaints officer. |
 | L2 | Headings in sentence case (e.g. "How to file a complaint"); wording unchanged | `/legal`, `/privacy` | None expected. |
 | L3 | **New section 3.3 "Service providers"** (section 3.2 referred to a 3.3 that did not exist): fund administrators, custodians, IT and cloud providers; written agreements; information may be stored outside Québec or Canada | `/privacy#privacy-use-3` | Entire text, EN and FR. Accuracy of the provider categories and of the outside-Québec statement. |
-| L4 | **New section 10 "Québec residents: Law 25"**: person in charge (the Designated Privacy Officer), access / rectification / withdrawal / portability rights, automated decisions, assessment before communication outside Québec, confidentiality incident register and CAI notification, this website's single language cookie, recourse to the Commission d'accès à l'information | `/privacy#privacy-quebec` | Entire text, EN and FR. Title and contact details of the person in charge must be published (Law 25); is it the Designated Privacy Officer or the CEO? Is a privacy impact assessment process in place for transfers outside Québec? |
+| L4 | **New section 10 "Québec residents: Law 25"** (retitled "Québec privacy law (Law 25)" on 2026-09-30, see below): person in charge (the Designated Privacy Officer), access / rectification / withdrawal / portability rights, automated decisions, assessment before communication outside Québec, confidentiality incident register and CAI notification, this website's single language cookie, recourse to the Commission d'accès à l'information | `/privacy#privacy-quebec` | Entire text, EN and FR. Title and contact details of the person in charge must be published (Law 25); is it the Designated Privacy Officer or the CEO? Is a privacy impact assessment process in place for transfers outside Québec? |
 | L5 | Section 7 now links the complaints policy (`/legal#complaints`); the legal page links the AMF and OBSI websites | `/privacy`, `/legal` | None expected. |
 
 Other page statements compliance may want to see (not boilerplate, written for the rebuild; facts only, no figures
@@ -76,11 +76,146 @@ other than counts computed from `src/data/team.ts`):
   signatory since 2018, Tobacco-Free Finance Pledge 2024. The old ESG metrics, green-bond allocation chart and "PRI
   alignment scorecard" percentages were placeholders and were removed.
 - `/approach` (`copy-approach.ts`): the protection overlay text and its two footnotes reuse the deck's wording
-  ("has typically buffered bond drawdowns when volatility rises", futures margin "about 5 to 10 %"); the macro
+  (futures margin "about 5 to 10 %"; the "has typically buffered bond drawdowns" claim was replaced on 2026-09-30, see below); the macro
   system is described as "rebalanced every six months".
 - `/team` (`copy-about.ts`): milestones shown are only those backed by another source in the repository (2013
   founding, 2018 PRI, 2021 Monthly Income launch from `FUND_INCEPTION`, 2023 Dans la rue, 2024 tobacco-free pledge,
   2025 Mageska partnership). The old timeline's AUM figures, the 2019/2023 fund launch years and the 2020 merger were
   left out (inconsistent or unverified).
 - `/contact` (`copy-contact.ts`): office hours (Monday to Friday, 8:30 to 5:00 ET) and "reply within one business
-  day" come from the previous site. Advisors described as "registered with CIRO or the CSA" (the old site said IIROC).
+  day" come from the previous site. Advisors described as "registered with CIRO or a provincial securities regulator" (the old site said IIROC; "or the CSA" replaced on 2026-09-30).
+
+## Website copy review 2026-09-30
+
+A copy and compliance review of every public page (review items A1–A15, B, C) was applied on branch `fix/copy`.
+Everything below is **pending compliance approval**. Items marked *changed* were rewritten; items marked *flag only*
+were left as they are because they are Gabriel's or compliance's decision. Nothing new was asserted: claims that could
+not be substantiated were softened to "designed to" statements or removed.
+
+### A. Must-fix items
+
+- [ ] **A1 (flag only, compliance risk).** Sustainable Enhanced Bonds: the performance shown is the dataplatform
+  `STRATEGY_H` (class/series H) track record, labelled **series F** on the site (Gabriel's decision 2026-09-29, "class
+  F/FP for all funds", `src/config/funds.ts`). Presenting one series' returns under another series' name is a
+  sales-communication risk unless the series have identical fees and history. Decide: show the H series as H, compute
+  F, or keep with a note. *Changed:* the returns disclaimer now says "series" / « série » like the UI (it said
+  "class" / « catégorie »).
+- [ ] **A2 (flag only).** Monthly Income shows the strategy track record from **January 2019**, before the fund's
+  launch on **2021-10-05** (`FUND_INCEPTION`, `preInception` disclaimer). Confirm this is permitted under NI 81-102
+  Part 15 (standard periods 1, 3, 5, 10 years and since inception; no performance for a fund in existence < 12
+  months; pre-launch history of another account). Since-inception returns under 12 months are shown cumulative
+  (`strategies-copy.ts` note). *Changed:* the disclaimer review note and row 3 above now match the code
+  (annualized from 12 months, not "2 years and more").
+- [ ] **A3 (flag + disclosure added).** Global Minimum Volatility returns are **arithmetic** (sums of monthly returns
+  on notional exposure). *Changed:* the GMV gross disclaimer and the growth-chart caption now say "Returns are
+  arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth
+  chart is illustrative." (+ FR). **Confirm whether the series is actual accounts, a composite or a model**; a model
+  or hypothetical series must be labelled as such, and a net-of-fees series may be required.
+- [x] **A4 (changed).** The RBC fund-study ranking news item was removed: a fund ranking needs the NI 81-102
+  s. 15.3(4) details (ranking entity, category, number of funds, period, date), which we do not have. Re-add only
+  with those details and compliance approval.
+- [ ] **A5 (changed).** "Capital preservation" / "protection" wording replaced with risk-control wording that does
+  not imply a guarantee ("Risk control — Each strategy operates within explicit risk limits and may use hedging;
+  this does not eliminate the risk of loss."). The past-performance claim "has typically buffered bond drawdowns"
+  became "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may
+  not do so and can lose money". "Uncorrelated" stated as fact became "designed to have low correlation" (funds.ts,
+  fund pages, approach, solutions, home, news). The leverage disclosure ("The overlay adds leveraged futures
+  exposure; its losses add to those of the underlying portfolio and may require additional margin.") was added
+  wherever the overlay is described. "Only require a margin deposit" lost its "only". The "capital stays invested"
+  statement is now "Most of the capital stays invested in the underlying portfolio" everywhere (it said "fully
+  invested" / "100 %" in places), and the approach diagram label "Bonds, 100% of capital" became "Bonds".
+  **Confirm:** margin deposit "about 5 to 10 % of exposure"; "most of the capital stays invested"; the target
+  downside volatilities 3 %, 6 %, 9 %; the approach footnote \* (deck, "historical observations") still fits the new
+  design-language sentence.
+- [ ] **A6 (changed).** Monthly Income tagline "Steady monthly income…" → "Monthly income from short-term corporate
+  bonds"; "Distributions are not guaranteed, may change and may include a return of capital." added where monthly
+  income / distributions are promoted (fund description, summary, "Monthly distributions" card). Multi-Strategy
+  low-volatility sleeve "steady returns … a stable base" → "Seeks returns with lower volatility". **Confirm** the
+  return-of-capital sentence matches the fund's distribution policy.
+- [ ] **A7 (changed).** ESG scope limited to the bond selection processes, with the futures-overlay exception stated
+  (sustainability hero, principles, integration, exclusions, SEB feature). Tobacco: "excluded from all portfolios" →
+  "from the securities we select directly" (sustainability, about, news). "Fossil fuel production" → "Coal and oil
+  sands"; "What we do not finance" → "Our exclusions"; "certified green bonds" → "green bonds labelled under
+  recognized frameworks such as the ICMA Green Bond Principles". **Confirm:** the exclusion list and thresholds
+  (> 5 % of revenue, MSCI "severe") per fund and mandate; whether the Multi-Strategy fund applies them; that
+  exchange-traded futures are indeed outside the exclusions; "we report on our progress every year" (kept once, in
+  "Accountability"; removed from the 2018 milestone) is accurate for the PRI reporting cycle.
+- [x] **A8 (changed).** "UN PRI" / « PRI de l'ONU » → "PRI signatory since 2018" / « Signataire des PRI depuis 2018 »;
+  running text "the UN-supported Principles for Responsible Investment (PRI)".
+- [ ] **A9 (changed).** "registered with CIRO or the CSA" → "registered with CIRO or a provincial securities
+  regulator" (FR « inscrits auprès de l'OCRI ou d'une autorité provinciale en valeurs mobilières »), solutions and
+  contact form.
+- [ ] **A10 (changed + flag).** Approach copy made consistent: "systematic, with human oversight" (hero, philosophy,
+  System 2 "Method", home "Systematic construction" card). System 2 was described as "Systematic and discretionary".
+  **Confirm** how final security selection works (is there a discretionary override?). **Flag for Gabriel:** the
+  Multi-Strategy track record is the analytics series "Nymbus Multistrategy (Inc. discretionary strats history)",
+  which includes discretionary strategies, while the fund is described as combining systematic, rules-based
+  strategies.
+- [ ] **A11 (changed + flag).** The French pages used the mixed-language name "Nymbus Global Minimum Volatilité".
+  The English proper name "Nymbus Global Minimum Volatility" is now used in both languages (funds.ts, fund page,
+  disclaimers, e2e). **Confirm** there is no official French name. Note for the code fixer: the French meta
+  description in `src/app/(site)/strategies/page.tsx` still says "Global Minimum Volatilité".
+- [ ] **A12 (changed).** Privacy policy: the intro cites PIPEDA and Québec's Act respecting the protection of personal
+  information in the private sector; section 10 retitled "Québec privacy law (Law 25)" and applies to all personal
+  information we hold; one title everywhere, "Person in charge of the protection of personal information" / « responsable
+  de la protection des renseignements personnels » (was "Chief Privacy Officer", "Designated Privacy Officer",
+  « RPRP »); 30-day written response; privacy concerns go to the person in charge, then the CAI (cai.gouv.qc.ca) and
+  the Office of the Privacy Commissioner of Canada (priv.gc.ca); governance-policies publication statement;
+  cessation of dissemination / de-indexation right (s. 28.1); cookie sentence ("a single cookie, which remembers your
+  language preference, and no technology that allows you to be identified, located or profiled"). **Confirm:** who the
+  person in charge is (title and contact details must be published; CEO by default under Law 25 unless delegated in
+  writing); that this policy is the published governance-policy summary; the 30-day commitment for all requests.
+  **Effective date:** kept "July 1, 2025"; the page has no "last updated" slot, so a "Last updated: 2026-09-30"
+  line needs either a code change (LegalDoc field) or a new effective date chosen by compliance.
+- [ ] **A13 (changed).** Complaints policy: AMF step reworded to "ask us to transfer your complaint file to the AMF,
+  which can examine it and offer dispute resolution services" (+ FR) with the AMF contact (1 877 525-0337,
+  lautorite.qc.ca); OBSI: the 90-day rule, "mainly for clients who live outside Québec", full French name
+  « Ombudsman des services bancaires et d'investissement (OSBI) », French phone formats « 416 287-2877 ou
+  1 888 451-4519 (sans frais) ». **Confirm** Nymbus' OBSI membership and that the 90-day / 180-day wording matches
+  the firm's policy; the effective date (July 1, 2025) given the wording changes.
+- [x] **A14 (changed).** French typography: U+00A0 before « : », « % », « $ », inside « », and in amounts
+  (« 10 000 $ », « 5 à 10 % »); Québec convention kept (no space before ; ? !). Enforced by
+  `tests/unit/site/copy-typography.test.ts` over every copy module. Labels assembled in components (e.g.
+  "Rendements présentés: …" in `src/components/fund/*.tsx`) are code, not checked by the test.
+- [x] **A15 (changed).** Jean Turmel FR bio: « Financière Banque Nationale » (was « Banque Nationale Investissements »).
+
+### B. Terminology and tone (changed)
+
+- [ ] French terms: « bureau de gestion familiale » (not "family office"); « DDA » / « Depuis le début de l'année »
+  (not « Cumul annuel » / « AAJ »); « Classe d'actifs »; « Placement minimal »; « placement » for securities
+  (« Processus de placement », « Solutions de placement », « équipe de placement », « Méthodologie de placement »);
+  « après / avant déduction des frais » (not « nets / bruts de frais », also in the disclaimer basis labels);
+  « obligations de sociétés » (the Monthly Income benchmark name « Indice FTSE Canada des obligations corporatives à
+  court terme » was left as is — **confirm the official FTSE French index name**); « Rendements sur périodes mobiles »; « Caractéristiques du fonds » / "Key facts" (not "Fund facts",
+  which is the regulatory document); « Frais et charges »; « chaîne de traitement »; « validation progressive
+  (walk-forward) »; « stratégies de superposition »; « Socle »; « Tous les six mois »; « communiquer avec »;
+  « service »; « renseignements »; « vérification diligente »; « recueillons »; « En vigueur depuis le »;
+  « chef de la conformité ». Straight quotes and apostrophes → typographic.
+- [ ] Puffery and unsourced figures removed or softened: Mageska news (no "known for rigorous risk management",
+  no return-potential claim), Watson/Jeopardy aside, "invaluable", "Ready to get started?", "scientifically
+  enhanced", "diversified alpha sources", "They will appear shortly", "eight million deaths" / "billions every
+  year" (tobacco news), "billions of data points", "decades of experience".
+- [ ] One firm descriptor: "systematic fixed income and alternative strategies" (home, about, footer; was also
+  "multi-asset"), and "portfolio manager" (the registration category) rather than "investment manager".
+- [ ] Dead i18n keys removed (`nav.theme.*`, `ui.chapter`); "nav as of" → "NAV as of".
+
+### C. Facts to confirm (not changed)
+
+The review's section C was not included in the brief; this list is compiled from the statements in the copy.
+
+- [ ] Founding in **2013** by Marc Rivet and Gabriel Cefaloni; PRI signatory since **2018**; Tobacco-Free Finance
+  Pledge **2024-04-23**; Dans la rue partnership **2023-10-03** (and "since 1988" for Dans la rue); Mageska
+  partnership **2025-01-28** ("a portion of the Mageska Fund", portable alpha).
+- [ ] Monthly Income launch **2021-10-05**, strategy track record since **2019-01**; Multi-Strategy and SEB launch
+  dates and whether they show pre-launch history.
+- [ ] Fondaction: "Québec labour-sponsored fund" that "entrusted Nymbus with sustainable bond mandates".
+- [ ] Dealer platforms: National Bank Financial, RBC Dominion Securities, iA Financial Group; funds "available on
+  FundServ"; "daily NAVs"; QEMP (Innocap) client list and logos.
+- [ ] Futures margin "about 5 to 10 % of exposure"; GMV target downside volatility 3 %, 6 %, 9 % (6 % shown);
+  System 1 "rebalanced every six months"; System 2 "continuous, on alerts".
+- [ ] Exclusion thresholds and providers (5 % of revenue: coal, oil sands, thermal coal power; MSCI "severe"
+  controversies; controversial weapons list); SEB green bonds; monthly carbon-intensity reporting.
+- [ ] Team bios: Jean Turmel (NBF Financial Markets, OTPP chair, Diamond Jubilee Medal); Jean-Luc Landry ("over five
+  decades", Montrusco Bolton, AIMCo, GardaWorld); team counts (PhDs, CFA charterholders) computed from `team.ts`.
+- [ ] Contact: office hours (8:30 to 5:00 ET), "reply within one business day", complaints officer phone (L1).
+- [ ] Complaints: 10 / 60 / 30 / 15 / 180 / 90 days, OBSI limit $350,000, AMF phone 1 877 525-0337.

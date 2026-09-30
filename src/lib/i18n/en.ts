@@ -23,15 +23,10 @@ export const en = {
   "nav.homeLink": "Nymbus Capital, home",
   "nav.lang": "Language",
   "nav.langSwitch": "Afficher le site en français",
-  "nav.theme": "Theme",
-  "nav.theme.light": "Light theme",
-  "nav.theme.dark": "Dark theme",
-  "nav.theme.system": "System theme",
-  "nav.theme.next": "Switch theme (current: {mode})",
 
   // footer
   "footer.tagline": "Scientific investing",
-  "footer.description": "Montreal-based quantitative investment manager building systematic fixed income and multi-asset strategies with scientific rigour.",
+  "footer.description": "Montreal portfolio manager building systematic fixed income and alternative strategies.",
   "footer.about": "About & team",
   "footer.strategies": "Strategies",
   "footer.firm": "Company",
@@ -50,15 +45,14 @@ export const en = {
 
   // shared UI
   "ui.soon": "Figures coming soon",
-  "ui.soonLong": "Performance figures are published here once validated. They will appear shortly.",
+  "ui.soonLong": "Performance figures are published here once validated.",
   "ui.sample": "Sample data",
   "ui.sampleLong": "Illustrative figures only, not actual performance.",
   "ui.asOf": "as of {date}",
-  "ui.navAsOf": "nav as of {date}",
+  "ui.navAsOf": "NAV as of {date}",
   "ui.learnMore": "Learn more",
   "ui.close": "Close",
   "ui.explore": "Explore",
-  "ui.chapter": "next chapter",
 } as const;
 
 export type DictKey = keyof typeof en;

@@ -20,15 +20,10 @@ export const fr: Record<DictKey, string> = {
   "nav.homeLink": "Nymbus Capital, accueil",
   "nav.lang": "Langue",
   "nav.langSwitch": "View the site in English",
-  "nav.theme": "Thème",
-  "nav.theme.light": "Thème clair",
-  "nav.theme.dark": "Thème sombre",
-  "nav.theme.system": "Thème du système",
-  "nav.theme.next": "Changer de thème (actuel : {mode})",
 
   // footer
   "footer.tagline": "Investissement scientifique",
-  "footer.description": "Gestionnaire de placements quantitatif établi à Montréal, qui conçoit des stratégies systématiques de revenu fixe et multi-actifs avec rigueur scientifique.",
+  "footer.description": "Gestionnaire de portefeuille établi à Montréal, qui conçoit des stratégies systématiques de revenu fixe et alternatives.",
   "footer.about": "À propos et équipe",
   "footer.strategies": "Stratégies",
   "footer.firm": "Entreprise",
@@ -47,7 +42,7 @@ export const fr: Record<DictKey, string> = {
 
   // shared UI
   "ui.soon": "Chiffres à venir",
-  "ui.soonLong": "Les chiffres de performance sont publiés ici une fois validés. Ils apparaîtront sous peu.",
+  "ui.soonLong": "Les rendements sont publiés ici une fois validés.",
   "ui.sample": "Données fictives",
   "ui.sampleLong": "Chiffres illustratifs seulement, pas des rendements réels.",
   "ui.asOf": "au {date}",
@@ -55,5 +50,4 @@ export const fr: Record<DictKey, string> = {
   "ui.learnMore": "En savoir plus",
   "ui.close": "Fermer",
   "ui.explore": "Explorer",
-  "ui.chapter": "prochain chapitre",
 };

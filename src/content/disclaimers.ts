@@ -57,11 +57,11 @@ const RETURNS_NET: Text = {
   en:
     "The indicated rates of return are the historical annual compounded total returns, net of fees, including changes in unit value and reinvestment of all distributions, " +
     "and do not take into account sales, redemption, distribution or optional charges or income taxes payable by any securityholder that would have reduced returns. " +
-    "Returns are in Canadian dollars for the class shown; periods of less than one year are not annualized.",
+    "Returns are in Canadian dollars for the series shown; periods of less than one year are not annualized.",
   fr:
-    "Les taux de rendement indiqués sont les rendements totaux annuels composés historiques, nets de frais, qui tiennent compte des fluctuations de la valeur des parts et du réinvestissement de toutes les distributions; " +
+    "Les taux de rendement indiqués sont les rendements totaux annuels composés historiques, après déduction des frais, qui tiennent compte des fluctuations de la valeur des parts et du réinvestissement de toutes les distributions; " +
     "ils ne tiennent pas compte des frais d’acquisition, de rachat, de placement ou des frais optionnels ni de l’impôt sur le revenu payable par un porteur, qui auraient réduit le rendement. " +
-    "Les rendements sont exprimés en dollars canadiens pour la catégorie indiquée; les périodes de moins d’un an ne sont pas annualisées.",
+    "Les rendements sont exprimés en dollars canadiens pour la série indiquée; les périodes de moins d’un an ne sont pas annualisées.",
 };
 
 const BENCHMARK: Text = {
@@ -76,7 +76,7 @@ const BENCHMARK: Text = {
 const PRE_INCEPTION = (f: { fundLaunch: Text; strategySince: Text }): Text => ({
   en:
     `The Nymbus Monthly Income Fund was launched on ${f.fundLaunch.en}. Performance shown for periods before that date reflects the track record of the same investment strategy as managed by Nymbus Capital since ${f.strategySince.en}; ` +
-    "it is not the performance of the fund, and the fund's returns may have differed had it existed during that period.",
+    "it is not the performance of the fund, and the fund’s returns may have differed had it existed during that period.",
   fr:
     `Le Fonds Nymbus Revenu Mensuel a été lancé le ${f.fundLaunch.fr}. Les rendements présentés pour les périodes antérieures à cette date correspondent à ceux de la même stratégie de placement gérée par Nymbus Capital depuis ${f.strategySince.fr}; ` +
     "il ne s’agit pas des rendements du fonds, et ceux-ci auraient pu être différents si le fonds avait existé durant cette période.",
@@ -85,10 +85,12 @@ const PRE_INCEPTION = (f: { fundLaunch: Text; strategySince: Text }): Text => ({
 const GMV_GROSS: Text = {
   en:
     "Nymbus Global Minimum Volatility is a strategy offered through separately managed accounts; it is not an investment fund. " +
-    "Its returns are shown gross of management fees and other expenses, which reduce client returns; actual client returns vary by account.",
+    "Its returns are shown gross of management fees and other expenses, which reduce client returns; actual client returns vary by account. " +
+    "Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.",
   fr:
-    "Nymbus Global Minimum Volatilité est une stratégie offerte au moyen de comptes gérés distincts; il ne s’agit pas d’un fonds d’investissement. " +
-    "Ses rendements sont présentés avant déduction des frais de gestion et des autres frais, lesquels réduisent le rendement des clients; le rendement réel varie d’un compte à l’autre.",
+    "Nymbus Global Minimum Volatility est une stratégie offerte au moyen de comptes gérés distincts; il ne s’agit pas d’un fonds d’investissement. " +
+    "Ses rendements sont présentés avant déduction des frais de gestion et des autres frais, lesquels réduisent le rendement des clients; le rendement réel varie d’un compte à l’autre. " +
+    "Les rendements sont arithmétiques (sommes simples des rendements mensuels sur l’exposition notionnelle, non composés) et avant déduction des frais; le graphique de croissance est illustratif.",
 };
 
 const FTSE: Text = {
@@ -98,24 +100,24 @@ const FTSE: Text = {
     "Neither LSE Group nor its licensors accept any liability for any errors or omissions in the indexes or data and no party may rely on any indexes or data contained in this communication. " +
     "No further distribution of data from the LSE Group is permitted without the relevant LSE Group company’s express written consent. The LSE Group does not promote, sponsor or endorse the content of this communication.",
   fr:
-    "Source : London Stock Exchange Group plc et les entreprises de son groupe (collectivement, le « Groupe LSE »). © Groupe LSE. FTSE Russell est une dénomination commerciale de certaines sociétés du Groupe LSE. " +
-    "« FTSE® » est une marque de commerce des sociétés concernées du Groupe LSE, utilisée sous licence par toute autre société du Groupe LSE. Tous les droits sur les indices ou les données FTSE Russell appartiennent à la société du Groupe LSE qui en est propriétaire. " +
+    "Source : London Stock Exchange Group plc et les entreprises de son groupe (collectivement, le « Groupe LSE »). © Groupe LSE. FTSE Russell est une dénomination commerciale de certaines sociétés du Groupe LSE. " +
+    "« FTSE® » est une marque de commerce des sociétés concernées du Groupe LSE, utilisée sous licence par toute autre société du Groupe LSE. Tous les droits sur les indices ou les données FTSE Russell appartiennent à la société du Groupe LSE qui en est propriétaire. " +
     "Ni le Groupe LSE ni ses concédants de licence n’assument de responsabilité à l’égard d’erreurs ou d’omissions dans les indices ou les données, et nul ne peut se fier aux indices ou aux données contenus dans la présente communication. " +
     "Toute autre diffusion de données du Groupe LSE est interdite sans le consentement écrit exprès de la société concernée du Groupe LSE. Le Groupe LSE ne promeut, ne parraine ni n’approuve le contenu de la présente communication.",
 };
 
 const SUMMARY_NET: Text = {
   en: "Net of fees, in CAD. Past performance may not be repeated. See the important information below.",
-  fr: "Nets de frais, en CAD. Le rendement passé pourrait ne pas se reproduire. Voir les renseignements importants ci-dessous.",
+  fr: "Après déduction des frais, en CAD. Le rendement passé pourrait ne pas se reproduire. Voir les renseignements importants ci-dessous.",
 };
 
 const SUMMARY_GROSS: Text = {
   en: "Global Minimum Volatility returns are gross of fees (managed accounts, not a fund).",
-  fr: "Les rendements de Global Minimum Volatilité sont bruts de frais (comptes gérés, pas un fonds).",
+  fr: "Les rendements de Global Minimum Volatility sont présentés avant déduction des frais (comptes gérés, pas un fonds).",
 };
 
-const BASIS_NET: Text = { en: "net of fees", fr: "net de frais" };
-const BASIS_GROSS: Text = { en: "gross of fees · managed accounts, not a fund", fr: "brut de frais · comptes gérés, pas un fonds" };
+const BASIS_NET: Text = { en: "net of fees", fr: "après déduction des frais" };
+const BASIS_GROSS: Text = { en: "gross of fees · managed accounts, not a fund", fr: "avant déduction des frais · comptes gérés, pas un fonds" };
 
 const SAMPLE: Text = {
   en: "The figures on this page are illustrative sample data used while the data platform is not connected. They are not the actual returns of the fund.",
@@ -150,7 +152,7 @@ export const DISCLAIMERS: Disclaimer[] = [
     label: "Definition of the rates of return (net of fees)",
     text: RETURNS_NET,
     where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages (net-of-fees funds), disclosure", href: "/strategies/sustainable-enhanced-bonds#disclosure" }],
-    review: ["Net of which fees (management fee, fund expenses, MER)? Class shown per fund (F class?).", "Annualization convention matches the site (periods of 2 years and more annualized)."],
+    review: ["Net of which fees (management fee, fund expenses, MER)? Series shown per fund (series F / FP; SEB's track record is the STRATEGY_H series labelled F).", "Annualization convention matches the site: periods of 12 months and more are annualized (since inception annualized once the track record covers 12 months); periods under one year are not annualized. Standard periods (1, 3, 5, 10 years and since inception) per NI 81-102 Part 15."],
   },
   {
     id: "benchmark",
@@ -175,7 +177,7 @@ export const DISCLAIMERS: Disclaimer[] = [
     label: "Global Minimum Volatility: gross of fees, managed accounts, not a fund",
     text: GMV_GROSS,
     where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "GMV strategy page, hero + disclosure", href: "/strategies/global-minimum-volatility#disclosure" }],
-    review: ["Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).", "Target volatility variant shown (6 %)."],
+    review: ["Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).", "Target volatility variant shown (6 %).", "Arithmetic-returns sentence added 2026-09-30. Is the series actual accounts, a composite or a model? If model/hypothetical, it must be labelled as such."],
   },
   {
     id: "ftse",

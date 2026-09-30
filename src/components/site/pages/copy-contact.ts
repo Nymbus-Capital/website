@@ -2,14 +2,14 @@
  * /contact copy, EN / FR (previous site's contact page, with its three-step form: investor type, interests,
  * contact details). The form has no backend: it prepares an email in the visitor's mail app.
  */
-import { l, type L } from "@/lib/i18n/config";
+import { l, type L } from "../../../lib/i18n/config.ts";
 
 export const CT = {
   meta: {
     title: l("Contact", "Nous joindre"),
     description: l(
       "Contact Nymbus Capital in Montreal: office address, phone, email, and a short form that prepares your message.",
-      "Joignez Nymbus Capital à Montréal : adresse du bureau, téléphone, courriel, et un court formulaire qui prépare votre message.",
+      "Joignez Nymbus Capital à Montréal : adresse du bureau, téléphone, courriel, et un court formulaire qui prépare votre message.",
     ),
   },
   hero: {
@@ -34,7 +34,7 @@ export const CT = {
     profiles: [
       { v: "Institutional investor", t: l("Institutional investor", "Investisseur institutionnel"), d: l("Pension funds, foundations, endowments, insurers", "Caisses de retraite, fondations, fonds de dotation, assureurs") },
       { v: "Family office", t: l("Family office", "Bureau de gestion familiale"), d: l("Single and multi-family offices", "Bureaux unifamiliaux et multifamiliaux") },
-      { v: "Financial advisor", t: l("Financial advisor", "Conseiller en placement"), d: l("Advisors registered with CIRO or the CSA", "Conseillers inscrits auprès de l’OCRI ou des ACVM") },
+      { v: "Financial advisor", t: l("Financial advisor", "Conseiller en placement"), d: l("Advisors registered with CIRO or a provincial securities regulator", "Conseillers inscrits auprès de l’OCRI ou d’une autorité provinciale en valeurs mobilières") },
       { v: "Other", t: l("Other", "Autre"), d: l("Individual investors, media, partners", "Particuliers, médias, partenaires") },
     ] as { v: string; t: L; d: L }[],
     custom: l("Custom mandate", "Mandat sur mesure"),
@@ -57,7 +57,7 @@ export const CT = {
     },
     note: l(
       "This form does not send or store anything: it prepares an email to info@nymbus.ca in your mail app. Please do not include account numbers or other sensitive information.",
-      "Ce formulaire n’envoie et n’enregistre rien : il prépare un courriel à info@nymbus.ca dans votre application de courriel. N’y indiquez pas de numéros de compte ni d’autres renseignements sensibles.",
+      "Ce formulaire n’envoie et n’enregistre rien : il prépare un courriel à info@nymbus.ca dans votre application de courriel. N’y indiquez pas de numéros de compte ni d’autres renseignements sensibles.",
     ),
     ready: l("Your email is ready", "Votre courriel est prêt"),
     readyD: l("Your mail app should have opened with the message. If it didn’t, use the button below or write to info@nymbus.ca.", "Votre application de courriel devrait s’être ouverte avec le message. Sinon, utilisez le bouton ci-dessous ou écrivez à info@nymbus.ca."),
