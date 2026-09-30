@@ -11,6 +11,9 @@
 /* the legacy deck stylesheet (site.css, still loaded by the layout) shrinks the gutter to 8px on phones, makes
    page heroes 88svh tall and greys their lead: undo that on these pages */
 body:has(.pg) { --gutter: clamp(16px, 4vw, 40px); }
+/* site.css also sets .nav { pointer-events: none } (its old floating pill re-enabled them): the new nav was unclickable */
+body:has(.pg) .nav { pointer-events: auto; }
+body:has(.pg) :is(.nav-links a, .menu-links a, .menu-funds a) { text-transform: none; }
 .pg .page-hero { min-height: 0; padding-bottom: clamp(56px, 7vw, 96px); }
 .pg .page-hero .lead { color: var(--ink2); }
 .pg .page-hero > svg { opacity: .9; }
