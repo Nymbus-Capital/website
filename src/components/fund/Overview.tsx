@@ -16,6 +16,8 @@ import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, headlineClass, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }
 
 const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
@@ -43,9 +45,9 @@ export function Overview({ spec, content, data, lang }: Props) {
           </Block>
           <Block title={tr(T.overview.returns, lang)} testId="overview-returns"
             aside={rows.length ? <a className="link" href="#performance">{tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" /></a> : null}
-            lead={rows.length && perf ? <>{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}</> : null}>
+            lead={rows.length && perf ? <>{cl ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}` : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}</> : null}>
             {rows.length ? (
-              <div className="scroll-x">
+              <div className="fx-scroll">
                 <table className="table ft-table">
                   <caption className="sr-only">{tr(T.overview.returns, lang)}</caption>
                   <thead>
@@ -103,7 +105,7 @@ function FactsCard({ spec, content, data, lang }: Props) {
     [tr(T.facts.currency, lang), currencies.length ? currencies.join(", ") : null],
     [tr(T.facts.series, lang), classes.length ? sortedClasses(classes, null).map((c) => c.display).join(", ") : null],
     [tr(T.facts.risk, lang), tr(T.header.levels[riskIndex(content.riskRating ?? spec.defaults.riskRating)], lang)],
-    [tr(T.facts.basis, lang), perf ? tr(gross ? T.nav.grossBasis : T.disclosure.basisNet, lang) : null],
+    [tr(T.facts.basis, lang), perf ? tr(gross ? T.nav.grossBasis : T.nav.netBasis, lang) : null],
     [tr(T.facts.distributions, lang), content.distributions ? firstSentence(tr(content.distributions, lang)) : null],
     [tr(T.facts.minInvestment, lang), content.minInvestment],
     [tr(T.facts.aum, lang), aum ? `${bigMoney(aum.cad, lang)} (${dateLabel(aum.asOf, lang)})` : null],
@@ -149,7 +151,7 @@ function SeriesTable({ spec, content, data, lang }: Props) {
   const classes = sortedClasses(all, hl?.fundserv);
   return (
     <Block title={tr(T.overview.series, lang)} className="fxov-wide" testId="series">
-      <div className="scroll-x">
+      <div className="fx-scroll">
         <table className="table ft-table ft-classes" data-testid="classes-table">
           <caption className="sr-only">{tr(T.overview.series, lang)}</caption>
           <thead>

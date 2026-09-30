@@ -48,6 +48,7 @@ export const T = {
     vehicleAccounts: l("Separately managed accounts", "Comptes gérés distincts"),
     basis: l("Returns", "Rendements"),
     grossBasis: l("Gross of fees", "Bruts de frais"),
+    netBasis: l("Net of fees", "Nets de frais"),
   },
   badges: {
     title: l("Returns", "Rendements"),

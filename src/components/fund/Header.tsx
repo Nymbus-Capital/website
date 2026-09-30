@@ -17,6 +17,8 @@ import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, type Lang } from "./l
 import { benchmarkLabel, headlineClass, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS, sortedClasses } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean }
 
 export function FundHeader({ spec, content, data, lang, sample }: Props) {
@@ -185,7 +187,7 @@ export function ReturnStrip({ spec, content, data, lang }: { spec: FundSpec; con
             <h2 id="fr-title" className="fr-title">{tr(T.badges.title, lang)}</h2>
             {badges.length && perf ? (
               <p className="fr-sub" data-testid="basis">
-                {cl ? <>{cl}, </> : null}{basis} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+                {cl ? <>{cl}, {basis}</> : cap(basis)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
               </p>
             ) : null}
           </div>

@@ -42,7 +42,7 @@ export function Heatmap({ monthly, calendar, lang, labels, caption }: HeatmapPro
   return (
     <div ref={ref} className="fx-chart" onPointerLeave={() => setTip(null)}>
       {near ? (
-        <div className="scroll-x">
+        <div className="fx-scroll">
           <table ref={tableRef} className="fx-hm" style={{ minWidth: 320 }}>
             <caption className="sr-only">{caption}</caption>
             <thead>

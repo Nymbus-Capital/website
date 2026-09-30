@@ -91,7 +91,7 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
       {rows.some((r) => r.annualized) ? <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
       <details className="fx-details">
         <summary>{tr(T.perf.table, lang)}</summary>
-        <div className="scroll-x">
+        <div className="fx-scroll">
           <table className="table ft-table" data-testid="trailing-table">
             <caption className="sr-only">{tr(T.perf.trailing, lang)}</caption>
             <thead><tr><th scope="col">{tr(T.perf.period, lang)}</th><th scope="col">{names.fund}</th>{hasIndex ? <th scope="col">{names.index}</th> : null}{hasVa ? <th scope="col">{names.va}</th> : null}</tr></thead>
@@ -125,7 +125,7 @@ function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
       <GroupedBars cats={cats} names={names} lang={lang} label={tr(T.perf.calendar, lang)} height={340} values={rows.length <= 10} />
       <details className="fx-details">
         <summary>{tr(T.perf.table, lang)}</summary>
-        <div className="scroll-x">
+        <div className="fx-scroll">
           <table className="table ft-table" data-testid="calendar-table">
             <caption className="sr-only">{tr(T.perf.calendar, lang)}</caption>
             <thead><tr><th scope="col">{tr(T.perf.year, lang)}</th><th scope="col">{names.fund}</th>{hasIndex ? <th scope="col">{names.index}</th> : null}{hasVa ? <th scope="col">{names.va}</th> : null}</tr></thead>
@@ -181,7 +181,7 @@ function RiskBlock({ windows, lang }: { windows: RiskStats[]; lang: Lang }) {
           );
         })}
         {typeof risk.positiveMonths === "number" ? (
-          <div className="rk-tile ring">
+          <div className="rk-tile rk-ring">
             <Ring value={risk.positiveMonths} lang={lang} label={tr(T.perf.positiveMonths, lang)} />
             <span className="rk-l">{tr(T.perf.positiveMonths, lang)}</span>
           </div>

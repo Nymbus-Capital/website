@@ -64,7 +64,7 @@ for (const f of FUNDS) {
     const strip = page.getByTestId("return-strip");
     await expect(strip.getByTestId("badge-SI")).toBeVisible();
     await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+\.\d{2}%$/);
-    await expect(page.getByTestId("basis")).toContainText(f.gross ? "gross of fees" : "net of fees");
+    await expect(page.getByTestId("basis")).toContainText(f.gross ? /gross of fees/i : /net of fees/i);
 
     // overview: facts, fees, returns table, team; series table for funds only
     await expect(page.getByTestId("fund-facts")).toBeVisible();

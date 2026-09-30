@@ -108,7 +108,7 @@ function HoldingsTable({ items, lang }: { items: { name: string; weight: number 
   return (
     <table className="table ft-table hd-table" data-testid="holdings-table">
       <caption className="sr-only">{tr(T.portfolio.holdings, lang)}</caption>
-      <thead><tr><th scope="col">#</th><th scope="col">{tr(T.portfolio.holding, lang)}</th><th scope="col" className="hd-bar-h"><span className="sr-only">{tr(T.portfolio.weight, lang)}</span></th><th scope="col">{tr(T.portfolio.weight, lang)}</th></tr></thead>
+      <thead><tr><th scope="col">#</th><th scope="col" className="hd-name">{tr(T.portfolio.holding, lang)}</th><th scope="col" className="hd-bar-h"><span className="sr-only">{tr(T.portfolio.weight, lang)}</span></th><th scope="col">{tr(T.portfolio.weight, lang)}</th></tr></thead>
       <tbody>
         {items.map((h, i) => (
           <tr key={`${h.name}-${i}`}>
