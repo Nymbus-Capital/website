@@ -23,9 +23,9 @@ export function DistributionsTab({ spec, content, lang }: { spec: FundSpec; cont
     <div className="container fp">
       <div className="ds-grid">
         <Block title={tr(T.dist.policy, lang)} testId="distributions">
-          {text ? <p className="fb-text" data-testid="distribution-policy">{text}</p>
-            : <p className="fb-text" data-testid="distribution-none">{tr(isFund ? T.dist.none : T.dist.noneStrategy, lang)}</p>}
-          {isFund ? <p className="fine fb-foot">{tr(T.dist.reinvest, lang)}</p> : null}
+          {text ? <p className="fxb-text" data-testid="distribution-policy">{text}</p>
+            : <p className="fxb-text" data-testid="distribution-none">{tr(isFund ? T.dist.none : T.dist.noneStrategy, lang)}</p>}
+          {isFund ? <p className="fine fxb-foot">{tr(T.dist.reinvest, lang)}</p> : null}
           <div className="actions sm">
             <a className="btn ghost sm" href={mailto(`${tr(spec.name, lang)} · ${tr(T.dist.title, lang)}`)}><Mail aria-hidden="true" />{tr(T.dist.ask, lang)}</a>
           </div>
@@ -83,7 +83,7 @@ export function DocumentsTab({ spec, docs, lang }: { spec: FundSpec; docs: FundD
         ) : null
       ) : (
         <Block title={tr(T.header.strategyDocuments, lang)} testId="documents-mandate">
-          <p className="fb-text">{tr(T.docs.strategyNote, lang)}</p>
+          <p className="fxb-text">{tr(T.docs.strategyNote, lang)}</p>
           <div className="actions sm"><Link className="btn sm" href="/contact">{tr(T.cta.contact, lang)} <ArrowRight className="arrow" aria-hidden="true" /></Link></div>
         </Block>
       )}

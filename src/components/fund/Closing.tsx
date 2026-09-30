@@ -57,20 +57,20 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
     data?.aum?.asOf && content.hide?.aum === false ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang)}` : null,
   ].filter(Boolean);
   return (
-    <section id="disclosure" className="section tight fd" aria-labelledby="fd-title">
+    <section id="disclosure" className="section tight fxd" aria-labelledby="fxd-title">
       <div className="container">
-        <div className="fd-grid">
+        <div className="fxd-grid">
           <div>
             <p className="eyebrow"><span className="mark" aria-hidden="true" />{tr(T.disclosure.eyebrow, lang)}</p>
-            <h2 id="fd-title" className="h3">{tr(T.disclosure.title, lang)}</h2>
+            <h2 id="fxd-title" className="h3">{tr(T.disclosure.title, lang)}</h2>
           </div>
-          <div className="fd-body">
-            {sample ? <p className="fd-sample">{tr(T.disclosure.sample, lang)}</p> : null}
+          <div className="fxd-body">
+            {sample ? <p className="fxd-sample">{tr(T.disclosure.sample, lang)}</p> : null}
             {content.performanceNote && (content.performanceNote.en || content.performanceNote.fr)
-              ? <p className="fd-note" data-testid="perf-note">{tr(content.performanceNote, lang)}</p>
-              : preLaunch ? <p className="fd-note" data-testid="perf-note">{tr(preLaunch, lang)}</p> : null}
+              ? <p className="fxd-note" data-testid="perf-note">{tr(content.performanceNote, lang)}</p>
+              : preLaunch ? <p className="fxd-note" data-testid="perf-note">{tr(preLaunch, lang)}</p> : null}
             {cl || perf ? (
-              <p className="fd-note" data-testid="perf-class">
+              <p className="fxd-note" data-testid="perf-class">
                 {tr(T.perf.classShown, lang)}: {cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}{perf?.indexName ? ` · ${tr(T.perf.index, lang)}: ${perf.indexName}` : ""}
               </p>
             ) : null}
@@ -79,7 +79,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
             {hasBenchmark ? <p>{tr(T.disclosure.index, lang)}</p> : null}
             <p data-testid="firm-disclaimer">{tr(firm, lang)}</p>
             {hasBenchmark ? <p className="fine" data-testid="ftse-notice">{tr(T.disclosure.ftse, lang)}</p> : null}
-            <p className="fd-prov" data-testid="provenance">
+            <p className="fxd-prov" data-testid="provenance">
               <span className="live-dot" aria-hidden="true" />
               <span>
                 {tr(T.disclosure.provenance, lang)}

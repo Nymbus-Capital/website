@@ -88,7 +88,7 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
       <div data-testid="trailing-chart">
         <GroupedBars cats={cats} names={names} lang={lang} label={tr(T.perf.trailing, lang)} height={340} />
       </div>
-      {rows.some((r) => r.annualized) ? <p className="fine fb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
+      {rows.some((r) => r.annualized) ? <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
       <details className="fx-details">
         <summary>{tr(T.perf.table, lang)}</summary>
         <div className="scroll-x">
@@ -196,8 +196,8 @@ function NotesBlock({ spec, content, perf, lang }: { spec: FundSpec; content: Fu
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   return (
     <Block title={tr(T.perf.notes, lang)} card={false} className="fp-notes" testId="perf-notes">
-      {note ? <p className="fb-text sm">{tr(note, lang)}</p> : null}
-      <p className="fb-text sm">{tr(gross ? T.disclosure.gross : T.disclosure.net, lang)}</p>
+      {note ? <p className="fxb-text sm">{tr(note, lang)}</p> : null}
+      <p className="fxb-text sm">{tr(gross ? T.disclosure.gross : T.disclosure.net, lang)}</p>
     </Block>
   );
 }

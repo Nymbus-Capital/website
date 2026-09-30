@@ -33,13 +33,13 @@ export function Overview({ spec, content, data, lang }: Props) {
 
   return (
     <div className="container fp">
-      <div className="ov-grid">
-        <div className="ov-main">
+      <div className="fxov-grid">
+        <div className="fxov-main">
           <Block title={tr(content.objective ? T.overview.objective : isFund ? T.overview.whatFund : T.overview.whatStrategy, lang)} card={false} testId="objective">
-            <p className="fb-text lg">{tr(content.objective ?? texts.summary, lang)}</p>
+            <p className="fxb-text lg">{tr(content.objective ?? texts.summary, lang)}</p>
           </Block>
           <Block title={tr(T.overview.approach, lang)} card={false}>
-            <p className="fb-text">{tr(texts.approach, lang)}</p>
+            <p className="fxb-text">{tr(texts.approach, lang)}</p>
           </Block>
           <Block title={tr(T.overview.returns, lang)} testId="overview-returns"
             aside={rows.length ? <a className="link" href="#performance">{tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" /></a> : null}
@@ -67,12 +67,12 @@ export function Overview({ spec, content, data, lang }: Props) {
                     ))}
                   </tbody>
                 </table>
-                {rows.some((r) => r.annualized) ? <p className="fine fb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
+                {rows.some((r) => r.annualized) ? <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
               </div>
             ) : <p className="notice">{tr(T.perf.none, lang)}</p>}
           </Block>
         </div>
-        <aside className="ov-side">
+        <aside className="fxov-side">
           <FactsCard spec={spec} content={content} data={data} lang={lang} />
           <FeesCard spec={spec} content={content} lang={lang} />
         </aside>
@@ -135,7 +135,7 @@ function FeesCard({ spec, content, lang }: { spec: FundSpec; content: FundConten
       {shown.length ? (
         <dl className="fdl">{shown.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       ) : null}
-      <p className={shown.length ? "fine fb-foot" : "fb-text sm"}>{tr(spec.vehicle === "fund" ? T.overview.feesNone : T.overview.feesNoneStrategy, lang)}</p>
+      <p className={shown.length ? "fine fxb-foot" : "fxb-text sm"}>{tr(spec.vehicle === "fund" ? T.overview.feesNone : T.overview.feesNoneStrategy, lang)}</p>
     </Block>
   );
 }
@@ -148,7 +148,7 @@ function SeriesTable({ spec, content, data, lang }: Props) {
   const hl = headlineClass(all, [content.headlineClass, spec.headlineClass]);
   const classes = sortedClasses(all, hl?.fundserv);
   return (
-    <Block title={tr(T.overview.series, lang)} className="ov-wide" testId="series">
+    <Block title={tr(T.overview.series, lang)} className="fxov-wide" testId="series">
       <div className="scroll-x">
         <table className="table ft-table ft-classes" data-testid="classes-table">
           <caption className="sr-only">{tr(T.overview.series, lang)}</caption>
@@ -197,7 +197,7 @@ function TeamBlock({ spec, content, lang }: { spec: FundSpec; content: FundConte
   const people = resolveManagers(content.managers, team);
   const isFund = spec.vehicle === "fund";
   return (
-    <Block title={tr(T.overview.team, lang)} className="ov-wide" testId="team"
+    <Block title={tr(T.overview.team, lang)} className="fxov-wide" testId="team"
       aside={<Link className="link" href="/team">{tr(T.overview.teamLink, lang)} <ArrowRight aria-hidden="true" /></Link>}>
       {people.length ? (
         <Reveal className="tm-grid" kind="pop" stagger={70}>
@@ -211,7 +211,7 @@ function TeamBlock({ spec, content, lang }: { spec: FundSpec; content: FundConte
             </Link>
           ))}
         </Reveal>
-      ) : <p className="fb-text sm">{tr(isFund ? T.overview.teamGeneric : T.overview.teamGenericStrategy, lang)}</p>}
+      ) : <p className="fxb-text sm">{tr(isFund ? T.overview.teamGeneric : T.overview.teamGenericStrategy, lang)}</p>}
     </Block>
   );
 }

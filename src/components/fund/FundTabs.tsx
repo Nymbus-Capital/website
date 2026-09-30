@@ -1,9 +1,10 @@
 "use client";
 /**
  * Sticky fund tabs (WAI-ARIA tabs, arrow keys, Home/End) synced with the URL hash (#performance), with the
- * v3 gradient underline sliding between tabs. Local variant of the kit <Tabs>: every panel is rendered (the
- * inactive ones `hidden`), so without JavaScript all the information stays on the page (html:not(.js) shows
- * them one after the other), and links such as <a href="#documents"> select a tab and scroll to it.
+ * v3 gradient underline sliding between tabs. Local variant of the kit <Tabs>: every panel is rendered and the
+ * inactive ones are hidden by CSS only once JS runs (`.js [data-off]`; not the `hidden` attribute, which the CSS
+ * reset forces with !important), so without JavaScript all the information stays on the page, one panel after the
+ * other; links such as <a href="#documents"> select a tab and scroll to it.
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { reducedMotion } from "@/components/v3/motion";
@@ -93,7 +94,7 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
       </div>
       {tabs.map((t) => (
         <div key={t.id} id={`${uid}-panel-${t.id}`} role="tabpanel" aria-labelledby={`${uid}-tab-${t.id}`} className="ft-panel" data-panel={t.id}
-          hidden={t.id !== active} tabIndex={-1}>
+          data-off={t.id !== active ? "" : undefined} tabIndex={-1}>
           <h2 className="ft-panel-title">{t.label}</h2>
           {t.content}
         </div>

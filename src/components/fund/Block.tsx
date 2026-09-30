@@ -7,12 +7,12 @@ export function Block({ title, children, aside, card = true, className, id, lead
   title: string; children: ReactNode; aside?: ReactNode; card?: boolean; className?: string; id?: string; lead?: ReactNode; testId?: string;
 }) {
   return (
-    <Reveal self className={`fb ${card ? "fb-card" : ""} ${className ?? ""}`} id={id} data-testid={testId}>
-      <div className="fb-head">
-        <h3 className="fb-title"><span className="fb-mark" aria-hidden="true" />{title}</h3>
-        {aside ? <div className="fb-aside">{aside}</div> : null}
+    <Reveal self className={`fxb ${card ? "fxb-card" : ""} ${className ?? ""}`} id={id} data-testid={testId}>
+      <div className="fxb-head">
+        <h3 className="fxb-title"><span className="fxb-mark" aria-hidden="true" />{title}</h3>
+        {aside ? <div className="fxb-aside">{aside}</div> : null}
       </div>
-      {lead ? <p className="fb-lead">{lead}</p> : null}
+      {lead ? <p className="fxb-lead">{lead}</p> : null}
       {children}
     </Reveal>
   );

@@ -68,7 +68,7 @@ export function FundHeader({ spec, content, data, lang, sample }: Props) {
 /* ------------------------------------------------------------------ NAV card */
 
 function Fact({ k, children, testId }: { k: string; children: ReactNode; testId?: string }) {
-  return <div className="nc-fact" data-testid={testId}><dt>{k}</dt><dd>{children}</dd></div>;
+  return <div className="nc-fact"><dt>{k}</dt><dd data-testid={testId}>{children}</dd></div>;
 }
 
 function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
