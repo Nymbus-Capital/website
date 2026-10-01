@@ -411,8 +411,9 @@ test("carried-over funds pass the daily-book age gate again (fund missing from t
   const blocked = structuredClone(prev);
   blocked.funds["monthly-income"]!.performance!.monthly[0].r = Number.NaN;
   const vb = validateSite(blocked, context, prev, later);
-  assert.equal(vb.funds["monthly-income"], "kept-previous");
+  assert.equal(vb.funds["monthly-income"], "updated", "only the performance is held; the rest is published");
   assert.equal(vb.data.funds["monthly-income"]!.portfolio, null);
+  assert.deepEqual(vb.data.funds["monthly-income"]!.performance, prev.funds["monthly-income"]!.performance, "previous performance kept");
   // a fresh carried book stays
   const vf = validateSite(input, context, prev, NOW);
   assert.equal(vf.data.funds["monthly-income"]!.portfolio?.asOf, "2026-09-28");

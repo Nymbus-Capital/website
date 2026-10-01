@@ -112,6 +112,7 @@ never calls the dataplatform from the browser.
   `classLabels`, never a business label. Every month carries the class of its source (analytics series and Apex
   months: `trackRecordClass`; factsheet table: `factsheetClass`); a series mixing classes, or of a class without a
   label, is withheld (error + alert). Validation blocks a label that is not its data's class.
+- A performance-only validation failure (`performance`, `trailing`, `risk`, `risk3Y` keys) holds the performance alone: the previous one is kept (or none), the other parts publish, the run is `blocked` with an alert. Any other blocking issue withholds the fund.
 - SEB (`preferredClass: STRATEGY`): `/api/performance/monthly-net-returns?class_code=STRATEGY&history=full`
   (dataplatform PR #626). Both candidates are built — class H (analytics + `class_code=STRATEGY_H` Apex months +
   same-class factsheet table) and class F (the full-history answer alone, no analytics month). Class F is used when

@@ -133,6 +133,14 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
+  mode "review"; every run "blocked" by the July return mismatch of SEST / SEB / Multistrat, and a blocked fund with no
+  previous publication was withheld whole, NAV included). `validateSite` now holds only the **performance**
+  (`performance`, `trailing`, `risk`, `risk3Y` gates) when those are the only blocking issues: previous performance
+  kept (else none), NAV / AUM / portfolio / distributions / factsheet publish, the run stays `blocked` + alert, a
+  stale kept performance alerts. Any other blocking issue still withholds the whole fund. Adversarially reviewed.
+  **Still needed from Gabriel: click Publish on the latest run in /admin (or switch publish mode to auto).**
+
 - 2026-10-01 (home, branch `fix/seb-class`, from `redesign/v3-keynote-live-data`): **SEB class label = class of the
   data** (Gabriel's decision above; resolves compliance-review A1). `fund-sources.ts` replaces the hard-coded
   `returnClassLabel` with `trackRecordClass` / `preferredClass` / `factsheetClass` / `classLabels`; SEB asks
