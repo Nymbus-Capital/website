@@ -148,7 +148,8 @@ html:not(.js) .ft-bar { display: none; }
 .fxb-text.sm { font-size: 14.5px; line-height: 1.7; }
 .fxb-text + .fxb-text { margin-top: 12px; }
 .fxb .ticks { margin-top: 4px; }
-.fxb-note { margin: 14px 0 0; max-width: 72ch; }
+.fxb-risk { margin: 16px 0 0; padding: 14px 18px; border-left: 3px solid #f9ab00; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: #fef7e0; color: var(--ink); font-size: 16px; line-height: 1.65; }
 .fxb-foot { margin: 12px 0 0; }
 .fp-notes { padding-top: 8px; border-top: 1px solid var(--line); }
 .fp-notes .fxb-title { font-size: 16px; }
@@ -347,6 +348,8 @@ html:not(.js) .ft-bar { display: none; }
 .fund-page .ff .card-icon { background: linear-gradient(135deg, color-mix(in srgb, var(--fund-from) 18%, #fff), color-mix(in srgb, var(--fund-to) 14%, #fff)); color: var(--fund-ink);
   box-shadow: 0 8px 20px -12px var(--fund); }
 .fund-page .ff .card.feature { height: 100%; }
+.ff-grid > .ff-wide { grid-column: 1 / -1; }
+.ff-grid > .ff-wide .card-text { max-width: 860px; }
 .ff-link { margin-top: 28px; }
 
 .fxd { border-top: 1px solid var(--line); }

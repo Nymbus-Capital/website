@@ -43,7 +43,7 @@ export function Overview({ spec, content, data, lang }: Props) {
           </Block>
           <Block title={tr(T.overview.approach, lang)} card={false} testId="fund-focus">
             <Bullets items={texts.focus.map((b) => tr(b, lang))} />
-            {texts.note ? <p className="fine fxb-note">{tr(texts.note, lang)}</p> : null}
+            {texts.note ? <p className="fxb-text fxb-risk" data-testid="fund-risk-note">{tr(texts.note, lang)}</p> : null}
           </Block>
           <Block title={tr(T.overview.returns, lang)} testId="overview-returns"
             aside={rows.length ? <a className="link" href="#performance">{tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" /></a> : null}

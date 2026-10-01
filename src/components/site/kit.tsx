@@ -223,7 +223,7 @@ export function FeatureCard({ icon, title, children, href, cta, className }: {
 export function Bullets({ items, cols = 1, className, size }: { items: ReactNode[]; cols?: 1 | 2; className?: string; size?: "sm" }) {
   if (!items.length) return null;
   return (
-    <Reveal as="ul" stagger={70} className={`ticks ${cols === 2 ? "c2" : ""} ${size ?? ""} ${className ?? ""}`}>
+    <Reveal as="ul" role="list" stagger={70} className={`ticks ${cols === 2 ? "c2" : ""} ${size ?? ""} ${className ?? ""}`}>
       {items.map((it, i) => <li key={i}>{it}</li>)}
     </Reveal>
   );

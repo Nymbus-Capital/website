@@ -51,13 +51,13 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
             {roles?.length ? (
               <>
                 <h3 className="ab-bio-h">{pick(P.prev)}</h3>
-                <ul className="pg-ticks">{roles.map((r) => <li key={r}>{r}</li>)}</ul>
+                <ul role="list" className="pg-ticks">{roles.map((r) => <li key={r}>{r}</li>)}</ul>
               </>
             ) : null}
             {m.education?.length ? (
               <>
                 <h3 className="ab-bio-h">{pick(P.edu)}</h3>
-                <ul className="pg-ticks">{m.education.map((r) => <li key={r}>{r}</li>)}</ul>
+                <ul role="list" className="pg-ticks">{m.education.map((r) => <li key={r}>{r}</li>)}</ul>
               </>
             ) : null}
           </div>

@@ -76,7 +76,7 @@ export const AP = {
       bullets: [
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
         l("Regime detection (risk-on / risk-off)", "Détection de régime (appétit ou aversion pour le risque)"),
-        l("Duration and credit hedging", "Couverture de la duration et du crédit"),
+        l("Duration and credit hedging", "Couverture de la durée et du crédit"),
       ],
       note: l(
         "Hedging seeks to limit losses in adverse conditions; it does not eliminate the risk of loss.",
@@ -143,8 +143,8 @@ export const AP = {
     ),
     stackT: l("Most of the capital stays invested", "La majeure partie du capital reste investie"),
     stackD: l(
-      "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of exposure.** The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-      "Les contrats à terme s’ajoutent aux obligations, avec un dépôt de garantie d’environ 5 à 10 % de l’exposition.** La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+      "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of their exposure.** The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
+      "Les contrats à terme s’ajoutent aux obligations, avec un dépôt de garantie d’environ 5 à 10 % de leur exposition.** La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
     ),
     before: l("Bond portfolio", "Portefeuille obligataire"),
     after: l("With the overlay", "Avec la superposition"),
@@ -191,7 +191,7 @@ export const AP = {
       { t: l("Data platform", "Plateforme de données"), d: l("Custodian, market and index data, daily.", "Données des dépositaires, des marchés et des indices, chaque jour.") },
       { t: l("Machine learning", "Apprentissage automatique"), d: l("Regime classification, pattern recognition.", "Classification des régimes, reconnaissance de régularités.") },
       { t: l("Validation discipline", "Rigueur de validation"), d: l("Cross-validation, walk-forward tests, signal-decay monitoring.", "Validation croisée, validation progressive (walk-forward), suivi du déclin des signaux.") },
-      { t: l("Operations and reporting", "Opérations et rapports"), d: l("Reporting on the research data.", "Rapports sur les données de recherche.") },
+      { t: l("Operations and reporting", "Opérations et rapports"), d: l("Trade reporting and fund analytics on the research data.", "Déclaration des opérations et analytique des fonds sur les données de recherche.") },
     ],
   },
   team: {
@@ -199,8 +199,8 @@ export const AP = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Physicists, engineers and computer scientists, alongside fixed income managers.",
-      "Physiciens, ingénieurs et informaticiens, aux côtés de gestionnaires en revenu fixe.",
+      "Scientific researchers working with experienced fixed income managers.",
+      "Des chercheurs scientifiques aux côtés de gestionnaires chevronnés en revenu fixe.",
     ),
     people: l("people on the team", "personnes dans l’équipe"),
     phd: l("PhDs in physics", "doctorats en physique"),

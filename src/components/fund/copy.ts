@@ -392,7 +392,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       lead: l("Four features shape how the fund is managed.", "Quatre caractéristiques définissent la gestion du fonds."),
       cards: [
         { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST) },
-        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Maturities within a few years: low rate sensitivity. Duration: Portfolio tab.", "Échéances de quelques années : faible sensibilité aux taux. Durée : onglet Portefeuille.") },
+        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Short maturities keep rate sensitivity low. Current duration: Portfolio tab.", "Des échéances courtes limitent la sensibilité aux taux. Durée actuelle : onglet Portefeuille.") },
         { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Same models for every issuer: credit risk against yield.", "Mêmes modèles pour chaque émetteur : risque de crédit contre rendement.") },
         { icon: "shield", title: l("Futures overlay", "Stratégie de superposition"), text: join(l("An overlay", "Une stratégie de superposition"), LOW_CORR, LEVERAGE) },
       ],
@@ -406,7 +406,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     focus: [
       l("Federal, provincial and corporate issuers", "Émetteurs fédéraux, provinciaux et de sociétés"),
       l("Built with our quantitative models", "Construit à l’aide de nos modèles quantitatifs"),
-      l("ESG data weighed with credit quality and valuation", "Données ESG prises en compte avec le crédit et l’évaluation"),
+      l("ESG data weighed with credit quality and valuation", "Données ESG prises en compte avec la qualité du crédit et l’évaluation"),
     ],
     note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, LEVERAGE),
     feature: {
@@ -415,39 +415,39 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       lead: l("Criteria at every step of bond selection. They do not apply to the futures overlay, which holds no securities of individual issuers.", "Des critères à chaque étape de la sélection des obligations. Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels."),
       cards: [
         { icon: "filter", title: l("Exclusion screens", "Filtres d’exclusion"), text: l("Issuers in conflict with the fund’s criteria are excluded.", "Les émetteurs contraires aux critères du fonds sont exclus.") },
-        { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("Weighed with credit and valuation, issuer by issuer.", "Prises en compte avec le crédit et l’évaluation, émetteur par émetteur.") },
+        { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("ESG data weighed with credit and valuation, issuer by issuer.", "Données ESG prises en compte avec le crédit et l’évaluation, émetteur par émetteur.") },
         { icon: "sprout", title: l("Green bonds", "Obligations vertes"), text: l("The fund can hold bonds financing environmental projects.", "Le fonds peut détenir des obligations qui financent des projets environnementaux.") },
-        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Carbon intensity and more, monthly, against the index.", "Intensité carbone et autres indicateurs, chaque mois, face à l’indice."), needs: "esg" },
+        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index.", "Des indicateurs de durabilité comme l’intensité carbone, publiés chaque mois pour le portefeuille et son indice."), needs: "esg" },
       ],
       link: { href: "/sustainability", label: l("Our sustainability approach", "Notre approche de durabilité") },
     },
   },
   "multi-strategy": {
     summary: l(
-      "Systematic strategies in one fund, designed to behave differently from stocks and bonds.",
-      "Des stratégies systématiques dans un fonds, conçues pour se comporter autrement que les actions et les obligations.",
+      "An alternative fund of systematic strategies, designed to behave differently from stocks and bonds.",
+      "Un fonds alternatif de stratégies systématiques, conçues pour se comporter différemment des actions et des obligations.",
     ),
     focus: [
       l("Low-volatility, directional, mean-reversion and hedging strategies", "Stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture"),
-      l("Each with its own rules and a distinct role", "Chacune avec ses propres règles et un rôle distinct"),
+      l("Each with its own rules, designed for a distinct role", "Chacune avec ses propres règles, conçue pour un rôle distinct"),
       l("Allocations managed systematically", "Répartition gérée de façon systématique"),
     ],
     feature: {
       eyebrow: l("Multi-Strategy Fund", "Fonds Multistratégies"),
       title: l("Four complementary strategies", "Quatre stratégies complémentaires"),
-      lead: l("Distinct roles, aimed at diversifying returns.", "Des rôles distincts, pour diversifier les rendements."),
+      lead: l("Distinct roles, aimed at diversifying sources of return.", "Des rôles distincts, visant à diversifier les sources de rendement."),
       cards: [
         { icon: "waves", title: l("Low volatility", "Faible volatilité"), text: l("Seeks returns with lower volatility.", "Vise des rendements assortis d’une volatilité plus faible.") },
         { icon: "trend", title: l("Directional", "Directionnelle"), text: l("Follows persistent trends, up or down.", "Suit les tendances persistantes, à la hausse comme à la baisse.") },
-        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Trades prices far from usual levels, expecting a return.", "Mise sur le retour des prix éloignés de leurs niveaux habituels.") },
+        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Takes positions when prices stray far from usual levels, expecting them to revert.", "Prend position lorsque les prix s’écartent fortement de leurs niveaux habituels, en prévision de leur retour.") },
         { icon: "umbrella", title: l("Hedging", "Couverture"), text: l("Designed to gain in market stress and offset part of the other strategies’ losses; it may not do so.", "Conçue pour profiter des tensions de marché et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.") },
       ],
     },
   },
   "global-minimum-volatility": {
     summary: l(
-      "A managed-futures overlay in separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-      "Une stratégie de contrats à terme gérés en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+      "A managed-futures overlay for institutional portfolios, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+      "Une stratégie de contrats à terme gérés destinée aux portefeuilles institutionnels, offerte au moyen de comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
     ),
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),

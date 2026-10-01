@@ -36,8 +36,8 @@ export const NEWS: NewsItem[] = [
       "Une partie du Fonds Mageska, gérée selon une stratégie d’alpha portable.",
     ),
     body: l(
-      "The mandate: a portable alpha strategy using Nymbus’ low-volatility strategies, designed to have low correlation with traditional indices.",
-      "Le mandat : une stratégie d’alpha portable fondée sur les stratégies à faible volatilité de Nymbus, conçues pour avoir une faible corrélation avec les indices traditionnels.",
+      "Mageska Capital entrusted Nymbus with the mandate: a portable alpha strategy using Nymbus’ low-volatility strategies, designed to have low correlation with traditional indices.",
+      "Mageska Capital a confié le mandat à Nymbus : une stratégie d’alpha portable fondée sur les stratégies à faible volatilité de Nymbus, conçues pour avoir une faible corrélation avec les indices traditionnels.",
     ),
   },
   {
@@ -46,8 +46,8 @@ export const NEWS: NewsItem[] = [
     category: "esg",
     title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire du Tobacco-Free Finance Pledge"),
     summary: l(
-      "No tobacco in the securities we select directly.",
-      "Aucun tabac dans les titres que nous sélectionnons directement.",
+      "We exclude tobacco companies from the securities we select directly.",
+      "Nous excluons les sociétés de tabac des titres que nous choisissons directement.",
     ),
     body: l(
       "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",
@@ -64,8 +64,8 @@ export const NEWS: NewsItem[] = [
       "Pour les jeunes en situation d’itinérance ou à risque de Montréal.",
     ),
     body: l(
-      "Nymbus partners with Dans la rue, a Montreal organization supporting homeless and at-risk youth.\n\nSince 1988: emergency shelter, food, counselling and educational support.",
-      "Nymbus s’associe à Dans la rue, un organisme montréalais qui vient en aide aux jeunes en situation d’itinérance ou à risque.\n\nDepuis 1988 : hébergement d’urgence, alimentation, accompagnement et soutien scolaire.",
+      "Nymbus partners with Dans la rue, a Montreal organization supporting homeless and at-risk youth.\n\nSince 1988, Dans la rue has offered emergency shelter, food, counselling and educational support.",
+      "Nymbus s’associe à Dans la rue, un organisme montréalais qui vient en aide aux jeunes en situation d’itinérance ou à risque.\n\nDepuis 1988, Dans la rue offre hébergement d’urgence, alimentation, accompagnement et soutien scolaire.",
     ),
   },
 ];

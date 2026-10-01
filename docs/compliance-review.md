@@ -266,6 +266,22 @@ Changed pages (please tick once reviewed):
   (distributions sentence on "Monthly distributions", caveat + leverage on the overlay cards, "it may not do so" on
   Hedging, the futures-overlay exception in the SEB lead).
 - [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (full diff on the branch).
+- [ ] **Independent review fixes (same day).** Fund Overview risk note (overlay caveat + leverage) now shown as a
+  body-size callout next to the approach bullets, as prominent as them. Multi-Strategy: "An alternative fund of
+  systematic strategies, designed to behave differently from stocks and bonds"; mean reversion "Takes positions when
+  prices stray far from usual levels, expecting them to revert"; "Each with its own rules, designed for a distinct role".
+  GMV summary back to the reviewed wording "A managed-futures overlay for institutional portfolios, offered through
+  separately managed accounts." **Flag:** the Solutions page lists Global Minimum Volatility among the strategies that
+  usually fit family offices (unchanged, pre-existing); confirm whether GMV is offered outside institutions. Tobacco:
+  "We exclude tobacco companies from the securities we select directly." (news, sustainability); the 2024 milestone on
+  /team reads "Tobacco exclusion adopted". Margin sentence: "about 5 to 10% of their exposure" (« de leur exposition »).
+  SEB metrics card: "Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index."
+  Mageska news: "Mageska Capital entrusted Nymbus with the mandate: …". French: « durée » used for duration everywhere
+  (as in the Portfolio tab's « Durée modifiée »; the approach bullet « Couverture de la duration » became « de la
+  durée »). Fondaction section: lead plus three bullets taken from the previously reviewed Fondaction paragraph
+  (labour-sponsored fund; positive economic, social and environmental impact; mission of responsible capital
+  allocation). The unit test now also checks the French disclosures, the Solutions overlay leverage sentence, the
+  Multi-Strategy hedging caveat, the approach step-4 note and the SEB overlay exception.
 
 English word counts of the strings in these copy modules (body copy = prose sentences; headings, button labels,
 meta descriptions, form labels and regulatory sentences counted apart; regulatory sentences only shrink where a

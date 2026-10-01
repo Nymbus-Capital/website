@@ -129,6 +129,13 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-30 (home, branch `feat/concise-copy`): fixes after the independent review of the concise copy — fund risk
+  note as a visible body-size callout (`.fxb-risk`), Multi-Strategy and GMV wording restored closer to the reviewed
+  text, tobacco sentence de-duplicated, « durée » for duration in French, `role="list"` on `<Bullets>` and `.pg-ticks`,
+  fund feature cards balanced (long disclosure cards last and full-width, or paired), equal-height home approach cards,
+  Fondaction lead + bullets, French disclosure literals in `concise-copy.test.ts`. Open flag: Solutions lists GMV for
+  family offices while the fund page says "for institutional portfolios" (see compliance-review.md). Still not merged.
+
 - 2026-09-30 (home, branch `feat/concise-copy`, from `redesign/v3-keynote-live-data`): **concise copy** after
   Gabriel's "make the website a lot less verbose … more bullet points, short sentences". Home, strategies, solutions,
   approach, sustainability, team (intro, values, milestones, bios to 1–2 sentences), contact and the fund pages' own

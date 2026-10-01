@@ -89,7 +89,7 @@ export const AUDIENCES: AudienceCopy[] = [
     ),
     benefits: [
       l("Diversification across strategies and asset classes", "Diversification entre stratégies et classes d’actifs"),
-      l("Alternatives designed for low correlation with bonds and equities", "Alternatives conçues pour être peu corrélées aux obligations et aux actions"),
+      l("Alternatives designed for low correlation with bonds and equities", "Stratégies alternatives conçues pour être peu corrélées aux obligations et aux actions"),
       l("Direct access to the investment team", "Accès direct à l’équipe de placement"),
       l("Transparent, regular reporting", "Rapports transparents et réguliers"),
     ],
@@ -104,8 +104,8 @@ export const AUDIENCES: AudienceCopy[] = [
     name: l("Investment advisors", "Conseillers en placement"),
     who: l("Advisors registered with CIRO or a provincial securities regulator.", "Conseillers inscrits auprès de l’OCRI ou d’une autorité provinciale en valeurs mobilières."),
     intro: l(
-      "Our funds, on FundServ, with full support.",
-      "Nos fonds, sur FundServ, avec tout le soutien nécessaire.",
+      "Our funds on FundServ, with documents and support.",
+      "Nos fonds sur FundServ, avec documents et soutien.",
     ),
     benefits: [
       l("Funds on FundServ for client portfolios", "Fonds sur FundServ pour les portefeuilles de vos clients"),

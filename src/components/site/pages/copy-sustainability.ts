@@ -36,7 +36,7 @@ export const SU = {
     ),
     items: [
       { t: l("Core integration", "Intégration au cœur"), d: l("ESG data inside our bond selection models.", "Des données ESG au sein de nos modèles de sélection.") },
-      { t: l("Transparency", "Transparence"), d: l("We explain and report how ESG shapes our portfolios.", "Nous expliquons et rapportons l’effet de l’ESG sur nos portefeuilles.") },
+      { t: l("Transparency", "Transparence"), d: l("We explain and report how ESG shapes our portfolios.", "Nous expliquons l’effet de l’ESG sur nos portefeuilles et en rendons compte.") },
       { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018: we report on our progress every year.", "Signataire des PRI depuis 2018 : nous rendons compte de nos progrès chaque année.") },
     ],
   },
@@ -80,7 +80,7 @@ export const SU = {
     uses: [l("Renewable energy", "Énergie renouvelable"), l("Energy efficiency", "Efficacité énergétique"), l("Clean transportation", "Transport propre"), l("Green buildings", "Bâtiments écologiques")],
     note: l(
       "ESG measures, when published, are on the fund page.",
-      "Les mesures ESG, une fois publiées, figurent sur la page du fonds.",
+      "Les mesures ESG, lorsqu’elles sont publiées, figurent sur la page du fonds.",
     ),
     go: l("Sustainable Enhanced Bonds fund", "Fonds Obligations Durables Bonifiées"),
   },
@@ -89,9 +89,14 @@ export const SU = {
     title: l("Working with", "Aux côtés de"),
     accent: l("Fondaction", "Fondaction"),
     p1: l(
-      "Fondaction, a Québec labour-sponsored fund, has entrusted Nymbus with sustainable bond mandates.",
-      "Fondaction, un fonds de travailleurs québécois, a confié à Nymbus des mandats obligataires durables.",
+      "Fondaction has entrusted Nymbus with sustainable bond mandates.",
+      "Fondaction a confié à Nymbus des mandats obligataires durables.",
     ),
+    points: [
+      l("A Québec labour-sponsored fund", "Un fonds de travailleurs québécois"),
+      l("Dedicated to positive economic, social and environmental impact", "Voué à un impact économique, social et environnemental positif"),
+      l("Mandates aligned with its mission of responsible capital allocation", "Des mandats alignés sur sa mission d’allocation responsable du capital"),
+    ],
   },
   pri: {
     eyebrow: l("PRI signatory", "Signataire des PRI"),
@@ -117,7 +122,7 @@ export const SU = {
     accent: l("on the record", "publics"),
     items: [
       { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("Signed the UN-supported Principles for Responsible Investment.", "Signature des Principes pour l’investissement responsable, soutenus par les Nations Unies.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("No tobacco in the securities we select directly.", "Aucun tabac dans les titres que nous sélectionnons directement.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("We exclude tobacco companies from the securities we select directly.", "Nous excluons les sociétés de tabac des titres que nous choisissons directement.") },
     ],
     fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction"), d: l("Sustainable bond mandates managed for Fondaction.", "Des mandats obligataires durables gérés pour Fondaction.") },
   },

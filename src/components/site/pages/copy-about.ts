@@ -73,7 +73,7 @@ export const AB = {
       { y: "2018", t: l("PRI signatory", "Signataire des PRI"), d: l("Signs the UN-supported Principles for Responsible Investment (PRI).", "Signature des Principes pour l’investissement responsable (PRI), soutenus par les Nations Unies.") },
       { y: "2021", t: l("Monthly Income fund launched", "Lancement du Fonds Revenu Mensuel"), d: l("Nymbus Monthly Income Fund launched.", "Lancement du Fonds Nymbus Revenu Mensuel.") },
       { y: "2023", t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"), d: l("Support for homeless and at-risk youth in Montreal.", "Soutien aux jeunes sans-abri ou à risque de Montréal.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("No tobacco in the securities we select directly.", "Aucun tabac dans les titres que nous sélectionnons directement.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Tobacco exclusion adopted.", "Adoption de l’exclusion du tabac.") },
       { y: "2025", t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"), d: l("A portable alpha strategy for part of the Mageska Fund.", "Une stratégie d’alpha portable pour une partie du Fonds Mageska.") },
     ],
   },

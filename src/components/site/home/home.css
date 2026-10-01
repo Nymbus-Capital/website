@@ -64,7 +64,7 @@
 @media (max-width: 520px) { .hm-stats { grid-template-columns: 1fr 1fr; } .hm-stats > :first-child { grid-column: 1 / -1; } }
 
 /* ---------------------------------------------------------------- approach */
-.hm-approach-cards { display: grid; gap: 16px; }
+.hm-approach-cards { display: grid; gap: 16px; grid-auto-rows: 1fr; }
 .hm-card-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 18px; align-items: start; }
 .hm-card-row .bubble svg { width: 46%; height: 46%; }
 .hm-card-row h3 { margin: 2px 0 6px; }
