@@ -129,6 +129,25 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-09-30 (home, branch `feat/concise-copy`): fixes after the independent review of the concise copy — fund risk
+  note as a visible body-size callout (`.fxb-risk`), Multi-Strategy and GMV wording restored closer to the reviewed
+  text, tobacco sentence de-duplicated, « durée » for duration in French, `role="list"` on `<Bullets>` and `.pg-ticks`,
+  fund feature cards balanced (long disclosure cards last and full-width, or paired), equal-height home approach cards,
+  Fondaction lead + bullets, French disclosure literals in `concise-copy.test.ts`. Open flag: Solutions lists GMV for
+  family offices while the fund page says "for institutional portfolios" (see compliance-review.md). Still not merged.
+
+- 2026-09-30 (home, branch `feat/concise-copy`, from `redesign/v3-keynote-live-data`): **concise copy** after
+  Gabriel's "make the website a lot less verbose … more bullet points, short sentences". Home, strategies, solutions,
+  approach, sustainability, team (intro, values, milestones, bios to 1–2 sentences), contact and the fund pages' own
+  texts (`FUND_TEXTS`: summary, approach as `focus` bullets + `note` risk text, feature section) rewritten EN + FR.
+  Body copy on these pages roughly halved (counts in `docs/compliance-review.md` "Concise copy 2026-09-30" and the
+  branch report). New kit component `<Bullets>` (`kit.tsx` / `.ticks` in `kit.css`: gradient tick markers, staggered
+  `Reveal` behind the `html.js` gate, static under reduced motion, `cols={2}` option). No new claims or figures;
+  disclosures inside condensed blocks verbatim, guarded by `tests/unit/site/concise-copy.test.ts` (also checks lead
+  length ≤ 15 words, 3–5 bullets ≤ 12 words, bios ≤ 2 sentences). Legal pages, `disclaimers.ts`, `funds.ts`
+  descriptions / taglines, the PRI principles and the contact form untouched. Compliance checklist added. Not merged
+  into `redesign/v3-keynote-live-data` (auto-deploys): the main session merges after an independent review.
+
 - 2026-09-30 (home, branch `feat/api-portfolio-distributions`): regression from the independent verification fixed —
   the trailing-12-month check used a window ending at the last distribution, but the dataplatform
   (`distribution_history.py`, `_year_before(end) < date <= end`) ends it at the response `end_date` (day of the read),

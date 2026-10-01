@@ -8,8 +8,8 @@ export const STRAT_COPY = {
   title: l("Our funds and", "Nos fonds et"),
   accent: l("strategies", "stratégies"),
   lead: l(
-    "Systematic, quantitative strategies in fixed income and alternatives. Each one is built on the same research process and disciplined risk management, and its figures are published here as soon as each month is closed and validated.",
-    "Des stratégies systématiques et quantitatives en revenu fixe et en placements alternatifs. Chacune repose sur le même processus de recherche et une gestion disciplinée des risques, et ses chiffres sont publiés ici dès que chaque mois est fermé et validé.",
+    "Systematic fixed income and alternatives. Figures published once each month is validated.",
+    "Revenu fixe et stratégies alternatives, de façon systématique. Chiffres publiés une fois chaque mois validé.",
   ),
   toTable: l("Compare the strategies", "Comparer les stratégies"),
   fundsTitle: l("Funds and strategies", "Fonds et stratégies"),
@@ -21,8 +21,8 @@ export const STRAT_COPY = {
   cmpTitle: l("Strategy", "Comparaison des"),
   cmpAccent: l("comparison", "stratégies"),
   cmpLead: l(
-    "The main facts and published returns of each strategy in one table. Select a name for the full fund page: objectives, fees, portfolio, risk statistics and documents.",
-    "Les principales caractéristiques et les rendements publiés de chaque stratégie dans un seul tableau. Sélectionnez un nom pour la page complète du fonds : objectifs, frais, portefeuille, statistiques de risque et documents.",
+    "Key facts and published returns, side by side.",
+    "Caractéristiques et rendements publiés, côte à côte.",
   ),
   cols: {
     fund: l("Strategy", "Stratégie"),
@@ -46,7 +46,7 @@ export const STRAT_COPY = {
   ctaTitle: l("Which strategy fits", "Quelle stratégie convient à"),
   ctaAccent: l("your mandate?", "votre mandat?"),
   ctaText: l(
-    "Our team can walk you through each strategy, its documents and how it is offered to institutions, family offices and advisors.",
-    "Notre équipe peut vous présenter chaque stratégie, ses documents et la façon dont elle est offerte aux institutions, aux bureaux de gestion familiale et aux conseillers.",
+    "Ask our team about any strategy and how it is offered.",
+    "Notre équipe répond à vos questions sur chaque stratégie et la façon d’y accéder.",
   ),
 };

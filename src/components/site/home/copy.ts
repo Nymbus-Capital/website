@@ -14,8 +14,8 @@ export const HOME_COPY = {
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
     lead: l(
-      "Nymbus Capital is a Montreal portfolio manager that builds fixed income and alternative strategies with quantitative research, systematic portfolio construction and continuous risk management.",
-      "Nymbus Capital est un gestionnaire de portefeuille montréalais qui bâtit des stratégies de revenu fixe et alternatives grâce à la recherche quantitative, à la construction systématique de portefeuilles et à une gestion continue des risques.",
+      "Quantitative research. Systematic portfolio construction. Continuous risk management.",
+      "Recherche quantitative. Construction systématique des portefeuilles. Gestion continue des risques.",
     ),
     cta1: l("Explore strategies", "Explorer les stratégies"),
     cta2: l("Investment solutions", "Solutions de placement"),
@@ -26,36 +26,41 @@ export const HOME_COPY = {
     aum: l("Assets under management, including mandates", "Actifs sous gestion, mandats compris"),
     strategies: l("Investment strategies", "Stratégies de placement"),
     team: l("People on our team and board", "Personnes au sein de l’équipe et du conseil"),
-    where: l("Investment manager headquartered in Montreal.", "Gestionnaire de placements établi à Montréal."),
+    where: l("Portfolio manager based in Montreal.", "Gestionnaire de portefeuille établi à Montréal."),
   },
   approach: {
     eyebrow: l("Our approach", "Notre approche"),
     title: l("At the intersection of", "À l’intersection de"),
     accent: l("technology, data and finance", "la technologie, des données et de la finance"),
     lead: l(
-      "We apply the scientific method to investing: form a hypothesis, test it on data, and keep only what holds up out of sample. Our team combines institutional investment experience with research in machine learning, signal processing and portfolio optimization.",
-      "Nous appliquons la méthode scientifique au placement : formuler une hypothèse, la tester sur les données et ne retenir que ce qui résiste hors échantillon. Notre équipe allie une expérience de la gestion institutionnelle à la recherche en apprentissage automatique, en traitement du signal et en optimisation de portefeuille.",
+      "The scientific method, applied to investing.",
+      "La méthode scientifique, appliquée au placement.",
     ),
+    points: [
+      l("Form a hypothesis, test it on data", "Formuler une hypothèse, la tester sur les données"),
+      l("Keep only what holds up out of sample", "Ne retenir que ce qui résiste hors échantillon"),
+      l("Institutional experience meets machine learning", "L’expérience institutionnelle alliée à l’apprentissage automatique"),
+    ] as L[],
     cards: [
       {
         title: l("Quantitative research", "Recherche quantitative"),
         text: l(
-          "Market dynamics, credit fundamentals and risk factors studied with proprietary models and machine learning, security by security.",
-          "Dynamiques de marché, fondamentaux du crédit et facteurs de risque étudiés titre par titre à l’aide de modèles propriétaires et de l’apprentissage automatique.",
+          "Proprietary models and machine learning.",
+          "Modèles propriétaires et apprentissage automatique.",
         ),
       },
       {
         title: l("Systematic construction", "Construction systématique"),
         text: l(
-          "Portfolios built by explicit rules and optimization models, with disciplined allocation and rebalancing, under human oversight.",
-          "Des portefeuilles bâtis selon des règles explicites et des modèles d’optimisation, avec une répartition et un rééquilibrage disciplinés, sous supervision humaine.",
+          "Explicit rules and optimization, under human oversight.",
+          "Règles explicites et optimisation, sous supervision humaine.",
         ),
       },
       {
         title: l("Dynamic risk management", "Gestion dynamique des risques"),
         text: l(
-          "Continuous monitoring, market-regime classification, explicit risk limits and hedging strategies designed to offset part of the losses in a decline. Risk management does not eliminate the risk of loss.",
-          "Une surveillance continue, une classification des régimes de marché, des limites de risque explicites et des stratégies de couverture conçues pour compenser une partie des pertes lors d’un repli. La gestion des risques n’élimine pas le risque de perte.",
+          "Continuous monitoring, explicit risk limits and hedging. Risk management does not eliminate the risk of loss.",
+          "Surveillance continue, limites de risque explicites et couverture. La gestion des risques n’élimine pas le risque de perte.",
         ),
       },
     ] as { title: L; text: L }[],
@@ -67,8 +72,8 @@ export const HOME_COPY = {
     title: l("Our funds and", "Nos fonds et"),
     accent: l("strategies", "stratégies"),
     lead: l(
-      "Four strategies built by the same research process: two bond funds, a multi-strategy fund and a futures overlay for managed accounts.",
-      "Quatre stratégies issues du même processus de recherche : deux fonds obligataires, un fonds multistratégies et une stratégie de superposition de contrats à terme pour comptes gérés.",
+      "Two bond funds, a multi-strategy fund, a futures overlay.",
+      "Deux fonds obligataires, un fonds multistratégies, une stratégie de superposition.",
     ),
     all: l("View all strategies", "Voir toutes les stratégies"),
   },
@@ -77,36 +82,36 @@ export const HOME_COPY = {
     title: l("One pipeline, from data", "Un seul processus, des données"),
     accent: l("to portfolio", "au portefeuille"),
     lead: l(
-      "The same four steps run behind every strategy, and each one is documented, tested and monitored.",
-      "Les quatre mêmes étapes sont à l’œuvre derrière chaque stratégie, et chacune est documentée, testée et surveillée.",
+      "Four documented, tested and monitored steps.",
+      "Quatre étapes documentées, testées et surveillées.",
     ),
     steps: [
       {
         title: l("Data and research", "Données et recherche"),
         text: l(
-          "Market, security and fundamental data collected, cleaned and studied to identify persistent drivers of return.",
-          "Des données de marché, de titres et fondamentales recueillies, nettoyées et étudiées pour repérer les moteurs de rendement persistants.",
+          "Market and fundamental data, cleaned and studied.",
+          "Données de marché et fondamentales, nettoyées et étudiées.",
         ),
       },
       {
         title: l("Signal generation", "Génération de signaux"),
         text: l(
-          "Machine-learning models turn that research into signals, which are kept only after rigorous statistical validation.",
-          "Des modèles d’apprentissage automatique transforment cette recherche en signaux, conservés seulement après une validation statistique rigoureuse.",
+          "Machine-learning signals, kept only after statistical validation.",
+          "Des signaux d’apprentissage automatique, conservés seulement après validation statistique.",
         ),
       },
       {
         title: l("Portfolio construction", "Construction du portefeuille"),
         text: l(
-          "Optimization combines the signals into a portfolio under explicit constraints on risk, liquidity and sustainability criteria.",
-          "L’optimisation combine les signaux en un portefeuille, sous des contraintes explicites de risque, de liquidité et de critères de durabilité.",
+          "Optimization within risk, liquidity and sustainability limits.",
+          "Optimisation dans des limites de risque, de liquidité et de durabilité.",
         ),
       },
       {
         title: l("Risk management", "Gestion des risques"),
         text: l(
-          "Positions and exposures are monitored continuously, with regime-based adjustments and hedging when conditions change.",
-          "Les positions et les expositions sont surveillées en continu, avec des ajustements selon le régime de marché et des couvertures lorsque les conditions changent.",
+          "Continuous monitoring, adjustments and hedging.",
+          "Surveillance continue, ajustements et couvertures.",
         ),
       },
     ] as { title: L; text: L }[],
@@ -136,8 +141,8 @@ export const HOME_COPY = {
     title: l("Let’s discuss your", "Discutons de vos"),
     accent: l("investment objectives", "objectifs de placement"),
     text: l(
-      "Our team can walk you through the strategies, their track records and how they could fit your portfolio or mandate.",
-      "Notre équipe peut vous présenter les stratégies, leurs historiques de rendement et la façon dont elles pourraient s’intégrer à votre portefeuille ou à votre mandat.",
+      "Talk to our team about your mandate.",
+      "Parlez de votre mandat avec notre équipe.",
     ),
     contact: l("Get in touch", "Communiquez avec nous"),
     solutions: l("View solutions", "Voir les solutions"),

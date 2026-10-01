@@ -216,6 +216,19 @@ export function FeatureCard({ icon, title, children, href, cta, className }: {
   return href ? <Link href={href} className={`card ring feature ${className ?? ""}`}>{body}</Link> : <div className={`card feature ${className ?? ""}`}>{body}</div>;
 }
 
+/**
+ * Short bullet list: gradient tick markers, items float in one after the other (hidden only behind the html.js
+ * gate, static under reduced motion). `cols={2}` lays long lists out in two columns on wide screens.
+ */
+export function Bullets({ items, cols = 1, className, size }: { items: ReactNode[]; cols?: 1 | 2; className?: string; size?: "sm" }) {
+  if (!items.length) return null;
+  return (
+    <Reveal as="ul" role="list" stagger={70} className={`ticks ${cols === 2 ? "c2" : ""} ${size ?? ""} ${className ?? ""}`}>
+      {items.map((it, i) => <li key={i}>{it}</li>)}
+    </Reveal>
+  );
+}
+
 /** Grid whose children pop in one after the other. */
 export function CardGrid({ children, cols = 3, className }: { children: ReactNode; cols?: 2 | 3 | 4; className?: string }) {
   return <Reveal kind="pop" stagger={90} className={`grid c${cols} ${className ?? ""}`}>{children}</Reveal>;

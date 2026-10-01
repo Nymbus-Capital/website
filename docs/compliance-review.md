@@ -219,3 +219,84 @@ The review's section C was not included in the brief; this list is compiled from
   decades", Montrusco Bolton, AIMCo, GardaWorld); team counts (PhDs, CFA charterholders) computed from `team.ts`.
 - [ ] Contact: office hours (8:30 to 5:00 ET), "reply within one business day", complaints officer phone (L1).
 - [ ] Complaints: 10 / 60 / 30 / 15 / 180 / 90 days, OBSI limit $350,000, AMF phone 1 877 525-0337.
+
+## Concise copy 2026-09-30
+
+Gabriel asked for a much less verbose site ("cut down on the text significantly, more bullet points, short sentences").
+Branch `feat/concise-copy` condenses the copy of the pages below, EN and FR in parallel. **No new claim, figure or
+promise was introduced**: every sentence is a shorter form of text already reviewed above (A/B items), or the same
+text. Regulatory sentences inside a condensed block were kept word for word, and a unit test
+(`tests/unit/site/concise-copy.test.ts`) fails if the overlay caveat ("designed to have low correlation … it may not do so
+and can lose money"), the leverage disclosure, the distributions sentence, the approach footnotes (\*, \*\*) or the
+ESG-scope sentences disappear. Not touched: legal pages (complaints, code of ethics, privacy / Law 25),
+`src/content/disclaimers.ts` (fund disclosures, footer disclaimers, firm disclaimer, gross / net markers, provenance
+lines, "figures coming soon"), the fund header descriptions and taglines (`src/config/funds.ts`, mostly disclosure
+wording), the six PRI principles (official wording), the contact form texts and regulatory names (AMF, OBSI, CIRO, PRI).
+
+Changed pages (please tick once reviewed):
+
+- [ ] **Home** (`src/components/site/home/copy.ts`, `news.ts`): hero lead, approach lead + 3 bullets, card texts
+  (the "Risk management does not eliminate the risk of loss." sentence kept), strategies / process leads and step
+  texts, CTA; news summaries and "Read more" texts shortened (Mageska, Tobacco-Free Finance Pledge, Dans la rue: same
+  facts, the opinion sentence of the tobacco item and the closing sentence of the Dans la rue item removed). "Investment
+  manager headquartered in Montreal" → "Portfolio manager based in Montreal" (registration category, item B).
+- [ ] **Strategies index** (`strategies-copy.ts`): lead, comparison lead, CTA. Since-inception and "—" notes unchanged.
+- [ ] **Solutions** (`solutions-copy.ts`): lead, profile intros and descriptions, benefit bullets, vehicle texts (the
+  futures-overlay vehicle keeps "most of the capital stays invested in the bonds" and the leverage disclosure). The
+  minimum / suitability note unchanged.
+- [ ] **Approach** (`copy-approach.ts`): hero, pipeline, bond-process, overlay, research and team leads; the four step
+  paragraphs replaced by their bullets (3 per step; the bullet "Futures overlays designed to offset part of losses in
+  stressed markets", which carried no caveat, was removed; step 4 keeps "Hedging seeks to limit losses in adverse
+  conditions; it does not eliminate the risk of loss."); philosophy, lifecycle and capability cards shortened. The
+  margin sentence now reads "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of exposure.\*\*"
+  (same figure). Overlay caveat, leverage disclosure and both footnotes verbatim.
+- [ ] **Sustainability** (`copy-sustainability.ts`): hero and principles leads shortened before the ESG-scope sentence
+  (kept verbatim), principle / integration / exclusion / commitment cards shortened (thresholds unchanged: > 5 % of
+  revenue, MSCI "severe"), green-bond text (ICMA sentence kept), Fondaction text (second paragraph "shared
+  commitment…" removed), PRI lead. Exclusions lead unchanged. The six principles unchanged.
+- [ ] **Team** (`copy-about.ts`, `src/data/team.ts`): hero lead, intro as 4 bullets, values and milestones shortened;
+  every biography cut to one or two sentences (facts kept are a subset of the previous bios; previous roles and education
+  still listed in the dialog). Jean Turmel FR keeps « Financière Banque Nationale » (A15).
+- [ ] **Contact** (`copy-contact.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
+  one business day. Urgent? Please call."), visit text. Form note about sensitive information unchanged.
+- [ ] **Fund pages** (`src/components/fund/copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
+  approach" is now 3 bullets plus the risk note in fine print (overlay caveat + leverage disclosure, verbatim; GMV: the
+  leverage disclosure); the fund's own section (Monthly Income features, SEB sustainability, Multi-Strategy
+  sub-strategies, GMV overlay) has a shorter lead and card texts, with the same disclosures in the same cards
+  (distributions sentence on "Monthly distributions", caveat + leverage on the overlay cards, "it may not do so" on
+  Hedging, the futures-overlay exception in the SEB lead).
+- [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (full diff on the branch).
+- [ ] **Independent review fixes (same day).** Fund Overview risk note (overlay caveat + leverage) now shown as a
+  body-size callout next to the approach bullets, as prominent as them. Multi-Strategy: "An alternative fund of
+  systematic strategies, designed to behave differently from stocks and bonds"; mean reversion "Takes positions when
+  prices stray far from usual levels, expecting them to revert"; "Each with its own rules, designed for a distinct role".
+  GMV summary back to the reviewed wording "A managed-futures overlay for institutional portfolios, offered through
+  separately managed accounts." **Flag:** the Solutions page lists Global Minimum Volatility among the strategies that
+  usually fit family offices (unchanged, pre-existing); confirm whether GMV is offered outside institutions. Tobacco:
+  "We exclude tobacco companies from the securities we select directly." (news, sustainability); the 2024 milestone on
+  /team reads "Tobacco exclusion adopted". Margin sentence: "about 5 to 10% of their exposure" (« de leur exposition »).
+  SEB metrics card: "Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index."
+  Mageska news: "Mageska Capital entrusted Nymbus with the mandate: …". French: « durée » used for duration everywhere
+  (as in the Portfolio tab's « Durée modifiée »; the approach bullet « Couverture de la duration » became « de la
+  durée »). Fondaction section: lead plus three bullets taken from the previously reviewed Fondaction paragraph
+  (labour-sponsored fund; positive economic, social and environmental impact; mission of responsible capital
+  allocation). The unit test now also checks the French disclosures, the Solutions overlay leverage sentence, the
+  Multi-Strategy hedging caveat, the approach step-4 note and the SEB overlay exception.
+
+English word counts of the strings in these copy modules (body copy = prose sentences; headings, button labels,
+meta descriptions, form labels and regulatory sentences counted apart; regulatory sentences only shrink where a
+condensed sentence carried a regulatory keyword, e.g. the PRI naming, or where a caveat-free claim was removed):
+
+| Page | Body copy before | after | cut | Headings/labels b→a | Verbatim disclosures b→a |
+|---|---:|---:|---:|---:|---:|
+| Home | 510 | 246 | 52 % | 100→100 | 15→15 |
+| Strategies index | 115 | 62 | 46 % | 44→44 | 18→18 |
+| Solutions | 331 | 187 | 44 % | 65→73 | 39→39 |
+| Approach | 765 | 364 | 52 % | 212→218 | 72→47 |
+| Sustainability | 305 | 172 | 44 % | 114→114 | 218→171 |
+| Team (intro, values, milestones) | 301 | 141 | 53 % | 116→116 | 9→8 |
+| Team bios | 834 | 349 | 58 % | 0→0 | 0→0 |
+| Contact | 82 | 45 | 45 % | 51→55 | 0→0 |
+| Fund pages (FUND_TEXTS) | 623 | 370 | 41 % | 67→70 | 191→191 |
+| **Total** | 3866 | 1936 | 50 % | 769→790 | 562→489 |
+

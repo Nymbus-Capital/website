@@ -64,11 +64,13 @@
 @media (max-width: 520px) { .hm-stats { grid-template-columns: 1fr 1fr; } .hm-stats > :first-child { grid-column: 1 / -1; } }
 
 /* ---------------------------------------------------------------- approach */
-.hm-approach-cards { display: grid; gap: 16px; }
+.hm-approach-cards { display: grid; gap: 16px; grid-auto-rows: 1fr; }
 .hm-card-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 18px; align-items: start; }
 .hm-card-row .bubble svg { width: 46%; height: 46%; }
 .hm-card-row h3 { margin: 2px 0 6px; }
 .hm-links { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+.hm-approach .section-head { margin-bottom: 28px; }
+.hm-approach .ticks { margin-top: 20px; }
 .hm-tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s var(--ease), box-shadow .45s var(--ease), border-color .3s; }
 .hm-tilt::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s var(--ease);
   background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), rgba(26,115,232,.08), transparent 60%); }

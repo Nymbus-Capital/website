@@ -32,12 +32,12 @@ export const NEWS: NewsItem[] = [
     category: "partnership",
     title: l("Mageska Capital and Nymbus Capital announce a partnership", "Mageska Capital et Nymbus Capital annoncent un partenariat"),
     summary: l(
-      "Mageska entrusts Nymbus with a portion of the Mageska Fund to implement a portable alpha strategy.",
-      "Mageska confie à Nymbus la gestion d’une partie du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable.",
+      "Part of the Mageska Fund, managed with a portable alpha strategy.",
+      "Une partie du Fonds Mageska, gérée selon une stratégie d’alpha portable.",
     ),
     body: l(
-      "Mageska Capital Inc., an investment management firm, announced a partnership with Nymbus Capital Inc., a Montreal portfolio manager that runs systematic strategies.\n\nUnder this agreement, Mageska Capital entrusts Nymbus Capital with the management of a specific portion of the Mageska Fund to implement a portable alpha strategy. The mandate uses Nymbus Capital’s low-volatility strategies, which are designed to have low correlation with traditional indices.",
-      "Mageska Capital inc., une société de gestion de placements, a annoncé un partenariat avec Nymbus Capital inc., un gestionnaire de portefeuille montréalais qui applique des stratégies systématiques.\n\nAux termes de cette entente, Mageska Capital confie à Nymbus Capital la gestion d’une partie déterminée du Fonds Mageska afin d’y mettre en œuvre une stratégie d’alpha portable. Le mandat fait appel aux stratégies à faible volatilité de Nymbus Capital, conçues pour avoir une faible corrélation avec les indices traditionnels.",
+      "Mageska Capital entrusted Nymbus with the mandate: a portable alpha strategy using Nymbus’ low-volatility strategies, designed to have low correlation with traditional indices.",
+      "Mageska Capital a confié le mandat à Nymbus : une stratégie d’alpha portable fondée sur les stratégies à faible volatilité de Nymbus, conçues pour avoir une faible corrélation avec les indices traditionnels.",
     ),
   },
   {
@@ -46,12 +46,12 @@ export const NEWS: NewsItem[] = [
     category: "esg",
     title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire du Tobacco-Free Finance Pledge"),
     summary: l(
-      "Nymbus commits to excluding tobacco companies from the securities it selects directly.",
-      "Nymbus s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.",
+      "We exclude tobacco companies from the securities we select directly.",
+      "Nous excluons les sociétés de tabac des titres que nous choisissons directement.",
     ),
     body: l(
-      "Nymbus has become a signatory of the Tobacco-Free Finance Pledge led by Tobacco Free Portfolios, and is committed to excluding tobacco companies from the securities it selects directly.\n\nWe believe institutional investors and asset managers can play an active role in the global effort against tobacco.",
-      "Nymbus est devenue signataire du Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios, et s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.\n\nNous croyons que les investisseurs institutionnels et les gestionnaires d’actifs peuvent jouer un rôle actif dans la lutte mondiale contre le tabac.",
+      "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",
+      "Nymbus a signé le Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios.",
     ),
   },
   {
@@ -60,12 +60,12 @@ export const NEWS: NewsItem[] = [
     category: "community",
     title: l("Nymbus partners with Dans la rue", "Nymbus s’associe à Dans la rue"),
     summary: l(
-      "A partnership with the Montreal organization that supports homeless and at-risk youth.",
-      "Un partenariat avec l’organisme montréalais qui vient en aide aux jeunes en situation d’itinérance ou à risque.",
+      "Supporting homeless and at-risk youth in Montreal.",
+      "Pour les jeunes en situation d’itinérance ou à risque de Montréal.",
     ),
     body: l(
-      "Nymbus Capital has partnered with Dans la rue, a Montreal organization dedicated to supporting homeless and at-risk youth.\n\nSince 1988, Dans la rue has helped young people in difficulty leave the street and build a better future, with services that include emergency shelter, food, counselling and educational support.\n\nThis partnership reflects our commitment to our community, beyond the financial markets.",
-      "Nymbus Capital s’est associée à Dans la rue, un organisme montréalais qui vient en aide aux jeunes en situation d’itinérance ou à risque.\n\nDepuis 1988, Dans la rue aide les jeunes en difficulté à quitter la rue et à se bâtir un meilleur avenir, grâce à des services d’hébergement d’urgence, d’alimentation, d’accompagnement et de soutien scolaire.\n\nCe partenariat témoigne de notre engagement envers notre communauté, au-delà des marchés financiers.",
+      "Nymbus partners with Dans la rue, a Montreal organization supporting homeless and at-risk youth.\n\nSince 1988, Dans la rue has offered emergency shelter, food, counselling and educational support.",
+      "Nymbus s’associe à Dans la rue, un organisme montréalais qui vient en aide aux jeunes en situation d’itinérance ou à risque.\n\nDepuis 1988, Dans la rue offre hébergement d’urgence, alimentation, accompagnement et soutien scolaire.",
     ),
   },
 ];

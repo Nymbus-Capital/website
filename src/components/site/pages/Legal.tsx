@@ -55,7 +55,7 @@ function Block({ b }: { b: LegalBlock }) {
     case "list":
       return (
         <>
-          <ul className="pg-ticks lg2-list">{b.items.map((it) => <li key={it}><LeadIn text={it} /></li>)}</ul>
+          <ul role="list" className="pg-ticks lg2-list">{b.items.map((it) => <li key={it}><LeadIn text={it} /></li>)}</ul>
           {b.note ? <p className="lg2-small">{b.note}</p> : null}
         </>
       );
