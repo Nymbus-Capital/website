@@ -95,7 +95,7 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                     <th scope="row">
                       <Link href={`/strategies/${f.key}`} className="xs-name"><i aria-hidden="true" />{pick(f.short)}</Link>
                       <span className="xs-sub xs-wrap">{pick(f.assetClass)}</span>
-                      {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
+                      {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}{f.perfClass ? <> · <span data-testid="perf-class">{pick(F.navSeries)} {f.perfClass}</span></> : null}</span> : null}
                     </th>
                     <td className="xs-l">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}{f.code ? <span className="xs-sub tabnum">{f.code}</span> : null}</td>
                     <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>

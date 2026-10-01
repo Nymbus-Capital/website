@@ -54,9 +54,12 @@ export interface Performance {
   /** growth of 10 000 $, month-end points */
   growth: GrowthPoint[];
   /**
-   * class whose returns form the track record, as the source names it (dataplatform monthly-net-returns
-   * `class_code`: "STRATEGY" = the F class, "STRATEGY_H" = SEB's H class); optional
+   * class whose returns form the WHOLE track record, as the dataplatform names it (monthly-net-returns `class_code`:
+   * "STRATEGY" = the fund's F / FP class, "STRATEGY_H" = SEB's H class). Every month of `monthly` is of this class
+   * (a series mixing classes is never published). Absent on publications made before 2026-10-01
    */
+  classCode?: string;
+  /** site code of `classCode` ("FP", "F", "H"), always derived from it (fund-sources classLabels); optional */
   returnClass?: string;
   /** human-readable label of `returnClass`, e.g. "Series F"; optional */
   returnClassLabel?: string;

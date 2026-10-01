@@ -56,10 +56,11 @@ test("end to end: history from analytics + dataplatform ready months, published 
   near(p.trailing.fund.SI, 0.022692721033146235);
   near(p.trailing.fund.YTD, -0.0006185939561148546);
   assert.equal(p.trailing.fund["10Y"], null);
-  // class label: business decision (FP for Monthly Income); dataplatform class_code in provenance only
+  // class label: derived from the class of the data (Monthly Income STRATEGY = FP)
+  assert.equal(p.classCode, "STRATEGY");
   assert.equal(p.returnClass, "FP");
   assert.equal(p.returnClassLabel, "Series FP");
-  assert.match(data.provenance["funds.monthly-income.performance"], /dataplatform class_code STRATEGY; shown as class FP/);
+  assert.match(data.provenance["funds.monthly-income.performance"], /every month class_code STRATEGY, shown as class FP/);
   assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(91 month/);
   // every index figure computed from FTSE short_corp levels (python3 reference from the fixture rows)
   assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index", "from /short-names index_name");
@@ -104,13 +105,20 @@ test("end to end: history from analytics + dataplatform ready months, published 
 
   assert.equal(mi.aum!.cad, 213_580_246);
 
-  // SEB: STRATEGY_H track record, published universe index
+  // SEB on a dataplatform that ignores class_code / history (deployed before 2026-10-01): the class F full history is
+  // not confirmed, the class H sources (analytics + STRATEGY_H Apex months) are used and LABELLED H
   const seb = data.funds["sustainable-enhanced-bonds"]!.performance!;
   assert.equal(seb.firstMonth, "2019-02-28");
-  assert.equal(seb.returnClass, "F");
-  assert.equal(seb.returnClassLabel, "Series F");
-  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /STRATEGY_H \(class H\) series; the site labels it class F/.test(i.message)));
-  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /dataplatform class_code STRATEGY_H; shown as class F/);
+  assert.equal(seb.classCode, "STRATEGY_H");
+  assert.equal(seb.returnClass, "H");
+  assert.equal(seb.returnClassLabel, "Series H");
+  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /class F \(STRATEGY\) full history not used: answered class STRATEGY_H instead of STRATEGY/.test(i.message)));
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /every month class_code STRATEGY_H, shown as class H/);
+  // the class-H factsheet is cross-checked as before (same class)
+  assert.ok(context["sustainable-enhanced-bonds"]!.factsheetTrailing, "factsheet trailing cross-check kept for class H");
+  // the request asked for class F with its full history, and class H explicitly for the track-record fetch
+  assert.ok(calls.some((c) => /monthly-net-returns\?short_name=SEB&.*class_code=STRATEGY&history=full/.test(c.url)));
+  assert.ok(calls.some((c) => /monthly-net-returns\?short_name=SEB&.*class_code=STRATEGY_H(&|$)/.test(c.url) && !/history=/.test(c.url)));
   // FTSE univ, history joined over the renamed index (python3 reference)
   near(seb.trailing.index!["1Y"], -0.031101481717578983);
   near(seb.trailing.index!.SI, 0.015257215343614572);

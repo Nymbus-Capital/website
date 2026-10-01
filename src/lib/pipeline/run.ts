@@ -73,6 +73,7 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
     out.push({ name, ok: r.ok, ...(r.ok ? (r.detail ? { detail: r.detail } : {}) : { detail: r.error }) });
   };
   for (const [s, r] of Object.entries(raw.monthlyReturns)) add(`dataplatform monthly-net-returns ${s}`, r);
+  for (const [s, r] of Object.entries(raw.monthlyReturnsFull ?? {})) add(`dataplatform monthly-net-returns ${s} (preferred class, full history)`, r);
   for (const [s, r] of Object.entries(raw.nav)) add(`dataplatform nav-timeseries ${s}`, r);
   add("dataplatform apex/funds", raw.apexFunds);
   add("dataplatform unitholders/funds", raw.unitholderFunds);
@@ -96,6 +97,7 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
     "aum.json": raw.aum.ok && raw.aum.data ? { ok: true, data: { snapshot_date: raw.aum.data.snapshot_date, warningCount: raw.aum.data.warningCount, totals: { ...raw.aum.data.totals } } } : { ok: false, error: raw.aum.error },
   };
   for (const [s, r] of Object.entries(raw.monthlyReturns)) files[`monthly-net-returns_${s}.json`] = r;
+  for (const [s, r] of Object.entries(raw.monthlyReturnsFull ?? {})) files[`monthly-net-returns-full_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.nav)) files[`nav_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.ftse)) files[`ftse_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) files[`fund-portfolio_${s}.json`] = r;

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 
 /**
  * Fund detail pages (/strategies/<fund key>) rendered against the illustrative sample data
@@ -286,4 +286,70 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
   await expect(page.getByTestId("provenance")).toContainText("données de portefeuille selon les positions quotidiennes au 28 septembre 2026");
+});
+
+/**
+ * Performance class label (Gabriel 2026-10-01: the label must match the class of the data). The expected label is
+ * read from the class code of the sample's own data (`performance.classCode`), never assumed: SEB shows its class F
+ * series once the dataplatform serves it (the sample is built that way) and its class H series, labelled H, before.
+ * The NAV card keeps the register's own series (LDM201 = F), independent of the returns' class.
+ */
+const SAMPLE = JSON.parse(readFileSync("src/lib/data/sample-site-data.json", "utf8")) as { funds: Record<string, { performance: { classCode?: string; returnClass?: string } | null }> };
+const CLASS_OF: Record<string, Record<string, string>> = {
+  "monthly-income": { STRATEGY: "FP" },
+  "sustainable-enhanced-bonds": { STRATEGY: "F", STRATEGY_H: "H" },
+  "multi-strategy": { STRATEGY: "F" },
+};
+for (const slug of Object.keys(CLASS_OF)) {
+  test(`performance class label follows the data's class everywhere (EN + FR): ${slug}`, async ({ page }) => {
+    const perf = SAMPLE.funds[slug].performance!;
+    const code = CLASS_OF[slug][perf.classCode!];
+    expect(code, `class ${perf.classCode} has a label`).toBeTruthy();
+    expect(perf.returnClass).toBe(code);
+    for (const [lang, word, fund] of [["en", "Series", "Fund"], ["fr", "Série", "Fonds"]] as const) {
+      await page.goto(`/strategies/${slug}`);
+      if (lang === "fr") {
+        await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        await page.reload();
+      }
+      const label = `${word} ${code}`;
+      const exact = new RegExp(`${word} ${code}(?![A-Z])`);
+      // header return badges, overview returns, disclosures
+      await expect(page.getByTestId("basis")).toContainText(exact);
+      await expect(page.getByTestId("overview-returns")).toContainText(exact);
+      await expect(page.getByTestId("perf-class")).toContainText(exact);
+      // performance tab context line and growth chart legend
+      await openTab(page, "performance");
+      await expect(page.getByTestId("perf-context")).toContainText(exact);
+      await page.getByTestId("growth").scrollIntoViewIfNeeded();
+      await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fund} (${label})`);
+      // never the other class of the fund anywhere on the page
+      for (const other of Object.values(CLASS_OF[slug]).filter((c) => c !== code)) {
+        await expect(page.locator("main")).not.toContainText(new RegExp(`(Series|Série) ${other}[,)]`));
+      }
+      if (slug === "sustainable-enhanced-bonds") {
+        // the NAV card is the register's class LDM201 (F) whatever the class of the returns
+        await openTab(page, "overview");
+        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM201");
+      }
+    }
+  });
+}
+
+test("home tiles and the strategies index name the class of the returns", async ({ page }) => {
+  for (const path of ["/", "/strategies"]) {
+    await page.goto(path);
+    for (const slug of Object.keys(CLASS_OF)) {
+      const code = CLASS_OF[slug][SAMPLE.funds[slug].performance!.classCode!];
+      const card = page.getByTestId(`strategy-${slug}`);
+      await expect(card.getByTestId("perf-class")).toHaveText(`Series ${code}`);
+    }
+    // a strategy without classes (GMV) shows none
+    await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-class")).toHaveCount(0);
+  }
+  await expect(page.getByTestId("compare-table").getByTestId("perf-class")).toHaveCount(3);
+  await expect(page.getByTestId("compare-table").getByTestId("perf-class").nth(1)).toHaveText(`Series ${CLASS_OF["sustainable-enhanced-bonds"][SAMPLE.funds["sustainable-enhanced-bonds"].performance!.classCode!]}`);
+  await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+  await page.reload();
+  await expect(page.getByTestId("strategy-sustainable-enhanced-bonds").getByTestId("perf-class")).toHaveText(/^Série [FH]$/);
 });

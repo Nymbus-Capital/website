@@ -70,6 +70,19 @@ export function fixtureRoute(url: URL): Response | undefined {
   return undefined;
 }
 
+/**
+ * The dataplatform once it serves `class_code` + `history=full` on monthly-net-returns (SEB class F, every month).
+ * Without this route the fixtures behave like the server deployed before that change: both parameters are ignored
+ * and SEB answers with its default STRATEGY_H (Apex-only) track record.
+ */
+export const fullHistoryRoute: Route = (url) => {
+  const q = url.searchParams;
+  if (url.pathname !== "/api/performance/monthly-net-returns" || q.get("history") !== "full") return undefined;
+  const j = loadFixture(`dataplatform/mnr_${q.get("short_name")}_${q.get("class_code")}_full.json`) as { rows: { month: string }[] };
+  const end = q.get("end_date") ?? "9999";
+  return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
+};
+
 export interface MockFetch {
   fetch: typeof fetch;
   calls: { url: string; headers: Record<string, string> }[];

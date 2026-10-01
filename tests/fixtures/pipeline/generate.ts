@@ -5,6 +5,7 @@
  *
  * Output (this folder):
  *   dataplatform/mnr_<SHORT>.json      /api/performance/monthly-net-returns responses (2019 → 2026-08)
+ *   dataplatform/mnr_SEB_STRATEGY_full.json   the same with class_code=STRATEGY&history=full (SEB class F, every month)
  *   dataplatform/nav_<SHORT>.json      /api/performance/nav-timeseries responses (last 3 weeks, apex + cibc duplicates)
  *   dataplatform/apex_funds.json       /api/apex/funds (live funds, one dormant class)
  *   dataplatform/unitholders_funds.json
@@ -75,6 +76,9 @@ const sest: Series = {};
 for (const m of months("2019-01-31", LAST_MONTH)) sest[m] = r8(0.0008 + 0.8 * idxShort[m] + 0.0035 * g());
 const seb: Series = {};
 for (const m of months("2019-02-28", LAST_MONTH)) seb[m] = r8(0.0006 + 0.9 * idxUniv[m] + 0.0045 * g());
+/** SEB class F (dataplatform STRATEGY): the same book with a different fee load than the H class above (synthetic) */
+const sebF: Series = {};
+for (const m of months("2019-02-28", LAST_MONTH)) sebF[m] = r8(seb[m] + 0.0012);
 const multi: Series = {};
 const multiAll = multi;
 for (const m of months("2019-01-31", LAST_MONTH)) multi[m] = r8(0.0055 + 0.019 * g());
@@ -195,6 +199,16 @@ function mnr(short: string, s: Series, first: string): unknown {
     ? { month: m, net_return: s[m], status: "ready", method: "compounded_apex_net_daily", source_dates: [], source_row_ids: [], issue: null }
     : { month: m, net_return: null, status: "unavailable", method: m >= "2026-06-30" ? "compounded_apex_net_daily" : null, source_dates: [], source_row_ids: [], issue: m >= "2026-06-30" ? "Incomplete Apex valuation-day coverage; no partial-month compounding" : "A complete distribution-aware Apex net-return chain is unavailable" }));
   return { short_name: short, class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
+}
+
+/**
+ * monthly-net-returns with `class_code` + `history=full` (dataplatform contract of 2026-10-01): every month from the
+ * track-record start, each with its source (cibc before the bridge, bridge months, apex from the cutover).
+ */
+export const BRIDGE_FROM = "2026-05-31";
+function mnrFull(short: string, classCode: string, s: Series, first: string): unknown {
+  const rows = months(first, LAST_MONTH).map((m) => ({ month: m, net_return: s[m], status: "ready", method: m >= APEX_READY_FROM ? "compounded_apex_net_daily" : "administrator_monthly", source: m >= APEX_READY_FROM ? "apex" : m >= BRIDGE_FROM ? "bridge" : "cibc", source_dates: [], source_row_ids: [], issue: null }));
+  return { short_name: short, class_code: classCode, history: "full", currency: "CAD", return_basis: "net_of_fees", methodology_version: "full-history-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
 }
 
 function businessDays(from: string, to: string): string[] {
@@ -614,6 +628,7 @@ export function generate(dir = HERE): void {
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
   w(path.join(dp, "mnr_Multistrat.json"), mnr("Multistrat", multi, "2019-01-31"));
+  w(path.join(dp, "mnr_SEB_STRATEGY_full.json"), mnrFull("SEB", "STRATEGY", sebF, "2019-02-28"));
   for (const s of ["SEST", "SEB", "Multistrat"]) w(path.join(dp, `nav_${s}.json`), navPayload(s));
   w(path.join(dp, "apex_funds.json"), apexFunds);
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);

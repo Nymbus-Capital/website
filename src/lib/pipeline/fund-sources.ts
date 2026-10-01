@@ -5,6 +5,9 @@
  */
 import type { FundKey } from "../data/types.ts";
 
+/** dataplatform monthly-net-returns `class_code`: "STRATEGY" = the fund's F / FP class, "STRATEGY_H" = SEB's H class */
+export type ClassCode = "STRATEGY" | "STRATEGY_H";
+
 export interface FundSources {
   /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
   dataplatform: "SEST" | "SEB" | "Multistrat" | null;
@@ -15,8 +18,24 @@ export interface FundSources {
   ftseIndex: string | null;
   /** series name in the analytics repo fund_returns.json (official monthly history before the Apex cutover) */
   analytics: string | null;
-  /** class the published performance is labelled with on the site (business decision: FP / F) */
-  returnClassLabel: "FP" | "F" | null;
+  /**
+   * Class of the monthly track record when no full-history class is confirmed: the class of the analytics series,
+   * of the dataplatform default (Apex) months and of every publication made before classes were tracked.
+   */
+  trackRecordClass: ClassCode | null;
+  /**
+   * Class asked from monthly-net-returns with `history=full` (Gabriel 2026-10-01: SEB shown as Class F). Used for
+   * every month, with no analytics month, only when the response confirms that class from the track-record start;
+   * otherwise the trackRecordClass sources are used. null: no preferred class.
+   */
+  preferredClass: ClassCode | null;
+  /** class of the fund returns the factsheet publishes (monthly table, trailing, statistics) */
+  factsheetClass: ClassCode | null;
+  /**
+   * Site label of each class code. The label shown is ALWAYS derived from the class of the data actually used
+   * (never a business label that can disagree with it); a class without a label is not shown.
+   */
+  classLabels: Partial<Record<ClassCode, string>>;
   /** factsheet archive: file prefix and fund key inside it */
   factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
 }
@@ -29,32 +48,51 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     // index figures are only a cross-check. Override with FTSE_INDEX_SEST.
     ftseIndex: "short_corp",
     analytics: "Nymbus Monthly Income",
-    returnClassLabel: "FP",
+    trackRecordClass: "STRATEGY",
+    preferredClass: null,
+    factsheetClass: "STRATEGY",
+    classLabels: { STRATEGY: "FP" },
     factsheet: { file: "bonds_data", key: "SEST" },
   },
   "sustainable-enhanced-bonds": {
     dataplatform: "SEB",
     ftseIndex: "univ",
     analytics: "Nymbus Sustainable Enhanced Bonds",
-    // the dataplatform track record is the STRATEGY_H (class H) series; the site labels it class F
-    returnClassLabel: "F",
+    // analytics history and the dataplatform default track record are the H class (STRATEGY_H); the F class
+    // (STRATEGY) is used once the dataplatform serves its full history; the factsheet publishes class H
+    trackRecordClass: "STRATEGY_H",
+    preferredClass: "STRATEGY",
+    factsheetClass: "STRATEGY_H",
+    classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
     factsheet: { file: "bonds_data", key: "QCFI-SEB" },
   },
   "multi-strategy": {
     dataplatform: "Multistrat",
     ftseIndex: null,
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
-    returnClassLabel: "F",
+    trackRecordClass: "STRATEGY",
+    preferredClass: null,
+    factsheetClass: "STRATEGY",
+    classLabels: { STRATEGY: "F" },
     factsheet: { file: "factsheet_data", key: "Multistrategy" },
   },
   "global-minimum-volatility": {
     dataplatform: null,
     ftseIndex: null,
     analytics: null,
-    returnClassLabel: null,
+    trackRecordClass: null,
+    preferredClass: null,
+    factsheetClass: null,
+    classLabels: {},
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
   },
 };
 
 /** Sources of one fund (every registry key has an entry). */
 export const fundSources = (key: FundKey): FundSources => FUND_SOURCES[key];
+
+/** Site label of a class code for a fund ("F", "H", "FP"), or null when the class is unknown for that fund. */
+export function classLabel(key: FundKey, code: string | null | undefined): string | null {
+  if (!code) return null;
+  return (FUND_SOURCES[key].classLabels as Record<string, string | undefined>)[code] ?? null;
+}

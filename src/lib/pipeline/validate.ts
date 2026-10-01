@@ -9,6 +9,7 @@
  *   - computed trailing differs from the published factsheet of the same month by more than 0.5 %
  *   - growth series inconsistent with the monthly returns
  *   - any non-finite number anywhere in the fund data
+ *   - a performance class label that is not the label of the class of its data (performance.classCode)
  *  repairs (the value is dropped / kept from the previous publication, the rest is published):
  *   - NAV class moving more than 10 % in one valuation day: class dropped (previous value kept if any) — error issue
  *   - AUM negative or not a number: dropped (previous kept if any) — error issue
@@ -34,6 +35,8 @@ import type { FundContext } from "./build.ts";
 import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
+import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
+import { fundWithClassLabel } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
 export interface FundValidation {
@@ -66,6 +69,13 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
   const p = f.performance;
   if (!p) return;
   const method: Method = ctx?.method ?? PIPELINE_FUNDS[f.key]?.method ?? "compounded";
+  // the class label must be the one of the data's class (never a business label that can disagree with it)
+  if (Object.keys(FUND_SOURCES[f.key]?.classLabels ?? {}).length) {
+    const want = classLabel(f.key, p.classCode);
+    if (!p.classCode || !want || p.returnClass !== want || p.returnClassLabel !== `Series ${want}`) {
+      blocking.push({ key: `${base}.performance.class`, level: "error", message: `performance labelled ${p.returnClassLabel ?? p.returnClass ?? "without a class"} but its data are of class ${p.classCode ?? "unknown"}${want ? ` (class ${want})` : ""}` });
+    }
+  }
   if (prev?.performance && p.asOf < prev.performance.asOf) {
     blocking.push({ key: `${base}.performance.asOf`, level: "error", message: `performance as of ${p.asOf} is earlier than the published ${prev.performance.asOf}` });
   }
@@ -357,9 +367,10 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const ctx = context[key];
     const blocking: Issue[] = [];
     const warnings: Issue[] = [];
-    // a carried-over fund passes the daily-book gate again: its book may have become too old since it was published
+    // a carried-over fund passes the daily-book gate again: its book may have become too old since it was published;
+    // its performance is labelled by its own class (perf-class.ts)
     const carry = (): FundData => {
-      const c = structuredClone(prev!);
+      const c = structuredClone(fundWithClassLabel(prev!)!);
       const issues = [...checkPortfolio(c, base, now), ...checkDistributions(c, base, now)];
       if (issues.length) {
         warnings.push(...issues);
