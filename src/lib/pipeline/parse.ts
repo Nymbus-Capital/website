@@ -64,8 +64,6 @@ export const BOND_CHARACTERISTICS: CharSpec[] = [
   { id: "investmentGrade", source: "% of Portfolio Rated Investment Grade", label: { en: "Rated investment grade", fr: "Cotée de première qualité" }, unit: "pct" },
   { id: "numberOfSecurities", source: "Number of Securities", label: { en: "Number of securities", fr: "Nombre de titres" }, unit: "int" },
   { id: "probabilityOfDefault5y", source: "Probability of Defaults (5Y)", label: { en: "Probability of default (5Y)", fr: "Probabilité de défaut (5 ans)" }, unit: "pct" },
-  { id: "liquidityScore", source: "Liquidity Score", label: { en: "Liquidity score", fr: "Cote de liquidité" }, unit: "num" },
-  { id: "netCreditLeverage", source: "Net Credit Leverage", label: { en: "Net credit leverage", fr: "Levier de crédit net" }, unit: "pct" },
 ];
 
 export const ESG_METRICS: CharSpec[] = [

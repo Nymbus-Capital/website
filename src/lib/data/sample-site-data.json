@@ -1461,16 +1461,6 @@
      "fund": 0.0062,
      "unit": "pct",
      "index": 0.0048
-    },
-    {
-     "id": "liquidityScore",
-     "label": {
-      "en": "Liquidity score",
-      "fr": "Cote de liquidité"
-     },
-     "fund": 71.3,
-     "unit": "num",
-     "index": 74.2
     }
    ],
    "breakdowns": {
@@ -5082,16 +5072,6 @@
      "fund": 0.0062,
      "unit": "pct",
      "index": 0.0048
-    },
-    {
-     "id": "liquidityScore",
-     "label": {
-      "en": "Liquidity score",
-      "fr": "Cote de liquidité"
-     },
-     "fund": 71.3,
-     "unit": "num",
-     "index": 74.2
     }
    ],
    "breakdowns": {

@@ -11,16 +11,6 @@
     "Index": "2.68",
     "+/-": "-0.27"
    },
-   "Liquidity Score": {
-    "Fund": "71.3%",
-    "Index": "74.2%",
-    "+/-": "-2.9%"
-   },
-   "Net Credit Leverage": {
-    "Fund": "",
-    "Index": "",
-    "+/-": ""
-   },
    "Number of Securities": {
     "Fund": "86",
     "Index": "742",
@@ -580,16 +570,6 @@
     "Fund": "7.35",
     "Index": "7.12",
     "+/-": "+0.23"
-   },
-   "Liquidity Score": {
-    "Fund": "71.3%",
-    "Index": "74.2%",
-    "+/-": "-2.9%"
-   },
-   "Net Credit Leverage": {
-    "Fund": "",
-    "Index": "",
-    "+/-": ""
    },
    "Number of Securities": {
     "Fund": "112",

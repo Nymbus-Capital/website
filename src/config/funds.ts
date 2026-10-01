@@ -111,8 +111,8 @@ export const FUNDS: FundSpec[] = [
       riskRating: "low",
       tagline: { en: "A futures overlay designed to have low correlation with bonds", fr: "Une stratégie de superposition conçue pour avoir une faible corrélation avec les obligations" },
       description: {
-        en: "A managed-futures overlay stacked on top of an existing portfolio (margin deposit of about 5 to 10% of exposure): most of the capital stays invested in the underlying portfolio while the overlay targets 3%, 6% or 9% downside volatility. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-        fr: "Une stratégie de contrats à terme gérés ajoutée par-dessus un portefeuille existant (dépôt de garantie d’environ 5 à 10 % de l’exposition) : la majeure partie du capital reste investie dans le portefeuille sous-jacent, tandis que la stratégie cible une volatilité baissière de 3 %, 6 % ou 9 %. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+        en: "A managed-futures overlay stacked on top of an existing portfolio (margin deposit of about 5 to 10% of exposure): most of the capital stays invested in the underlying portfolio while the overlay targets 3%, 6% or 9% downside volatility. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+        fr: "Une stratégie de contrats à terme gérés ajoutée par-dessus un portefeuille existant (dépôt de garantie d’environ 5 à 10 % de l’exposition) : la majeure partie du capital reste investie dans le portefeuille sous-jacent, tandis que la stratégie cible une volatilité baissière de 3 %, 6 % ou 9 %. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
       },
     },
   },

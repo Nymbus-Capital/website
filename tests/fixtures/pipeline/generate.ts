@@ -509,8 +509,6 @@ function bondBlock(kind: "SEST" | "SEB"): unknown {
     Characteristics: {
       "Credit Quality": { Fund: short ? "A" : "A+", Index: short ? "A" : "AA", "+/-": "nan" },
       Duration: { Fund: short ? "2.41" : "7.35", Index: short ? "2.68" : "7.12", "+/-": short ? "-0.27" : "+0.23" },
-      "Liquidity Score": { Fund: "71.3%", Index: "74.2%", "+/-": "-2.9%" },
-      "Net Credit Leverage": { Fund: "", Index: "", "+/-": "" },
       "Number of Securities": { Fund: short ? "86" : "112", Index: short ? "742" : "1784", "+/-": short ? "-656" : "-1672" },
       "Portfolio Yield": { Fund: short ? "4.21%" : "4.37%", Index: short ? "3.48%" : "3.91%", "+/-": short ? "+0.73%" : "+0.46%" },
       "Probability of Defaults (5Y)": { Fund: "0.62%", Index: "0.48%", "+/-": "+0.14%" },
