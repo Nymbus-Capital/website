@@ -110,7 +110,6 @@ export const AUDIENCES: AudienceCopy[] = [
     benefits: [
       l("Funds on FundServ for client portfolios", "Fonds sur FundServ pour les portefeuilles de vos clients"),
       l("Model portfolio integration support", "Soutien à l’intégration aux portefeuilles modèles"),
-      l("Educational materials and fund documents", "Matériel éducatif et documents des fonds"),
       l("A dedicated advisor support team", "Équipe de soutien réservée aux conseillers"),
       l("Due diligence documentation on request", "Documentation de vérification diligente sur demande"),
     ],

@@ -36,8 +36,8 @@ export const NEWS: NewsItem[] = [
       "Une partie du Fonds Mageska, gérée selon une stratégie d’alpha portable.",
     ),
     body: l(
-      "Mageska Capital entrusts Nymbus with a portion of the Mageska Fund.\n\nThe mandate: a portable alpha strategy using Nymbus’ low-volatility strategies, designed to have low correlation with traditional indices.",
-      "Mageska Capital confie à Nymbus une partie du Fonds Mageska.\n\nLe mandat : une stratégie d’alpha portable fondée sur les stratégies à faible volatilité de Nymbus, conçues pour avoir une faible corrélation avec les indices traditionnels.",
+      "The mandate: a portable alpha strategy using Nymbus’ low-volatility strategies, designed to have low correlation with traditional indices.",
+      "Le mandat : une stratégie d’alpha portable fondée sur les stratégies à faible volatilité de Nymbus, conçues pour avoir une faible corrélation avec les indices traditionnels.",
     ),
   },
   {
@@ -50,8 +50,8 @@ export const NEWS: NewsItem[] = [
       "Aucun tabac dans les titres que nous sélectionnons directement.",
     ),
     body: l(
-      "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.\n\nTobacco companies are excluded from the securities we select directly.",
-      "Nymbus a signé le Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios.\n\nLes entreprises du tabac sont exclues des titres que nous sélectionnons directement.",
+      "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",
+      "Nymbus a signé le Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios.",
     ),
   },
   {

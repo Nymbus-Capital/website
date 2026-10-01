@@ -265,5 +265,22 @@ Changed pages (please tick once reviewed):
   sub-strategies, GMV overlay) has a shorter lead and card texts, with the same disclosures in the same cards
   (distributions sentence on "Monthly distributions", caveat + leverage on the overlay cards, "it may not do so" on
   Hedging, the futures-overlay exception in the SEB lead).
-- [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (word counts and the full
-  diff are in the branch's commit).
+- [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (full diff on the branch).
+
+English word counts of the strings in these copy modules (body copy = prose sentences; headings, button labels,
+meta descriptions, form labels and regulatory sentences counted apart; regulatory sentences only shrink where a
+condensed sentence carried a regulatory keyword, e.g. the PRI naming, or where a caveat-free claim was removed):
+
+| Page | Body copy before | after | cut | Headings/labels b→a | Verbatim disclosures b→a |
+|---|---:|---:|---:|---:|---:|
+| Home | 510 | 246 | 52 % | 100→100 | 15→15 |
+| Strategies index | 115 | 62 | 46 % | 44→44 | 18→18 |
+| Solutions | 331 | 187 | 44 % | 65→73 | 39→39 |
+| Approach | 765 | 364 | 52 % | 212→218 | 72→47 |
+| Sustainability | 305 | 172 | 44 % | 114→114 | 218→171 |
+| Team (intro, values, milestones) | 301 | 141 | 53 % | 116→116 | 9→8 |
+| Team bios | 834 | 349 | 58 % | 0→0 | 0→0 |
+| Contact | 82 | 45 | 45 % | 51→55 | 0→0 |
+| Fund pages (FUND_TEXTS) | 623 | 370 | 41 % | 67→70 | 191→191 |
+| **Total** | 3866 | 1936 | 50 % | 769→790 | 562→489 |
+

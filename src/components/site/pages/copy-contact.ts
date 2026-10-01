@@ -83,7 +83,7 @@ export const CT = {
       { t: l("Investors and institutions", "Investisseurs et institutions"), d: l("Strategies, mandates, due diligence, meetings.", "Stratégies, mandats, vérification diligente, rencontres."), email: "info@nymbus.ca", subject: l("Investor inquiry", "Demande d’investisseur") },
       { t: l("Financial advisors", "Conseillers en placement"), d: l("Fund codes, documents, client portfolio support.", "Codes de fonds, documents, soutien pour vos clients."), email: "info@nymbus.ca", subject: l("Advisor inquiry", "Demande de conseiller") },
       { t: l("Media and careers", "Médias et carrières"), d: l("Interviews, events, job applications.", "Entrevues, événements, candidatures."), email: "info@nymbus.ca", subject: l("Media or careers", "Médias ou carrières") },
-      { t: l("Complaints and privacy", "Plaintes et confidentialité"), d: l("Complaints and personal information requests, handled by compliance.", "Plaintes et demandes sur les renseignements personnels, traitées par la conformité."), email: "compliance@nymbus.ca", subject: l("Compliance", "Conformité"), link: { href: "/legal#complaints", label: l("Complaints policy", "Politique de traitement des plaintes") } },
+      { t: l("Complaints and privacy", "Plaintes et confidentialité"), d: l("Complaints and personal information requests.", "Plaintes et demandes sur les renseignements personnels."), email: "compliance@nymbus.ca", subject: l("Compliance", "Conformité"), link: { href: "/legal#complaints", label: l("Complaints policy", "Politique de traitement des plaintes") } },
     ] as { t: L; d: L; email: string; subject: L; link?: { href: string; label: L } }[],
   },
   visit: {

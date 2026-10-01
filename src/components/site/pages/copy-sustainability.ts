@@ -79,8 +79,8 @@ export const SU = {
     ),
     uses: [l("Renewable energy", "Énergie renouvelable"), l("Energy efficiency", "Efficacité énergétique"), l("Clean transportation", "Transport propre"), l("Green buildings", "Bâtiments écologiques")],
     note: l(
-      "Portfolio characteristics, including ESG measures when they are published, are on the fund page.",
-      "Les caractéristiques du portefeuille, y compris les mesures ESG lorsqu’elles sont publiées, figurent sur la page du fonds.",
+      "ESG measures, when published, are on the fund page.",
+      "Les mesures ESG, une fois publiées, figurent sur la page du fonds.",
     ),
     go: l("Sustainable Enhanced Bonds fund", "Fonds Obligations Durables Bonifiées"),
   },

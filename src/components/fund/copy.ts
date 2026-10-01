@@ -452,7 +452,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
       l("Most of the capital stays invested in the underlying portfolio", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent"),
-      l("Liquid futures, sized to a downside volatility target agreed with each client", "Des contrats à terme liquides, calibrés selon une cible de volatilité baissière convenue avec chaque client"),
+      l("Liquid futures, sized to each client’s downside volatility target", "Des contrats à terme liquides, calibrés selon la cible de volatilité baissière de chaque client"),
     ],
     note: LEVERAGE,
     feature: {

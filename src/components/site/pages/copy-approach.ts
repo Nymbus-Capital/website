@@ -117,7 +117,7 @@ export const AP = {
           [l("Rebalancing", "Rééquilibrage"), l("Continuous, on alerts", "Continu, sur alertes")],
         ] as [L, L][],
         steps: [
-          l("Score and rank the bonds of each cell by yield and risk, continuously", "Évaluer et classer en continu les obligations de chaque cellule selon leur rendement et leur risque"),
+          l("Score and rank each cell’s bonds by yield and risk", "Évaluer et classer les obligations de chaque cellule selon le rendement et le risque"),
           l("Select the final securities", "Sélectionner les titres finaux"),
         ],
       },
@@ -177,8 +177,8 @@ export const AP = {
     title: l("Built like a research lab,", "Organisés comme un laboratoire,"),
     accent: l("run like a trading desk", "exploités comme un pupitre de négociation"),
     lead: l(
-      "Same data and code for research and operations: what we test is what we run.",
-      "Mêmes données et même code pour la recherche et les opérations : ce que nous testons est ce que nous exploitons.",
+      "Same data and code: what we test is what we run.",
+      "Mêmes données, même code : ce que nous testons est ce que nous exploitons.",
     ),
     lifecycleT: l("From idea to production", "De l’idée à la production"),
     lifecycle: [
