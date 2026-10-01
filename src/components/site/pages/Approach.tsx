@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team } from "@/data/team";
-import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
+import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
 import { AP } from "./copy-approach";
 import { Portrait } from "./Portrait";
 import { countCFA, countPhD, membersOf } from "./lib/people";
@@ -202,8 +202,8 @@ export function Approach() {
               color: STEP_COLORS[i],
               text: (
                 <div className="ap-step">
-                  <p>{pick(s.text)}</p>
-                  <ul className="pg-ticks">{s.bullets.map((b, k) => <li key={k}>{pick(b)}</li>)}</ul>
+                  <Bullets size="sm" items={s.bullets.map((b) => pick(b))} />
+                  {"note" in s && s.note ? <p className="fine ap-step-note">{pick(s.note)}</p> : null}
                 </div>
               ) as ReactNode,
             };

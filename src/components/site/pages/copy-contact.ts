@@ -17,13 +17,13 @@ export const CT = {
     title: l("Get in", "Communiquez"),
     accent: l("touch", "avec nous"),
     lead: l(
-      "Interested in our strategies, a custom mandate or the firm? Our team in Montreal is here to help.",
-      "Nos stratégies, un mandat sur mesure ou la firme vous intéressent? Notre équipe de Montréal est là pour vous aider.",
+      "Strategies, a custom mandate or the firm: our Montreal team can help.",
+      "Nos stratégies, un mandat sur mesure ou la firme : notre équipe de Montréal peut vous aider.",
     ),
   },
   form: {
     title: l("Write to us", "Écrivez-nous"),
-    lead: l("Three short steps. Your message opens in your own mail app, ready to send.", "Trois courtes étapes. Votre message s’ouvre dans votre application de courriel, prêt à envoyer."),
+    lead: l("Three steps. Your message opens in your mail app, ready to send.", "Trois étapes. Votre message s’ouvre dans votre application de courriel, prêt à envoyer."),
     stepsLabel: l("Form progress", "Progression du formulaire"),
     steps: [l("Investor type", "Type d’investisseur"), l("Interests", "Intérêts"), l("Contact details", "Coordonnées")],
     stepOf: l("Step {n} of 3", "Étape {n} sur 3"),
@@ -72,7 +72,7 @@ export const CT = {
     hours: l("Monday to Friday, 8:30 a.m. to 5:00 p.m. (Eastern time)", "Du lundi au vendredi, de 8 h 30 à 17 h (heure de l’Est)"),
     map: l("Open in Google Maps", "Ouvrir dans Google Maps"),
     response: l("Response time", "Délai de réponse"),
-    responseD: l("We usually reply within one business day. For urgent matters, please call us.", "Nous répondons habituellement en un jour ouvrable. Pour une question urgente, appelez-nous."),
+    responseD: l("Usually within one business day. Urgent? Please call.", "Habituellement en un jour ouvrable. Urgent? Appelez-nous."),
     labels: { phone: l("Phone", "Téléphone"), email: l("Email", "Courriel"), hours: l("Hours", "Heures"), linkedin: l("LinkedIn", "LinkedIn") },
   },
   who: {
@@ -80,16 +80,16 @@ export const CT = {
     title: l("The right person", "La bonne personne"),
     accent: l("for your question", "pour votre question"),
     items: [
-      { t: l("Investors and institutions", "Investisseurs et institutions"), d: l("Strategies, mandates, due diligence and meetings with the investment team.", "Stratégies, mandats, vérification diligente et rencontres avec l’équipe de placement."), email: "info@nymbus.ca", subject: l("Investor inquiry", "Demande d’investisseur") },
-      { t: l("Financial advisors", "Conseillers en placement"), d: l("Fund codes, documents and support for client portfolios.", "Codes de fonds, documents et soutien pour les portefeuilles de vos clients."), email: "info@nymbus.ca", subject: l("Advisor inquiry", "Demande de conseiller") },
-      { t: l("Media and careers", "Médias et carrières"), d: l("Interview requests, events, and applications to join the team.", "Demandes d’entrevue, événements et candidatures."), email: "info@nymbus.ca", subject: l("Media or careers", "Médias ou carrières") },
-      { t: l("Complaints and privacy", "Plaintes et confidentialité"), d: l("Our compliance team handles complaints and requests about personal information.", "Notre équipe de conformité traite les plaintes et les demandes relatives aux renseignements personnels."), email: "compliance@nymbus.ca", subject: l("Compliance", "Conformité"), link: { href: "/legal#complaints", label: l("Complaints policy", "Politique de traitement des plaintes") } },
+      { t: l("Investors and institutions", "Investisseurs et institutions"), d: l("Strategies, mandates, due diligence, meetings.", "Stratégies, mandats, vérification diligente, rencontres."), email: "info@nymbus.ca", subject: l("Investor inquiry", "Demande d’investisseur") },
+      { t: l("Financial advisors", "Conseillers en placement"), d: l("Fund codes, documents, client portfolio support.", "Codes de fonds, documents, soutien pour vos clients."), email: "info@nymbus.ca", subject: l("Advisor inquiry", "Demande de conseiller") },
+      { t: l("Media and careers", "Médias et carrières"), d: l("Interviews, events, job applications.", "Entrevues, événements, candidatures."), email: "info@nymbus.ca", subject: l("Media or careers", "Médias ou carrières") },
+      { t: l("Complaints and privacy", "Plaintes et confidentialité"), d: l("Complaints and personal information requests, handled by compliance.", "Plaintes et demandes sur les renseignements personnels, traitées par la conformité."), email: "compliance@nymbus.ca", subject: l("Compliance", "Conformité"), link: { href: "/legal#complaints", label: l("Complaints policy", "Politique de traitement des plaintes") } },
     ] as { t: L; d: L; email: string; subject: L; link?: { href: string; label: L } }[],
   },
   visit: {
     eyebrow: l("Visit us", "Nous rendre visite"),
     title: l("In the heart of", "Au cœur du"),
     accent: l("downtown Montreal", "centre-ville de Montréal"),
-    text: l("Our office is on Sherbrooke Street West, a short walk from Peel metro station.", "Notre bureau est situé rue Sherbrooke Ouest, à quelques pas de la station de métro Peel."),
+    text: l("Sherbrooke Street West, a short walk from Peel metro.", "Rue Sherbrooke Ouest, à quelques pas du métro Peel."),
   },
 };

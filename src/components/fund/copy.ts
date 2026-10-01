@@ -349,95 +349,121 @@ export const T = {
 export interface FundTexts {
   /** shown under "What the fund does" when the admin has not entered the official investment objective */
   summary: L;
-  approach: L;
+  /** investment approach as short bullets */
+  focus: L[];
+  /** risk disclosure shown under the approach bullets (regulatory wording, kept verbatim) */
+  note?: L;
   feature: { eyebrow: L; title: L; lead: L; cards: { icon: FeatureIcon; title: L; text: L; needs?: "esg" | "portfolio" }[]; link?: { href: string; label: L } };
 }
 
 export type FeatureIcon = "calendar" | "timer" | "scan" | "shield" | "leaf" | "filter" | "gauge" | "sprout" | "layers" | "trend" | "repeat" | "umbrella" | "stack" | "waves";
 
+/* risk disclosures of the futures overlay (compliance-reviewed wording, verbatim) */
+const LOW_CORR = l(
+  "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+  "conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+);
+const LEVERAGE = l(
+  "The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
+  "La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+);
+const DIST = l(
+  "Distributions are not guaranteed, may change and may include a return of capital.",
+  "Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.",
+);
+/** Sentences joined with a space, in each language. */
+const join = (...xs: L[]): L => ({ en: xs.map((x) => x.en).join(" "), fr: xs.map((x) => x.fr).join(" ") });
+
 export const FUND_TEXTS: Record<FundKey, FundTexts> = {
   "monthly-income": {
-    summary: l(
-      "The fund is designed for investors who want monthly income from a portfolio of short-term Canadian corporate bonds, with limited sensitivity to interest-rate changes. Distributions are not guaranteed, may change and may include a return of capital.",
-      "Le fonds s’adresse aux investisseurs qui recherchent un revenu mensuel tiré d’un portefeuille d’obligations de sociétés canadiennes à court terme, peu sensible aux variations des taux d’intérêt. Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.",
+    summary: join(
+      l("Monthly income from short-term Canadian corporate bonds, with low rate sensitivity.", "Un revenu mensuel tiré d’obligations de sociétés canadiennes à court terme, peu sensible aux taux."),
+      DIST,
     ),
-    approach: l(
-      "The portfolio invests mainly in Canadian corporate bonds with short terms to maturity. Bonds are selected by our two-system quantitative process, which assesses credit risk and relative value across the market. A futures overlay is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-      "Le portefeuille investit principalement dans des obligations de sociétés canadiennes à court terme. Les titres sont sélectionnés par notre processus quantitatif à deux systèmes, qui évalue le risque de crédit et la valeur relative de chaque obligation. Une stratégie de superposition de contrats à terme est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
-    ),
+    focus: [
+      l("Mainly short-term Canadian corporate bonds", "Surtout des obligations de sociétés canadiennes à court terme"),
+      l("Selected by our two-system quantitative process", "Sélectionnées par notre processus quantitatif à deux systèmes"),
+      l("Credit risk and relative value, bond by bond", "Risque de crédit et valeur relative, obligation par obligation"),
+    ],
+    note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, LEVERAGE),
     feature: {
       eyebrow: l("Monthly Income Fund", "Fonds Revenu Mensuel"),
       title: l("Built for monthly income", "Conçu pour un revenu mensuel"),
-      lead: l("Four features shape the way the fund is managed.", "Quatre caractéristiques définissent la gestion du fonds."),
+      lead: l("Four features shape how the fund is managed.", "Quatre caractéristiques définissent la gestion du fonds."),
       cards: [
-        { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: l("The fund is designed to pay distributions every month. Distributions are not guaranteed, may change and may include a return of capital.", "Le fonds est conçu pour verser des distributions chaque mois. Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.") },
-        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Holding bonds that mature within a few years keeps the portfolio’s sensitivity to interest-rate changes low. Its current duration is reported in the Portfolio tab.", "Détenir des obligations qui viennent à échéance d’ici quelques années limite la sensibilité du portefeuille aux variations de taux. Sa durée actuelle figure dans l’onglet Portefeuille.") },
-        { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Every issuer is assessed by the same quantitative models, which weigh credit risk against the yield each bond offers.", "Chaque émetteur est évalué par les mêmes modèles quantitatifs, qui mettent en balance le risque de crédit et le rendement offert par chaque obligation.") },
-        { icon: "shield", title: l("Futures overlay", "Stratégie de superposition"), text: l("An overlay designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie de superposition conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
+        { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST) },
+        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Maturities within a few years: low rate sensitivity. Duration: Portfolio tab.", "Échéances de quelques années : faible sensibilité aux taux. Durée : onglet Portefeuille.") },
+        { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Same models for every issuer: credit risk against yield.", "Mêmes modèles pour chaque émetteur : risque de crédit contre rendement.") },
+        { icon: "shield", title: l("Futures overlay", "Stratégie de superposition"), text: join(l("An overlay", "Une stratégie de superposition"), LOW_CORR, LEVERAGE) },
       ],
     },
   },
   "sustainable-enhanced-bonds": {
     summary: l(
-      "A core Canadian bond fund for investors who want broad exposure to the Canadian bond market, managed systematically and with sustainability criteria integrated into issuer selection.",
-      "Un fonds d’obligations canadiennes de base pour les investisseurs qui recherchent une exposition large au marché obligataire canadien, géré de façon systématique et intégrant des critères de durabilité à la sélection des émetteurs.",
+      "Core Canadian bonds, managed systematically, with sustainability criteria.",
+      "Des obligations canadiennes de base, gérées de façon systématique, avec des critères de durabilité.",
     ),
-    approach: l(
-      "The portfolio invests across the Canadian bond market (federal, provincial and corporate issuers) and is built with our quantitative models. Environmental, social and governance data are part of issuer selection, alongside credit quality and valuation. A futures overlay complements the bond portfolio: it is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-      "Le portefeuille investit dans l’ensemble du marché obligataire canadien (émetteurs fédéraux, provinciaux et de sociétés) et est construit à l’aide de nos modèles quantitatifs. Les données environnementales, sociales et de gouvernance font partie de la sélection des émetteurs, avec la qualité du crédit et l’évaluation. Une stratégie de superposition de contrats à terme complète le portefeuille obligataire : elle est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
-    ),
+    focus: [
+      l("Federal, provincial and corporate issuers", "Émetteurs fédéraux, provinciaux et de sociétés"),
+      l("Built with our quantitative models", "Construit à l’aide de nos modèles quantitatifs"),
+      l("ESG data weighed with credit quality and valuation", "Données ESG prises en compte avec le crédit et l’évaluation"),
+    ],
+    note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, LEVERAGE),
     feature: {
       eyebrow: l("Sustainable Enhanced Bonds Fund", "Fonds Obligations Durables Bonifiées"),
       title: l("Sustainability, integrated", "La durabilité, intégrée"),
-      lead: l("Sustainability criteria are applied at each step of the bond selection process, not added at the end. They do not apply to the futures overlay, which holds no securities of individual issuers.", "Les critères de durabilité s’appliquent à chaque étape du processus de sélection des obligations, et non après coup. Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels."),
+      lead: l("Criteria at every step of bond selection. They do not apply to the futures overlay, which holds no securities of individual issuers.", "Des critères à chaque étape de la sélection des obligations. Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels."),
       cards: [
-        { icon: "filter", title: l("Exclusion screens", "Filtres d’exclusion"), text: l("Issuers whose activities conflict with the fund’s sustainability criteria are removed from the investable universe.", "Les émetteurs dont les activités vont à l’encontre des critères de durabilité du fonds sont retirés de l’univers de placement.") },
-        { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("Environmental, social and governance data are weighed together with credit and valuation when each issuer is selected.", "Les données environnementales, sociales et de gouvernance sont prises en compte avec le crédit et l’évaluation lors de la sélection de chaque émetteur.") },
-        { icon: "sprout", title: l("Green bonds", "Obligations vertes"), text: l("The fund can invest in green bonds, whose proceeds finance projects with environmental benefits.", "Le fonds peut investir dans des obligations vertes, dont le produit finance des projets aux retombées environnementales.") },
-        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Sustainability metrics such as carbon intensity are reported monthly for the portfolio and its index, in the Portfolio tab.", "Des indicateurs de durabilité comme l’intensité carbone sont publiés chaque mois pour le portefeuille et son indice, dans l’onglet Portefeuille."), needs: "esg" },
+        { icon: "filter", title: l("Exclusion screens", "Filtres d’exclusion"), text: l("Issuers in conflict with the fund’s criteria are excluded.", "Les émetteurs contraires aux critères du fonds sont exclus.") },
+        { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("Weighed with credit and valuation, issuer by issuer.", "Prises en compte avec le crédit et l’évaluation, émetteur par émetteur.") },
+        { icon: "sprout", title: l("Green bonds", "Obligations vertes"), text: l("The fund can hold bonds financing environmental projects.", "Le fonds peut détenir des obligations qui financent des projets environnementaux.") },
+        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Carbon intensity and more, monthly, against the index.", "Intensité carbone et autres indicateurs, chaque mois, face à l’indice."), needs: "esg" },
       ],
       link: { href: "/sustainability", label: l("Our sustainability approach", "Notre approche de durabilité") },
     },
   },
   "multi-strategy": {
     summary: l(
-      "An alternative fund that combines several systematic strategies in one portfolio, for investors looking for sources of return designed to behave differently from traditional stock and bond portfolios.",
-      "Un fonds alternatif qui réunit plusieurs stratégies systématiques dans un même portefeuille, pour les investisseurs qui recherchent des sources de rendement conçues pour se comporter différemment des portefeuilles traditionnels d’actions et d’obligations.",
+      "Systematic strategies in one fund, designed to behave differently from stocks and bonds.",
+      "Des stratégies systématiques dans un fonds, conçues pour se comporter autrement que les actions et les obligations.",
     ),
-    approach: l(
-      "The fund combines low-volatility, directional, mean-reversion and hedging strategies. Each follows its own rules-based models and is designed to play a distinct role across market regimes, so that the portfolio depends less on a single source of return. Allocations between the strategies are managed systematically.",
-      "Le fonds réunit des stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture. Chacune suit ses propres modèles fondés sur des règles et est conçue pour jouer un rôle distinct selon les régimes de marché, de sorte que le portefeuille dépend moins d’une seule source de rendement. La répartition entre les stratégies est gérée de façon systématique.",
-    ),
+    focus: [
+      l("Low-volatility, directional, mean-reversion and hedging strategies", "Stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture"),
+      l("Each with its own rules and a distinct role", "Chacune avec ses propres règles et un rôle distinct"),
+      l("Allocations managed systematically", "Répartition gérée de façon systématique"),
+    ],
     feature: {
       eyebrow: l("Multi-Strategy Fund", "Fonds Multistratégies"),
       title: l("Four complementary strategies", "Quatre stratégies complémentaires"),
-      lead: l("Each strategy is designed to play a distinct role; together they are intended to diversify the fund’s sources of return.", "Chaque stratégie est conçue pour jouer un rôle distinct; ensemble, elles visent à diversifier les sources de rendement du fonds."),
+      lead: l("Distinct roles, aimed at diversifying returns.", "Des rôles distincts, pour diversifier les rendements."),
       cards: [
         { icon: "waves", title: l("Low volatility", "Faible volatilité"), text: l("Seeks returns with lower volatility.", "Vise des rendements assortis d’une volatilité plus faible.") },
-        { icon: "trend", title: l("Directional", "Directionnelle"), text: l("Follows persistent trends in markets, whether prices are rising or falling.", "Suit les tendances persistantes des marchés, que les prix montent ou baissent.") },
-        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Takes positions when prices move far from their usual levels, expecting them to return.", "Prend position lorsque les prix s’écartent fortement de leurs niveaux habituels, en prévision de leur retour.") },
-        { icon: "umbrella", title: l("Hedging", "Couverture"), text: l("Designed to gain in periods of market stress and offset part of the other strategies’ losses; it may not do so.", "Conçue pour profiter des périodes de tension sur les marchés et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.") },
+        { icon: "trend", title: l("Directional", "Directionnelle"), text: l("Follows persistent trends, up or down.", "Suit les tendances persistantes, à la hausse comme à la baisse.") },
+        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Trades prices far from usual levels, expecting a return.", "Mise sur le retour des prix éloignés de leurs niveaux habituels.") },
+        { icon: "umbrella", title: l("Hedging", "Couverture"), text: l("Designed to gain in market stress and offset part of the other strategies’ losses; it may not do so.", "Conçue pour profiter des tensions de marché et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.") },
       ],
     },
   },
   "global-minimum-volatility": {
     summary: l(
-      "A managed-futures overlay for institutional portfolios, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-      "Une stratégie de contrats à terme gérés destinée aux portefeuilles institutionnels, offerte au moyen de comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+      "A managed-futures overlay in separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+      "Une stratégie de contrats à terme gérés en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
     ),
-    approach: l(
-      "The overlay is added on top of an existing portfolio: a margin deposit supports the futures positions while most of the capital stays invested in the underlying portfolio. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin. Positions are taken in liquid futures contracts and sized to a target level of downside volatility agreed with each client.",
-      "La stratégie s’ajoute par-dessus un portefeuille existant : un dépôt de garantie soutient les positions sur contrats à terme, tandis que la majeure partie du capital demeure investie dans le portefeuille sous-jacent. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires. Les positions sont prises dans des contrats à terme liquides et calibrées selon un niveau cible de volatilité baissière convenu avec chaque client.",
-    ),
+    focus: [
+      l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
+      l("Most of the capital stays invested in the underlying portfolio", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent"),
+      l("Liquid futures, sized to a downside volatility target agreed with each client", "Des contrats à terme liquides, calibrés selon une cible de volatilité baissière convenue avec chaque client"),
+    ],
+    note: LEVERAGE,
     feature: {
       eyebrow: l("Global Minimum Volatility", "Global Minimum Volatility"),
       title: l("How the overlay works", "Le fonctionnement de la stratégie"),
-      lead: l("A futures overlay that sits on top of the portfolio you already own.", "Une stratégie de superposition qui s’ajoute au portefeuille que vous détenez déjà."),
+      lead: l("Futures on top of the portfolio you already own.", "Des contrats à terme ajoutés au portefeuille que vous détenez déjà."),
       cards: [
-        { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("The overlay does not replace existing holdings: most of the capital stays invested in the underlying portfolio.", "La stratégie ne remplace pas les placements existants : la majeure partie du capital demeure investie dans le portefeuille sous-jacent.") },
-        { icon: "layers", title: l("Liquid futures", "Contrats à terme liquides"), text: l("Positions are taken through exchange-traded futures, which require a margin deposit. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.", "Les positions sont prises au moyen de contrats à terme cotés, qui exigent un dépôt de garantie. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
-        { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("The overlay is sized to the level of downside volatility agreed with the client.", "La stratégie est calibrée selon le niveau de volatilité baissière convenu avec le client.") },
-        { icon: "shield", title: l("Designed for low correlation", "Conçue pour une faible corrélation"), text: l("The overlay is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.", "La stratégie est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.") },
+        { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most of the capital stays invested in the underlying portfolio.", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent.") },
+        { icon: "layers", title: l("Liquid futures", "Contrats à terme liquides"), text: join(l("Exchange-traded futures, which require a margin deposit.", "Des contrats à terme cotés, qui exigent un dépôt de garantie."), LEVERAGE) },
+        { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("Sized to the downside volatility agreed with the client.", "Calibrée selon la volatilité baissière convenue avec le client.") },
+        { icon: "shield", title: l("Designed for low correlation", "Conçue pour une faible corrélation"), text: join(l("The overlay is", "La stratégie est"), LOW_CORR) },
       ],
     },
   },

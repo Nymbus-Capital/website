@@ -10,7 +10,7 @@ import { ArrowUpRight, Handshake, Lightbulb, MapPin, Scale, ShieldCheck, Users, 
 import { useInView, useScrub } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team, type TeamMember } from "@/data/team";
-import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
+import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AB } from "./copy-about";
 import { Portrait } from "./Portrait";
 import { countCFA, countPhD, inDept, membersOf, type DeptFilter } from "./lib/people";
@@ -127,7 +127,7 @@ export function Team() {
           <div>
             <SectionHead eyebrow={pick(AB.intro.eyebrow)} title={pick(AB.intro.title)} accent={pick(AB.intro.accent)} id="ab-intro-t" />
             <Reveal self><p className="body">{pick(AB.intro.p1)}</p></Reveal>
-            <Reveal self delay={120}><p className="body ab-p2">{pick(AB.intro.p2)}</p></Reveal>
+            <Bullets items={AB.intro.points.map((p) => pick(p))} />
           </div>
           <Reveal self kind="pop" delay={150} className="card ab-office">
             <div className="ab-office-map" aria-hidden="true">

@@ -147,6 +147,8 @@ html:not(.js) .ft-bar { display: none; }
 .fxb-text.lg { font-size: clamp(17px, 1.35vw, 19px); line-height: 1.65; color: var(--ink); }
 .fxb-text.sm { font-size: 14.5px; line-height: 1.7; }
 .fxb-text + .fxb-text { margin-top: 12px; }
+.fxb .ticks { margin-top: 4px; }
+.fxb-note { margin: 14px 0 0; max-width: 72ch; }
 .fxb-foot { margin: 12px 0 0; }
 .fp-notes { padding-top: 8px; border-top: 1px solid var(--line); }
 .fp-notes .fxb-title { font-size: 16px; }

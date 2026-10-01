@@ -110,7 +110,6 @@ export function Sustainability() {
           <div>
             <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} id="su-fa-t" />
             <Reveal self><p className="body">{pick(SU.fondaction.p1)}</p></Reveal>
-            <Reveal self delay={120}><p className="body su-p2">{pick(SU.fondaction.p2)}</p></Reveal>
           </div>
           <Reveal self kind="pop" className="card su-commit">
             <h3 className="h4">{pick(SU.commitments.title)} {pick(SU.commitments.accent)}</h3>
