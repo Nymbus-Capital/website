@@ -125,9 +125,9 @@ export function Team() {
       <Section labelledBy="ab-intro-t" glow="tr">
         <div className="split top ab-intro">
           <div>
-            <SectionHead eyebrow={pick(AB.intro.eyebrow)} title={pick(AB.intro.title)} accent={pick(AB.intro.accent)} id="ab-intro-t" />
-            <Reveal self><p className="body">{pick(AB.intro.p1)}</p></Reveal>
-            <Bullets items={AB.intro.points.map((p) => pick(p))} />
+            <SectionHead eyebrow={pick(AB.intro.eyebrow)} title={pick(AB.intro.title)} accent={pick(AB.intro.accent)} lead={pick(AB.intro.p1)} id="ab-intro-t" className="ab-intro-head">
+              <Bullets items={AB.intro.points.map((p) => pick(p))} />
+            </SectionHead>
           </div>
           <Reveal self kind="pop" delay={150} className="card ab-office">
             <div className="ab-office-map" aria-hidden="true">

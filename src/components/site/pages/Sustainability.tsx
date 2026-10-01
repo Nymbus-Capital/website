@@ -106,10 +106,9 @@ export function Sustainability() {
       </Section>
 
       <Section labelledBy="su-fa-t">
-        <div className="split top su-fa">
+        <div className="split su-fa">
           <div>
-            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} id="su-fa-t" />
-            <Reveal self><p className="body">{pick(SU.fondaction.p1)}</p></Reveal>
+            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} lead={pick(SU.fondaction.p1)} id="su-fa-t" />
           </div>
           <Reveal self kind="pop" className="card su-commit">
             <h3 className="h4">{pick(SU.commitments.title)} {pick(SU.commitments.accent)}</h3>

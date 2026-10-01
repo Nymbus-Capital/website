@@ -6,11 +6,10 @@
  * view, the step line fills with the scroll, the risk flow converges, cards pop in.
  */
 import { Activity, Brain, Cpu, Database, FlaskConical, GitBranch, Layers, Shield, ShieldCheck, Target, Workflow } from "lucide-react";
-import type { ReactNode } from "react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team } from "@/data/team";
-import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
+import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AP } from "./copy-approach";
 import { Portrait } from "./Portrait";
 import { countCFA, countPhD, membersOf } from "./lib/people";
@@ -100,6 +99,8 @@ function Pipeline() {
               </div>
               <p className="ap-node-t">{pick(s.title)}</p>
               <p className="ap-node-d">{pick(s.short)}</p>
+              <Bullets size="sm" className="ap-node-l" items={s.bullets.map((b) => pick(b))} />
+              {"note" in s && s.note ? <p className="fine ap-node-n">{pick(s.note)}</p> : null}
             </li>
           );
         })}
@@ -193,22 +194,6 @@ export function Approach() {
       <Section labelledBy="ap-pipe-t" glow="tr">
         <SectionHead eyebrow={pick(AP.pipe.eyebrow)} title={pick(AP.pipe.title)} accent={pick(AP.pipe.accent)} lead={pick(AP.pipe.lead)} id="ap-pipe-t" />
         <Pipeline />
-        <div className="ap-detail">
-          <Steps layout="column" items={AP.steps.map((s, i) => {
-            const Icon = STEP_ICONS[i];
-            return {
-              title: pick(s.title),
-              icon: <Icon aria-hidden="true" />,
-              color: STEP_COLORS[i],
-              text: (
-                <div className="ap-step">
-                  <Bullets size="sm" items={s.bullets.map((b) => pick(b))} />
-                  {"note" in s && s.note ? <p className="fine ap-step-note">{pick(s.note)}</p> : null}
-                </div>
-              ) as ReactNode,
-            };
-          })} />
-        </div>
       </Section>
 
       <Section tone="tint" labelledBy="ap-bonds-t">
