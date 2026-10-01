@@ -202,13 +202,18 @@ function mnr(short: string, s: Series, first: string): unknown {
 }
 
 /**
- * monthly-net-returns with `class_code` + `history=full` (dataplatform contract of 2026-10-01): every month from the
- * track-record start, each with its source (cibc before the bridge, bridge months, apex from the cutover).
+ * monthly-net-returns with `class_code` + `history=full` (dataplatform PR #626, docs/api/monthly-net-returns.md):
+ * every month from the class's first stored month, each with its source — stored CIBC months through 2026-06, the
+ * 2026-07 CIBC-to-Apex bridge, Apex months from 2026-08 — and the class identity (class_display, fundserv).
  */
-export const BRIDGE_FROM = "2026-05-31";
-function mnrFull(short: string, classCode: string, s: Series, first: string): unknown {
-  const rows = months(first, LAST_MONTH).map((m) => ({ month: m, net_return: s[m], status: "ready", method: m >= APEX_READY_FROM ? "compounded_apex_net_daily" : "administrator_monthly", source: m >= APEX_READY_FROM ? "apex" : m >= BRIDGE_FROM ? "bridge" : "cibc", source_dates: [], source_row_ids: [], issue: null }));
-  return { short_name: short, class_code: classCode, history: "full", currency: "CAD", return_basis: "net_of_fees", methodology_version: "full-history-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
+export const BRIDGE_MONTH = "2026-07-31";
+function mnrFull(short: string, classCode: string, display: string, fundserv: string, s: Series, first: string): unknown {
+  const rows = months(first, LAST_MONTH).map((m) => {
+    const source = m >= APEX_READY_FROM ? "apex" : m === BRIDGE_MONTH ? "bridge" : "cibc";
+    const method = source === "apex" ? "compounded_apex_net_daily" : source === "bridge" ? "cibc_apex_nav_bridge" : "stored_cibc_net_monthly";
+    return { month: m, net_return: s[m], status: "ready", source, method, source_dates: [], source_row_ids: [], issue: null };
+  });
+  return { short_name: short, class_code: classCode, class_display: display, fundserv, history: "full", currency: "CAD", return_basis: "net_of_fees", methodology_version: "cibc-stored-bridge-apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
 }
 
 function businessDays(from: string, to: string): string[] {
@@ -509,7 +514,8 @@ const SEB_NAME = "Nymbus Sustainable Enhanced Bonds Fund";
 const SEB_IDX = "FTSE Canada Universe Bond Index";
 
 function bondBlock(kind: "SEST" | "SEB"): unknown {
-  const f = upTo(kind === "SEST" ? sest : seb, END);
+  // SEB: the generator published class F up to the 2026-07 archive, class H from 2026-08 (factsheet-generator fed3af3)
+  const f = upTo(kind === "SEST" ? sest : END <= "2026-07-31" ? sebF : seb, END);
   const i = upTo(kind === "SEST" ? idxShort : idxUniv, END);
   const name = kind === "SEST" ? SEST_NAME : SEB_NAME;
   const idx = kind === "SEST" ? SEST_IDX : SEB_IDX;
@@ -628,7 +634,7 @@ export function generate(dir = HERE): void {
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
   w(path.join(dp, "mnr_Multistrat.json"), mnr("Multistrat", multi, "2019-01-31"));
-  w(path.join(dp, "mnr_SEB_STRATEGY_full.json"), mnrFull("SEB", "STRATEGY", sebF, "2019-02-28"));
+  w(path.join(dp, "mnr_SEB_STRATEGY_full.json"), mnrFull("SEB", "STRATEGY", "F", "LDM201", sebF, "2019-02-28"));
   for (const s of ["SEST", "SEB", "Multistrat"]) w(path.join(dp, `nav_${s}.json`), navPayload(s));
   w(path.join(dp, "apex_funds.json"), apexFunds);
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);

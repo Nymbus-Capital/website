@@ -11,6 +11,8 @@
  *                     values, other funds stay fresh); in review mode it waits for approval. Alert sent.
  *  - "failed"         no fund could be updated (every source down, or a crash): nothing published. Alert sent.
  *  - "dry-run"        computed and stored for inspection, never published.
+ * A change of a fund's performance class (`classChanges`) is never published by the pipeline itself: in auto mode the
+ * run goes live with that fund's previous publication, and publishing the run (an admin, publishRun) approves it.
  * `publishedRunId` (pipelineStatus / published/meta.json, also `runId` inside published/site-data.json)
  * is the source of truth for what is live.
  */
@@ -38,6 +40,13 @@ export interface RunReport {
   funds: Partial<Record<FundKey, "updated" | "kept-previous" | "unavailable">>;
   publishedAt?: string;
   publishedBy?: string;
+  /**
+   * funds whose performance class changes in this run: never published without an admin (in auto mode the run went
+   * live with their previous publication); publishing the run approves them
+   */
+  classChanges?: FundKey[];
+  classChangesApprovedAt?: string;
+  classChangesApprovedBy?: string;
 }
 
 export interface PublishedMeta { runId: string; publishedAt: string; publishedBy: string }
@@ -176,6 +185,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
     const report: RunReport = { id, trigger: opts.trigger, by: opts.by, startedAt, finishedAt: startedAt, status: "failed", asOf: { ...EMPTY_ASOF }, issues: [], sources: [], funds: {} };
     let raw: RawPayloads | null = null;
     let data: SiteData | null = null;
+    let autoPublish: SiteData | null = null;
     try {
       const previous = await readJson<SiteData | null>(["published", "site-data.json"], null);
       raw = await fetchAll({ fetchImpl, now });
@@ -183,8 +193,12 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       const built = buildSiteData(raw, previous, now, { requireFactsheetForNewMonth: requireFactsheetForNewMonth() });
       const v = validateSite(built.data, built.context, previous, now);
       data = { ...v.data, runId: id };
+      // auto mode publishes only what needs no human: a performance class change waits for an approval of this run
+      // (publishRun publishes the stored data, the change included)
+      const autoData: SiteData = { ...v.autoData, runId: id };
       report.funds = v.funds;
       report.asOf = data.asOf;
+      if (v.classChanges.length) report.classChanges = v.classChanges;
       const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
       report.issues = [...data.issues, ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i)];
       const updated = Object.values(v.funds).some((s) => s === "updated");
@@ -196,6 +210,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       } else if (opts.dryRun) report.status = "dry-run";
       else if (blocked) report.status = "blocked";
       else report.status = mode === "auto" ? "published" : "pending-review";
+      autoPublish = autoData;
       if (!opts.dryRun && updated && mode === "auto") {
         report.publishedAt = new Date().toISOString();
         report.publishedBy = `pipeline (${opts.trigger}, ${opts.by})`;
@@ -208,7 +223,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
     report.finishedAt = new Date().toISOString();
     try {
       await writeSnapshot(id, report, data, raw);
-      if (report.publishedAt && data) await publishData(id, data, report.publishedBy!, report.publishedAt);
+      if (report.publishedAt && data) await publishData(id, autoPublish ?? data, report.publishedBy!, report.publishedAt);
       await audit({ by: opts.by, action: "pipeline.run", target: id, detail: { trigger: opts.trigger, status: report.status, published: !!report.publishedAt, funds: report.funds } });
       await pruneSnapshots();
     } catch (e: unknown) {
@@ -259,7 +274,10 @@ export async function publishRun(id: string, by: string): Promise<RunReport> {
     const at = new Date().toISOString();
     const previousRunId = (await publishedMeta())?.runId ?? null;
     await publishData(id, data, by, at);
-    const updated: RunReport = { ...report, status: report.status === "pending-review" ? "published" : report.status, publishedAt: at, publishedBy: by };
+    const updated: RunReport = {
+      ...report, status: report.status === "pending-review" ? "published" : report.status, publishedAt: at, publishedBy: by,
+      ...(report.classChanges?.length ? { classChangesApprovedAt: at, classChangesApprovedBy: by } : {}),
+    };
     await writeJson(["snapshots", id, "report.json"], updated);
     await audit({ by, action: previousRunId && previousRunId > id ? "pipeline.rollback" : "pipeline.publish", target: id, detail: { previousRunId, status: updated.status } });
     return updated;

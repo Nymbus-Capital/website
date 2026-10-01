@@ -24,9 +24,30 @@ export async function buildSample(): Promise<SiteData> {
   return data;
 }
 
+/** e2e fixture: the SEB fund as the dataplatform serves it before PR #626 (class H), pinned by an e2e admin test */
+export const CLASS_H_SAMPLE_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../e2e/fixtures/seb-class-h-site-data.json");
+
+/**
+ * SYNTHETIC SEB data built from the fixtures WITHOUT the full-history route (class H labelled H), as a "live" run
+ * snapshot (the only kind an admin can pin), SEB only.
+ */
+export async function buildClassHSample(): Promise<SiteData> {
+  const now = new Date(FIXTURE_NOW);
+  const raw = await fetchAll({ fetchImpl: mockFetch().fetch, now, env: fixtureEnv() });
+  const { data } = buildSiteData(raw, null, now, { mode: "live" });
+  const key = "sustainable-enhanced-bonds" as const;
+  return {
+    ...data,
+    funds: { [key]: data.funds[key] },
+    provenance: Object.fromEntries(Object.entries(data.provenance).filter(([k]) => k.startsWith(`funds.${key}`)).map(([k, v]) => [k, `SYNTHETIC e2e fixture: ${v}`])),
+    issues: [{ key: "site", level: "info", message: "Synthetic e2e fixture (SEB class H): not real fund figures." }],
+  };
+}
+
 export async function writeSample(file = SAMPLE_PATH): Promise<SiteData> {
   const data = await buildSample();
   await writeFile(file, JSON.stringify(data, null, 1) + "\n");
+  await writeFile(CLASS_H_SAMPLE_PATH, JSON.stringify(await buildClassHSample(), null, 1) + "\n");
   return data;
 }
 

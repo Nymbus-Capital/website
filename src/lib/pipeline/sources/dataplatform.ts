@@ -88,7 +88,8 @@ export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: st
     }));
     const ready = rows.filter((r) => r.status === "ready" && r.net_return !== null);
     const data: MonthlyNetReturnsResponse = {
-      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, ...(typeof j.history === "string" ? { history: j.history } : {}), currency: j.currency,
+      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, ...(typeof j.history === "string" ? { history: j.history } : {}),
+      ...(typeof j.class_display === "string" ? { class_display: j.class_display } : {}), ...(typeof j.fundserv === "string" ? { fundserv: j.fundserv } : {}), currency: j.currency,
       return_basis: j.return_basis, methodology_version: j.methodology_version, row_count: rows.length, rows,
     };
     return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}` };

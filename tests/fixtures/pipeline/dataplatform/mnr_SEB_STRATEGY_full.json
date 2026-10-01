@@ -1,10 +1,12 @@
 {
  "short_name": "SEB",
  "class_code": "STRATEGY",
+ "class_display": "F",
+ "fundserv": "LDM201",
  "history": "full",
  "currency": "CAD",
  "return_basis": "net_of_fees",
- "methodology_version": "full-history-v1",
+ "methodology_version": "cibc-stored-bridge-apex-daily-net-v1",
  "as_of": "2026-09-29",
  "row_count": 91,
  "rows": [
@@ -12,8 +14,8 @@
    "month": "2019-02-28",
    "net_return": -0.01231436,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -22,8 +24,8 @@
    "month": "2019-03-31",
    "net_return": 0.0019316,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -32,8 +34,8 @@
    "month": "2019-04-30",
    "net_return": -0.0105286,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -42,8 +44,8 @@
    "month": "2019-05-31",
    "net_return": 0.01614384,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -52,8 +54,8 @@
    "month": "2019-06-30",
    "net_return": 0.00985535,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -62,8 +64,8 @@
    "month": "2019-07-31",
    "net_return": -0.00658355,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -72,8 +74,8 @@
    "month": "2019-08-31",
    "net_return": 0.03457039,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -82,8 +84,8 @@
    "month": "2019-09-30",
    "net_return": 0.01984994,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -92,8 +94,8 @@
    "month": "2019-10-31",
    "net_return": 0.00157494,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -102,8 +104,8 @@
    "month": "2019-11-30",
    "net_return": 0.02051947,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -112,8 +114,8 @@
    "month": "2019-12-31",
    "net_return": 0.00656762,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -122,8 +124,8 @@
    "month": "2020-01-31",
    "net_return": -0.0255619,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -132,8 +134,8 @@
    "month": "2020-02-29",
    "net_return": -0.00830802,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -142,8 +144,8 @@
    "month": "2020-03-31",
    "net_return": 0.00316321,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -152,8 +154,8 @@
    "month": "2020-04-30",
    "net_return": -0.0018584,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -162,8 +164,8 @@
    "month": "2020-05-31",
    "net_return": 0.01426637,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -172,8 +174,8 @@
    "month": "2020-06-30",
    "net_return": 0.0136251,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -182,8 +184,8 @@
    "month": "2020-07-31",
    "net_return": 0.02241861,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -192,8 +194,8 @@
    "month": "2020-08-31",
    "net_return": -0.01299264,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -202,8 +204,8 @@
    "month": "2020-09-30",
    "net_return": 0.00034607,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -212,8 +214,8 @@
    "month": "2020-10-31",
    "net_return": -0.00384831,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -222,8 +224,8 @@
    "month": "2020-11-30",
    "net_return": -0.00442645,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -232,8 +234,8 @@
    "month": "2020-12-31",
    "net_return": 0.00797639,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -242,8 +244,8 @@
    "month": "2021-01-31",
    "net_return": 0.02711214,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -252,8 +254,8 @@
    "month": "2021-02-28",
    "net_return": 0.00571928,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -262,8 +264,8 @@
    "month": "2021-03-31",
    "net_return": 0.01962601,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -272,8 +274,8 @@
    "month": "2021-04-30",
    "net_return": 0.01438008,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -282,8 +284,8 @@
    "month": "2021-05-31",
    "net_return": 0.02854364,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -292,8 +294,8 @@
    "month": "2021-06-30",
    "net_return": 0.01054503,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -302,8 +304,8 @@
    "month": "2021-07-31",
    "net_return": 0.00918718,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -312,8 +314,8 @@
    "month": "2021-08-31",
    "net_return": -0.0005858,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -322,8 +324,8 @@
    "month": "2021-09-30",
    "net_return": -0.00257116,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -332,8 +334,8 @@
    "month": "2021-10-31",
    "net_return": -0.00272448,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -342,8 +344,8 @@
    "month": "2021-11-30",
    "net_return": 0.00566146,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -352,8 +354,8 @@
    "month": "2021-12-31",
    "net_return": -0.01481284,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -362,8 +364,8 @@
    "month": "2022-01-31",
    "net_return": -0.00046352,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -372,8 +374,8 @@
    "month": "2022-02-28",
    "net_return": -0.00429665,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -382,8 +384,8 @@
    "month": "2022-03-31",
    "net_return": 0.00696153,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -392,8 +394,8 @@
    "month": "2022-04-30",
    "net_return": -0.02777458,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -402,8 +404,8 @@
    "month": "2022-05-31",
    "net_return": 0.0080845,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -412,8 +414,8 @@
    "month": "2022-06-30",
    "net_return": 0.01143759,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -422,8 +424,8 @@
    "month": "2022-07-31",
    "net_return": 0.00634211,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -432,8 +434,8 @@
    "month": "2022-08-31",
    "net_return": -0.02861477,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -442,8 +444,8 @@
    "month": "2022-09-30",
    "net_return": -0.00365229,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -452,8 +454,8 @@
    "month": "2022-10-31",
    "net_return": -0.0074793,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -462,8 +464,8 @@
    "month": "2022-11-30",
    "net_return": 0.00188628,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -472,8 +474,8 @@
    "month": "2022-12-31",
    "net_return": -0.0183947,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -482,8 +484,8 @@
    "month": "2023-01-31",
    "net_return": -0.0067113,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -492,8 +494,8 @@
    "month": "2023-02-28",
    "net_return": 0.00128878,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -502,8 +504,8 @@
    "month": "2023-03-31",
    "net_return": 0.03769071,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -512,8 +514,8 @@
    "month": "2023-04-30",
    "net_return": 0.0143515,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -522,8 +524,8 @@
    "month": "2023-05-31",
    "net_return": -0.00178637,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -532,8 +534,8 @@
    "month": "2023-06-30",
    "net_return": 0.01810585,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -542,8 +544,8 @@
    "month": "2023-07-31",
    "net_return": 0.01212935,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -552,8 +554,8 @@
    "month": "2023-08-31",
    "net_return": 0.01530785,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -562,8 +564,8 @@
    "month": "2023-09-30",
    "net_return": -0.00077132,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -572,8 +574,8 @@
    "month": "2023-10-31",
    "net_return": -0.01187535,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -582,8 +584,8 @@
    "month": "2023-11-30",
    "net_return": 0.0154543,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -592,8 +594,8 @@
    "month": "2023-12-31",
    "net_return": -0.00187694,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -602,8 +604,8 @@
    "month": "2024-01-31",
    "net_return": 0.01224196,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -612,8 +614,8 @@
    "month": "2024-02-29",
    "net_return": 0.01352086,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -622,8 +624,8 @@
    "month": "2024-03-31",
    "net_return": 0.03067342,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -632,8 +634,8 @@
    "month": "2024-04-30",
    "net_return": -0.02777358,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -642,8 +644,8 @@
    "month": "2024-05-31",
    "net_return": -0.00010748,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -652,8 +654,8 @@
    "month": "2024-06-30",
    "net_return": 0.0229669,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -662,8 +664,8 @@
    "month": "2024-07-31",
    "net_return": 0.01940941,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -672,8 +674,8 @@
    "month": "2024-08-31",
    "net_return": 0.00094396,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -682,8 +684,8 @@
    "month": "2024-09-30",
    "net_return": 0.01090595,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -692,8 +694,8 @@
    "month": "2024-10-31",
    "net_return": -0.00821679,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -702,8 +704,8 @@
    "month": "2024-11-30",
    "net_return": 0.01728779,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -712,8 +714,8 @@
    "month": "2024-12-31",
    "net_return": 0.00621282,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -722,8 +724,8 @@
    "month": "2025-01-31",
    "net_return": -0.00306974,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -732,8 +734,8 @@
    "month": "2025-02-28",
    "net_return": -0.00163735,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -742,8 +744,8 @@
    "month": "2025-03-31",
    "net_return": 0.00862097,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -752,8 +754,8 @@
    "month": "2025-04-30",
    "net_return": 0.00502431,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -762,8 +764,8 @@
    "month": "2025-05-31",
    "net_return": 0.01887305,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -772,8 +774,8 @@
    "month": "2025-06-30",
    "net_return": -0.01442324,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -782,8 +784,8 @@
    "month": "2025-07-31",
    "net_return": 0.01131136,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -792,8 +794,8 @@
    "month": "2025-08-31",
    "net_return": -0.02797615,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -802,8 +804,8 @@
    "month": "2025-09-30",
    "net_return": 0.01582499,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -812,8 +814,8 @@
    "month": "2025-10-31",
    "net_return": 0.01436427,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -822,8 +824,8 @@
    "month": "2025-11-30",
    "net_return": -0.01035739,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -832,8 +834,8 @@
    "month": "2025-12-31",
    "net_return": -0.00762365,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -842,8 +844,8 @@
    "month": "2026-01-31",
    "net_return": -0.00917232,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -852,8 +854,8 @@
    "month": "2026-02-28",
    "net_return": -0.03678772,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -862,8 +864,8 @@
    "month": "2026-03-31",
    "net_return": 0.01971561,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -872,8 +874,8 @@
    "month": "2026-04-30",
    "net_return": -0.02182955,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -882,8 +884,8 @@
    "month": "2026-05-31",
    "net_return": 0.01557111,
    "status": "ready",
-   "method": "administrator_monthly",
-   "source": "bridge",
+   "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -892,8 +894,8 @@
    "month": "2026-06-30",
    "net_return": -0.01726509,
    "status": "ready",
-   "method": "administrator_monthly",
-   "source": "bridge",
+   "source": "cibc",
+   "method": "stored_cibc_net_monthly",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -902,8 +904,8 @@
    "month": "2026-07-31",
    "net_return": 0.0220839,
    "status": "ready",
-   "method": "administrator_monthly",
    "source": "bridge",
+   "method": "cibc_apex_nav_bridge",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null
@@ -912,8 +914,8 @@
    "month": "2026-08-31",
    "net_return": -0.0090647,
    "status": "ready",
-   "method": "compounded_apex_net_daily",
    "source": "apex",
+   "method": "compounded_apex_net_daily",
    "source_dates": [],
    "source_row_ids": [],
    "issue": null

@@ -36,7 +36,7 @@ import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
 import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
-import { fundWithClassLabel } from "./perf-class.ts";
+import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
 export interface FundValidation {
@@ -343,8 +343,18 @@ export function checkDistributions(f: FundData, base: string, now: Date): Issue[
 }
 
 export interface ValidationOutcome {
-  /** data after repairs and merge (blocked funds replaced by their previous publication) */
+  /**
+   * data after repairs and merge (blocked funds replaced by their previous publication). A fund whose performance
+   * class changes keeps its NEW data here: this is what publishing (approving) the run publishes
+   */
   data: SiteData;
+  /**
+   * what may be published without a human (auto mode): `data` with every fund whose performance class changes
+   * replaced by its previous publication (== data when there is none)
+   */
+  autoData: SiteData;
+  /** funds whose performance class changes: the run needs an admin approval to publish them */
+  classChanges: FundKey[];
   results: FundValidation[];
   funds: Partial<Record<FundKey, "updated" | "kept-previous" | "unavailable">>;
 }
@@ -359,6 +369,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
   const results: FundValidation[] = [];
   const funds: ValidationOutcome["funds"] = {};
   const extraIssues: Issue[] = [];
+  const held: Partial<Record<FundKey, FundData>> = {};
   const keys = new Set<FundKey>([...(Object.keys(context) as FundKey[]), ...(Object.keys(data.funds) as FundKey[])]);
   for (const key of keys) {
     const base = `funds.${key}`;
@@ -393,6 +404,13 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     checkPerformance(f, ctx, prev, base, blocking, warnings, now);
     for (const p of nonFinitePaths(f, base)) blocking.push({ key: p, level: "error", message: `non-finite number at ${p}` });
     extraIssues.push(...repairs, ...warnings);
+    // a change of performance class (e.g. SEB class H -> F) restates every month under another label: it is never
+    // published without an admin approving the run, whatever the publish mode (the previous publication stays live)
+    const fromClass = prev?.performance ? perfClassCode(key, prev.performance) : null;
+    const toClass = f.performance?.classCode ?? null;
+    const classChange: Issue | null = !blocking.length && fromClass && toClass && fromClass !== toClass
+      ? { key: `${base}.performance.class`, level: "error", message: `performance class change from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass}): every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
+      : null;
     if (blocking.length) {
       extraIssues.push(...blocking, { key: base, level: "error", message: `fund blocked by ${blocking.length} validation error(s): ${prev ? "previously published data kept" : "fund withheld (nothing previously published)"}` });
       if (prev) {
@@ -408,16 +426,36 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       const parts = ctx?.parts;
       const allCarried = parts ? Object.values(parts).every((s) => s !== "fresh" && s !== "held") : false;
       funds[key] = allCarried && prev ? "kept-previous" : "updated";
+      if (classChange) {
+        extraIssues.push(classChange);
+        held[key] = carry();
+      }
     }
     const alerts = [...(ctx?.alerts ?? [])];
     if (blocking.length) alerts.push("blocked by validation");
+    if (classChange) {
+      blocking.push(classChange);
+      alerts.push(`performance class change to class ${classLabel(key, toClass) ?? "?"} needs approval`);
+    }
     for (const i of [...repairs, ...warnings]) if (i.level === "error") alerts.push(i.message);
     for (const i of input.issues) if (i.level === "error" && (i.key === base || i.key.startsWith(`${base}.`))) alerts.push(i.message);
     results.push({ fund: key, blocking, warnings: [...repairs, ...warnings], alerts: [...new Set(alerts)] });
   }
   data.issues = [...data.issues, ...extraIssues];
   data.asOf = computeAsOf(data.funds);
-  return { data, results, funds };
+  const classChanges = Object.keys(held) as FundKey[];
+  let autoData = data;
+  if (classChanges.length) {
+    autoData = structuredClone(data);
+    for (const key of classChanges) {
+      const base = `funds.${key}`;
+      autoData.funds[key] = held[key];
+      for (const k of Object.keys(autoData.provenance)) if (k === base || k.startsWith(`${base}.`)) delete autoData.provenance[k];
+      for (const [k, v] of Object.entries(prevLive!.provenance)) if (k === base || k.startsWith(`${base}.`)) autoData.provenance[k] = v.startsWith("carried over") ? v : `carried over from the publication of ${prevLive!.generatedAt} (${v})`;
+    }
+    autoData.asOf = computeAsOf(autoData.funds);
+  }
+  return { data, autoData, classChanges, results, funds };
 }
 
 /** Gates of one fund, without merging (convenience for the admin / tests). */

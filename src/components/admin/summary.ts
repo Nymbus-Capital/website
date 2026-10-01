@@ -8,8 +8,10 @@ import type { FundData, FundKey, SiteData } from "../../lib/data/types.ts";
  * "published", or "blocked" that an admin explicitly published (publishedAt set), and live (not sample) data.
  * Never pending-review, failed or dry-run snapshots.
  */
-export function isPinnable(report: { status: string; publishedAt?: string }, data: { mode?: string } | null | undefined): boolean {
+export function isPinnable(report: { status: string; publishedAt?: string; classChanges?: string[]; classChangesApprovedAt?: string }, data: { mode?: string } | null | undefined): boolean {
   if (!data || data.mode !== "live") return false;
+  // its stored data holds a performance class change nobody approved (it went live without it)
+  if (report.classChanges?.length && !report.classChangesApprovedAt) return false;
   if (report.status === "published") return true;
   return report.status === "blocked" && typeof report.publishedAt === "string" && report.publishedAt.length > 0;
 }

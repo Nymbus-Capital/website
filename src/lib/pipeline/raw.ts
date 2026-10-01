@@ -23,6 +23,9 @@ export interface MonthlyNetReturnsResponse {
   class_code?: string;
   /** history requested / served: "full" (pre-Apex months included) or the Apex-only default; absent on older servers */
   history?: string | null;
+  /** class of the series as the site labels it ("F", "H", "FP") and its FundServ code (dataplatform PR #626; absent before) */
+  class_display?: string | null;
+  fundserv?: string | null;
   currency?: string;
   return_basis?: string;
   methodology_version?: string;

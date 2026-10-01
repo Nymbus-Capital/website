@@ -114,8 +114,17 @@ not be substantiated were softened to "designed to" statements or removed.
     issue naming the class mismatch; the "factsheet of the month must exist" timing gate and every other gate stay;
   - the label appears on the fund header badges, overview returns, performance tab, growth-chart legend,
     disclosures, home tiles and the strategies index; the NAV card keeps the register's own series (LDM201 = F).
+  Follow-up (independent review, same day): class F is used only when complete through the latest class H month and
+  within a fee band of class H on every month (−5 to +30 bp), with the payload naming class F / LDM201 like the fund
+  register; once class F is published a source failure keeps it (never back to H); any class change H ↔ F waits for
+  an admin approving the run, also in auto mode; the factsheet is compared by archive month (SEB archives up to
+  2026-07 publish class F, from 2026-08 class H). Home tiles and the strategies index say "Returns: Series F" /
+  « Rendements : Série F ».
   *To confirm:* that class F has a track record from 2019-02 (otherwise the dataplatform's full history will not
   start at the track-record start and the site stays on class H).
+  *To review (same question as A2):* "Series F" for **2019-02 to 2023-07** covers pre-launch **strategy** returns
+  (segregated accounts) net of the class's current fees, not the fund's own units; confirm this is permitted and how
+  it must be disclosed.
 - [ ] **A2 (flag only).** Monthly Income shows the strategy track record from **January 2019**, before the fund's
   launch on **2021-10-05** (`FUND_INCEPTION`, `preInception` disclaimer). Confirm this is permitted under NI 81-102
   Part 15 (standard periods 1, 3, 5, 10 years and since inception; no performance for a fund in existence < 12

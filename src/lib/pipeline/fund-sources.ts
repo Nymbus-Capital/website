@@ -29,13 +29,19 @@ export interface FundSources {
    * otherwise the trackRecordClass sources are used. null: no preferred class.
    */
   preferredClass: ClassCode | null;
-  /** class of the fund returns the factsheet publishes (monthly table, trailing, statistics) */
-  factsheetClass: ClassCode | null;
+  /**
+   * Class of the fund returns each factsheet archive publishes (monthly table, trailing, statistics), by archive
+   * month: the first entry whose `until` (YYYY-MM, inclusive) is not before the archive month, the last entry having
+   * no `until`. Read with factsheetClassAt().
+   */
+  factsheetClass: { until?: string; class: ClassCode }[];
   /**
    * Site label of each class code. The label shown is ALWAYS derived from the class of the data actually used
    * (never a business label that can disagree with it); a class without a label is not shown.
    */
   classLabels: Partial<Record<ClassCode, string>>;
+  /** FundServ code of each class (dataplatform `fundserv`, fund register), checked against the payload */
+  classFundserv: Partial<Record<ClassCode, string>>;
   /** factsheet archive: file prefix and fund key inside it */
   factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
 }
@@ -50,8 +56,9 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     analytics: "Nymbus Monthly Income",
     trackRecordClass: "STRATEGY",
     preferredClass: null,
-    factsheetClass: "STRATEGY",
+    factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "FP" },
+    classFundserv: { STRATEGY: "LDM001" },
     factsheet: { file: "bonds_data", key: "SEST" },
   },
   "sustainable-enhanced-bonds": {
@@ -59,11 +66,13 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseIndex: "univ",
     analytics: "Nymbus Sustainable Enhanced Bonds",
     // analytics history and the dataplatform default track record are the H class (STRATEGY_H); the F class
-    // (STRATEGY) is used once the dataplatform serves its full history; the factsheet publishes class H
+    // (STRATEGY) is used once the dataplatform serves its full history (dataplatform PR #626). The factsheet
+    // generator published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
     trackRecordClass: "STRATEGY_H",
     preferredClass: "STRATEGY",
-    factsheetClass: "STRATEGY_H",
+    factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
     classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
+    classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
     factsheet: { file: "bonds_data", key: "QCFI-SEB" },
   },
   "multi-strategy": {
@@ -72,8 +81,9 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
     trackRecordClass: "STRATEGY",
     preferredClass: null,
-    factsheetClass: "STRATEGY",
+    factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "F" },
+    classFundserv: { STRATEGY: "LDM301" },
     factsheet: { file: "factsheet_data", key: "Multistrategy" },
   },
   "global-minimum-volatility": {
@@ -82,8 +92,9 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     analytics: null,
     trackRecordClass: null,
     preferredClass: null,
-    factsheetClass: null,
+    factsheetClass: [],
     classLabels: {},
+    classFundserv: {},
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
   },
 };
@@ -95,4 +106,11 @@ export const fundSources = (key: FundKey): FundSources => FUND_SOURCES[key];
 export function classLabel(key: FundKey, code: string | null | undefined): string | null {
   if (!code) return null;
   return (FUND_SOURCES[key].classLabels as Record<string, string | undefined>)[code] ?? null;
+}
+
+/** Class of the fund returns published in the factsheet archive of `month` (YYYY-MM or a date), or null. */
+export function factsheetClassAt(key: FundKey, month: string): ClassCode | null {
+  const m = month.slice(0, 7);
+  for (const e of FUND_SOURCES[key].factsheetClass) if (!e.until || m <= e.until) return e.class;
+  return null;
 }

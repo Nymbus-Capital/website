@@ -70,17 +70,32 @@ export function fixtureRoute(url: URL): Response | undefined {
   return undefined;
 }
 
+/** class identity the dataplatform repeats in monthly-net-returns answers (PR #626) */
+const MNR_IDENTITY: Record<string, Record<string, { class_display: string; fundserv: string }>> = {
+  SEST: { STRATEGY: { class_display: "FP", fundserv: "LDM001" } },
+  SEB: { STRATEGY: { class_display: "F", fundserv: "LDM201" }, STRATEGY_H: { class_display: "H", fundserv: "LDM202" } },
+  Multistrat: { STRATEGY: { class_display: "F", fundserv: "LDM301" } },
+};
+
 /**
- * The dataplatform once it serves `class_code` + `history=full` on monthly-net-returns (SEB class F, every month).
+ * The dataplatform once it serves `class_code` + `history` on monthly-net-returns (PR #626): `history=full` answers
+ * SEB class F with every month; the Apex-only answers repeat `class_display`, `fundserv` and `history: "apex"`.
  * Without this route the fixtures behave like the server deployed before that change: both parameters are ignored
- * and SEB answers with its default STRATEGY_H (Apex-only) track record.
+ * and SEB answers with its default STRATEGY_H (Apex-only) track record, without those fields.
  */
 export const fullHistoryRoute: Route = (url) => {
   const q = url.searchParams;
-  if (url.pathname !== "/api/performance/monthly-net-returns" || q.get("history") !== "full") return undefined;
-  const j = loadFixture(`dataplatform/mnr_${q.get("short_name")}_${q.get("class_code")}_full.json`) as { rows: { month: string }[] };
+  if (url.pathname !== "/api/performance/monthly-net-returns") return undefined;
+  const sn = q.get("short_name") ?? "";
   const end = q.get("end_date") ?? "9999";
-  return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
+  if (q.get("history") === "full") {
+    const j = loadFixture(`dataplatform/mnr_${sn}_${q.get("class_code")}_full.json`) as { rows: { month: string }[] };
+    return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
+  }
+  const j = loadFixture(`dataplatform/mnr_${sn}.json`) as { class_code: string; rows: { month: string }[] };
+  const code = q.get("class_code") ?? j.class_code;
+  if (code !== j.class_code) return json({ detail: `class_code ${code} is not served by this fixture` }, 422);
+  return json({ ...j, ...MNR_IDENTITY[sn]?.[code], history: "apex", rows: j.rows.filter((r) => r.month <= end) });
 };
 
 export interface MockFetch {

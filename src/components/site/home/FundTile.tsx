@@ -154,7 +154,7 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
             <span className="fx-asof">
               {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
               {/* the class of the returns shown (may differ from the NAV series above) */}
-              {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.navSeries)} {f.perfClass}</span></> : null}
+              {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}
             </span>
           ) : null}
         </span>
