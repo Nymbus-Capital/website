@@ -309,7 +309,7 @@ export interface SiteContent {
   updatedAt: string;
   updatedBy: string;
   firm: {
-    aumLabel?: L10n;          // e.g. "1.8 B$+" (firm AUM incl. mandates is not in the dataplatform)
+    aumLabel?: L10n;          // e.g. "$1.9B" (firm AUM incl. mandates is not in the dataplatform)
     announcement?: L10n | null;
     disclaimer?: L10n;
   };

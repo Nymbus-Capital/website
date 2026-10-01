@@ -240,7 +240,7 @@ export function CardGrid({ children, cols = 3, className }: { children: ReactNod
  */
 export function Stat({ value, label, decimals = 0, prefix, suffix, pct = false, text, lang = "en", className }: {
   value?: number | null; label: ReactNode; decimals?: number; prefix?: string; suffix?: string; pct?: boolean;
-  /** a figure that is not a number (e.g. "1.8 B$+"): shown as is, rising in */
+  /** a figure that is not a number (e.g. "$1.9B"): shown as is, rising in */
   text?: string | null; lang?: "en" | "fr"; className?: string;
 }) {
   if ((value === null || value === undefined) && !text) return null;
