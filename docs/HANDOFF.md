@@ -129,6 +129,16 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-01 (home): **July 2026 returns block explained** (investigated + independently verified). Not a website bug:
+  the August 2026 factsheet archive carries raw `funds_nav_ts` July net returns, known wrong after the CIBC→Apex
+  cut-over, because the factsheet generator's NAV+distribution restatement got HTTP 401 from the dataplatform on every
+  call (run 2026-09-17) and silently kept the DB values. Analytics `fund_returns.json` July values are the correct
+  NAV-based ones (SEST FP, SEB H, Multistrat F). July comes from analytics because dataplatform `monthly_net_returns`
+  marks the cut-over month unavailable by design. SEB June: analytics holds the Class F value in an otherwise Class H
+  history. Fixes (outside this repo): give the generator valid dataplatform credentials, make the restatement
+  mandatory, re-run + republish August; correct analytics SEB June to Class H. Open (Gabriel/compliance): website
+  labels SEB's Class H series "Class F" (`fund-sources.ts` returnClassLabel). GMV audience resolved and merged.
+
 - 2026-10-01 (home, branch `fix/gmv-audience`): Gabriel resolved the GMV audience flag — "primarily for family
   offices and also viable for institutions". GMV fund summary (EN/FR) leads with family offices; /solutions lists GMV
   first for family offices and names it in their managed-accounts vehicle (leverage disclosure verbatim);
