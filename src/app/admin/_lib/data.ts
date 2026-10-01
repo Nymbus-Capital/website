@@ -1,0 +1,19 @@
+/**
+ * Server-side data access for admin pages, with failures turned into `null` + a logged message so a broken
+ * pipeline module or a corrupt file never takes the whole admin down.
+ */
+import { getRun, listRuns, pipelineStatus, type RunReport } from "@/lib/pipeline";
+import type { PipelineStatus } from "@/components/admin/runs";
+
+async function safe<T>(where: string, fn: () => Promise<T>): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error(`[admin] ${where}:`, e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+export const safeStatus = () => safe<PipelineStatus>("pipelineStatus", async () => (await pipelineStatus()) as PipelineStatus);
+export const safeRuns = async (limit: number): Promise<RunReport[]> => (await safe("listRuns", () => listRuns(limit))) ?? [];
+export const safeRun = (id: string) => safe("getRun", () => getRun(id));

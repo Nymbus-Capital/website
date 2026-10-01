@@ -1,0 +1,885 @@
+{
+ "short_name": "SEB",
+ "start_date": "2019-01-01",
+ "end_date": "2026-09-29",
+ "method": "SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution",
+ "rows": [
+  {
+   "date": "2019-03-29",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.072056,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-03-29",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063056,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-03-29",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.074056,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-06-28",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.071888,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-06-28",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.062888,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-06-28",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.073888,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.072165,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063165,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.074165,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-12-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.071785,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-12-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.062785,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-12-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.073785,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.07292,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063812,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.074944,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.072752,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063644,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.074776,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.073029,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063921,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.075053,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-12-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.072649,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-12-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.063541,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-12-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.074673,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.073784,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.064568,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.075832,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.073616,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.0644,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.075664,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.073893,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.064677,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.075941,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-12-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.073513,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-12-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.064297,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-12-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.075561,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.074648,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065324,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.07672,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.07448,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065156,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.076552,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.074757,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065433,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.076829,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-12-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.074377,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-12-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065053,
+   "source": "cibc"
+  },
+  {
+   "date": "2022-12-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.076449,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.075512,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.06608,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.077608,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.075344,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065912,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.07744,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-09-29",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.075621,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-09-29",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.066189,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-09-29",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.077717,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-12-29",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.075241,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-12-29",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.065809,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-12-29",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.077337,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-03-29",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.076376,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-03-29",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.066836,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-03-29",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.078496,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-06-28",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.076208,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-06-28",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.066668,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-06-28",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.078328,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.076485,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.066945,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.078605,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-12-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.076105,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-12-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.066565,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-12-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.078225,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.07724,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.067592,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.079384,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.077072,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.067424,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.079216,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-09-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.077349,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-09-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.067701,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-09-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.079493,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-12-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.076969,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-12-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.067321,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-12-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.079113,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-03-31",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.078104,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-03-31",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.068348,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-03-31",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.080272,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-06-30",
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "amount_per_unit": 0.077936,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-06-30",
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "amount_per_unit": 0.06818,
+   "source": "cibc"
+  },
+  {
+   "date": "2026-06-30",
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "amount_per_unit": 0.080104,
+   "source": "cibc"
+  }
+ ],
+ "classes": [
+  {
+   "fundserv": "LDM201",
+   "class_display": "F",
+   "currency": "CAD",
+   "frequency_observed": "quarterly",
+   "last_date": "2026-06-30",
+   "last_amount_per_unit": 0.077936,
+   "trailing_12m_per_unit": 0.310358,
+   "calendar_years": [
+    {
+     "year": 2019,
+     "per_unit": 0.287894,
+     "count": 4
+    },
+    {
+     "year": 2020,
+     "per_unit": 0.29135,
+     "count": 4
+    },
+    {
+     "year": 2021,
+     "per_unit": 0.294806,
+     "count": 4
+    },
+    {
+     "year": 2022,
+     "per_unit": 0.298262,
+     "count": 4
+    },
+    {
+     "year": 2023,
+     "per_unit": 0.301718,
+     "count": 4
+    },
+    {
+     "year": 2024,
+     "per_unit": 0.305174,
+     "count": 4
+    },
+    {
+     "year": 2025,
+     "per_unit": 0.30863,
+     "count": 4
+    },
+    {
+     "year": 2026,
+     "per_unit": 0.15604,
+     "count": 2
+    }
+   ]
+  },
+  {
+   "fundserv": "LDM205",
+   "class_display": "A",
+   "currency": "CAD",
+   "frequency_observed": "quarterly",
+   "last_date": "2026-06-30",
+   "last_amount_per_unit": 0.06818,
+   "trailing_12m_per_unit": 0.27155,
+   "calendar_years": [
+    {
+     "year": 2019,
+     "per_unit": 0.251894,
+     "count": 4
+    },
+    {
+     "year": 2020,
+     "per_unit": 0.254918,
+     "count": 4
+    },
+    {
+     "year": 2021,
+     "per_unit": 0.257942,
+     "count": 4
+    },
+    {
+     "year": 2022,
+     "per_unit": 0.260966,
+     "count": 4
+    },
+    {
+     "year": 2023,
+     "per_unit": 0.26399,
+     "count": 4
+    },
+    {
+     "year": 2024,
+     "per_unit": 0.267014,
+     "count": 4
+    },
+    {
+     "year": 2025,
+     "per_unit": 0.270038,
+     "count": 4
+    },
+    {
+     "year": 2026,
+     "per_unit": 0.136528,
+     "count": 2
+    }
+   ]
+  },
+  {
+   "fundserv": "LDM206",
+   "class_display": "FP",
+   "currency": "CAD",
+   "frequency_observed": "quarterly",
+   "last_date": "2026-06-30",
+   "last_amount_per_unit": 0.080104,
+   "trailing_12m_per_unit": 0.318982,
+   "calendar_years": [
+    {
+     "year": 2019,
+     "per_unit": 0.295894,
+     "count": 4
+    },
+    {
+     "year": 2020,
+     "per_unit": 0.299446,
+     "count": 4
+    },
+    {
+     "year": 2021,
+     "per_unit": 0.302998,
+     "count": 4
+    },
+    {
+     "year": 2022,
+     "per_unit": 0.30655,
+     "count": 4
+    },
+    {
+     "year": 2023,
+     "per_unit": 0.310102,
+     "count": 4
+    },
+    {
+     "year": 2024,
+     "per_unit": 0.313654,
+     "count": 4
+    },
+    {
+     "year": 2025,
+     "per_unit": 0.317206,
+     "count": 4
+    },
+    {
+     "year": 2026,
+     "per_unit": 0.160376,
+     "count": 2
+    }
+   ]
+  }
+ ],
+ "row_count": 90,
+ "warnings": []
+}

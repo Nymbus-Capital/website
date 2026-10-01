@@ -1,0 +1,51 @@
+name: Provision Northflank
+
+# Creates the website's Northflank resources (service, volume, secret group) in the existing project.
+# Create-only and idempotent: existing resources are never modified or deleted.
+# Needs NORTHFLANK_API_TOKEN as a secret of the "production" environment (see docs/deploy.md §1).
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Create the resources (unticked = dry run that only shows what would be created)"
+        type: boolean
+        default: false
+      project:
+        description: "Northflank project (the one the dataplatform runs in)"
+        default: "etl"
+      branch:
+        description: "Git branch the service builds and deploys"
+        default: "main"
+      plan:
+        description: "Northflank compute plan"
+        default: "nf-compute-50"
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    # only from main, and only through the protected "production" environment (required reviewer),
+    # whose environment secret NORTHFLANK_API_TOKEN no other workflow or branch can read
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Provision
+        env:
+          NORTHFLANK_API_TOKEN: ${{ secrets.NORTHFLANK_API_TOKEN }}
+          IN_PROJECT: ${{ inputs.project }}
+          IN_BRANCH: ${{ inputs.branch }}
+          IN_PLAN: ${{ inputs.plan }}
+          IN_APPLY: ${{ inputs.apply }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ "$IN_APPLY" = "true" ]; then extra+=(--apply); fi
+          node deploy/northflank/provision.mjs "--project=$IN_PROJECT" "--branch=$IN_BRANCH" "--plan=$IN_PLAN" "${extra[@]}"

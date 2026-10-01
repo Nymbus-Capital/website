@@ -1,0 +1,26 @@
+[
+ {
+  "short_name": "SEST",
+  "name": "Nymbus Monthly Income Fund",
+  "apex_account": "SYN-APX-01",
+  "cibc_account": null
+ },
+ {
+  "short_name": "SEB",
+  "name": "Nymbus Sustainable Enhanced Bonds Fund",
+  "apex_account": "SYN-APX-02",
+  "cibc_account": null
+ },
+ {
+  "short_name": "Multistrat",
+  "name": "Nymbus Multi-Strategy Fund",
+  "apex_account": "SYN-APX-03",
+  "cibc_account": null
+ },
+ {
+  "short_name": "OTHER",
+  "name": "Synthetic unmapped fund",
+  "apex_account": null,
+  "cibc_account": "SYN-CIBC-9"
+ }
+]
