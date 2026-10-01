@@ -129,6 +129,12 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-01 (home, branch `fix/gmv-audience`): Gabriel resolved the GMV audience flag — "primarily for family
+  offices and also viable for institutions". GMV fund summary (EN/FR) leads with family offices; /solutions lists GMV
+  first for family offices and names it in their managed-accounts vehicle (leverage disclosure verbatim);
+  `concise-copy.test.ts` pins the new sentence. `funds.ts`, strategies index, home tile, team and approach had no
+  audience wording to change. Compliance note marked resolved. Not merged.
+
 - 2026-09-30 (home, branch `feat/concise-copy`): fixes after the independent review of the concise copy — fund risk
   note as a visible body-size callout (`.fxb-risk`), Multi-Strategy and GMV wording restored closer to the reviewed
   text, tobacco sentence de-duplicated, « durée » for duration in French, `role="list"` on `<Bullets>` and `.pg-ticks`,

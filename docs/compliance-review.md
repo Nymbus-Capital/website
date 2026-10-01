@@ -272,7 +272,13 @@ Changed pages (please tick once reviewed):
   prices stray far from usual levels, expecting them to revert"; "Each with its own rules, designed for a distinct role".
   GMV summary back to the reviewed wording "A managed-futures overlay for institutional portfolios, offered through
   separately managed accounts." **Flag:** the Solutions page lists Global Minimum Volatility among the strategies that
-  usually fit family offices (unchanged, pre-existing); confirm whether GMV is offered outside institutions. Tobacco:
+  usually fit family offices (unchanged, pre-existing); confirm whether GMV is offered outside institutions.
+  **Resolved — Gabriel 2026-10-01: primarily family offices, also institutions** (branch `fix/gmv-audience`): GMV
+  summary now "A managed-futures overlay for family offices and institutions, offered through separately managed
+  accounts." / « Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les
+  institutions, offerte en comptes gérés distincts. » (caveat sentence unchanged); GMV listed first for family offices
+  on /solutions; the family-office "Managed accounts" vehicle names the GMV overlay and carries the leverage disclosure
+  verbatim. « bureaux de gestion familiale » kept (item B terminology), not « bureaux de famille ». Tobacco:
   "We exclude tobacco companies from the securities we select directly." (news, sustainability); the 2024 milestone on
   /team reads "Tobacco exclusion adopted". Margin sentence: "about 5 to 10% of their exposure" (« de leur exposition »).
   SEB metrics card: "Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index."
