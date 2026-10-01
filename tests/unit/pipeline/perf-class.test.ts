@@ -259,7 +259,11 @@ test("validate: a performance whose label is not the label of its data's class i
     const v = validateSite(d, b.context, null, NOW);
     const r = v.results.find((x) => x.fund === SEB)!;
     assert.ok(r.blocking.some((i) => i.key === `funds.${SEB}.performance.class`), JSON.stringify(r.blocking));
-    assert.equal(v.funds[SEB], "unavailable");
+    assert.equal(v.funds[SEB], "updated", "only the performance is held");
+    assert.equal(v.data.funds[SEB]!.performance, null, "withheld rather than mislabelled");
+    assert.equal(v.data.funds[SEB]!.risk, null);
+    assert.ok(v.data.funds[SEB]!.nav, "NAV still published");
+    assert.ok(v.data.issues.some((i) => i.key === `funds.${SEB}.performance` && /held back/.test(i.message)));
   }
   assert.equal(validateSite(b.data, b.context, null, NOW).funds["global-minimum-volatility"], "updated");
 });
@@ -367,8 +371,9 @@ test("legacy publication (before 2026-10-01: SEB class H labelled F) is relabell
   const d = structuredClone(b.data);
   d.funds[SEB]!.performance!.monthly[3].r = 0.9; // blocks the fund -> previous kept
   const v = validateSite(d, b.context, previous, NOW);
-  assert.equal(v.funds[SEB], "kept-previous");
-  assert.equal(v.data.funds[SEB]!.performance!.returnClass, "H");
+  assert.equal(v.funds[SEB], "updated", "NAV etc. fresh, only the performance is held");
+  assert.equal(v.data.funds[SEB]!.performance!.returnClass, "H", "previous performance kept, relabelled by its data");
+  assert.notEqual(v.data.funds[SEB]!.performance!.monthly[3].r, 0.9, "the blocked series is not published");
   // render-time (site.ts): same rule
   const legacy = previous.funds[SEB]!;
   const shown = fundWithClassLabel(legacy)!;

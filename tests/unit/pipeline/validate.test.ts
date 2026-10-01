@@ -44,10 +44,12 @@ test("blocking: performance as-of going backwards", async () => {
     p.asOf = "2026-07-31";
   });
   assert.ok(r.blocking.some((i) => i.key === "funds.monthly-income.performance.asOf" && /earlier than/.test(i.message)));
-  assert.equal(v.funds["monthly-income"], "kept-previous");
-  assert.deepEqual(v.data.funds["monthly-income"], previous.funds["monthly-income"], "previous FundData kept");
+  assert.equal(v.funds["monthly-income"], "updated", "performance alone is held; NAV etc. publish");
+  const kept = v.data.funds["monthly-income"]!;
+  assert.deepEqual(kept.performance, previous.funds["monthly-income"]!.performance, "previous performance kept");
+  assert.deepEqual(kept.risk, previous.funds["monthly-income"]!.risk);
   assert.equal(v.funds["sustainable-enhanced-bonds"], "updated", "other funds unaffected");
-  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income" && /previously published data kept/.test(i.message)));
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.performance" && /previously published performance kept/.test(i.message)));
   assert.match(v.data.provenance["funds.monthly-income.performance"], /^carried over from the publication of/);
 });
 
@@ -67,9 +69,11 @@ test("blocking: trailing in data differs from recomputation", async () => {
 
 test("blocking: computed trailing vs factsheet beyond the per-period tolerance (1Y: 0.1 %, 3Y: 0.15 %)", async () => {
   // 1Y: tolerance 0.0005 (rounding) + 0.0005 = 0.001
-  const { r, v } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! + 0.00101; });
+  const { r, v, previous } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! + 0.00101; });
   assert.ok(r.blocking.some((i) => i.key === "funds.monthly-income.trailing.1Y" && /factsheet/.test(i.message)));
-  assert.equal(v.funds["monthly-income"], "kept-previous");
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.performance" && /held back/.test(i.message)));
+  assert.deepEqual(v.data.funds["monthly-income"]!.performance, previous.funds["monthly-income"]!.performance, "previous performance (trailing included) kept");
+  assert.ok(r.alerts.includes("performance held back by validation"));
   const { r: ok } = await scenario((_d, b) => { b.context["monthly-income"]!.factsheetTrailing!["1Y"] = b.data.funds["monthly-income"]!.performance!.trailing.fund["1Y"]! - 0.00099; });
   assert.deepEqual(ok.blocking, []);
   // 3Y: 0.0005 + 0.001 = 0.0015
@@ -87,13 +91,29 @@ test("blocking: non-finite number anywhere", async () => {
   assert.deepEqual(nonFinitePaths({ a: [1, Number.NaN], b: { c: -Infinity } }, "x"), ["x.a[1]", "x.b.c"]);
 });
 
-test("blocking without a previous publication: fund withheld", async () => {
+test("performance blocked without a previous publication: performance withheld, the rest of the fund published", async () => {
   const b = await built();
   b.data.funds["multi-strategy"]!.performance!.monthly[0].r = 0.5;
   const v = validateSite(b.data, b.context, null, NOW);
-  assert.equal(v.funds["multi-strategy"], "unavailable");
-  assert.equal(v.data.funds["multi-strategy"], undefined);
-  assert.ok(v.data.issues.some((i) => i.key === "funds.multi-strategy" && /withheld/.test(i.message)));
+  assert.equal(v.funds["multi-strategy"], "updated");
+  const f = v.data.funds["multi-strategy"]!;
+  assert.equal(f.performance, null);
+  assert.equal(f.risk, null);
+  assert.equal(f.risk3Y, undefined);
+  assert.ok(f.nav && f.aum, "NAV and AUM published");
+  assert.equal(v.data.provenance["funds.multi-strategy.performance"], undefined);
+  assert.equal(v.data.provenance["funds.multi-strategy.risk"], undefined);
+  assert.ok(v.data.issues.some((i) => i.key === "funds.multi-strategy.performance" && /withheld/.test(i.message)));
+  assert.ok(v.results.find((r) => r.fund === "multi-strategy")!.blocking.length > 0, "the run still needs attention");
+});
+
+test("a blocking issue outside the performance still withholds the whole fund", async () => {
+  const b = await built();
+  b.data.funds["monthly-income"]!.breakdowns.credit![0].fund = Number.NaN;
+  const v = validateSite(b.data, b.context, null, NOW);
+  assert.equal(v.funds["monthly-income"], "unavailable");
+  assert.equal(v.data.funds["monthly-income"], undefined);
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income" && /withheld/.test(i.message)));
 });
 
 test("NAV day change > 10 %: class dropped, previous value kept, rest of the fund published", async () => {
@@ -171,4 +191,29 @@ test("N2: NAV gate applies when changePct is null: price ratio vs previous valua
   const v2 = validateSite(b.data, b.context, prev2, NOW);
   const r2 = v2.results.find((x) => x.fund === "monthly-income")!;
   assert.ok(r2.warnings.some((i) => i.level === "error" && /vs published 8 \(2026-09-20, 25\.50%\)/.test(i.message)), JSON.stringify(r2.warnings));
+});
+
+test("held performance: unknown class of the previous publication -> nothing kept, provenance says so; stale kept performance alerts; risk3Y is held too", async () => {
+  const prevB = await built();
+  const previous = structuredClone(prevB.data);
+  previous.funds["monthly-income"]!.performance!.classCode = "STRATEGY_X";
+  const b = await built();
+  b.data.funds["monthly-income"]!.performance!.monthly[0].r = 0.5;
+  const v = validateSite(b.data, b.context, previous, NOW);
+  const f = v.data.funds["monthly-income"]!;
+  assert.equal(f.performance, null);
+  assert.equal(f.risk, null);
+  assert.equal(v.data.provenance["funds.monthly-income.performance"], undefined);
+  assert.ok(v.data.issues.some((i) => i.key === "funds.monthly-income.performance" && /withheld/.test(i.message)));
+  // stale kept performance
+  const later = new Date("2026-12-20T14:00:00Z");
+  const v2 = validateSite(b.data, b.context, prevB.data, later);
+  assert.ok(v2.results.find((r) => r.fund === "monthly-income")!.alerts.some((a) => /stale: kept performance/.test(a)));
+  // risk3Y non-finite is a performance-scoped block
+  const b3 = await built();
+  b3.data.funds["monthly-income"]!.risk3Y = { ...(b3.data.funds["monthly-income"]!.risk!), sharpe: Number.NaN };
+  const v3 = validateSite(b3.data, b3.context, null, NOW);
+  assert.equal(v3.funds["monthly-income"], "updated");
+  assert.equal(v3.data.funds["monthly-income"]!.risk3Y, undefined);
+  assert.ok(v3.data.funds["monthly-income"]!.nav);
 });
