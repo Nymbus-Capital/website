@@ -60,7 +60,7 @@ never calls the dataplatform from the browser.
 | Source | Used for | Primary / cross-check | When it is missing |
 | --- | --- | --- | --- |
 | analytics `fund_returns.json` | monthly net returns before the Apex cut-over | primary (history) | factsheet monthly table (rounded) + alert |
-| dataplatform `/api/performance/monthly-net-returns` | monthly net returns, `ready` months | primary | month held / previous kept |
+| dataplatform `/api/performance/monthly-net-returns` | monthly net returns, `ready` months (`class_code` = track-record class; SEB also `class_code=STRATEGY&history=full`) | primary | month held / previous kept |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
 | dataplatform `/api/ftse/index-summary` | benchmark figures | primary | index figures not shown |
@@ -104,6 +104,36 @@ never calls the dataplatform from the browser.
   as `distributions.trailingTo` — else that figure alone is dropped (also when the window end is unknown or the capped
   history does not reach its start). The page labels it "12 months to <trailingTo>", not the last distribution. The page shows every amount of a series with one precision (4–6
   decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
+
+### Performance class (`fund-sources.ts`, `build.ts` `fundSeries`, `perf-class.ts`; Gabriel 2026-10-01)
+
+- The class label shown with returns ("Series F" / « Série F ») is derived from the class of the data actually used
+  (`performance.classCode`: dataplatform `STRATEGY` = the fund's F / FP class, `STRATEGY_H` = SEB's H class) through
+  `classLabels`, never a business label. Every month carries the class of its source (analytics series and Apex
+  months: `trackRecordClass`; factsheet table: `factsheetClass`); a series mixing classes, or of a class without a
+  label, is withheld (error + alert). Validation blocks a label that is not its data's class.
+- SEB (`preferredClass: STRATEGY`): `/api/performance/monthly-net-returns?class_code=STRATEGY&history=full`
+  (dataplatform PR #626). Both candidates are built — class H (analytics + `class_code=STRATEGY_H` Apex months +
+  same-class factsheet table) and class F (the full-history answer alone, no analytics month). Class F is used when
+  the answer says `class_code: STRATEGY` (and `history: "full"` if it says anything), its first ready month is the
+  track-record start and it is ready and continuous through max(class H last month, published as-of); else class H,
+  labelled H. A server that predates the parameters answers `STRATEGY_H`: the site shows Series H.
+- Gates of class F that withhold the performance (previous publication kept), never switch: payload `class_display`
+  / `fundserv` other than F / LDM201 or the fund register naming another class for LDM201; F − H outside the fee
+  band on any common month (`CLASS_SPREAD`: −5 to +30 bp and within ±5 bp of the median).
+- No flip-flop: once class F is published, a failed / unconfirmed / incomplete class F answer keeps the class F
+  publication (carried, alert); class H comes back only through configuration and an approved run.
+- A class change (H ↔ F, relative to the published performance) blocks in validation: auto mode publishes the run
+  with that fund at its previous publication (`ValidationOutcome.autoData`), the stored run holds the change, and
+  publishing the run (admin "approve class change & publish") approves it (`RunReport.classChanges`). Such a run
+  cannot be pinned before approval.
+- Factsheet class by archive month (`factsheetClass`, `factsheetClassAt`): SEB archives up to 2026-07 publish class
+  F, later ones class H. A series is compared with (and, for class H, filled from) archives of its own class only;
+  other archives' fund trailing / value added / statistics are skipped with an info issue (the factsheet of a new
+  month is still required). In class H mode a missing class H monthly table is an error + alert.
+- Publications made before `classCode` existed were all built from the track-record class: when carried over, kept
+  by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
+- The NAV card is independent: its series is the fund register's class of the FundServ code shown.
 
 ## Conventions
 

@@ -76,6 +76,10 @@ Not yet run against live data, not deployed.
     SEB = `univ`). Factsheet index figures are a cross-check only.
   - **Class F/FP for all funds**: Monthly Income FP (LDM001), SEB F (LDM201), Multi-Strategy F (LDM301).
     Note kept in admin issues: SEB's dataplatform track record is the STRATEGY_H series.
+- 2026-10-01: **SEB performance = Class F series; the label always matches the data** ("Change SEB to Class F
+  timeseries. If you showcase the class H timeseries, then show class H."). Branch `fix/seb-class`: class F with full
+  history when the dataplatform confirms it, else class H labelled H; never a mixed series (see
+  `docs/architecture.md` § Performance class).
   - **Fund AUM hidden by default** (admin can show it per fund by unticking "aum").
   - **Disclaimers**: start from our boilerplate, highlight the required review (done: admin banner +
     `docs/compliance-review.md`).
@@ -129,15 +133,51 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-01 (home, branch `fix/seb-class`, from `redesign/v3-keynote-live-data`): **SEB class label = class of the
+  data** (Gabriel's decision above; resolves compliance-review A1). `fund-sources.ts` replaces the hard-coded
+  `returnClassLabel` with `trackRecordClass` / `preferredClass` / `factsheetClass` / `classLabels`; SEB asks
+  monthly-net-returns for `class_code=STRATEGY&history=full` (new `raw.monthlyReturnsFull`, snapshot file
+  `monthly-net-returns-full_SEB.json`) and uses it for every month only when the response is class STRATEGY with ready
+  months from 2019-02 (`fullHistoryProblem`), else the class H sources (analytics + `class_code=STRATEGY_H` Apex
+  months) labelled H. Every month carries its class; a mixed / unknown-class series is withheld (error + alert). New
+  `performance.classCode`; validate blocks a label that is not the data's class; `perf-class.ts` relabels legacy
+  publications (no classCode: their track-record class) when carried, kept by validate, rolled back or pinned
+  (`site.ts`). Factsheet (class H) comparisons skipped with an info issue only on a class mismatch; timing gate kept.
+  A class change (H → F) gives one warn + alert instead of a revision per month. Label added to home tiles, the
+  strategies index and the growth-chart legend (badges, overview, performance tab, disclosures already had it). The
+  sample is built as if the dataplatform change were deployed (SEB = Series F); fixtures default to the server
+  deployed today (parameters ignored → H), `fullHistoryRoute` emulates the new one. Tests: `perf-class.test.ts`,
+  e2e "performance class label …". Until the dataplatform PR ships, live SEB shows **Series H**. Not merged.
+
+- 2026-10-01 (home, branch `fix/seb-class`): fixes after the independent review of the above.
+  (1) Class F only when complete: both candidates are built (class H: analytics + `STRATEGY_H` Apex months + same-class
+  factsheet; class F: the `history=full` answer alone) and F is chosen only when ready and continuous from 2019-02
+  through max(class H last month, published as-of); a missing month (e.g. the 2026-07 bridge or one CIBC month) falls
+  back to class H, labelled H. (2) No flip-flop: once class F is published, a failed / unconfirmed / incomplete F answer
+  keeps the class F publication (carried + alert), never class H; F → H only by configuration + an approved run.
+  (3) Independent gates: F − H on every common month within `CLASS_SPREAD` (−5 to +30 bp, ±5 bp around the median;
+  July 2026 ≈ +11.6 bp), payload `class_display` / `fundserv` = F / LDM201 and the fund register's LDM201 = F (and
+  H / LDM202 on the track-record answer when present); a breach withholds (previous publication kept). (4) A class
+  change (H ↔ F) is a validation-blocking issue: `validateSite` returns `autoData` (the fund kept at its previous
+  publication), auto mode publishes only that, the stored run holds the change and publishing it (admin "approve class
+  change & publish", also on the live run) approves it (`RunReport.classChanges` / `classChangesApprovedAt`); such a
+  run cannot be pinned before approval. (5) Factsheet class by archive month (`factsheetClass` ranges: SEB ≤ 2026-07
+  = F, ≥ 2026-08 = H): only an archive of the series' class is compared / used to fill; in class H mode a missing
+  class H monthly table is an error + alert. (6) Analytics SEB June already corrected (above). (7) Fixtures follow
+  PR #626 (bridge only 2026-07, `class_display`, `fundserv`, `history`, `rows[].source/method`); e2e also renders SEB
+  as Series H (admin test pinning a synthetic class H run, `e2e/fixtures/seb-class-h-site-data.json`, kept in sync
+  by `sample-sync.test.ts`). (8) Tiles / index say "Returns: Series X" / « Rendements : Série X »; disclaimers review
+  note and compliance A1 updated (pre-launch part of SEB series F). Not merged.
+
 - 2026-10-01 (home): **July 2026 returns block explained** (investigated + independently verified). Not a website bug:
   the August 2026 factsheet archive carries raw `funds_nav_ts` July net returns, known wrong after the CIBC→Apex
   cut-over, because the factsheet generator's NAV+distribution restatement got HTTP 401 from the dataplatform on every
   call (run 2026-09-17) and silently kept the DB values. Analytics `fund_returns.json` July values are the correct
   NAV-based ones (SEST FP, SEB H, Multistrat F). July comes from analytics because dataplatform `monthly_net_returns`
-  marks the cut-over month unavailable by design. SEB June: analytics holds the Class F value in an otherwise Class H
-  history. Fixes (outside this repo): give the generator valid dataplatform credentials, make the restatement
-  mandatory, re-run + republish August; correct analytics SEB June to Class H. Open (Gabriel/compliance): website
-  labels SEB's Class H series "Class F" (`fund-sources.ts` returnClassLabel). GMV audience resolved and merged.
+  marks the cut-over month unavailable by design. SEB June: analytics held the Class F value in an otherwise Class H
+  history — since corrected to the Class H value (analytics commit `fcdc05a`). Fixes (outside this repo): give the
+  generator valid dataplatform credentials, make the restatement mandatory, re-run + republish August. Open (Gabriel/compliance): website
+  labels SEB's Class H series "Class F" (`fund-sources.ts` returnClassLabel) — resolved on `fix/seb-class` (above). GMV audience resolved and merged.
 
 - 2026-10-01 (home, branch `fix/gmv-audience`): Gabriel resolved the GMV audience flag — "primarily for family
   offices and also viable for institutions". GMV fund summary (EN/FR) leads with family offices; /solutions lists GMV

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 
 /**
  * Fund detail pages (/strategies/<fund key>) rendered against the illustrative sample data
@@ -286,4 +286,78 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
   await expect(page.getByTestId("provenance")).toContainText("données de portefeuille selon les positions quotidiennes au 28 septembre 2026");
+});
+
+/**
+ * Performance class label (Gabriel 2026-10-01: the label must match the class of the data). The expected label is
+ * read from the class code of the sample's own data (`performance.classCode`), never assumed: the sample is built as
+ * if the dataplatform served SEB class F (PR #626); the class H rendering (what production shows before that) is
+ * covered by the admin test that pins SEB to a class H run (admin.spec.ts). The NAV card keeps the register's own
+ * series (LDM201 = F), independent of the returns' class.
+ */
+const SAMPLE = JSON.parse(readFileSync("src/lib/data/sample-site-data.json", "utf8")) as { funds: Record<string, { performance: { classCode?: string; returnClass?: string } | null }> };
+const CLASS_OF: Record<string, Record<string, string>> = {
+  "monthly-income": { STRATEGY: "FP" },
+  "sustainable-enhanced-bonds": { STRATEGY: "F", STRATEGY_H: "H" },
+  "multi-strategy": { STRATEGY: "F" },
+};
+const codeOf = (slug: string): string => CLASS_OF[slug][SAMPLE.funds[slug].performance!.classCode!];
+/** "Series F" but not "Series FP" (and the other way round) */
+const seriesRe = (word: string, code: string): RegExp => new RegExp(`${word} ${code}(?![A-Za-z])`);
+
+for (const slug of Object.keys(CLASS_OF)) {
+  test(`performance class label follows the data's class everywhere (EN + FR): ${slug}`, async ({ page }) => {
+    const perf = SAMPLE.funds[slug].performance!;
+    const code = codeOf(slug);
+    expect(code, `class ${perf.classCode} has a label`).toBeTruthy();
+    expect(perf.returnClass).toBe(code);
+    const others = Object.values(CLASS_OF[slug]).filter((c) => c !== code);
+    for (const [lang, word, fund] of [["en", "Series", "Fund"], ["fr", "Série", "Fonds"]] as const) {
+      await page.goto(`/strategies/${slug}`);
+      if (lang === "fr") {
+        await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        await page.reload();
+      }
+      const exact = seriesRe(word, code);
+      // header return badges, overview returns, disclosures: this class, never another class of the fund
+      for (const tid of ["basis", "overview-returns", "perf-class"]) {
+        await expect(page.getByTestId(tid)).toContainText(exact);
+        for (const o of others) await expect(page.getByTestId(tid)).not.toContainText(seriesRe(word, o));
+      }
+      // performance tab context line and growth chart legend
+      await openTab(page, "performance");
+      await expect(page.getByTestId("perf-context")).toContainText(exact);
+      for (const o of others) await expect(page.getByTestId("perf-context")).not.toContainText(seriesRe(word, o));
+      await page.getByTestId("growth").scrollIntoViewIfNeeded();
+      await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fund} (${word} ${code})`);
+      if (slug === "sustainable-enhanced-bonds") {
+        // the NAV card is the register's class LDM201 (F) whatever the class of the returns
+        await openTab(page, "overview");
+        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM201");
+      }
+    }
+  });
+}
+
+test("home tiles and the strategies index name the class of the returns (EN + FR)", async ({ page }) => {
+  // the French label has a no-break space before « : » (matched as \s)
+  for (const [lang, returns] of [["en", "Returns: Series"], ["fr", "Rendements\\s:\\sSérie"]] as const) {
+    const label = (code: string): RegExp => new RegExp(`^${returns} ${code}$`);
+    for (const p of ["/", "/strategies"]) {
+      await page.goto(p);
+      if (lang === "fr") {
+        await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        await page.reload();
+      }
+      for (const slug of Object.keys(CLASS_OF)) {
+        await expect(page.getByTestId(`strategy-${slug}`).getByTestId("perf-class")).toHaveText(label(codeOf(slug)));
+      }
+      // a strategy without classes (GMV) shows none
+      await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-class")).toHaveCount(0);
+    }
+    // the comparison table: every fund with a class, in registry order
+    const cells = page.getByTestId("compare-table").getByTestId("perf-class");
+    await expect(cells).toHaveCount(3);
+    for (const [i, slug] of Object.keys(CLASS_OF).entries()) await expect(cells.nth(i)).toHaveText(label(codeOf(slug)));
+  }
 });

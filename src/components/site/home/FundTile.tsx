@@ -150,7 +150,13 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
             {variant === "home" ? nav : null}
           </span>
           {variant === "full" && nav ? <span className="fx-kv fx-kv-nav">{nav}</span> : null}
-          {f.asOf ? <span className="fx-asof">{pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}</span> : null}
+          {f.asOf ? (
+            <span className="fx-asof">
+              {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
+              {/* the class of the returns shown (may differ from the NAV series above) */}
+              {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}
+            </span>
+          ) : null}
         </span>
       ) : (
         <span className="fx-figs">

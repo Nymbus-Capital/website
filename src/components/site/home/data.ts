@@ -39,6 +39,8 @@ export interface FundCard {
   /** minimum investment as entered in the admin (free text), null when not provided */
   minInvestment: string | null;
   nav: { code: string; display: string; currency: string; nav: number; changePct: number | null; date: string | null } | null;
+  /** class of the published returns ("F", "H", "FP"), derived from the class of their data; null when none */
+  perfClass: string | null;
 }
 
 export interface HomeData {
@@ -99,6 +101,7 @@ export function toFundCard(v: FundView): FundCard {
     nav: cls && isNum(cls.nav)
       ? { code: cls.fundserv, display: cls.display, currency: cls.currency, nav: cls.nav, changePct: isNum(cls.changePct) ? cls.changePct : null, date: cls.date }
       : null,
+    perfClass: perf?.returnClass ?? null,
   };
 }
 

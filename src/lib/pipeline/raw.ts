@@ -14,11 +14,18 @@ export interface MonthlyNetReturnRow {
   status: "ready" | "unavailable" | "conflict" | string;
   issue?: string | null;
   method?: string | null;
+  /** where a full-history month comes from ("cibc" | "bridge" | "apex"); absent on the Apex-only default */
+  source?: string | null;
 }
 export interface MonthlyNetReturnsResponse {
   short_name?: string;
   as_of: string;
   class_code?: string;
+  /** history requested / served: "full" (pre-Apex months included) or the Apex-only default; absent on older servers */
+  history?: string | null;
+  /** class of the series as the site labels it ("F", "H", "FP") and its FundServ code (dataplatform PR #626; absent before) */
+  class_display?: string | null;
+  fundserv?: string | null;
   currency?: string;
   return_basis?: string;
   methodology_version?: string;
@@ -92,7 +99,10 @@ export interface RawPayloads {
   targetMonth: string;
   /** FTSE index-summary short name actually used per fund (resolved from env at fetch time) */
   ftseIndex: Partial<Record<FundKey, string | null>>;
+  /** monthly net returns of the fund's track-record class (FUND_SOURCES.trackRecordClass, Apex months) */
   monthlyReturns: Partial<Record<DpShort, SourceResult<MonthlyNetReturnsResponse>>>;
+  /** monthly net returns of the preferred class with `history=full` (FUND_SOURCES.preferredClass); optional */
+  monthlyReturnsFull?: Partial<Record<DpShort, SourceResult<MonthlyNetReturnsResponse>>>;
   nav: Partial<Record<DpShort, SourceResult<NavSeriesResponse>>>;
   apexFunds: SourceResult<RegisteredFund[]>;
   unitholderFunds: SourceResult<FundRef[]>;

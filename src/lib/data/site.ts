@@ -11,6 +11,7 @@ import { FUNDS, fundSpec, type FundSpec } from "@/config/funds";
 import { readJsonCached } from "./cache";
 import { mergeContent } from "./defaults";
 import { dropStalePortfolio } from "./freshness";
+import { fundWithClassLabel } from "@/lib/pipeline/perf-class";
 import type { FundContent, FundData, FundKey, SiteContent, SiteData } from "./types";
 import sample from "./sample-site-data.json";
 
@@ -40,12 +41,14 @@ async function fundData(key: FundKey, site: SiteData | null, content: FundConten
   if (pin) {
     if (!/^[0-9A-Za-z-]+$/.test(pin)) return null;
     const pinned = await readJsonCached<SiteData | null>(["snapshots", pin, "site-data.json"], null).catch(() => null);
-    return dropStalePortfolio(pinned?.funds[key] ?? null, new Date());
+    return fundWithClassLabel(dropStalePortfolio(pinned?.funds[key] ?? null, new Date()));
   }
   // the daily book must be fresh today (a rollback republishes an old snapshot); the illustrative sample is judged at
   // its own generation date
   const now = site?.mode === "sample" ? new Date(site.generatedAt) : new Date();
-  return dropStalePortfolio(site?.funds[key] ?? null, now);
+  // the performance class label is re-derived from the class of its data (a publication made before 2026-10-01
+  // labelled SEB's class H series "F"; a rollback or a pin must never show that label again)
+  return fundWithClassLabel(dropStalePortfolio(site?.funds[key] ?? null, now));
 }
 
 export interface FundView {

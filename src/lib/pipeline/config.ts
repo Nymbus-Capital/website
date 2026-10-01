@@ -51,6 +51,13 @@ export function factsheetTolerance(period: string, decimals = 1): { round: numbe
 }
 
 /** Tolerances (decimal returns). */
+/**
+ * Independent gate of a preferred-class series (SEB class F) against the track-record class (H) of the same months:
+ * the monthly difference F − H is a fee difference, so it must stay in [minDiff, maxDiff] and within maxFromMedian of
+ * its median (reference: July 2026 ≈ +11.6 bp). A breach blocks the class F series (previous publication kept).
+ */
+export const CLASS_SPREAD = { minDiff: -0.0005, maxDiff: 0.003, maxFromMedian: 0.0005 } as const;
+
 export const TOL = {
   /** a monthly return beyond ±25 % is treated as a data error */
   maxMonthly: 0.25,

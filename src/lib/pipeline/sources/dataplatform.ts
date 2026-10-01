@@ -70,18 +70,26 @@ async function guarded<T>(label: string, fn: () => Promise<SourceResult<T>>): Pr
 
 /* ------------------------------------------------------------------ endpoints */
 
-export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: string): Promise<SourceResult<MonthlyNetReturnsResponse>> {
-  const label = `monthly-net-returns ${short}`;
+/**
+ * `classCode` / `history` are sent when given; a server that predates them ignores them, so the caller must check the
+ * response's own `class_code` / `history` / rows before trusting that it got what it asked for.
+ */
+export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: string, opts: { classCode?: string | null; history?: "full" } = {}): Promise<SourceResult<MonthlyNetReturnsResponse>> {
+  const label = `monthly-net-returns ${short}${opts.classCode ? ` ${opts.classCode}` : ""}${opts.history ? ` history=${opts.history}` : ""}`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, start_date: "2019-01-01", end_date: endMonth });
+    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, start_date: "2019-01-01", end_date: endMonth, class_code: opts.classCode ?? undefined, history: opts.history });
     if (status === 422) return fail(`${label}: no closed month available (HTTP 422${body ? `: ${body}` : ""})`);
     if (status !== 200) return fail(`${label}: HTTP ${status}`);
     const j = body as MonthlyNetReturnsResponse;
     if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
-    const rows = j.rows.map((r) => ({ month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null }));
+    const rows = j.rows.map((r) => ({
+      month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null,
+      ...(typeof r.source === "string" ? { source: r.source } : {}),
+    }));
     const ready = rows.filter((r) => r.status === "ready" && r.net_return !== null);
     const data: MonthlyNetReturnsResponse = {
-      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, currency: j.currency,
+      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, ...(typeof j.history === "string" ? { history: j.history } : {}),
+      ...(typeof j.class_display === "string" ? { class_display: j.class_display } : {}), ...(typeof j.fundserv === "string" ? { fundserv: j.fundserv } : {}), currency: j.currency,
       return_basis: j.return_basis, methodology_version: j.methodology_version, row_count: rows.length, rows,
     };
     return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}` };

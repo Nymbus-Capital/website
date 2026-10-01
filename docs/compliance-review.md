@@ -94,12 +94,37 @@ not be substantiated were softened to "designed to" statements or removed.
 
 ### A. Must-fix items
 
-- [ ] **A1 (flag only, compliance risk).** Sustainable Enhanced Bonds: the performance shown is the dataplatform
-  `STRATEGY_H` (class/series H) track record, labelled **series F** on the site (Gabriel's decision 2026-09-29, "class
-  F/FP for all funds", `src/config/funds.ts`). Presenting one series' returns under another series' name is a
-  sales-communication risk unless the series have identical fees and history. Decide: show the H series as H, compute
-  F, or keep with a note. *Changed:* the returns disclaimer now says "series" / « série » like the UI (it said
-  "class" / « catégorie »).
+- [x] **A1 (resolved 2026-10-01, Gabriel).** Sustainable Enhanced Bonds: the performance shown was the dataplatform
+  `STRATEGY_H` (class/series H) track record, labelled **series F** on the site. Presenting one series' returns under
+  another series' name is a sales-communication risk unless the series have identical fees and history.
+  *Changed:* the returns disclaimer now says "series" / « série » like the UI (it said "class" / « catégorie »).
+  **Decision 2026-10-01 (Gabriel): "Change SEB to Class F timeseries. If you showcase the class H timeseries, then
+  show class H."** Implemented on branch `fix/seb-class`: the label is never a business label any more, it is
+  derived from the class of the data actually used (`performance.classCode`, `fund-sources.ts` `classLabels`):
+  - SEB asks the dataplatform for its class F series with the full history (`class_code=STRATEGY&history=full`);
+    when the response confirms class F from the track-record start (2019-02), every month comes from it (no
+    analytics month) and the site says **Series F / Série F**;
+  - otherwise (dataplatform change not deployed yet, or the answer is not confirmed) the class H sources are kept
+    and the site says **Series H / Série H**;
+  - a series whose months come from different (or unknown) classes is never published (withheld, error + alert);
+    a validation gate blocks any performance whose label is not its data's class; publications made before this
+    change are relabelled by their data (class H) when carried over, rolled back or pinned;
+  - the factsheet publishes SEB as class H (factsheet-generator `fed3af3`): while the site shows class F, the SEB
+    factsheet comparisons (monthly table, trailing returns, value added, statistics) are skipped with an info
+    issue naming the class mismatch; the "factsheet of the month must exist" timing gate and every other gate stay;
+  - the label appears on the fund header badges, overview returns, performance tab, growth-chart legend,
+    disclosures, home tiles and the strategies index; the NAV card keeps the register's own series (LDM201 = F).
+  Follow-up (independent review, same day): class F is used only when complete through the latest class H month and
+  within a fee band of class H on every month (−5 to +30 bp), with the payload naming class F / LDM201 like the fund
+  register; once class F is published a source failure keeps it (never back to H); any class change H ↔ F waits for
+  an admin approving the run, also in auto mode; the factsheet is compared by archive month (SEB archives up to
+  2026-07 publish class F, from 2026-08 class H). Home tiles and the strategies index say "Returns: Series F" /
+  « Rendements : Série F ».
+  *To confirm:* that class F has a track record from 2019-02 (otherwise the dataplatform's full history will not
+  start at the track-record start and the site stays on class H).
+  *To review (same question as A2):* "Series F" for **2019-02 to 2023-07** covers pre-launch **strategy** returns
+  (segregated accounts) net of the class's current fees, not the fund's own units; confirm this is permitted and how
+  it must be disclosed.
 - [ ] **A2 (flag only).** Monthly Income shows the strategy track record from **January 2019**, before the fund's
   launch on **2021-10-05** (`FUND_INCEPTION`, `preInception` disclaimer). Confirm this is permitted under NI 81-102
   Part 15 (standard periods 1, 3, 5, 10 years and since inception; no performance for a fund in existence < 12

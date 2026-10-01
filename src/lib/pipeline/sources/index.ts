@@ -23,6 +23,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const env = opts.env ?? process.env;
   const target = lastClosedMonth(opts.now);
   const shorts = FUNDS.map((f) => FUND_SOURCES[f.key].dataplatform).filter((s): s is DpShort => !!s);
+  const keyOf = Object.fromEntries(FUNDS.filter((f) => FUND_SOURCES[f.key].dataplatform).map((f) => [FUND_SOURCES[f.key].dataplatform, f.key])) as Record<DpShort, FundKey>;
   const ftseIndex: RawPayloads["ftseIndex"] = {};
   for (const f of FUNDS) ftseIndex[f.key] = ftseIndexFor(f.key, env);
   const ftseNames = [...new Set(Object.values(ftseIndex).filter((x): x is string => !!x))];
@@ -31,6 +32,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const noDp = <T>(): SourceResult<T> => ({ ok: false, data: null, error: "dataplatform: DATAPLATFORM_URL not configured" });
 
   const monthlyReturns: RawPayloads["monthlyReturns"] = {};
+  const monthlyReturnsFull: NonNullable<RawPayloads["monthlyReturnsFull"]> = {};
   const nav: RawPayloads["nav"] = {};
   const ftse: RawPayloads["ftse"] = {};
   const portfolio: NonNullable<RawPayloads["portfolio"]> = {};
@@ -40,7 +42,9 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const today = opts.now.toISOString().slice(0, 10);
   const jobs: Promise<unknown>[] = [];
   for (const s of shorts) {
-    jobs.push((c ? fetchMonthlyNetReturns(c, s, target) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
+    const fs = FUND_SOURCES[keyOf[s]];
+    jobs.push((c ? fetchMonthlyNetReturns(c, s, target, { classCode: fs.trackRecordClass }) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
+    if (fs.preferredClass) jobs.push((c ? fetchMonthlyNetReturns(c, s, target, { classCode: fs.preferredClass, history: "full" }) : Promise.resolve(noDp())).then((r) => { monthlyReturnsFull[s] = r as never; }));
     jobs.push((c ? fetchNav(c, s, opts.now) : Promise.resolve(noDp())).then((r) => { nav[s] = r as never; }));
     jobs.push((c ? fetchPortfolios(c, s, target) : Promise.resolve({ latest: noDp<never>(), monthEnd: null })).then((r) => {
       portfolio[s] = r.latest;
@@ -55,7 +59,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const fsP = fetchFactsheets(target, opts.fetchImpl, env);
   const anP = fetchAnalytics(opts.fetchImpl, env);
   const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
-  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, portfolio, portfolioMonthEnd, distributions };
+  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, monthlyReturnsFull, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, portfolio, portfolioMonthEnd, distributions };
 }
 
 /**

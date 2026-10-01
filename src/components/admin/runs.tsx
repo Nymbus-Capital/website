@@ -228,13 +228,15 @@ export function PublishRunButton({ run, publishedRunId }: { run: RunReport; publ
   const isLive = run.id === publishedRunId;
   const publishable = run.status === "pending-review" || run.status === "published" || run.status === "blocked";
   if (!publishable) return <span className="adm-small">A {run.status} run cannot be published.</span>;
-  if (isLive) return <Pill tone="ok">live on the site</Pill>;
+  // a run live in auto mode may still hold a performance class change back: publishing it again approves the change
+  const classChange = !!run.classChanges?.length && !run.classChangesApprovedAt;
+  if (isLive && !classChange) return <Pill tone="ok">live on the site</Pill>;
   const pending = run.status === "pending-review" || run.status === "blocked";
   const go = async () => {
     const yes = await confirm({
       title: pending ? "publish this run?" : "roll back to this run?",
       body: pending
-        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
+        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${classChange ? ` This approves the performance class change of ${run.classChanges!.join(", ")}: every month is restated under the new class label.` : ""}${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
         : `The public site will go back to the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}). Later runs stay in the history.`,
       action: pending ? "publish" : "roll back",
       danger: !pending,
@@ -254,7 +256,7 @@ export function PublishRunButton({ run, publishedRunId }: { run: RunReport; publ
   return (
     <>
       <button type="button" className={`adm-btn${pending ? "" : " ghost"}`} onClick={go} disabled={busy} data-testid="publish-run">
-        <Upload /> {pending ? "approve & publish" : "roll back to this run"}
+        <Upload /> {classChange ? "approve class change & publish" : pending ? "approve & publish" : "roll back to this run"}
       </button>
       {dialog}
     </>

@@ -153,6 +153,8 @@ export const HOME_COPY = {
 export const FUND_COPY = {
   nav: l("NAV", "VL"),
   navSeries: l("Series", "Série"),
+  /** class of the returns shown (not of the NAV series next to them), followed by its code */
+  perfClass: l("Returns: Series", "Rendements\u00a0: Série"),
   ytd: l("YTD", "DDA"),
   y1: l("1 year", "1 an"),
   si: l("Since inception, annualized", "Depuis la création, annualisé"),

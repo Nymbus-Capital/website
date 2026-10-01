@@ -153,6 +153,10 @@ test("home / strategies / solutions props: hidden blocks never reach the cards",
   assert.equal(cal.si, 0.03);
   const nav = toFundCard(view({ hide: { nav: true } }) as never);
   assert.equal(nav.nav, null);
+  // the class of the returns travels with them (never shown once performance is hidden)
+  assert.equal(c.perfClass, null);
+  const labelled = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } } } as never);
+  assert.equal(labelled.perfClass, "H");
   const content = { version: 1, updatedAt: "", updatedBy: "", firm: {}, funds: {}, pipeline: { publishMode: "review" } } as unknown as SiteContent;
   const h = toHomeData([view({ hide: { performance: true } }) as never], content);
   assert.equal(h.perfAsOf, null);
