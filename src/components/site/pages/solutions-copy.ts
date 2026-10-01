@@ -95,9 +95,9 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     vehicles: [
       { name: l("Funds", "Fonds"), text: l("Our funds, with daily NAVs.", "Nos fonds, avec des valeurs liquidatives quotidiennes.") },
-      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name.", "Une stratégie gérée dans un compte à votre nom.") },
+      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility futures overlay. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la stratégie de superposition Global Minimum Volatility. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
     ],
-    funds: ["multi-strategy", "monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"],
+    funds: ["global-minimum-volatility", "multi-strategy", "monthly-income", "sustainable-enhanced-bonds"],
   },
   {
     key: "advisor",

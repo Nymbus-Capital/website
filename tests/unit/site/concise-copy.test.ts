@@ -96,6 +96,13 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
     if (k !== "global-minimum-volatility") assert.ok(all(k).includes(LOW_CORR_FR), `${k}: low-correlation caveat (fr)`);
   }
   assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.endsWith("elle peut ne pas y parvenir et peut subir des pertes."));
+  // GMV audience (Gabriel 2026-10-01): primarily family offices, also institutions
+  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.en.startsWith("A managed-futures overlay for family offices and institutions, offered through separately managed accounts."));
+  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.startsWith("Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts."));
+  const family = AUDIENCES.find((a) => a.key === "family")!;
+  assert.equal(family.funds[0], "global-minimum-volatility");
+  const managed = family.vehicles.find((v) => v.name.en === "Managed accounts")!.text;
+  assert.ok(managed.en.endsWith(LEVERAGE) && managed.fr.endsWith(LEVERAGE_FR), "family managed accounts: leverage disclosure");
   assert.ok(FUND_TEXTS["monthly-income"].summary.fr.includes(DIST_FR));
   assert.ok(FUND_TEXTS["monthly-income"].feature.cards.find((c) => c.icon === "calendar")!.text.fr.includes(DIST_FR));
   // Multi-Strategy hedging caveat

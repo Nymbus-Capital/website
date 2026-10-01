@@ -446,8 +446,8 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
   },
   "global-minimum-volatility": {
     summary: l(
-      "A managed-futures overlay for institutional portfolios, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-      "Une stratégie de contrats à terme gérés destinée aux portefeuilles institutionnels, offerte au moyen de comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+      "A managed-futures overlay for family offices and institutions, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+      "Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
     ),
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
