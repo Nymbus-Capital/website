@@ -402,7 +402,8 @@ test.describe("admin flows", () => {
       for (const [lang, word, fundWord, returns] of [["en", "Series", "Fund", "Returns: Series"], ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie"]] as const) {
         await page.goto(`/strategies/${fund}`);
         if (lang === "fr") {
-          await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+          // cookie for the whole site (a cookie set from the fund page's URL would be scoped to /strategies)
+          await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: BASE }]);
           await page.reload();
         }
         const h = new RegExp(`${word} H(?![A-Za-z])`);
