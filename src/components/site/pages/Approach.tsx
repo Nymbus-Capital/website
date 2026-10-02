@@ -8,7 +8,7 @@
 import { Activity, Brain, Cpu, Database, FlaskConical, GitBranch, Layers, Shield, ShieldCheck, Target, Workflow } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { team } from "@/data/team";
+import { team as staticTeam, type TeamMember } from "@/data/team";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AP } from "./copy-approach";
 import { Portrait } from "./Portrait";
@@ -180,7 +180,7 @@ function OverlayStack() {
 
 const PHILO_ICONS = [Cpu, Target, Workflow, FlaskConical, Shield, GitBranch];
 
-export function Approach() {
+export function Approach({ members: team = staticTeam }: { members?: TeamMember[] }) {
   const { locale, pick } = useTranslation();
   const faces = membersOf(team, "all").filter((m) => m.photo && m.department !== "Board").slice(0, 9);
   return (

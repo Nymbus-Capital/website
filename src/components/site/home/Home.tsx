@@ -7,12 +7,13 @@
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CtaBand } from "../kit";
 import type { HomeData } from "./data";
+import type { NewsItem } from "./news";
 import { HOME_COPY as C } from "./copy";
 import { HomeHero } from "./HomeHero";
 import { Approach, KeyFigures, News, Partners, Process, StrategiesBand } from "./Sections";
 import "./home.css";
 
-export function Home({ data }: { data: HomeData }) {
+export function Home({ data, news }: { data: HomeData; news?: NewsItem[] }) {
   const { pick } = useTranslation();
   return (
     <div className="hm">
@@ -22,7 +23,7 @@ export function Home({ data }: { data: HomeData }) {
       <StrategiesBand data={data} />
       <Process />
       <Partners />
-      <News />
+      <News items={news} />
       <CtaBand title={pick(C.cta.title)} accent={pick(C.cta.accent)} text={pick(C.cta.text)}>
         <ButtonLink href="/contact">{pick(C.cta.contact)}</ButtonLink>
         <ButtonLink href="/solutions" variant="ghost">{pick(C.cta.solutions)}</ButtonLink>

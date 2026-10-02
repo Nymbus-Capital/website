@@ -18,6 +18,8 @@ export interface TeamMember {
   initials: string;
   color: string;
   photo?: string;
+  /** LinkedIn profile (https, validated); set by the CMS only */
+  linkedin?: string;
 }
 
 export const team: TeamMember[] = [

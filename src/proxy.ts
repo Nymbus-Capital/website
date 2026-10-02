@@ -23,6 +23,7 @@ import { authConfig, checkRequestSession } from "@/lib/auth/session";
 import { checkCsrf, sanitizeReturnTo } from "@/lib/auth/guards";
 import { buildCsp, makeNonce } from "@/lib/auth/csp";
 import { denyPage } from "@/lib/auth/deny";
+import { cmsImageOrigin } from "@/lib/cms/config";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -67,7 +68,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const nonce = makeNonce();
   const publicUrl = process.env.PUBLIC_URL || "";
-  const csp = buildCsp(nonce, { dev: process.env.NODE_ENV === "development", upgradeInsecure: publicUrl.startsWith("https://") });
+  const csp = buildCsp(nonce, { dev: process.env.NODE_ENV === "development", upgradeInsecure: publicUrl.startsWith("https://"), imgOrigins: [cmsImageOrigin()] });
 
   const adminPage = isAdminPath(pathname);
   const adminApi = isAdminApi(pathname);
