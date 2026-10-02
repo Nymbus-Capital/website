@@ -168,3 +168,25 @@ test("performanceProblems: gap, wrong end, huge month, trailing mismatch", () =>
   const out = performanceProblems(p, "compounded", true);
   assert.ok(out.some((m) => /outside/.test(m)) && out.some((m) => /gap/.test(m)));
 });
+
+test("a failing headline class holds the performance (never dropped by the class gate alone); a stale variant is dropped", async () => {
+  const first = await build(fullHistoryRoute);
+  const previous = { ...structuredClone(first.validated), mode: "live" } as SiteData;
+  const bad = structuredClone(first.data);
+  const head = bad.funds[SEB]!.defaultClass ?? "LDM201";
+  bad.funds[SEB]!.performanceByClass![head].performance.monthly[3].r = 0.9;
+  const out = validateSite(bad, first.context, previous, NOW);
+  const kept = out.data.funds[SEB]!;
+  assert.ok(kept.performanceByClass![head], "headline class entry kept (held with the previous publication)");
+  assert.deepEqual(kept.performanceByClass, previous.funds[SEB]!.performanceByClass);
+  assert.ok(out.results.find((r) => r.fund === SEB)!.blocking.some((i) => i.key.endsWith(`classes.${head}`)));
+
+  const g = await build();
+  const old = structuredClone(g.data);
+  const gv = old.funds[GMV]!;
+  const stale = gv.variants!["3"].performance!;
+  gv.variants!["3"] = { ...gv.variants!["3"], performance: { ...stale, asOf: "2026-07-31", monthly: stale.monthly.filter((m) => m.month <= "2026-07-31"), growth: stale.growth.filter((p) => p.date <= "2026-07-31") } };
+  const v = validateSite(old, g.context, null, NOW).data.funds[GMV]!;
+  assert.equal(v.variants!["3"], undefined, "a variant older than the fund's performance is not shown");
+  assert.ok(v.variants!["9"]);
+});

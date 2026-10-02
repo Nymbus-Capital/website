@@ -37,6 +37,7 @@ import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } fro
 import { bookAgeProblem } from "../data/freshness.ts";
 import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
 import { performanceProblems } from "./classes.ts";
+import { FUNDS } from "../../config/funds.ts";
 import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
@@ -137,10 +138,16 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
  */
 export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
   const issues: Issue[] = [];
+  const headline = (f.defaultClass ?? FUNDS.find((x) => x.key === f.key)?.headlineClass ?? "").toUpperCase();
   if (f.performanceByClass) {
     for (const [code, k] of Object.entries(f.performanceByClass)) {
       const problems = performanceProblems(k.performance, "compounded", true);
       if (!problems.length) continue;
+      // the headline class is never dropped on its own: its failure is an error that holds the whole performance
+      if (code.toUpperCase() === headline) {
+        issues.push({ key: `${base}.performance.classes.${code}`, level: "error", message: `headline class ${k.display} (${code}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; performance held back` });
+        continue;
+      }
       issues.push({ key: `${base}.performance.classes.${code}`, level: "warn", message: `class ${k.display} (${code}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class` });
       delete f.performanceByClass[code];
     }
@@ -153,6 +160,8 @@ export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
     for (const [id, v] of Object.entries(f.variants)) {
       if (id === f.defaultVariant || !v.performance) continue;
       const problems = performanceProblems(v.performance, "arithmetic", false);
+      // a variant older than the fund's own performance never sits next to it (one date per page)
+      if (f.performance && v.performance.asOf < f.performance.asOf) problems.push(`as of ${v.performance.asOf} is older than the fund's ${f.performance.asOf}`);
       if (!problems.length) continue;
       issues.push({ key: `${base}.variants.${id}.performance`, level: "warn", message: `variant ${id} %: ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; the variant is not shown` });
       delete f.variants[id];
@@ -435,7 +444,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     checkAum(f, prev, base, repairs, warnings, now);
     warnings.push(...checkPortfolio(f, base, now), ...checkDistributions(f, base, now));
     checkPerformance(f, ctx, prev, base, blocking, warnings, now);
-    warnings.push(...checkClassesAndVariants(f, base));
+    for (const i of checkClassesAndVariants(f, base)) (i.level === "error" ? blocking : warnings).push(i);
     for (const p of nonFinitePaths(f, base)) blocking.push({ key: p, level: "error", message: `non-finite number at ${p}` });
     extraIssues.push(...repairs, ...warnings);
     // a change of performance class (e.g. SEB class H -> F) restates every month under another label: it is never
