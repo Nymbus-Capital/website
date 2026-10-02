@@ -178,7 +178,7 @@ Not yet run against live data, not deployed.
   prop, `(site)/layout.tsx` + `page.tsx` use `getPublicContent()`. Tests: `tests/unit/cms/*`, `e2e/cms.spec.ts` (own server +
   mock WP), PHP plain tests + lint in CI. Precedence and fallbacks: `docs/architecture.md` "Headless WordPress".
 - 2026-10-01 (sub-agent, branch `feat/fund-pages-v2`, from `redesign/v3-keynote-live-data`; not merged, nothing published):
-  **fund pages v2.** Plan and what was done: (1) leverage / "liquidity score" removed everywhere (copy reworded, two
+  **fund pages v2.** Plan and what was done: (1) the borrowed-money / "liquidity score" wording removed everywhere (copy reworded, two
   characteristics no longer parsed) + test `tests/unit/site/fonts-and-wording.test.ts` that fails on that wording; (2) all
   fonts Poppins (inherit rule for form controls / SVG text, test greps every `font-family`); (3) **returns per class**:
   pipeline `classes.ts` + `build.ts` (`performanceByClass`, default class F, short records, per-class
@@ -191,7 +191,7 @@ Not yet run against live data, not deployed.
   **Merged with `redesign/v3-keynote-live-data` (2026-10-02)**: the SEB class-from-data work (`perf-class.ts`, `classLabels`,
   class-change gate), the perf-only hold and the concise copy were kept as they are; the class layer was rebuilt on top of
   them (no second class fetch: the headline class is the headline, SEB's other class comes from the track-record candidate;
-  a held performance holds every class and variant). The overlay wording (no "leverage") was applied to the new concise copy.
+  a held performance holds every class and variant). The overlay wording (no removed term) was applied to the new concise copy.
   **Not done / blocked on data**: see open items 11-13. Tests: unit (`npm test`), e2e in `e2e/fund.spec.ts`.
 
 - 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
@@ -250,7 +250,7 @@ Not yet run against live data, not deployed.
 
 - 2026-10-01 (home, branch `fix/gmv-audience`): Gabriel resolved the GMV audience flag — "primarily for family
   offices and also viable for institutions". GMV fund summary (EN/FR) leads with family offices; /solutions lists GMV
-  first for family offices and names it in their managed-accounts vehicle (leverage disclosure verbatim);
+  first for family offices and names it in their managed-accounts vehicle (futures-exposure disclosure verbatim);
   `concise-copy.test.ts` pins the new sentence. `funds.ts`, strategies index, home tile, team and approach had no
   audience wording to change. Compliance note marked resolved. Not merged.
 
@@ -317,7 +317,7 @@ Not yet run against live data, not deployed.
   contact/legal/privacy/404), legacy deck CSS removed. Adversarial reviews (numbers/data, content/compliance) →
   fixes: GMV arithmetic growth rebasing, hidden blocks stripped server-side, fund sources moved to
   `src/lib/pipeline/fund-sources.ts` (never in client bundles, test enforces), per-fund as-of/gross markers,
-  compliance wording (no guarantees/"uncorrelated" as fact, leverage disclosure, PRI naming, Law 25, AMF/OBSI),
+  compliance wording (no guarantees/"uncorrelated" as fact, futures-exposure disclosure, PRI naming, Law 25, AMF/OBSI),
   FR typography test. Open decisions for Gabriel/compliance: `docs/compliance-review.md` "Website copy review
   2026-09-30" (SEB H-series labelled F, Monthly Income pre-launch track record, GMV series nature, client logos).
 

@@ -144,7 +144,7 @@ not be substantiated were softened to "designed to" statements or removed.
   this does not eliminate the risk of loss."). The past-performance claim "has typically buffered bond drawdowns"
   became "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may
   not do so and can lose money". "Uncorrelated" stated as fact became "designed to have low correlation" (funds.ts,
-  fund pages, approach, solutions, home, news). The leverage disclosure ("The overlay adds leveraged futures
+  fund pages, approach, solutions, home, news). The futures-exposure disclosure ("The overlay adds futures
   exposure; its losses add to those of the underlying portfolio and may require additional margin.") was added
   wherever the overlay is described. "Only require a margin deposit" lost its "only". The "capital stays invested"
   statement is now "Most of the capital stays invested in the underlying portfolio" everywhere (it said "fully
@@ -252,7 +252,7 @@ Branch `feat/concise-copy` condenses the copy of the pages below, EN and FR in p
 promise was introduced**: every sentence is a shorter form of text already reviewed above (A/B items), or the same
 text. Regulatory sentences inside a condensed block were kept word for word, and a unit test
 (`tests/unit/site/concise-copy.test.ts`) fails if the overlay caveat ("designed to have low correlation … it may not do so
-and can lose money"), the leverage disclosure, the distributions sentence, the approach footnotes (\*, \*\*) or the
+and can lose money"), the futures-exposure disclosure, the distributions sentence, the approach footnotes (\*, \*\*) or the
 ESG-scope sentences disappear. Not touched: legal pages (complaints, code of ethics, privacy / Law 25),
 `src/content/disclaimers.ts` (fund disclosures, footer disclaimers, firm disclaimer, gross / net markers, provenance
 lines, "figures coming soon"), the fund header descriptions and taglines (`src/config/funds.ts`, mostly disclosure
@@ -267,14 +267,14 @@ Changed pages (please tick once reviewed):
   manager headquartered in Montreal" → "Portfolio manager based in Montreal" (registration category, item B).
 - [ ] **Strategies index** (`strategies-copy.ts`): lead, comparison lead, CTA. Since-inception and "—" notes unchanged.
 - [ ] **Solutions** (`solutions-copy.ts`): lead, profile intros and descriptions, benefit bullets, vehicle texts (the
-  futures-overlay vehicle keeps "most of the capital stays invested in the bonds" and the leverage disclosure). The
+  futures-overlay vehicle keeps "most of the capital stays invested in the bonds" and the futures-exposure disclosure). The
   minimum / suitability note unchanged.
 - [ ] **Approach** (`copy-approach.ts`): hero, pipeline, bond-process, overlay, research and team leads; the four step
   paragraphs replaced by their bullets (3 per step; the bullet "Futures overlays designed to offset part of losses in
   stressed markets", which carried no caveat, was removed; step 4 keeps "Hedging seeks to limit losses in adverse
   conditions; it does not eliminate the risk of loss."); philosophy, lifecycle and capability cards shortened. The
   margin sentence now reads "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of exposure.\*\*"
-  (same figure). Overlay caveat, leverage disclosure and both footnotes verbatim.
+  (same figure). Overlay caveat, futures-exposure disclosure and both footnotes verbatim.
 - [ ] **Sustainability** (`copy-sustainability.ts`): hero and principles leads shortened before the ESG-scope sentence
   (kept verbatim), principle / integration / exclusion / commitment cards shortened (thresholds unchanged: > 5 % of
   revenue, MSCI "severe"), green-bond text (ICMA sentence kept), Fondaction text (second paragraph "shared
@@ -285,13 +285,13 @@ Changed pages (please tick once reviewed):
 - [ ] **Contact** (`copy-contact.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
   one business day. Urgent? Please call."), visit text. Form note about sensitive information unchanged.
 - [ ] **Fund pages** (`src/components/fund/copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
-  approach" is now 3 bullets plus the risk note in fine print (overlay caveat + leverage disclosure, verbatim; GMV: the
-  leverage disclosure); the fund's own section (Monthly Income features, SEB sustainability, Multi-Strategy
+  approach" is now 3 bullets plus the risk note in fine print (overlay caveat + futures-exposure disclosure, verbatim; GMV: the
+  futures-exposure disclosure); the fund's own section (Monthly Income features, SEB sustainability, Multi-Strategy
   sub-strategies, GMV overlay) has a shorter lead and card texts, with the same disclosures in the same cards
-  (distributions sentence on "Monthly distributions", caveat + leverage on the overlay cards, "it may not do so" on
+  (distributions sentence on "Monthly distributions", caveat + futures exposure on the overlay cards, "it may not do so" on
   Hedging, the futures-overlay exception in the SEB lead).
 - [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (full diff on the branch).
-- [ ] **Independent review fixes (same day).** Fund Overview risk note (overlay caveat + leverage) now shown as a
+- [ ] **Independent review fixes (same day).** Fund Overview risk note (overlay caveat + futures exposure) now shown as a
   body-size callout next to the approach bullets, as prominent as them. Multi-Strategy: "An alternative fund of
   systematic strategies, designed to behave differently from stocks and bonds"; mean reversion "Takes positions when
   prices stray far from usual levels, expecting them to revert"; "Each with its own rules, designed for a distinct role".
@@ -302,7 +302,7 @@ Changed pages (please tick once reviewed):
   summary now "A managed-futures overlay for family offices and institutions, offered through separately managed
   accounts." / « Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les
   institutions, offerte en comptes gérés distincts. » (caveat sentence unchanged); GMV listed first for family offices
-  on /solutions; the family-office "Managed accounts" vehicle names the GMV overlay and carries the leverage disclosure
+  on /solutions; the family-office "Managed accounts" vehicle names the GMV overlay and carries the futures-exposure disclosure
   verbatim. « bureaux de gestion familiale » kept (item B terminology), not « bureaux de famille ». Tobacco:
   "We exclude tobacco companies from the securities we select directly." (news, sustainability); the 2024 milestone on
   /team reads "Tobacco exclusion adopted". Margin sentence: "about 5 to 10% of their exposure" (« de leur exposition »).
@@ -311,7 +311,7 @@ Changed pages (please tick once reviewed):
   (as in the Portfolio tab's « Durée modifiée »; the approach bullet « Couverture de la duration » became « de la
   durée »). Fondaction section: lead plus three bullets taken from the previously reviewed Fondaction paragraph
   (labour-sponsored fund; positive economic, social and environmental impact; mission of responsible capital
-  allocation). The unit test now also checks the French disclosures, the Solutions overlay leverage sentence, the
+  allocation). The unit test now also checks the French disclosures, the Solutions overlay exposure sentence, the
   Multi-Strategy hedging caveat, the approach step-4 note and the SEB overlay exception.
 
 English word counts of the strings in these copy modules (body copy = prose sentences; headings, button labels,
@@ -352,7 +352,7 @@ Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on
 - [ ] **Key figures card**: AUM, number of strategies, team size and number of PhDs come from firm content and
   `src/data/team.ts`; nothing hard-coded.
 - [ ] **Copy cut again** (Home, Approach, Team/About, Sustainability, Solutions, Contact; legal excluded). Verbatim
-  disclosures kept (overlay caveat, leverage, distributions, approach footnotes, ESG scope, "Risk management does not
+  disclosures kept (overlay caveat, futures exposure, distributions, approach footnotes, ESG scope, "Risk management does not
   eliminate the risk of loss."). Removed: the Approach "philosophy" block, the research capability descriptions, card
   summaries on /team, the Fondaction bullets, and the **six PRI principles list on /sustainability** (the PRI signatory
   statement and link remain). Home Partners no longer lists the dealer platforms or client types by name.
@@ -364,7 +364,7 @@ reviewed by compliance. All visitor-facing texts are in `src/components/fund/cop
 
 | # | Change | Where | Verify |
 |---|---|---|---|
-| F1 | **Leverage wording removed.** "Leveraged futures exposure" became "futures exposure on top of the underlying portfolio" (FR « exposition additionnelle au moyen de contrats à terme »). The pipeline no longer parses the two bond-fund "liquidity score" and "net credit leverage" characteristics, so they cannot be published. A unit test fails the build if "leverage", « effet de levier » or "liquidity score" wording appears in the page copy, the fund registry, the parse specs or the sample data. | Fund copy, approach and solutions pages, `src/config/funds.ts` | Does removing "leverage" still leave the futures overlay adequately described and its risks disclosed (the risk text and the prospectus / OM still carry the full disclosure)? Is a general "derivatives used" risk statement needed in its place? |
+| F1 | **Wording of the overlay exposure reduced.** A borrowed-money term became "futures exposure on top of the underlying portfolio" (FR « exposition additionnelle au moyen de contrats à terme »). The pipeline no longer parses two bond-fund characteristics (a liquidity score and a credit-exposure metric), so they cannot be published. A unit test fails the build if the removed terms (listed in `tests/unit/site/fonts-and-wording.test.ts`) appear in the page copy, the fund registry, the parse specs or the sample data. | Fund copy, approach and solutions pages, `src/config/funds.ts` | Does the reworded text still leave the futures overlay adequately described and its risks disclosed (the risk text and the prospectus / OM still carry the full disclosure)? Is a general "derivatives used" risk statement needed in its place? |
 | F2 | **Returns follow the selected class (default F).** Headline returns, growth of $10,000, calendar years and risk statistics are those of the class selected next to the NAV; a class without its own series says "Performance figures for series X coming soon". A class's figures are never taken from another class. | Fund pages, header and Performance tab | Which class is the default per fund: Monthly Income F (LDM081, prospectus), SEB F (LDM201), Multi-Strategy F (LDM301). Until the dataplatform serves LDM081, the Monthly Income page opens on "coming soon" (FP LDM001 is one click away). |
 | F3 | **Series with under 12 months of history** show only the periods that exist, are never annualized, have no risk statistics, and say "Since series inception (<month>): only the periods this series has completed are shown." | Header strip, Overview, Performance tab | **Conflicts with the "12 months" convention mentioned in row 3 above.** Confirm that publishing returns for a series younger than one year is permitted (NI 81-102 Part 15, sales communications: rules on performance data for a fund or series with less than 12 months of history, to confirm). If not allowed, set the threshold in `src/lib/pipeline/classes.ts` (`short`) to drop such classes instead. |
 | F4 | **"Prospectus class" / "Offering memorandum class" badge** next to the class selector and in the series table, with a one-line disclosure ("offered under the simplified prospectus" / "offered by offering memorandum, to eligible investors only"). Registry: LDM081 F prospectus, LDM001 FP offering memorandum. Every other class shows **no label** until an admin sets its type (*Admin → Funds → class types*). | Fund pages | Which classes are prospectus vs OM. The registry defaults above come from Gabriel's brief. FR « Série à prospectus » / « Série à notice d’offre ». Is the OM sentence enough, or must OM series carry the full exempt-distribution legend? |
