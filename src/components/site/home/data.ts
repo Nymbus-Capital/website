@@ -8,6 +8,7 @@ import type { FundView } from "@/lib/data/site";
 import type { FundKey, L10n, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
 import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
+import { defaultClassCode, pickData } from "../../fund/lib/select.ts";
 
 export type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
@@ -72,7 +73,12 @@ export function toFundCard(v: FundView): FundCard {
   const { spec, content } = v;
   // every block the admin hid is removed first (same rule as the fund page): hidden figures never reach the props
   const data = stripHidden(v.data, content);
-  const perf = data?.performance ?? null;
+  // returns are the headline class's own series: none when it has none (never another class's next to its NAV)
+  const head = defaultClassCode(data, spec, content);
+  const perfData = data && spec.classes?.length
+    ? (head ? pickData(data, spec, content, { classCode: head, variant: null }).data : { ...data, performance: null, risk: null, risk3Y: null })
+    : data;
+  const perf = perfData?.performance ?? null;
   const si = perf?.trailing.fund.SI;
   const ytd = perf?.trailing.fund.YTD;
   const y1 = perf?.trailing.fund["1Y"];

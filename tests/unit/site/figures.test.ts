@@ -74,7 +74,7 @@ test("latest: ignores missing and malformed dates", () => {
 const spec = FUNDS[0];
 const data = (over: Partial<FundData> = {}): FundData => ({
   key: spec.key, sourceName: "internal-source", risk: null, aum: { cad: 123_000_000, asOf: "2026-09-28" }, characteristics: [], breakdowns: {}, topHoldings: [], esg: [], factsheetMonth: null,
-  performance: {
+  performance: { returnClass: "F", returnClassLabel: "Series F",
     asOf: "2026-08-31", basis: "net", firstMonth: "2019-01-31", monthly: [], growth: [],
     trailing: { fund: { YTD: 0.01, "1Y": 0.02, SI: 0.03 } },
     calendar: [{ year: 2025, fund: 0.04 }, { year: 2026, fund: 0.01, partial: true }],

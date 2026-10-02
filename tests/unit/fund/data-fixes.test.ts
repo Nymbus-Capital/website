@@ -72,7 +72,7 @@ test("growthMethod: the published method, else arithmetic for a gross series, el
 
 const full = (): Omit<FundData, "sourceName"> => ({
   key: "monthly-income",
-  performance: {
+  performance: { returnClass: "F", returnClassLabel: "Series F",
     asOf: "2026-08-31", basis: "net", method: "compounded", firstMonth: "2019-01-31",
     monthly: [{ month: "2026-07-31", r: 0.004 }, { month: "2026-08-31", r: 0.01 }],
     trailing: { fund: { "1M": 0.01, YTD: 0.02, SI: 0.03 } },
@@ -156,7 +156,15 @@ test("home / strategies / solutions props: hidden blocks never reach the cards",
   // the class of the returns travels with them (never shown once performance is hidden)
   assert.equal(c.perfClass, null);
   const labelled = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } } } as never);
-  assert.equal(labelled.perfClass, "H");
+  // an H series next to the F headline class is never shown on the F tile
+  assert.equal(labelled.perfClass, null);
+  assert.deepEqual([labelled.si, labelled.ytd, labelled.y1, labelled.asOf, labelled.calendar], [null, null, null, null, []]);
+  // ... but the headline class's own series is (by-class publication)
+  const byCls = { LDM081: { fundserv: "LDM081", display: "F", performance: full().performance!, risk: null, risk3Y: null } };
+  const ownSeries = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, returnClass: "H" }, performanceByClass: byCls } } as never);
+  assert.equal(ownSeries.perfClass, "F"); assert.equal(ownSeries.si, 0.03);
+  const noSeries = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performanceByClass: { LDM001: { ...byCls.LDM081, fundserv: "LDM001", display: "FP" } } } } as never);
+  assert.equal(noSeries.si, null); assert.equal(noSeries.perfClass, null);
   const content = { version: 1, updatedAt: "", updatedBy: "", firm: {}, funds: {}, pipeline: { publishMode: "review" } } as unknown as SiteContent;
   const h = toHomeData([view({ hide: { performance: true } }) as never], content);
   assert.equal(h.perfAsOf, null);
