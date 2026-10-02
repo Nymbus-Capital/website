@@ -57,6 +57,15 @@ test("http is allowed for loopback and single-label private hosts only; images t
   assert.equal(cmsImageOrigin({ WP_BASE_URL: "http://wordpress:80", WP_MEDIA_ORIGIN: "https://media.example.org" }), "https://media.example.org");
 });
 
+test("plain http to an IPv6 literal is rejected unless it is ::1", () => {
+  assert.equal(loadCmsConfig({ WP_BASE_URL: "http://[fd00::1]:8080" }, quiet), null);
+  assert.equal(loadCmsConfig({ WP_BASE_URL: "http://[2001:db8::1]" }, quiet), null);
+  const lo = loadCmsConfig({ WP_BASE_URL: "http://[::1]:8080" }, quiet)!;
+  assert.equal(lo.mediaOrigin, "http://[::1]:8080");
+  assert.equal(cmsImageOrigin({ WP_BASE_URL: "http://[::1]:8080" }), "http://[::1]:8080");
+  assert.ok(loadCmsConfig({ WP_BASE_URL: "https://[2001:db8::1]" }, quiet), "https is unaffected");
+});
+
 test("a bad media origin disables images but not the CMS", () => {
   for (const v of ["http://media.example.org", "https://media.example.org/uploads", "nonsense"]) {
     const c = loadCmsConfig({ WP_BASE_URL: "https://cms.example.org", WP_MEDIA_ORIGIN: v }, quiet)!;

@@ -69,6 +69,14 @@ test("images: only the exact media origin (scheme, host, port)", () => {
   assert.equal(safeImageUrl("https://cms.example.org/a.jpg", null), null, "no media origin: no image");
 });
 
+test("images: only under /wp-content/uploads/ (no other page, script or endpoint of the WordPress site)", () => {
+  const origin = "https://cms.example.org";
+  for (const bad of ["https://cms.example.org/a.jpg", "https://cms.example.org/wp-json/nymbus/v1/site-content", "https://cms.example.org/wp-content/plugins/x/a.png", "https://cms.example.org/wp-content/uploads/../plugins/a.png", "https://cms.example.org/wp-content/uploads/%2e%2e/a.png", "https://cms.example.org/wp-content/uploads%2f..%2fa.png", "https://cms.example.org/wp-content/uploadsx/a.png"]) {
+    assert.equal(safeImageUrl(bad, origin), null, bad);
+  }
+  assert.equal(safeImageUrl("https://cms.example.org/wp-content/uploads/2026/09/a.webp", origin), "https://cms.example.org/wp-content/uploads/2026/09/a.webp");
+});
+
 test("LinkedIn links: linkedin.com over https only", () => {
   assert.equal(safeLinkedIn("https://www.linkedin.com/in/x"), "https://www.linkedin.com/in/x");
   assert.equal(safeLinkedIn("https://linkedin.com/in/x"), "https://linkedin.com/in/x");

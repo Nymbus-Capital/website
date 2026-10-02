@@ -45,7 +45,9 @@ function origin(v: string | undefined, what: string, warn: (m: string) => void, 
   if (u.username || u.password || u.search || u.hash) { warn(`${what} must not carry credentials, a query or a fragment`); return null; }
   const loopback = isLoopbackHost(u.hostname);
   if (u.protocol === "https:") return { url: u, loopback };
-  if (u.protocol === "http:" && (loopback || (!requireSecure && !u.hostname.includes(".")))) return { url: u, loopback };
+  // an IPv6 literal other than ::1 is never a "private host name": plain http needs a name or loopback
+  const ipv6 = u.hostname.startsWith("[");
+  if (u.protocol === "http:" && (loopback || (!requireSecure && !ipv6 && !u.hostname.includes(".")))) return { url: u, loopback };
   warn(`${what} must be https (http only for localhost or a private-network host name)`);
   return null;
 }

@@ -2,7 +2,7 @@
  * Sanitisation primitives for everything that comes from WordPress. The CMS is a trusted-but-not-verified source:
  * editors are internal, but the transport, the plugin and the WP site itself are outside this repository's control, so
  * every string is reduced to PLAIN TEXT here (no HTML ever reaches a page; React escapes on render) and every URL is
- * restricted (https only, no credentials, images only from the configured media origin).
+ * restricted (https only, no credentials, images only from the configured media origin, under /wp-content/uploads/).
  * Dependency-free (unit tested under plain Node).
  */
 
@@ -84,13 +84,18 @@ export function safeHttpUrl(v: unknown, opts: { allowLoopbackHttp?: boolean } = 
   return null;
 }
 
-/** An image URL, accepted only on exactly the configured media origin (same scheme, host and port). */
+export const UPLOADS_PATH = "/wp-content/uploads/";
+
+/** An image URL, accepted only on exactly the configured media origin (same scheme, host and port), under /wp-content/uploads/. */
 export function safeImageUrl(v: unknown, mediaOrigin: string | null, opts: { allowLoopbackHttp?: boolean } = {}): string | null {
   if (!mediaOrigin) return null;
   const href = safeHttpUrl(v, opts);
   if (!href) return null;
   const u = new URL(href);
-  return u.origin === mediaOrigin && !u.hash ? href : null;
+  if (u.origin !== mediaOrigin || u.hash) return null;
+  // the media library only: no other page / script / endpoint of the WordPress site, no encoded traversal
+  if (!u.pathname.startsWith(UPLOADS_PATH) || /%2e|%2f|%5c|\\/i.test(u.pathname)) return null;
+  return href;
 }
 
 /** LinkedIn profile / page link (https, linkedin.com or a subdomain only). */

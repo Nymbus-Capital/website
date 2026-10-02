@@ -14,7 +14,7 @@ export function makeNonce(): string {
 }
 
 /** An origin that may be added to `img-src` (a bare https origin, or http on loopback): nothing else can reach the header. */
-const IMG_ORIGIN = /^(https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{1,5})?|http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?)$/;
+const IMG_ORIGIN = /^(https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{1,5})?|http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5})?)$/;
 
 export function buildCsp(nonce: string, opts: { dev?: boolean; upgradeInsecure?: boolean; imgOrigins?: (string | null | undefined)[] } = {}): string {
   if (!/^[A-Za-z0-9+/=]{16,64}$/.test(nonce)) throw new Error("invalid nonce");
