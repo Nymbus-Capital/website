@@ -11,3 +11,4 @@ playwright-report/
 var-e2e/
 var-e2e-cms/
 wordpress/.env
+.claude/worktrees/
