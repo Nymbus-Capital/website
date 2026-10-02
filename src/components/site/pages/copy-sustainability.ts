@@ -35,23 +35,19 @@ export const SU = {
       "Mêmes engagements dans chaque processus de sélection d’obligations. Les stratégies de superposition, qui ne détiennent pas de titres d’émetteurs individuels, n’en font pas partie.",
     ),
     items: [
-      { t: l("Core integration", "Intégration au cœur"), d: l("ESG data inside our bond selection models.", "Des données ESG au sein de nos modèles de sélection.") },
-      { t: l("Transparency", "Transparence"), d: l("We explain and report how ESG shapes our portfolios.", "Nous expliquons l’effet de l’ESG sur nos portefeuilles et en rendons compte.") },
-      { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018: we report on our progress every year.", "Signataire des PRI depuis 2018 : nous rendons compte de nos progrès chaque année.") },
+      { t: l("Core integration", "Intégration au cœur"), d: l("ESG data inside our selection models.", "Des données ESG dans nos modèles de sélection.") },
+      { t: l("Transparency", "Transparence"), d: l("We report how ESG shapes our portfolios.", "Nous rendons compte de l’effet de l’ESG sur nos portefeuilles.") },
+      { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018.", "Signataire des PRI depuis 2018.") },
     ],
   },
   integration: {
     eyebrow: l("Integration in practice", "L’intégration en pratique"),
     title: l("Three layers,", "Trois couches,"),
     accent: l("one systematic process", "un seul processus systématique"),
-    lead: l(
-      "From the investable universe to each security.",
-      "De l’univers admissible à chaque titre.",
-    ),
     steps: [
-      { t: l("Exclusion screening", "Filtrage d’exclusion"), d: l("Excluded issuers leave the universe before any analysis.", "Les émetteurs exclus quittent l’univers avant toute analyse.") },
-      { t: l("Positive screening", "Filtrage positif"), d: l("Stronger ESG practices are favoured in credit analysis.", "De meilleures pratiques ESG sont favorisées dans l’analyse de crédit.") },
-      { t: l("Quantitative integration", "Intégration quantitative"), d: l("ESG metrics feed credit models, alongside yield and risk.", "Les mesures ESG alimentent les modèles de crédit, avec le rendement et le risque.") },
+      { t: l("Exclusion screening", "Filtrage d’exclusion"), d: l("Excluded issuers leave the universe first.", "Les émetteurs exclus quittent l’univers d’abord.") },
+      { t: l("Positive screening", "Filtrage positif"), d: l("Stronger ESG practices are favoured.", "Les meilleures pratiques ESG sont favorisées.") },
+      { t: l("Quantitative integration", "Intégration quantitative"), d: l("ESG metrics feed the credit models.", "Les mesures ESG alimentent les modèles de crédit.") },
     ],
   },
   exclusions: {
@@ -64,7 +60,7 @@ export const SU = {
     ),
     items: [
       { t: l("Coal and oil sands", "Charbon et sables bitumineux"), d: l("More than 5% of revenue from coal, oil sands or thermal coal power.", "Plus de 5 % des revenus tirés du charbon, des sables bitumineux ou de l’électricité au charbon.") },
-      { t: l("Tobacco", "Tabac"), d: l("Manufacturers and distributors, per the Tobacco-Free Finance Pledge (2024).", "Fabricants et distributeurs, selon l’Engagement pour une finance sans tabac (2024).") },
+      { t: l("Tobacco", "Tabac"), d: l("Manufacturers and distributors (Tobacco-Free Finance Pledge, 2024).", "Fabricants et distributeurs (Engagement pour une finance sans tabac, 2024).") },
       { t: l("Controversial weapons", "Armes controversées"), d: l("Cluster munitions, landmines, biological, chemical and nuclear weapons.", "Armes à sous-munitions, mines terrestres, armes biologiques, chimiques et nucléaires.") },
       { t: l("Severe ESG controversies", "Controverses ESG graves"), d: l("Rated “severe” by MSCI or an equivalent provider.", "Jugées « graves » par MSCI ou un fournisseur équivalent.") },
     ],
@@ -74,14 +70,11 @@ export const SU = {
     title: l("Financing the transition", "Financer la transition"),
     accent: l("through fixed income", "par le revenu fixe"),
     text: l(
-      "Our sustainable bond strategy can hold green bonds labelled under recognized frameworks such as the ICMA Green Bond Principles. Same credit, risk and ESG criteria as any other security.",
-      "Notre stratégie obligataire durable peut détenir des obligations vertes désignées selon des cadres reconnus, comme les Principes applicables aux obligations vertes de l’ICMA. Mêmes critères de crédit, de risque et ESG que tout autre titre.",
+      "Our sustainable bond strategy can hold green bonds labelled under frameworks such as the ICMA Green Bond Principles. Same criteria as any other security.",
+      "Notre stratégie obligataire durable peut détenir des obligations vertes désignées selon des cadres comme les Principes de l’ICMA. Mêmes critères que tout autre titre.",
     ),
     uses: [l("Renewable energy", "Énergie renouvelable"), l("Energy efficiency", "Efficacité énergétique"), l("Clean transportation", "Transport propre"), l("Green buildings", "Bâtiments écologiques")],
-    note: l(
-      "ESG measures, when published, are on the fund page.",
-      "Les mesures ESG, lorsqu’elles sont publiées, figurent sur la page du fonds.",
-    ),
+    note: l("ESG measures, when published, are on the fund page.", "Les mesures ESG, si publiées, figurent sur la page du fonds."),
     go: l("Sustainable Enhanced Bonds fund", "Fonds Obligations Durables Bonifiées"),
   },
   fondaction: {
@@ -92,28 +85,8 @@ export const SU = {
       "Fondaction has entrusted Nymbus with sustainable bond mandates.",
       "Fondaction a confié à Nymbus des mandats obligataires durables.",
     ),
-    points: [
-      l("A Québec labour-sponsored fund", "Un fonds de travailleurs québécois"),
-      l("Dedicated to positive economic, social and environmental impact", "Voué à un impact économique, social et environnemental positif"),
-      l("Mandates aligned with its mission of responsible capital allocation", "Des mandats alignés sur sa mission d’allocation responsable du capital"),
-    ],
   },
   pri: {
-    eyebrow: l("PRI signatory", "Signataire des PRI"),
-    title: l("The six principles", "Les six principes"),
-    accent: l("we signed", "que nous avons signés"),
-    lead: l(
-      "Signatory of the UN-supported Principles for Responsible Investment since 2018. Signatories commit to:",
-      "Signataire depuis 2018 des Principes pour l’investissement responsable, soutenus par les Nations Unies. Les signataires s’engagent à :",
-    ),
-    items: [
-      l("Incorporate ESG issues into investment analysis and decision-making processes.", "Prendre en compte les questions ESG dans les processus d’analyse et de décision en matière d’investissements."),
-      l("Be active owners and incorporate ESG issues into ownership policies and practices.", "Être des investisseurs actifs et prendre en compte les questions ESG dans leurs politiques et pratiques d’actionnaires."),
-      l("Seek appropriate disclosure on ESG issues by the entities in which they invest.", "Demander aux entités dans lesquelles ils investissent de publier des informations appropriées sur les questions ESG."),
-      l("Promote acceptance and implementation of the Principles within the investment industry.", "Favoriser l’acceptation et l’application des Principes auprès des acteurs de la gestion d’actifs."),
-      l("Work together to enhance their effectiveness in implementing the Principles.", "Travailler ensemble pour accroître l’efficacité de l’application des Principes."),
-      l("Report on their activities and progress towards implementing the Principles.", "Rendre compte individuellement de leurs activités et de leurs progrès dans l’application des Principes."),
-    ],
     link: l("About the PRI", "À propos des PRI"),
   },
   commitments: {
@@ -121,18 +94,14 @@ export const SU = {
     title: l("Commitments", "Des engagements"),
     accent: l("on the record", "publics"),
     items: [
-      { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("Signed the UN-supported Principles for Responsible Investment.", "Signature des Principes pour l’investissement responsable, soutenus par les Nations Unies.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("We exclude tobacco companies from the securities we select directly.", "Nous excluons les sociétés de tabac des titres que nous choisissons directement.") },
+      { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("UN-supported Principles for Responsible Investment.", "Principes pour l’investissement responsable, soutenus par l’ONU.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Tobacco excluded from the securities we select directly.", "Tabac exclu des titres que nous choisissons directement.") },
     ],
-    fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction"), d: l("Sustainable bond mandates managed for Fondaction.", "Des mandats obligataires durables gérés pour Fondaction.") },
+    fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction") },
   },
   cta: {
     title: l("Invest", "Investir"),
     accent: l("responsibly", "de façon responsable"),
-    text: l(
-      "See these criteria at work in the fund.",
-      "Voyez ces critères à l’œuvre dans le fonds.",
-    ),
     b1: l("Explore the fund", "Découvrir le fonds"),
     b2: l("Contact us", "Nous joindre"),
   },

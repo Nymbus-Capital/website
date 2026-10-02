@@ -18,8 +18,8 @@ export const AP = {
     title: l("At the intersection of technology,", "À l’intersection de la technologie,"),
     accent: l("data and finance", "des données et de la finance"),
     lead: l(
-      "Systematic, with human oversight. Documented rules, tested before use, monitored while they run.",
-      "Systématique, sous supervision humaine. Des règles documentées, testées avant usage, surveillées en continu.",
+      "Systematic, with human oversight. Tested before use, monitored while it runs.",
+      "Systématique, sous supervision humaine. Testé avant usage, surveillé en continu.",
     ),
     cta1: l("Our strategies", "Nos stratégies"),
     cta2: l("Meet the team", "Rencontrer l’équipe"),
@@ -28,10 +28,6 @@ export const AP = {
     eyebrow: l("Investment methodology", "Méthodologie de placement"),
     title: l("From raw data to a managed portfolio,", "Des données brutes au portefeuille géré,"),
     accent: l("in four steps", "en quatre étapes"),
-    lead: l(
-      "Public market data in, portfolios within explicit risk budgets out.",
-      "Des données de marché publiques aux portefeuilles qui respectent des budgets de risque explicites.",
-    ),
     diagram: l(
       "Diagram of the investment process: data and research, signal generation, portfolio construction and risk management, with monitoring results feeding back into research.",
       "Schéma du processus de placement : données et recherche, génération de signaux, construction de portefeuille et gestion des risques; les résultats de la surveillance alimentent la recherche.",
@@ -42,7 +38,6 @@ export const AP = {
     {
       kicker: l("Foundation", "Socle"),
       title: l("Data and research", "Données et recherche"),
-      short: l("Prices, credit and macro data, cleaned daily.", "Prix, crédit et données macro, nettoyés chaque jour."),
       bullets: [
         l("Proprietary credit scoring models", "Modèles propriétaires de notation de crédit"),
         l("Macro regime classification", "Classification des régimes macroéconomiques"),
@@ -52,7 +47,6 @@ export const AP = {
     {
       kicker: l("Signal discovery", "Découverte de signaux"),
       title: l("Signal generation", "Génération de signaux"),
-      short: l("Models turn data into signals, validated out of sample.", "Des modèles en tirent des signaux, validés hors échantillon."),
       bullets: [
         l("Gradient-boosted tree ensembles", "Ensembles d’arbres à gradient boosté"),
         l("Neural network regime classifiers", "Classificateurs de régime par réseaux neuronaux"),
@@ -62,7 +56,6 @@ export const AP = {
     {
       kicker: l("Optimization", "Optimisation"),
       title: l("Portfolio construction", "Construction de portefeuille"),
-      short: l("Positions sized within risk, liquidity and cost limits.", "Positions dimensionnées selon des limites de risque, de liquidité et de coûts."),
       bullets: [
         l("Mean-variance with robust covariance estimation", "Moyenne-variance avec estimation robuste de la covariance"),
         l("Risk parity and factor-aware allocation", "Parité des risques et allocation factorielle"),
@@ -72,7 +65,6 @@ export const AP = {
     {
       kicker: l("Risk control", "Contrôle des risques"),
       title: l("Risk management", "Gestion des risques"),
-      short: l("Exposures monitored continuously, adjusted to the regime.", "Expositions surveillées en continu, ajustées au régime."),
       bullets: [
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
         l("Regime detection (risk-on / risk-off)", "Détection de régime (appétit ou aversion pour le risque)"),
@@ -88,10 +80,6 @@ export const AP = {
     eyebrow: l("Bond investment process", "Processus de placement obligataire"),
     title: l("Two systems", "Deux systèmes"),
     accent: l("for every bond portfolio", "pour chaque portefeuille obligataire"),
-    lead: l(
-      "Top-down positions the curve and credit sectors. Bottom-up selects the bonds.",
-      "Le système descendant positionne la courbe et les secteurs de crédit. L’ascendant choisit les obligations.",
-    ),
     systems: [
       {
         tag: l("System 1 · macro", "Système 1 · macro"),
@@ -128,8 +116,8 @@ export const AP = {
     title: l("Why add a futures overlay", "Pourquoi ajouter une stratégie de superposition"),
     accent: l("to a bond portfolio?", "à un portefeuille obligataire?"),
     lead: l(
-      "Bonds tend to struggle when volatility rises. Managed futures strategies seek to perform then.",
-      "Les obligations souffrent généralement quand la volatilité monte. Les stratégies de contrats à terme gérés cherchent alors à bien se comporter.",
+      "Bonds tend to struggle when volatility rises.",
+      "Les obligations souffrent généralement quand la volatilité monte.",
     ),
     suffer: l("Bonds suffer when…", "Les obligations souffrent lorsque…"),
     risks: [l("rates rise", "les taux montent"), l("inflation spikes", "l’inflation grimpe"), l("spreads widen", "les écarts s’élargissent")],
@@ -159,19 +147,6 @@ export const AP = {
       "** Source : Nymbus Capital Inc. À titre indicatif uniquement. Les pourcentages correspondent à des estimations des répartitions types et peuvent varier à mesure que la répartition type évolue.",
     ),
   },
-  philosophy: {
-    eyebrow: l("Investment philosophy", "Philosophie de placement"),
-    title: l("The principles behind", "Les principes qui guident"),
-    accent: l("every decision", "chaque décision"),
-    items: [
-      { t: l("Systematic, with human oversight", "Systématique, sous supervision humaine"), d: l("Tested rules, team oversight, less emotion.", "Règles testées, supervision de l’équipe, moins d’émotion.") },
-      { t: l("Risk before return", "Le risque avant le rendement"), d: l("Risk budgets, not return targets.", "Des budgets de risque, non des cibles de rendement.") },
-      { t: l("Technology first", "La technologie d’abord"), d: l("Purpose-built infrastructure, data at scale.", "Infrastructure sur mesure, données à grande échelle.") },
-      { t: l("Continuous research", "Recherche continue"), d: l("New data and methods, tested continuously.", "Nouvelles données et méthodes, testées en continu.") },
-      { t: l("Risk control", "Contrôle des risques"), d: l("Explicit risk limits, possible hedging; this does not eliminate the risk of loss.", "Des limites de risque explicites, des couvertures possibles; cela n’élimine pas le risque de perte.") },
-      { t: l("Diversified return sources", "Sources de rendement diversifiées"), d: l("Strategies that behave differently across regimes.", "Des stratégies au comportement différent selon les régimes.") },
-    ],
-  },
   research: {
     eyebrow: l("Research and technology", "Recherche et technologie"),
     title: l("Built like a research lab,", "Organisés comme un laboratoire,"),
@@ -182,26 +157,22 @@ export const AP = {
     ),
     lifecycleT: l("From idea to production", "De l’idée à la production"),
     lifecycle: [
-      { t: l("Hypothesis", "Hypothèse"), d: l("A documented, testable idea.", "Une idée documentée et vérifiable.") },
-      { t: l("Research", "Recherche"), d: l("Backtests, transaction costs included.", "Tests historiques, coûts de transaction compris.") },
-      { t: l("Validation", "Validation"), d: l("Out-of-sample and walk-forward tests, then team review.", "Tests hors échantillon et validation progressive (walk-forward), puis revue par l’équipe.") },
-      { t: l("Production", "Production"), d: l("Same code, monitored daily, retired on decay.", "Même code, surveillée chaque jour, retirée si le signal s’estompe.") },
+      { t: l("Hypothesis", "Hypothèse"), d: l("Documented, testable.", "Documentée, vérifiable.") },
+      { t: l("Research", "Recherche"), d: l("Backtests, costs included.", "Tests historiques, coûts compris.") },
+      { t: l("Validation", "Validation"), d: l("Out of sample, then reviewed.", "Hors échantillon, puis revue.") },
+      { t: l("Production", "Production"), d: l("Same code, monitored daily.", "Même code, surveillé chaque jour.") },
     ],
     caps: [
-      { t: l("Data platform", "Plateforme de données"), d: l("Custodian, market and index data, daily.", "Données des dépositaires, des marchés et des indices, chaque jour.") },
-      { t: l("Machine learning", "Apprentissage automatique"), d: l("Regime classification, pattern recognition.", "Classification des régimes, reconnaissance de régularités.") },
-      { t: l("Validation discipline", "Rigueur de validation"), d: l("Cross-validation, walk-forward tests, signal-decay monitoring.", "Validation croisée, validation progressive (walk-forward), suivi du déclin des signaux.") },
-      { t: l("Operations and reporting", "Opérations et rapports"), d: l("Trade reporting and fund analytics on the research data.", "Déclaration des opérations et analytique des fonds sur les données de recherche.") },
+      { t: l("Data platform", "Plateforme de données") },
+      { t: l("Machine learning", "Apprentissage automatique") },
+      { t: l("Validation discipline", "Rigueur de validation") },
+      { t: l("Operations and reporting", "Opérations et rapports") },
     ],
   },
   team: {
     eyebrow: l("The team", "L’équipe"),
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
-    lead: l(
-      "Scientific researchers working with experienced fixed income managers.",
-      "Des chercheurs scientifiques aux côtés de gestionnaires chevronnés en revenu fixe.",
-    ),
     people: l("people on the team", "personnes dans l’équipe"),
     phd: l("PhDs in physics", "doctorats en physique"),
     cfa: l("CFA charterholders", "titulaires de la charte CFA"),
@@ -210,10 +181,6 @@ export const AP = {
   cta: {
     title: l("See the approach", "Voyez l’approche"),
     accent: l("in practice", "en pratique"),
-    text: l(
-      "One process, applied to each mandate.",
-      "Un seul processus, appliqué à chaque mandat.",
-    ),
     b1: l("View strategies", "Voir les stratégies"),
     b2: l("Contact us", "Nous joindre"),
   },

@@ -7,7 +7,7 @@
 import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
+import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
 import { SU } from "./copy-sustainability";
 import "./pages.css";
 
@@ -66,7 +66,7 @@ export function Sustainability() {
       </Section>
 
       <Section tone="tint" labelledBy="su-int-t" glow="tr">
-        <SectionHead eyebrow={pick(SU.integration.eyebrow)} title={pick(SU.integration.title)} accent={pick(SU.integration.accent)} lead={pick(SU.integration.lead)} id="su-int-t" />
+        <SectionHead eyebrow={pick(SU.integration.eyebrow)} title={pick(SU.integration.title)} accent={pick(SU.integration.accent)} id="su-int-t" />
         <Steps items={SU.integration.steps.map((s, i) => ({
           title: pick(s.t), text: pick(s.d), color: ["#188038", "#0f9d58", "#00a3e0"][i],
           icon: [<Ban key="b" aria-hidden="true" />, <Sprout key="s" aria-hidden="true" />, <Scale key="q" aria-hidden="true" />][i],
@@ -108,9 +108,7 @@ export function Sustainability() {
       <Section labelledBy="su-fa-t">
         <div className="split su-fa">
           <div>
-            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} lead={pick(SU.fondaction.p1)} id="su-fa-t">
-              <Bullets items={SU.fondaction.points.map((p) => pick(p))} />
-            </SectionHead>
+            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} lead={pick(SU.fondaction.p1)} id="su-fa-t" />
           </div>
           <Reveal self kind="pop" className="card su-commit">
             <h3 className="h4">{pick(SU.commitments.title)} {pick(SU.commitments.accent)}</h3>
@@ -118,32 +116,20 @@ export function Sustainability() {
               {SU.commitments.items.map((c) => (
                 <li key={c.y}>
                   <span className="su-tl-y tabnum">{c.y}</span>
-                  <div><p className="su-tl-t">{pick(c.t)}</p><p className="su-tl-d">{pick(c.d)}</p></div>
+                  <div><p className="su-tl-t">{pick(c.t)}</p>{c.d ? <p className="su-tl-d">{pick(c.d)}</p> : null}</div>
                 </li>
               ))}
               <li>
                 <span className="su-tl-y" aria-hidden="true"><Handshake /></span>
-                <div><p className="su-tl-t">{pick(SU.commitments.fondaction.t)}</p><p className="su-tl-d">{pick(SU.commitments.fondaction.d)}</p></div>
+                <div><p className="su-tl-t">{pick(SU.commitments.fondaction.t)}</p></div>
               </li>
             </ol>
+            <p className="su-pri-link"><a className="link" href="https://www.unpri.org/" target="_blank" rel="noopener noreferrer">{pick(SU.pri.link)} <ArrowUpRight aria-hidden="true" /></a></p>
           </Reveal>
         </div>
       </Section>
 
-      <Section tone="tint" labelledBy="su-pri-t" glow="tr">
-        <SectionHead eyebrow={pick(SU.pri.eyebrow)} title={pick(SU.pri.title)} accent={pick(SU.pri.accent)} lead={pick(SU.pri.lead)} id="su-pri-t" />
-        <Reveal as="ol" kind="pop" stagger={80} className="su-pri">
-          {SU.pri.items.map((p, i) => (
-            <li key={i}>
-              <span className="bubble" style={{ ["--bc" as string]: i % 2 ? "#00a3e0" : "#188038", ["--size" as string]: "44px" }} aria-hidden="true">{i + 1}</span>
-              <p>{pick(p)}</p>
-            </li>
-          ))}
-        </Reveal>
-        <p className="su-pri-link"><a className="link" href="https://www.unpri.org/" target="_blank" rel="noopener noreferrer">{pick(SU.pri.link)} <ArrowUpRight aria-hidden="true" /></a></p>
-      </Section>
-
-      <CtaBand title={pick(SU.cta.title)} accent={pick(SU.cta.accent)} text={pick(SU.cta.text)}>
+      <CtaBand title={pick(SU.cta.title)} accent={pick(SU.cta.accent)}>
         <ButtonLink href="/strategies/sustainable-enhanced-bonds">{pick(SU.cta.b1)}</ButtonLink>
         <ButtonLink href="/contact" variant="ghost">{pick(SU.cta.b2)}</ButtonLink>
       </CtaBand>

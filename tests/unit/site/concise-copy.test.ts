@@ -29,8 +29,8 @@ test("concise copy: page leads are short (15 words or fewer)", () => {
   const leads: [string, L][] = [
     ["home hero", HOME_COPY.hero.lead], ["home strategies", HOME_COPY.strategies.lead],
     ["home process", HOME_COPY.process.lead], ["strategies", STRAT_COPY.lead], ["solutions", SOL_COPY.lead],
-    ["approach hero", AP.hero.lead], ["approach pipeline", AP.pipe.lead], ["approach bonds", AP.bonds.lead],
-    ["about hero", AB.hero.lead], ["contact hero", CT.hero.lead], ["sustainability integration", SU.integration.lead],
+    ["approach hero", AP.hero.lead],
+    ["about hero", AB.hero.lead], ["contact hero", CT.hero.lead], ["sustainability hero (scope sentence kept)", { en: SU.hero.lead.en.split(/(?<=\.)\s/)[0], fr: "" }],
     ...AUDIENCES.map((a) => [`solutions ${a.key}`, a.intro] as [string, L]),
     ...Object.entries(FUND_TEXTS).filter(([k]) => k !== "global-minimum-volatility").map(([k, f]) => [`${k} summary (first sentence)`, { en: f.summary.en.split(/(?<=\.)\s/)[0], fr: "" }] as [string, L]),
   ];

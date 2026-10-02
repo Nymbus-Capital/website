@@ -5,7 +5,7 @@
  * technology, and the team. Motion: the pipeline diagram draws itself step by step when it scrolls into
  * view, the step line fills with the scroll, the risk flow converges, cards pop in.
  */
-import { Activity, Brain, Cpu, Database, FlaskConical, GitBranch, Layers, Shield, ShieldCheck, Target, Workflow } from "lucide-react";
+import { Activity, Brain, Database, FlaskConical, Layers, Shield, ShieldCheck, Workflow } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team } from "@/data/team";
@@ -98,7 +98,6 @@ function Pipeline() {
                 <span className="ap-node-no">{String(i + 1).padStart(2, "0")}</span>
               </div>
               <p className="ap-node-t">{pick(s.title)}</p>
-              <p className="ap-node-d">{pick(s.short)}</p>
               <Bullets size="sm" className="ap-node-l" items={s.bullets.map((b) => pick(b))} />
               {"note" in s && s.note ? <p className="fine ap-node-n">{pick(s.note)}</p> : null}
             </li>
@@ -178,8 +177,6 @@ function OverlayStack() {
 
 /* ------------------------------------------------------------------ page */
 
-const PHILO_ICONS = [Cpu, Target, Workflow, FlaskConical, Shield, GitBranch];
-
 export function Approach() {
   const { locale, pick } = useTranslation();
   const faces = membersOf(team, "all").filter((m) => m.photo && m.department !== "Board").slice(0, 9);
@@ -192,12 +189,12 @@ export function Approach() {
       </PageHero>
 
       <Section labelledBy="ap-pipe-t" glow="tr">
-        <SectionHead eyebrow={pick(AP.pipe.eyebrow)} title={pick(AP.pipe.title)} accent={pick(AP.pipe.accent)} lead={pick(AP.pipe.lead)} id="ap-pipe-t" />
+        <SectionHead eyebrow={pick(AP.pipe.eyebrow)} title={pick(AP.pipe.title)} accent={pick(AP.pipe.accent)} id="ap-pipe-t" />
         <Pipeline />
       </Section>
 
       <Section tone="tint" labelledBy="ap-bonds-t">
-        <SectionHead eyebrow={pick(AP.bonds.eyebrow)} title={pick(AP.bonds.title)} accent={pick(AP.bonds.accent)} lead={pick(AP.bonds.lead)} id="ap-bonds-t" />
+        <SectionHead eyebrow={pick(AP.bonds.eyebrow)} title={pick(AP.bonds.title)} accent={pick(AP.bonds.accent)} id="ap-bonds-t" />
         <Reveal kind="pop" stagger={140} className="ap-systems">
           {AP.bonds.systems.map((s, i) => (
             <article key={i} className="card ap-sys" style={{ ["--bc" as string]: i ? "#00a3e0" : "#1a73e8" }}>
@@ -225,17 +222,7 @@ export function Approach() {
         </div>
       </Section>
 
-      <Section tone="tint" labelledBy="ap-philo-t">
-        <SectionHead eyebrow={pick(AP.philosophy.eyebrow)} title={pick(AP.philosophy.title)} accent={pick(AP.philosophy.accent)} id="ap-philo-t" />
-        <CardGrid cols={3}>
-          {AP.philosophy.items.map((it, i) => {
-            const Icon = PHILO_ICONS[i];
-            return <FeatureCard key={i} icon={<Icon />} title={pick(it.t)} className="ring"><p>{pick(it.d)}</p></FeatureCard>;
-          })}
-        </CardGrid>
-      </Section>
-
-      <Section labelledBy="ap-rt-t" glow="tr">
+      <Section tone="tint" labelledBy="ap-rt-t" glow="tr">
         <SectionHead eyebrow={pick(AP.research.eyebrow)} title={pick(AP.research.title)} accent={pick(AP.research.accent)} lead={pick(AP.research.lead)} id="ap-rt-t" />
         <div className="ap-rt">
           <div className="ap-rt-life">
@@ -252,16 +239,16 @@ export function Approach() {
           <CardGrid cols={2} className="ap-caps">
             {AP.research.caps.map((c, i) => {
               const Icon = [Database, Brain, FlaskConical, Activity][i];
-              return <FeatureCard key={i} icon={<Icon />} title={pick(c.t)}><p>{pick(c.d)}</p></FeatureCard>;
+              return <FeatureCard key={i} icon={<Icon />} title={pick(c.t)} />;
             })}
           </CardGrid>
         </div>
       </Section>
 
-      <Section tone="tint" labelledBy="ap-team-t">
+      <Section labelledBy="ap-team-t">
         <div className="ap-team">
           <div>
-            <SectionHead eyebrow={pick(AP.team.eyebrow)} title={pick(AP.team.title)} accent={pick(AP.team.accent)} lead={pick(AP.team.lead)} id="ap-team-t" />
+            <SectionHead eyebrow={pick(AP.team.eyebrow)} title={pick(AP.team.title)} accent={pick(AP.team.accent)} id="ap-team-t" />
             <StatRow className="ap-team-stats">
               <Stat value={team.length} label={pick(AP.team.people)} lang={locale} />
               <Stat value={countPhD(team)} label={pick(AP.team.phd)} lang={locale} />
@@ -275,7 +262,7 @@ export function Approach() {
         </div>
       </Section>
 
-      <CtaBand title={pick(AP.cta.title)} accent={pick(AP.cta.accent)} text={pick(AP.cta.text)}>
+      <CtaBand title={pick(AP.cta.title)} accent={pick(AP.cta.accent)}>
         <ButtonLink href="/strategies">{pick(AP.cta.b1)}</ButtonLink>
         <ButtonLink href="/contact" variant="ghost">{pick(AP.cta.b2)}</ButtonLink>
       </CtaBand>

@@ -34,10 +34,6 @@ export const SOL_COPY = {
   whoEyebrow: l("Who we work with", "Avec qui nous travaillons"),
   whoTitle: l("What type of", "Quel type"),
   whoAccent: l("investor are you?", "d’investisseur êtes-vous?"),
-  whoLead: l(
-    "How we work, vehicles, and strategies that usually fit.",
-    "Notre façon de travailler, les véhicules et les stratégies habituelles.",
-  ),
   see: l("See the details", "Voir le détail"),
   benefits: l("How we work with you", "Notre façon de travailler avec vous"),
   vehicles: l("Available vehicles", "Véhicules offerts"),
@@ -70,7 +66,6 @@ export const AUDIENCES: AudienceCopy[] = [
       l("A dedicated portfolio management team", "Une équipe de gestion spécialisée"),
       l("Risk reports and performance attribution", "Rapports de risque et attribution du rendement"),
       l("Customizable ESG integration and exclusions", "Intégration ESG et exclusions personnalisables"),
-      l("Regular reviews with your investment committee", "Rencontres régulières avec votre comité de placement"),
     ],
     vehicles: [
       { name: l("Segregated mandate", "Mandat distinct"), text: l("Managed for you alone, under your guidelines.", "Géré pour vous seul, selon vos lignes directrices.") },

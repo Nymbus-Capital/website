@@ -79,7 +79,7 @@ function Milestones() {
             <span className="ab-tl-dot" aria-hidden="true" />
             <p className="ab-tl-y tabnum">{it.y}</p>
             <h3 className="h4">{pick(it.t)}</h3>
-            <p className="ab-tl-d">{pick(it.d)}</p>
+            {it.d ? <p className="ab-tl-d">{pick(it.d)}</p> : null}
           </Reveal>
         ))}
       </ol>
@@ -187,7 +187,6 @@ export function Team() {
                   <span className="ab-person-n">{m.name}</span>
                   <span className="ab-person-t">{fr ? m.titleFr ?? m.title : m.title}</span>
                   {m.designations?.length ? <span className="ab-tags">{m.designations.slice(0, 3).map((d) => <span key={d} className="ab-tag">{d}</span>)}</span> : null}
-                  <span className="ab-person-s">{fr ? m.summaryFr ?? m.summary : m.summary}</span>
                 </span>
                 <span className="ab-person-go" aria-hidden="true"><ArrowUpRight /></span>
               </button>
