@@ -382,7 +382,7 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   expect(await si()).toBe(six);
 });
 
-test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+test("awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only", async ({ page }) => {
   await page.goto("/strategies/sustainable-enhanced-bonds#awards");
   const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
   await expect(tab).toBeVisible();
@@ -392,7 +392,8 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   await expect(tab.getByTestId("rank-1M")).toContainText("4 of 486");
   await expect(tab.getByTestId("fundgrade")).toContainText("A");
   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
-  await expect(tab.getByTestId("morningstar")).toHaveCount(0);
+  await expect(tab.getByTestId("morningstar")).toBeVisible();
+  await expect(tab.getByTestId("morningstar")).toContainText("Class F");
   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
   // no third-party logo images: wordmarks are text
   await expect(tab.locator("img")).toHaveCount(0);
@@ -403,6 +404,7 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   await page.goto("/strategies/multi-strategy#awards");
   await expect(page.getByTestId("rank-1M")).toContainText("127 of 144");
   await expect(page.getByTestId("rank-1M").locator(".aw-q")).toHaveText("Q4");
+  await expect(page.getByTestId("morningstar")).toHaveCount(0);
   // GMV: no ranking, no tab
   await page.goto("/strategies/global-minimum-volatility");
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]')).toHaveCount(0);
@@ -445,6 +447,7 @@ const CLASS_OF: Record<string, Record<string, string>> = {
   "sustainable-enhanced-bonds": { STRATEGY: "F", STRATEGY_H: "H" },
   "multi-strategy": { STRATEGY: "F" },
 };
+const NO_HEADLINE_SERIES = new Set(["monthly-income"]);
 const codeOf = (slug: string): string => CLASS_OF[slug][SAMPLE.funds[slug].performance!.classCode!];
 /** "Series F" but not "Series FP" (and the other way round) */
 const seriesRe = (word: string, code: string): RegExp => new RegExp(`${word} ${code}(?![A-Za-z])`);
@@ -496,14 +499,18 @@ test("home tiles and the strategies index name the class of the returns (EN + FR
         await page.reload();
       }
       for (const slug of Object.keys(CLASS_OF)) {
-        await expect(page.getByTestId(`strategy-${slug}`).getByTestId("perf-class")).toHaveText(label(codeOf(slug)));
+        const cls = page.getByTestId(`strategy-${slug}`).getByTestId("perf-class");
+        // the tile shows the headline class's own returns only: none while that class has no series (Monthly Income F)
+        if (NO_HEADLINE_SERIES.has(slug)) await expect(cls).toHaveCount(0);
+        else await expect(cls).toHaveText(label(codeOf(slug)));
       }
       // a strategy without classes (GMV) shows none
       await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-class")).toHaveCount(0);
     }
     // the comparison table: every fund with a class, in registry order
     const cells = page.getByTestId("compare-table").getByTestId("perf-class");
-    await expect(cells).toHaveCount(3);
-    for (const [i, slug] of Object.keys(CLASS_OF).entries()) await expect(cells.nth(i)).toHaveText(label(codeOf(slug)));
+    const shown = Object.keys(CLASS_OF).filter((k) => !NO_HEADLINE_SERIES.has(k));
+    await expect(cells).toHaveCount(shown.length);
+    for (const [i, slug] of shown.entries()) await expect(cells.nth(i)).toHaveText(label(codeOf(slug)));
   }
 });
