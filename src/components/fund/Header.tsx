@@ -5,23 +5,32 @@
  * fund vehicle (managed accounts, no NAV) get a strategy card instead. Behind it, a light trail drawn from the
  * fund's own growth of $10,000. Then the row of return badges.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { CalendarDays, FileText } from "lucide-react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { CalendarDays, Download, FileText } from "lucide-react";
 import { CountUp, EASE, Odometer, Reveal, RevealTitle, reducedMotion, useTilt } from "@/components/v3/motion";
 import { ButtonLink, Crumbs } from "@/components/site/kit";
 import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import { FUND_INCEPTION } from "@/content/disclaimers";
-import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
+import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
+import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
+import type { ClassCtx } from "./lib/select.ts";
 import { T, tr } from "./copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
-import { benchmarkLabel, headlineClass, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS, sortedClasses } from "./lib/data.ts";
+import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean; ctx: ClassCtx; docs?: FundDoc[] }
 
-export function FundHeader({ spec, content, data, lang, sample }: Props) {
+/** Header shortcuts to the documents most asked for (factsheet, fund facts, prospectus), when one is published. */
+const QUICK_DOCS = ["factsheet", "fund-facts", "prospectus"] as const;
+export function quickDocs(docs: FundDoc[] | undefined, lang: Lang): { type: (typeof QUICK_DOCS)[number]; doc: FundDoc }[] {
+  const groups = groupDocuments((docs ?? []).map((d) => ({ ...d.meta, doc: d })), lang);
+  return QUICK_DOCS.flatMap((type) => { const g = groups.find((x) => x.type === type); return g ? [{ type, doc: g.docs[0].doc }] : []; });
+}
+
+export function FundHeader({ spec, content, data, lang, sample, ctx, docs }: Props) {
   const risk = riskIndex(content.riskRating ?? spec.defaults.riskRating);
   const description = content.description ?? spec.defaults.description;
   const tagline = content.tagline ?? spec.defaults.tagline;
@@ -55,11 +64,14 @@ export function FundHeader({ spec, content, data, lang, sample }: Props) {
               <div className="actions fh-actions">
                 <ButtonLink href="/contact">{tr(T.header.contact, lang)}</ButtonLink>
                 <a className="btn ghost" href="#documents"><FileText aria-hidden="true" />{tr(isFund ? T.header.documents : T.header.strategyDocuments, lang)}</a>
+                {quickDocs(docs, lang).map(({ type, doc }) => (
+                  <a key={type} className="btn ghost sm" href={doc.url} data-testid={`quick-doc-${type}`}><Download aria-hidden="true" />{tr(T.docs.single[type], lang)}</a>
+                ))}
               </div>
             </Reveal>
           </div>
           <Reveal self kind="pop" delay={220} className="fh-aside">
-            {isFund ? <NavCard spec={spec} content={content} data={data} lang={lang} /> : <StrategyCard spec={spec} content={content} data={data} lang={lang} />}
+            {isFund ? <NavCard spec={spec} content={content} data={data} lang={lang} ctx={ctx} /> : <StrategyCard spec={spec} content={content} data={data} lang={lang} ctx={ctx} />}
           </Reveal>
         </div>
       </div>
@@ -73,19 +85,35 @@ function Fact({ k, children, testId }: { k: string; children: ReactNode; testId?
   return <div className="nc-fact"><dt>{k}</dt><dd data-testid={testId}>{children}</dd></div>;
 }
 
-function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
+function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
   const tilt = useTilt<HTMLDivElement>(4);
-  const all = content.hide?.nav ? [] : (data?.nav?.classes ?? []).filter((c) => c.nav != null);
-  const first = headlineClass(all, [content.headlineClass, spec.headlineClass]);
-  const classes = sortedClasses(all, first?.fundserv);
-  const [code, setCode] = useState<string | null>(first?.fundserv ?? null);
-  const cls = classes.find((c) => c.fundserv === code) ?? first;
+  const opts = ctx.options;
+  const sel = opts.find((o) => o.fundserv === ctx.selected) ?? opts[0] ?? null;
+  const cls = sel?.nav ?? null;
   const perf = data?.performance ?? null;
   const launch = FUND_INCEPTION[spec.key]?.fundLaunch ?? null;
   const bench = benchmarkLabel(perf?.indexName, spec.benchmark, lang);
   const aum = content.hide?.aum === false ? data?.aum ?? null : null;
   const dir = navDirection(cls?.changePct);
   const parts = moneyParts(cls?.currency ?? "CAD", lang);
+  const selector = sel ? (
+    <>
+      <div className="nc-series-row">
+        {opts.length > 1 ? (
+          <div className="nc-series" role="radiogroup" aria-label={tr(T.nav.chooseSeries, lang)}>
+            {opts.map((c) => (
+              <button key={c.fundserv} type="button" role="radio" aria-checked={c.fundserv === sel.fundserv} onClick={() => ctx.select(c.fundserv)}
+                data-testid={`series-${c.fundserv}`}>
+                <span className="sr-only">{tr(T.nav.series, lang)} </span>{c.display}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <ClassTypeBadge type={sel.type} lang={lang} />
+      </div>
+      <ClassTypeNote type={sel.type} lang={lang} />
+    </>
+  ) : null;
   return (
     <div ref={tilt} className="navcard" data-testid="nav-card">
       <span className="nc-shine" aria-hidden="true" />
@@ -93,18 +121,9 @@ function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundC
         <span className="nc-title">{tr(T.nav.title, lang)}</span>
         {cls?.date ? <span className="nc-date"><span className="live-dot" aria-hidden="true" />{tr(T.nav.asOf, lang)} {dateLabel(cls.date, lang)}</span> : null}
       </div>
+      {selector}
       {cls && cls.nav != null ? (
         <>
-          {classes.length > 1 ? (
-            <div className="nc-series" role="radiogroup" aria-label={tr(T.nav.chooseSeries, lang)}>
-              {classes.map((c) => (
-                <button key={c.fundserv} type="button" role="radio" aria-checked={c.fundserv === cls.fundserv} onClick={() => setCode(c.fundserv)}
-                  data-testid={`series-${c.fundserv}`}>
-                  <span className="sr-only">{tr(T.nav.series, lang)} </span>{c.display}
-                </button>
-              ))}
-            </div>
-          ) : null}
           <div className="nc-fig" data-testid="hero-nav" aria-live="polite">
             <Odometer key={`${cls.fundserv}-${lang}`} value={cls.nav} decimals={NAV_DECIMALS} prefix={parts.prefix} suffix={parts.suffix} lang={lang} duration={1300} />
           </div>
@@ -132,7 +151,7 @@ function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundC
         <>
           <p className="nc-empty">{tr(T.nav.none, lang)}</p>
           <dl className="nc-facts">
-            {spec.headlineClass ? <Fact k={tr(T.nav.fundserv, lang)}><code>{content.headlineClass || spec.headlineClass}</code></Fact> : null}
+            {sel ? <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv"><code>{sel.fundserv}</code></Fact> : null}
             {launch ? <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact> : perf?.firstMonth ? <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact> : null}
             {bench ? <div className="nc-fact wide"><dt>{tr(T.nav.benchmark, lang)}</dt><dd>{bench}</dd></div> : null}
           </dl>
@@ -143,7 +162,7 @@ function NavCard({ spec, content, data, lang }: { spec: FundSpec; content: FundC
 }
 
 /** Managed-accounts strategy: no NAV, gross figures only. */
-function StrategyCard({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
+function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
   const tilt = useTilt<HTMLDivElement>(4);
   const perf = content.hide?.performance ? null : data?.performance ?? null;
   const si = perf?.trailing.fund.SI ?? null;
@@ -155,6 +174,18 @@ function StrategyCard({ spec, content, data, lang }: { spec: FundSpec; content: 
         <span className="nc-title">{tr(T.nav.strategyTitle, lang)}</span>
         {perf?.asOf ? <span className="nc-date"><CalendarDays aria-hidden="true" />{tr(T.nav.asOf, lang)} {dateLabel(perf.asOf, lang)}</span> : null}
       </div>
+      {spec.variants?.length && ctx.variant ? (
+        <div className="nc-variants" data-testid="variant-selector">
+          <span className="nc-var-l" id="nc-var-l">{tr(T.variants.label, lang)}</span>
+          <div className="nc-series" role="radiogroup" aria-labelledby="nc-var-l">
+            {spec.variants.map((v) => (
+              <button key={v.id} type="button" role="radio" aria-checked={v.id === ctx.variant} onClick={() => ctx.selectVariant(v.id)} data-testid={`variant-${v.id}`}>
+                <span className="sr-only">{tr(T.variants.shown, lang)} </span>{tr(v.label, lang)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {si != null ? (
         <>
           <div className="nc-fig" data-testid="hero-figure"><Odometer value={si} pct decimals={1} lang={lang} duration={1500} /></div>
@@ -173,12 +204,15 @@ function StrategyCard({ spec, content, data, lang }: { spec: FundSpec; content: 
 
 /* ------------------------------------------------------------------ return badges */
 
-export function ReturnStrip({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
+export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
   const perf = data?.performance ?? null;
   const badges = returnBadges(perf, !!content.hide?.performance);
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const basis = tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang);
+  const sel = ctx.options.find((o) => o.fundserv === ctx.selected) ?? null;
+  const variant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
+  const soonText = sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.badges.soon, lang);
   return (
     <section className="fr" aria-labelledby="fr-title" data-testid="return-strip">
       <div className="container">
@@ -187,7 +221,9 @@ export function ReturnStrip({ spec, content, data, lang }: { spec: FundSpec; con
             <h2 id="fr-title" className="fr-title">{tr(T.badges.title, lang)}</h2>
             {badges.length && perf ? (
               <p className="fr-sub" data-testid="basis">
+                {variant ? <>{tr(T.variants.label, lang)} {tr(variant.label, lang)}, </> : null}
                 {cl ? <>{cl}, {basis}</> : cap(basis)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+                {sel && !variant ? <> <ClassTypeBadge type={sel.type} lang={lang} testId="returns-class-type" /></> : null}
               </p>
             ) : null}
           </div>
@@ -206,9 +242,10 @@ export function ReturnStrip({ spec, content, data, lang }: { spec: FundSpec; con
                 ))}
               </Reveal>
               {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+              {perf?.shortRecord && perf.firstMonth ? <p className="fr-note" data-testid="since-class-inception">{tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}</p> : null}
             </>
           ) : (
-            <p className="notice fr-soon" data-testid="figures-soon">{tr(T.badges.soon, lang)}</p>
+            <p className="notice fr-soon" data-testid="figures-soon">{ctx.returnsSoon ? soonText : tr(T.badges.soon, lang)}</p>
           )}
         </div>
       </div>

@@ -17,12 +17,14 @@ import { Heatmap } from "./charts/Heatmap";
 import { Ring } from "./charts/Breakdowns";
 import { dateLabel, fmt, type Lang, colon } from "./lib/format.ts";
 import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
+import { ClassTypeBadge } from "./ClassBadge";
+import type { ClassCtx } from "./lib/select.ts";
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
 
 const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
 
-export function PerformanceTab({ spec, content, data, lang }: Props) {
+export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const v = visibleBlocks(data, content, 0);
   const perf = data?.performance ?? null;
   const windows = riskWindows([data?.risk, data?.risk3Y]);
@@ -35,6 +37,9 @@ export function PerformanceTab({ spec, content, data, lang }: Props) {
   };
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
+  const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
+  const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
+  const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
 
   return (
     <div className="container fp">
@@ -42,9 +47,12 @@ export function PerformanceTab({ spec, content, data, lang }: Props) {
         <p className="fp-context" data-testid="perf-context">
           {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
           {benchmarkLabel(perf.indexName, spec.benchmark, lang) ? <> · {tr(T.perf.index, lang)}{colon(lang)}{benchmarkLabel(perf.indexName, spec.benchmark, lang)}</> : null}
+          {variant ? <> · {tr(T.variants.label, lang)} {tr(variant.label, lang)}</> : null}
+          {sel && !variant ? <> <ClassTypeBadge type={sel.type} lang={lang} testId="perf-class-type" /></> : null}
         </p>
       ) : null}
-      {!any ? <p className="notice" data-testid="perf-soon">{tr(T.perf.none, lang)}</p> : null}
+      {perf && any && perf.shortRecord && perf.firstMonth ? <p className="fine fp-since" data-testid="perf-since-class">{tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}</p> : null}
+      {!any ? <p className="notice" data-testid="perf-soon">{soon}</p> : null}
       {v.growth && perf ? (
         <Block title={tr(T.perf.growth, lang)} lead={tr(gross ? T.perf.growthLeadGross : T.perf.growthLead, lang)} testId="growth">
           <GrowthChart points={perf.growth} lang={lang} names={names} rangeGroupLabel={tr(T.perf.range, lang)} label={tr(T.perf.growth, lang)}
@@ -125,7 +133,7 @@ function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
   }));
   return (
     <Block title={tr(T.perf.calendar, lang)} testId="calendar" aside={<Legend names={names} index={hasIndex} va={hasVa} />}>
-      <GroupedBars cats={cats} names={names} lang={lang} label={tr(T.perf.calendar, lang)} height={340} values={rows.length <= 10} />
+      <GroupedBars cats={cats} names={names} lang={lang} label={tr(T.perf.calendar, lang)} height={340} labelAll />
       <details className="fx-details">
         <summary>{tr(T.perf.table, lang)}</summary>
         <div className="fx-scroll">

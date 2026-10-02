@@ -330,6 +330,12 @@ export function fullRowItems(wide: boolean[]): boolean[] {
   return out;
 }
 
+/** Weight of the ten largest holdings (decimal), only when the ten are listed: a shorter list gives no total. */
+export function topTotal(items: { weight: number }[] | null | undefined): number | null {
+  const w = (items ?? []).filter((h) => isNum(h.weight)).map((h) => h.weight);
+  return w.length >= 10 ? w.slice(0, 10).reduce((a, b) => a + b, 0) : null;
+}
+
 /** Characteristics computed over part of the bonds only (coverage < 1): they get a footnote. */
 export const partialCoverage = (metrics: PortfolioMetric[]): PortfolioMetric[] => metrics.filter((m) => isNum(m.coverage) && m.coverage < 0.9995);
 
