@@ -223,7 +223,7 @@ export function orderedBuckets(b: Bucket[] | undefined | null): Bucket[] {
 
 /* ------------------------------------------------------------------ documents */
 
-export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "esg", "other"];
+export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "esg", "other"];
 
 /** Group documents by type (fixed order), newest first within a group; the display language first. Documents that
  * carry `published: false` are dropped (the public DTO has no flag: it only ever contains published ones). */

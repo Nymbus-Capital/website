@@ -14,6 +14,8 @@ export interface MonthlyNetReturnRow {
   status: "ready" | "unavailable" | "conflict" | string;
   issue?: string | null;
   method?: string | null;
+  /** `history=full` answers only: "cibc" | "bridge" | "apex" */
+  source?: string | null;
 }
 export interface MonthlyNetReturnsResponse {
   short_name?: string;
@@ -24,6 +26,10 @@ export interface MonthlyNetReturnsResponse {
   methodology_version?: string;
   row_count?: number;
   rows: MonthlyNetReturnRow[];
+  /** class selection answers only (dataplatform PR #626): the class asked for, echoed by the endpoint */
+  fundserv?: string | null;
+  class_display?: string | null;
+  history?: string | null;
 }
 
 export interface NavPoint {
@@ -105,6 +111,11 @@ export interface RawPayloads {
   portfolio?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
   /** the same at the last closed month-end, for the factsheet cross-check (absent when the latest book is that month-end) */
   portfolioMonthEnd?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
+  /**
+   * monthly net returns per class (class_code + history=full, dataplatform PR #626), by FundServ code. `absent`: the
+   * endpoint ignores the parameters (not deployed yet): the classes stay "coming soon". Optional (older snapshots, tests).
+   */
+  monthlyReturnsByClass?: Partial<Record<DpShort, Record<string, SourceResult<MonthlyNetReturnsResponse>>>>;
   /** per-class distributions (/api/performance/distributions); optional */
   distributions?: Partial<Record<DpShort, SourceResult<ClassDistributions>>>;
 }

@@ -34,6 +34,7 @@ import type { FundContext } from "./build.ts";
 import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
+import { performanceProblems } from "./classes.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
 export interface FundValidation {
@@ -116,6 +117,38 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
   }
   const closed = lastClosedMonth(now);
   if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
+}
+
+/**
+ * Gates of the per-class returns and of the strategy variants (repairs in place, never blocking: a class / variant that
+ * fails is dropped and the page says "coming soon" for it; the fund's own default series is gated by checkPerformance):
+ * contiguous monthly series ending at as-of, no month beyond ±25 %, trailing figures equal to a recomputation (classes),
+ * growth consistent with the monthly returns. Each class / variant is checked on its own numbers only.
+ */
+export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
+  const issues: Issue[] = [];
+  if (f.performanceByClass) {
+    for (const [code, k] of Object.entries(f.performanceByClass)) {
+      const problems = performanceProblems(k.performance, "compounded", true);
+      if (!problems.length) continue;
+      issues.push({ key: `${base}.performance.classes.${code}`, level: "warn", message: `class ${k.display} (${code}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class` });
+      delete f.performanceByClass[code];
+    }
+    if (!Object.keys(f.performanceByClass).length) {
+      delete f.performanceByClass;
+      delete f.defaultClass;
+    }
+  }
+  if (f.variants) {
+    for (const [id, v] of Object.entries(f.variants)) {
+      if (id === f.defaultVariant || !v.performance) continue;
+      const problems = performanceProblems(v.performance, "arithmetic", false);
+      if (!problems.length) continue;
+      issues.push({ key: `${base}.variants.${id}.performance`, level: "warn", message: `variant ${id} %: ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; the variant is not shown` });
+      delete f.variants[id];
+    }
+  }
+  return issues;
 }
 
 /**
@@ -380,6 +413,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     checkAum(f, prev, base, repairs, warnings, now);
     warnings.push(...checkPortfolio(f, base, now), ...checkDistributions(f, base, now));
     checkPerformance(f, ctx, prev, base, blocking, warnings, now);
+    warnings.push(...checkClassesAndVariants(f, base));
     for (const p of nonFinitePaths(f, base)) blocking.push({ key: p, level: "error", message: `non-finite number at ${p}` });
     extraIssues.push(...repairs, ...warnings);
     if (blocking.length) {

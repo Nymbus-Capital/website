@@ -62,6 +62,11 @@ export interface Performance {
   returnClassLabel?: string;
   /** name of the benchmark series as published (factsheet label); optional */
   indexName?: string;
+  /**
+   * the series covers fewer than 12 months (a recent class): only the periods that exist are published, the page says
+   * "since class inception"; no risk statistics. Optional.
+   */
+  shortRecord?: boolean;
 }
 
 export interface RiskStats {
@@ -206,6 +211,37 @@ export interface DistributionsData {
   classes: ClassDistribution[];
 }
 
+/**
+ * Returns of one selectable class (series), keyed by FundServ code in `FundData.performanceByClass`. The series is the
+ * class's own: never another class's numbers (a class without data has no entry and the page says "coming soon").
+ */
+export interface ClassPerformance {
+  fundserv: string;
+  /** class label as registered ("F", "FP", "H") */
+  display: string;
+  performance: Performance;
+  risk: RiskStats | null;
+  risk3Y: RiskStats | null;
+}
+
+/** Target downside-volatility variants of the Global Minimum Volatility strategy (percent); 6 is the default. */
+export const GMV_VARIANTS = ["3", "6", "9"] as const;
+export type GmvVariant = (typeof GMV_VARIANTS)[number];
+export const GMV_DEFAULT_VARIANT: GmvVariant = "6";
+
+/** Everything the page shows for one variant of a strategy: returns, risk, characteristics, allocation, holdings. */
+export interface VariantData {
+  variant: string;
+  performance: Performance | null;
+  risk: RiskStats | null;
+  risk3Y: RiskStats | null;
+  characteristics: Characteristic[];
+  breakdowns: FundData["breakdowns"];
+  topHoldings: Holding[];
+  esg: Characteristic[];
+  factsheetMonth: string | null;
+}
+
 export interface FundData {
   key: FundKey;
   /** name as the sources know it (for provenance only) */
@@ -232,6 +268,20 @@ export interface FundData {
   portfolio?: PortfolioData | null;
   /** per-series distributions (optional; absent in datasets published before it) */
   distributions?: DistributionsData | null;
+  /**
+   * returns per selectable class, by FundServ code (optional; datasets published before it only have `performance`).
+   * `performance` / `risk` / `risk3Y` above are the default class's (F) when it has a series, else the series the
+   * source serves by default, labelled with its true class (`performance.returnClass`).
+   */
+  performanceByClass?: Record<string, ClassPerformance>;
+  /** FundServ code of the default class (F) the page opens on; optional */
+  defaultClass?: string;
+  /**
+   * variants of a strategy (Global Minimum Volatility: "3", "6", "9" % downside volatility), by variant id. The
+   * top-level performance / risk / characteristics / breakdowns / topHoldings are the default variant's. Optional.
+   */
+  variants?: Record<string, VariantData>;
+  defaultVariant?: string;
 }
 
 /** What the pipeline writes (`published/site-data.json`). */
@@ -256,7 +306,7 @@ export interface SiteData {
 
 export type DocType =
   | "factsheet" | "fund-facts" | "prospectus" | "annual-report" | "interim-report"
-  | "mrfp" | "commentary" | "presentation" | "esg" | "other";
+  | "mrfp" | "proxy-voting" | "tax-factors" | "commentary" | "presentation" | "esg" | "other";
 
 export interface DocumentMeta {
   id: string;
@@ -279,6 +329,49 @@ export interface DocumentMeta {
 export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions"] as const;
 export type HideBlock = (typeof HIDE_BLOCKS)[number];
 
+export type ClassType = "prospectus" | "om" | "none";
+
+export const RANKING_PERIODS = ["1M", "3M", "6M", "YTD", "1Y", "2Y", "3Y", "4Y", "5Y", "10Y"] as const;
+export type RankingPeriod = (typeof RANKING_PERIODS)[number];
+
+export interface RankingRow {
+  period: RankingPeriod;
+  /** position in the category (1 = best) and number of funds ranked in the category for that period */
+  rank: number;
+  of: number;
+  /** 1 (top) to 4; null when the source gives none */
+  quartile: 1 | 2 | 3 | 4 | null;
+}
+
+/** Category ranking of one series as published by Fund Library. */
+export interface FundLibraryRanking {
+  /** class the ranking is for, as the source names it ("Class F") */
+  classLabel: string;
+  fundserv?: string;
+  category: L10n;
+  /** "as at" date of the ranking (YYYY-MM-DD) */
+  asOf: string;
+  /** FundGrade letter, when the source gives one */
+  fundGrade?: string;
+  rows: RankingRow[];
+  /** page the figures were read from (attribution link) */
+  url?: string;
+}
+
+export interface MorningstarRating {
+  /** overall rating, 1 to 5 stars */
+  stars: 1 | 2 | 3 | 4 | 5;
+  asOf: string;
+  classLabel?: string;
+  category?: string;
+  url?: string;
+}
+
+export interface FundRankings {
+  fundLibrary?: FundLibraryRanking[];
+  morningstar?: MorningstarRating;
+}
+
 export interface FundContent {
   hidden?: boolean;
   /** hide specific blocks on the public page (fund AUM is hidden unless `aum: false`) */
@@ -294,6 +387,18 @@ export interface FundContent {
   distributions?: L10n;
   /** FundServ code highlighted on the page (the class whose NAV headlines) */
   headlineClass?: string;
+  /**
+   * Which classes are offered by prospectus and which by offering memorandum, by FundServ code. Nothing is shown for a
+   * class until its type is set here or known in the registry (src/config/funds.ts); "none" hides a registry default.
+   */
+  classTypes?: Record<string, ClassType>;
+  /** fund facts shown only when filled: subsequent minimum, RSP eligibility, liquidity (redemption), CIFSC category */
+  minSubsequent?: string;
+  rspEligible?: "yes" | "no";
+  liquidity?: L10n;
+  cifscCategory?: L10n;
+  /** third-party rankings and ratings (Fund Library category rank / quartile, Morningstar); updated manually */
+  rankings?: FundRankings;
   /** footnotes shown under performance, EN/FR */
   performanceNote?: L10n;
   managers?: string[];

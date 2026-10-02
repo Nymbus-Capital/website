@@ -353,8 +353,8 @@ test("build: endpoints not deployed (404) → one info issue each, everything el
   const before = await build(notDeployed);
   const after = await build();
   const infos = before.data.issues.filter((i) => i.key.startsWith("sources."));
-  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
-  assert.match(infos[0].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
+  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.monthly-net-returns-class.SEST", "info"], ["sources.monthly-net-returns-class.SEB", "info"], ["sources.monthly-net-returns-class.Multistrat", "info"], ["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
+  assert.match(infos[3].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
   for (const [k, f] of Object.entries(before.data.funds)) {
     assert.equal(f!.portfolio, null, k);
     assert.equal(f!.distributions, null, k);

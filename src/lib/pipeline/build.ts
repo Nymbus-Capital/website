@@ -25,7 +25,7 @@
  *    series by FundServ code (distributions.ts). A 404 on either endpoint (not deployed yet) is one info issue.
  */
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
-import type { Bucket, CalendarRow, Characteristic, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing } from "../data/types.ts";
+import type { Bucket, CalendarRow, Characteristic, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
 import { FUND_SOURCES } from "./fund-sources.ts";
 import { factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
@@ -40,6 +40,7 @@ import {
 import type { DpShort, FundRef, NavPoint, RawPayloads, RegisteredFund } from "./raw.ts";
 import { crossCheckPortfolio, monthEndBook, selectPortfolio } from "./portfolio.ts";
 import { selectDistributions, type LiveClass } from "./distributions.ts";
+import { buildClassPerformance, performanceProblems, sameClassMismatches } from "./classes.ts";
 
 export type PartName = "performance" | "nav" | "aum" | "factsheet";
 /** fresh: built this run; held: kept at an older month on purpose (waiting for a factsheet); carried: previous publication reused because a source failed */
@@ -116,12 +117,12 @@ function factsheetFilesFor(raw: RawPayloads, file: "bonds_data" | "factsheet_dat
   return out.sort((a, b) => (a.month < b.month ? 1 : -1));
 }
 
-function factsheetBlock(raw: RawPayloads, spec: FundSpec, month?: string): { name: string; month: string; block: Obj } | null {
+function factsheetBlock(raw: RawPayloads, spec: FundSpec, month?: string, key?: string): { name: string; month: string; block: Obj } | null {
   const fs = FUND_SOURCES[spec.key].factsheet;
   if (!fs) return null;
   for (const f of factsheetFilesFor(raw, fs.file)) {
     if (month && f.month !== month) continue;
-    const block = f.data[fs.key];
+    const block = f.data[key ?? fs.key];
     if (isObj(block)) return { name: f.name, month: f.month, block };
   }
   return null;
@@ -152,6 +153,8 @@ interface FundSeries {
   firstMonth: string;
   sources: string[];
   returnClass?: string;
+  /** source of each month of `series` */
+  origin: Record<string, "analytics" | "dataplatform" | "factsheet">;
   /** months whose factsheet-printed return disagrees with the reference beyond print precision */
   mismatches: string[];
   /** months taken from the (rounded) factsheet monthly table */
@@ -280,7 +283,7 @@ function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): Fun
     alerts.push(`analytics history unavailable: ${factsheetMonths.length} month(s) rebuilt from rounded factsheet figures`);
     c.error(key, `analytics history unavailable: ${factsheetMonths.length} month(s) of the track record rebuilt from the factsheet monthly table (rounded to its printed precision)`);
   }
-  return { series, last, firstMonth: first, sources, returnClass, mismatches: mismatches.filter((m) => m <= last).sort(), factsheetMonths, alerts };
+  return { series, last, firstMonth: first, sources, returnClass, origin: Object.fromEntries(Object.keys(series).map((m) => [m, origin[m]])), mismatches: mismatches.filter((m) => m <= last).sort(), factsheetMonths, alerts };
 }
 
 /* ------------------------------------------------------------------ index (FTSE) */
@@ -376,6 +379,8 @@ interface PerfBuild {
   held?: string;
   /** reasons for an alert (run blocked) */
   alerts?: string[];
+  /** what the per-class series are compared with and measured against (net funds only) */
+  ref?: { series: Series; origin: Record<string, string>; idx: Series | null; firstMonth: string; indexName?: string };
 }
 
 /** a factsheet trailing table can serve as a cross-check only if the fund row has 1M, 3M, YTD and 1Y */
@@ -563,12 +568,15 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     performance.returnClassLabel = `Series ${returnClassLabel}`;
   }
   if (indexName) performance.indexName = indexName;
-  return { performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts };
+  return {
+    performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts,
+    ref: { series, origin: fsr.origin, idx: FUND_SOURCES[spec.key].ftseIndex ? idx : null, firstMonth, indexName },
+  };
 }
 
 /** GMV: gross, arithmetic; published figures from factsheet_data. */
-function buildFactsheetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string): PerfBuild | null {
-  const fsBlock = factsheetBlock(raw, spec);
+function buildFactsheetPerformance(raw: RawPayloads, spec: FundSpec, prevPerf: Performance | null | undefined, c: Ctx, base: string, variantKey?: string): PerfBuild | null {
+  const fsBlock = factsheetBlock(raw, spec, undefined, variantKey);
   if (!fsBlock) return null;
   const b = fsBlock.block;
   const key = `${base}.performance`;
@@ -594,8 +602,8 @@ function buildFactsheetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundD
     c.info(key, `track record of ${n} month(s) (< 12): performance is not shown (regulatory rule)`);
     return { performance: null, risk: null, risk3Y: null, trailingSource: null, fsTrailing: null, fsFile: null, withheld: "compliance" };
   }
-  if (prev?.performance && asOf < prev.performance.asOf) {
-    c.error(key, `factsheet ${fsBlock.name} is older than the published performance (${ym(prev.performance.asOf)})`);
+  if (prevPerf && asOf < prevPerf.asOf) {
+    c.error(key, `factsheet ${fsBlock.name} is older than the published performance (${ym(prevPerf.asOf)})`);
     return null;
   }
   const fsTrailing = parseTrailingTable(b["Trailing Returns Gross"], asOf.slice(0, 4));
@@ -639,7 +647,7 @@ function buildFactsheetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundD
   const pub = parseStatistics(snap["Statistics Gross"]);
   const risk = withPub(riskFrom(riskStats(series, asOf, "SI", "arithmetic")), pub);
   const risk3Y = withPub(riskFrom(riskStats(series, asOf, "3Y", "arithmetic")), parseStatistics(snap["Statistics Gross 3Y"]));
-  c.prov[key] = `factsheet ${fsBlock.name} (${FUND_SOURCES[spec.key].factsheet!.key}): gross, non-compounded (overlay on notional); trailing and calendar as published; monthly table (${monthDec} decimal) for the monthly series and growth chart`;
+  c.prov[key] = `factsheet ${fsBlock.name} (${variantKey ?? FUND_SOURCES[spec.key].factsheet!.key}): gross, non-compounded (overlay on notional); trailing and calendar as published; monthly table (${monthDec} decimal) for the monthly series and growth chart`;
   c.prov[`${base}.risk`] = pub ? `factsheet ${fsBlock.name} "Statistics Gross" (published precision in risk.decimals; best/worst month from the monthly table)` : `computed from the factsheet monthly table (non-compounded)`;
   return {
     performance: { asOf, basis: "gross", method: "arithmetic", firstMonth, monthly: points, trailing: { fund }, calendar, growth },
@@ -773,7 +781,7 @@ function buildAum(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, 
 
 interface FsParts { characteristics: Characteristic[]; breakdowns: FundData["breakdowns"]; topHoldings: FundData["topHoldings"]; esg: Characteristic[]; factsheetMonth: string | null }
 
-function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, perfAsOf: string | null, c: Ctx, base: string): { parts: FsParts; state: PartState } {
+function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FsParts | undefined, perfAsOf: string | null, c: Ctx, base: string, variantKey?: string): { parts: FsParts; state: PartState } {
   const keep = (why: string): { parts: FsParts; state: PartState } => {
     const hasPrev = !!prev && (prev.characteristics.length > 0 || Object.keys(prev.breakdowns).length > 0 || prev.topHoldings.length > 0 || prev.esg.length > 0);
     c.warn(`${base}.factsheet`, `${why}; ${hasPrev ? `previous factsheet data (${prev!.factsheetMonth ?? "?"}) kept` : "no factsheet data shown"}`);
@@ -786,8 +794,8 @@ function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   const fs = FUND_SOURCES[spec.key].factsheet;
   if (!fs) return { parts: { characteristics: [], breakdowns: {}, topHoldings: [], esg: [], factsheetMonth: null }, state: "none" };
   if (!raw.factsheets.ok) return keep(`factsheet archives unavailable (${raw.factsheets.error ?? "not fetched"})`);
-  const blk = factsheetBlock(raw, spec);
-  if (!blk) return keep(`"${fs.key}" not found in ${fs.file} archives (${raw.factsheets.data?.tried.filter((t) => t.startsWith(fs.file)).join(", ")})`);
+  const blk = factsheetBlock(raw, spec, undefined, variantKey);
+  if (!blk) return keep(`"${variantKey ?? fs.key}" not found in ${fs.file} archives (${raw.factsheets.data?.tried.filter((t) => t.startsWith(fs.file)).join(", ")})`);
   if (prev?.factsheetMonth && blk.month < prev.factsheetMonth) return keep(`newest ${fs.file} archive (${blk.month}) is older than the published one (${prev.factsheetMonth})`);
   const b = blk.block;
   const snap = isObj(b["Portfolio Snapshot"]) ? (b["Portfolio Snapshot"] as Obj) : {};
@@ -830,7 +838,7 @@ function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     };
   }
   if (perfAsOf && blk.month < ym(perfAsOf)) c.info(`${base}.factsheet`, `latest factsheet archive is ${blk.month} (performance as of ${ym(perfAsOf)})`);
-  c.prov[`${base}.factsheet`] = `factsheet archive ${blk.name} (${raw.factsheets.data?.where ?? "?"}), key ${fs.key}: characteristics, breakdowns, top holdings${fs.file === "bonds_data" ? ", ESG metrics" : ""}`;
+  c.prov[`${base}.factsheet`] = `factsheet archive ${blk.name} (${raw.factsheets.data?.where ?? "?"}), key ${variantKey ?? fs.key}: characteristics, breakdowns, top holdings${fs.file === "bonds_data" ? ", ESG metrics" : ""}`;
   return { parts, state: "fresh" };
 }
 
@@ -904,6 +912,89 @@ function carriedNoteFor(c: Ctx, base: string, part: string): string {
   return `carried over from the publication of ${c.prevGenerated}${old ? ` (${old})` : ""}`;
 }
 
+/* ------------------------------------------------------------------ classes and variants */
+
+/** Previous publication's performance of the same class as `next` (never another class: its months are not "revised"). */
+function comparablePrevious(prev: FundData | undefined, next: Performance): Performance | null {
+  if (!prev) return null;
+  const label = next.returnClass;
+  if (!label) return prev.performance ?? null;
+  const hit = Object.values(prev.performanceByClass ?? {}).find((k) => k.display === label);
+  if (hit) return hit.performance;
+  return prev.performance?.returnClass === label ? prev.performance : null;
+}
+
+/**
+ * Returns of every class that has a series at the dataplatform. The class the fund's main series belongs to (`legacy`)
+ * is that series, as built and cross-checked; the others are built from their own class answer, never from another's.
+ * The default class (F) becomes the headline when it has a series (`headline`).
+ */
+function buildClasses(
+  raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, pb: PerfBuild | null, performance: Performance | null, c: Ctx, base: string,
+): { byClass: Record<string, ClassPerformance>; headline: ClassPerformance | null } {
+  const src = FUND_SOURCES[spec.key];
+  const short = src.dataplatform as DpShort;
+  const byClass: Record<string, ClassPerformance> = {};
+  // main series carried over (a source failed this run): the classes carried over with it
+  if (!pb) return { byClass: performance && prev?.performanceByClass ? { ...prev.performanceByClass } : {}, headline: null };
+  if (!pb.performance || !pb.ref) return { byClass, headline: null };
+  const asOf = pb.performance.asOf;
+  const trackStart = PIPELINE_FUNDS[spec.key].trackStart;
+  const notServed: string[] = [];
+  for (const cls of src.classSeries) {
+    const res = raw.monthlyReturnsByClass?.[short]?.[cls.fundserv];
+    const key = `${base}.performance.classes.${cls.fundserv}`;
+    if (res?.absent) notServed.push(`${cls.display} (${cls.fundserv})`);
+    const b = buildClassPerformance({ key, cls, res, asOf, trackStart, idx: pb.ref.idx, indexName: pb.ref.indexName });
+    c.issues.push(...b.issues);
+    if (cls.legacy) {
+      // the main series is this class's: the class answer is only a consistency check of the endpoint
+      const diffs = b.series ? sameClassMismatches(b.series, pb.ref.series, pb.ref.origin) : [];
+      if (diffs.length) c.warn(key, `class ${cls.display} answer differs from the main series for the same class (${diffs.slice(0, 3).join("; ")}${diffs.length > 3 ? "; …" : ""}): the class endpoint is not trusted`);
+      byClass[cls.fundserv] = { fundserv: cls.fundserv, display: cls.display, performance: pb.performance, risk: pb.risk, risk3Y: pb.risk3Y };
+      continue;
+    }
+    if (b.entry) {
+      const problems = performanceProblems(b.entry.performance, "compounded", true);
+      if (problems.length) c.warn(key, `class ${cls.display} (${cls.fundserv}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class`);
+      else byClass[cls.fundserv] = b.entry;
+    }
+  }
+  if (notServed.length) c.info(`sources.monthly-net-returns-class.${short}`, `dataplatform /api/performance/monthly-net-returns does not serve class series yet (class_code / history=full, PR #626) for ${notServed.join(", ")}: those classes show "coming soon"`);
+  const def = spec.headlineClass ? byClass[spec.headlineClass] : undefined;
+  const legacy = src.classSeries.find((k) => k.legacy)?.fundserv;
+  return { byClass, headline: def && def.fundserv !== legacy ? def : null };
+}
+
+/** Variants of a strategy (GMV): one factsheet block each; the default variant's data is the fund's own. */
+function buildVariants(
+  raw: RawPayloads, spec: FundSpec, prev: FundData | undefined,
+  own: { performance: Performance | null; risk: RiskStats | null; risk3Y: RiskStats | null; fp: FsParts }, c: Ctx, base: string,
+): Record<string, VariantData> | undefined {
+  const defs = FUND_SOURCES[spec.key].variants;
+  if (!defs?.length) return undefined;
+  const out: Record<string, VariantData> = {};
+  defs.forEach((v, i) => {
+    if (i === 0) {
+      out[v.id] = { variant: v.id, performance: own.performance, risk: own.risk, risk3Y: own.risk3Y, ...own.fp };
+      return;
+    }
+    const vb = `${base}.variants.${v.id}`;
+    const old = prev?.variants?.[v.id];
+    const pb = buildFactsheetPerformance(raw, spec, old?.performance, c, vb, v.key);
+    if (!pb?.performance) {
+      if (old) {
+        out[v.id] = old;
+        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance?.asOf.slice(0, 7) ?? "?"})`);
+      } else c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; the variant is not shown`);
+      return;
+    }
+    const fp = buildFactsheetParts(raw, spec, old, pb.performance.asOf, c, vb, v.key);
+    out[v.id] = { variant: v.id, performance: pb.performance, risk: pb.risk, risk3Y: pb.risk3Y, ...fp.parts };
+  });
+  return out;
+}
+
 /* ------------------------------------------------------------------ fund */
 
 function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, c: Ctx, opts: BuildOptions, now: Date): { fund: FundData | null; ctx: FundContext } {
@@ -925,7 +1016,7 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     pb = buildNetPerformance(raw, spec, prev, c, base, opts);
   } else if (src.factsheet) {
     if (!raw.factsheets.ok) c.error(`${base}.performance`, `factsheet archives unavailable (${raw.factsheets.error ?? "not fetched"})`);
-    else pb = buildFactsheetPerformance(raw, spec, prev, c, base);
+    else pb = buildFactsheetPerformance(raw, spec, prev?.performance, c, base);
     if (raw.factsheets.ok && !pb && !factsheetBlock(raw, spec)) c.error(`${base}.performance`, `"${src.factsheet.key}" not found in the ${src.factsheet.file} archives`);
   }
   if (pb) {
@@ -956,9 +1047,27 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     if (short || FUND_SOURCES[spec.key].factsheet) ctx.alerts.push("no performance");
   }
 
-  // revisions of already published months (M5)
+  // returns per class (net funds): the class series of the dataplatform; the default class (F) becomes the headline series
+  let performanceByClass: FundData["performanceByClass"];
+  let defaultClass: string | undefined;
+  if (short) {
+    const cls = buildClasses(raw, spec, prev, pb, performance, c, base);
+    performanceByClass = cls.byClass;
+    defaultClass = spec.headlineClass ?? undefined;
+    if (cls.headline) {
+      performance = cls.headline.performance;
+      risk = cls.headline.risk;
+      risk3Y = cls.headline.risk3Y;
+      // the factsheet cross-check was made on the fund's main series (another class): it does not apply to this class
+      ctx.factsheetTrailing = null;
+      ctx.factsheetTrailingFile = null;
+      ctx.factsheetTrailingDecimals = undefined;
+    }
+  }
+
+  // revisions of already published months (M5): against the same class of the previous publication
   if (performance && ctx.parts.performance !== "carried") {
-    ctx.revisions = revisions(prev?.performance, performance);
+    ctx.revisions = revisions(comparablePrevious(prev, performance), performance);
     if (ctx.revisions.length) {
       c.warn(`${base}.performance.monthly`, `revised month(s) already published: ${ctx.revisions.slice(0, 6).map((r) => `${ym(r.month)} ${pct(r.before)} → ${r.after === null ? "removed" : pct(r.after)}`).join("; ")}${ctx.revisions.length > 6 ? "; …" : ""}`);
       ctx.alerts.push(`${ctx.revisions.length} published month(s) revised`);
@@ -985,6 +1094,9 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
   const portfolio = short ? buildPortfolio(raw, spec, prev, fp, c, base, now) : null;
   const distributions = short ? buildDistributions(raw, spec, prev, nav, c, base, now) : null;
 
+  // strategy variants (GMV 3 / 6 / 9 % downside volatility): the default variant is the fund's own data above
+  const variants = !short && src.variants ? buildVariants(raw, spec, prev, { performance, risk, risk3Y, fp: fp.parts }, c, base) : undefined;
+
   const hasAny = performance || nav || aum || portfolio || fp.parts.characteristics.length || fp.parts.topHoldings.length || Object.keys(fp.parts.breakdowns).length;
   if (!hasAny) return { fund: null, ctx };
   const fund: FundData = {
@@ -998,6 +1110,8 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     factsheetMonth: fp.parts.factsheetMonth,
     portfolio,
     distributions,
+    ...(performanceByClass && Object.keys(performanceByClass).length ? { performanceByClass, defaultClass } : {}),
+    ...(variants ? { variants, defaultVariant: src.variants![0].id } : {}),
   };
   return { fund, ctx };
 }

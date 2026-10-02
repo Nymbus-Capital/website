@@ -68,7 +68,7 @@ export const saveSettingsSchema = z.strictObject({
 export const runPipelineSchema = z.strictObject({ dryRun: z.boolean().default(false) });
 
 export const DOC_TYPE_VALUES = [
-  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "commentary", "presentation", "esg", "other",
+  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other",
 ] as const;
 
 export const docScopeSchema = z.union([fundKeySchema, z.literal("firm")]);

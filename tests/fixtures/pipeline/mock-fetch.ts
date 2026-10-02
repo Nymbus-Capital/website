@@ -92,6 +92,29 @@ export function mockFetch(...overrides: Route[]): MockFetch {
   return { fetch: f as typeof fetch, calls };
 }
 
+/** the class series as dataplatform PR #626 serves them (history=full, every month ready): files mnr_class_*.json */
+type MnrRow = { month: string; net_return: number | null; status: string; source?: string };
+const CLASS_FILES: Record<string, Record<string, { fundserv: string; display: string; file: string }>> = {
+  SEST: { STRATEGY: { fundserv: "LDM001", display: "FP", file: "mnr_class_SEST.json" } },
+  SEB: { STRATEGY: { fundserv: "LDM201", display: "F", file: "mnr_class_SEB_F.json" }, STRATEGY_H: { fundserv: "LDM202", display: "H", file: "mnr_class_SEB_H.json" } },
+  Multistrat: { STRATEGY: { fundserv: "LDM301", display: "F", file: "mnr_class_Multistrat.json" } },
+};
+export function classServedRoute(tweak?: (short: string, classCode: string, rows: MnrRow[]) => MnrRow[]): Route {
+  return (url) => {
+    if (url.pathname !== "/api/performance/monthly-net-returns") return undefined;
+    const sn = url.searchParams.get("short_name") ?? "";
+    const cc = url.searchParams.get("class_code");
+    if (!cc) return undefined;
+    const meta = CLASS_FILES[sn]?.[cc];
+    if (!meta) return json({ detail: "Unsupported class" }, 422);
+    const j = loadFixture(`dataplatform/${meta.file}`) as { rows: MnrRow[] };
+    const end = url.searchParams.get("end_date") ?? "9999";
+    let rows = j.rows.filter((r) => r.month <= end);
+    if (tweak) rows = tweak(sn, cc, rows);
+    return json({ ...j, class_code: cc, fundserv: meta.fundserv, class_display: meta.display, history: "full", rows });
+  };
+}
+
 /** env for a run against the fixtures (no Graph, analytics from the local fixture file) */
 export function fixtureEnv(extra: Record<string, string | undefined> = {}): Record<string, string | undefined> {
   return { DATAPLATFORM_URL: FIXTURE_BASE_URL, FACTSHEET_DATA_DIR: FIXTURE_FACTSHEETS_DIR, ANALYTICS_RETURNS_FILE: FIXTURE_ANALYTICS_FILE, PIPELINE_RETRY_BASE_MS: "0", ...extra };

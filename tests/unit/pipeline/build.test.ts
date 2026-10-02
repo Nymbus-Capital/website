@@ -107,10 +107,10 @@ test("end to end: history from analytics + dataplatform ready months, published 
   // SEB: STRATEGY_H track record, published universe index
   const seb = data.funds["sustainable-enhanced-bonds"]!.performance!;
   assert.equal(seb.firstMonth, "2019-02-28");
-  assert.equal(seb.returnClass, "F");
-  assert.equal(seb.returnClassLabel, "Series F");
-  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /STRATEGY_H \(class H\) series; the site labels it class F/.test(i.message)));
-  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /dataplatform class_code STRATEGY_H; shown as class F/);
+  assert.equal(seb.returnClass, "H", "the parameterless series is class H: labelled H until the class F series is served");
+  assert.equal(seb.returnClassLabel, "Series H");
+  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /STRATEGY_H \(class H\) series; the site labels it class H/.test(i.message)));
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /dataplatform class_code STRATEGY_H; shown as class H/);
   // FTSE univ, history joined over the renamed index (python3 reference)
   near(seb.trailing.index!["1Y"], -0.031101481717578983);
   near(seb.trailing.index!.SI, 0.015257215343614572);

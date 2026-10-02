@@ -6,7 +6,7 @@ import { FUND_SOURCES } from "../fund-sources.ts";
 import type { FundKey } from "../../data/types.ts";
 import type { DpShort, FundPortfolio, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
-import { dpClient, fetchApexFunds, fetchAum, fetchDistributions, fetchFtse, fetchFundPortfolio, fetchMonthlyNetReturns, fetchNav, fetchUnitholderFunds } from "./dataplatform.ts";
+import { dpClient, fetchApexFunds, fetchAum, fetchDistributions, fetchFtse, fetchFundPortfolio, fetchMonthlyNetReturns, fetchMonthlyNetReturnsClass, fetchNav, fetchUnitholderFunds } from "./dataplatform.ts";
 import { fetchFactsheets } from "./factsheets.ts";
 import { fetchAnalytics } from "./analytics.ts";
 import type { FetchImpl } from "./http.ts";
@@ -36,9 +36,19 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const portfolio: NonNullable<RawPayloads["portfolio"]> = {};
   const portfolioMonthEnd: NonNullable<RawPayloads["portfolioMonthEnd"]> = {};
   const distributions: NonNullable<RawPayloads["distributions"]> = {};
+  const monthlyReturnsByClass: NonNullable<RawPayloads["monthlyReturnsByClass"]> = {};
 
   const today = opts.now.toISOString().slice(0, 10);
   const jobs: Promise<unknown>[] = [];
+  for (const f of FUNDS) {
+    const short = FUND_SOURCES[f.key].dataplatform;
+    if (!short) continue;
+    for (const cls of FUND_SOURCES[f.key].classSeries) {
+      jobs.push((c ? fetchMonthlyNetReturnsClass(c, short, cls, target) : Promise.resolve(noDp())).then((r) => {
+        (monthlyReturnsByClass[short] ??= {})[cls.fundserv] = r as never;
+      }));
+    }
+  }
   for (const s of shorts) {
     jobs.push((c ? fetchMonthlyNetReturns(c, s, target) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
     jobs.push((c ? fetchNav(c, s, opts.now) : Promise.resolve(noDp())).then((r) => { nav[s] = r as never; }));
@@ -55,7 +65,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const fsP = fetchFactsheets(target, opts.fetchImpl, env);
   const anP = fetchAnalytics(opts.fetchImpl, env);
   const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
-  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, portfolio, portfolioMonthEnd, distributions };
+  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, monthlyReturnsByClass, portfolio, portfolioMonthEnd, distributions };
 }
 
 /**

@@ -1,0 +1,739 @@
+{
+ "short_name": "SEB",
+ "class_code": "STRATEGY",
+ "currency": "CAD",
+ "return_basis": "net_of_fees",
+ "methodology_version": "cibc-stored-bridge-apex-daily-net-v1",
+ "as_of": "2026-09-29",
+ "row_count": 91,
+ "rows": [
+  {
+   "month": "2019-02-28",
+   "net_return": -0.01339436,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-03-31",
+   "net_return": 0.0008516,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-04-30",
+   "net_return": -0.0116086,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-05-31",
+   "net_return": 0.01506384,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-06-30",
+   "net_return": 0.00877535,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-07-31",
+   "net_return": -0.00766355,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-08-31",
+   "net_return": 0.03349039,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-09-30",
+   "net_return": 0.01876994,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-10-31",
+   "net_return": 0.00049494,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-11-30",
+   "net_return": 0.01943947,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2019-12-31",
+   "net_return": 0.00548762,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-01-31",
+   "net_return": -0.0266419,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-02-29",
+   "net_return": -0.00938802,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-03-31",
+   "net_return": 0.00208321,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-04-30",
+   "net_return": -0.0029384,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-05-31",
+   "net_return": 0.01318637,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-06-30",
+   "net_return": 0.0125451,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-07-31",
+   "net_return": 0.02133861,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-08-31",
+   "net_return": -0.01407264,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-09-30",
+   "net_return": -0.00073393,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-10-31",
+   "net_return": -0.00492831,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-11-30",
+   "net_return": -0.00550645,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2020-12-31",
+   "net_return": 0.00689639,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-01-31",
+   "net_return": 0.02603214,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-02-28",
+   "net_return": 0.00463928,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-03-31",
+   "net_return": 0.01854601,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-04-30",
+   "net_return": 0.01330008,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-05-31",
+   "net_return": 0.02746364,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-06-30",
+   "net_return": 0.00946503,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-07-31",
+   "net_return": 0.00810718,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-08-31",
+   "net_return": -0.0016658,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-09-30",
+   "net_return": -0.00365116,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-10-31",
+   "net_return": -0.00380448,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-11-30",
+   "net_return": 0.00458146,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2021-12-31",
+   "net_return": -0.01589284,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-01-31",
+   "net_return": -0.00154352,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-02-28",
+   "net_return": -0.00537665,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-03-31",
+   "net_return": 0.00588153,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-04-30",
+   "net_return": -0.02885458,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-05-31",
+   "net_return": 0.0070045,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-06-30",
+   "net_return": 0.01035759,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-07-31",
+   "net_return": 0.00526211,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-08-31",
+   "net_return": -0.02969477,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-09-30",
+   "net_return": -0.00473229,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-10-31",
+   "net_return": -0.0085593,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-11-30",
+   "net_return": 0.00080628,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2022-12-31",
+   "net_return": -0.0194747,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-01-31",
+   "net_return": -0.0077913,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-02-28",
+   "net_return": 0.00020878,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-03-31",
+   "net_return": 0.03661071,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-04-30",
+   "net_return": 0.0132715,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-05-31",
+   "net_return": -0.00286637,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-06-30",
+   "net_return": 0.01702585,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-07-31",
+   "net_return": 0.01104935,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-08-31",
+   "net_return": 0.01422785,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-09-30",
+   "net_return": -0.00185132,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-10-31",
+   "net_return": -0.01295535,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-11-30",
+   "net_return": 0.0143743,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2023-12-31",
+   "net_return": -0.00295694,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-01-31",
+   "net_return": 0.01116196,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-02-29",
+   "net_return": 0.01244086,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-03-31",
+   "net_return": 0.02959342,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-04-30",
+   "net_return": -0.02885358,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-05-31",
+   "net_return": -0.00118748,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-06-30",
+   "net_return": 0.0218869,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-07-31",
+   "net_return": 0.01832941,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-08-31",
+   "net_return": -0.00013604,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-09-30",
+   "net_return": 0.00982595,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-10-31",
+   "net_return": -0.00929679,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-11-30",
+   "net_return": 0.01620779,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2024-12-31",
+   "net_return": 0.00513282,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-01-31",
+   "net_return": -0.00414974,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-02-28",
+   "net_return": -0.00271735,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-03-31",
+   "net_return": 0.00754097,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-04-30",
+   "net_return": 0.00394431,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-05-31",
+   "net_return": 0.01779305,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-06-30",
+   "net_return": -0.01550324,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-07-31",
+   "net_return": 0.01023136,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-08-31",
+   "net_return": -0.02905615,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-09-30",
+   "net_return": 0.01474499,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-10-31",
+   "net_return": 0.01328427,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-11-30",
+   "net_return": -0.01143739,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2025-12-31",
+   "net_return": -0.00870365,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-01-31",
+   "net_return": -0.01025232,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-02-28",
+   "net_return": -0.03786772,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-03-31",
+   "net_return": 0.01863561,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-04-30",
+   "net_return": -0.02290955,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-05-31",
+   "net_return": 0.01449111,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-06-30",
+   "net_return": -0.01834509,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-07-31",
+   "net_return": 0.0210039,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "cibc",
+   "issue": null
+  },
+  {
+   "month": "2026-08-31",
+   "net_return": -0.0101447,
+   "status": "ready",
+   "method": "stored_net",
+   "source": "apex",
+   "issue": null
+  }
+ ]
+}

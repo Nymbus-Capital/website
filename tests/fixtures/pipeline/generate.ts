@@ -197,6 +197,12 @@ function mnr(short: string, s: Series, first: string): unknown {
   return { short_name: short, class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
 }
 
+/** full-history class series as dataplatform PR #626 serves them (history=full): every month ready, cibc until the Apex cutover */
+function mnrClass(short: string, s: Series, first: string, spread: number): unknown {
+  const rows = months(first, LAST_MONTH).map((m) => ({ month: m, net_return: r8(s[m] + spread), status: "ready", method: "stored_net", source: m >= APEX_READY_FROM ? "apex" : "cibc", issue: null }));
+  return { short_name: short, class_code: "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "cibc-stored-bridge-apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
+}
+
 function businessDays(from: string, to: string): string[] {
   const out: string[] = [];
   for (let t = Date.parse(from); t <= Date.parse(to); t += 86_400_000) {
@@ -573,8 +579,8 @@ function multiBlock(): unknown {
   };
 }
 
-function gmvBlock(): unknown {
-  const gmv = upTo(gmvAll, END);
+function gmvBlock(scale = 1): unknown {
+  const gmv: Series = Object.fromEntries(Object.entries(upTo(gmvAll, END)).map(([m, r]) => [m, r8(r * scale)]));
   const t = trailingStrings(gmv, "arithmetic", false);
   return {
     "Calendar Performance Gross": Object.fromEntries(calendarYears(gmv, END, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)])),
@@ -612,6 +618,10 @@ export function generate(dir = HERE): void {
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
   w(path.join(dp, "mnr_Multistrat.json"), mnr("Multistrat", multi, "2019-01-31"));
+  w(path.join(dp, "mnr_class_SEST.json"), mnrClass("SEST", sest, "2019-01-31", 0));
+  w(path.join(dp, "mnr_class_SEB_F.json"), mnrClass("SEB", seb, "2019-02-28", 0.00012));
+  w(path.join(dp, "mnr_class_SEB_H.json"), mnrClass("SEB", seb, "2019-02-28", 0));
+  w(path.join(dp, "mnr_class_Multistrat.json"), mnrClass("Multistrat", multi, "2019-01-31", 0));
   for (const s of ["SEST", "SEB", "Multistrat"]) w(path.join(dp, `nav_${s}.json`), navPayload(s));
   w(path.join(dp, "apex_funds.json"), apexFunds);
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);
@@ -631,7 +641,7 @@ export function generate(dir = HERE): void {
     END = end;
     const ymd = end.slice(0, 7);
     w(path.join(fs, `bonds_data_${ymd}.json`), { SEST: bondBlock("SEST"), "QCFI-SEB": bondBlock("SEB") });
-    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock() });
+    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock(), GMV_3pct: gmvBlock(0.5), GMV_9pct: gmvBlock(1.5) });
   }
   END = LAST_MONTH;
 }
