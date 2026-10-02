@@ -26,14 +26,20 @@ const ICONS: Record<FeatureIcon, typeof Leaf> = {
 export function FeatureSection({ spec, data, content, lang }: { spec: FundSpec; data: FundData | null; content: FundContent; lang: Lang }) {
   const f = FUND_TEXTS[spec.key].feature;
   const hasEsg = !content.hide?.esg && !!data?.esg.some((c) => c.fund != null);
-  const cards = f.cards.filter((c) => c.needs !== "esg" || hasEsg);
+  // long cards (disclosure text) would tower over the others: shown last, spanning the row (one long card)
+  // or paired in their own row (two long cards)
+  const all = f.cards.filter((c) => c.needs !== "esg" || hasEsg);
+  const isLong = (c: (typeof all)[number]) => c.text.en.split(/\s+/).length > 22;
+  const long = all.filter(isLong);
+  const cards = [...all.filter((c) => !isLong(c)), ...long];
+  const cols = long.length === 1 && cards.length === 4 ? 3 : long.length === 2 && cards.length === 4 ? 2 : cards.length >= 4 ? 4 : cards.length === 3 ? 3 : 2;
   return (
     <Section tone="tint" glow="bl" className="ff" labelledBy="ff-title">
       <SectionHead eyebrow={tr(f.eyebrow, lang)} title={tr(f.title, lang)} lead={tr(f.lead, lang)} id="ff-title" />
-      <CardGrid cols={cards.length >= 4 ? 4 : cards.length === 3 ? 3 : 2} className="ff-grid">
+      <CardGrid cols={cols} className="ff-grid">
         {cards.map((c) => {
           const Icon = ICONS[c.icon];
-          return <FeatureCard key={c.title.en} icon={<Icon />} title={tr(c.title, lang)}><p>{tr(c.text, lang)}</p></FeatureCard>;
+          return <FeatureCard key={c.title.en} icon={<Icon />} title={tr(c.title, lang)} className={cols === 3 && isLong(c) ? "ff-wide" : undefined}><p>{tr(c.text, lang)}</p></FeatureCard>;
         })}
       </CardGrid>
       {f.link ? <Reveal self className="ff-link"><Link className="link" href={f.link.href}>{tr(f.link.label, lang)} <ArrowRight aria-hidden="true" /></Link></Reveal> : null}

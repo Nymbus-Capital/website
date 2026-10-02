@@ -156,7 +156,7 @@ export const DISCLAIMERS: Disclaimer[] = [
     label: "Definition of the rates of return (net of fees)",
     text: RETURNS_NET,
     where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages (net-of-fees funds), disclosure", href: "/strategies/sustainable-enhanced-bonds#disclosure" }],
-    review: ["Net of which fees (management fee, fund expenses, MER)? Series shown per fund (series F / FP; SEB's track record is the STRATEGY_H series labelled F).", "Annualization convention matches the site: periods of 12 months and more are annualized (since inception annualized once the track record covers 12 months); periods under one year are not annualized. Standard periods (1, 3, 5, 10 years and since inception) per NI 81-102 Part 15."],
+    review: ["Net of which fees (management fee, fund expenses, MER)? Series shown per fund: Monthly Income FP, Multi-Strategy F; SEB series F once the dataplatform serves its full class F history, else series H — the label always follows the class of the data (Gabriel 2026-10-01). SEB series F for 2019-02 to 2023-07 covers pre-launch strategy returns net of current fees (same question as the Monthly Income pre-launch record).", "Annualization convention matches the site: periods of 12 months and more are annualized (since inception annualized once the track record covers 12 months); periods under one year are not annualized. Standard periods (1, 3, 5, 10 years and since inception) per NI 81-102 Part 15."],
   },
   {
     id: "benchmark",

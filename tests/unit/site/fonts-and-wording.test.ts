@@ -90,10 +90,9 @@ test("no characteristic parsed from the factsheets is a leverage metric or a liq
 test("no visitor-facing text of the funds mentions leverage or a liquidity score (EN or FR)", () => {
   const texts: string[] = [];
   for (const f of FUNDS) texts.push(f.defaults.description.en, f.defaults.description.fr, f.defaults.tagline.en, f.defaults.tagline.fr);
-  for (const t of Object.values(FUND_TEXTS)) {
-    texts.push(t.summary.en, t.summary.fr, t.approach.en, t.approach.fr);
-    for (const c of t.feature.cards) texts.push(c.title.en, c.title.fr, c.text.en, c.text.fr);
-  }
+  // every string of the fund texts (summary, approach, note, feature cards, whatever the copy keeps)
+  const leaves = (v: unknown): string[] => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : []);
+  for (const t of Object.values(FUND_TEXTS)) texts.push(...leaves(t));
   for (const s of texts) assert.ok(!FORBIDDEN.test(s), `forbidden wording in: ${s.slice(0, 80)}`);
 });
 

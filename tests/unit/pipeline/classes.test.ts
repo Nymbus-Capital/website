@@ -1,99 +1,95 @@
 /**
- * Returns per class and GMV variants: pipeline build + validation against the synthetic fixtures (class series served
- * like dataplatform PR #626, or not served yet). A class never shows another class's numbers.
+ * Returns per class and GMV variants: pipeline build + validation against the synthetic fixtures (full-history class
+ * served like dataplatform PR #626, or not served yet), and the hold of a failing performance per class / variant.
+ * A class never shows another class's numbers.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
-import { runEndingAt, readyMonths, performanceProblems } from "../../../src/lib/pipeline/classes.ts";
+import { buildClassPerformance, runEndingAt, performanceProblems } from "../../../src/lib/pipeline/classes.ts";
+import { classSeriesOf } from "../../../src/lib/pipeline/fund-sources.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
-import type { MonthlyNetReturnsResponse } from "../../../src/lib/pipeline/raw.ts";
-import { classServedRoute, fixtureEnv, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { fixtureEnv, fullHistoryRoute, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import type { FundContext } from "../../../src/lib/pipeline/build.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
+const SEB = "sustainable-enhanced-bonds";
+const GMV = "global-minimum-volatility";
 
-async function build(...routes: Route[]): Promise<{ data: SiteData; validated: SiteData }> {
+async function build(...routes: Route[]): Promise<{ data: SiteData; validated: SiteData; context: Partial<Record<string, FundContext>> }> {
   const raw = await fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv() });
   const { data, context } = buildSiteData(raw, null, NOW);
-  return { data, validated: validateSite(data, context, null, NOW).data };
+  return { data, validated: validateSite(data, context, null, NOW).data, context };
 }
-const SEB = "sustainable-enhanced-bonds";
 
-test("class series not served yet: headline stays the legacy class with its true label; no invented class", async () => {
+test("classes of a fund come from the class configuration (SEB F + H, Monthly Income FP only: LDM081 has no series)", () => {
+  assert.deepEqual(classSeriesOf(SEB).map((k) => k.fundserv), ["LDM201", "LDM202"]);
+  assert.deepEqual(classSeriesOf("monthly-income").map((k) => k.fundserv), ["LDM001"]);
+  assert.deepEqual(classSeriesOf(GMV), []);
+});
+
+test("full history not served yet: headline is class H labelled H; no invented class", async () => {
   const { data } = await build();
   const seb = data.funds[SEB]!;
   assert.equal(seb.performance!.returnClass, "H", "the parameterless SEB series is class H");
   assert.deepEqual(Object.keys(seb.performanceByClass ?? {}), ["LDM202"]);
+  assert.deepEqual(seb.performanceByClass!.LDM202.performance, seb.performance);
   assert.equal(data.funds["monthly-income"]!.performance!.returnClass, "FP");
   assert.deepEqual(Object.keys(data.funds["monthly-income"]!.performanceByClass ?? {}), ["LDM001"], "LDM081 (F) has no series: not shown");
-  assert.ok(data.issues.some((i) => i.key === "sources.monthly-net-returns-class.SEB" && i.level === "info"));
-  assert.ok(!data.issues.some((i) => i.level === "warn" && /class/.test(i.key)));
+  assert.ok(!data.issues.some((i) => i.level === "warn" && /classes/.test(i.key)));
 });
 
-test("class series served: F is the headline of SEB and Multi-Strategy, H keeps its own series, numbers differ per class", async () => {
-  const { data, validated } = await build(classServedRoute());
+test("full history served: F is the headline of SEB, H keeps its own series, numbers differ per class", async () => {
+  const { data, validated } = await build(fullHistoryRoute);
   for (const d of [data, validated]) {
     const seb = d.funds[SEB]!;
-    assert.equal(d.funds[SEB]!.defaultClass, "LDM201");
+    assert.equal(seb.defaultClass, "LDM201");
     assert.equal(seb.performance!.returnClass, "F");
+    assert.equal(seb.performance!.classCode, "STRATEGY");
     const f = seb.performanceByClass!.LDM201;
     const h = seb.performanceByClass!.LDM202;
     assert.ok(f && h);
     assert.equal(f.performance.returnClass, "F");
     assert.equal(h.performance.returnClass, "H");
+    assert.equal(h.performance.classCode, "STRATEGY_H");
     assert.deepEqual(seb.performance, f.performance, "headline = default class");
-    const fl = f.performance.monthly[f.performance.monthly.length - 1].r;
-    const hl = h.performance.monthly[h.performance.monthly.length - 1].r;
-    assert.ok(Math.abs(fl - hl - 0.00012) < 1e-9, "class F = class H + 1.2 bp in the fixture");
+    assert.equal(h.performance.asOf, f.performance.asOf);
     assert.notEqual(f.performance.trailing.fund.SI, h.performance.trailing.fund.SI);
     assert.equal(d.funds["multi-strategy"]!.performance!.returnClass, "F");
-    // Monthly Income: the legacy series (FP) stays the headline until LDM081 is served
     assert.equal(d.funds["monthly-income"]!.performance!.returnClass, "FP");
   }
   assert.ok(!data.issues.some((i) => i.level === "warn" && /classes/.test(i.key)), JSON.stringify(data.issues.filter((i) => /classes/.test(i.key))));
 });
 
-test("class history shorter than 12 months: only the periods that exist, flagged, no risk statistics", async () => {
-  const { data } = await build(classServedRoute((sn, cc, rows) => (sn === "SEB" && cc === "STRATEGY" ? rows.filter((r) => r.month >= "2026-03-31") : rows)));
-  const f = data.funds[SEB]!.performanceByClass!.LDM201;
-  assert.equal(f.performance.shortRecord, true);
-  assert.equal(f.performance.firstMonth, "2026-03-31");
-  assert.equal(f.performance.monthly.length, 6);
-  assert.equal(f.performance.trailing.fund["1Y"], null);
-  assert.equal(f.performance.trailing.fund["3M"] != null, true);
-  assert.equal(f.risk, null);
-  assert.equal(f.risk3Y, null);
-  assert.ok(f.performance.calendar.every((y) => y.year === 2026 && y.partial));
+test("a class whose series is shorter than 12 months: only the periods that exist, flagged, no risk statistics", () => {
+  const series: Record<string, number> = {};
+  for (const m of ["2026-03-31", "2026-04-30", "2026-05-31", "2026-06-30", "2026-07-31", "2026-08-31"]) series[m] = 0.004;
+  const cls = { fundserv: "LDM081", display: "F", classCode: "STRATEGY" as const };
+  const b = buildClassPerformance({ key: "k", cls, series, asOf: "2026-08-31", idx: null });
+  const e = b.entry!;
+  assert.equal(e.performance.shortRecord, true);
+  assert.equal(e.performance.firstMonth, "2026-03-31");
+  assert.equal(e.performance.monthly.length, 6);
+  assert.equal(e.performance.trailing.fund["1Y"], null);
+  assert.equal(e.performance.trailing.fund["3M"] != null, true);
+  assert.equal(e.risk, null);
+  assert.equal(e.risk3Y, null);
+  assert.ok(e.performance.calendar.every((y) => y.year === 2026 && y.partial));
 });
 
-test("a class series that does not end at the as-of month is dropped with a warning; the other class and the fund stay", async () => {
-  const { data } = await build(classServedRoute((sn, cc, rows) => (sn === "SEB" && cc === "STRATEGY" ? rows.filter((r) => r.month <= "2026-07-31") : rows)));
-  const seb = data.funds[SEB]!;
-  assert.equal(seb.performanceByClass!.LDM201, undefined);
-  assert.equal(seb.performance!.returnClass, "H", "no F series: the headline is the class that has one, labelled H");
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201`));
-});
-
-test("the class endpoint disagreeing with the main series for the same class is flagged", async () => {
-  const { data } = await build(classServedRoute((sn, cc, rows) => (sn === "SEB" && cc === "STRATEGY_H" ? rows.map((r) => (r.month === "2026-08-31" ? { ...r, net_return: (r.net_return ?? 0) + 0.01 } : r)) : rows)));
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM202` && /differs from the main series/.test(i.message)));
-});
-
-test("a class answer for another class than the one asked is refused", async () => {
-  const wrong: Route = (u) => {
-    if (u.pathname !== "/api/performance/monthly-net-returns" || u.searchParams.get("class_code") !== "STRATEGY" || u.searchParams.get("short_name") !== "SEB") return undefined;
-    return classServedRoute()(new URL(u.toString().replace("class_code=STRATEGY", "class_code=STRATEGY_H")));
-  };
-  const { data } = await build(wrong);
-  assert.equal(data.funds[SEB]!.performanceByClass?.LDM201, undefined);
+test("a class series that does not end at the as-of month is not shown, with a warning", () => {
+  const cls = { fundserv: "LDM201", display: "F", classCode: "STRATEGY" as const };
+  const b = buildClassPerformance({ key: "k", cls, series: { "2026-05-31": 0.01, "2026-06-30": 0.01 }, asOf: "2026-08-31", idx: null });
+  assert.equal(b.entry, null);
+  assert.ok(b.issues.some((i) => i.level === "warn" && /ends 2026-06/.test(i.message)));
 });
 
 test("GMV variants 3 / 6 / 9: each has its own returns; the default (6) is the fund's own data", async () => {
   const { data, validated } = await build();
   for (const d of [data, validated]) {
-    const g = d.funds["global-minimum-volatility"]!;
+    const g = d.funds[GMV]!;
     assert.equal(g.defaultVariant, "6");
     assert.deepEqual(Object.keys(g.variants!).sort(), ["3", "6", "9"]);
     assert.deepEqual(g.variants!["6"].performance, g.performance);
@@ -107,23 +103,56 @@ test("GMV: a missing variant block drops that variant only", async () => {
   const raw = await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() });
   for (const f of Object.values(raw.factsheets.data!.files) as Record<string, unknown>[]) delete f.GMV_9pct;
   const { data, context } = buildSiteData(raw, null, NOW);
-  const g = validateSite(data, context, null, NOW).data.funds["global-minimum-volatility"]!;
+  const g = validateSite(data, context, null, NOW).data.funds[GMV]!;
   assert.deepEqual(Object.keys(g.variants!).sort(), ["3", "6"]);
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === "funds.global-minimum-volatility.variants.9.performance"));
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${GMV}.variants.9.performance`));
 });
 
 test("validation drops a class whose own numbers are implausible, never the fund", async () => {
-  const { data } = await build(classServedRoute());
+  const { data, context } = await build(fullHistoryRoute);
   const bad = structuredClone(data);
-  const seb = bad.funds[SEB]!;
-  seb.performanceByClass!.LDM202.performance.monthly[3].r = 0.9;
-  const raw = await fetchAll({ fetchImpl: mockFetch(classServedRoute()).fetch, now: NOW, env: fixtureEnv() });
-  const { context } = buildSiteData(raw, null, NOW);
+  bad.funds[SEB]!.performanceByClass!.LDM202.performance.monthly[3].r = 0.9;
   const v = validateSite(bad, context, null, NOW).data;
   assert.equal(v.funds[SEB]!.performanceByClass!.LDM202, undefined);
   assert.ok(v.funds[SEB]!.performanceByClass!.LDM201);
   assert.ok(v.funds[SEB]!.performance);
   assert.ok(v.issues.some((i) => i.level === "warn" && /LDM202/.test(i.key)));
+});
+
+test("a performance held by validation holds every class, never new classes next to an old headline; NAV and the rest still publish", async () => {
+  const first = await build(fullHistoryRoute);
+  const previous = { ...structuredClone(first.validated), mode: "live" } as SiteData;
+  const bad = structuredClone(first.data);
+  const seb = bad.funds[SEB]!;
+  seb.performance!.monthly[3].r = Number.NaN; // only the performance fails
+  seb.performanceByClass!.LDM201.performance.monthly[3].r = Number.NaN;
+  seb.performanceByClass!.LDM202.performance.trailing.fund["1M"] = 0.0123; // would differ from the held one
+  const out = validateSite(bad, first.context, previous, NOW);
+  const kept = out.data.funds[SEB]!;
+  const was = previous.funds[SEB]!;
+  assert.ok(kept, "the fund is not dropped");
+  assert.deepEqual(kept.performance, was.performance);
+  assert.deepEqual(kept.performanceByClass, was.performanceByClass, "every class is held with the headline");
+  assert.equal(kept.defaultClass, was.defaultClass);
+  assert.deepEqual(kept.nav, bad.funds[SEB]!.nav, "NAV is the new one");
+  assert.ok(out.results.find((r) => r.fund === SEB)!.blocking.length > 0);
+});
+
+test("a held GMV performance holds every variant with it", async () => {
+  const first = await build();
+  const previous = { ...structuredClone(first.validated), mode: "live" } as SiteData;
+  const bad = structuredClone(first.data);
+  const g = bad.funds[GMV]!;
+  g.performance!.monthly[3].r = Number.NaN;
+  g.variants!["6"].performance = g.performance;
+  g.variants!["3"].performance!.trailing.fund["1M"] = 0.0123;
+  const out = validateSite(bad, first.context, previous, NOW);
+  const kept = out.data.funds[GMV]!;
+  assert.ok(kept, "the fund is not dropped");
+  assert.deepEqual(kept.performance, previous.funds[GMV]!.performance);
+  assert.deepEqual(kept.variants!["6"].performance, previous.funds[GMV]!.performance);
+  assert.deepEqual(kept.variants!["3"], previous.funds[GMV]!.variants!["3"]);
+  assert.deepEqual(kept.variants!["9"], previous.funds[GMV]!.variants!["9"]);
 });
 
 test("runEndingAt: contiguous run to as-of; a hole ends the usable run; missing as-of = null", () => {
@@ -132,14 +161,6 @@ test("runEndingAt: contiguous run to as-of; a hole ends the usable run; missing 
   assert.equal(r.first, "2026-04-30");
   assert.deepEqual(r.before, ["2026-01-31", "2026-02-28"]);
   assert.equal(runEndingAt(s, "2026-06-30"), null);
-});
-
-test("readyMonths: only ready finite months up to as-of and after the track start", () => {
-  const data = { as_of: "x", rows: [
-    { month: "2026-01-31", net_return: 0.01, status: "ready" }, { month: "2026-02-28", net_return: null, status: "ready" },
-    { month: "2026-03-31", net_return: 0.02, status: "unavailable" }, { month: "2026-04-30", net_return: 0.03, status: "ready" }, { month: "2026-05-31", net_return: 0.04, status: "ready" },
-  ] } as MonthlyNetReturnsResponse;
-  assert.deepEqual(readyMonths(data, "2026-04-30", "2026-02-28"), { "2026-04-30": 0.03 });
 });
 
 test("performanceProblems: gap, wrong end, huge month, trailing mismatch", () => {

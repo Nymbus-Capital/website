@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital is a Montreal portfolio manager founded in 2013: scientists and market veterans building systematic fixed income and alternative strategies. Meet the team.",
-      "Nymbus Capital est un gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et alternatives. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists and market veterans building systematic strategies. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques et des vétérans des marchés qui bâtissent des stratégies systématiques. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -19,8 +19,8 @@ export const AB = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Nymbus Capital is an independent portfolio manager based in Montreal. Since 2013, our team of scientists, engineers and experienced portfolio managers has built systematic fixed income and alternative strategies for institutions, family offices and financial advisors.",
-      "Nymbus Capital est un gestionnaire de portefeuille indépendant établi à Montréal. Depuis 2013, notre équipe de scientifiques, d’ingénieurs et de gestionnaires de portefeuille chevronnés bâtit des stratégies systématiques de revenu fixe et alternatives pour des institutions, des bureaux de gestion familiale et des conseillers financiers.",
+      "Independent Montreal portfolio manager, since 2013.",
+      "Gestionnaire de portefeuille indépendant à Montréal, depuis 2013.",
     ),
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
@@ -34,13 +34,15 @@ export const AB = {
     title: l("A research-driven", "Une firme de gestion"),
     accent: l("investment firm", "axée sur la recherche"),
     p1: l(
-      "Nymbus was founded in 2013 by Marc Rivet and Gabriel Cefaloni on a simple idea: fixed income markets generate far more data than a traditional team can analyze, and a scientific process can put that data to work for investors.",
-      "Nymbus a été fondée en 2013 par Marc Rivet et Gabriel Cefaloni autour d’une idée simple : les marchés des titres à revenu fixe produisent bien plus de données qu’une équipe traditionnelle ne peut en analyser, et un processus scientifique peut mettre ces données au service des investisseurs.",
+      "Founded in 2013 by Marc Rivet and Gabriel Cefaloni.",
+      "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
     ),
-    p2: l(
-      "Today, quantitative researchers with backgrounds in physics and computer science work alongside portfolio managers who have spent their careers in fixed income and derivatives. Together they run systematic bond strategies, a multi-strategy fund and futures overlays, on technology built in-house.",
-      "Aujourd’hui, des chercheurs quantitatifs formés en physique et en informatique travaillent aux côtés de gestionnaires de portefeuille qui ont fait carrière en revenu fixe et en produits dérivés. Ensemble, ils gèrent des stratégies obligataires systématiques, un fonds multistratégies et des stratégies de superposition de contrats à terme, sur une technologie conçue à l’interne.",
-    ),
+    points: [
+      l("Bond markets produce more data than a team can analyze", "Les marchés obligataires produisent plus de données qu’une équipe ne peut en analyser"),
+      l("A scientific process puts that data to work", "Un processus scientifique met ces données à profit"),
+      l("Physicists and computer scientists, alongside fixed income managers", "Physiciens et informaticiens, aux côtés de gestionnaires en revenu fixe"),
+      l("Bond strategies, a multi-strategy fund, futures overlays", "Stratégies obligataires, fonds multistratégies, superpositions"),
+    ] as L[],
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
     directions: l("Directions", "Itinéraire"),
@@ -55,11 +57,11 @@ export const AB = {
     title: l("What guides", "Ce qui guide"),
     accent: l("the way we work", "notre façon de travailler"),
     items: [
-      { t: l("Innovation", "Innovation"), d: l("We keep testing new data, methods and technology, and adopt what our research supports.", "Nous testons sans cesse de nouvelles données, méthodes et technologies, et adoptons ce que notre recherche confirme.") },
-      { t: l("Agility", "Agilité"), d: l("A lean structure lets us adapt to markets and put new research into production quickly.", "Une structure légère nous permet de nous adapter aux marchés et de mettre rapidement la recherche en production.") },
-      { t: l("Accountability", "Responsabilité"), d: l("We are transparent about our methods and results, and take our fiduciary duty seriously.", "Nous sommes transparents sur nos méthodes et nos résultats, et prenons notre devoir fiduciaire au sérieux.") },
-      { t: l("Integrity", "Intégrité"), d: l("Every decision is guided by ethical principles and by our clients’ best interests.", "Chaque décision est guidée par des principes éthiques et par l’intérêt de nos clients.") },
-      { t: l("Collaboration", "Collaboration"), d: l("Scientists and market practitioners challenge each other’s ideas; better decisions come out of it.", "Scientifiques et praticiens des marchés confrontent leurs idées; les décisions n’en sont que meilleures.") },
+      { t: l("Innovation", "Innovation"), d: l("We adopt what research supports.", "Nous adoptons ce que la recherche confirme.") },
+      { t: l("Agility", "Agilité"), d: l("A lean structure: research reaches production quickly.", "Une structure légère : la recherche passe vite en production.") },
+      { t: l("Accountability", "Responsabilité"), d: l("Transparent methods and results. Fiduciary duty first.", "Des méthodes et des résultats transparents. Le devoir fiduciaire d’abord.") },
+      { t: l("Integrity", "Intégrité"), d: l("Ethics and clients’ interests first.", "L’éthique et l’intérêt des clients d’abord.") },
+      { t: l("Collaboration", "Collaboration"), d: l("Scientists and practitioners challenge each other.", "Scientifiques et praticiens confrontent leurs idées.") },
     ],
   },
   milestones: {
@@ -67,12 +69,12 @@ export const AB = {
     title: l("Our story", "Notre parcours"),
     accent: l("so far", "à ce jour"),
     items: [
-      { y: "2013", t: l("Nymbus is founded", "Fondation de Nymbus"), d: l("Marc Rivet and Gabriel Cefaloni found the firm in Montreal and start building systematic fixed income models.", "Marc Rivet et Gabriel Cefaloni fondent la firme à Montréal et commencent à bâtir des modèles systématiques de revenu fixe.") },
-      { y: "2018", t: l("PRI signatory", "Signataire des PRI"), d: l("Nymbus signs the UN-supported Principles for Responsible Investment (PRI).", "Nymbus signe les Principes pour l’investissement responsable (PRI), soutenus par les Nations Unies.") },
-      { y: "2021", t: l("Monthly Income fund launched", "Lancement du Fonds Revenu Mensuel"), d: l("The Nymbus Monthly Income Fund is launched.", "Le Fonds Nymbus Revenu Mensuel est lancé.") },
-      { y: "2023", t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"), d: l("Nymbus supports Dans la rue, which helps homeless and at-risk youth in Montreal.", "Nymbus soutient Dans la rue, qui vient en aide aux jeunes sans-abri ou à risque de Montréal.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Nymbus commits to excluding tobacco companies from the securities it selects directly.", "Nymbus s’engage à exclure les entreprises du tabac des titres qu’elle sélectionne directement.") },
-      { y: "2025", t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"), d: l("Mageska entrusts Nymbus with a portion of the Mageska Fund to implement a portable alpha strategy.", "Mageska confie à Nymbus une partie du Fonds Mageska pour mettre en œuvre une stratégie d’alpha portable.") },
+      { y: "2013", t: l("Nymbus is founded", "Fondation de Nymbus"), d: l("Founded in Montreal by Marc Rivet and Gabriel Cefaloni.", "Fondée à Montréal par Marc Rivet et Gabriel Cefaloni.") },
+      { y: "2018", t: l("PRI signatory", "Signataire des PRI"), d: l("Signs the UN-supported Principles for Responsible Investment (PRI).", "Signature des Principes pour l’investissement responsable (PRI), soutenus par les Nations Unies.") },
+      { y: "2021", t: l("Monthly Income fund launched", "Lancement du Fonds Revenu Mensuel"), d: l("Nymbus Monthly Income Fund launched.", "Lancement du Fonds Nymbus Revenu Mensuel.") },
+      { y: "2023", t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"), d: l("Support for homeless and at-risk youth in Montreal.", "Soutien aux jeunes sans-abri ou à risque de Montréal.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("Tobacco exclusion adopted.", "Adoption de l’exclusion du tabac.") },
+      { y: "2025", t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"), d: l("A portable alpha strategy for part of the Mageska Fund.", "Une stratégie d’alpha portable pour une partie du Fonds Mageska.") },
     ],
   },
   people: {
@@ -80,8 +82,8 @@ export const AB = {
     title: l("The people", "Les gens"),
     accent: l("behind the science", "derrière la science"),
     lead: l(
-      "A multidisciplinary team of investment professionals, quantitative researchers and operations specialists. Select a person to read their biography.",
-      "Une équipe multidisciplinaire de professionnels du placement, de chercheurs quantitatifs et de spécialistes des opérations. Choisissez une personne pour lire sa biographie.",
+      "Investment, research and operations. Select a person to read their biography.",
+      "Placement, recherche et opérations. Choisissez une personne pour lire sa biographie.",
     ),
     filter: l("Filter by department", "Filtrer par service"),
     showing: l("{n} people shown", "{n} personnes affichées"),
@@ -103,8 +105,8 @@ export const AB = {
     title: l("Work", "Travailler"),
     accent: l("with us", "avec nous"),
     text: l(
-      "We are always glad to hear from researchers, engineers and investment professionals who want to apply science to markets, and from investors who want to learn more.",
-      "Nous sommes toujours heureux d’entendre des chercheurs, des ingénieurs et des professionnels du placement qui veulent appliquer la science aux marchés, ainsi que des investisseurs qui souhaitent en savoir plus.",
+      "Researchers, engineers and investors: write to us.",
+      "Chercheurs, ingénieurs et investisseurs : écrivez-nous.",
     ),
     careers: l("Send us your résumé", "Envoyez-nous votre CV"),
     careersSubject: l("Careers", "Carrières"),

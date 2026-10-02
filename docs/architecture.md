@@ -60,7 +60,7 @@ never calls the dataplatform from the browser.
 | Source | Used for | Primary / cross-check | When it is missing |
 | --- | --- | --- | --- |
 | analytics `fund_returns.json` | monthly net returns before the Apex cut-over | primary (history) | factsheet monthly table (rounded) + alert |
-| dataplatform `/api/performance/monthly-net-returns` | monthly net returns, `ready` months | primary | month held / previous kept |
+| dataplatform `/api/performance/monthly-net-returns` | monthly net returns, `ready` months (`class_code` = track-record class; SEB also `class_code=STRATEGY&history=full`) | primary | month held / previous kept |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
 | dataplatform `/api/ftse/index-summary` | benchmark figures | primary | index figures not shown |
@@ -105,26 +105,61 @@ never calls the dataplatform from the browser.
   history does not reach its start). The page labels it "12 months to <trailingTo>", not the last distribution. The page shows every amount of a series with one precision (4–6
   decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
 
-### Returns per class and GMV variants (`classes.ts`, `build.ts`, `validate.ts`, `components/fund/lib/select.ts`)
+### Performance class (`fund-sources.ts`, `build.ts` `fundSeries`, `perf-class.ts`; Gabriel 2026-10-01)
 
-- **Contract used** (dataplatform PR #626, `feat/monthly-net-returns-class`, open at the time of writing):
-  `GET /api/performance/monthly-net-returns?short_name=<SEST|SEB|Multistrat>&class_code=<STRATEGY|STRATEGY_H>&history=full`.
-  `STRATEGY` = SEST FP (LDM001), SEB F (LDM201), Multistrat F (LDM301); `STRATEGY_H` = SEB H (LDM202); anything else is 422.
-  The answer must echo `fundserv`, `class_display` and `history: "full"`; rows carry `source` (cibc | bridge | apex).
-  **Before the PR is deployed** the endpoint ignores the parameters and answers its default class without those
-  fields: the fetcher treats that as *not served* (`absent`, one info issue per fund) and never uses it as a class series.
-- `FundData.performanceByClass` (by FundServ), `defaultClass`: each class has its own performance and risk statistics.
-  The class series must be a contiguous run ending at the validated as-of month; otherwise that class is dropped with a
-  warn and shows "coming soon" (a class never borrows another class's figures). A class with < 12 months is published with
-  the periods that exist (`Performance.shortRecord`, no annualized figure, no risk statistics). The parameterless series is
-  the *legacy* class (SEST = FP, SEB = **H**, Multistrat = F): it stays the cross-checked main series, labelled with its
-  true class, and the class endpoint's answer for it is only a consistency check. The top-level `performance` / `risk`
-  is the **default class's (F)** series when the endpoint serves it, else the legacy class's.
-- **Not available yet** (what is missing): (1) PR #626 deployed; (2) Monthly Income **F LDM081** has no class series at
-  the dataplatform (`STRATEGY` for SEST is FP): the page shows "coming soon" for F; add `{ fundserv: "LDM081", ... }` to
-  `classSeries` in `fund-sources.ts` and the dataplatform class mapping when it exists; (3) the other classes (A, FP of SEB
-  and Multi-Strategy, USD classes) have no class series, so they also show "coming soon". The home page
-  (`components/site/home`, not touched here) still reads the top-level `performance`, which for Monthly Income is FP's.
+- The class label shown with returns ("Series F" / « Série F ») is derived from the class of the data actually used
+  (`performance.classCode`: dataplatform `STRATEGY` = the fund's F / FP class, `STRATEGY_H` = SEB's H class) through
+  `classLabels`, never a business label. Every month carries the class of its source (analytics series and Apex
+  months: `trackRecordClass`; factsheet table: `factsheetClass`); a series mixing classes, or of a class without a
+  label, is withheld (error + alert). Validation blocks a label that is not its data's class.
+- A performance-only validation failure (`performance`, `trailing`, `risk`, `risk3Y` keys) holds the performance alone: the previous one is kept (or none), the other parts publish, the run is `blocked` with an alert. Any other blocking issue withholds the fund.
+- SEB (`preferredClass: STRATEGY`): `/api/performance/monthly-net-returns?class_code=STRATEGY&history=full`
+  (dataplatform PR #626). Both candidates are built — class H (analytics + `class_code=STRATEGY_H` Apex months +
+  same-class factsheet table) and class F (the full-history answer alone, no analytics month). Class F is used when
+  the answer says `class_code: STRATEGY` (and `history: "full"` if it says anything), its first ready month is the
+  track-record start and it is ready and continuous through max(class H last month, published as-of); else class H,
+  labelled H. A server that predates the parameters answers `STRATEGY_H`: the site shows Series H.
+- Gates of class F that withhold the performance (previous publication kept), never switch: payload `class_display`
+  / `fundserv` other than F / LDM201 or the fund register naming another class for LDM201; F − H outside the fee
+  band on any common month (`CLASS_SPREAD`: −5 to +30 bp and within ±5 bp of the median).
+- No flip-flop: once class F is published, a failed / unconfirmed / incomplete class F answer keeps the class F
+  publication (carried, alert); class H comes back only through configuration and an approved run.
+- A class change (H ↔ F, relative to the published performance) blocks in validation: auto mode publishes the run
+  with that fund at its previous publication (`ValidationOutcome.autoData`), the stored run holds the change, and
+  publishing the run (admin "approve class change & publish") approves it (`RunReport.classChanges`). Such a run
+  cannot be pinned before approval.
+- Factsheet class by archive month (`factsheetClass`, `factsheetClassAt`): SEB archives up to 2026-07 publish class
+  F, later ones class H. A series is compared with (and, for class H, filled from) archives of its own class only;
+  other archives' fund trailing / value added / statistics are skipped with an info issue (the factsheet of a new
+  month is still required). In class H mode a missing class H monthly table is an error + alert.
+- Publications made before `classCode` existed were all built from the track-record class: when carried over, kept
+  by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
+- The NAV card is independent: its series is the fund register's class of the FundServ code shown.
+
+### Returns per class and GMV variants (`classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
+
+- **Built on the performance-class design above** (merged with `fix/seb-class` and `fix/perf-hold-only`): the pipeline
+  fetches nothing extra for classes. The fund's headline series is whatever `fundSeries` chose with its gates (SEB: class F
+  from `class_code=STRATEGY&history=full` when complete and fee-band checked, else class H labelled H; SEST FP, Multistrat F).
+  `FundData.performanceByClass` (by FundServ) and `defaultClass` are derived from it: `classSeriesOf(key)` lists the
+  classes of the configuration (`classLabels` + `classFundserv`); the headline's class entry is the headline itself; the
+  other class that has a checked series (SEB class H next to a class F headline: the track-record candidate, analytics +
+  Apex months + same-class factsheet table, cut at the headline's as-of) is built by `buildClassPerformance`; a class
+  without one (F not served or failing its gates, Monthly Income F LDM081, the other share classes) is absent and the page
+  says "coming soon". A class's figures are never taken from another class.
+- A class series must be a contiguous run ending at the headline's as-of month, with plausible months (`performanceProblems`),
+  else it is dropped with a warn (`validate.ts` `checkClassesAndVariants` repeats the gates on the published data, dropping
+  only that class). A class with < 12 months is published with the periods that exist (`Performance.shortRecord`, no
+  annualized figure, no risk statistics) and the page says "since class inception".
+- **Hold**: when only the performance fails validation (`validateSite` perf-only hold) the held performance carries every
+  class and variant with it (`performanceByClass`, `defaultClass`, the default variant, the other variants from the previous
+  publication, or dropped when there is none): never new classes next to an old headline, never the whole fund dropped.
+  A change of the headline's class still needs an admin approval (class-change gate).
+- **Not available yet** (what is missing): (1) dataplatform PR #626 deployed (until then SEB is class H only, F is "coming soon");
+  (2) Monthly Income **F LDM081** has no class series at the dataplatform (`STRATEGY` for SEST is FP): the page opens on
+  "coming soon" for F; add the class to `classLabels` / `classFundserv` in `fund-sources.ts` and the dataplatform class
+  mapping when it exists; (3) the other classes (A, FP of SEB and Multi-Strategy, USD classes) have no class series, so they
+  also show "coming soon". The home page (`components/site/home`, not touched here) still reads the top-level `performance`.
 - **GMV variants**: `FundData.variants` ("3" | "6" | "9", default "6") from the factsheet blocks `GMV_3pct`, `GMV_6pct`,
   `GMV_9pct`: returns, risk, characteristics, allocation and holdings per variant; the default variant equals the fund's own
   data. A variant whose block is missing or fails the gates is dropped alone (warn); the page then shows nothing for it.

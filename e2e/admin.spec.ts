@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { adminHeaders, BASE, mintSession, OTHER_TENANT, SESSION_COOKIE, shot, signIn, TENANT, tinyPdf } from "./helpers";
 import { E2E_ENV } from "../playwright.config";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 
 /** the AUM field of FundData, raw or escaped inside the RSC flight data */
 const CAD_KEY = /\\?"cad\\?"\s*:/;
@@ -374,6 +376,70 @@ test.describe("admin flows", () => {
     const v = (await put.json()).content.version;
     const bad = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: v, fund: { tagline: { en: "only english", fr: "" } } } });
     expect(bad.status()).toBe(400);
+  });
+
+  test("SEB pinned to a class H run: F opens as coming soon; with class H selected every performance label says Series H / Série H", async ({ page, context, request }, info) => {
+    // mutates the (global) content: desktop admin project only, restored at the end
+    test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
+    const token = await signIn(context);
+    const fund = "sustainable-enhanced-bonds";
+    // a stored "live" run whose SEB data is the class H series (synthetic: what the dataplatform serves before PR #626)
+    const id = "20260929T140000-e2eclassh";
+    const dirRun = path.join(E2E_ENV.SITE_DATA_DIR, "snapshots", id);
+    mkdirSync(dirRun, { recursive: true });
+    const data = JSON.parse(readFileSync("e2e/fixtures/seb-class-h-site-data.json", "utf8"));
+    expect(data.funds[fund].performance.classCode).toBe("STRATEGY_H");
+    writeFileSync(path.join(dirRun, "site-data.json"), JSON.stringify({ ...data, runId: id }));
+    writeFileSync(path.join(dirRun, "report.json"), JSON.stringify({
+      id, trigger: "manual", by: "e2e", startedAt: data.generatedAt, finishedAt: data.generatedAt, status: "published", asOf: data.asOf,
+      issues: [], sources: [], funds: { [fund]: "updated" }, publishedAt: data.generatedAt, publishedBy: "e2e",
+    }));
+    const { content } = await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json();
+    const original = content.funds[fund] ?? {};
+    const pin = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: content.version, fund: { ...original, pinnedSnapshot: id } } });
+    expect(pin.status(), await pin.text()).toBe(200);
+    try {
+      for (const [lang, word, fundWord, returns] of [["en", "Series", "Fund", "Returns: Series"], ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie"]] as const) {
+        await page.goto(`/strategies/${fund}`);
+        if (lang === "fr") {
+          // cookie for the whole site (a cookie set from the fund page's URL would be scoped to /strategies)
+          await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: BASE }]);
+          await page.reload();
+        }
+        // the page opens on class F (LDM201), which this run has no series for: "coming soon", never H's numbers under F
+        await expect(page.getByTestId("figures-soon")).toBeVisible();
+        await page.getByTestId("nav-card").getByTestId("series-LDM202").click();
+        const h = new RegExp(`${word} H(?![A-Za-z])`);
+        const f = new RegExp(`(Series|Série) F(?![A-Za-z])`);
+        for (const tid of ["basis", "overview-returns", "perf-class"]) {
+          await expect(page.getByTestId(tid)).toContainText(h);
+          await expect(page.getByTestId(tid)).not.toContainText(f);
+        }
+        // the NAV card follows the class selected (H, LDM202)
+        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM202");
+        await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="performance"]').click();
+        await expect(page.getByTestId("perf-context")).toContainText(h);
+        await expect(page.getByTestId("perf-context")).not.toContainText(f);
+        await page.getByTestId("growth").scrollIntoViewIfNeeded();
+        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fundWord} (${word} H)`);
+        // home tile and strategies index
+        for (const p of ["/", "/strategies"]) {
+          await page.goto(p);
+          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveText(new RegExp(`^${returns} H$`));
+        }
+        await expect(page.getByTestId("compare-table").getByTestId("perf-class").nth(1)).toHaveText(new RegExp(`^${returns} H$`));
+      }
+      await shot(page, "seb-class-h-strategies", info.project.name);
+    } finally {
+      const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
+      const { pinnedSnapshot: _pin, ...rest } = cur.funds[fund] ?? {}; // eslint-disable-line @typescript-eslint/no-unused-vars
+      const unpin = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: rest } });
+      expect(unpin.status()).toBe(200);
+    }
+    await page.goto(`/strategies/${fund}`);
+    await page.context().clearCookies({ name: "nymbus-locale" });
+    await page.reload();
+    await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
   });
 
   test("logout clears and revokes the session", async ({ request }) => {

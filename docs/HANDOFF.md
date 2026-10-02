@@ -76,6 +76,10 @@ Not yet run against live data, not deployed.
     SEB = `univ`). Factsheet index figures are a cross-check only.
   - **Class F/FP for all funds**: Monthly Income FP (LDM001), SEB F (LDM201), Multi-Strategy F (LDM301).
     Note kept in admin issues: SEB's dataplatform track record is the STRATEGY_H series.
+- 2026-10-01: **SEB performance = Class F series; the label always matches the data** ("Change SEB to Class F
+  timeseries. If you showcase the class H timeseries, then show class H."). Branch `fix/seb-class`: class F with full
+  history when the dataplatform confirms it, else class H labelled H; never a mixed series (see
+  `docs/architecture.md` § Performance class).
   - **Fund AUM hidden by default** (admin can show it per fund by unticking "aum").
   - **Disclaimers**: start from our boilerplate, highlight the required review (done: admin banner +
     `docs/compliance-review.md`).
@@ -146,14 +150,97 @@ Not yet run against live data, not deployed.
   **fund pages v2.** Plan and what was done: (1) leverage / "liquidity score" removed everywhere (copy reworded, two
   characteristics no longer parsed) + test `tests/unit/site/fonts-and-wording.test.ts` that fails on that wording; (2) all
   fonts Poppins (inherit rule for form controls / SVG text, test greps every `font-family`); (3) **returns per class**:
-  pipeline `classes.ts` + `build.ts` (`performanceByClass`, default class F, short records, same-class check, per-class
-  gates in `validate.ts`), fixtures with a class-served route (`classServedRoute`), page `lib/select.ts`; (4) **GMV variants**
+  pipeline `classes.ts` + `build.ts` (`performanceByClass`, default class F, short records, per-class
+  gates in `validate.ts`, held with the performance), page `lib/select.ts`; (4) **GMV variants**
   3 / 6 / 9 % (`FundData.variants`); (5) page: class selector with Prospectus / Offering memorandum badges, "coming soon" per
   class, Awards and rankings tab (seeded Fund Library data, admin-editable, wordmark badges are CSS text), new facts
   (minimum subsequent, RSP, liquidity, CIFSC category, managers), top-10 total, header document shortcuts, document types
   proxy voting / tax factors, calendar chart with a label on every bar. Admin: class types, facts, rankings editor with a
   "updated manually" note. Docs: `architecture.md` (§ Returns per class), `compliance-review.md` (§ Fund pages v2, rows F1-F12).
+  **Merged with `redesign/v3-keynote-live-data` (2026-10-02)**: the SEB class-from-data work (`perf-class.ts`, `classLabels`,
+  class-change gate), the perf-only hold and the concise copy were kept as they are; the class layer was rebuilt on top of
+  them (no second class fetch: the headline class is the headline, SEB's other class comes from the track-record candidate;
+  a held performance holds every class and variant). The overlay wording (no "leverage") was applied to the new concise copy.
   **Not done / blocked on data**: see open items 11-13. Tests: unit (`npm test`), e2e in `e2e/fund.spec.ts`.
+
+- 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
+  mode "review"; every run "blocked" by the July return mismatch of SEST / SEB / Multistrat, and a blocked fund with no
+  previous publication was withheld whole, NAV included). `validateSite` now holds only the **performance**
+  (`performance`, `trailing`, `risk`, `risk3Y` gates) when those are the only blocking issues: previous performance
+  kept (else none), NAV / AUM / portfolio / distributions / factsheet publish, the run stays `blocked` + alert, a
+  stale kept performance alerts. Any other blocking issue still withholds the whole fund. Adversarially reviewed.
+  **Still needed from Gabriel: click Publish on the latest run in /admin (or switch publish mode to auto).**
+
+- 2026-10-01 (home, branch `fix/seb-class`, from `redesign/v3-keynote-live-data`): **SEB class label = class of the
+  data** (Gabriel's decision above; resolves compliance-review A1). `fund-sources.ts` replaces the hard-coded
+  `returnClassLabel` with `trackRecordClass` / `preferredClass` / `factsheetClass` / `classLabels`; SEB asks
+  monthly-net-returns for `class_code=STRATEGY&history=full` (new `raw.monthlyReturnsFull`, snapshot file
+  `monthly-net-returns-full_SEB.json`) and uses it for every month only when the response is class STRATEGY with ready
+  months from 2019-02 (`fullHistoryProblem`), else the class H sources (analytics + `class_code=STRATEGY_H` Apex
+  months) labelled H. Every month carries its class; a mixed / unknown-class series is withheld (error + alert). New
+  `performance.classCode`; validate blocks a label that is not the data's class; `perf-class.ts` relabels legacy
+  publications (no classCode: their track-record class) when carried, kept by validate, rolled back or pinned
+  (`site.ts`). Factsheet (class H) comparisons skipped with an info issue only on a class mismatch; timing gate kept.
+  A class change (H → F) gives one warn + alert instead of a revision per month. Label added to home tiles, the
+  strategies index and the growth-chart legend (badges, overview, performance tab, disclosures already had it). The
+  sample is built as if the dataplatform change were deployed (SEB = Series F); fixtures default to the server
+  deployed today (parameters ignored → H), `fullHistoryRoute` emulates the new one. Tests: `perf-class.test.ts`,
+  e2e "performance class label …". Until the dataplatform PR ships, live SEB shows **Series H**. Not merged.
+
+- 2026-10-01 (home, branch `fix/seb-class`): fixes after the independent review of the above.
+  (1) Class F only when complete: both candidates are built (class H: analytics + `STRATEGY_H` Apex months + same-class
+  factsheet; class F: the `history=full` answer alone) and F is chosen only when ready and continuous from 2019-02
+  through max(class H last month, published as-of); a missing month (e.g. the 2026-07 bridge or one CIBC month) falls
+  back to class H, labelled H. (2) No flip-flop: once class F is published, a failed / unconfirmed / incomplete F answer
+  keeps the class F publication (carried + alert), never class H; F → H only by configuration + an approved run.
+  (3) Independent gates: F − H on every common month within `CLASS_SPREAD` (−5 to +30 bp, ±5 bp around the median;
+  July 2026 ≈ +11.6 bp), payload `class_display` / `fundserv` = F / LDM201 and the fund register's LDM201 = F (and
+  H / LDM202 on the track-record answer when present); a breach withholds (previous publication kept). (4) A class
+  change (H ↔ F) is a validation-blocking issue: `validateSite` returns `autoData` (the fund kept at its previous
+  publication), auto mode publishes only that, the stored run holds the change and publishing it (admin "approve class
+  change & publish", also on the live run) approves it (`RunReport.classChanges` / `classChangesApprovedAt`); such a
+  run cannot be pinned before approval. (5) Factsheet class by archive month (`factsheetClass` ranges: SEB ≤ 2026-07
+  = F, ≥ 2026-08 = H): only an archive of the series' class is compared / used to fill; in class H mode a missing
+  class H monthly table is an error + alert. (6) Analytics SEB June already corrected (above). (7) Fixtures follow
+  PR #626 (bridge only 2026-07, `class_display`, `fundserv`, `history`, `rows[].source/method`); e2e also renders SEB
+  as Series H (admin test pinning a synthetic class H run, `e2e/fixtures/seb-class-h-site-data.json`, kept in sync
+  by `sample-sync.test.ts`). (8) Tiles / index say "Returns: Series X" / « Rendements : Série X »; disclaimers review
+  note and compliance A1 updated (pre-launch part of SEB series F). Not merged.
+
+- 2026-10-01 (home): **July 2026 returns block explained** (investigated + independently verified). Not a website bug:
+  the August 2026 factsheet archive carries raw `funds_nav_ts` July net returns, known wrong after the CIBC→Apex
+  cut-over, because the factsheet generator's NAV+distribution restatement got HTTP 401 from the dataplatform on every
+  call (run 2026-09-17) and silently kept the DB values. Analytics `fund_returns.json` July values are the correct
+  NAV-based ones (SEST FP, SEB H, Multistrat F). July comes from analytics because dataplatform `monthly_net_returns`
+  marks the cut-over month unavailable by design. SEB June: analytics held the Class F value in an otherwise Class H
+  history — since corrected to the Class H value (analytics commit `fcdc05a`). Fixes (outside this repo): give the
+  generator valid dataplatform credentials, make the restatement mandatory, re-run + republish August. Open (Gabriel/compliance): website
+  labels SEB's Class H series "Class F" (`fund-sources.ts` returnClassLabel) — resolved on `fix/seb-class` (above). GMV audience resolved and merged.
+
+- 2026-10-01 (home, branch `fix/gmv-audience`): Gabriel resolved the GMV audience flag — "primarily for family
+  offices and also viable for institutions". GMV fund summary (EN/FR) leads with family offices; /solutions lists GMV
+  first for family offices and names it in their managed-accounts vehicle (leverage disclosure verbatim);
+  `concise-copy.test.ts` pins the new sentence. `funds.ts`, strategies index, home tile, team and approach had no
+  audience wording to change. Compliance note marked resolved. Not merged.
+
+- 2026-09-30 (home, branch `feat/concise-copy`): fixes after the independent review of the concise copy — fund risk
+  note as a visible body-size callout (`.fxb-risk`), Multi-Strategy and GMV wording restored closer to the reviewed
+  text, tobacco sentence de-duplicated, « durée » for duration in French, `role="list"` on `<Bullets>` and `.pg-ticks`,
+  fund feature cards balanced (long disclosure cards last and full-width, or paired), equal-height home approach cards,
+  Fondaction lead + bullets, French disclosure literals in `concise-copy.test.ts`. Open flag: Solutions lists GMV for
+  family offices while the fund page says "for institutional portfolios" (see compliance-review.md). Still not merged.
+
+- 2026-09-30 (home, branch `feat/concise-copy`, from `redesign/v3-keynote-live-data`): **concise copy** after
+  Gabriel's "make the website a lot less verbose … more bullet points, short sentences". Home, strategies, solutions,
+  approach, sustainability, team (intro, values, milestones, bios to 1–2 sentences), contact and the fund pages' own
+  texts (`FUND_TEXTS`: summary, approach as `focus` bullets + `note` risk text, feature section) rewritten EN + FR.
+  Body copy on these pages roughly halved (counts in `docs/compliance-review.md` "Concise copy 2026-09-30" and the
+  branch report). New kit component `<Bullets>` (`kit.tsx` / `.ticks` in `kit.css`: gradient tick markers, staggered
+  `Reveal` behind the `html.js` gate, static under reduced motion, `cols={2}` option). No new claims or figures;
+  disclosures inside condensed blocks verbatim, guarded by `tests/unit/site/concise-copy.test.ts` (also checks lead
+  length ≤ 15 words, 3–5 bullets ≤ 12 words, bios ≤ 2 sentences). Legal pages, `disclaimers.ts`, `funds.ts`
+  descriptions / taglines, the PRI principles and the contact form untouched. Compliance checklist added. Not merged
+  into `redesign/v3-keynote-live-data` (auto-deploys): the main session merges after an independent review.
 
 - 2026-09-30 (home, branch `feat/api-portfolio-distributions`): regression from the independent verification fixed —
   the trailing-12-month check used a window ending at the last distribution, but the dataplatform

@@ -36,6 +36,8 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
     va: tr(T.perf.va, lang),
   };
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
+  // the growth chart legend / tooltip names the class of the series drawn
+  const growthNames = cl ? { ...names, fund: `${names.fund} (${cl})` } : names;
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
@@ -55,7 +57,7 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
       {!any ? <p className="notice" data-testid="perf-soon">{soon}</p> : null}
       {v.growth && perf ? (
         <Block title={tr(T.perf.growth, lang)} lead={tr(gross ? T.perf.growthLeadGross : T.perf.growthLead, lang)} testId="growth">
-          <GrowthChart points={perf.growth} lang={lang} names={names} rangeGroupLabel={tr(T.perf.range, lang)} label={tr(T.perf.growth, lang)}
+          <GrowthChart points={perf.growth} lang={lang} names={growthNames} rangeGroupLabel={tr(T.perf.range, lang)} label={tr(T.perf.growth, lang)}
             rangeLabels={Object.fromEntries((["1Y", "3Y", "5Y", "SI"] as Range[]).map((r) => [r, tr(T.perf.ranges[r], lang)])) as Record<Range, string>}
             keysHint={tr(T.perf.keys, lang)} rebasedNote={tr(T.perf.rebased, lang)} method={growthMethod(perf, spec.sources.basis)} />
         </Block>

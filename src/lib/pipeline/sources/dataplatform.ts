@@ -9,7 +9,6 @@
  * AUM to fund totals (no investor-level field ever leaves this module), FTSE to aggregate daily levels,
  * NAV to the fields used.
  */
-import type { ClassSeriesSource } from "../fund-sources.ts";
 import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, MonthlyNetReturnsResponse, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
 import { ftseGroupingSummary, ftseLevels, type FtseRow } from "../metrics.ts";
@@ -71,52 +70,29 @@ async function guarded<T>(label: string, fn: () => Promise<SourceResult<T>>): Pr
 
 /* ------------------------------------------------------------------ endpoints */
 
-export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: string): Promise<SourceResult<MonthlyNetReturnsResponse>> {
-  const label = `monthly-net-returns ${short}`;
+/**
+ * `classCode` / `history` are sent when given; a server that predates them ignores them, so the caller must check the
+ * response's own `class_code` / `history` / rows before trusting that it got what it asked for.
+ */
+export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: string, opts: { classCode?: string | null; history?: "full" } = {}): Promise<SourceResult<MonthlyNetReturnsResponse>> {
+  const label = `monthly-net-returns ${short}${opts.classCode ? ` ${opts.classCode}` : ""}${opts.history ? ` history=${opts.history}` : ""}`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, start_date: "2019-01-01", end_date: endMonth });
+    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, start_date: "2019-01-01", end_date: endMonth, class_code: opts.classCode ?? undefined, history: opts.history });
     if (status === 422) return fail(`${label}: no closed month available (HTTP 422${body ? `: ${body}` : ""})`);
     if (status !== 200) return fail(`${label}: HTTP ${status}`);
     const j = body as MonthlyNetReturnsResponse;
     if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
-    const rows = j.rows.map((r) => ({ month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null }));
-    const ready = rows.filter((r) => r.status === "ready" && r.net_return !== null);
-    const data: MonthlyNetReturnsResponse = {
-      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, currency: j.currency,
-      return_basis: j.return_basis, methodology_version: j.methodology_version, row_count: rows.length, rows,
-    };
-    return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}` };
-  });
-}
-
-/**
- * Class series of the monthly net returns (dataplatform PR #626: `class_code`, `history=full`). The answer must echo the
- * class asked for (`fundserv`, `class_display`) and `history: "full"`: a server that does not know the parameters
- * answers with its default class and none of these fields, which is NOT a series of the class (`absent`, never used).
- */
-export function fetchMonthlyNetReturnsClass(c: DpClient, short: DpShort, cls: ClassSeriesSource, endMonth: string): Promise<SourceResult<MonthlyNetReturnsResponse>> {
-  const label = `monthly-net-returns ${short} class ${cls.display} (${cls.fundserv})`;
-  return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, class_code: cls.classCode, history: "full", start_date: "2019-01-01", end_date: endMonth });
-    if (status === 422) return fail(`${label}: not served (HTTP 422${typeof body === "string" ? `: ${body}` : ""})`);
-    if (status !== 200) return fail(`${label}: HTTP ${status}`);
-    const j = body as MonthlyNetReturnsResponse;
-    if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
-    const echoed = typeof j.fundserv === "string" && j.history === "full";
-    if (!echoed) return { ok: false, data: null, absent: true, error: `${label}: the endpoint does not serve class series yet (no fundserv / history echoed; dataplatform PR #626 not deployed?)` };
-    if (j.fundserv!.toUpperCase() !== cls.fundserv.toUpperCase() || (j.class_display != null && j.class_display.toUpperCase() !== cls.display.toUpperCase())) {
-      return fail(`${label}: payload is for ${j.class_display ?? "?"} (${j.fundserv}), not the class asked for`);
-    }
-    if (j.short_name && j.short_name.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${j.short_name}", not ${short}`);
     const rows = j.rows.map((r) => ({
-      month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null, source: r.source ?? null,
+      month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null,
+      ...(typeof r.source === "string" ? { source: r.source } : {}),
     }));
     const ready = rows.filter((r) => r.status === "ready" && r.net_return !== null);
     const data: MonthlyNetReturnsResponse = {
-      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, currency: j.currency, return_basis: j.return_basis,
-      methodology_version: j.methodology_version, row_count: rows.length, rows, fundserv: j.fundserv, class_display: j.class_display ?? cls.display, history: "full",
+      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, ...(typeof j.history === "string" ? { history: j.history } : {}),
+      ...(typeof j.class_display === "string" ? { class_display: j.class_display } : {}), ...(typeof j.fundserv === "string" ? { fundserv: j.fundserv } : {}), currency: j.currency,
+      return_basis: j.return_basis, methodology_version: j.methodology_version, row_count: rows.length, rows,
     };
-    return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, ${ready[0].month} to ${ready[ready.length - 1].month}` : ""}` };
+    return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}` };
   });
 }
 

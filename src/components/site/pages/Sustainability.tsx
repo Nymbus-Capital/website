@@ -7,7 +7,7 @@
 import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
+import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
 import { SU } from "./copy-sustainability";
 import "./pages.css";
 
@@ -106,11 +106,11 @@ export function Sustainability() {
       </Section>
 
       <Section labelledBy="su-fa-t">
-        <div className="split top su-fa">
+        <div className="split su-fa">
           <div>
-            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} id="su-fa-t" />
-            <Reveal self><p className="body">{pick(SU.fondaction.p1)}</p></Reveal>
-            <Reveal self delay={120}><p className="body su-p2">{pick(SU.fondaction.p2)}</p></Reveal>
+            <SectionHead eyebrow={pick(SU.fondaction.eyebrow)} title={pick(SU.fondaction.title)} accent={pick(SU.fondaction.accent)} lead={pick(SU.fondaction.p1)} id="su-fa-t">
+              <Bullets items={SU.fondaction.points.map((p) => pick(p))} />
+            </SectionHead>
           </div>
           <Reveal self kind="pop" className="card su-commit">
             <h3 className="h4">{pick(SU.commitments.title)} {pick(SU.commitments.accent)}</h3>

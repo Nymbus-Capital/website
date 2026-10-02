@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/v3/motion";
+import { Bullets } from "@/components/site/kit";
 import type { FundContent } from "@/lib/data/types";
 import { team } from "@/data/team";
 import { FUND_INCEPTION } from "@/content/disclaimers";
@@ -45,8 +46,9 @@ export function Overview({ spec, content, data, lang, ctx }: Props) {
           <Block title={tr(content.objective ? T.overview.objective : isFund ? T.overview.whatFund : T.overview.whatStrategy, lang)} card={false} testId="objective">
             <p className="fxb-text lg">{tr(content.objective ?? texts.summary, lang)}</p>
           </Block>
-          <Block title={tr(T.overview.approach, lang)} card={false}>
-            <p className="fxb-text">{tr(texts.approach, lang)}</p>
+          <Block title={tr(T.overview.approach, lang)} card={false} testId="fund-focus">
+            <Bullets items={texts.focus.map((b) => tr(b, lang))} />
+            {texts.note ? <p className="fxb-text fxb-risk" data-testid="fund-risk-note">{tr(texts.note, lang)}</p> : null}
           </Block>
           <Block title={tr(T.overview.returns, lang)} testId="overview-returns"
             aside={rows.length ? <a className="link" href="#performance">{tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" /></a> : null}

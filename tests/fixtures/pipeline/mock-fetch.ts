@@ -70,6 +70,34 @@ export function fixtureRoute(url: URL): Response | undefined {
   return undefined;
 }
 
+/** class identity the dataplatform repeats in monthly-net-returns answers (PR #626) */
+const MNR_IDENTITY: Record<string, Record<string, { class_display: string; fundserv: string }>> = {
+  SEST: { STRATEGY: { class_display: "FP", fundserv: "LDM001" } },
+  SEB: { STRATEGY: { class_display: "F", fundserv: "LDM201" }, STRATEGY_H: { class_display: "H", fundserv: "LDM202" } },
+  Multistrat: { STRATEGY: { class_display: "F", fundserv: "LDM301" } },
+};
+
+/**
+ * The dataplatform once it serves `class_code` + `history` on monthly-net-returns (PR #626): `history=full` answers
+ * SEB class F with every month; the Apex-only answers repeat `class_display`, `fundserv` and `history: "apex"`.
+ * Without this route the fixtures behave like the server deployed before that change: both parameters are ignored
+ * and SEB answers with its default STRATEGY_H (Apex-only) track record, without those fields.
+ */
+export const fullHistoryRoute: Route = (url) => {
+  const q = url.searchParams;
+  if (url.pathname !== "/api/performance/monthly-net-returns") return undefined;
+  const sn = q.get("short_name") ?? "";
+  const end = q.get("end_date") ?? "9999";
+  if (q.get("history") === "full") {
+    const j = loadFixture(`dataplatform/mnr_${sn}_${q.get("class_code")}_full.json`) as { rows: { month: string }[] };
+    return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
+  }
+  const j = loadFixture(`dataplatform/mnr_${sn}.json`) as { class_code: string; rows: { month: string }[] };
+  const code = q.get("class_code") ?? j.class_code;
+  if (code !== j.class_code) return json({ detail: `class_code ${code} is not served by this fixture` }, 422);
+  return json({ ...j, ...MNR_IDENTITY[sn]?.[code], history: "apex", rows: j.rows.filter((r) => r.month <= end) });
+};
+
 export interface MockFetch {
   fetch: typeof fetch;
   calls: { url: string; headers: Record<string, string> }[];
@@ -90,29 +118,6 @@ export function mockFetch(...overrides: Route[]): MockFetch {
     return fixtureRoute(url) ?? json({ detail: "Not Found" }, 404);
   };
   return { fetch: f as typeof fetch, calls };
-}
-
-/** the class series as dataplatform PR #626 serves them (history=full, every month ready): files mnr_class_*.json */
-type MnrRow = { month: string; net_return: number | null; status: string; source?: string };
-const CLASS_FILES: Record<string, Record<string, { fundserv: string; display: string; file: string }>> = {
-  SEST: { STRATEGY: { fundserv: "LDM001", display: "FP", file: "mnr_class_SEST.json" } },
-  SEB: { STRATEGY: { fundserv: "LDM201", display: "F", file: "mnr_class_SEB_F.json" }, STRATEGY_H: { fundserv: "LDM202", display: "H", file: "mnr_class_SEB_H.json" } },
-  Multistrat: { STRATEGY: { fundserv: "LDM301", display: "F", file: "mnr_class_Multistrat.json" } },
-};
-export function classServedRoute(tweak?: (short: string, classCode: string, rows: MnrRow[]) => MnrRow[]): Route {
-  return (url) => {
-    if (url.pathname !== "/api/performance/monthly-net-returns") return undefined;
-    const sn = url.searchParams.get("short_name") ?? "";
-    const cc = url.searchParams.get("class_code");
-    if (!cc) return undefined;
-    const meta = CLASS_FILES[sn]?.[cc];
-    if (!meta) return json({ detail: "Unsupported class" }, 422);
-    const j = loadFixture(`dataplatform/${meta.file}`) as { rows: MnrRow[] };
-    const end = url.searchParams.get("end_date") ?? "9999";
-    let rows = j.rows.filter((r) => r.month <= end);
-    if (tweak) rows = tweak(sn, cc, rows);
-    return json({ ...j, class_code: cc, fundserv: meta.fundserv, class_display: meta.display, history: "full", rows });
-  };
 }
 
 /** env for a run against the fixtures (no Graph, analytics from the local fixture file) */

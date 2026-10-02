@@ -353,8 +353,8 @@ test("build: endpoints not deployed (404) → one info issue each, everything el
   const before = await build(notDeployed);
   const after = await build();
   const infos = before.data.issues.filter((i) => i.key.startsWith("sources."));
-  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.monthly-net-returns-class.SEST", "info"], ["sources.monthly-net-returns-class.SEB", "info"], ["sources.monthly-net-returns-class.Multistrat", "info"], ["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
-  assert.match(infos[3].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
+  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
+  assert.match(infos[0].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
   for (const [k, f] of Object.entries(before.data.funds)) {
     assert.equal(f!.portfolio, null, k);
     assert.equal(f!.distributions, null, k);
@@ -411,8 +411,9 @@ test("carried-over funds pass the daily-book age gate again (fund missing from t
   const blocked = structuredClone(prev);
   blocked.funds["monthly-income"]!.performance!.monthly[0].r = Number.NaN;
   const vb = validateSite(blocked, context, prev, later);
-  assert.equal(vb.funds["monthly-income"], "kept-previous");
+  assert.equal(vb.funds["monthly-income"], "updated", "only the performance is held; the rest is published");
   assert.equal(vb.data.funds["monthly-income"]!.portfolio, null);
+  assert.deepEqual(vb.data.funds["monthly-income"]!.performance, prev.funds["monthly-income"]!.performance, "previous performance kept");
   // a fresh carried book stays
   const vf = validateSite(input, context, prev, NOW);
   assert.equal(vf.data.funds["monthly-income"]!.portfolio?.asOf, "2026-09-28");

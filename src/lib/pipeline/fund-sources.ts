@@ -5,18 +5,8 @@
  */
 import type { FundKey } from "../data/types.ts";
 
-/**
- * One class series of the dataplatform monthly-net-returns endpoint (`class_code`, `history=full`; dataplatform PR #626).
- * `legacy`: the class the endpoint serves without parameters (and the analytics history belongs to): the series the
- * pipeline has always built, cross-checked with the factsheets.
- */
-export interface ClassSeriesSource {
-  fundserv: string;
-  /** class label as the register shows it; the answer must say the same (`class_display`) */
-  display: string;
-  classCode: "STRATEGY" | "STRATEGY_H";
-  legacy?: true;
-}
+/** dataplatform monthly-net-returns `class_code`: "STRATEGY" = the fund's F / FP class, "STRATEGY_H" = SEB's H class */
+export type ClassCode = "STRATEGY" | "STRATEGY_H";
 
 export interface FundSources {
   /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
@@ -28,13 +18,30 @@ export interface FundSources {
   ftseIndex: string | null;
   /** series name in the analytics repo fund_returns.json (official monthly history before the Apex cutover) */
   analytics: string | null;
-  /** class the legacy (parameterless) series belongs to, the label its performance carries on the site */
-  returnClassLabel: "FP" | "F" | "H" | null;
   /**
-   * classes with a monthly series at the dataplatform, per FundServ code. Monthly Income F (LDM081) has none yet: the
-   * endpoint only knows STRATEGY (= FP LDM001) for it, so that class stays "coming soon" until the dataplatform serves it.
+   * Class of the monthly track record when no full-history class is confirmed: the class of the analytics series,
+   * of the dataplatform default (Apex) months and of every publication made before classes were tracked.
    */
-  classSeries: ClassSeriesSource[];
+  trackRecordClass: ClassCode | null;
+  /**
+   * Class asked from monthly-net-returns with `history=full` (Gabriel 2026-10-01: SEB shown as Class F). Used for
+   * every month, with no analytics month, only when the response confirms that class from the track-record start;
+   * otherwise the trackRecordClass sources are used. null: no preferred class.
+   */
+  preferredClass: ClassCode | null;
+  /**
+   * Class of the fund returns each factsheet archive publishes (monthly table, trailing, statistics), by archive
+   * month: the first entry whose `until` (YYYY-MM, inclusive) is not before the archive month, the last entry having
+   * no `until`. Read with factsheetClassAt().
+   */
+  factsheetClass: { until?: string; class: ClassCode }[];
+  /**
+   * Site label of each class code. The label shown is ALWAYS derived from the class of the data actually used
+   * (never a business label that can disagree with it); a class without a label is not shown.
+   */
+  classLabels: Partial<Record<ClassCode, string>>;
+  /** FundServ code of each class (dataplatform `fundserv`, fund register), checked against the payload */
+  classFundserv: Partial<Record<ClassCode, string>>;
   /** variants of a strategy in the factsheet archive (Global Minimum Volatility), default first; null otherwise */
   variants: { id: string; key: string }[] | null;
   /** factsheet archive: file prefix and fund key inside it */
@@ -49,8 +56,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     // index figures are only a cross-check. Override with FTSE_INDEX_SEST.
     ftseIndex: "short_corp",
     analytics: "Nymbus Monthly Income",
-    returnClassLabel: "FP",
-    classSeries: [{ fundserv: "LDM001", display: "FP", classCode: "STRATEGY", legacy: true }],
+    trackRecordClass: "STRATEGY",
+    preferredClass: null,
+    factsheetClass: [{ class: "STRATEGY" }],
+    classLabels: { STRATEGY: "FP" },
+    classFundserv: { STRATEGY: "LDM001" },
     variants: null,
     factsheet: { file: "bonds_data", key: "SEST" },
   },
@@ -58,13 +68,14 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     dataplatform: "SEB",
     ftseIndex: "univ",
     analytics: "Nymbus Sustainable Enhanced Bonds",
-    // the parameterless dataplatform series (and the analytics history) is STRATEGY_H = class H: labelled H. Class F
-    // (LDM201, STRATEGY) comes from `class_code=STRATEGY&history=full` (PR #626) and becomes the headline when served.
-    returnClassLabel: "H",
-    classSeries: [
-      { fundserv: "LDM201", display: "F", classCode: "STRATEGY" },
-      { fundserv: "LDM202", display: "H", classCode: "STRATEGY_H", legacy: true },
-    ],
+    // analytics history and the dataplatform default track record are the H class (STRATEGY_H); the F class
+    // (STRATEGY) is used once the dataplatform serves its full history (dataplatform PR #626). The factsheet
+    // generator published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
+    trackRecordClass: "STRATEGY_H",
+    preferredClass: "STRATEGY",
+    factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
+    classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
+    classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
     variants: null,
     factsheet: { file: "bonds_data", key: "QCFI-SEB" },
   },
@@ -72,8 +83,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     dataplatform: "Multistrat",
     ftseIndex: null,
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
-    returnClassLabel: "F",
-    classSeries: [{ fundserv: "LDM301", display: "F", classCode: "STRATEGY", legacy: true }],
+    trackRecordClass: "STRATEGY",
+    preferredClass: null,
+    factsheetClass: [{ class: "STRATEGY" }],
+    classLabels: { STRATEGY: "F" },
+    classFundserv: { STRATEGY: "LDM301" },
     variants: null,
     factsheet: { file: "factsheet_data", key: "Multistrategy" },
   },
@@ -81,8 +95,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     dataplatform: null,
     ftseIndex: null,
     analytics: null,
-    returnClassLabel: null,
-    classSeries: [],
+    trackRecordClass: null,
+    preferredClass: null,
+    factsheetClass: [],
+    classLabels: {},
+    classFundserv: {},
     // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each
     variants: [{ id: "6", key: "GMV_6pct" }, { id: "3", key: "GMV_3pct" }, { id: "9", key: "GMV_9pct" }],
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
@@ -91,3 +108,35 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
 
 /** Sources of one fund (every registry key has an entry). */
 export const fundSources = (key: FundKey): FundSources => FUND_SOURCES[key];
+
+/** Site label of a class code for a fund ("F", "H", "FP"), or null when the class is unknown for that fund. */
+export function classLabel(key: FundKey, code: string | null | undefined): string | null {
+  if (!code) return null;
+  return (FUND_SOURCES[key].classLabels as Record<string, string | undefined>)[code] ?? null;
+}
+
+/** Class of the fund returns published in the factsheet archive of `month` (YYYY-MM or a date), or null. */
+export function factsheetClassAt(key: FundKey, month: string): ClassCode | null {
+  const m = month.slice(0, 7);
+  for (const e of FUND_SOURCES[key].factsheetClass) if (!e.until || m <= e.until) return e.class;
+  return null;
+}
+
+/** One class series of a net fund: its FundServ code, site label and dataplatform class code. */
+export interface ClassSeriesSource {
+  fundserv: string;
+  display: string;
+  classCode: ClassCode;
+}
+
+/** Classes of a fund that can have a monthly series (dataplatform `class_code`), from the class configuration. */
+export function classSeriesOf(key: FundKey): ClassSeriesSource[] {
+  const src = FUND_SOURCES[key];
+  const out: ClassSeriesSource[] = [];
+  for (const code of Object.keys(src.classLabels) as ClassCode[]) {
+    const fundserv = src.classFundserv[code];
+    const display = src.classLabels[code];
+    if (fundserv && display) out.push({ fundserv, display, classCode: code });
+  }
+  return out;
+}

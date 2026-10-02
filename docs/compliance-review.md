@@ -94,12 +94,37 @@ not be substantiated were softened to "designed to" statements or removed.
 
 ### A. Must-fix items
 
-- [ ] **A1 (flag only, compliance risk).** Sustainable Enhanced Bonds: the performance shown is the dataplatform
-  `STRATEGY_H` (class/series H) track record, labelled **series F** on the site (Gabriel's decision 2026-09-29, "class
-  F/FP for all funds", `src/config/funds.ts`). Presenting one series' returns under another series' name is a
-  sales-communication risk unless the series have identical fees and history. Decide: show the H series as H, compute
-  F, or keep with a note. *Changed:* the returns disclaimer now says "series" / « série » like the UI (it said
-  "class" / « catégorie »).
+- [x] **A1 (resolved 2026-10-01, Gabriel).** Sustainable Enhanced Bonds: the performance shown was the dataplatform
+  `STRATEGY_H` (class/series H) track record, labelled **series F** on the site. Presenting one series' returns under
+  another series' name is a sales-communication risk unless the series have identical fees and history.
+  *Changed:* the returns disclaimer now says "series" / « série » like the UI (it said "class" / « catégorie »).
+  **Decision 2026-10-01 (Gabriel): "Change SEB to Class F timeseries. If you showcase the class H timeseries, then
+  show class H."** Implemented on branch `fix/seb-class`: the label is never a business label any more, it is
+  derived from the class of the data actually used (`performance.classCode`, `fund-sources.ts` `classLabels`):
+  - SEB asks the dataplatform for its class F series with the full history (`class_code=STRATEGY&history=full`);
+    when the response confirms class F from the track-record start (2019-02), every month comes from it (no
+    analytics month) and the site says **Series F / Série F**;
+  - otherwise (dataplatform change not deployed yet, or the answer is not confirmed) the class H sources are kept
+    and the site says **Series H / Série H**;
+  - a series whose months come from different (or unknown) classes is never published (withheld, error + alert);
+    a validation gate blocks any performance whose label is not its data's class; publications made before this
+    change are relabelled by their data (class H) when carried over, rolled back or pinned;
+  - the factsheet publishes SEB as class H (factsheet-generator `fed3af3`): while the site shows class F, the SEB
+    factsheet comparisons (monthly table, trailing returns, value added, statistics) are skipped with an info
+    issue naming the class mismatch; the "factsheet of the month must exist" timing gate and every other gate stay;
+  - the label appears on the fund header badges, overview returns, performance tab, growth-chart legend,
+    disclosures, home tiles and the strategies index; the NAV card keeps the register's own series (LDM201 = F).
+  Follow-up (independent review, same day): class F is used only when complete through the latest class H month and
+  within a fee band of class H on every month (−5 to +30 bp), with the payload naming class F / LDM201 like the fund
+  register; once class F is published a source failure keeps it (never back to H); any class change H ↔ F waits for
+  an admin approving the run, also in auto mode; the factsheet is compared by archive month (SEB archives up to
+  2026-07 publish class F, from 2026-08 class H). Home tiles and the strategies index say "Returns: Series F" /
+  « Rendements : Série F ».
+  *To confirm:* that class F has a track record from 2019-02 (otherwise the dataplatform's full history will not
+  start at the track-record start and the site stays on class H).
+  *To review (same question as A2):* "Series F" for **2019-02 to 2023-07** covers pre-launch **strategy** returns
+  (segregated accounts) net of the class's current fees, not the fund's own units; confirm this is permitted and how
+  it must be disclosed.
 - [ ] **A2 (flag only).** Monthly Income shows the strategy track record from **January 2019**, before the fund's
   launch on **2021-10-05** (`FUND_INCEPTION`, `preInception` disclaimer). Confirm this is permitted under NI 81-102
   Part 15 (standard periods 1, 3, 5, 10 years and since inception; no performance for a fund in existence < 12
@@ -220,6 +245,92 @@ The review's section C was not included in the brief; this list is compiled from
 - [ ] Contact: office hours (8:30 to 5:00 ET), "reply within one business day", complaints officer phone (L1).
 - [ ] Complaints: 10 / 60 / 30 / 15 / 180 / 90 days, OBSI limit $350,000, AMF phone 1 877 525-0337.
 
+## Concise copy 2026-09-30
+
+Gabriel asked for a much less verbose site ("cut down on the text significantly, more bullet points, short sentences").
+Branch `feat/concise-copy` condenses the copy of the pages below, EN and FR in parallel. **No new claim, figure or
+promise was introduced**: every sentence is a shorter form of text already reviewed above (A/B items), or the same
+text. Regulatory sentences inside a condensed block were kept word for word, and a unit test
+(`tests/unit/site/concise-copy.test.ts`) fails if the overlay caveat ("designed to have low correlation … it may not do so
+and can lose money"), the leverage disclosure, the distributions sentence, the approach footnotes (\*, \*\*) or the
+ESG-scope sentences disappear. Not touched: legal pages (complaints, code of ethics, privacy / Law 25),
+`src/content/disclaimers.ts` (fund disclosures, footer disclaimers, firm disclaimer, gross / net markers, provenance
+lines, "figures coming soon"), the fund header descriptions and taglines (`src/config/funds.ts`, mostly disclosure
+wording), the six PRI principles (official wording), the contact form texts and regulatory names (AMF, OBSI, CIRO, PRI).
+
+Changed pages (please tick once reviewed):
+
+- [ ] **Home** (`src/components/site/home/copy.ts`, `news.ts`): hero lead, approach lead + 3 bullets, card texts
+  (the "Risk management does not eliminate the risk of loss." sentence kept), strategies / process leads and step
+  texts, CTA; news summaries and "Read more" texts shortened (Mageska, Tobacco-Free Finance Pledge, Dans la rue: same
+  facts, the opinion sentence of the tobacco item and the closing sentence of the Dans la rue item removed). "Investment
+  manager headquartered in Montreal" → "Portfolio manager based in Montreal" (registration category, item B).
+- [ ] **Strategies index** (`strategies-copy.ts`): lead, comparison lead, CTA. Since-inception and "—" notes unchanged.
+- [ ] **Solutions** (`solutions-copy.ts`): lead, profile intros and descriptions, benefit bullets, vehicle texts (the
+  futures-overlay vehicle keeps "most of the capital stays invested in the bonds" and the leverage disclosure). The
+  minimum / suitability note unchanged.
+- [ ] **Approach** (`copy-approach.ts`): hero, pipeline, bond-process, overlay, research and team leads; the four step
+  paragraphs replaced by their bullets (3 per step; the bullet "Futures overlays designed to offset part of losses in
+  stressed markets", which carried no caveat, was removed; step 4 keeps "Hedging seeks to limit losses in adverse
+  conditions; it does not eliminate the risk of loss."); philosophy, lifecycle and capability cards shortened. The
+  margin sentence now reads "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of exposure.\*\*"
+  (same figure). Overlay caveat, leverage disclosure and both footnotes verbatim.
+- [ ] **Sustainability** (`copy-sustainability.ts`): hero and principles leads shortened before the ESG-scope sentence
+  (kept verbatim), principle / integration / exclusion / commitment cards shortened (thresholds unchanged: > 5 % of
+  revenue, MSCI "severe"), green-bond text (ICMA sentence kept), Fondaction text (second paragraph "shared
+  commitment…" removed), PRI lead. Exclusions lead unchanged. The six principles unchanged.
+- [ ] **Team** (`copy-about.ts`, `src/data/team.ts`): hero lead, intro as 4 bullets, values and milestones shortened;
+  every biography cut to one or two sentences (facts kept are a subset of the previous bios; previous roles and education
+  still listed in the dialog). Jean Turmel FR keeps « Financière Banque Nationale » (A15).
+- [ ] **Contact** (`copy-contact.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
+  one business day. Urgent? Please call."), visit text. Form note about sensitive information unchanged.
+- [ ] **Fund pages** (`src/components/fund/copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
+  approach" is now 3 bullets plus the risk note in fine print (overlay caveat + leverage disclosure, verbatim; GMV: the
+  leverage disclosure); the fund's own section (Monthly Income features, SEB sustainability, Multi-Strategy
+  sub-strategies, GMV overlay) has a shorter lead and card texts, with the same disclosures in the same cards
+  (distributions sentence on "Monthly distributions", caveat + leverage on the overlay cards, "it may not do so" on
+  Hedging, the futures-overlay exception in the SEB lead).
+- [ ] **Confirm** that no condensed sentence changed the meaning of a reviewed statement (full diff on the branch).
+- [ ] **Independent review fixes (same day).** Fund Overview risk note (overlay caveat + leverage) now shown as a
+  body-size callout next to the approach bullets, as prominent as them. Multi-Strategy: "An alternative fund of
+  systematic strategies, designed to behave differently from stocks and bonds"; mean reversion "Takes positions when
+  prices stray far from usual levels, expecting them to revert"; "Each with its own rules, designed for a distinct role".
+  GMV summary back to the reviewed wording "A managed-futures overlay for institutional portfolios, offered through
+  separately managed accounts." **Flag:** the Solutions page lists Global Minimum Volatility among the strategies that
+  usually fit family offices (unchanged, pre-existing); confirm whether GMV is offered outside institutions.
+  **Resolved — Gabriel 2026-10-01: primarily family offices, also institutions** (branch `fix/gmv-audience`): GMV
+  summary now "A managed-futures overlay for family offices and institutions, offered through separately managed
+  accounts." / « Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les
+  institutions, offerte en comptes gérés distincts. » (caveat sentence unchanged); GMV listed first for family offices
+  on /solutions; the family-office "Managed accounts" vehicle names the GMV overlay and carries the leverage disclosure
+  verbatim. « bureaux de gestion familiale » kept (item B terminology), not « bureaux de famille ». Tobacco:
+  "We exclude tobacco companies from the securities we select directly." (news, sustainability); the 2024 milestone on
+  /team reads "Tobacco exclusion adopted". Margin sentence: "about 5 to 10% of their exposure" (« de leur exposition »).
+  SEB metrics card: "Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index."
+  Mageska news: "Mageska Capital entrusted Nymbus with the mandate: …". French: « durée » used for duration everywhere
+  (as in the Portfolio tab's « Durée modifiée »; the approach bullet « Couverture de la duration » became « de la
+  durée »). Fondaction section: lead plus three bullets taken from the previously reviewed Fondaction paragraph
+  (labour-sponsored fund; positive economic, social and environmental impact; mission of responsible capital
+  allocation). The unit test now also checks the French disclosures, the Solutions overlay leverage sentence, the
+  Multi-Strategy hedging caveat, the approach step-4 note and the SEB overlay exception.
+
+English word counts of the strings in these copy modules (body copy = prose sentences; headings, button labels,
+meta descriptions, form labels and regulatory sentences counted apart; regulatory sentences only shrink where a
+condensed sentence carried a regulatory keyword, e.g. the PRI naming, or where a caveat-free claim was removed):
+
+| Page | Body copy before | after | cut | Headings/labels b→a | Verbatim disclosures b→a |
+|---|---:|---:|---:|---:|---:|
+| Home | 510 | 246 | 52 % | 100→100 | 15→15 |
+| Strategies index | 115 | 62 | 46 % | 44→44 | 18→18 |
+| Solutions | 331 | 187 | 44 % | 65→73 | 39→39 |
+| Approach | 765 | 364 | 52 % | 212→218 | 72→47 |
+| Sustainability | 305 | 172 | 44 % | 114→114 | 218→171 |
+| Team (intro, values, milestones) | 301 | 141 | 53 % | 116→116 | 9→8 |
+| Team bios | 834 | 349 | 58 % | 0→0 | 0→0 |
+| Contact | 82 | 45 | 45 % | 51→55 | 0→0 |
+| Fund pages (FUND_TEXTS) | 623 | 370 | 41 % | 67→70 | 191→191 |
+| **Total** | 3866 | 1936 | 50 % | 769→790 | 562→489 |
+
 ## Fund pages v2 (2026-10-01): returns per class, rankings, GMV variants — to review
 
 Branch `feat/fund-pages-v2`. Everything below is **new wording or a new kind of statement**; none of it has been
@@ -231,7 +342,7 @@ reviewed by compliance. All visitor-facing texts are in `src/components/fund/cop
 | F2 | **Returns follow the selected class (default F).** Headline returns, growth of $10,000, calendar years and risk statistics are those of the class selected next to the NAV; a class without its own series says "Performance figures for series X coming soon". A class's figures are never taken from another class. | Fund pages, header and Performance tab | Which class is the default per fund: Monthly Income F (LDM081, prospectus), SEB F (LDM201), Multi-Strategy F (LDM301). Until the dataplatform serves LDM081, the Monthly Income page opens on "coming soon" (FP LDM001 is one click away). |
 | F3 | **Series with under 12 months of history** show only the periods that exist, are never annualized, have no risk statistics, and say "Since series inception (<month>): only the periods this series has completed are shown." | Header strip, Overview, Performance tab | **Conflicts with the "12 months" convention mentioned in row 3 above.** Confirm that publishing returns for a series younger than one year is permitted (NI 81-102 Part 15, sales communications: rules on performance data for a fund or series with less than 12 months of history, to confirm). If not allowed, set the threshold in `src/lib/pipeline/classes.ts` (`short`) to drop such classes instead. |
 | F4 | **"Prospectus class" / "Offering memorandum class" badge** next to the class selector and in the series table, with a one-line disclosure ("offered under the simplified prospectus" / "offered by offering memorandum, to eligible investors only"). Registry: LDM081 F prospectus, LDM001 FP offering memorandum. Every other class shows **no label** until an admin sets its type (*Admin → Funds → class types*). | Fund pages | Which classes are prospectus vs OM. The registry defaults above come from Gabriel's brief. FR « Série à prospectus » / « Série à notice d’offre ». Is the OM sentence enough, or must OM series carry the full exempt-distribution legend? |
-| F5 | **SEB class H.** The dataplatform series the site used until now is class **H** (LDM202), not F; the old pages showed it as "Series F". It is now labelled H, and class F (LDM201) shows its own series once the dataplatform serves it (PR #626). | SEB page | Confirm the earlier "F" label was wrong, and whether the previously published figures need a correction notice. |
+| F5 | **SEB class H.** The dataplatform series the site used until now is class **H** (LDM202), not F; the old pages showed it as "Series F". It is now labelled H (merged with the data-driven class label of `fix/seb-class`), and class F (LDM201) shows its own series once the dataplatform serves it (PR #626); until then F says "coming soon" and H is one click away. | SEB page | Confirm the earlier "F" label was wrong, and whether the previously published figures need a correction notice. |
 | F6 | **Awards and rankings tab** (admin-editable, seeded 2026-10-01): Fund Library category rank and quartile per period, category name, "as at" date, FundGrade letter, and (only when set) a Morningstar star rating, each with its source link. Wordmarks are plain text, not logos. Disclosure under the table: third-party data, reproduced as at the date shown, not updated daily, number of funds ranked varies by period, past performance does not predict future results, rankings are not guarantees, see the source for the methodology. | Fund pages, tab *Awards and rankings* | (a) Rules for presenting rankings and ratings in sales communications (NI 81-102 Part 15 and CSA staff guidance on rankings, to confirm: category, number of funds, period and source given, ranking current, shown only for the series ranked). (b) Whether FundGrade and Fund Library may be named and linked, and whether their terms need a licence or written permission (**official logos are not used and must not be dropped in without permission**). (c) Whether a ranking of an OM series (Monthly Income FP) may be shown on a public page. (d) The **French category names are our translation** of the source's English names (« Revenu fixe canadien », « Revenu fixe canadien de base plus », « Multistratégies alternatives »): replace with the official CIFSC French names. (e) Staleness: the figures are as at 2026-08-31 and are edited by hand; decide a maximum age after which the tab is hidden. |
 | F7 | **Morningstar rating: not published.** The Morningstar pages could not be read when the data was collected, so **no star rating is on the site**. The two bond funds are believed to be rated 5 stars, but that is unconfirmed. An admin can enter one (*Admin → Funds → awards and rankings → Morningstar*); it then shows with its "as at" date and source. | Fund pages | Confirm the rating, class, category and date on the Morningstar page, and the right to cite it, before entering it. |
 | F8 | **CIFSC category** is shown in the facts table: the admin's value, else the Fund Library category when it is the only one. | Fund pages, key facts | The categories above are the Fund Library names, assumed to equal the CIFSC categories. |

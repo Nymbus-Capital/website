@@ -201,6 +201,10 @@ test("performance class label", () => {
   assert.equal(perfClassLabel({ returnClass: "FP", returnClassLabel: "Series FP" }, "classe"), "classe FP");
   assert.equal(perfClassLabel({ returnClassLabel: "Strategy composite" }, "class"), "Strategy composite");
   assert.equal(perfClassLabel({ returnClass: "FP" }, "class"), "class FP");
+  // SEB: the label follows the class of the data (H fallback / F full history), localised
+  assert.equal(perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "Series"), "Series H");
+  assert.equal(perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "S\u00e9rie"), "S\u00e9rie H");
+  assert.equal(perfClassLabel({ classCode: "STRATEGY", returnClass: "F", returnClassLabel: "Series F" } as never, "S\u00e9rie"), "S\u00e9rie F");
   assert.equal(perfClassLabel({}, "class"), null);
   assert.equal(perfClassLabel(null, "class"), null);
 });

@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowRight, BarChart3, Database, Handshake, HeartHandshake, Layers, Leaf, Medal, ShieldCheck, TrendingUp, X, Zap } from "lucide-react";
 import { useTilt } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { ButtonLink, CardGrid, Marquee, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
+import { Bullets, ButtonLink, CardGrid, Marquee, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
 import type { HomeData } from "./data";
 import { HOME_COPY as C, FUND_COPY as F } from "./copy";
 import { FundTile } from "./FundTile";
@@ -54,7 +54,9 @@ export function Approach() {
     <Section glow="tr" labelledBy="approach-t" className="hm-approach">
       <div className="split top">
         <div>
-          <SectionHead eyebrow={pick(C.approach.eyebrow)} title={pick(C.approach.title)} accent={pick(C.approach.accent)} lead={pick(C.approach.lead)} id="approach-t" />
+          <SectionHead eyebrow={pick(C.approach.eyebrow)} title={pick(C.approach.title)} accent={pick(C.approach.accent)} lead={pick(C.approach.lead)} id="approach-t">
+            <Bullets items={C.approach.points.map((p) => pick(p))} />
+          </SectionHead>
           <Reveal self delay={260} className="hm-links">
             <Link className="link" href="/approach">{pick(C.approach.more)} <ArrowRight aria-hidden="true" /></Link>
             <Link className="link" href="/team">{pick(C.approach.team)} <ArrowRight aria-hidden="true" /></Link>

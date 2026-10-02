@@ -1,8 +1,8 @@
 /**
- * Returns per class (series): from the dataplatform class series of the monthly net returns (dataplatform PR #626:
- * `class_code`, `history=full`) into `ClassPerformance`. Pure (no I/O). A class is shown only with its own series, which
- * must end at the validated as-of month of the fund; anything else leaves the class without data ("coming soon") — never
- * another class's numbers.
+ * Returns per class (series) into `ClassPerformance`. Pure (no I/O). A class is shown only with its own series, which must
+ * end at the validated as-of month of the fund; anything else leaves the class without data ("coming soon") — never
+ * another class's numbers. The class series come from the pipeline's own class-checked candidates (build.ts: track-record
+ * class and preferred full-history class), never from an unchecked answer of the endpoint.
  *
  * A series shorter than 12 months is published with the periods that exist only (no annualized figure, no risk
  * statistics) and flagged `shortRecord`: the page says "since class inception".
@@ -10,14 +10,12 @@
 import type { CalendarRow, ClassPerformance, GrowthPoint, Issue, MonthlyPoint, Performance, PeriodMap, RiskStats } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
 import type { ClassSeriesSource } from "./fund-sources.ts";
-import type { MonthlyNetReturnsResponse, SourceResult } from "./raw.ts";
 import {
-  addMonths, calendarYears, clean, growth as growthOf, monthsBetween, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf, type RiskResult, type Series,
+  addMonths, calendarYears, clean, growth as growthOf, monthsBetween, riskStats, sortedKeys, trailing as trailingOf, type RiskResult, type Series,
 } from "./metrics.ts";
 
 const PERIOD_LIST = PERIODS as readonly string[];
 const ym = (d: string): string => d.slice(0, 7);
-const pct4 = (x: number): string => `${(x * 100).toFixed(4)}%`;
 
 const toPoints = (s: Series): MonthlyPoint[] => sortedKeys(s).map((month) => ({ month, r: s[month] }));
 
@@ -33,18 +31,6 @@ function riskFrom(r: RiskResult | null): RiskStats | null {
     window: r.window, annReturn: r.annReturn, annVol: r.annVol, downsideDev: r.downsideDev, sharpe: r.sharpe, sortino: r.sortino,
     maxDrawdown: r.maxDrawdown, positiveMonths: r.positiveMonths, bestMonth: r.bestMonth, worstMonth: r.worstMonth,
   };
-}
-
-/** Ready months of a class answer up to `asOf` (month-ends), never before `trackStart`. */
-export function readyMonths(data: MonthlyNetReturnsResponse, asOf: string, trackStart: string | null): Series {
-  const s: Series = {};
-  for (const r of data.rows) {
-    if (r.status !== "ready" || typeof r.net_return !== "number" || !Number.isFinite(r.net_return)) continue;
-    const m = toMonthEnd(String(r.month));
-    if (m > asOf || (trackStart && m < trackStart)) continue;
-    s[m] = r.net_return;
-  }
-  return s;
 }
 
 /**
@@ -117,75 +103,52 @@ export function deriveReturns(series: Series, first: string, asOf: string, idx: 
 export interface ClassBuild {
   /** the class's returns; null when it has none to show */
   entry: ClassPerformance | null;
-  /** the usable series (for the same-class check with the fund's main series) */
-  series?: Series;
   issues: Issue[];
 }
 
 export interface ClassBuildInput {
-  /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM201` */
+  /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
   key: string;
   cls: ClassSeriesSource;
-  res: SourceResult<MonthlyNetReturnsResponse> | undefined;
+  /** the class's monthly net returns (one class, checked by the caller); null: none */
+  series: Series | null;
+  /** months of `series` that come from rounded factsheet figures (no risk statistics over a window containing one) */
+  roundedMonths?: string[];
   /** validated as-of month of the fund: the class series must end there */
   asOf: string;
-  trackStart: string | null;
   /** benchmark monthly returns (FTSE), null when the fund has none */
   idx: Series | null;
   indexName?: string;
 }
 
-/** One class (not the legacy one: that series is the fund's main one). */
+/** One class (not the headline one: that series is the fund's main one) from its own monthly series. */
 export function buildClassPerformance(inp: ClassBuildInput): ClassBuild {
-  const { key, cls, res, asOf, trackStart, idx } = inp;
+  const { key, cls, series, asOf, idx } = inp;
   const issues: Issue[] = [];
   const label = `class ${cls.display} (${cls.fundserv})`;
-  if (!res) return { entry: null, issues };
-  if (!res.ok || !res.data) {
-    // an endpoint that ignores class selection is "not deployed yet": one summary issue per run is raised by the caller
-    if (!res.absent) issues.push({ key, level: "warn", message: `${label}: monthly series unavailable (${res.error ?? "not fetched"}); returns not shown for this class` });
-    return { entry: null, issues };
-  }
-  const ready = readyMonths(res.data, asOf, trackStart);
-  const run = runEndingAt(ready, asOf);
+  if (!series) return { entry: null, issues };
+  const run = runEndingAt(series, asOf);
   if (!run) {
-    const last = sortedKeys(ready).pop();
-    issues.push({ key, level: "warn", message: `${label}: series ${last ? `ends ${ym(last)}` : "has no ready month"}, not ${ym(asOf)}; returns not shown for this class` });
+    const last = sortedKeys(series).pop();
+    issues.push({ key, level: "warn", message: `${label}: series ${last ? `ends ${ym(last)}` : "has no month"}, not ${ym(asOf)}; returns not shown for this class` });
     return { entry: null, issues };
   }
-  if (run.before.length) issues.push({ key, level: "info", message: `${label}: ${run.before.length} ready month(s) before a gap (${ym(run.before[0])} to ${ym(run.before[run.before.length - 1])}) are not used; the series starts ${ym(run.first)}` });
   const n = monthsBetween(run.first, asOf);
   const d = deriveReturns(run.series, run.first, asOf, idx);
   const short = n < 12;
   const performance: Performance = {
     asOf, basis: "net", method: "compounded", firstMonth: run.first, monthly: toPoints(run.series),
     ...(d.indexMonthly ? { indexMonthly: d.indexMonthly } : {}), trailing: d.trailing, calendar: d.calendar, growth: d.growth,
-    returnClass: cls.display, returnClassLabel: `Series ${cls.display}`,
+    classCode: cls.classCode, returnClass: cls.display, returnClassLabel: `Series ${cls.display}`,
     ...(inp.indexName ? { indexName: inp.indexName } : {}),
     ...(short ? { shortRecord: true } : {}),
   };
   if (short) issues.push({ key, level: "info", message: `${label}: ${n} month(s) of history (< 12): only the periods that exist are shown ("since class inception"), no risk statistics` });
-  return {
-    entry: {
-      fundserv: cls.fundserv, display: cls.display, performance,
-      risk: riskFrom(riskStats(run.series, asOf, "SI")), risk3Y: riskFrom(riskStats(run.series, asOf, "3Y")),
-    },
-    series: run.series,
-    issues,
-  };
-}
-
-/**
- * Same-class check: the class series the fund's main series belongs to must give the same months as that series where
- * both come from the dataplatform. A difference means the class answer is not trustworthy: the class is dropped.
- */
-export function sameClassMismatches(classSeries: Series, main: Series, origin: Record<string, string>, tol = 1e-9): string[] {
-  const out: string[] = [];
-  for (const m of sortedKeys(main)) {
-    if (origin[m] !== "dataplatform" || !(m in classSeries)) continue;
-    if (Math.abs(classSeries[m] - main[m]) > tol) out.push(`${ym(m)}: ${pct4(classSeries[m])} vs ${pct4(main[m])}`);
-  }
-  return out;
+  const rounded = (inp.roundedMonths ?? []).filter((m) => m >= run.first && m <= asOf);
+  const risk = rounded.length ? null : riskFrom(riskStats(run.series, asOf, "SI"));
+  const risk3Y = rounded.some((m) => m > addMonths(asOf, -36)) ? null : riskFrom(riskStats(run.series, asOf, "3Y"));
+  if (rounded.length) issues.push({ key: key.replace(/\.performance\..*$/, ".risk"), level: "warn", message: `${label}: risk statistics not shown${risk3Y ? " for the SI window" : ""}: ${rounded.length} month(s) come from rounded factsheet figures` });
+  return { entry: { fundserv: cls.fundserv, display: cls.display, performance, risk, risk3Y }, issues };
 }
 
 /**
