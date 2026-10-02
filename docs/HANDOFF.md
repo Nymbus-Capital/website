@@ -131,6 +131,14 @@ Not yet run against live data, not deployed.
    Monthly Income (`FUND_INCEPTION` in `src/content/disclaimers.ts`), holiday calendar for FTSE
    month-ends (currently weekdays).
 
+11. **Headless WordPress editor backend** (branch `feat/wp-cms`, based on the PR branch, not merged): built, CI-tested,
+   **nothing deployed**. Gabriel's manual steps: `docs/deploy.md` §5 / `wordpress/README.md` (MySQL addon, uploads volume,
+   secret group, service `wordpress`, install + activate plugin, permalinks, connect the website with `WP_BASE_URL` +
+   secrets, **Microsoft SSO for WordPress login = TODO**). Follow-ups: import the current team/news into WordPress
+   (photos are on www.nymbus.ca, not imported), render `linkedin` in the team modal (`TeamMember.linkedin`), fund pages
+   still read managers from `src/data/team.ts`, add News to the nav/footer if wanted, independent adversarial review
+   (could not be spawned in the building session).
+
 ## 6. Session log
 
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
@@ -148,6 +156,14 @@ Not yet run against live data, not deployed.
   disclosures untouched); `word-budget.test.ts`. New claims flagged in `docs/compliance-review.md` ("Home v2").
   Decisions for Gabriel: wording of the scan panel ("billions of data points" vs illustrative), whether /strategies
   keeps NAV, PRI principles list removed from /sustainability, saved admin content with the old AUM default.
+- 2026-10-01 (home, branch `feat/wp-cms`): headless WordPress. `wordpress/` (plugin `nymbus-site-content`: news, team, site
+  texts, EN/FR tabs, normalized `/wp-json/nymbus/v1/site-content`, optional secret, ETag, revalidate hook; mu-plugin; Dockerfile;
+  compose + setup script; README for editors and Northflank), `src/lib/cms/` (validated plain-text client, memory + last-good
+  cache, `/api/cms/revalidate`), `/news` + `/news/<id>`, home teaser (3), announcement banner (admin banner was never
+  rendered before; now shown, admin wins over WordPress), team/approach/home read `getTeam()`, CSP img-src media origin.
+  Wiring in shared files is minimal: Team.tsx/Approach.tsx take an optional `members` prop, Home/News an optional `news`
+  prop, `(site)/layout.tsx` + `page.tsx` use `getPublicContent()`. Tests: `tests/unit/cms/*`, `e2e/cms.spec.ts` (own server +
+  mock WP), PHP plain tests + lint in CI. Precedence and fallbacks: `docs/architecture.md` "Headless WordPress".
 
 - 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
   mode "review"; every run "blocked" by the July return mismatch of SEST / SEB / Multistrat, and a blocked fund with no

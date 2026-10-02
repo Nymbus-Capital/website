@@ -35,6 +35,12 @@ jobs:
           retention-days: 7
       - name: Unit tests (pipeline, metrics, auth policy, storage)
         run: set -o pipefail; mkdir -p ci-out; npm test 2>&1 | tee ci-out/unit.log
+      - name: WordPress plugin (PHP lint + plain-PHP tests)
+        run: |
+          set -o pipefail
+          mkdir -p ci-out
+          find wordpress -name '*.php' -print0 | xargs -0 -n1 php -l 2>&1 | tee ci-out/php.log
+          php wordpress/tests/normalize-test.php 2>&1 | tee -a ci-out/php.log
       - name: Type check
         run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
       - name: Lint
@@ -51,6 +57,9 @@ jobs:
       - name: Docker image builds
         if: always() && github.event_name == 'push'
         run: set -o pipefail; docker build -t nymbus-web:ci . 2>&1 | tail -40 | tee ci-out/docker.log
+      - name: WordPress image builds
+        if: always() && github.event_name == 'push'
+        run: set -o pipefail; docker build -t nymbus-wp:ci wordpress 2>&1 | tail -20 | tee ci-out/docker-wp.log
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v4

@@ -161,7 +161,8 @@ function NewsDialog({ item, onClose }: { item: NewsItem | null; onClose: () => v
   );
 }
 
-export function News() {
+/** `items`: the latest news (CMS or static), newest first; the teaser shows the first 3. */
+export function News({ items = NEWS }: { items?: NewsItem[] }) {
   const { locale, pick } = useTranslation();
   const [open, setOpen] = useState<NewsItem | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
@@ -170,7 +171,7 @@ export function News() {
     <Section labelledBy="news-t" className="hm-news">
       <SectionHead eyebrow={pick(C.news.eyebrow)} title={pick(C.news.title)} accent={pick(C.news.accent)} id="news-t" />
       <CardGrid cols={4} className="hm-news-grid">
-        {NEWS.map((n) => (
+        {items.slice(0, 3).map((n) => (
           <article key={n.id} className="card hm-news-card" data-testid={`news-${n.id}`}>
             <NewsArt n={n} />
             <div className="hm-news-body">
@@ -183,6 +184,7 @@ export function News() {
           </article>
         ))}
       </CardGrid>
+      <p className="hm-news-all" style={{ marginTop: 24 }}><Link className="link" href="/news">{locale === "fr" ? "Toutes les actualités" : "All news"} <ArrowRight aria-hidden="true" /></Link></p>
       <NewsDialog item={open} onClose={close} />
     </Section>
   );

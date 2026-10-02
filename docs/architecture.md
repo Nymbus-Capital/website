@@ -146,6 +146,55 @@ never calls the dataplatform from the browser.
   unitholder information are committed. Fixtures and the sample dataset are synthetic.
 - Sample data (`mode: "sample"`) is never shown in production unless `SHOW_SAMPLE_DATA=1`.
 
+## Headless WordPress (editor backend, optional)
+
+Non-technical editors change the **news**, the **team** and a few **texts** (EN/FR) in WordPress; the website stays
+this Next.js application and keeps the live fund pipeline. WordPress is only the editor: it never renders a public
+page and never carries fund data. Plugin, editor guide and Northflank steps: [`wordpress/README.md`](../wordpress/README.md).
+
+```
+ editors ─▶ WordPress (own Northflank service + MySQL addon + uploads volume)
+              │  GET /wp-json/nymbus/v1/site-content   {schemaVersion:1, news[], team[], texts{}}
+              │  (published, non-hidden, whitelisted, plain text; optional X-Nymbus-Content-Secret)
+              ▼
+ website server  src/lib/cms/  fetch (4 s timeout, no redirects, 2 MB cap) → validate + sanitise (plain text, https only)
+              │                → memory (reuse `CMS_REVALIDATE_SECONDS`, default 60 s, stale-while-revalidate)
+              │                → /data/cms/last-good.json (atomic; used when WordPress is down)
+              ▼
+ getTeam() · getNews() · getSiteTexts() · getPublicContent()  →  team page, approach stats, /news, /news/<id>,
+                                                                 home teaser (3 items), banner, AUM label
+ WordPress save ─▶ POST /api/cms/revalidate (Bearer WP_REVALIDATE_SECRET) ─▶ refetch now
+```
+
+- **Optional**: without `WP_BASE_URL` (unset, empty, invalid) nothing changes: the pages read the static team
+  (`src/data/team.ts`), the static news (`src/components/site/home/news.ts`) and the admin content, exactly as before.
+- **Fallback chain** for team and news: live document → memory → last good copy on the volume → static sources. An
+  **empty** list from WordPress also falls back to the static one (a fresh WordPress never blanks the site). A document
+  that fails validation (wrong `schemaVersion`, not JSON, wrong type, too large) is a failed fetch: it never replaces a
+  good one; a failed refresh is not retried for 30 s. Single bad items (bad date, unknown department, duplicate id) are
+  dropped and logged; the rest is used.
+- **Editable texts and precedence** (one source of truth per text): the AUM label and the announcement banner are
+  wired. A value **saved in the website admin** (`content/site-content.json`, not the defaults) always wins; else the
+  WordPress text; else the built-in default. The overlay (`getPublicContent()`, `src/lib/cms/map.ts overlayTexts`) is
+  used by the public layout and home page only: the admin UI keeps reading the raw admin content, so a WordPress text is
+  never saved back as an admin value. To switch a WordPress banner off, clear it in WordPress (the admin "off" means
+  "not set here"). Home headline / sub-headline / contact texts are exposed by `getSiteTexts()` but not wired (the pages
+  keep their reviewed copy).
+- **Security**: every string is reduced to plain text (entities decoded once, tags stripped, control / bidi characters
+  removed, capped); links must be `https` without credentials; images (`photo`, news `image`) are accepted only on
+  the configured media origin (`WP_MEDIA_ORIGIN`, default the origin of `WP_BASE_URL` when it is public https or
+  loopback), which is added to the CSP `img-src` (`src/lib/auth/csp.ts`, re-validated there) — nothing else in the
+  CSP changes. The endpoint is built from the configured base only (no URL from data), redirects are refused, the
+  content secret is sent only to that endpoint and never logged. `POST /api/cms/revalidate` is 404 when the CMS is
+  off, 503 without a secret, 401 on a wrong one (constant-time compare, failure limiter), no cookies involved.
+  `http` is accepted for `WP_BASE_URL` only for localhost or a single-label private-network host (`http://wordpress`).
+- **Code map**: `types.ts` (document), `sanitize.ts`, `validate.ts` (whitelisting parser), `config.ts` (env),
+  `client.ts` (fetch), `source.ts` (cache, last good, backoff, revalidate), `map.ts` (to page shapes, precedence),
+  `index.ts` (public API, server only). Tests: `tests/unit/cms/*`, `e2e/cms.spec.ts` (mock WordPress
+  `e2e/mock-wp.mjs`, fixture `e2e/fixtures/wp-site-content.json`), `wordpress/tests/normalize-test.php`.
+- The fund pages still read their managers from `src/data/team.ts` (`resolveManagers`); the CMS team feeds the team page,
+  the approach page figures and the home page head-count.
+
 ## Admin
 
 `/admin` (pages) and `/api/admin/*` (JSON API) require a Microsoft Entra ID sign-in on the Nymbus tenant
@@ -178,3 +227,8 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `PIPELINE_SCHEDULE` | `HH:MM,HH:MM` America/Toronto, or `off` (default `06:45,12:45,18:45`) |
 | `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs |
 | `SHOW_SAMPLE_DATA` | `1` to allow the synthetic sample in production (demo environments only) |
+| `WP_BASE_URL` | optional: base URL of the WordPress content backend (`https://…`; `http` only for localhost or a single-label private host). Unset = CMS off, static content |
+| `WP_CONTENT_SECRET` | optional shared secret sent as `X-Nymbus-Content-Secret` (same value as `NYMBUS_CONTENT_SECRET` in WordPress) |
+| `WP_REVALIDATE_SECRET` | shared secret that authorises `POST /api/cms/revalidate` (same value as `NYMBUS_REVALIDATE_SECRET` in WordPress); without it the route answers 503 |
+| `WP_MEDIA_ORIGIN` | optional public origin of WordPress images (default: origin of `WP_BASE_URL` when it is public https / loopback); added to the CSP `img-src` |
+| `CMS_REVALIDATE_SECONDS` | optional, reuse time of the fetched content (default 60, 5–3600) |

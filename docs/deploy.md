@@ -86,3 +86,26 @@ repository settings once the new address is live.
 - Roll back: Runs → pick a published run → publish. Freeze one fund: Funds → pin to a run.
 - CLI inside the container, as the app user (a shell opens as root): `runuser -u nymbus -- npm run pipeline -- status | run --dry-run | publish <id>`. Files a root shell leaves on `/data` are re-owned at the next start (`docker/start.mjs`).
 - Backups: enable the daily backup schedule on the `website-data` volume (Northflank → Volumes).
+
+## 5. WordPress content backend (optional, headless)
+
+Lets non-technical editors change the news, the team and a few texts (EN/FR); the website keeps running without it.
+**Not created yet — done by hand in the Northflank UI** (the provisioning script does not cover it). Full details,
+variable names and the editor guide: [`wordpress/README.md`](../wordpress/README.md); how the website uses it:
+[architecture.md](architecture.md) ("Headless WordPress").
+
+1. **Addon**: MySQL (smallest plan, TLS, backups on) in the same project.
+2. **Volume** `wordpress-uploads` (SSD, a few GB), mounted at `/var/www/html/wp-content/uploads` on the service.
+3. **Secret group** `wordpress-secrets` restricted to the `wordpress` service: `WORDPRESS_DB_HOST`, `WORDPRESS_DB_NAME`,
+   `WORDPRESS_DB_USER`, `WORDPRESS_DB_PASSWORD` (from the addon), the eight `WORDPRESS_*_KEY` / `*_SALT` variables
+   (random, fixed), `WORDPRESS_CONFIG_EXTRA` (`WP_HOME`, `WP_SITEURL`, `FORCE_SSL_ADMIN`), `NYMBUS_CONTENT_SECRET`,
+   `NYMBUS_REVALIDATE_URL`, `NYMBUS_REVALIDATE_SECRET`, optional `NYMBUS_PUBLIC_SITE_URL`.
+4. **Service** `wordpress` (combined, this repository, branch `main`): Dockerfile `wordpress/Dockerfile`, build context
+   `wordpress`, **one instance**, port 80 HTTP public, health check `GET /wp-login.php`.
+5. Open `/wp-admin/install.php`, create the emergency administrator, activate **Nymbus Site Content**, Settings →
+   Permalinks → *Post name*. Create editors with the **Editor** role. Microsoft sign-in (SSO plugin + Entra app
+   registration) is a TODO for Gabriel, see the README.
+6. **Connect the website**: add to `website-secrets`: `WP_BASE_URL`, `WP_CONTENT_SECRET` (= `NYMBUS_CONTENT_SECRET`),
+   `WP_REVALIDATE_SECRET` (= `NYMBUS_REVALIDATE_SECRET`), `WP_MEDIA_ORIGIN`; redeploy the website. Check `/news` shows the
+   WordPress items; stop the WordPress service and check the pages still render (last good copy).
+7. Never go live with the "[Sample]" items of the local set-up. Backups: addon schedule + the uploads volume.

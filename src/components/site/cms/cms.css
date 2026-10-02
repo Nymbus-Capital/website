@@ -1,0 +1,19 @@
+/* =====================================================================================================
+   CMS-driven pieces: announcement banner, /news list and detail (src/components/site/cms/*). Light only.
+   ===================================================================================================== */
+.cms-banner { background: var(--tint); border-bottom: 1px solid var(--line); color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+.cms-banner .container { padding-top: 10px; padding-bottom: 10px; text-align: center; text-wrap: balance; }
+
+.cms-news-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); margin-top: 40px; }
+.cms-news-card { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.cms-news-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--surf); }
+.cms-news-body { display: flex; flex-direction: column; gap: 10px; flex: 1; padding: 20px 22px 22px; }
+.cms-news-body h2, .cms-news-body h3 { margin: 0; }
+.cms-news-body p { margin: 0; color: var(--ink2); font-size: 15px; line-height: 1.6; }
+.cms-news-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0; color: var(--mute); font-size: 13px; }
+.cms-news-chip { display: inline-flex; align-items: center; height: 24px; padding: 0 11px; border-radius: 99px; font-size: 12px; font-weight: 500; background: rgba(26,115,232,.1); color: var(--blue-d); }
+.cms-news-more { margin-top: auto; padding-top: 6px; }
+.cms-news-empty { margin-top: 40px; color: var(--mute); }
+.cms-article { max-width: 760px; }
+.cms-article .cms-news-img { border-radius: 16px; margin: 24px 0; }
+.cms-article .prose { margin-top: 24px; }

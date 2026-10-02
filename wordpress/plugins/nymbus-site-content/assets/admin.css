@@ -1,0 +1,7 @@
+.nymbus-sc .nymbus-sc-table th { width: 220px; }
+.nymbus-sc .nymbus-sc-tabs { display: flex; gap: 6px; margin: 16px 0 4px; }
+.nymbus-sc .nymbus-sc-tab[aria-selected="true"] { font-weight: 600; }
+.nymbus-sc .nymbus-sc-panel[hidden] { display: none; }
+.nymbus-sc .nymbus-sc-checks label { display: inline-block; margin: 0 14px 4px 0; }
+.nymbus-sc textarea.large-text { min-height: 60px; }
+.nymbus-sc-status td, .nymbus-sc-status th { padding: 6px 10px 6px 0; }

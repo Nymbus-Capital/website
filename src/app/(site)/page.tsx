@@ -5,9 +5,9 @@
 import type { Metadata } from "next";
 import { Home } from "@/components/site/home/Home";
 import { toHomeData } from "@/components/site/home/data";
-import { getAllFundViews, getContent } from "@/lib/data/site";
+import { getAllFundViews } from "@/lib/data/site";
+import { getNews, getPublicContent, getTeam } from "@/lib/cms";
 import { getLocale } from "@/lib/i18n/server";
-import { team } from "@/data/team";
 import { countPhD } from "@/components/site/pages/lib/people";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [views, content] = await Promise.all([getAllFundViews(), getContent()]);
-  return <Home data={toHomeData(views, content, { teamSize: team.length, phdCount: countPhD(team) })} />;
+  const [views, content, team, news] = await Promise.all([getAllFundViews(), getPublicContent(), getTeam(), getNews()]);
+  return <Home data={toHomeData(views, content, { teamSize: team.length, phdCount: countPhD(team) })} news={news} />;
 }

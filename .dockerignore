@@ -7,3 +7,5 @@ playwright-report
 e2e/screenshots
 .git
 .env*
+var-e2e-cms
+wordpress

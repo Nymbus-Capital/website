@@ -8,3 +8,6 @@ next-env.d.ts
 var/
 test-results/
 playwright-report/
+var-e2e/
+var-e2e-cms/
+wordpress/.env

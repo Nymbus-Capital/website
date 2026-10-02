@@ -1,0 +1,80 @@
+# Local WordPress for developing / trying the content editor. NOT the production set-up (see README.md, "Deploying on Northflank").
+#
+#   cd wordpress
+#   cp .env.example .env            # local-only values; .env is git-ignored
+#   docker compose up -d            # WordPress on http://localhost:8080 and MariaDB
+#   docker compose --profile setup run --rm wpcli    # installs WordPress, activates the plugin, creates SAMPLE content
+#   # then run the website against it:   WP_BASE_URL=http://localhost:8080 npm run dev     (in the repository root)
+#
+# Stop: docker compose down      Start from scratch (deletes the local database and uploads): docker compose down -v
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${WP_DB_PASSWORD:?copy .env.example to .env}
+      MARIADB_ROOT_PASSWORD: ${WP_DB_ROOT_PASSWORD:?copy .env.example to .env}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:6-php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD:?copy .env.example to .env}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_ENVIRONMENT_TYPE', 'local');
+        define('WP_HOME', 'http://localhost:8080');
+        define('WP_SITEURL', 'http://localhost:8080');
+      # optional: protect the content endpoint / notify the website after each change
+      NYMBUS_CONTENT_SECRET: ${WP_CONTENT_SECRET:-}
+      NYMBUS_REVALIDATE_URL: ${WP_REVALIDATE_URL:-}
+      NYMBUS_REVALIDATE_SECRET: ${WP_REVALIDATE_SECRET:-}
+    volumes:
+      - wp-html:/var/www/html
+      - ./plugins/nymbus-site-content:/var/www/html/wp-content/plugins/nymbus-site-content:ro
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins:ro
+
+  # one-off: wp-cli sharing the WordPress files; run with --profile setup (see above)
+  wpcli:
+    image: wordpress:cli-php8.3
+    profiles: ["setup"]
+    depends_on:
+      db:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD:?copy .env.example to .env}
+      WP_ADMIN_USER: ${WP_ADMIN_USER:-editor-admin}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD:?copy .env.example to .env}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL:-admin@example.org}
+    volumes:
+      - wp-html:/var/www/html
+      - ./plugins/nymbus-site-content:/var/www/html/wp-content/plugins/nymbus-site-content:ro
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins:ro
+      - ./scripts/setup.sh:/setup.sh:ro
+    entrypoint: ["sh", "/setup.sh"]
+
+volumes:
+  db-data:
+  wp-html:

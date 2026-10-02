@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Handshake, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";
 import { useInView, useScrub } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
-import { team, type TeamMember } from "@/data/team";
+import { team as staticTeam, type TeamMember } from "@/data/team";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AB } from "./copy-about";
 import { Portrait } from "./Portrait";
@@ -87,7 +87,7 @@ function Milestones() {
   );
 }
 
-export function Team() {
+export function Team({ members: team = staticTeam }: { members?: TeamMember[] }) {
   const { locale, pick } = useTranslation();
   const fr = locale === "fr";
   const P = AB.people;

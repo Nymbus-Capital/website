@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "news": [
+    {
+      "id": "cms-test-launch",
+      "date": "2026-09-15",
+      "category": "partnership",
+      "title": { "en": "CMS test: a partnership announcement", "fr": "Test CMS : une annonce de partenariat" },
+      "summary": { "en": "Summary with <b>markup</b> that must be stripped.", "fr": "Résumé de test." },
+      "body": { "en": "First paragraph of the test article.\n\nSecond paragraph, <script>alert(1)</script>with a script that must vanish.", "fr": "Premier paragraphe de l’article de test.\n\nDeuxième paragraphe." },
+      "image": "http://localhost:3199/wp-content/uploads/test.png",
+      "link": "https://example.org/press"
+    },
+    {
+      "id": "cms-test-second",
+      "date": "2026-08-01",
+      "category": "esg",
+      "title": { "en": "CMS test: second item", "fr": "Test CMS : deuxième élément" },
+      "summary": { "en": "Second summary.", "fr": "Deuxième résumé." },
+      "body": { "en": "", "fr": "" },
+      "image": null,
+      "link": "https://example.org/second"
+    },
+    {
+      "id": "cms-test-third",
+      "date": "2026-07-01",
+      "category": "community",
+      "title": { "en": "CMS test: third item", "fr": "Test CMS : troisième élément" },
+      "summary": { "en": "Third summary.", "fr": "Troisième résumé." },
+      "body": { "en": "Third body.", "fr": "Troisième texte." },
+      "image": null,
+      "link": null
+    },
+    {
+      "id": "cms-test-fourth",
+      "date": "2026-06-01",
+      "category": "recognition",
+      "title": { "en": "CMS test: fourth item (not on the home teaser)", "fr": "Test CMS : quatrième élément" },
+      "summary": { "en": "Fourth summary.", "fr": "Quatrième résumé." },
+      "body": { "en": "Fourth body.", "fr": "Quatrième texte." },
+      "image": null,
+      "link": null
+    }
+  ],
+  "team": [
+    {
+      "id": "sample-person-one",
+      "name": "Sample Person One",
+      "role": { "en": "Sample Chief Test Officer", "fr": "Chef de la vérification (exemple)" },
+      "bio": { "en": "Fictional biography used by the automated tests.", "fr": "Biographie fictive utilisée par les tests automatisés." },
+      "department": "Leadership",
+      "additionalDepartments": ["Board"],
+      "designations": ["CFA", "PhD"],
+      "education": ["PhD, Sample Studies"],
+      "previousRoles": { "en": ["Sample Role A"], "fr": ["Rôle exemple A"] },
+      "yearJoined": 2014,
+      "photo": null,
+      "linkedin": "https://www.linkedin.com/in/sample-person-one",
+      "order": 10
+    },
+    {
+      "id": "sample-person-two",
+      "name": "Sample Person Two",
+      "role": { "en": "Sample Analyst", "fr": "Analyste (exemple)" },
+      "bio": { "en": "Second fictional biography.", "fr": "Deuxième biographie fictive." },
+      "department": "Quantitative Research",
+      "additionalDepartments": [],
+      "designations": [],
+      "education": [],
+      "previousRoles": { "en": [], "fr": [] },
+      "yearJoined": null,
+      "photo": "http://localhost:3199/wp-content/uploads/person.png",
+      "linkedin": null,
+      "order": 20
+    },
+    {
+      "id": "sample-person-three",
+      "name": "Sample Person Three",
+      "role": { "en": "Sample Director", "fr": "Administrateur (exemple)" },
+      "bio": { "en": "Third fictional biography.", "fr": "Troisième biographie fictive." },
+      "department": "Board",
+      "additionalDepartments": [],
+      "designations": [],
+      "education": [],
+      "previousRoles": { "en": [], "fr": [] },
+      "yearJoined": null,
+      "photo": null,
+      "linkedin": null,
+      "order": 30
+    }
+  ],
+  "texts": {
+    "homeHeadline": { "en": "Test headline", "fr": "Titre de test" },
+    "aumLabel": { "en": "$9.9B+ (CMS test)", "fr": "9,9 G$+ (test CMS)" },
+    "banner": { "en": "CMS test banner: scheduled maintenance tonight.", "fr": "Bannière de test CMS : entretien prévu ce soir." },
+    "contactEmail": "info@example.org",
+    "contactPhone": "+1 514 555 0100"
+  }
+}

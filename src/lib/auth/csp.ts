@@ -13,14 +13,19 @@ export function makeNonce(): string {
   return btoa(s);
 }
 
-export function buildCsp(nonce: string, opts: { dev?: boolean; upgradeInsecure?: boolean } = {}): string {
+/** An origin that may be added to `img-src` (a bare https origin, or http on loopback): nothing else can reach the header. */
+const IMG_ORIGIN = /^(https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{1,5})?|http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?)$/;
+
+export function buildCsp(nonce: string, opts: { dev?: boolean; upgradeInsecure?: boolean; imgOrigins?: (string | null | undefined)[] } = {}): string {
   if (!/^[A-Za-z0-9+/=]{16,64}$/.test(nonce)) throw new Error("invalid nonce");
+  // the CMS media origin (src/lib/cms/config.ts) is validated here again before it reaches the header
+  const extraImg = [...new Set((opts.imgOrigins ?? []).filter((o): o is string => !!o && IMG_ORIGIN.test(o)))];
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${opts.dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
-    "img-src 'self' data: blob: https://www.nymbus.ca",
+    `img-src 'self' data: blob: https://www.nymbus.ca${extraImg.map((o) => ` ${o}`).join("")}`,
     "connect-src 'self'",
     "frame-src 'self'",
     "frame-ancestors 'none'",
