@@ -5,9 +5,14 @@ import { cleanFundContent } from "../../../src/components/admin/fund-content.ts"
 import { mergeContent, SEEDED_RANKINGS } from "../../../src/lib/data/defaults.ts";
 import { RANKING_PERIODS, type FundContent, type SiteContent } from "../../../src/lib/data/types.ts";
 
-test("seeded rankings: well-formed, dated, sourced; Fund Library only (Morningstar is empty until confirmed)", () => {
+test("seeded rankings: well-formed, dated, sourced; Morningstar only for the two bond funds", () => {
   for (const [key, r] of Object.entries(SEEDED_RANKINGS)) {
-    assert.equal(r!.morningstar, undefined, `${key}: no Morningstar rating seeded`);
+    if (key === "multi-strategy") assert.equal(r!.morningstar, undefined, `${key}: no Morningstar rating`);
+    else {
+      assert.equal(r!.morningstar?.stars, 5, `${key}: 5 stars`);
+      assert.equal(r!.morningstar?.asOf, "2026-10-01");
+      assert.match(r!.morningstar?.url ?? "", /^https:\/\/global\.morningstar\.com\//);
+    }
     for (const e of r!.fundLibrary ?? []) {
       assert.match(e.asOf, /^\d{4}-\d{2}-\d{2}$/);
       assert.match(e.url ?? "", /^https:\/\/www\.fundlibrary\.com\//);

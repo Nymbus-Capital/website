@@ -8,10 +8,10 @@ import type { FundContent } from "../../../src/lib/data/types.ts";
 
 const seb = (): FundContent => ({ rankings: SEEDED_RANKINGS["sustainable-enhanced-bonds"] });
 
-test("rankingsToShow: seeded Fund Library data, no Morningstar until the admin sets it", () => {
+test("rankingsToShow: seeded Fund Library data and the 5-star Morningstar rating", () => {
   const r = rankingsToShow(seb())!;
   assert.equal(r.fundLibrary.length, 1);
-  assert.equal(r.morningstar, null);
+  assert.equal(r.morningstar?.stars, 5);
   assert.equal(r.fundLibrary[0].fundGrade, "A");
 });
 
