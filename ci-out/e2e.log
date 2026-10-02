@@ -1,0 +1,366 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 226 tests using 2 workers
+
+  ✓    1 [desktop] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (2.8s)
+  ✓    2 [desktop] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (3.8s)
+  ✓    3 [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (2.3s)
+  ✓    4 [desktop] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (1.8s)
+  ✓    5 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (13.7s)
+  ✓    6 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (13.8s)
+  ✓    8 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (9.6s)
+  ✓    7 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (10.5s)
+  ✓   10 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (24.2s)
+  ✓    9 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (34.2s)
+  ✓   11 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (13.2s)
+  ✓   13 [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (3.4s)
+  ✓   12 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (7.0s)
+  ✓   14 [desktop] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (2.9s)
+  ✓   15 [desktop] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (3.0s)
+  ✓   16 [desktop] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (1.1s)
+  ✓   17 [desktop] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (959ms)
+  ✓   19 [desktop] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (414ms)
+  ✓   18 [desktop] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (845ms)
+  ✓   20 [desktop] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (3.1s)
+  ✓   21 [desktop] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (4.3s)
+  ✓   22 [desktop] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (4.0s)
+  ✓   23 [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (7.6s)
+  ✓   25 [desktop] › e2e/fund.spec.ts:413:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.0s)
+  ✘   24 [desktop] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (11.6s)
+  ✓   26 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (5.3s)
+  ✓   27 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (6.2s)
+  ✓   29 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (3.1s)
+  ✓   30 [desktop] › e2e/fund.spec.ts:491:5 › home tiles and the strategies index name the class of the returns (EN + FR) (2.6s)
+  ✘   28 [desktop] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (retry #1) (11.9s)
+  ✓   31 [desktop] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (2.2s)
+  ✓   32 [desktop] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.5s)
+  ✓   34 [desktop] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (1.2s)
+  ✓   33 [desktop] › e2e/home-v2.spec.ts:46:5 › home: the analysis scan is drawn, counts what it scans and stops when it leaves the screen (3.7s)
+  ✓   36 [desktop] › e2e/home-v2.spec.ts:101:5 › home: no horizontal overflow, the scan fits the viewport (716ms)
+  ✓   35 [desktop] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.5s)
+  ✓   37 [desktop] › e2e/home-v2.spec.ts:111:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (1.2s)
+  ✓   38 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (5.5s)
+  ✓   39 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (5.4s)
+  ✓   41 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (4.2s)
+  ✓   40 [desktop] › e2e/home.spec.ts:57:7 › home: screenshot (7.1s)
+  ✓   42 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.0s)
+  ✓   43 [desktop] › e2e/home.spec.ts:57:7 › strategies: screenshot (5.0s)
+  ✓   44 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (4.2s)
+  ✓   45 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (4.3s)
+  ✓   46 [desktop] › e2e/home.spec.ts:57:7 › solutions: screenshot (5.6s)
+  ✓   47 [desktop] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.8s)
+  ✓   48 [desktop] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (1.6s)
+  ✓   49 [desktop] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (2.3s)
+  ✓   50 [desktop] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.2s)
+  ✓   51 [desktop] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.8s)
+  ✓   52 [desktop] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.1s)
+  ✓   53 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.3s)
+  ✓   54 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (1.4s)
+  ✓   56 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.1s)
+  ✓   57 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (1.0s)
+  ✓   55 [desktop] › e2e/site.spec.ts:81:7 › / full-page screenshot (5.9s)
+  ✓   59 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (976ms)
+  ✓   58 [desktop] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (4.7s)
+  ✓   60 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.1s)
+  ✓   62 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (817ms)
+  ✓   63 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (705ms)
+  ✓   61 [desktop] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (5.5s)
+  ✓   64 [desktop] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (4.3s)
+  ✓   65 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (1.1s)
+  ✓   66 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (1.5s)
+  ✓   68 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (1.2s)
+  ✓   69 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (688ms)
+  ✓   67 [desktop] › e2e/site.spec.ts:81:7 › /team full-page screenshot (5.2s)
+  ✓   71 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (984ms)
+  ✓   70 [desktop] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (4.0s)
+  ✓   72 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (1.1s)
+  ✓   74 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (1.0s)
+  ✓   75 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (969ms)
+  ✓   73 [desktop] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (5.2s)
+  ✓   77 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (773ms)
+  ✓   76 [desktop] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (4.2s)
+  ✓   78 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (824ms)
+  ✓   80 [desktop] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.1s)
+  ✓   79 [desktop] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (4.8s)
+  ✓   81 [desktop] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (1.1s)
+  ✓   82 [desktop] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.9s)
+  ✓   83 [desktop] › e2e/site.spec.ts:126:5 › language toggle switches the page to French and back (2.0s)
+  -   84 [desktop] › e2e/site.spec.ts:141:5 › mobile menu opens, traps focus, closes with Escape
+  ✓   86 [desktop] › e2e/site.spec.ts:201:5 › team: filter by department and open a bio (3.4s)
+  ✓   85 [desktop] › e2e/site.spec.ts:165:5 › reduced motion: content is visible without animations (6.3s)
+  ✓   87 [desktop] › e2e/site.spec.ts:223:5 › contact: three steps, validated, then an email is prepared (no backend) (6.2s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"inset(0px 0px 0px 0%)","op":"1","anim":"ap-loop","disp":"block","w":900},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":96},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":84},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓   89 [desktop] › e2e/site.spec.ts:274:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.2s)
+  ✓   88 [desktop] › e2e/site.spec.ts:256:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.7s)
+  ✓   90 [desktop] › e2e/site.spec.ts:285:5 › admin does not get the public chrome (509ms)
+  ✓   91 [mobile] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (3.6s)
+  ✓   92 [mobile] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (3.3s)
+  ✓   93 [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (2.1s)
+  ✓   94 [mobile] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (3.5s)
+  ✓   95 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (15.9s)
+  ✓   96 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (15.3s)
+  ✓   97 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (11.8s)
+  ✓   98 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (11.9s)
+  ✓  100 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (33.4s)
+  ✓   99 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (50.5s)
+  ✓  101 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (19.0s)
+  ✓  103 [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (3.3s)
+  ✓  104 [mobile] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (1.4s)
+  ✓  105 [mobile] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (1.7s)
+  ✓  102 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (10.4s)
+  ✓  106 [mobile] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (1.1s)
+  ✓  107 [mobile] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (925ms)
+  ✓  109 [mobile] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (597ms)
+  ✓  108 [mobile] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (1.0s)
+  ✓  110 [mobile] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (3.0s)
+  ✓  111 [mobile] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (3.4s)
+  ✓  112 [mobile] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (2.1s)
+  ✓  113 [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (5.9s)
+  ✓  115 [mobile] › e2e/fund.spec.ts:413:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.2s)
+  ✓  116 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (4.1s)
+  ✘  114 [mobile] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (11.9s)
+  ✓  117 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (5.5s)
+  ✓  119 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (3.8s)
+  ✓  120 [mobile] › e2e/fund.spec.ts:491:5 › home tiles and the strategies index name the class of the returns (EN + FR) (2.2s)
+  ✓  121 [mobile] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (2.5s)
+  ✘  118 [mobile] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (retry #1) (12.1s)
+  ✓  122 [mobile] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.4s)
+  ✓  124 [mobile] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (1.0s)
+  ✓  125 [mobile] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.4s)
+  ✓  123 [mobile] › e2e/home-v2.spec.ts:46:5 › home: the analysis scan is drawn, counts what it scans and stops when it leaves the screen (3.2s)
+  ✓  127 [mobile] › e2e/home-v2.spec.ts:111:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (1.0s)
+  ✓  126 [mobile] › e2e/home-v2.spec.ts:101:5 › home: no horizontal overflow, the scan fits the viewport (1.1s)
+  ✓  128 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (6.2s)
+  ✓  129 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (6.2s)
+  ✓  131 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (5.1s)
+  ✓  130 [mobile] › e2e/home.spec.ts:57:7 › home: screenshot (9.4s)
+  ✓  132 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (5.2s)
+  ✓  134 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (5.1s)
+  ✓  133 [mobile] › e2e/home.spec.ts:57:7 › strategies: screenshot (7.5s)
+  ✓  135 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (5.3s)
+  ✓  137 [mobile] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.9s)
+  ✓  138 [mobile] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (1.3s)
+  ✓  136 [mobile] › e2e/home.spec.ts:57:7 › solutions: screenshot (8.3s)
+  ✓  140 [mobile] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.5s)
+  ✓  141 [mobile] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.4s)
+  ✓  139 [mobile] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.8s)
+  ✓  142 [mobile] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.1s)
+  ✓  143 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.5s)
+  ✓  144 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (1.9s)
+  ✓  146 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.3s)
+  ✓  147 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (1.0s)
+  ✓  145 [mobile] › e2e/site.spec.ts:81:7 › / full-page screenshot (8.6s)
+  ✓  149 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (1.3s)
+  ✓  148 [mobile] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (6.7s)
+  ✓  150 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.2s)
+  ✓  152 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (765ms)
+  ✓  153 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (732ms)
+  ✓  151 [mobile] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (7.3s)
+  ✓  154 [mobile] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (6.5s)
+  ✓  155 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (1.8s)
+  ✓  156 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (2.1s)
+  ✓  158 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (1.1s)
+  ✓  159 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (943ms)
+  ✓  157 [mobile] › e2e/site.spec.ts:81:7 › /team full-page screenshot (7.3s)
+  ✓  160 [mobile] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (5.1s)
+  ✓  161 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (1.1s)
+  ✓  162 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (1.5s)
+  ✓  164 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (877ms)
+  ✓  165 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (703ms)
+  ✓  163 [mobile] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (6.7s)
+  ✓  167 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (904ms)
+  ✓  168 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (1.3s)
+  ✓  166 [mobile] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (6.0s)
+  ✓  170 [mobile] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.7s)
+  ✓  171 [mobile] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (931ms)
+  ✓  169 [mobile] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (6.7s)
+  ✓  172 [mobile] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.9s)
+  ✓  173 [mobile] › e2e/site.spec.ts:126:5 › language toggle switches the page to French and back (2.2s)
+  ✓  174 [mobile] › e2e/site.spec.ts:141:5 › mobile menu opens, traps focus, closes with Escape (2.7s)
+  ✓  175 [mobile] › e2e/site.spec.ts:165:5 › reduced motion: content is visible without animations (4.9s)
+  ✓  176 [mobile] › e2e/site.spec.ts:201:5 › team: filter by department and open a bio (3.2s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"none","op":"1","anim":"ap-loop","disp":"none","w":0},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓  178 [mobile] › e2e/site.spec.ts:256:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.5s)
+  ✓  177 [mobile] › e2e/site.spec.ts:223:5 › contact: three steps, validated, then an email is prepared (no backend) (5.7s)
+  ✓  180 [mobile] › e2e/site.spec.ts:285:5 › admin does not get the public chrome (707ms)
+  ✓  179 [mobile] › e2e/site.spec.ts:274:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.2s)
+  ✓  181 [cms] › e2e/cms.spec.ts:32:5 › news page: CMS items, newest first, markup stripped, image loads, French on request (1.0s)
+  ✓  182 [cms] › e2e/cms.spec.ts:51:5 › news article: paragraphs, no script, 404 for an unknown item (724ms)
+  ✓  183 [cms] › e2e/cms.spec.ts:62:5 › home: three latest CMS news, link to all news, banner and AUM label from WordPress (907ms)
+  ✓  184 [cms] › e2e/cms.spec.ts:72:5 › team page: members come from WordPress, not from the built-in list (818ms)
+  ✓  185 [cms] › e2e/cms.spec.ts:82:5 › CSP: the media origin is allowed for images, nothing else changed (41ms)
+  ✓  186 [cms] › e2e/cms.spec.ts:90:5 › revalidation route: authenticated, POST only (57ms)
+  ✓  187 [cms] › e2e/cms.spec.ts:100:5 › an edit in WordPress shows up after revalidation (2.6s)
+  ✓  188 [cms] › e2e/cms.spec.ts:107:5 › hostile content from WordPress is neutralised (3.7s)
+[WebServer] [cms] WordPress document not used: HTTP 503 (keeping the last good copy)
+  ✓  189 [cms] › e2e/cms.spec.ts:134:5 › WordPress down or answering garbage: the last good content stays (7.4s)
+  ✓  190 [cms] › e2e/cms.spec.ts:149:5 › without WP_BASE_URL the site is unchanged: static news and team (970ms)
+
+
+  1) [desktop] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+    Expected substring: "Class F"
+    Received string:    "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar') with timeout 10000ms
+      - waiting for locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+        24 × locator resolved to <div data-reveal="" class="fxb fxb-card " data-testid="morningstar">…</div>
+           - unexpected value "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+
+
+      394 |   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+      395 |   await expect(tab.getByTestId("morningstar")).toBeVisible();
+    > 396 |   await expect(tab.getByTestId("morningstar")).toContainText("Class F");
+          |                                                ^
+      397 |   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
+      398 |   // no third-party logo images: wordmarks are text
+      399 |   await expect(tab.locator("img")).toHaveCount(0);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:396:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+    Expected substring: "Class F"
+    Received string:    "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar') with timeout 10000ms
+      - waiting for locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+        23 × locator resolved to <div data-reveal="" class="fxb fxb-card " data-testid="morningstar">…</div>
+           - unexpected value "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+
+
+      394 |   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+      395 |   await expect(tab.getByTestId("morningstar")).toBeVisible();
+    > 396 |   await expect(tab.getByTestId("morningstar")).toContainText("Class F");
+          |                                                ^
+      397 |   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
+      398 |   // no third-party logo images: wordmarks are text
+      399 |   await expect(tab.locator("img")).toHaveCount(0);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:396:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+    Expected substring: "Class F"
+    Received string:    "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar') with timeout 10000ms
+      - waiting for locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+        24 × locator resolved to <div data-reveal="" class="fxb fxb-card " data-testid="morningstar">…</div>
+           - unexpected value "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+
+
+      394 |   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+      395 |   await expect(tab.getByTestId("morningstar")).toBeVisible();
+    > 396 |   await expect(tab.getByTestId("morningstar")).toContainText("Class F");
+          |                                                ^
+      397 |   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
+      398 |   // no third-party logo images: wordmarks are text
+      399 |   await expect(tab.locator("img")).toHaveCount(0);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:396:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+    Expected substring: "Class F"
+    Received string:    "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar') with timeout 10000ms
+      - waiting for locator('[role="tabpanel"][data-panel="awards"]').getByTestId('morningstar')
+        24 × locator resolved to <div data-reveal="" class="fxb fxb-card " data-testid="morningstar">…</div>
+           - unexpected value "Morningstar ratingMorningstarAs at October 1, 2026 Series FSource: Morningstar (opens in a new tab)"
+
+
+      394 |   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+      395 |   await expect(tab.getByTestId("morningstar")).toBeVisible();
+    > 396 |   await expect(tab.getByTestId("morningstar")).toContainText("Class F");
+          |                                                ^
+      397 |   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
+      398 |   // no third-party logo images: wordmarks are text
+      399 |   await expect(tab.locator("img")).toHaveCount(0);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:396:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-awards-and-rankings-F-6963d-tars-on-the-bond-funds-only-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only 
+    [mobile] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only 
+  1 skipped
+  38 did not run
+  185 passed (7.3m)
