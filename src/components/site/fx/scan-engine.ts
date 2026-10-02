@@ -149,7 +149,7 @@ export function createScan(canvas: HTMLCanvasElement, opts: ScanOptions): Scan {
               if (px + pw < x + w + 4 || W >= 560) {
                 ctx!.fillStyle = row.score >= 0 ? "rgba(26,115,232,.12)" : "rgba(194,65,12,.12)";
                 ctx!.beginPath();
-                if (ctx!.roundRect) ctx!.roundRect(px, yc - 9, pw, 18, 9); else ctx!.rect(px, yc - 9, pw, 18);
+                if (typeof ctx!.roundRect === "function") ctx!.roundRect(px, yc - 9, pw, 18, 9); else ctx!.rect(px, yc - 9, pw, 18);
                 ctx!.fill();
                 ctx!.fillStyle = row.score >= 0 ? BLUE_D : ORANGE;
                 ctx!.font = `600 9.5px ${SANS}`;
