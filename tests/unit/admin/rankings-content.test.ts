@@ -11,6 +11,7 @@ test("seeded rankings: well-formed, dated, sourced; Morningstar only for the two
     else {
       assert.equal(r!.morningstar?.stars, 5, `${key}: 5 stars`);
       assert.equal(r!.morningstar?.asOf, "2026-10-01");
+      assert.equal(r!.morningstar?.classLabel, "Class F", `${key}: the class of the rating is stated`);
       assert.match(r!.morningstar?.url ?? "", /^https:\/\/global\.morningstar\.com\//);
     }
     for (const e of r!.fundLibrary ?? []) {
@@ -49,11 +50,11 @@ test("mergeContent: seeded rankings fill a fund with none stored; stored ranking
 
 test("cleanFundContent: empty class types, rankings without data and empty facts are dropped", () => {
   const c = cleanFundContent({
-    classTypes: { LDM081: "prospectus", LDM001: "om", LDM999: "none" as never },
+    classTypes: { LDM081: "prospectus", LDM001: "om", LDM999: "none", LDM998: "bogus" as never },
     minSubsequent: "", liquidity: { en: "", fr: "" }, cifscCategory: { en: "", fr: "" },
     rankings: { fundLibrary: [{ classLabel: "Class F", category: { en: "x", fr: "y" }, asOf: "2026-08-31", rows: [] }] },
   } as FundContent);
-  assert.deepEqual(c, { classTypes: { LDM081: "prospectus", LDM001: "om" } });
-  const r = cleanFundContent({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31" } } });
-  assert.deepEqual(r.rankings, { morningstar: { stars: 5, asOf: "2026-08-31" } });
+  assert.deepEqual(c, { classTypes: { LDM081: "prospectus", LDM001: "om", LDM999: "none" } });
+  const r = cleanFundContent({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F" } } });
+  assert.deepEqual(r.rankings, { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F" } });
 });

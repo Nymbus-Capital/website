@@ -55,8 +55,8 @@ export const fundLibraryRankingSchema = z.strictObject({
 export const morningstarSchema = z.strictObject({
   stars: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   asOf: isoDate,
-  classLabel: text(40).optional(),
-  category: text(120).optional(),
+  classLabel: text(40).min(1),
+  category: l10n(120).refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required").optional(),
   url: httpsUrl.optional(),
 });
 

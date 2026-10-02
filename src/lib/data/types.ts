@@ -365,8 +365,9 @@ export interface MorningstarRating {
   /** overall rating, 1 to 5 stars */
   stars: 1 | 2 | 3 | 4 | 5;
   asOf: string;
-  classLabel?: string;
-  category?: string;
+  /** class the rating is for, as the source names it ("Class F"): required, a rating is never shown without it */
+  classLabel: string;
+  category?: L10n;
   url?: string;
 }
 

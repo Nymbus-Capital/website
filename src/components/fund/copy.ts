@@ -81,7 +81,7 @@ export const T = {
     note: l("Figures follow the variant selected.", "Les chiffres suivent la variante sélectionnée."),
   },
   awards: {
-    intro: l("Independent rankings and ratings of the series shown, as at the date given.", "Classements et cotes indépendants de la série indiquée, à la date indiquée."),
+    intro: l("Independent rankings and ratings of the series listed, as at the date given.", "Classements et cotes indépendants des séries indiquées, à la date indiquée."),
     category: l("Category", "Catégorie"),
     asAt: l("As at", "Au"),
     period: l("Period", "Période"),

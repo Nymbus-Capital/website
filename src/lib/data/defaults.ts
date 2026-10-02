@@ -7,8 +7,8 @@ import type { FundContent, FundKey, FundLibraryRanking, RankingPeriod, SiteConte
 /** rows from "rank/of" pairs; quartile given per row (the source states it for every period) */
 const rows = (...r: [RankingPeriod, number, number, 1 | 2 | 3 | 4][]): FundLibraryRanking["rows"] => r.map(([period, rank, of, quartile]) => ({ period, rank, of, quartile }));
 const FL = "https://www.fundlibrary.com/MutualFunds/Detail/";
-/** Morningstar overall rating of the two bond funds: 5 stars, as stated by Nymbus on 2026-10-01 (the page itself was not machine-readable); the admin updates it. */
-const MS = (id: string) => ({ stars: 5 as const, asOf: "2026-10-01", url: `https://global.morningstar.com/en-ca/investments/funds/${id}/quote` });
+/** Morningstar overall rating of the two bond funds: 5 stars, as stated by Nymbus on 2026-10-01, class F (the page itself was not machine-readable); the admin updates it. */
+const MS = (id: string) => ({ stars: 5 as const, classLabel: "Class F", asOf: "2026-10-01", url: `https://global.morningstar.com/en-ca/investments/funds/${id}/quote` });
 
 /**
  * Third-party category rankings read manually from the Fund Library fund pages (as at 2026-08-31). Seeds only: the admin

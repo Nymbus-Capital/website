@@ -12,6 +12,8 @@ import { Block } from "./Block";
 import { dateLabel, type Lang } from "./lib/format.ts";
 import { rankingsToShow } from "./lib/rankings.ts";
 
+const CLASS_WORD = /^(class|series|série|classe)\s+/i;
+
 function Stars({ n, lang }: { n: number; lang: Lang }) {
   const label = tr(T.awards.stars, lang).replace("{n}", String(n));
   return (
@@ -37,7 +39,7 @@ const Wordmark = ({ kind, children }: { kind: "fl" | "ms" | "fg"; children: stri
 function Entry({ e, lang }: { e: FundLibraryRanking; lang: Lang }) {
   const code = e.fundserv ? ` (${e.fundserv})` : "";
   return (
-    <Block title={`${tr(T.awards.series, lang)} ${e.classLabel.replace(/^(class|series|série|classe)\s+/i, "")}${code}`} testId={`ranking-${e.fundserv ?? e.classLabel}`}
+    <Block title={`${tr(T.awards.series, lang)} ${e.classLabel.replace(CLASS_WORD, "")}${code}`} testId={`ranking-${e.fundserv ?? e.classLabel}`}
       aside={<Wordmark kind="fl">Fund Library</Wordmark>}
       lead={<>{tr(T.awards.category, lang)}{lang === "fr" ? " " : ""}: <strong>{tr(e.category, lang)}</strong> · {tr(T.awards.asAt, lang)} {dateLabel(e.asOf, lang, true)}</>}>
       {e.fundGrade ? (
@@ -73,9 +75,8 @@ function Entry({ e, lang }: { e: FundLibraryRanking; lang: Lang }) {
 }
 
 export function AwardsTab({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Lang }) {
-  const r = rankingsToShow(content);
+  const r = rankingsToShow(content, spec.classes);
   if (!r) return null;
-  void spec;
   const ms = r.morningstar;
   return (
     <div className="container fp" data-testid="awards">
@@ -83,8 +84,8 @@ export function AwardsTab({ spec, content, lang }: { spec: FundSpec; content: Fu
       {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} />)}
       {ms ? (
         <Block title={tr(T.awards.morningstar, lang)} aside={<Wordmark kind="ms">Morningstar</Wordmark>} testId="morningstar"
-          lead={<>{ms.classLabel ? `${ms.classLabel} · ` : ""}{ms.category ? `${tr(T.awards.category, lang)}${lang === "fr" ? " " : ""}: ${ms.category} · ` : ""}{tr(T.awards.asAt, lang)} {dateLabel(ms.asOf, lang, true)}</>}>
-          <Stars n={ms.stars} lang={lang} />
+          lead={<>{ms.category ? `${tr(T.awards.category, lang)}${lang === "fr" ? " " : ""}: ${tr(ms.category, lang)} · ` : ""}{tr(T.awards.asAt, lang)} {dateLabel(ms.asOf, lang, true)}</>}>
+          <p className="aw-ms-row"><Stars n={ms.stars} lang={lang} /> <strong data-testid="morningstar-class">{tr(T.awards.series, lang)} {ms.classLabel.replace(CLASS_WORD, "")}</strong></p>
           {ms.url ? <p className="fine fxb-foot">{tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: <a className="link" href={ms.url} target="_blank" rel="noopener noreferrer">Morningstar<ExternalLink aria-hidden="true" /><span className="sr-only"> ({lang === "fr" ? "nouvel onglet" : "opens in a new tab"})</span></a></p>
             : <p className="fine fxb-foot">{tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: Morningstar</p>}
         </Block>

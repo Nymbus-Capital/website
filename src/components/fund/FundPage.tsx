@@ -45,7 +45,7 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     shortRecord: picked.shortRecord,
   };
   const props = { spec, content, data, lang, ctx };
-  const hasAwards = !!rankingsToShow(content);
+  const hasAwards = !!rankingsToShow(content, spec.classes);
   const tabs = [
     { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} /> },
     { id: "performance", label: tr(T.tabs.performance, lang), content: <PerformanceTab {...props} /> },

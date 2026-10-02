@@ -22,7 +22,7 @@ export function cleanFundContent(f: FundContent): FundContent {
       continue;
     }
     if (k === "classTypes" && typeof v === "object") {
-      const t = Object.fromEntries(Object.entries(v).filter(([code, kind]) => code && (kind === "prospectus" || kind === "om")));
+      const t = Object.fromEntries(Object.entries(v).filter(([code, kind]) => code && (kind === "prospectus" || kind === "om" || kind === "none")));
       if (Object.keys(t).length === 0) continue;
       out[k] = t;
       continue;

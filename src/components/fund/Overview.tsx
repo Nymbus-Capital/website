@@ -119,7 +119,7 @@ function FactsCard({ spec, content, data, lang }: Props) {
     [tr(T.facts.minSubsequent, lang), content.minSubsequent],
     [tr(T.facts.rsp, lang), content.rspEligible ? tr(content.rspEligible === "yes" ? T.facts.yes : T.facts.no, lang) : null],
     [tr(T.facts.liquidity, lang), content.liquidity && (content.liquidity.en || content.liquidity.fr) ? tr(content.liquidity, lang) : null],
-    [tr(T.facts.cifsc, lang), cifscCategory(content, lang)],
+    [tr(T.facts.cifsc, lang), cifscCategory(content, lang, spec.classes)],
     [tr(T.facts.managers, lang), resolveManagers(content.managers, team).map((m) => m.name).join(", ") || null],
     [tr(T.facts.aum, lang), aum ? `${bigMoney(aum.cad, lang)} (${dateLabel(aum.asOf, lang)})` : null],
   ];

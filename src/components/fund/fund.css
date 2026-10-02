@@ -550,6 +550,7 @@ html:not(.js) .ft-bar { display: none; }
 .aw-table td, .aw-table th { white-space: nowrap; }
 .aw-q { display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 8px; border-radius: 99px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--surf); color: var(--ink2); }
 .aw-q[data-q="1"] { background: color-mix(in srgb, var(--fund) 14%, #fff); color: var(--fund-ink); }
+.aw-ms-row { display: flex; align-items: center; gap: 10px; margin: 0; }
 .aw-stars { display: inline-flex; gap: 3px; }
 .aw-stars svg { fill: var(--fx-axis); }
 .aw-stars svg.on { fill: #e8a400; }

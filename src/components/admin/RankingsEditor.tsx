@@ -78,7 +78,7 @@ export function RankingsEditor({ value, onChange }: { value: FundRankings; onCha
             <span>stars</span>
             <select value={ms?.stars ?? ""} onChange={(ev) => {
               if (ev.target.value === "") { const rest = { ...value }; delete rest.morningstar; onChange(rest); return; }
-              onChange({ ...value, morningstar: { asOf: "", ...ms, stars: Number(ev.target.value) as 1 | 2 | 3 | 4 | 5 } });
+              onChange({ ...value, morningstar: { asOf: "", classLabel: "", ...ms, stars: Number(ev.target.value) as 1 | 2 | 3 | 4 | 5 } });
             }}>
               <option value="">none</option>
               {[5, 4, 3, 2, 1].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -87,8 +87,8 @@ export function RankingsEditor({ value, onChange }: { value: FundRankings; onCha
           {ms ? (
             <>
               <label className="adm-field"><span>as at (YYYY-MM-DD)</span><input className="adm-input" value={ms.asOf} maxLength={10} onChange={(ev) => onChange({ ...value, morningstar: { ...ms, asOf: ev.target.value } })} /></label>
-              <label className="adm-field"><span>class</span><input className="adm-input" value={ms.classLabel ?? ""} maxLength={40} onChange={(ev) => onChange({ ...value, morningstar: { ...ms, classLabel: ev.target.value || undefined } })} /></label>
-              <label className="adm-field"><span>Morningstar category</span><input className="adm-input" value={ms.category ?? ""} maxLength={120} onChange={(ev) => onChange({ ...value, morningstar: { ...ms, category: ev.target.value || undefined } })} /></label>
+              <label className="adm-field"><span>class (required)</span><input className="adm-input" value={ms.classLabel ?? ""} maxLength={40} placeholder="Class F" onChange={(ev) => onChange({ ...value, morningstar: { ...ms, classLabel: ev.target.value } })} /></label>
+              <L10nInput label="Morningstar category" value={ms.category ?? { en: "", fr: "" }} max={120} onChange={(v) => onChange({ ...value, morningstar: { ...ms, category: v.en || v.fr ? v : undefined } })} />
               <label className="adm-field"><span>source page (https)</span><input className="adm-input" value={ms.url ?? ""} maxLength={300} onChange={(ev) => onChange({ ...value, morningstar: { ...ms, url: ev.target.value || undefined } })} /></label>
             </>
           ) : null}
