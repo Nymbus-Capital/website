@@ -166,7 +166,7 @@ test("reduced motion: content is visible without animations", async ({ browser, 
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
   await page.goto("/");
-  for (const sel of ["#hero-t", "#glance-t", "#approach-t", "#strat-t", "#process-t", "#partners-t", "#news-t"]) {
+  for (const sel of ["#hero-t", "#glance-t", "#scan-t", "#strat-t", "#process-t", "#partners-t", "#news-t"]) {
     const el = page.locator(sel);
     await el.scrollIntoViewIfNeeded();
     const opacity = await el.evaluate((n) => {

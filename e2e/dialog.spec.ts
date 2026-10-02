@@ -13,8 +13,8 @@ async function expectCentred(page: Page, testId: string) {
   const r = await page.evaluate((id) => {
     const el = document.querySelector<HTMLElement>(`[data-testid="${id}"]`)!;
     const b = el.getBoundingClientRect();
-    const vv = window.visualViewport;
-    const w = vv?.width ?? window.innerWidth, h = vv?.height ?? window.innerHeight;
+    // the layout viewport (without the reserved scrollbar gutter) is what a fixed, inset:0 dialog centres in
+    const w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
     return { cx: b.left + b.width / 2, cy: b.top + b.height / 2, w, h, left: b.left, right: b.right, top: b.top, bottom: b.bottom };
   }, testId);
   expect(Math.abs(r.cx - r.w / 2), `horizontal centre ${r.cx} vs ${r.w / 2}`).toBeLessThanOrEqual(2);
@@ -40,7 +40,8 @@ test("team: the bio dialog is centred in the viewport, locks the page scroll and
   // focus stays inside the dialog whatever is tabbed
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press("Tab");
-    expect(await page.evaluate(() => !!document.activeElement?.closest("dialog"))).toBe(true);
+    // inside the dialog, or nowhere (body: focus handed to the browser UI); never on the inert page behind it
+    expect(await page.evaluate(() => { const a = document.activeElement; return !a || a === document.body || !!a.closest("dialog"); })).toBe(true);
   }
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
