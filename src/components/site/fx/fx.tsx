@@ -176,7 +176,7 @@ export function AnalysisScan() {
         engine = m.createScan(c, {
           still: reduced || saveData(),
           ...(coarsePointer() ? { maxFps: 15 } : {}),
-          watermark: () => C.watermark[lang.current],
+          watermark: () => (lang.current === "fr" ? C.watermark.fr : C.watermark.en),
           lang: () => lang.current,
           counters: { datapoints: dp.current, securities: sec.current, signals: sg.current },
           onReady: () => setReady(true),
