@@ -378,7 +378,7 @@ test.describe("admin flows", () => {
     expect(bad.status()).toBe(400);
   });
 
-  test("SEB pinned to a class H run: every performance label says Series H / Série H, the NAV card keeps series F", async ({ page, context, request }, info) => {
+  test("SEB pinned to a class H run: F opens as coming soon; with class H selected every performance label says Series H / Série H", async ({ page, context, request }, info) => {
     // mutates the (global) content: desktop admin project only, restored at the end
     test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
@@ -406,14 +406,17 @@ test.describe("admin flows", () => {
           await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: BASE }]);
           await page.reload();
         }
+        // the page opens on class F (LDM201), which this run has no series for: "coming soon", never H's numbers under F
+        await expect(page.getByTestId("figures-soon")).toBeVisible();
+        await page.getByTestId("nav-card").getByTestId("series-LDM202").click();
         const h = new RegExp(`${word} H(?![A-Za-z])`);
         const f = new RegExp(`(Series|Série) F(?![A-Za-z])`);
         for (const tid of ["basis", "overview-returns", "perf-class"]) {
           await expect(page.getByTestId(tid)).toContainText(h);
           await expect(page.getByTestId(tid)).not.toContainText(f);
         }
-        // the NAV card is the register's class F (LDM201): a different series, labelled as such
-        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM201");
+        // the NAV card follows the class selected (H, LDM202)
+        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM202");
         await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="performance"]').click();
         await expect(page.getByTestId("perf-context")).toContainText(h);
         await expect(page.getByTestId("perf-context")).not.toContainText(f);

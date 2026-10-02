@@ -529,8 +529,6 @@ function bondBlock(kind: "SEST" | "SEB"): unknown {
     Characteristics: {
       "Credit Quality": { Fund: short ? "A" : "A+", Index: short ? "A" : "AA", "+/-": "nan" },
       Duration: { Fund: short ? "2.41" : "7.35", Index: short ? "2.68" : "7.12", "+/-": short ? "-0.27" : "+0.23" },
-      "Liquidity Score": { Fund: "71.3%", Index: "74.2%", "+/-": "-2.9%" },
-      "Net Credit Leverage": { Fund: "", Index: "", "+/-": "" },
       "Number of Securities": { Fund: short ? "86" : "112", Index: short ? "742" : "1784", "+/-": short ? "-656" : "-1672" },
       "Portfolio Yield": { Fund: short ? "4.21%" : "4.37%", Index: short ? "3.48%" : "3.91%", "+/-": short ? "+0.73%" : "+0.46%" },
       "Probability of Defaults (5Y)": { Fund: "0.62%", Index: "0.48%", "+/-": "+0.14%" },
@@ -595,8 +593,8 @@ function multiBlock(): unknown {
   };
 }
 
-function gmvBlock(): unknown {
-  const gmv = upTo(gmvAll, END);
+function gmvBlock(scale = 1): unknown {
+  const gmv: Series = Object.fromEntries(Object.entries(upTo(gmvAll, END)).map(([m, r]) => [m, r8(r * scale)]));
   const t = trailingStrings(gmv, "arithmetic", false);
   return {
     "Calendar Performance Gross": Object.fromEntries(calendarYears(gmv, END, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)])),
@@ -654,7 +652,7 @@ export function generate(dir = HERE): void {
     END = end;
     const ymd = end.slice(0, 7);
     w(path.join(fs, `bonds_data_${ymd}.json`), { SEST: bondBlock("SEST"), "QCFI-SEB": bondBlock("SEB") });
-    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock() });
+    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock(), GMV_3pct: gmvBlock(0.5), GMV_9pct: gmvBlock(1.5) });
   }
   END = LAST_MONTH;
 }

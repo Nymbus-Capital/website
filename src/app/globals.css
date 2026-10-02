@@ -53,6 +53,8 @@ body {
   font-family: "Poppins", ui-sans-serif, system-ui, sans-serif; font-size: 16px; line-height: 1.6; letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip;
 }
+/* one family everywhere: form controls, code, SVG / canvas text and the 404 shell inherit Poppins */
+button, input, select, textarea, optgroup, code, kbd, samp, pre, svg text, svg tspan { font-family: inherit; }
 ::selection { background: rgba(26,115,232,.2); }
 a { color: inherit; text-decoration: none; }
 img, svg { display: block; max-width: 100%; }

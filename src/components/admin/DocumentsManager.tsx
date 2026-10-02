@@ -7,7 +7,7 @@ import { Pill } from "./Head";
 import { bytes, when } from "./format";
 
 type Doc = DocumentMeta & { url: string };
-const TYPES: DocType[] = ["factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "commentary", "presentation", "esg", "other"];
+const TYPES: DocType[] = ["factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other"];
 const MAX = 25 * 1024 * 1024;
 
 type Meta = { scope: string; type: DocType; lang: "en" | "fr" | "both"; title: { en: string; fr: string }; date: string; published: boolean };

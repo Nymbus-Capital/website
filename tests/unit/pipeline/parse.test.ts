@@ -50,7 +50,9 @@ test("characteristics table (Fund / Index / +/-)", () => {
     Duration: { Fund: "7.2", Index: "6.8", "+/-": "+0.4" },
     "Credit Quality": { Fund: "A", Index: "AA", "+/-": "nan" },
     "Number of Securities": { Fund: "35", Index: "1979", "+/-": "" },
-    "Net Credit Leverage": { Fund: "", Index: "", "+/-": "" },
+    // present in the source archives but never published on the website (no leverage metric, no liquidity score)
+    "Net Credit Leverage": { Fund: "12.5%", Index: "", "+/-": "" },
+    "Liquidity Score": { Fund: "71.3%", Index: "74.2%", "+/-": "-2.9%" },
     "% of Portfolio Rated Investment Grade": { Fund: "93%", Index: "nan", "+/-": "nan" },
   };
   const cs = parseCharacteristicTable(t, BOND_CHARACTERISTICS);
@@ -62,7 +64,9 @@ test("characteristics table (Fund / Index / +/-)", () => {
   assert.equal(by.creditQuality.index, "AA");
   assert.equal(by.numberOfSecurities.fund, 35);
   assert.equal(by.numberOfSecurities.index, 1979);
-  assert.equal(by.netCreditLeverage, undefined, "blank fund value: not shown");
+  assert.equal(by.netCreditLeverage, undefined, "leverage metric never parsed");
+  assert.equal(by.liquidityScore, undefined, "liquidity score never parsed");
+  assert.ok(!cs.some((c) => /leverag|effet de levier|liquidity score|cote de liquidit/i.test(`${c.id} ${c.label.en} ${c.label.fr}`)));
   assert.equal(by.investmentGrade.fund, 0.93);
   assert.equal("index" in by.investmentGrade, false, "nan index omitted");
   // order follows the spec, labels are bilingual

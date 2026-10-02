@@ -69,7 +69,7 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     vehicles: [
       { name: l("Segregated mandate", "Mandat distinct"), text: l("Managed for you alone, under your guidelines.", "Géré pour vous seul, selon vos lignes directrices.") },
-      { name: l("Futures overlay", "Stratégie de superposition"), text: l("Managed futures on top of your bonds; most of the capital stays invested in the bonds. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.", "Des contrats à terme gérés ajoutés à vos obligations; la majeure partie du capital reste investie dans les obligations. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
+      { name: l("Futures overlay", "Stratégie de superposition"), text: l("Managed futures on top of your bonds; most of the capital stays invested in the bonds. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Des contrats à terme gérés ajoutés à vos obligations; la majeure partie du capital reste investie dans les obligations. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
       { name: l("Funds", "Fonds"), text: l("The strategies, through our funds.", "Les stratégies, par l’entremise de nos fonds.") },
     ],
     funds: ["sustainable-enhanced-bonds", "monthly-income", "global-minimum-volatility", "multi-strategy"],
@@ -90,7 +90,7 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     vehicles: [
       { name: l("Funds", "Fonds"), text: l("Our funds, with daily NAVs.", "Nos fonds, avec des valeurs liquidatives quotidiennes.") },
-      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility futures overlay. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la stratégie de superposition Global Minimum Volatility. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
+      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility futures overlay. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la stratégie de superposition Global Minimum Volatility. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
     ],
     funds: ["global-minimum-volatility", "multi-strategy", "monthly-income", "sustainable-enhanced-bonds"],
   },

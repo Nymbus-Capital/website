@@ -32,9 +32,17 @@ export interface GroupedBarsProps {
   height?: number;
   /** show value labels above the bars when there is room */
   values?: boolean;
+  /**
+   * label every bar (above it, below a negative one) at any width: the chart takes the width the labels need and
+   * scrolls sideways inside its card when the card is narrower (never overlapping labels)
+   */
+  labelAll?: boolean;
 }
 
-export function GroupedBars({ cats, names, lang, label, height = 380, values = true }: GroupedBarsProps) {
+/** width one bar needs for its "−12.3%" label (11.5 px figures) */
+const LABEL_SLOT = 46;
+
+export function GroupedBars({ cats, names, lang, label, height = 380, values = true, labelAll = false }: GroupedBarsProps) {
   const [host, w] = useWidth<HTMLDivElement>();
   const [near, nearRef, seen] = useNearRef();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -49,25 +57,29 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
 
   const narrow = w > 0 && w < 560;
   const H = narrow ? Math.round(height * 0.82) : height;
-  const pad = { l: narrow ? 38 : 48, r: 8, t: hasVa ? 58 : 30, b: cats.some((c) => c.flag) ? 50 : 38 };
+  // a negative bar's label sits below it: room under the lowest bar, above the axis labels
+  const hasNeg = labelAll && cats.some((c) => (typeof c.fund === "number" && c.fund < 0) || (hasIndex && typeof c.index === "number" && c.index < 0));
+  const pad = { l: narrow ? 38 : 48, r: 8, t: hasVa ? 58 : 30, b: (cats.some((c) => c.flag) ? 50 : 38) + (hasNeg ? 14 : 0) };
+  const cw = labelAll && w > 0 ? Math.max(w, pad.l + pad.r + cats.length * (series.length * LABEL_SLOT + 14)) : w;
+  const scrolls = cw > w;
   const geo = useMemo(() => {
     const all = cats.flatMap((c) => [c.fund, hasIndex ? c.index : null]).filter((v): v is number => typeof v === "number");
     const sc = nice(Math.min(0, ...all), Math.max(0, ...all), narrow ? 4 : 5);
-    const W = Math.max(0, w - pad.l - pad.r), IH = H - pad.t - pad.b;
+    const W = Math.max(0, cw - pad.l - pad.r), IH = H - pad.t - pad.b;
     const y = (v: number) => pad.t + IH - ((v - sc.lo) / (sc.hi - sc.lo || 1)) * IH;
     const weights = series.map(() => 1);
     const totalW = weights.reduce((a, b) => a + b, 0);
     const b = bands(cats.length, pad.l, W, 1, cats.length <= 4 ? 0.5 : narrow ? 0.22 : 0.3);
     return { sc, W, IH, y, b, weights, totalW };
-  }, [cats, w, H, narrow, hasIndex, hasVa, series.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cats, cw, H, narrow, hasIndex, hasVa, series.length, hasNeg]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEntrance(svgRef, seen && w > 0);
 
   const pctF = (v: number) => fmt(v, { pct: true, decimals: 1, lang });
   const tickF = (v: number) => fmt(v, { pct: true, decimals: geo.sc.step * 100 >= 1 && Number.isInteger(+(geo.sc.step * 100).toFixed(6)) ? 0 : 1, lang });
-  const showVals = values && w > 0 && geo.b.inner / series.length >= 26;
-  // below 640 px only the fund values are labelled (the index stays in the tooltip and the table)
-  const showIndexVals = showVals && w >= 640;
+  const showVals = values && w > 0 && (labelAll || geo.b.inner / series.length >= 26);
+  // below 640 px only the fund values are labelled (the index stays in the tooltip and the table), unless every bar is labelled
+  const showIndexVals = showVals && (labelAll || w >= 640);
 
   const focusCat = (i: number | null, el?: Element | null) => {
     setOn(i);
@@ -95,9 +107,10 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
   };
 
   return (
-    <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
+    <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
+      <div className={`fx-chart-in${scrolls ? " scroll" : ""}`} style={scrolls ? undefined : { height: H }} data-scroll={scrolls ? "" : undefined}>
       {near && w > 0 ? (
-        <svg ref={svgRef} width={w} height={H} viewBox={`0 0 ${w} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}
+        <svg ref={svgRef} width={cw} height={H} viewBox={`0 0 ${cw} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}
           onPointerLeave={() => focusCat(null)}>
           <defs>
             <linearGradient id={`${id}f`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--fund-from)" /><stop offset="1" stopColor="var(--fund-to)" /></linearGradient>
@@ -132,7 +145,7 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
                 <g key={s}>
                   {d ? <path d={d} fill={fill} filter={s === "fund" ? `url(#${id}g)` : undefined} data-grow={v >= 0 ? "up" : "down"} /> : null}
                   {showVals && (s === "fund" || showIndexVals) ? (
-                    <text x={bx + bw / 2} y={v >= 0 ? yv - 8 : yv + 15} className={`vl ${s}`} textAnchor="middle" data-lab="">{txt.replace("%", "").replace(" ", "")}</text>
+                    <text x={bx + bw / 2} y={v >= 0 ? yv - 8 : yv + 15} className={`vl ${s}`} textAnchor="middle" data-lab="" data-testid={labelAll ? `bar-label-${c.key}-${s}` : undefined}>{labelAll ? txt : txt.replace("%", "").replace(" ", "")}</text>
                   ) : null}
                 </g>
               );
@@ -169,7 +182,8 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
           })}
         </svg>
       ) : <div className="fx-ph" style={{ height: H }} aria-hidden="true" />}
-      <Tip tip={tip} hostWidth={w} />
+      <Tip tip={tip} hostWidth={cw} />
+      </div>
     </div>
   );
 }

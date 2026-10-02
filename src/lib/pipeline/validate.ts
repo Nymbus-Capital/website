@@ -36,6 +36,7 @@ import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
 import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
+import { performanceProblems } from "./classes.ts";
 import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
 
@@ -126,6 +127,38 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
   }
   const closed = lastClosedMonth(now);
   if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
+}
+
+/**
+ * Gates of the per-class returns and of the strategy variants (repairs in place, never blocking: a class / variant that
+ * fails is dropped and the page says "coming soon" for it; the fund's own default series is gated by checkPerformance):
+ * contiguous monthly series ending at as-of, no month beyond ±25 %, trailing figures equal to a recomputation (classes),
+ * growth consistent with the monthly returns. Each class / variant is checked on its own numbers only.
+ */
+export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
+  const issues: Issue[] = [];
+  if (f.performanceByClass) {
+    for (const [code, k] of Object.entries(f.performanceByClass)) {
+      const problems = performanceProblems(k.performance, "compounded", true);
+      if (!problems.length) continue;
+      issues.push({ key: `${base}.performance.classes.${code}`, level: "warn", message: `class ${k.display} (${code}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class` });
+      delete f.performanceByClass[code];
+    }
+    if (!Object.keys(f.performanceByClass).length) {
+      delete f.performanceByClass;
+      delete f.defaultClass;
+    }
+  }
+  if (f.variants) {
+    for (const [id, v] of Object.entries(f.variants)) {
+      if (id === f.defaultVariant || !v.performance) continue;
+      const problems = performanceProblems(v.performance, "arithmetic", false);
+      if (!problems.length) continue;
+      issues.push({ key: `${base}.variants.${id}.performance`, level: "warn", message: `variant ${id} %: ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; the variant is not shown` });
+      delete f.variants[id];
+    }
+  }
+  return issues;
 }
 
 /**
@@ -402,6 +435,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     checkAum(f, prev, base, repairs, warnings, now);
     warnings.push(...checkPortfolio(f, base, now), ...checkDistributions(f, base, now));
     checkPerformance(f, ctx, prev, base, blocking, warnings, now);
+    warnings.push(...checkClassesAndVariants(f, base));
     for (const p of nonFinitePaths(f, base)) blocking.push({ key: p, level: "error", message: `non-finite number at ${p}` });
     extraIssues.push(...repairs, ...warnings);
     // a change of performance class (e.g. SEB class H -> F) restates every month under another label: it is never
@@ -413,7 +447,9 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       : null;
     // performance (and what is computed from it: trailing, risk) is gated on its own: when only it fails, the NAV,
     // AUM, portfolio and distributions still publish and the performance alone is held (previous kept, else withheld)
-    const isPerf = (i: Issue) => [`${base}.performance`, `${base}.trailing`, `${base}.risk`, `${base}.risk3Y`].some((k) => i.key === k || i.key.startsWith(`${k}.`) || i.key.startsWith(`${k}[`));
+    // (the returns of a class or a variant are part of it: they are held with it)
+    const isPerf = (i: Issue) => [`${base}.performance`, `${base}.trailing`, `${base}.risk`, `${base}.risk3Y`].some((k) => i.key === k || i.key.startsWith(`${k}.`) || i.key.startsWith(`${k}[`))
+      || new RegExp(`^${base.replaceAll(".", "\\.")}\\.(performanceByClass|variants)\\.[^.]+\\.(performance|risk|risk3Y)([.\\[]|$)`).test(i.key);
     const perfBlocking = blocking.filter(isPerf);
     if (blocking.length && perfBlocking.length === blocking.length) {
       const kept = prev?.performance ? structuredClone(fundWithClassLabel(prev)!) : null;
@@ -421,6 +457,24 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       f.risk = kept?.risk ?? null;
       if (kept?.risk3Y !== undefined) f.risk3Y = kept.risk3Y;
       else delete f.risk3Y;
+      // the hold covers every class and variant: their returns come with the held performance, never new next to old
+      if (kept?.performanceByClass) {
+        f.performanceByClass = kept.performanceByClass;
+        if (kept.defaultClass) f.defaultClass = kept.defaultClass;
+        else delete f.defaultClass;
+      } else {
+        delete f.performanceByClass;
+        delete f.defaultClass;
+      }
+      if (f.variants) {
+        const dv = f.defaultVariant;
+        for (const id of Object.keys(f.variants)) {
+          const old = kept?.variants?.[id];
+          if (id === dv) f.variants[id] = { ...f.variants[id], performance: f.performance, risk: f.risk, risk3Y: f.risk3Y ?? null };
+          else if (old?.performance) f.variants[id] = old;
+          else delete f.variants[id];
+        }
+      }
       for (const k of [`${base}.performance`, `${base}.risk`]) {
         const was = prevLive?.provenance[k];
         if (kept?.performance && was) data.provenance[k] = was.startsWith("carried over") ? was : `carried over from the publication of ${prevLive!.generatedAt} (${was})`;

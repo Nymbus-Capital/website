@@ -15,15 +15,18 @@ import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./t
 import { FUND_TEXTS, T, tr } from "./copy";
 import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "./lib/format.ts";
-import { benchmarkLabel, headlineClass, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
+import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
+import { classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
+import { ClassTypeBadge } from "./ClassBadge";
+import { cifscCategory } from "./lib/rankings.ts";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
 
 const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
 
-export function Overview({ spec, content, data, lang }: Props) {
+export function Overview({ spec, content, data, lang, ctx }: Props) {
   const texts = FUND_TEXTS[spec.key];
   const isFund = spec.vehicle === "fund";
   const perf = content.hide?.performance ? null : data?.performance ?? null;
@@ -33,6 +36,8 @@ export function Overview({ spec, content, data, lang }: Props) {
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const fundWord = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
+  const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
+  const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
 
   return (
     <div className="container fp">
@@ -72,8 +77,9 @@ export function Overview({ spec, content, data, lang }: Props) {
                   </tbody>
                 </table>
                 {rows.some((r) => r.annualized) ? <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
+                {perf?.shortRecord && perf.firstMonth ? <p className="fine fxb-foot">{tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}</p> : null}
               </div>
-            ) : <p className="notice">{tr(T.perf.none, lang)}</p>}
+            ) : <p className="notice" data-testid="overview-soon">{soon}</p>}
           </Block>
         </div>
         <aside className="fxov-side">
@@ -81,7 +87,7 @@ export function Overview({ spec, content, data, lang }: Props) {
           <FeesCard spec={spec} content={content} lang={lang} />
         </aside>
       </div>
-      {isFund ? <SeriesTable spec={spec} content={content} data={data} lang={lang} /> : null}
+      {isFund ? <SeriesTable spec={spec} content={content} data={data} lang={lang} ctx={ctx} /> : null}
       <TeamBlock spec={spec} content={content} lang={lang} />
     </div>
   );
@@ -110,6 +116,11 @@ function FactsCard({ spec, content, data, lang }: Props) {
     [tr(T.facts.basis, lang), perf ? tr(gross ? T.nav.grossBasis : T.nav.netBasis, lang) : null],
     [tr(T.facts.distributions, lang), content.distributions ? firstSentence(tr(content.distributions, lang)) : null],
     [tr(T.facts.minInvestment, lang), content.minInvestment],
+    [tr(T.facts.minSubsequent, lang), content.minSubsequent],
+    [tr(T.facts.rsp, lang), content.rspEligible ? tr(content.rspEligible === "yes" ? T.facts.yes : T.facts.no, lang) : null],
+    [tr(T.facts.liquidity, lang), content.liquidity && (content.liquidity.en || content.liquidity.fr) ? tr(content.liquidity, lang) : null],
+    [tr(T.facts.cifsc, lang), cifscCategory(content, lang)],
+    [tr(T.facts.managers, lang), resolveManagers(content.managers, team).map((m) => m.name).join(", ") || null],
     [tr(T.facts.aum, lang), aum ? `${bigMoney(aum.cad, lang)} (${dateLabel(aum.asOf, lang)})` : null],
   ];
   return (
@@ -146,11 +157,14 @@ function FeesCard({ spec, content, lang }: { spec: FundSpec; content: FundConten
 
 /* ------------------------------------------------------------------ series */
 
-function SeriesTable({ spec, content, data, lang }: Props) {
+function SeriesTable({ spec, content, data, lang, ctx }: Props) {
   const all = content.hide?.nav ? [] : data?.nav?.classes ?? [];
   if (!all.length) return null;
-  const hl = headlineClass(all, [content.headlineClass, spec.headlineClass]);
+  const hlCode = ctx?.selected ?? defaultClassCode(data, spec, content);
+  const hl = all.find((c) => c.fundserv.toUpperCase() === (hlCode ?? "").toUpperCase()) ?? null;
   const classes = sortedClasses(all, hl?.fundserv);
+  const types = new Map(classes.map((c) => [c.fundserv, classType(c.fundserv, spec, content)] as const));
+  const showType = [...types.values()].some((t) => t !== "none");
   return (
     <Block title={tr(T.overview.series, lang)} className="fxov-wide" testId="series">
       <div className="fx-scroll">
@@ -158,7 +172,9 @@ function SeriesTable({ spec, content, data, lang }: Props) {
           <caption className="sr-only">{tr(T.overview.series, lang)}</caption>
           <thead>
             <tr>
-              <th scope="col">{tr(T.facts.series, lang)}</th><th scope="col">{tr(T.facts.fundserv, lang)}</th><th scope="col">{tr(T.facts.currency, lang)}</th>
+              <th scope="col">{tr(T.facts.series, lang)}</th><th scope="col">{tr(T.facts.fundserv, lang)}</th>
+              {showType ? <th scope="col">{tr(T.classes.type, lang)}</th> : null}
+              <th scope="col">{tr(T.facts.currency, lang)}</th>
               <th scope="col">{tr(T.facts.nav, lang)}</th><th scope="col">{tr(T.facts.change, lang)}</th><th scope="col">{tr(T.facts.date, lang)}</th>
             </tr>
           </thead>
@@ -166,10 +182,12 @@ function SeriesTable({ spec, content, data, lang }: Props) {
             {classes.map((c) => {
               const isHl = hl?.fundserv === c.fundserv;
               const dir = navDirection(c.changePct);
+              const type = types.get(c.fundserv) ?? "none";
               return (
                 <tr key={c.fundserv} className={isHl ? "hl" : undefined}>
                   <td data-label={tr(T.facts.series, lang)}>{isHl ? <span className="fx-hl-dot" aria-hidden="true" /> : null}{c.display}{isHl ? <span className="sr-only"> ({tr(T.facts.headline, lang)})</span> : null}</td>
                   <td data-label={tr(T.facts.fundserv, lang)}><code>{c.fundserv}</code></td>
+                  {showType ? <td data-label={tr(T.classes.type, lang)} data-testid={`class-type-cell-${c.fundserv}`}>{type === "none" ? <span aria-hidden="true">—</span> : <ClassTypeBadge type={type} lang={lang} testId={`class-type-${c.fundserv}`} />}</td> : null}
                   <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
                   <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : "—"}</td>
                   <td data-label={tr(T.facts.change, lang)} className={dir === "up" ? "pos" : dir === "down" ? "neg" : undefined}>

@@ -8,6 +8,14 @@
  */
 import type { FundKey, L10n } from "../lib/data/types.ts";
 
+/** A class (series) the website knows about. Other classes of the register appear in the selector from the NAV data. */
+export interface FundClassSpec {
+  fundserv: string;
+  display: string;
+  /** offered by simplified prospectus or by offering memorandum, when known (the admin can override: FundContent.classTypes) */
+  type?: "prospectus" | "om";
+}
+
 export interface FundSpec {
   key: FundKey;
   name: L10n;
@@ -26,8 +34,12 @@ export interface FundSpec {
     basis: "net" | "gross";
   };
   benchmark: L10n | null;
-  /** default headline class (FundServ) when the admin has not chosen one */
+  /** default headline class (FundServ) when the admin has not chosen one: class F, the page opens on it */
   headlineClass: string | null;
+  /** classes known to the site, the default (F) first; the selector adds the other live classes from the NAV data */
+  classes: FundClassSpec[];
+  /** variants of a strategy offered with their own figures (Global Minimum Volatility: target downside volatility, %); the default first is "6" */
+  variants?: { id: string; label: L10n }[];
   defaults: {
     riskRating: "low" | "low-medium" | "medium" | "medium-high" | "high";
     tagline: L10n;
@@ -46,7 +58,11 @@ export const FUNDS: FundSpec[] = [
     aliases: ["sustainable-enhanced-short-term-bonds", "sest"],
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Short Term Corporate Bond Index", fr: "Indice FTSE Canada des obligations corporatives à court terme" },
-    headlineClass: "LDM001",
+    headlineClass: "LDM081",
+    classes: [
+      { fundserv: "LDM081", display: "F", type: "prospectus" },
+      { fundserv: "LDM001", display: "FP", type: "om" },
+    ],
     defaults: {
       riskRating: "low-medium",
       tagline: { en: "Monthly income from short-term corporate bonds", fr: "Un revenu mensuel tiré d’obligations de sociétés à court terme" },
@@ -67,6 +83,7 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Universe Bond Index", fr: "Indice FTSE Canada des obligations universelles" },
     headlineClass: "LDM201",
+    classes: [{ fundserv: "LDM201", display: "F" }, { fundserv: "LDM202", display: "H" }],
     defaults: {
       riskRating: "low",
       tagline: { en: "Canadian core bonds, managed systematically", fr: "Obligations canadiennes de base, gérées de façon systématique" },
@@ -87,6 +104,7 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: null,
     headlineClass: "LDM301",
+    classes: [{ fundserv: "LDM301", display: "F" }],
     defaults: {
       riskRating: "medium",
       tagline: { en: "Four systematic strategies designed to have low correlation with one another", fr: "Quatre stratégies systématiques conçues pour être peu corrélées entre elles" },
@@ -107,12 +125,18 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "gross" },
     benchmark: null,
     headlineClass: null,
+    classes: [],
+    variants: [
+      { id: "6", label: { en: "6%", fr: "6\u00a0%" } },
+      { id: "3", label: { en: "3%", fr: "3\u00a0%" } },
+      { id: "9", label: { en: "9%", fr: "9\u00a0%" } },
+    ],
     defaults: {
       riskRating: "low",
       tagline: { en: "A futures overlay designed to have low correlation with bonds", fr: "Une stratégie de superposition conçue pour avoir une faible corrélation avec les obligations" },
       description: {
-        en: "A managed-futures overlay stacked on top of an existing portfolio (margin deposit of about 5 to 10% of exposure): most of the capital stays invested in the underlying portfolio while the overlay targets 3%, 6% or 9% downside volatility. The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-        fr: "Une stratégie de contrats à terme gérés ajoutée par-dessus un portefeuille existant (dépôt de garantie d’environ 5 à 10 % de l’exposition) : la majeure partie du capital reste investie dans le portefeuille sous-jacent, tandis que la stratégie cible une volatilité baissière de 3 %, 6 % ou 9 %. La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+        en: "A managed-futures overlay stacked on top of an existing portfolio (margin deposit of about 5 to 10% of exposure): most of the capital stays invested in the underlying portfolio while the overlay targets 3%, 6% or 9% downside volatility. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+        fr: "Une stratégie de contrats à terme gérés ajoutée par-dessus un portefeuille existant (dépôt de garantie d’environ 5 à 10 % de l’exposition) : la majeure partie du capital reste investie dans le portefeuille sous-jacent, tandis que la stratégie cible une volatilité baissière de 3 %, 6 % ou 9 %. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
       },
     },
   },

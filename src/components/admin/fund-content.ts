@@ -21,6 +21,22 @@ export function cleanFundContent(f: FundContent): FundContent {
       out[k] = h;
       continue;
     }
+    if (k === "classTypes" && typeof v === "object") {
+      const t = Object.fromEntries(Object.entries(v).filter(([code, kind]) => code && (kind === "prospectus" || kind === "om")));
+      if (Object.keys(t).length === 0) continue;
+      out[k] = t;
+      continue;
+    }
+    if (k === "rankings" && typeof v === "object") {
+      const r = v as NonNullable<FundContent["rankings"]>;
+      const lib = (r.fundLibrary ?? []).filter((x) => x.rows.length > 0 || x.fundGrade);
+      const rk: NonNullable<FundContent["rankings"]> = {};
+      if (lib.length) rk.fundLibrary = lib;
+      if (r.morningstar) rk.morningstar = r.morningstar;
+      if (Object.keys(rk).length === 0) continue;
+      out[k] = rk;
+      continue;
+    }
     out[k] = v;
   }
   return out as FundContent;

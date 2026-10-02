@@ -130,6 +130,19 @@ Not yet run against live data, not deployed.
 10. Nice to have: contact form backend (currently mailto), fund inception dates for funds other than
    Monthly Income (`FUND_INCEPTION` in `src/content/disclaimers.ts`), holiday calendar for FTSE
    month-ends (currently weekdays).
+11. **Class series at the dataplatform** (PR #626 `feat/monthly-net-returns-class`, open): deploy it, then run in review mode
+   and check that SEB F (LDM201), SEB H (LDM202), Multi-Strategy F and Monthly Income FP match the administrator. Until then the
+   endpoint ignores `class_code`: the pipeline treats it as "not served" (info issue) and SEB shows its H series labelled H.
+   **Monthly Income F (LDM081) has no class series** (dataplatform `STRATEGY` for SEST is FP): the page opens on "coming soon"
+   for F. Needs a dataplatform change (class mapping for SEST F) and a `classSeries` entry in `fund-sources.ts`.
+   The home page (other agent) reads the top-level `performance`: for Monthly Income that is still FP's, for SEB it becomes F's.
+12. **Rankings / awards**: Morningstar stars not confirmed (pages unreadable when collected): nobody has entered a rating.
+   The Fund Library figures are as at 2026-08-31 and edited by hand (*Admin → Funds → awards and rankings*); decide who updates
+   them and when the tab is hidden if stale. French category names are our translation (compliance, row F6). Official logos
+   are not used: brand assets only with the owners' permission.
+13. **Admin to fill** (shown only when filled): class types for classes other than LDM081 / LDM001, minimum subsequent
+   investment, RSP eligibility, liquidity, CIFSC category, portfolio managers, management fee / MER; upload factsheet / fund
+   facts / prospectus / proxy-voting / tax-factor documents. Compliance: `docs/compliance-review.md` § Fund pages v2.
 
 11. **Headless WordPress editor backend** (branch `feat/wp-cms`, based on the PR branch, not merged): built, CI-tested,
    **nothing deployed**. Gabriel's manual steps: `docs/deploy.md` §5 / `wordpress/README.md` (MySQL addon, uploads volume,
@@ -164,6 +177,22 @@ Not yet run against live data, not deployed.
   Wiring in shared files is minimal: Team.tsx/Approach.tsx take an optional `members` prop, Home/News an optional `news`
   prop, `(site)/layout.tsx` + `page.tsx` use `getPublicContent()`. Tests: `tests/unit/cms/*`, `e2e/cms.spec.ts` (own server +
   mock WP), PHP plain tests + lint in CI. Precedence and fallbacks: `docs/architecture.md` "Headless WordPress".
+- 2026-10-01 (sub-agent, branch `feat/fund-pages-v2`, from `redesign/v3-keynote-live-data`; not merged, nothing published):
+  **fund pages v2.** Plan and what was done: (1) leverage / "liquidity score" removed everywhere (copy reworded, two
+  characteristics no longer parsed) + test `tests/unit/site/fonts-and-wording.test.ts` that fails on that wording; (2) all
+  fonts Poppins (inherit rule for form controls / SVG text, test greps every `font-family`); (3) **returns per class**:
+  pipeline `classes.ts` + `build.ts` (`performanceByClass`, default class F, short records, per-class
+  gates in `validate.ts`, held with the performance), page `lib/select.ts`; (4) **GMV variants**
+  3 / 6 / 9 % (`FundData.variants`); (5) page: class selector with Prospectus / Offering memorandum badges, "coming soon" per
+  class, Awards and rankings tab (seeded Fund Library data, admin-editable, wordmark badges are CSS text), new facts
+  (minimum subsequent, RSP, liquidity, CIFSC category, managers), top-10 total, header document shortcuts, document types
+  proxy voting / tax factors, calendar chart with a label on every bar. Admin: class types, facts, rankings editor with a
+  "updated manually" note. Docs: `architecture.md` (§ Returns per class), `compliance-review.md` (§ Fund pages v2, rows F1-F12).
+  **Merged with `redesign/v3-keynote-live-data` (2026-10-02)**: the SEB class-from-data work (`perf-class.ts`, `classLabels`,
+  class-change gate), the perf-only hold and the concise copy were kept as they are; the class layer was rebuilt on top of
+  them (no second class fetch: the headline class is the headline, SEB's other class comes from the track-record candidate;
+  a held performance holds every class and variant). The overlay wording (no "leverage") was applied to the new concise copy.
+  **Not done / blocked on data**: see open items 11-13. Tests: unit (`npm test`), e2e in `e2e/fund.spec.ts`.
 
 - 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
   mode "review"; every run "blocked" by the July return mismatch of SEST / SEB / Multistrat, and a blocked fund with no

@@ -80,7 +80,7 @@ html:has([data-admin]), body:has([data-admin]) { background: #0b0b0c; }
 .adm-table td.num, .adm-table th.num { text-align: right; white-space: nowrap; }
 .adm-table tbody tr:hover td { background: rgba(110,162,255,.04); }
 .adm-table tr.hl td { background: rgba(79,209,255,.06); }
-.adm-table .mono, .adm .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.adm-table .mono, .adm .mono { font-family: "Poppins", sans-serif; font-variant-numeric: tabular-nums; font-size: 12px; }
 .adm-scroll { overflow-x: auto; scrollbar-width: thin; }
 .adm-empty { color: var(--mute); padding: 18px 0; text-align: center; font-size: 13px; }
 

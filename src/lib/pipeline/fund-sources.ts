@@ -42,6 +42,8 @@ export interface FundSources {
   classLabels: Partial<Record<ClassCode, string>>;
   /** FundServ code of each class (dataplatform `fundserv`, fund register), checked against the payload */
   classFundserv: Partial<Record<ClassCode, string>>;
+  /** variants of a strategy in the factsheet archive (Global Minimum Volatility), default first; null otherwise */
+  variants: { id: string; key: string }[] | null;
   /** factsheet archive: file prefix and fund key inside it */
   factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
 }
@@ -59,6 +61,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "FP" },
     classFundserv: { STRATEGY: "LDM001" },
+    variants: null,
     factsheet: { file: "bonds_data", key: "SEST" },
   },
   "sustainable-enhanced-bonds": {
@@ -73,6 +76,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
     classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
     classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
+    variants: null,
     factsheet: { file: "bonds_data", key: "QCFI-SEB" },
   },
   "multi-strategy": {
@@ -84,6 +88,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "F" },
     classFundserv: { STRATEGY: "LDM301" },
+    variants: null,
     factsheet: { file: "factsheet_data", key: "Multistrategy" },
   },
   "global-minimum-volatility": {
@@ -95,6 +100,8 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     factsheetClass: [],
     classLabels: {},
     classFundserv: {},
+    // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each
+    variants: [{ id: "6", key: "GMV_6pct" }, { id: "3", key: "GMV_3pct" }, { id: "9", key: "GMV_9pct" }],
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
   },
 };
@@ -113,4 +120,23 @@ export function factsheetClassAt(key: FundKey, month: string): ClassCode | null 
   const m = month.slice(0, 7);
   for (const e of FUND_SOURCES[key].factsheetClass) if (!e.until || m <= e.until) return e.class;
   return null;
+}
+
+/** One class series of a net fund: its FundServ code, site label and dataplatform class code. */
+export interface ClassSeriesSource {
+  fundserv: string;
+  display: string;
+  classCode: ClassCode;
+}
+
+/** Classes of a fund that can have a monthly series (dataplatform `class_code`), from the class configuration. */
+export function classSeriesOf(key: FundKey): ClassSeriesSource[] {
+  const src = FUND_SOURCES[key];
+  const out: ClassSeriesSource[] = [];
+  for (const code of Object.keys(src.classLabels) as ClassCode[]) {
+    const fundserv = src.classFundserv[code];
+    const display = src.classLabels[code];
+    if (fundserv && display) out.push({ fundserv, display, classCode: code });
+  }
+  return out;
 }

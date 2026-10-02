@@ -131,8 +131,8 @@ export const AP = {
     ),
     stackT: l("Most of the capital stays invested", "La majeure partie du capital reste investie"),
     stackD: l(
-      "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of their exposure.** The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.",
-      "Les contrats à terme s’ajoutent aux obligations, avec un dépôt de garantie d’environ 5 à 10 % de leur exposition.** La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+      "Futures sit on top of the bonds, with a margin deposit of about 5 to 10% of their exposure.** The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+      "Les contrats à terme s’ajoutent aux obligations, avec un dépôt de garantie d’environ 5 à 10 % de leur exposition.** La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
     ),
     before: l("Bond portfolio", "Portefeuille obligataire"),
     after: l("With the overlay", "Avec la superposition"),

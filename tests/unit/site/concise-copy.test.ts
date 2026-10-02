@@ -18,10 +18,10 @@ type L = { en: string; fr: string };
 const words = (s: string) => s.trim().split(/\s+/).length;
 const sentences = (s: string) => s.split(/(?<=[a-z0-9)][.!?])\s+(?=[A-ZÀ-Ý0-9])/).filter(Boolean).length;
 
-const LEVERAGE = "The overlay adds leveraged futures exposure; its losses add to those of the underlying portfolio and may require additional margin.";
+const OVERLAY_ADDS = "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.";
 const LOW_CORR = "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.";
 const DIST = "Distributions are not guaranteed, may change and may include a return of capital.";
-const LEVERAGE_FR = "La superposition ajoute une exposition à effet de levier au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.";
+const OVERLAY_ADDS_FR = "La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.";
 const LOW_CORR_FR = "conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.";
 const DIST_FR = "Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.";
 
@@ -66,18 +66,18 @@ test("concise copy: overlay and distribution disclosures survive the cut, word f
     return [f.summary.en, f.note?.en ?? "", ...f.feature.cards.map((c) => c.text.en)].join(" ");
   };
   for (const k of ["monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"] as const) {
-    assert.ok(all(k).includes(LEVERAGE), `${k}: leverage disclosure`);
+    assert.ok(all(k).includes(OVERLAY_ADDS), `${k}: overlay exposure disclosure`);
     assert.ok(all(k).includes(LOW_CORR), `${k}: low-correlation caveat`);
-    assert.ok(FUND_TEXTS[k].note?.en.includes(k === "global-minimum-volatility" ? LEVERAGE : LOW_CORR), `${k}: note under the approach`);
+    assert.ok(FUND_TEXTS[k].note?.en.includes(k === "global-minimum-volatility" ? OVERLAY_ADDS : LOW_CORR), `${k}: note under the approach`);
   }
   assert.ok(FUND_TEXTS["monthly-income"].summary.en.includes(DIST));
   assert.ok(FUND_TEXTS["monthly-income"].feature.cards.find((c) => c.icon === "calendar")!.text.en.includes(DIST));
-  // approach page: the overlay caveat, the leverage disclosure and both footnotes
+  // approach page: the overlay caveat, the overlay exposure disclosure and both footnotes
   assert.deepEqual(AP.overlay.solD, {
     en: "Our overlay is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
     fr: "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
   });
-  assert.ok(AP.overlay.stackD.en.includes(LEVERAGE));
+  assert.ok(AP.overlay.stackD.en.includes(OVERLAY_ADDS));
   assert.match(AP.overlay.foot1.en, /^\* Source: Nymbus Capital Inc\. Statements reflect historical observations/);
   assert.match(AP.overlay.foot2.en, /^\*\* Source: Nymbus Capital Inc\. For illustrative purposes only\./);
   // sustainability: the scope of ESG criteria and exclusions
@@ -92,7 +92,7 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
     return [f.summary.fr, f.note?.fr ?? "", ...f.feature.cards.map((c) => c.text.fr)].join(" ");
   };
   for (const k of ["monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"] as const) {
-    assert.ok(all(k).includes(LEVERAGE_FR), `${k}: leverage disclosure (fr)`);
+    assert.ok(all(k).includes(OVERLAY_ADDS_FR), `${k}: overlay exposure disclosure (fr)`);
     if (k !== "global-minimum-volatility") assert.ok(all(k).includes(LOW_CORR_FR), `${k}: low-correlation caveat (fr)`);
   }
   assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.endsWith("elle peut ne pas y parvenir et peut subir des pertes."));
@@ -102,7 +102,7 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   const family = AUDIENCES.find((a) => a.key === "family")!;
   assert.equal(family.funds[0], "global-minimum-volatility");
   const managed = family.vehicles.find((v) => v.name.en === "Managed accounts")!.text;
-  assert.ok(managed.en.endsWith(LEVERAGE) && managed.fr.endsWith(LEVERAGE_FR), "family managed accounts: leverage disclosure");
+  assert.ok(managed.en.endsWith(OVERLAY_ADDS) && managed.fr.endsWith(OVERLAY_ADDS_FR), "family managed accounts: overlay exposure disclosure");
   assert.ok(FUND_TEXTS["monthly-income"].summary.fr.includes(DIST_FR));
   assert.ok(FUND_TEXTS["monthly-income"].feature.cards.find((c) => c.icon === "calendar")!.text.fr.includes(DIST_FR));
   // Multi-Strategy hedging caveat
@@ -114,7 +114,7 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   assert.ok(seb.en.endsWith("They do not apply to the futures overlay, which holds no securities of individual issuers."));
   assert.ok(seb.fr.endsWith("Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels."));
   // approach: leverage (fr), footnotes (fr), step-4 hedging note
-  assert.ok(AP.overlay.stackD.fr.includes(LEVERAGE_FR));
+  assert.ok(AP.overlay.stackD.fr.includes(OVERLAY_ADDS_FR));
   assert.match(AP.overlay.foot1.fr, /^\* Source\u00a0: Nymbus Capital Inc\. Les déclarations présentées reflètent des observations historiques/);
   assert.match(AP.overlay.foot2.fr, /^\*\* Source\u00a0: Nymbus Capital Inc\. À titre indicatif uniquement\./);
   const step4 = AP.steps[3] as { note?: { en: string; fr: string } };
@@ -122,10 +122,10 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
     en: "Hedging seeks to limit losses in adverse conditions; it does not eliminate the risk of loss.",
     fr: "La couverture cherche à limiter les pertes en conditions défavorables; elle n’élimine pas le risque de perte.",
   });
-  // solutions: the futures-overlay vehicle keeps the leverage disclosure
+  // solutions: the futures-overlay vehicle keeps the overlay exposure disclosure
   const overlay = AUDIENCES.find((a) => a.key === "institutional")!.vehicles.find((v) => v.name.en === "Futures overlay")!.text;
-  assert.ok(overlay.en.endsWith(LEVERAGE));
-  assert.ok(overlay.fr.endsWith(LEVERAGE_FR));
+  assert.ok(overlay.en.endsWith(OVERLAY_ADDS));
+  assert.ok(overlay.fr.endsWith(OVERLAY_ADDS_FR));
   assert.ok(overlay.en.includes("most of the capital stays invested in the bonds"));
   // sustainability: ESG scope (fr) and the principles exception
   assert.ok(SU.hero.lead.fr.endsWith("Ils ne s’appliquent pas de la même façon à nos stratégies de superposition, qui portent sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));

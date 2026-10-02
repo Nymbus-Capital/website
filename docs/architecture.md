@@ -136,6 +136,40 @@ never calls the dataplatform from the browser.
   by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
 - The NAV card is independent: its series is the fund register's class of the FundServ code shown.
 
+### Returns per class and GMV variants (`classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
+
+- **Built on the performance-class design above** (merged with `fix/seb-class` and `fix/perf-hold-only`): the pipeline
+  fetches nothing extra for classes. The fund's headline series is whatever `fundSeries` chose with its gates (SEB: class F
+  from `class_code=STRATEGY&history=full` when complete and fee-band checked, else class H labelled H; SEST FP, Multistrat F).
+  `FundData.performanceByClass` (by FundServ) and `defaultClass` are derived from it: `classSeriesOf(key)` lists the
+  classes of the configuration (`classLabels` + `classFundserv`); the headline's class entry is the headline itself; the
+  other class that has a checked series (SEB class H next to a class F headline: the track-record candidate, analytics +
+  Apex months + same-class factsheet table, cut at the headline's as-of) is built by `buildClassPerformance`; a class
+  without one (F not served or failing its gates, Monthly Income F LDM081, the other share classes) is absent and the page
+  says "coming soon". A class's figures are never taken from another class.
+- A class series must be a contiguous run ending at the headline's as-of month, with plausible months (`performanceProblems`),
+  else it is dropped with a warn (`validate.ts` `checkClassesAndVariants` repeats the gates on the published data, dropping
+  only that class). A class with < 12 months is published with the periods that exist (`Performance.shortRecord`, no
+  annualized figure, no risk statistics) and the page says "since class inception".
+- **Hold**: when only the performance fails validation (`validateSite` perf-only hold) the held performance carries every
+  class and variant with it (`performanceByClass`, `defaultClass`, the default variant, the other variants from the previous
+  publication, or dropped when there is none): never new classes next to an old headline, never the whole fund dropped.
+  A change of the headline's class still needs an admin approval (class-change gate).
+- **Not available yet** (what is missing): (1) dataplatform PR #626 deployed (until then SEB is class H only, F is "coming soon");
+  (2) Monthly Income **F LDM081** has no class series at the dataplatform (`STRATEGY` for SEST is FP): the page opens on
+  "coming soon" for F; add the class to `classLabels` / `classFundserv` in `fund-sources.ts` and the dataplatform class
+  mapping when it exists; (3) the other classes (A, FP of SEB and Multi-Strategy, USD classes) have no class series, so they
+  also show "coming soon". The home page (`components/site/home`, not touched here) still reads the top-level `performance`.
+- **GMV variants**: `FundData.variants` ("3" | "6" | "9", default "6") from the factsheet blocks `GMV_3pct`, `GMV_6pct`,
+  `GMV_9pct`: returns, risk, characteristics, allocation and holdings per variant; the default variant equals the fund's own
+  data. A variant whose block is missing or fails the gates is dropped alone (warn); the page then shows nothing for it.
+- **Page**: `FundPage` holds the selected class and variant; `pickData` applies them before `stripHidden`. Class types
+  (prospectus / OM) come from the registry (`FundSpec.classes[].type`) and the admin (`FundContent.classTypes`); no type, no label.
+- **Rankings** (`FundContent.rankings`, seeded in `src/lib/data/defaults.ts`, merged field-level per fund): third-party
+  Fund Library rank / quartile per period, FundGrade and an optional Morningstar rating, edited by hand in the admin with
+  an "as at" date; shown in the *Awards and rankings* tab with the source link; `hide.rankings` removes the tab. Wordmarks
+  are CSS text: official brand assets may only be dropped in with the owners' permission.
+
 ## Conventions
 
 - All returns/weights/yields are decimal fractions in data; formatting happens in the UI only.

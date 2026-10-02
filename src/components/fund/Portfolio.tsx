@@ -17,7 +17,7 @@ import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
 import { charCount, charValue, dateLabel, elide, fmt, monthLabel, type Lang } from "./lib/format.ts";
-import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage } from "./lib/data.ts";
+import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage, topTotal } from "./lib/data.ts";
 
 type BKey = "credit" | "sectors" | "curve" | "country" | "assetClass";
 const ORDERED: BKey[] = ["credit", "curve"];
@@ -187,6 +187,7 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Lang 
   const any = (k: "coupon" | "maturity" | "rating" | "sector") => items.some((h) => h[k] != null);
   const cols = { coupon: any("coupon"), maturity: any("maturity"), rating: any("rating"), sector: any("sector") };
   const hasGreen = items.some((h) => h.green);
+  const total = topTotal(items);
   return (
     <div className="fx-scroll" role="region" aria-label={tr(T.portfolio.holdings, lang)} tabIndex={0}>
       <table className="table ft-table hd-table hd-daily" data-testid="holdings-table">
@@ -220,6 +221,14 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Lang 
             </tr>
           ))}
         </tbody>
+        {total != null ? (
+          <tfoot>
+            <tr data-testid="holdings-total">
+              <th scope="row" colSpan={3 + Object.values(cols).filter(Boolean).length}>{tr(T.portfolio.topTotal, lang)}</th>
+              <td className="strong">{fmt(total, { pct: true, decimals: 2, lang })}</td>
+            </tr>
+          </tfoot>
+        ) : null}
       </table>
       {hasGreen ? <p className="fine pf-legend"><Leaf aria-hidden="true" /> {tr(T.portfolio.green, lang)}</p> : null}
     </div>
@@ -265,6 +274,7 @@ function CharTile({ c, lang }: { c: Characteristic; lang: Lang }) {
 
 function HoldingsTable({ items, lang }: { items: { name: string; weight: number }[]; lang: Lang }) {
   const max = Math.max(0.0001, ...items.map((h) => h.weight));
+  const total = topTotal(items);
   return (
     <table className="table ft-table hd-table" data-testid="holdings-table">
       <caption className="sr-only">{tr(T.portfolio.holdings, lang)}</caption>
@@ -279,6 +289,14 @@ function HoldingsTable({ items, lang }: { items: { name: string; weight: number 
           </tr>
         ))}
       </tbody>
+      {total != null ? (
+        <tfoot>
+          <tr data-testid="holdings-total">
+            <th scope="row" colSpan={3}>{tr(T.portfolio.topTotal, lang)}</th>
+            <td className="strong">{fmt(total, { pct: true, decimals: 2, lang })}</td>
+          </tr>
+        </tfoot>
+      ) : null}
     </table>
   );
 }

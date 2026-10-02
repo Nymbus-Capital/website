@@ -223,7 +223,7 @@ export function orderedBuckets(b: Bucket[] | undefined | null): Bucket[] {
 
 /* ------------------------------------------------------------------ documents */
 
-export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "esg", "other"];
+export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "esg", "other"];
 
 /** Group documents by type (fixed order), newest first within a group; the display language first. Documents that
  * carry `published: false` are dropped (the public DTO has no flag: it only ever contains published ones). */
@@ -328,6 +328,12 @@ export function fullRowItems(wide: boolean[]): boolean[] {
     else col = col === 0 ? 1 : 0;
   }
   return out;
+}
+
+/** Weight of the ten largest holdings (decimal), only when the ten are listed: a shorter list gives no total. */
+export function topTotal(items: { weight: number }[] | null | undefined): number | null {
+  const w = (items ?? []).filter((h) => isNum(h.weight)).map((h) => h.weight);
+  return w.length >= 10 ? w.slice(0, 10).reduce((a, b) => a + b, 0) : null;
 }
 
 /** Characteristics computed over part of the bonds only (coverage < 1): they get a footnote. */

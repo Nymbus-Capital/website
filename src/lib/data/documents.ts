@@ -16,7 +16,7 @@ import type { DocType, DocumentMeta, FundKey, L10n, Lang } from "./types.ts";
 
 export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 export const DOC_TYPES: readonly DocType[] = [
-  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "commentary", "presentation", "esg", "other",
+  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other",
 ];
 export const DOC_LANGS: readonly (Lang | "both")[] = ["en", "fr", "both"];
 

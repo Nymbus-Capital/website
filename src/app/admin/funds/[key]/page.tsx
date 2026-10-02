@@ -26,6 +26,11 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
     .filter((r) => isPinnable(r, { mode: "live" }) && r.funds?.[spec.key] === "updated")
     .map((r) => ({ id: r.id, label: `${when(r.startedAt)} · perf ${r.asOf?.performance ?? "—"} · ${r.status}` }));
   if (fc.pinnedSnapshot && !pinnable.some((p) => p.id === fc.pinnedSnapshot)) pinnable.unshift({ id: fc.pinnedSnapshot, label: `${fc.pinnedSnapshot} (current pin)` });
+  const seen = new Set<string>();
+  const classTypeRows = [
+    ...(spec.classes ?? []).map((c) => ({ fundserv: c.fundserv, label: `${c.fundserv} · ${c.display}`, defaultType: c.type ?? ("none" as const) })),
+    ...live.classes.map((c) => ({ fundserv: c.fundserv, label: `${c.fundserv} · ${c.display} (${c.currency})`, defaultType: "none" as const })),
+  ].filter((c) => (seen.has(c.fundserv) ? false : (seen.add(c.fundserv), true)));
   return (
     <>
       <Head crumb="admin / funds" title={spec.short.en} lead={<>{spec.name.en} · {spec.assetClass.en} · public page <Link className="adm-link" href={`/strategies/${spec.key}`} target="_blank">/strategies/{spec.key} ↗</Link></>}>
@@ -51,6 +56,7 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
           defaults={{ tagline: spec.defaults.tagline, description: spec.defaults.description, riskRating: spec.defaults.riskRating, headlineClass: spec.headlineClass }}
           classes={live.classes.map((c) => ({ fundserv: c.fundserv, label: `${c.fundserv} · ${c.display} (${c.currency})` }))}
           runs={pinnable}
+          classTypeRows={classTypeRows}
         />
         <aside className="adm-grid" aria-label="live numbers">
           <section className="adm-panel">

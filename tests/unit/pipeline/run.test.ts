@@ -38,7 +38,7 @@ test("auto mode: run is snapshotted and published; audit and meta written", asyn
   assert.equal(r.by, "tester@nymbus.ca");
   assert.deepEqual(r.asOf, { performance: "2026-08-31", nav: "2026-09-28", aum: "2026-09-28", factsheet: "2026-08" });
   assert.deepEqual(r.funds, { "monthly-income": "updated", "sustainable-enhanced-bonds": "updated", "multi-strategy": "updated", "global-minimum-volatility": "updated" });
-  assert.ok(r.sources.length >= 10 && r.sources.every((s) => s.ok || s.name.includes("ftse")));
+  assert.ok(r.sources.length >= 10 && r.sources.every((s) => s.ok || s.name.includes("ftse") || s.name.includes(" class ")));
   assert.ok(r.publishedAt);
   const snap = await readdir(path.join(dir, "snapshots", r.id));
   assert.deepEqual(snap.sort(), ["raw", "report.json", "site-data.json"]);

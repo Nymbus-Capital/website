@@ -7,14 +7,17 @@ import { mkdirSync, readFileSync } from "node:fs";
  * (e2e/screenshots/fund-<slug>-<project>.png, and one per tab for two funds) for design review.
  */
 // daily: the sample has a daily portfolio book (bond funds); the multi-strategy book is below the coverage thresholds
+// series: radio buttons of the class selector (registry classes + classes with a NAV); dist: series with distributions;
+// returns: the default class (F) has its own return series (Monthly Income F has none yet: "coming soon", FP has)
 const FUNDS = [
-  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, daily: true, green: false },
-  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 3, daily: true, green: true },
-  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3, daily: false, green: false },
-  // managed accounts, not a fund: gross figures, no NAV / FundServ series
-  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0, daily: false, green: false },
+  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, dist: 4, daily: true, green: false, returns: false },
+  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 4, dist: 3, daily: true, green: true, returns: true },
+  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3, dist: 3, daily: false, green: false, returns: true },
+  // managed accounts, not a fund: gross figures, no NAV / FundServ series, no distributions
+  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0, dist: 0, daily: false, green: false, returns: true },
 ];
-const TABS = ["overview", "performance", "portfolio", "distributions", "documents"] as const;
+const TABS = ["overview", "performance", "portfolio", "distributions", "awards", "documents"] as const;
+const GMV_TABS = ["overview", "performance", "portfolio", "documents"] as const;
 
 /** Scroll the whole page so lazily mounted charts and reveals run, then let the animations settle at the top. */
 async function settle(page: Page) {
@@ -61,8 +64,13 @@ for (const f of FUNDS) {
       await expect(page.getByTestId("strategy-card").locator(".odo .sr-only")).toHaveText(/^−?\d+\.\d%$/);
     }
 
-    // return badges with the class / basis label
+    // return badges with the class / basis label; a default class without its own series says "coming soon"
     const strip = page.getByTestId("return-strip");
+    if (!f.returns) {
+      await expect(strip.getByTestId("figures-soon")).toContainText("Performance figures for series F coming soon");
+      await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
+      await page.getByTestId("nav-card").getByTestId("series-LDM001").click();
+    }
     await expect(strip.getByTestId("badge-SI")).toBeVisible();
     await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+\.\d{2}%$/);
     await expect(page.getByTestId("basis")).toContainText(f.gross ? /gross of fees/i : /net of fees/i);
@@ -134,22 +142,23 @@ for (const f of FUNDS) {
     if (f.series) await expect(page.getByTestId("documents-on-request").locator(".dc-req-item")).toHaveCount(5);
     else await expect(page.getByTestId("documents-mandate")).toContainText("mandate holders");
 
-    await openTab(page, "distributions");
-    await expect(page.getByTestId("distributions")).toBeVisible();
-    if (f.series) {
-      await expect(page.getByTestId("distributions-summary").locator(".ds-card")).toHaveCount(f.series);
+    if (f.dist) {
+      await openTab(page, "distributions");
+      await expect(page.getByTestId("distributions")).toBeVisible();
+      await expect(page.getByTestId("distributions-summary").locator(".ds-card")).toHaveCount(f.dist);
       await expect(page.getByTestId("distributions-summary").locator(".ds-card.hl")).toHaveCount(1);
       await expect(page.getByTestId("distributions-note")).toContainText("tax slips");
       await expect(page.getByTestId("distributions-history")).toBeVisible();
     } else {
-      await expect(page.getByTestId("distributions-summary")).toHaveCount(0);
+      // managed accounts: no distributions tab
+      await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]')).toHaveCount(0);
     }
 
     expect(errors).toEqual([]);
   });
 }
 
-for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatility", TABS], ["sustainable-enhanced-bonds", ["portfolio", "distributions"]], ["multi-strategy", ["portfolio"]]] as const) {
+for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatility", GMV_TABS], ["sustainable-enhanced-bonds", ["portfolio", "distributions"]], ["multi-strategy", ["portfolio"]]] as const) {
   test(`every tab at rest (screenshots): ${slug}`, async ({ page }, info) => {
     await page.goto(`/strategies/${slug}`);
     for (const id of tabs) {
@@ -165,7 +174,7 @@ test("distributions: per-series cards, history chart, calendar years and the ful
   // the latest distribution of the series shown (not the end of the requested window)
   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
   const fp = page.getByTestId("dist-class-LDM001");
-  await expect(fp).toHaveClass(/hl/);
+  await expect(page.locator('[data-testid^="dist-class-"].hl')).toHaveCount(1);
   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
@@ -218,11 +227,14 @@ test("distributions: per-series cards, history chart, calendar years and the ful
 test("series selector switches the NAV card", async ({ page }) => {
   await page.goto("/strategies/monthly-income");
   const card = page.getByTestId("nav-card");
-  await expect(card.getByTestId("nav-fundserv")).toHaveText("LDM001");
-  await card.getByTestId("series-LDM081").click();
-  await expect(card.getByTestId("series-LDM081")).toHaveAttribute("aria-checked", "true");
+  // the default class is F (LDM081)
   await expect(card.getByTestId("nav-fundserv")).toHaveText("LDM081");
+  await expect(card.getByTestId("series-LDM081")).toHaveAttribute("aria-checked", "true");
   await expect(card.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText("$10.0397");
+  await card.getByTestId("series-LDM001").click();
+  await expect(card.getByTestId("series-LDM001")).toHaveAttribute("aria-checked", "true");
+  await expect(card.getByTestId("nav-fundserv")).toHaveText("LDM001");
+  await expect(card.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText("$10.1905");
   await card.getByTestId("series-LDM011").click();
   await expect(card.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText(/^US\$\d+\.\d{4}$/);
 });
@@ -248,7 +260,8 @@ test("without JavaScript every panel is on the page", async ({ browser }) => {
   await page.goto("/strategies/monthly-income");
   await expect(page.getByRole("heading", { level: 1, name: "Nymbus Monthly Income Fund" })).toBeVisible();
   for (const id of TABS) await expect(page.locator(`[role="tabpanel"][data-panel="${id}"]`)).toBeVisible();
-  await expect(page.getByTestId("trailing-table")).toBeAttached();
+  // Monthly Income F has no return series yet: its panels say "coming soon"
+  await expect(page.getByTestId("perf-soon")).toBeAttached();
   await expect(page.getByTestId("holdings-table")).toBeVisible();
   await ctx.close();
 });
@@ -276,7 +289,10 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Fonds Nymbus Revenu Mensuel" })).toBeVisible();
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="overview"]')).toHaveText("Aperçu");
+  await expect(page.getByTestId("figures-soon")).toContainText("Les rendements de la série F seront bientôt publiés");
+  await page.getByTestId("series-LDM001").click();
   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
+  await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
   // decimal comma and a no-break space before % / $
   await expect(page.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+,\d{2}\s%$/);
   await expect(page.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText(/^\d+,\d{4}\s\$$/);
@@ -286,6 +302,132 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
   await expect(page.getByTestId("provenance")).toContainText("données de portefeuille selon les positions quotidiennes au 28 septembre 2026");
+});
+
+/* ------------------------------------------------------------------ classes, variants, awards, calendar labels */
+
+test("class selector: returns follow the class; F is the default; a class without its own series says coming soon", async ({ page }) => {
+  await page.goto("/strategies/sustainable-enhanced-bonds");
+  const card = page.getByTestId("nav-card");
+  const strip = page.getByTestId("return-strip");
+  await expect(card.getByTestId("series-LDM201")).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByTestId("basis")).toContainText("Series F");
+  const f = await strip.getByTestId("badge-SI").locator(".fr-v").innerText();
+  await card.getByTestId("series-LDM202").click();
+  await expect(page.getByTestId("basis")).toContainText("Series H");
+  const h = await strip.getByTestId("badge-SI").locator(".fr-v").innerText();
+  expect(h, "class H shows its own returns").not.toBe(f);
+  // a class that has no series of its own: no figure at all, never F's
+  await card.getByTestId("series-LDM205").click();
+  await expect(strip.getByTestId("figures-soon")).toContainText("series A coming soon");
+  await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
+  await openTab(page, "performance");
+  await expect(page.getByTestId("perf-soon")).toContainText("series A coming soon");
+  await expect(page.getByTestId("growth")).toHaveCount(0);
+  await expect(page.getByTestId("calendar")).toHaveCount(0);
+  await expect(page.getByTestId("risk")).toHaveCount(0);
+  // back to F: everything returns
+  await card.getByTestId("series-LDM201").click();
+  await expect(page.getByTestId("calendar")).toBeVisible();
+  await expect(page.getByTestId("risk")).toBeVisible();
+});
+
+test("class types: only classes whose type is known are labelled, with a disclosure sentence", async ({ page }) => {
+  await page.goto("/strategies/monthly-income");
+  const card = page.getByTestId("nav-card");
+  await expect(card.getByTestId("class-type")).toHaveText("Prospectus class");
+  await expect(card.getByTestId("class-type-note")).toContainText("simplified prospectus");
+  await card.getByTestId("series-LDM001").click();
+  await expect(card.getByTestId("class-type")).toHaveText("Offering memorandum class");
+  await expect(card.getByTestId("class-type-note")).toContainText("offering memorandum");
+  await expect(page.getByTestId("returns-class-type")).toHaveText("Offering memorandum class");
+  // unknown type: nothing is said
+  await card.getByTestId("series-LDM021").click();
+  await expect(card.getByTestId("class-type")).toHaveCount(0);
+  await expect(card.getByTestId("class-type-note")).toHaveCount(0);
+  // the class table: the badge on the two classes whose type is known, none elsewhere
+  await expect(page.getByTestId("class-type-LDM081")).toHaveText("Prospectus class");
+  await expect(page.getByTestId("class-type-LDM001")).toHaveText("Offering memorandum class");
+  await expect(page.getByTestId("class-type-LDM021")).toHaveCount(0);
+  // SEB: no class has a known type yet: no label, no column
+  await page.goto("/strategies/sustainable-enhanced-bonds");
+  await expect(page.getByTestId("class-type")).toHaveCount(0);
+  await expect(page.getByTestId("classes-table").locator("thead")).not.toContainText("Offered under");
+});
+
+test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions", async ({ page }) => {
+  await page.goto("/strategies/global-minimum-volatility");
+  const sel = page.getByTestId("variant-selector");
+  await expect(sel.getByTestId("variant-6")).toHaveAttribute("aria-checked", "true");
+  await expect(sel.locator('[role="radio"]')).toHaveCount(3);
+  await expect(page.getByTestId("nav-card")).toHaveCount(0);
+  await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]')).toHaveCount(0);
+  const read = async () => page.getByTestId("return-strip").getByTestId("badge-SI").locator(".fr-v").innerText();
+  // the value counts up: wait until it is non-zero and stable
+  const si = async () => {
+    let last = "";
+    await expect.poll(async () => { const v = await read(); const ok = v === last && !/^[+-]?0[.,]00/.test(v); last = v; return ok; }, { intervals: [300] }).toBe(true);
+    return last;
+  };
+  const six = await si();
+  await sel.getByTestId("variant-3").click();
+  const three = await si();
+  await sel.getByTestId("variant-9").click();
+  const nine = await si();
+  expect(new Set([six, three, nine]).size, "each variant has its own returns").toBe(3);
+  await expect(page.getByTestId("basis")).toContainText("Target downside volatility 9%");
+  await openTab(page, "performance");
+  await expect(page.getByTestId("perf-context")).toContainText("9%");
+  await sel.getByTestId("variant-6").click();
+  expect(await si()).toBe(six);
+});
+
+test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+  await page.goto("/strategies/sustainable-enhanced-bonds#awards");
+  const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
+  await expect(tab).toBeVisible();
+  await expect(tab.getByTestId("ranking-LDM201")).toContainText("Canadian Fixed Income");
+  await expect(tab.getByTestId("ranking-LDM201")).toContainText("August 31, 2026");
+  await expect(tab.getByTestId("rank-1Y")).toContainText("1 of 465");
+  await expect(tab.getByTestId("rank-1M")).toContainText("4 of 486");
+  await expect(tab.getByTestId("fundgrade")).toContainText("A");
+  await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+  await expect(tab.getByTestId("morningstar")).toHaveCount(0);
+  await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
+  // no third-party logo images: wordmarks are text
+  await expect(tab.locator("img")).toHaveCount(0);
+  // the CIFSC category line of the facts comes from the ranking category
+  await openTab(page, "overview");
+  await expect(page.getByTestId("fund-facts")).toContainText("Canadian Fixed Income");
+  // multi-strategy: a quartile 4 is shown as it is
+  await page.goto("/strategies/multi-strategy#awards");
+  await expect(page.getByTestId("rank-1M")).toContainText("127 of 144");
+  await expect(page.getByTestId("rank-1M").locator(".aw-q")).toHaveText("Q4");
+  // GMV: no ranking, no tab
+  await page.goto("/strategies/global-minimum-volatility");
+  await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]')).toHaveCount(0);
+});
+
+test("calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll", async ({ page }) => {
+  await page.goto("/strategies/global-minimum-volatility#performance");
+  const chart = page.getByTestId("calendar");
+  await chart.scrollIntoViewIfNeeded();
+  const cats = chart.locator("svg .cat");
+  await expect(cats.first()).toBeVisible();
+  const n = await cats.count();
+  expect(n).toBeGreaterThan(8);
+  const labels = chart.locator("svg text.vl");
+  await expect(labels).toHaveCount(n);
+  // each label sits above its bar (below a negative one) and the labels do not overlap each other
+  const boxes = await labels.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, text: e.textContent }; }));
+  for (const b of boxes) expect(b.text).toMatch(/^[+−-]?\d+\.\d%$/);
+  const sorted = [...boxes].sort((a, b) => a.l - b.l);
+  for (let i = 1; i < sorted.length; i++) expect(sorted[i].l, `labels ${sorted[i - 1].text} / ${sorted[i].text}`).toBeGreaterThanOrEqual(sorted[i - 1].r - 0.5);
+  // the bars of the chart stay inside the card (it scrolls sideways when narrow), the page never does
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  // accessible: every category keeps its text alternative with the value
+  await expect(cats.first()).toHaveAttribute("aria-label", /\d/);
 });
 
 /**
@@ -318,6 +460,8 @@ for (const slug of Object.keys(CLASS_OF)) {
         await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
         await page.reload();
       }
+      // Monthly Income opens on class F (LDM081), which has no series yet: its returns are the FP class (LDM001)
+      if (slug === "monthly-income") await page.getByTestId("nav-card").getByTestId("series-LDM001").click();
       const exact = seriesRe(word, code);
       // header return badges, overview returns, disclosures: this class, never another class of the fund
       for (const tid of ["basis", "overview-returns", "perf-class"]) {
