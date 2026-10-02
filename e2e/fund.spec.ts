@@ -393,7 +393,7 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   await expect(tab.getByTestId("fundgrade")).toContainText("A");
   await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fund Library/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
   await expect(tab.getByTestId("morningstar")).toBeVisible();
-  await expect(tab.getByTestId("morningstar")).toContainText("Class F");
+  await expect(tab.getByTestId("morningstar")).toContainText("Series F");
   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
   // no third-party logo images: wordmarks are text
   await expect(tab.locator("img")).toHaveCount(0);
