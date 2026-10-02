@@ -40,7 +40,7 @@ export async function fetchAnalytics(fetchImpl: FetchImpl, env: Record<string, s
     }
     const repo = env.ANALYTICS_REPO || ANALYTICS_DEFAULTS.repo;
     const token = await githubToken(env, repo, fetchImpl);
-    if (!token) return { ok: false, data: null, error: "analytics: neither ANALYTICS_RETURNS_FILE nor GitHub credentials configured" };
+    if (!token) return { ok: false, data: null, error: "analytics: neither ANALYTICS_RETURNS_FILE nor GITHUB_TOKEN configured" };
     const branch = env.ANALYTICS_BRANCH || ANALYTICS_DEFAULTS.branch;
     const file = env.ANALYTICS_RETURNS_PATH || ANALYTICS_DEFAULTS.path;
     const url = `https://api.github.com/repos/${repo.split("/").map(encodeURIComponent).join("/")}/contents/${file.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(branch)}`;
@@ -57,3 +57,4 @@ export async function fetchAnalytics(fetchImpl: FetchImpl, env: Record<string, s
     return { ok: false, data: null, error: `analytics: ${errMsg(e)}` };
   }
 }
+
