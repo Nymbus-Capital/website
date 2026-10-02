@@ -174,7 +174,7 @@ test("distributions: per-series cards, history chart, calendar years and the ful
   // the latest distribution of the series shown (not the end of the requested window)
   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
   const fp = page.getByTestId("dist-class-LDM001");
-  await expect(fp).toHaveClass(/hl/);
+  await expect(page.locator('[data-testid^="dist-class-"].hl')).toHaveCount(1);
   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
@@ -362,7 +362,13 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await expect(sel.locator('[role="radio"]')).toHaveCount(3);
   await expect(page.getByTestId("nav-card")).toHaveCount(0);
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]')).toHaveCount(0);
-  const si = async () => page.getByTestId("return-strip").getByTestId("badge-SI").locator(".fr-v").innerText();
+  const read = async () => page.getByTestId("return-strip").getByTestId("badge-SI").locator(".fr-v").innerText();
+  // the value counts up: wait until it is non-zero and stable
+  const si = async () => {
+    let last = "";
+    await expect.poll(async () => { const v = await read(); const ok = v === last && !/^[+-]?0[.,]00/.test(v); last = v; return ok; }, { intervals: [300] }).toBe(true);
+    return last;
+  };
   const six = await si();
   await sel.getByTestId("variant-3").click();
   const three = await si();
