@@ -133,6 +133,22 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
+  Gabriel's brief: team dialogs centered, more tech-company motion, much less text, AUM C$1.9B, no daily NAV on home,
+  bring back the "scanning billions of datapoints" table. Done: (1) dialogs: Tailwind preflight removed the UA
+  `margin:auto`, so `dialog:modal` is now `fixed; inset:0; margin:auto` (+ scroll lock, `e2e/dialog.spec.ts` asserts the
+  bounding box is centered, focus trap, Esc, backdrop). (2) `aumLabel` default `$1.9B` / `1,9 G$` (legacy `$1.8B+`
+  migrated, test scans `src` for the old figure). (3) Home: NAV panel and fund-data section removed (fund cards keep
+  returns only; fund pages untouched); new `AnalysisScan` canvas panel (`src/components/site/fx/`: pure `scan-model.ts`,
+  `scan-engine.ts`, labelled "Illustration only"), key-figures card (AUM, strategies, people, PhDs from `team.ts`).
+  (4) Motion kit `fx/`: lazy canvas `DataField` in heroes, section `Divider`s, `Parallax`, magnetic buttons, card
+  spotlight, scroll-progress bar. All canvases lazy-init near the viewport, pause off-screen / hidden tab, cap DPR and
+  fps, draw one still frame under `prefers-reduced-motion`; test hooks `data-frames` / `data-running`
+  (`e2e/home-v2.spec.ts`). (5) Copy cut on home, approach, team, sustainability, solutions, contact (EN + FR, legal and
+  disclosures untouched); `word-budget.test.ts`. New claims flagged in `docs/compliance-review.md` ("Home v2").
+  Decisions for Gabriel: wording of the scan panel ("billions of data points" vs illustrative), whether /strategies
+  keeps NAV, PRI principles list removed from /sustainability, saved admin content with the old AUM default.
+
 - 2026-10-01 (home, branch `fix/perf-hold-only`): **live site was empty** — no run had ever been published (publish
   mode "review"; every run "blocked" by the July return mismatch of SEST / SEB / Multistrat, and a blocked fund with no
   previous publication was withheld whole, NAV included). `validateSite` now holds only the **performance**
