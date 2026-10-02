@@ -132,3 +132,24 @@ test("CSP: the media origin joins img-src; nothing else can be injected through 
   assert.match(csp, /connect-src 'self'(;|$)/);
   assert.match(csp, /script-src 'self' 'nonce-[^']+' 'strict-dynamic'(;|$)/);
 });
+
+test("revalidate: a correct secret is never limited; only failures count, per source (first X-Forwarded-For hop)", async () => {
+  const { keyedFailureLimiter, revalidateDecision, sourceKey } = await import("../../../src/lib/cms/auth.ts");
+  const l = keyedFailureLimiter(3, 1000);
+  const t = 5000;
+  for (let i = 0; i < 3; i++) assert.equal(revalidateDecision("bad", "s3cret", "1.2.3.4", l, t), "unauthorized");
+  assert.equal(revalidateDecision("bad", "s3cret", "1.2.3.4", l, t), "limited");
+  assert.equal(revalidateDecision("s3cret", "s3cret", "1.2.3.4", l, t), "ok", "the secret is checked first");
+  assert.equal(revalidateDecision("bad", "s3cret", "5.6.7.8", l, t), "unauthorized", "another source is not affected");
+  assert.equal(revalidateDecision("bad", "s3cret", "1.2.3.4", l, t + 1001), "unauthorized", "recovers after the window");
+  assert.equal(sourceKey("203.0.113.9, 10.0.0.1"), "203.0.113.9");
+  assert.equal(sourceKey("[::1]"), "unknown");
+  assert.equal(sourceKey(null), "unknown");
+  assert.equal(sourceKey("x".repeat(200)), "unknown");
+  // bounded memory: past maxKeys the new sources share one bucket
+  const small = keyedFailureLimiter(2, 1000, 2);
+  small.fail("a", t); small.fail("b", t);
+  small.fail("c", t); small.fail("d", t);
+  assert.equal(small.blocked("e", t), true, "overflow bucket");
+  assert.equal(small.blocked("a", t), false);
+});
