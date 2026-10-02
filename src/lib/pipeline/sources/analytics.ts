@@ -10,6 +10,7 @@ import { FUND_SOURCES } from "../fund-sources.ts";
 import type { AnalyticsReturns, SourceResult } from "../raw.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 import { parseLooseJson } from "./factsheets.ts";
+import { githubToken } from "./github-auth.ts";
 
 export const ANALYTICS_DEFAULTS = {
   repo: "Nymbus-Capital/analytics",
@@ -37,12 +38,13 @@ export async function fetchAnalytics(fetchImpl: FetchImpl, env: Record<string, s
       if (!d) return { ok: false, data: null, error: "analytics: ANALYTICS_RETURNS_FILE has an unexpected shape" };
       return { ok: true, data: d, detail: summary(d) };
     }
-    if (!env.GITHUB_TOKEN) return { ok: false, data: null, error: "analytics: neither ANALYTICS_RETURNS_FILE nor GITHUB_TOKEN configured" };
     const repo = env.ANALYTICS_REPO || ANALYTICS_DEFAULTS.repo;
+    const token = await githubToken(env, repo, fetchImpl);
+    if (!token) return { ok: false, data: null, error: "analytics: neither ANALYTICS_RETURNS_FILE nor GitHub credentials configured" };
     const branch = env.ANALYTICS_BRANCH || ANALYTICS_DEFAULTS.branch;
     const file = env.ANALYTICS_RETURNS_PATH || ANALYTICS_DEFAULTS.path;
     const url = `https://api.github.com/repos/${repo.split("/").map(encodeURIComponent).join("/")}/contents/${file.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(branch)}`;
-    const res = await fetchRetry(fetchImpl, url, { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: "application/vnd.github.raw+json", "User-Agent": "nymbus-web-pipeline/1.0", "X-GitHub-Api-Version": "2022-11-28" } }, { timeoutMs: 120_000, backoffMs: retryBaseMs(env), honorRetryAfter: true });
+    const res = await fetchRetry(fetchImpl, url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github.raw+json", "User-Agent": "nymbus-web-pipeline/1.0", "X-GitHub-Api-Version": "2022-11-28" } }, { timeoutMs: 120_000, backoffMs: retryBaseMs(env), honorRetryAfter: true });
     if (res.status !== 200) {
       await res.body?.cancel().catch(() => undefined);
       const why = ({ 401: "the GITHUB_TOKEN is invalid or expired", 403: "the GITHUB_TOKEN may not read this repository (or is rate limited)", 404: `the GITHUB_TOKEN cannot see ${repo} (contents:read) or ${file} moved` } as Record<number, string>)[res.status];
