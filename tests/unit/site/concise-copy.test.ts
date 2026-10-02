@@ -27,10 +27,10 @@ const DIST_FR = "Les distributions ne sont pas garanties, peuvent changer et peu
 
 test("concise copy: page leads are short (15 words or fewer)", () => {
   const leads: [string, L][] = [
-    ["home hero", HOME_COPY.hero.lead], ["home approach", HOME_COPY.approach.lead], ["home strategies", HOME_COPY.strategies.lead],
+    ["home hero", HOME_COPY.hero.lead], ["home strategies", HOME_COPY.strategies.lead],
     ["home process", HOME_COPY.process.lead], ["strategies", STRAT_COPY.lead], ["solutions", SOL_COPY.lead],
-    ["approach hero", AP.hero.lead], ["approach pipeline", AP.pipe.lead], ["approach bonds", AP.bonds.lead],
-    ["about hero", AB.hero.lead], ["contact hero", CT.hero.lead], ["sustainability integration", SU.integration.lead],
+    ["approach hero", AP.hero.lead],
+    ["about hero", AB.hero.lead], ["contact hero", CT.hero.lead], ["sustainability hero (scope sentence kept)", { en: SU.hero.lead.en.split(/(?<=\.)\s/)[0], fr: "" }],
     ...AUDIENCES.map((a) => [`solutions ${a.key}`, a.intro] as [string, L]),
     ...Object.entries(FUND_TEXTS).filter(([k]) => k !== "global-minimum-volatility").map(([k, f]) => [`${k} summary (first sentence)`, { en: f.summary.en.split(/(?<=\.)\s/)[0], fr: "" }] as [string, L]),
   ];
@@ -39,7 +39,7 @@ test("concise copy: page leads are short (15 words or fewer)", () => {
 
 test("concise copy: bullet lists have 3 to 5 short items, in both languages", () => {
   const lists: [string, L[]][] = [
-    ["home approach", HOME_COPY.approach.points], ["about intro", AB.intro.points],
+    ["about intro", AB.intro.points],
     ...AP.steps.map((s, i) => [`approach step ${i + 1}`, s.bullets] as [string, L[]]),
     ...Object.entries(FUND_TEXTS).map(([k, f]) => [`${k} focus`, f.focus] as [string, L[]]),
     ...AUDIENCES.map((a) => [`solutions ${a.key}`, a.benefits] as [string, L[]]),
@@ -83,7 +83,7 @@ test("concise copy: overlay and distribution disclosures survive the cut, word f
   // sustainability: the scope of ESG criteria and exclusions
   assert.match(SU.hero.lead.en, /do not apply in the same way to our futures overlays, which trade exchange-traded futures rather than securities of individual issuers\.$/);
   assert.match(SU.exclusions.lead.en, /They do not apply to exchange-traded futures used in our overlays\.$/);
-  assert.match(HOME_COPY.approach.cards[2].text.en, /Risk management does not eliminate the risk of loss\.$/);
+  assert.match(HOME_COPY.process.steps[3].text.en, /Risk management does not eliminate the risk of loss\.$/);
 });
 
 test("concise copy: the same disclosures in French, and the other condensed blocks' caveats", () => {
@@ -132,5 +132,5 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   assert.ok(SU.exclusions.lead.fr.endsWith("Elles ne visent pas les contrats à terme cotés utilisés dans nos stratégies de superposition."));
   assert.ok(SU.principles.lead.en.endsWith("Futures overlays, which do not hold securities of individual issuers, are outside their scope."));
   assert.ok(SU.principles.lead.fr.endsWith("Les stratégies de superposition, qui ne détiennent pas de titres d’émetteurs individuels, n’en font pas partie."));
-  assert.ok(HOME_COPY.approach.cards[2].text.fr.endsWith("La gestion des risques n’élimine pas le risque de perte."));
+  assert.ok(HOME_COPY.process.steps[3].text.fr.endsWith("La gestion des risques n’élimine pas le risque de perte."));
 });

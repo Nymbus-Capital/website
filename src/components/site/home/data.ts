@@ -48,11 +48,12 @@ export interface HomeData {
   aumLabel: L10n | null;
   /** the figures are the illustrative sample (never in production unless SHOW_SAMPLE_DATA=1) */
   sample: boolean;
-  navAsOf: string | null;
   /** month-end of the latest published performance across the funds */
   perfAsOf: string | null;
   /** people listed in src/data/team.ts (structural fact), null when not provided */
   teamSize: number | null;
+  /** people with a doctorate listed in src/data/team.ts (structural fact), null when none */
+  phdCount: number | null;
 }
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -105,15 +106,15 @@ export function toFundCard(v: FundView): FundCard {
   };
 }
 
-export function toHomeData(views: FundView[], content: SiteContent, extras: { teamSize?: number | null } = {}): HomeData {
+export function toHomeData(views: FundView[], content: SiteContent, extras: { teamSize?: number | null; phdCount?: number | null } = {}): HomeData {
   const funds = views.map(toFundCard);
   const label = content.firm.aumLabel;
   return {
     funds,
     aumLabel: label && (label.en?.trim() || label.fr?.trim()) ? label : null,
     sample: views.some((v) => v.sample && v.data),
-    navAsOf: latest(funds.map((f) => f.nav?.date)),
     perfAsOf: latest(funds.map((f) => f.asOf)),
     teamSize: typeof extras.teamSize === "number" && extras.teamSize > 0 ? extras.teamSize : null,
+    phdCount: typeof extras.phdCount === "number" && extras.phdCount > 0 ? extras.phdCount : null,
   };
 }

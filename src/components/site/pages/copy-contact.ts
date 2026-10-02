@@ -23,7 +23,7 @@ export const CT = {
   },
   form: {
     title: l("Write to us", "Écrivez-nous"),
-    lead: l("Three steps. Your message opens in your mail app, ready to send.", "Trois étapes. Votre message s’ouvre dans votre application de courriel, prêt à envoyer."),
+    lead: l("Three short steps.", "Trois courtes étapes."),
     stepsLabel: l("Form progress", "Progression du formulaire"),
     steps: [l("Investor type", "Type d’investisseur"), l("Interests", "Intérêts"), l("Contact details", "Coordonnées")],
     stepOf: l("Step {n} of 3", "Étape {n} sur 3"),
@@ -32,9 +32,9 @@ export const CT = {
     q2hint: l("Choose one or more.", "Choisissez un ou plusieurs éléments."),
     q3: l("Your contact details", "Vos coordonnées"),
     profiles: [
-      { v: "Institutional investor", t: l("Institutional investor", "Investisseur institutionnel"), d: l("Pension funds, foundations, endowments, insurers", "Caisses de retraite, fondations, fonds de dotation, assureurs") },
+      { v: "Institutional investor", t: l("Institutional investor", "Investisseur institutionnel"), d: l("Pensions, foundations, insurers", "Retraite, fondations, assureurs") },
       { v: "Family office", t: l("Family office", "Bureau de gestion familiale"), d: l("Single and multi-family offices", "Bureaux unifamiliaux et multifamiliaux") },
-      { v: "Financial advisor", t: l("Financial advisor", "Conseiller en placement"), d: l("Advisors registered with CIRO or a provincial securities regulator", "Conseillers inscrits auprès de l’OCRI ou d’une autorité provinciale en valeurs mobilières") },
+      { v: "Financial advisor", t: l("Financial advisor", "Conseiller en placement"), d: l("Registered with CIRO or a provincial regulator", "Inscrits auprès de l’OCRI ou d’une autorité provinciale") },
       { v: "Other", t: l("Other", "Autre"), d: l("Individual investors, media, partners", "Particuliers, médias, partenaires") },
     ] as { v: string; t: L; d: L }[],
     custom: l("Custom mandate", "Mandat sur mesure"),
@@ -60,7 +60,7 @@ export const CT = {
       "Ce formulaire n’envoie et n’enregistre rien : il prépare un courriel à info@nymbus.ca dans votre application de courriel. N’y indiquez pas de numéros de compte ni d’autres renseignements sensibles.",
     ),
     ready: l("Your email is ready", "Votre courriel est prêt"),
-    readyD: l("Your mail app should have opened with the message. If it didn’t, use the button below or write to info@nymbus.ca.", "Votre application de courriel devrait s’être ouverte avec le message. Sinon, utilisez le bouton ci-dessous ou écrivez à info@nymbus.ca."),
+    readyD: l("If your mail app did not open, use the button below.", "Si votre application de courriel ne s’est pas ouverte, utilisez le bouton ci-dessous."),
     openMail: l("Open my email", "Ouvrir mon courriel"),
     again: l("Start over", "Recommencer"),
   },
@@ -72,7 +72,7 @@ export const CT = {
     hours: l("Monday to Friday, 8:30 a.m. to 5:00 p.m. (Eastern time)", "Du lundi au vendredi, de 8 h 30 à 17 h (heure de l’Est)"),
     map: l("Open in Google Maps", "Ouvrir dans Google Maps"),
     response: l("Response time", "Délai de réponse"),
-    responseD: l("Usually within one business day. Urgent? Please call.", "Habituellement en un jour ouvrable. Urgent? Appelez-nous."),
+    responseD: l("Usually within one business day.", "Habituellement en un jour ouvrable."),
     labels: { phone: l("Phone", "Téléphone"), email: l("Email", "Courriel"), hours: l("Hours", "Heures"), linkedin: l("LinkedIn", "LinkedIn") },
   },
   who: {
@@ -90,6 +90,5 @@ export const CT = {
     eyebrow: l("Visit us", "Nous rendre visite"),
     title: l("In the heart of", "Au cœur du"),
     accent: l("downtown Montreal", "centre-ville de Montréal"),
-    text: l("Sherbrooke Street West, a short walk from Peel metro.", "Rue Sherbrooke Ouest, à quelques pas du métro Peel."),
   },
 };

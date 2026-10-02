@@ -62,6 +62,13 @@ img, svg { display: block; max-width: 100%; }
 .skip { position: fixed; left: 16px; top: -60px; z-index: 100; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 10px; transition: top .2s; }
 .skip:focus { top: 12px; }
 
+/* ---------------------------------------------------------------- modal dialogs
+   Native <dialog>.showModal(): focus trap, Escape, inert page, backdrop. Tailwind's preflight zeroes every margin,
+   which drops the UA `margin: auto` that centres a modal, so the dialog sat at the top-left: centre it explicitly
+   (fixed + inset 0 + auto margins), lock the page scroll while one is open, keep it inside small screens. */
+dialog:modal { position: fixed; inset: 0; margin: auto; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overscroll-behavior: contain; }
+html:has(dialog:modal) { overflow: hidden; }
+
 /* ---------------------------------------------------------------- layout */
 .container { width: 100%; max-width: calc(var(--container) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
 .container.narrow { max-width: calc(860px + 2 * var(--gutter)); }

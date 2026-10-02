@@ -55,11 +55,11 @@ test("defaults are the single source: first fund save on an empty store keeps pu
   try {
     const { DEFAULT_CONTENT } = await import("../../../src/lib/data/defaults.ts");
     assert.equal(DEFAULT_CONTENT.pipeline.publishMode, "review");
-    assert.deepEqual(DEFAULT_CONTENT.firm.aumLabel, { en: "$1.8B+", fr: "1,8 G$+" });
+    assert.deepEqual(DEFAULT_CONTENT.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     assert.equal(EMPTY_CONTENT, DEFAULT_CONTENT);
     const saved = await updateContent(0, (c) => ({ ...c, funds: { ...c.funds, "monthly-income": { tagline: { en: "x", fr: "y" } } } }), "a@nymbus.ca");
     assert.equal(saved.pipeline.publishMode, "review");
-    assert.deepEqual(saved.firm.aumLabel, { en: "$1.8B+", fr: "1,8 G$+" });
+    assert.deepEqual(saved.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     // defaults object never mutated by a save
     assert.deepEqual(DEFAULT_CONTENT.funds, {});
   } finally {

@@ -11,6 +11,8 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type ElementTyp
 import { ArrowRight, ChevronRight } from "lucide-react";
 import { CountUp, EASE, Reveal, RevealTitle, reducedMotion, useInView, useScrub } from "@/components/v3/motion";
 
+import { DataField, Divider } from "./fx/fx";
+
 export { Reveal, RevealTitle } from "@/components/v3/motion";
 
 /* ------------------------------------------------------------------ layout */
@@ -24,6 +26,7 @@ export function Section({
   const cls = ["section", tone === "tint" ? "tint" : "", glow ? `glow-${glow}` : "", tight ? "tight" : "", className ?? ""].filter(Boolean).join(" ");
   return (
     <Tag id={id} className={cls} style={style} aria-labelledby={labelledBy}>
+      <Divider />
       <div className="container">{children}</div>
     </Tag>
   );
@@ -86,6 +89,7 @@ export function PageHero({
 }) {
   return (
     <header className={`page-hero glow-tr ${aside ? "has-aside" : ""}`} data-trail-host="">
+      {art !== "none" ? <DataField /> : null}
       {art === "curves" ? <HeroCurves /> : null}
       {art === "trail" ? <HeroTrail /> : null}
       <div className="container">
@@ -240,7 +244,7 @@ export function CardGrid({ children, cols = 3, className }: { children: ReactNod
  */
 export function Stat({ value, label, decimals = 0, prefix, suffix, pct = false, text, lang = "en", className }: {
   value?: number | null; label: ReactNode; decimals?: number; prefix?: string; suffix?: string; pct?: boolean;
-  /** a figure that is not a number (e.g. "1.8 B$+"): shown as is, rising in */
+  /** a figure that is not a number (e.g. "$1.9B"): shown as is, rising in */
   text?: string | null; lang?: "en" | "fr"; className?: string;
 }) {
   if ((value === null || value === undefined) && !text) return null;

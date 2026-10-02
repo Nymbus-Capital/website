@@ -48,7 +48,6 @@
 .ap-node-b { background-color: var(--bg); }
 .ap-node-no { font-size: 13px; font-weight: 600; color: var(--blue-d); letter-spacing: .04em; }
 .ap-node-t { margin: 0 0 6px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
-.ap-node-d { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink2); }
 .ap-node .ticks { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); gap: 8px; }
 .ap-node .ticks li { font-size: 13.5px; line-height: 1.45; padding-left: 20px; }
 .ap-node .ticks li::before { width: 10px; height: 10px; top: .3em; }
@@ -245,13 +244,8 @@
 .su-tl-y svg { width: 28px; height: 28px; color: var(--green); }
 .su-tl-t { margin: 0 0 2px; font-weight: 600; color: var(--ink); }
 .su-tl-d { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink2); }
-.su-pri { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.su-pri li { display: flex; gap: 16px; align-items: flex-start; padding: 22px; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
-.su-pri p { margin: 0; color: var(--ink2); font-size: 15px; line-height: 1.6; }
-.su-pri .bubble { background-color: var(--bg); }
 .su-pri-link { margin: 28px 0 0; }
-@media (max-width: 1024px) { .su-pri { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .su-pri, .su-uses { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .su-uses { grid-template-columns: minmax(0, 1fr); } }
 
 /* ================================================================ about / team */
 .ab-hero-card { padding: clamp(22px, 2.6vw, 32px); }
@@ -319,7 +313,6 @@
 .ab-person-b { display: grid; gap: 4px; min-width: 0; padding-right: 24px; }
 .ab-person-n { font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
 .ab-person-t { font-size: 14px; font-weight: 500; color: var(--blue-d); line-height: 1.4; }
-.ab-person-s { margin-top: 6px; font-size: 14px; line-height: 1.55; color: var(--ink2); }
 .ab-person-go { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--surf); color: var(--ink2);
   transition: background .3s, color .3s, transform .45s var(--spring); }
 .ab-person-go svg { width: 15px; height: 15px; }

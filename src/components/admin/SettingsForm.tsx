@@ -43,7 +43,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0 }: { version:
       <section className="adm-panel adm-form">
         <h2 className="adm-h2">firm</h2>
         {error ? <div className="adm-alert err" role="alert">{error}</div> : null}
-        <L10nInput label="firm aum label" hint="e.g. 1.8 B$+ / 1,8 G$+" value={aumLabel} onChange={setAum} max={40} />
+        <L10nInput label="firm aum label" hint="e.g. $1.9B / 1,9 G$" value={aumLabel} onChange={setAum} max={40} />
         <label className="adm-check">
           <input type="checkbox" checked={bannerOn} onChange={(e) => setBannerOn(e.target.checked)} /> show an announcement banner
         </label>

@@ -84,3 +84,17 @@ export function latest(dates: (string | null | undefined)[]): string | null {
   const ok = dates.filter((d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}/.test(d)).sort();
   return ok.length ? ok[ok.length - 1] : null;
 }
+
+/** A free-text figure such as "$1.9B" or "1,9 G$" split so it can count up. */
+export interface CountLabel { prefix: string; value: number; decimals: number; suffix: string }
+
+/** Prefix + number + suffix, or null when the text is anything else (it is then shown as written). */
+export function parseCountLabel(text: string | null | undefined, lang: Lang): CountLabel | null {
+  const m = /^(\D*?)(\d{1,4})(?:([.,])(\d{1,2}))?(\D*)$/.exec((text ?? "").trim());
+  if (!m) return null;
+  const [, prefix, int, sep, frac = "", suffix] = m;
+  // the separator must be the language's own, so the counting figure ends on exactly the written text
+  if (sep && sep !== (lang === "fr" ? "," : ".")) return null;
+  const value = Number(frac ? `${int}.${frac}` : int);
+  return Number.isFinite(value) && value > 0 ? { prefix, value, decimals: frac.length, suffix } : null;
+}

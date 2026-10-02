@@ -101,7 +101,7 @@ export function Solutions({ data }: { data: HomeData }) {
       </Intro>
 
       <Section labelledBy="who-t" glow="tr" className="sl-who-s">
-        <SectionHead eyebrow={pick(S.whoEyebrow)} title={pick(S.whoTitle)} accent={pick(S.whoAccent)} lead={pick(S.whoLead)} id="who-t" center />
+        <SectionHead eyebrow={pick(S.whoEyebrow)} title={pick(S.whoTitle)} accent={pick(S.whoAccent)} id="who-t" center />
         <Reveal kind="pop" stagger={110} className="sl-types">
           {AUDIENCES.map((a) => {
             const I = ICON[a.key];

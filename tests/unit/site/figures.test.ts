@@ -121,9 +121,22 @@ test("toHomeData: firm AUM label only when filled; team size only when positive;
   const h = toHomeData([view(data()) as never], content, { teamSize: 0 });
   assert.equal(h.aumLabel, null);
   assert.equal(h.teamSize, null);
-  assert.equal(h.navAsOf, "2026-09-28");
   assert.equal(h.perfAsOf, "2026-08-31");
-  const h2 = toHomeData([view(data()) as never], { ...content, firm: { aumLabel: { en: "$1.8B+", fr: "1,8 G$+" } } }, { teamSize: 20 });
-  assert.deepEqual(h2.aumLabel, { en: "$1.8B+", fr: "1,8 G$+" });
+  const h2 = toHomeData([view(data()) as never], { ...content, firm: { aumLabel: { en: "$1.9B", fr: "1,9 G$" } } }, { teamSize: 20, phdCount: 7 });
+  assert.deepEqual(h2.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
   assert.equal(h2.teamSize, 20);
+  assert.equal(h2.phdCount, 7);
+  assert.equal(h.phdCount, null);
+});
+
+test("parseCountLabel: the AUM label splits into prefix, number and suffix; anything else stays text", async () => {
+  const { parseCountLabel } = await import("../../../src/components/site/home/figures.ts");
+  assert.deepEqual(parseCountLabel("$1.9B", "en"), { prefix: "$", value: 1.9, decimals: 1, suffix: "B" });
+  assert.deepEqual(parseCountLabel("1,9 G$", "fr"), { prefix: "", value: 1.9, decimals: 1, suffix: " G$" });
+  assert.deepEqual(parseCountLabel("$2B", "en"), { prefix: "$", value: 2, decimals: 0, suffix: "B" });
+  assert.equal(parseCountLabel("1,9 G$", "en"), null, "comma decimal in an English label stays as written");
+  assert.equal(parseCountLabel("$1.9B", "fr"), null);
+  assert.equal(parseCountLabel("Over $1B in 2026", "en"), null);
+  assert.equal(parseCountLabel("", "en"), null);
+  assert.equal(parseCountLabel("0", "en"), null);
 });

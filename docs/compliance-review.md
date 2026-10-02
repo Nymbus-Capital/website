@@ -331,3 +331,29 @@ condensed sentence carried a regulatory keyword, e.g. the PRI naming, or where a
 | Fund pages (FUND_TEXTS) | 623 | 370 | 41 % | 67→70 | 191→191 |
 | **Total** | 3866 | 1936 | 50 % | 769→790 | 562→489 |
 
+
+## Home v2 (branch `feat/home-v2`, 2026-10-01)
+
+Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on the main page, a large animated
+"scanning" analysis table), more motion, and less text. Please tick once reviewed:
+
+- [ ] **AUM figure**: the firm content default `aumLabel` is now "$1.9B" / « 1,9 G$ » (Gabriel, 2026-10-01; one source
+  of truth in `src/lib/data/defaults.ts`, editable in admin). Saved admin content that still holds the old default
+  ("$1.8B+") is migrated to the new default; any other custom value is kept. Confirm the "as at" date and whether the
+  figure needs a footnote (firm-level AUM, not fund NAV).
+- [ ] **Home: no daily NAV, no "as of" widget.** The fund cards on the home page show returns only. Fund pages keep their
+  NAV and disclosures unchanged.
+- [ ] **Scanning analysis panel** (`src/components/site/fx/scan-copy.ts`, `AnalysisScan`): a canvas animation. It is
+  labelled "Illustration only" in EN and FR, uses generic sector labels and generated values (no issuer names, no
+  performance, no real holdings), and its counters ("data points", "securities", "signals") count only what the
+  animation itself scans. **New numeric claims to confirm: none about the firm.** The panel title says "Scientists and
+  engineers, solving the hard problems in finance" (Gabriel's words). Decision needed: keep or soften any wording that
+  could read as "we analyse billions of data points" (the counters run into the millions/billions of illustrative cells).
+- [ ] **Key figures card**: AUM, number of strategies, team size and number of PhDs come from firm content and
+  `src/data/team.ts`; nothing hard-coded.
+- [ ] **Copy cut again** (Home, Approach, Team/About, Sustainability, Solutions, Contact; legal excluded). Verbatim
+  disclosures kept (overlay caveat, leverage, distributions, approach footnotes, ESG scope, "Risk management does not
+  eliminate the risk of loss."). Removed: the Approach "philosophy" block, the research capability descriptions, card
+  summaries on /team, the Fondaction bullets, and the **six PRI principles list on /sustainability** (the PRI signatory
+  statement and link remain). Home Partners no longer lists the dealer platforms or client types by name.
+  `tests/unit/site/word-budget.test.ts` keeps the pages from growing back.
