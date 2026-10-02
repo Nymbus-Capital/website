@@ -1,0 +1,70 @@
+
+> nymbus-web@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+▲ Next.js 16.1.6 (Turbopack)
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "1mb"
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.3s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/7) ...
+  Generating static pages using 3 workers (1/7) 
+  Generating static pages using 3 workers (3/7) 
+  Generating static pages using 3 workers (5/7) 
+✓ Generating static pages using 3 workers (7/7) in 131.2ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/audit
+├ ƒ /admin/documents
+├ ƒ /admin/funds
+├ ƒ /admin/funds/[key]
+├ ƒ /admin/runs
+├ ƒ /admin/runs/[id]
+├ ƒ /admin/settings
+├ ƒ /api/admin/audit
+├ ƒ /api/admin/compliance
+├ ƒ /api/admin/content
+├ ƒ /api/admin/content/funds/[key]
+├ ƒ /api/admin/content/settings
+├ ƒ /api/admin/documents
+├ ƒ /api/admin/documents/[id]
+├ ƒ /api/admin/me
+├ ƒ /api/admin/pipeline/run
+├ ƒ /api/admin/runs
+├ ƒ /api/admin/runs/[id]
+├ ƒ /api/admin/runs/[id]/publish
+├ ƒ /api/admin/status
+├ ƒ /api/admin/upload/documents
+├ ƒ /api/admin/upload/documents/[id]
+├ ƒ /api/auth/callback
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/cms/revalidate
+├ ƒ /api/documents/[id]
+├ ƒ /api/documents/[id]/[name]
+├ ƒ /api/health
+├ ƒ /approach
+├ ƒ /contact
+├ ƒ /legal
+├ ƒ /news
+├ ƒ /news/[id]
+├ ƒ /privacy
+├ ƒ /solutions
+├ ƒ /strategies
+├ ƒ /strategies/[slug]
+├ ƒ /sustainability
+└ ƒ /team
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
