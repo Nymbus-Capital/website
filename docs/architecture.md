@@ -263,6 +263,7 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `SHOW_SAMPLE_DATA` | `1` to allow the synthetic sample in production (demo environments only) |
 | `WP_BASE_URL` | optional: base URL of the WordPress content backend (`https://…`; `http` only for localhost or a single-label private host). Unset = CMS off, static content |
 | `WP_CONTENT_SECRET` | optional shared secret sent as `X-Nymbus-Content-Secret` (same value as `NYMBUS_CONTENT_SECRET` in WordPress) |
+| `CMS_MAX_STALE_HOURS` | optional (default 72, 1 to 720): after this long without a successful fetch the CMS content is not used (static sources) |
 | `WP_REVALIDATE_SECRET` | shared secret that authorises `POST /api/cms/revalidate` (same value as `NYMBUS_REVALIDATE_SECRET` in WordPress); without it the route answers 503 |
 | `WP_MEDIA_ORIGIN` | optional public origin of WordPress images (default: origin of `WP_BASE_URL` when it is public https / loopback); added to the CSP `img-src` |
 | `CMS_REVALIDATE_SECONDS` | optional, reuse time of the fetched content (default 60, 5–3600) |

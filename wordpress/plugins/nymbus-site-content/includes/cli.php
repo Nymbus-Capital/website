@@ -36,6 +36,9 @@ class Nymbus_SC_CLI {
 	 * @param array $assoc_args Unused.
 	 */
 	public function seed( $args, $assoc_args ) {
+		if ( nymbus_sc_is_production() ) {
+			WP_CLI::error( 'Refusing to create sample content on a production site (WP_ENVIRONMENT_TYPE=production).' );
+		}
 		if ( $this->sample_ids() ) {
 			WP_CLI::success( 'Sample content already exists (use `wp nymbus clear-samples` to remove it).' );
 			return;

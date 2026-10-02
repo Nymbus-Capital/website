@@ -120,3 +120,24 @@ test("the team is ordered by `order`, then name", () => {
   const { doc } = parseCmsDocument(raw, OPTS);
   assert.deepEqual(doc.team.map((m) => m.id), ["sample-person-three", "sample-person-one", "sample-person-two"]);
 });
+
+test("placeholder content ([Sample] / [Exemple], as created by `wp nymbus seed`) is never published", () => {
+  const raw = clone(fixture);
+  raw.news[0].title = { en: "[Sample] A partnership", fr: "[Exemple] Un partenariat" };
+  raw.news[1].summary = { en: "  [sample] text", fr: "" };
+  raw.team[0].name = "[Sample] Alex Example";
+  raw.team[1].role = { en: "Analyst", fr: "[Exemple] Analyste" };
+  raw.texts.aumLabel = { en: "[Sample] $0.0B+", fr: "[Exemple] 0,0 G$+" };
+  raw.texts.banner = { en: "Real banner", fr: "[Exemple] Bannière" };
+  const { doc, dropped } = parseCmsDocument(raw, OPTS);
+  assert.equal(doc.news.length, fixture.news.length - 2);
+  assert.equal(doc.team.length, fixture.team.length - 2);
+  assert.ok(doc.news.every((n) => !/\[(sample|exemple)\]/i.test(JSON.stringify(n))));
+  assert.equal(doc.texts.aumLabel, undefined);
+  assert.equal(doc.texts.banner, undefined, "a text with a placeholder in either language is not used");
+  assert.ok(dropped.filter((d) => /sample content/.test(d)).length === 4);
+  // a title that merely mentions the word is fine
+  const ok = clone(fixture);
+  ok.news[0].title.en = "A [sample] study";
+  assert.equal(parseCmsDocument(ok, OPTS).doc.news.length, fixture.news.length);
+});

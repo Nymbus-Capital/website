@@ -27,6 +27,10 @@ export interface ParseOptions {
 }
 export interface ParseResult { doc: CmsDocument; dropped: string[] }
 
+/** Placeholder content created by `wp nymbus seed` ("[Sample] ...", "[Exemple] ..."): never published on the site. */
+export const SAMPLE_MARK = /^\s*\[(sample|exemple)\]/i;
+const isSample = (...texts: (string | Bi | undefined)[]): boolean => texts.some((t) => (typeof t === "string" ? SAMPLE_MARK.test(t) : !!t && (SAMPLE_MARK.test(t.en) || SAMPLE_MARK.test(t.fr))));
+
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const SLUG = /^[a-z0-9][a-z0-9-]{0,99}$/;
 
@@ -50,12 +54,14 @@ function parseNews(v: unknown, opts: ParseOptions): CmsNews | string {
   if (!date) return `${id}: bad date`;
   const title = bi(v.title, LIMITS.title);
   if (!title.en && !title.fr) return `${id}: no title`;
+  const summary = bi(v.summary, LIMITS.summary);
+  const body = bi(v.body, LIMITS.body, true);
+  if (isSample(title, summary, body)) return `${id}: sample content`;
   const cat = typeof v.category === "string" ? v.category : "";
   const category: CmsNewsCategory = (NEWS_CATEGORIES as readonly string[]).includes(cat) ? (cat as CmsNewsCategory) : "community";
   return {
     id, date, category, title,
-    summary: bi(v.summary, LIMITS.summary),
-    body: bi(v.body, LIMITS.body, true),
+    summary, body,
     image: safeImageUrl(v.image, opts.mediaOrigin, opts),
     link: safeHttpUrl(v.link, opts),
   };
@@ -70,14 +76,16 @@ function parseMember(v: unknown, opts: ParseOptions): CmsTeamMember | string {
   const name = plainText(v.name, LIMITS.name);
   if (!name) return `${id}: no name`;
   if (!isDept(v.department)) return `${id}: bad department`;
+  const role = bi(v.role, LIMITS.role);
+  const bio = bi(v.bio, LIMITS.bio, true);
+  if (isSample(name, role, bio)) return `${id}: sample content`;
   const additional = (Array.isArray(v.additionalDepartments) ? v.additionalDepartments : []).filter(isDept).filter((d) => d !== v.department);
   const pr = isObj(v.previousRoles) ? v.previousRoles : {};
   const year = typeof v.yearJoined === "number" && Number.isInteger(v.yearJoined) && v.yearJoined >= 1900 && v.yearJoined <= 2100 ? v.yearJoined : null;
   const order = typeof v.order === "number" && Number.isFinite(v.order) ? Math.max(-100000, Math.min(100000, Math.trunc(v.order))) : 0;
   return {
     id, name,
-    role: bi(v.role, LIMITS.role),
-    bio: bi(v.bio, LIMITS.bio, true),
+    role, bio,
     department: v.department,
     additionalDepartments: [...new Set(additional)],
     designations: plainLines(v.designations, LIMITS.listLines, LIMITS.listLine),
@@ -92,7 +100,7 @@ function parseMember(v: unknown, opts: ParseOptions): CmsTeamMember | string {
 
 function biIfAny(v: unknown, max: number): Bi | undefined {
   const b = bi(v, max);
-  return b.en || b.fr ? b : undefined;
+  return (b.en || b.fr) && !isSample(b) ? b : undefined;
 }
 
 const EMAIL = /^[^\s@<>"'()[\]\\,;:]+@[^\s@<>"'()[\]\\,;:]+\.[A-Za-z]{2,}$/;
