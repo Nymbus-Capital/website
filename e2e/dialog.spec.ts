@@ -65,6 +65,25 @@ test("team: the bio dialog closes from the backdrop and the close button", async
   await expect(dialog).toBeHidden();
 });
 
+test("team: a press that starts inside the bio and ends on the backdrop does not close it", async ({ page }) => {
+  await page.goto("/team");
+  const people = page.getByTestId("people").locator(":scope > li");
+  await people.first().scrollIntoViewIfNeeded();
+  const dialog = page.getByTestId("bio-dialog");
+  await people.first().getByRole("button").click();
+  await settled(page, "bio-dialog");
+  const box = (await dialog.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + 40);
+  await page.mouse.down();
+  await page.mouse.move(4, 4);
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  // the close button keeps a 44 px hit area
+  const x = await dialog.getByRole("button", { name: /close|fermer/i }).boundingBox();
+  expect(x!.width).toBeGreaterThanOrEqual(44);
+  expect(x!.height).toBeGreaterThanOrEqual(44);
+});
+
 test("home: the news dialog is centred in the viewport", async ({ page }) => {
   await page.goto("/");
   const card = page.getByTestId("news-mageska");

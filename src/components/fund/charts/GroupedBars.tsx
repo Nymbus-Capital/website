@@ -3,10 +3,10 @@
  * Grouped bars (fund · index · value added) — trailing returns and calendar years.
  * v2 keynote bars: square at the axis, rounded far end, fund in its gradient with a glow, index muted,
  * value-added as a thin dark bar; values above the bars; hovering / focusing a category dims the others
- * and shows a tooltip. Each category is keyboard focusable (Tab / arrow keys). Mounts lazily near the viewport.
+ * and shows a tooltip. Categories use a roving tabindex (one Tab stop; arrow keys, Home and End move between them). Mounts lazily near the viewport.
  */
-import { useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { barPath, bands, nice } from "../lib/scale.ts";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { barPath, bands, labelSlot, nice } from "../lib/scale.ts";
 import { fmt, type Lang } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
@@ -39,8 +39,19 @@ export interface GroupedBarsProps {
   labelAll?: boolean;
 }
 
-/** width one bar needs for its "−12.3%" label (11.5 px figures) */
-const LABEL_SLOT = 46;
+/** fallback width of a label character (11.5 px figures) when no canvas can measure it */
+const CHAR_W = 7;
+const LABEL_FONT = `600 11.5px Poppins, ui-sans-serif, system-ui, sans-serif`;
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+/** Width of a value label in the chart's own font (the semibold fund figures, the widest); estimated without a canvas. */
+function measureLabel(s: string): number {
+  if (measureCtx === undefined) {
+    try { measureCtx = typeof document !== "undefined" ? document.createElement("canvas").getContext("2d") : null; } catch { measureCtx = null; }
+  }
+  if (!measureCtx) return s.length * CHAR_W;
+  measureCtx.font = LABEL_FONT;
+  return measureCtx.measureText(s).width;
+}
 
 export function GroupedBars({ cats, names, lang, label, height = 380, values = true, labelAll = false }: GroupedBarsProps) {
   const [host, w] = useWidth<HTMLDivElement>();
@@ -49,6 +60,15 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
   const id = useSvgId("gb");
   const [on, setOn] = useState<number | null>(null);
   const [tip, setTip] = useState<TipState | null>(null);
+  // roving tabindex: one category is in the tab order (the last one focused), the arrows move between them
+  const [tab, setTab] = useState(0);
+  // the label slot is measured, so it is measured again once the web font is really there
+  const [fontTick, setFontTick] = useState(0);
+  useEffect(() => {
+    let off = false;
+    try { void document.fonts?.load(LABEL_FONT).then(() => { if (!off) { measureCtx = undefined; setFontTick((t) => t + 1); } }, () => undefined); } catch { /* no font API */ }
+    return () => { off = true; };
+  }, []);
 
   const hasIndex = cats.some((c) => c.index != null);
   const hasVa = cats.some((c) => c.va != null);
@@ -60,7 +80,14 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
   // a negative bar's label sits below it: room under the lowest bar, above the axis labels
   const hasNeg = labelAll && cats.some((c) => (typeof c.fund === "number" && c.fund < 0) || (hasIndex && typeof c.index === "number" && c.index < 0));
   const pad = { l: narrow ? 38 : 48, r: 8, t: hasVa ? 58 : 30, b: (cats.some((c) => c.flag) ? 50 : 38) + (hasNeg ? 14 : 0) };
-  const cw = labelAll && w > 0 ? Math.max(w, pad.l + pad.r + cats.length * (series.length * LABEL_SLOT + 14)) : w;
+  // every bar's label gets the widest label of the chart plus 6 px; the chart takes the width that needs
+  const slot = useMemo(() => {
+    if (!labelAll) return 0;
+    const f = (v: number) => fmt(v, { pct: true, decimals: 1, lang });
+    const texts = cats.flatMap((c) => [c.fund, hasIndex ? c.index : null]).filter((v): v is number => typeof v === "number").map(f);
+    return labelSlot(texts, measureLabel, 6);
+  }, [cats, labelAll, hasIndex, lang, fontTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const cw = labelAll && w > 0 ? Math.max(w, pad.l + pad.r + cats.length * (series.length * slot + 14)) : w;
   const scrolls = cw > w;
   const geo = useMemo(() => {
     const all = cats.flatMap((c) => [c.fund, hasIndex ? c.index : null]).filter((v): v is number => typeof v === "number");
@@ -99,12 +126,14 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
     void el;
   };
   const onKey = (e: KeyboardEvent<SVGGElement>, i: number) => {
-    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!d) return;
+    const last = cats.length - 1;
+    const next = e.key === "ArrowRight" ? Math.min(last, i + 1) : e.key === "ArrowLeft" ? Math.max(0, i - 1) : e.key === "Home" ? 0 : e.key === "End" ? last : -1;
+    if (next < 0) return;
     e.preventDefault();
-    const next = Math.max(0, Math.min(cats.length - 1, i + d));
+    setTab(next);
     (svgRef.current?.querySelectorAll<SVGGElement>(".cat")[next])?.focus();
   };
+  const tabbable = Math.min(tab, Math.max(0, cats.length - 1));
 
   return (
     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
@@ -170,8 +199,8 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
               hasVa && c.va != null ? `${names.va} ${fmt(c.va, { pct: true, decimals: 1, sign: true, lang })}` : "",
             ].filter(Boolean).join(", ");
             return (
-              <g key={c.key} className={`cat${on === i ? " on" : ""}`} tabIndex={0} role="img" aria-label={aria}
-                onPointerEnter={() => focusCat(i)} onFocus={() => focusCat(i)} onBlur={() => focusCat(null)} onKeyDown={(e) => onKey(e, i)}>
+              <g key={c.key} className={`cat${on === i ? " on" : ""}`} tabIndex={i === tabbable ? 0 : -1} role="img" aria-label={aria}
+                onPointerEnter={() => focusCat(i)} onFocus={() => { setTab(i); focusCat(i); }} onBlur={() => focusCat(null)} onKeyDown={(e) => onKey(e, i)}>
                 <rect className="hit" x={geo.b.x(i)} y={pad.t - 20} width={geo.b.band} height={geo.IH + 20} rx={12} />
                 {bars}
                 {vaPill}

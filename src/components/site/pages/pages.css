@@ -327,7 +327,9 @@
 .ab-bio[open] { animation: ab-bio-in .55s var(--spring); }
 @keyframes ab-bio-in { from { opacity: 0; transform: translateY(30px) scale(.96); } to { opacity: 1; transform: none; } }
 .ab-bio-in { position: relative; max-height: calc(100dvh - 48px); overflow-y: auto; padding: clamp(24px, 4vw, 40px); }
-.ab-bio-x { position: absolute; top: 14px; right: 14px; }
+/* stays in view while a long bio scrolls; 44 px hit area; takes no room in the flow */
+.ab-bio .ab-bio-x { position: sticky; top: 8px; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; margin: -16px -16px -28px auto;
+  background: rgba(255,255,255,.92); box-shadow: 0 1px 6px rgba(16,24,40,.12); }
 .ab-bio-head { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 24px; align-items: center; padding-right: 32px; }
 .ab-bio-head h2 { margin: 0 0 4px; }
 .ab-bio-role { margin: 0; color: var(--blue-d); font-weight: 500; }

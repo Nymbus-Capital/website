@@ -110,3 +110,10 @@ export function monthTicks(dates: string[], max = 6): number[] {
 
 /** Clamp helper. */
 export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** Width one bar's label needs: the widest of `texts` as `measure` sees it, plus `gap` px so neighbours never touch. */
+export function labelSlot(texts: string[], measure: (s: string) => number, gap = 6): number {
+  let w = 0;
+  for (const t of texts) w = Math.max(w, measure(t));
+  return Math.ceil(w) + gap;
+}

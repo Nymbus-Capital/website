@@ -270,3 +270,13 @@ test("horizontal bar width: clamped to [0, 100 %]; a negative weight (negative c
   assert.equal(barWidthPct(0.5, 0), 0);
   assert.equal(barWidthPct(2, 1), 100);
 });
+
+test("labelSlot: the widest label plus 6 px (never narrower than the longest value)", async () => {
+  const { labelSlot } = await import("../../../src/components/fund/lib/scale.ts");
+  const m = (s: string) => s.length * 6.4;
+  assert.equal(labelSlot(["1.2%", "−12.3%", "5.0%"], m), Math.ceil(6 * 6.4) + 6);
+  assert.equal(labelSlot(["12.3%"], m, 10), Math.ceil(5 * 6.4) + 10);
+  assert.equal(labelSlot([], m), 6, "no label: only the gap");
+  // a wider font gives a wider slot
+  assert.ok(labelSlot(["−12.3%"], (s) => s.length * 8) > labelSlot(["−12.3%"], (s) => s.length * 6));
+});

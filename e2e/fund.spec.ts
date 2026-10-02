@@ -428,6 +428,8 @@ test("calendar-year chart: a value label on every bar, none overlapping, no hori
   expect(overflow).toBeLessThanOrEqual(1);
   // accessible: every category keeps its text alternative with the value
   await expect(cats.first()).toHaveAttribute("aria-label", /\d/);
+  // roving tabindex: a single category in the tab order
+  await expect(chart.locator('svg .cat[tabindex="0"]')).toHaveCount(1);
 });
 
 /**

@@ -22,6 +22,10 @@ const ADDRESS = "1002 Sherbrooke Street West, Suite 1900, Montreal, Quebec H3A 3
 function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
   const { locale, pick } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null);
+  const shown = useRef<TeamMember | null>(null);
+  shown.current = m;
+  // a click closes only when it started AND ended on the backdrop (a text selection dragged out of the dialog does not)
+  const downOnBackdrop = useRef(false);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -32,8 +36,11 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
   const P = AB.people;
   const roles = m ? (fr ? m.previousRolesFr ?? m.previousRoles : m.previousRoles) : undefined;
   return (
-    <dialog ref={ref} className="ab-bio" aria-labelledby="bio-name" onClose={onClose}
-      onClick={(e) => { if (e.target === ref.current) onClose(); }} data-testid="bio-dialog">
+    // the native close event (Escape) is the only one that reaches the parent from here: when the parent already closed the
+    // bio (X button, backdrop), the dialog closing in response must not close it a second time
+    <dialog ref={ref} className="ab-bio" aria-labelledby="bio-name" onClose={() => { if (shown.current) onClose(); }}
+      onPointerDown={(e) => { downOnBackdrop.current = e.target === ref.current; }}
+      onClick={(e) => { const ok = downOnBackdrop.current && e.target === ref.current; downOnBackdrop.current = false; if (ok) onClose(); }} data-testid="bio-dialog">
       {m ? (
         <div className="ab-bio-in">
           <button type="button" className="icon-btn ab-bio-x" onClick={onClose} aria-label={pick(P.close)}><X size={18} aria-hidden="true" /></button>
@@ -94,10 +101,15 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
   const [dept, setDept] = useState<DeptFilter>("all");
   const [open, setOpen] = useState<TeamMember | null>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
-  const shown = useMemo(() => membersOf(team, dept), [dept]);
+  const shown = useMemo(() => membersOf(team, dept), [team, dept]);
 
   const openBio = (m: TeamMember, el: HTMLElement) => { lastFocus.current = el; setOpen(m); };
-  const closeBio = () => { setOpen(null); requestAnimationFrame(() => lastFocus.current?.focus()); };
+  const closeBio = () => {
+    setOpen(null);
+    const el = lastFocus.current;
+    lastFocus.current = null; // restore the focus once, whichever way the dialog was closed
+    if (el) requestAnimationFrame(() => el.focus());
+  };
   const valueIcons = [Lightbulb, Zap, ShieldCheck, Scale, Handshake];
 
   return (
