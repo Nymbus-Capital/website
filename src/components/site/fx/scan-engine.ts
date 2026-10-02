@@ -20,7 +20,7 @@ export interface ScanOptions {
 
 export interface Scan { destroy(): void; redraw(): void }
 
-const MONO = `ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace`;
+const MONO = `"Poppins", ui-sans-serif, system-ui, sans-serif`; // one family site-wide
 const SANS = `"Poppins", ui-sans-serif, system-ui, sans-serif`;
 const INK = "#1f1f1f", INK2 = "#444746", MUTE = "#5f6368", BLUE = "#1a73e8", BLUE_D = "#0b57d0", CYAN = "#00a3e0", ORANGE = "#c2410c";
 

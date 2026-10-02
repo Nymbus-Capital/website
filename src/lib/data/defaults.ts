@@ -7,6 +7,8 @@ import type { FundContent, FundKey, FundLibraryRanking, RankingPeriod, SiteConte
 /** rows from "rank/of" pairs; quartile given per row (the source states it for every period) */
 const rows = (...r: [RankingPeriod, number, number, 1 | 2 | 3 | 4][]): FundLibraryRanking["rows"] => r.map(([period, rank, of, quartile]) => ({ period, rank, of, quartile }));
 const FL = "https://www.fundlibrary.com/MutualFunds/Detail/";
+/** Morningstar overall rating of the two bond funds: 5 stars, as stated by Nymbus on 2026-10-01 (the page itself was not machine-readable); the admin updates it. */
+const MS = (id: string) => ({ stars: 5 as const, asOf: "2026-10-01", url: `https://global.morningstar.com/en-ca/investments/funds/${id}/quote` });
 
 /**
  * Third-party category rankings read manually from the Fund Library fund pages (as at 2026-08-31). Seeds only: the admin
@@ -20,6 +22,7 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
       category: { en: "Canadian Core Plus Fixed Income", fr: "Revenu fixe canadien de base plus" },
       rows: rows(["1M", 1, 108, 1], ["3M", 4, 106, 1], ["6M", 4, 106, 1], ["YTD", 3, 105, 1], ["1Y", 2, 102, 1], ["2Y", 3, 98, 1], ["3Y", 1, 97, 1], ["4Y", 1, 95, 1]),
     }],
+    morningstar: MS("0P0001NL0N"),
   },
   "sustainable-enhanced-bonds": {
     fundLibrary: [{
@@ -27,6 +30,7 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
       category: { en: "Canadian Fixed Income", fr: "Revenu fixe canadien" },
       rows: rows(["1M", 4, 486, 1], ["3M", 22, 478, 1], ["6M", 17, 474, 1], ["YTD", 1, 470, 1], ["1Y", 1, 465, 1], ["2Y", 3, 442, 1], ["3Y", 1, 408, 1]),
     }],
+    morningstar: MS("0P0001ROZG"),
   },
   "multi-strategy": {
     fundLibrary: [{

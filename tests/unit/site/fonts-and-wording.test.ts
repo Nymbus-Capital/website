@@ -56,7 +56,9 @@ test("every font-family declaration of CSS, TSX and the standalone pages starts 
     }
     // canvas text
     for (const m of code.matchAll(/\.font\s*=\s*[`"']([^`"']+)[`"']/g)) {
-      if (!/Poppins/.test(m[1])) bad.push(`${f.replace(ROOT, "")}: canvas font ${m[1]}`);
+      // a ${CONST} family is resolved to its definition in the same file
+      const expanded = m[1].replace(/\$\{(\w+)\}/g, (_, n: string) => code.match(new RegExp(`const ${n}\\s*=\\s*([^;\\n]+)`))?.[1] ?? "");
+      if (!/Poppins/.test(expanded)) bad.push(`${f.replace(ROOT, "")}: canvas font ${m[1]}`);
     }
   }
   assert.deepEqual(bad, []);
