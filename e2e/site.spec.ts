@@ -119,9 +119,8 @@ test("home: live figures come from the data, never invented", async ({ page }) =
     const soon = await card.getByTestId("figures-soon").count();
     expect(figs + soon).toBe(1);
   }
-  // the NAV panel only exists when NAVs are published
-  const panel = page.getByTestId("nav-panel");
-  if (await panel.count()) await expect(panel).toContainText(/daily navs as of/i);
+  // the home page is an inspiring page: no daily NAV widget (the NAVs live on the strategies pages)
+  await expect(page.getByTestId("nav-panel")).toHaveCount(0);
 });
 
 test("language toggle switches the page to French and back", async ({ page, isMobile }) => {

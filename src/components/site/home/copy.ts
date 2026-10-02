@@ -9,63 +9,23 @@ import { DISC } from "../../../content/disclaimers.ts";
 
 export const HOME_COPY = {
   hero: {
-    eyebrow: l("Montreal · systematic fixed income and alternative strategies", "Montréal · revenu fixe systématique et stratégies alternatives"),
+    eyebrow: l("Montreal · systematic fixed income and alternatives", "Montréal · revenu fixe systématique et alternatives"),
     // the H1 reads "Scientific investing" / "Investissement scientifique"; the second word carries the gradient
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
     lead: l(
-      "Quantitative research. Systematic portfolio construction. Continuous risk management.",
-      "Recherche quantitative. Construction systématique des portefeuilles. Gestion continue des risques.",
+      "Scientists and engineers solving the harder problems in finance.",
+      "Des scientifiques et des ingénieurs s’attaquent aux problèmes difficiles de la finance.",
     ),
     cta1: l("Explore strategies", "Explorer les stratégies"),
     cta2: l("Investment solutions", "Solutions de placement"),
-    live: l("Daily NAVs as of", "VL quotidiennes au"),
   },
   figures: {
     title: l("Nymbus at a glance", "Nymbus en bref"),
     aum: l("Assets under management, including mandates", "Actifs sous gestion, mandats compris"),
-    strategies: l("Investment strategies", "Stratégies de placement"),
-    team: l("People on our team and board", "Personnes au sein de l’équipe et du conseil"),
-    where: l("Portfolio manager based in Montreal.", "Gestionnaire de portefeuille établi à Montréal."),
-  },
-  approach: {
-    eyebrow: l("Our approach", "Notre approche"),
-    title: l("At the intersection of", "À l’intersection de"),
-    accent: l("technology, data and finance", "la technologie, des données et de la finance"),
-    lead: l(
-      "The scientific method, applied to investing.",
-      "La méthode scientifique, appliquée au placement.",
-    ),
-    points: [
-      l("Form a hypothesis, test it on data", "Formuler une hypothèse, la tester sur les données"),
-      l("Keep only what holds up out of sample", "Ne retenir que ce qui résiste hors échantillon"),
-      l("Institutional experience meets machine learning", "L’expérience institutionnelle alliée à l’apprentissage automatique"),
-    ] as L[],
-    cards: [
-      {
-        title: l("Quantitative research", "Recherche quantitative"),
-        text: l(
-          "Proprietary models and machine learning.",
-          "Modèles propriétaires et apprentissage automatique.",
-        ),
-      },
-      {
-        title: l("Systematic construction", "Construction systématique"),
-        text: l(
-          "Explicit rules and optimization, under human oversight.",
-          "Règles explicites et optimisation, sous supervision humaine.",
-        ),
-      },
-      {
-        title: l("Dynamic risk management", "Gestion dynamique des risques"),
-        text: l(
-          "Continuous monitoring, explicit risk limits and hedging. Risk management does not eliminate the risk of loss.",
-          "Surveillance continue, limites de risque explicites et couverture. La gestion des risques n’élimine pas le risque de perte.",
-        ),
-      },
-    ] as { title: L; text: L }[],
-    more: l("Read about our approach", "Découvrir notre approche"),
-    team: l("Meet the team", "Rencontrer l’équipe"),
+    strategies: l("Strategies", "Stratégies"),
+    team: l("People, team and board", "Personnes, équipe et conseil"),
+    phd: l("PhDs on the team", "Doctorats dans l’équipe"),
   },
   strategies: {
     eyebrow: l("Strategies", "Stratégies"),
@@ -78,6 +38,8 @@ export const HOME_COPY = {
     all: l("View all strategies", "Voir toutes les stratégies"),
   },
   process: {
+    more: l("Our approach", "Notre approche"),
+    team: l("Meet the team", "Rencontrer l’équipe"),
     eyebrow: l("Investment process", "Processus de placement"),
     title: l("One pipeline, from data", "Un seul processus, des données"),
     accent: l("to portfolio", "au portefeuille"),
@@ -110,8 +72,8 @@ export const HOME_COPY = {
       {
         title: l("Risk management", "Gestion des risques"),
         text: l(
-          "Continuous monitoring, adjustments and hedging.",
-          "Surveillance continue, ajustements et couvertures.",
+          "Continuous monitoring, adjustments and hedging. Risk management does not eliminate the risk of loss.",
+          "Surveillance continue, ajustements et couvertures. La gestion des risques n’élimine pas le risque de perte.",
         ),
       },
     ] as { title: L; text: L }[],
@@ -120,8 +82,6 @@ export const HOME_COPY = {
     eyebrow: l("Clients and platforms", "Clients et plateformes"),
     title: l("Institutions and partners", "Les institutions et partenaires"),
     accent: l("we work with", "avec qui nous travaillons"),
-    clients: l("Institutional clients and programs", "Clients institutionnels et programmes"),
-    platforms: l("Our funds are available through", "Nos fonds sont offerts par l’entremise de"),
     note: l(
       "Source: Nymbus Capital Inc. Representative list; not all clients are shown. QEMP: Quebec Emerging Managers Program (Innocap). Inclusion does not imply endorsement.",
       "Source : Nymbus Capital inc. Liste représentative; tous les clients ne sont pas présentés. QEMP : Programme des gestionnaires en émergence du Québec (Innocap). Leur présence ne constitue pas une recommandation.",

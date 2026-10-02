@@ -1,7 +1,8 @@
 "use client";
 /**
  * One fund as a card (home and /strategies): fund colour, asset class, vehicle, tagline, the published figures
- * (since-inception return rolling in, 1 year, YTD, NAV of the headline series with its date) and, on the
+ * (since-inception return rolling in, 1 year, YTD; on the strategies page also the NAV of the headline series
+ * with its date) and, on the
  * strategies page, the last calendar years as small bars growing from the zero line. A fund without published
  * performance shows "figures coming soon", never a number. The card tilts slightly towards the pointer and a
  * light in the fund colour follows it (inert on touch and under reduced motion).
@@ -96,7 +97,8 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
   const H = headingLevel === 2 ? "h2" : "h3";
   const perf = hasPerf(f);
   const basis = pick(f.basis === "gross" ? F.gross : F.net);
-  const nav = f.nav ? (
+  // the daily NAV belongs to the strategies pages: the home cards carry the returns only
+  const nav = f.nav && variant === "full" ? (
     <div className="fx-kv-i">
       <span className="fx-k">{pick(F.nav)} · {pick(F.navSeries)} {f.nav.display}</span>
       <span className="fx-v tabnum">{navText(f.nav.nav, f.nav.currency, locale)}</span>
@@ -111,7 +113,7 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
         <span className="fx-class">{pick(f.assetClass)}</span>
         <span className="fx-chips">
           {/* any sample figure on the card (returns or NAV) carries the tag */}
-          {sample && (perf || f.nav) ? <SampleTag /> : null}
+          {sample && (perf || nav) ? <SampleTag /> : null}
           <span className="fx-chip">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}</span>
         </span>
       </span>
@@ -147,7 +149,6 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
                 <span className="fx-v tabnum g-fund">{pctText(f.si, locale) ?? "—"}</span>
               </span>
             ) : null}
-            {variant === "home" ? nav : null}
           </span>
           {variant === "full" && nav ? <span className="fx-kv fx-kv-nav">{nav}</span> : null}
           {f.asOf ? (

@@ -7,6 +7,7 @@ import { useEffect, type ReactNode } from "react";
 import { I18nProvider, type Locale } from "@/lib/i18n";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
+import { FxEffects } from "./fx/fx";
 
 declare global { interface Window { __nyReady?: boolean } }
 
@@ -17,6 +18,7 @@ export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds
   useEffect(() => { window.__nyReady = true; document.documentElement.classList.add("js"); }, []);
   return (
     <I18nProvider initialLocale={locale}>
+      <FxEffects />
       <Nav hiddenFunds={hiddenFunds} />
       <main id="main" tabIndex={-1}>{children}</main>
       <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />

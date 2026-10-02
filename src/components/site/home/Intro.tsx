@@ -6,6 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { Crumbs, Eyebrow, HeroCurves, Reveal, RevealTitle } from "../kit";
+import { DataField } from "../fx/fx";
 
 export function Intro({ eyebrow, title, accent, lead, crumbs, children, aside, id }: {
   eyebrow?: ReactNode; title: string; accent?: string; lead?: ReactNode; crumbs?: { href?: string; label: string }[];
@@ -13,6 +14,7 @@ export function Intro({ eyebrow, title, accent, lead, crumbs, children, aside, i
 }) {
   return (
     <header className={`xp-hero ${aside ? "has-aside" : ""}`}>
+      <DataField />
       <HeroCurves />
       <div className="container">
         {crumbs ? <Crumbs items={crumbs} /> : null}

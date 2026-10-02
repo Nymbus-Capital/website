@@ -1,85 +1,45 @@
 "use client";
 /**
- * Home sections below the hero, in the order of the previous site: key figures · approach · strategies ·
- * investment process · institutions and partners · news and milestones. Every figure is published data,
- * admin content or a structural fact (number of strategies, people in src/data/team.ts).
+ * Home sections below the hero: key figures (above the analysis scan, see ../fx) · strategies · investment
+ * process · institutions and partners · news. Every figure is admin content or a structural fact (number of
+ * strategies, people and doctorates in src/data/team.ts); no NAV, no as-of date.
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Database, Handshake, HeartHandshake, Layers, Leaf, Medal, ShieldCheck, TrendingUp, X, Zap } from "lucide-react";
-import { useTilt } from "@/components/v3/motion";
+import { ArrowRight, Database, Handshake, HeartHandshake, Layers, Leaf, Medal, ShieldCheck, X, Zap } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
-import { Bullets, ButtonLink, CardGrid, Marquee, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
+import { ButtonLink, CardGrid, Marquee, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
 import type { HomeData } from "./data";
 import { HOME_COPY as C, FUND_COPY as F } from "./copy";
 import { FundTile } from "./FundTile";
-import { dayText } from "./figures";
+import { dayText, parseCountLabel } from "./figures";
 import { NEWS, NEWS_CATEGORY, type NewsCategory, type NewsItem } from "./news";
 
 /* ------------------------------------------------------------------ key figures */
 
 export function KeyFigures({ data }: { data: HomeData }) {
   const { locale, pick } = useTranslation();
+  const aum = data.aumLabel ? pick(data.aumLabel) : null;
+  // "$1.9B" counts up to its value when the text is a simple figure; anything else is shown as written
+  const count = parseCountLabel(aum, locale);
   return (
     <section className="hm-figs-w" aria-labelledby="glance-t">
       <div className="container">
         <div className="hm-figs">
           <Reveal self className="hm-figs-h">
             <h2 id="glance-t" className="h4">{pick(C.figures.title)}</h2>
-            <p className="small">{pick(C.figures.where)}</p>
           </Reveal>
           <StatRow className="hm-stats">
-            {data.aumLabel ? <Stat text={pick(data.aumLabel)} label={pick(C.figures.aum)} lang={locale} /> : null}
+            {aum ? (
+              <Stat value={count?.value} prefix={count?.prefix} suffix={count?.suffix} decimals={count?.decimals} text={count ? null : aum} label={pick(C.figures.aum)} lang={locale} />
+            ) : null}
             <Stat value={data.funds.length || null} label={pick(C.figures.strategies)} lang={locale} />
             <Stat value={data.teamSize} label={pick(C.figures.team)} lang={locale} />
+            <Stat value={data.phdCount} label={pick(C.figures.phd)} lang={locale} />
           </StatRow>
         </div>
       </div>
     </section>
-  );
-}
-
-/* ------------------------------------------------------------------ approach teaser */
-
-const APPROACH_ICONS = [TrendingUp, BarChart3, ShieldCheck];
-
-function TiltCard({ children, className }: { children: ReactNode; className?: string }) {
-  const ref = useTilt<HTMLDivElement>(5);
-  return <div ref={ref} className={`card ring hm-tilt ${className ?? ""}`}>{children}</div>;
-}
-
-export function Approach() {
-  const { pick } = useTranslation();
-  return (
-    <Section glow="tr" labelledBy="approach-t" className="hm-approach">
-      <div className="split top">
-        <div>
-          <SectionHead eyebrow={pick(C.approach.eyebrow)} title={pick(C.approach.title)} accent={pick(C.approach.accent)} lead={pick(C.approach.lead)} id="approach-t">
-            <Bullets items={C.approach.points.map((p) => pick(p))} />
-          </SectionHead>
-          <Reveal self delay={260} className="hm-links">
-            <Link className="link" href="/approach">{pick(C.approach.more)} <ArrowRight aria-hidden="true" /></Link>
-            <Link className="link" href="/team">{pick(C.approach.team)} <ArrowRight aria-hidden="true" /></Link>
-          </Reveal>
-        </div>
-        <Reveal kind="pop" stagger={120} className="hm-approach-cards">
-          {C.approach.cards.map((c, i) => {
-            const I = APPROACH_ICONS[i];
-            return (
-              <TiltCard key={i}>
-                <div className="hm-card-row">
-                  <span className="bubble" aria-hidden="true" style={{ ["--size" as string]: "48px", ["--bc" as string]: ["#1a73e8", "#0b8fd6", "#00a3e0"][i] }}><I /></span>
-                  <div>
-                    <h3 className="h4">{pick(c.title)}</h3>
-                    <p>{pick(c.text)}</p>
-                  </div>
-                </div>
-              </TiltCard>
-            );
-          })}
-        </Reveal>
-      </div>
-    </Section>
   );
 }
 
@@ -116,6 +76,10 @@ export function Process() {
         const I = STEP_ICONS[i];
         return { title: pick(s.title), text: pick(s.text), icon: <I aria-hidden="true" /> };
       })} />
+      <Reveal self delay={200} className="hm-links">
+        <Link className="link" href="/approach">{pick(C.process.more)} <ArrowRight aria-hidden="true" /></Link>
+        <Link className="link" href="/team">{pick(C.process.team)} <ArrowRight aria-hidden="true" /></Link>
+      </Reveal>
     </Section>
   );
 }
@@ -150,16 +114,6 @@ export function Partners() {
         <Marquee label={pick(C.partners.marquee)} speed={46}>
           {[...CLIENTS, ...PLATFORMS].map(logo)}
         </Marquee>
-      </Reveal>
-      <Reveal className="hm-partner-lists" stagger={140}>
-        <div>
-          <h3 className="h4">{pick(C.partners.clients)}</h3>
-          <ul className="hm-names">{CLIENTS.map((c) => <li key={c.src}>{c.alt}</li>)}</ul>
-        </div>
-        <div>
-          <h3 className="h4">{pick(C.partners.platforms)}</h3>
-          <ul className="hm-names">{PLATFORMS.map((c) => <li key={c.src}>{c.alt}</li>)}</ul>
-        </div>
       </Reveal>
       <p className="fine hm-note">{pick(C.partners.note)}</p>
     </Section>
@@ -222,7 +176,6 @@ export function News() {
             <div className="hm-news-body">
               <p className="hm-news-meta"><span className="hm-chip">{pick(NEWS_CATEGORY[n.category])}</span><time dateTime={n.date}>{dayText(n.date, locale)}</time></p>
               <h3 className="h4">{pick(n.title)}</h3>
-              <p>{pick(n.summary)}</p>
               <button type="button" className="link hm-news-more" onClick={(e) => { opener.current = e.currentTarget; setOpen(n); }} aria-haspopup="dialog">
                 {pick(C.news.read)} <ArrowRight aria-hidden="true" /><span className="sr-only">: {pick(n.title)}</span>
               </button>
