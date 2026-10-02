@@ -1,0 +1,456 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 184 tests using 2 workers
+
+  ✓    1 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (13.4s)
+  ✓    2 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (15.7s)
+  ✓    3 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (10.0s)
+  ✓    4 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (9.1s)
+  ✓    6 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (22.9s)
+  ✓    5 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (33.0s)
+  ✓    7 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (13.3s)
+  ✓    8 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (6.7s)
+  ✓   10 [desktop] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (2.5s)
+  ✓   11 [desktop] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (1.3s)
+  ✓   12 [desktop] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (689ms)
+  ✓   13 [desktop] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (619ms)
+  ✓   14 [desktop] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (551ms)
+  ✓   15 [desktop] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (356ms)
+  ✓   16 [desktop] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (1.8s)
+  ✘    9 [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (10.8s)
+  ✓   17 [desktop] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (4.2s)
+  ✓   19 [desktop] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (2.9s)
+  ✘   20 [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (3.7s)
+  ✘   18 [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (retry #1) (11.1s)
+  ✘   21 [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (retry #1) (4.3s)
+  ✓   22 [desktop] › e2e/fund.spec.ts:379:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set (3.0s)
+  ✓   23 [desktop] › e2e/fund.spec.ts:405:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.3s)
+  ✓   24 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (5.1s)
+  ✓   25 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (4.9s)
+  ✓   26 [desktop] › e2e/home.spec.ts:57:7 › home: screenshot (5.8s)
+  ✓   27 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (3.9s)
+  ✓   28 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.3s)
+  ✓   29 [desktop] › e2e/home.spec.ts:57:7 › strategies: screenshot (5.4s)
+  ✓   30 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (4.3s)
+  ✓   31 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (4.4s)
+  ✓   33 [desktop] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.8s)
+  ✓   34 [desktop] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (1.1s)
+  ✓   32 [desktop] › e2e/home.spec.ts:57:7 › solutions: screenshot (5.9s)
+  ✓   36 [desktop] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.2s)
+  ✓   35 [desktop] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.4s)
+  ✓   37 [desktop] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.6s)
+  ✓   39 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.1s)
+  ✓   38 [desktop] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (1.9s)
+  ✓   40 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (984ms)
+  ✓   42 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.0s)
+  ✓   43 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (1.1s)
+  ✓   41 [desktop] › e2e/site.spec.ts:81:7 › / full-page screenshot (5.9s)
+  ✓   45 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (821ms)
+  ✓   44 [desktop] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (4.5s)
+  ✓   46 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.0s)
+  ✓   48 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (721ms)
+  ✓   49 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (784ms)
+  ✓   47 [desktop] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (6.1s)
+  ✓   51 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (925ms)
+  ✓   50 [desktop] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (4.8s)
+  ✓   52 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (1.1s)
+  ✓   54 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (953ms)
+  ✓   55 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (811ms)
+  ✓   53 [desktop] › e2e/site.spec.ts:81:7 › /team full-page screenshot (5.2s)
+  ✓   57 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (967ms)
+  ✓   56 [desktop] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (3.9s)
+  ✓   58 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (760ms)
+  ✓   60 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (874ms)
+  ✓   61 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (729ms)
+  ✓   59 [desktop] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (4.9s)
+  ✓   63 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (604ms)
+  ✓   62 [desktop] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (4.0s)
+  ✓   64 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (600ms)
+  ✓   66 [desktop] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.1s)
+  ✓   65 [desktop] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (4.5s)
+  ✓   67 [desktop] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (866ms)
+  ✓   69 [desktop] › e2e/site.spec.ts:127:5 › language toggle switches the page to French and back (1.9s)
+  ✓   68 [desktop] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.7s)
+  -   70 [desktop] › e2e/site.spec.ts:142:5 › mobile menu opens, traps focus, closes with Escape
+  ✓   72 [desktop] › e2e/site.spec.ts:202:5 › team: filter by department and open a bio (2.8s)
+  ✓   71 [desktop] › e2e/site.spec.ts:166:5 › reduced motion: content is visible without animations (5.0s)
+  ✓   73 [desktop] › e2e/site.spec.ts:224:5 › contact: three steps, validated, then an email is prepared (no backend) (5.9s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"inset(0px 0px 0px 0%)","op":"1","anim":"ap-loop","disp":"block","w":900},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":96},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":84},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓   75 [desktop] › e2e/site.spec.ts:275:5 › legal: table of contents follows both documents; privacy covers Law 25 (745ms)
+  ✓   74 [desktop] › e2e/site.spec.ts:257:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.6s)
+  ✓   76 [desktop] › e2e/site.spec.ts:286:5 › admin does not get the public chrome (475ms)
+  ✓   78 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (15.4s)
+  ✓   77 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (16.4s)
+  ✓   80 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (11.4s)
+  ✓   79 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (12.0s)
+  ✓   82 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (32.8s)
+  ✓   81 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (50.5s)
+  ✓   83 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (19.2s)
+  ✓   84 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (9.2s)
+  ✓   86 [mobile] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (1.3s)
+  ✓   87 [mobile] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (1.2s)
+  ✓   88 [mobile] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (786ms)
+  ✘   85 [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (10.9s)
+  ✓   89 [mobile] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (730ms)
+  ✓   90 [mobile] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (994ms)
+  ✓   92 [mobile] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (614ms)
+  ✓   93 [mobile] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (2.1s)
+  ✓   94 [mobile] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (1.9s)
+  ✓   95 [mobile] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (1.3s)
+  ✘   96 [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (3.5s)
+  ✘   91 [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (retry #1) (11.0s)
+  ✓   98 [mobile] › e2e/fund.spec.ts:379:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set (3.2s)
+  ✘   97 [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (retry #1) (3.8s)
+  ✓   99 [mobile] › e2e/fund.spec.ts:405:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.7s)
+  ✓  100 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (6.5s)
+  ✓  101 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (6.2s)
+  ✓  103 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (5.0s)
+  ✓  102 [mobile] › e2e/home.spec.ts:57:7 › home: screenshot (10.8s)
+  ✓  104 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (5.1s)
+  ✓  106 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (5.0s)
+  ✓  105 [mobile] › e2e/home.spec.ts:57:7 › strategies: screenshot (7.4s)
+  ✓  107 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (5.2s)
+  ✓  109 [mobile] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.5s)
+  ✓  108 [mobile] › e2e/home.spec.ts:57:7 › solutions: screenshot (7.8s)
+  ✓  110 [mobile] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (2.7s)
+  ✓  112 [mobile] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.2s)
+  ✓  111 [mobile] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.3s)
+  ✓  113 [mobile] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.6s)
+  ✓  114 [mobile] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (1.8s)
+  ✓  115 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.4s)
+  ✓  117 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (2.0s)
+  ✓  118 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.2s)
+  ✓  119 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (909ms)
+  ✓  116 [mobile] › e2e/site.spec.ts:81:7 › / full-page screenshot (9.2s)
+  ✓  121 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (1.2s)
+  ✓  120 [mobile] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (6.8s)
+  ✓  122 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.1s)
+  ✓  124 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (643ms)
+  ✓  125 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (589ms)
+  ✓  126 [mobile] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (6.9s)
+  ✓  123 [mobile] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (9.3s)
+  ✓  127 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (1.8s)
+  ✓  128 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (1.9s)
+  ✓  130 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (898ms)
+  ✓  131 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (794ms)
+  ✓  132 [mobile] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (4.9s)
+  ✓  129 [mobile] › e2e/site.spec.ts:81:7 › /team full-page screenshot (7.4s)
+  ✓  133 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (1.2s)
+  ✓  134 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (1.3s)
+  ✓  136 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (757ms)
+  ✓  137 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (651ms)
+  ✓  135 [mobile] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (6.7s)
+  ✓  139 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (672ms)
+  ✓  138 [mobile] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (5.6s)
+  ✓  140 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (783ms)
+  ✓  142 [mobile] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.5s)
+  ✓  143 [mobile] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (793ms)
+  ✓  141 [mobile] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (6.7s)
+  ✓  145 [mobile] › e2e/site.spec.ts:127:5 › language toggle switches the page to French and back (2.2s)
+  ✓  144 [mobile] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.8s)
+  ✓  146 [mobile] › e2e/site.spec.ts:142:5 › mobile menu opens, traps focus, closes with Escape (2.7s)
+  ✓  147 [mobile] › e2e/site.spec.ts:166:5 › reduced motion: content is visible without animations (4.4s)
+  ✓  148 [mobile] › e2e/site.spec.ts:202:5 › team: filter by department and open a bio (3.0s)
+  ✓  149 [mobile] › e2e/site.spec.ts:224:5 › contact: three steps, validated, then an email is prepared (no backend) (5.4s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"none","op":"1","anim":"ap-loop","disp":"none","w":0},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓  150 [mobile] › e2e/site.spec.ts:257:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.5s)
+  ✓  151 [mobile] › e2e/site.spec.ts:275:5 › legal: table of contents follows both documents; privacy covers Law 25 (950ms)
+  ✓  152 [mobile] › e2e/site.spec.ts:286:5 › admin does not get the public chrome (633ms)
+
+
+  1) [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle 
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: getByTestId('dist-class-LDM001')
+    Expected pattern: /hl/
+    Received string:  "ds-card in"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveClass" getByTestId('dist-class-LDM001') with timeout 10000ms
+      - waiting for getByTestId('dist-class-LDM001')
+        4 × locator resolved to <div class="ds-card" data-testid="dist-class-LDM001">…</div>
+          - unexpected value "ds-card"
+        19 × locator resolved to <div class="ds-card in" data-testid="dist-class-LDM001">…</div>
+           - unexpected value "ds-card in"
+
+
+      175 |   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
+      176 |   const fp = page.getByTestId("dist-class-LDM001");
+    > 177 |   await expect(fp).toHaveClass(/hl/);
+          |                    ^
+      178 |   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
+      179 |   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
+      180 |   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:177:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: getByTestId('dist-class-LDM001')
+    Expected pattern: /hl/
+    Received string:  "ds-card in"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveClass" getByTestId('dist-class-LDM001') with timeout 10000ms
+      - waiting for getByTestId('dist-class-LDM001')
+        3 × locator resolved to <div class="ds-card" data-testid="dist-class-LDM001">…</div>
+          - unexpected value "ds-card"
+        20 × locator resolved to <div class="ds-card in" data-testid="dist-class-LDM001">…</div>
+           - unexpected value "ds-card in"
+
+
+      175 |   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
+      176 |   const fp = page.getByTestId("dist-class-LDM001");
+    > 177 |   await expect(fp).toHaveClass(/hl/);
+          |                    ^
+      178 |   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
+      179 |   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
+      180 |   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:177:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "+8.20%"
+    Received: "0.00%"
+
+      374 |   await expect(page.getByTestId("perf-context")).toContainText("9%");
+      375 |   await sel.getByTestId("variant-6").click();
+    > 376 |   expect(await si()).toBe(six);
+          |                      ^
+      377 | });
+      378 |
+      379 | test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+        at /home/runner/work/website/website/e2e/fund.spec.ts:376:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "+8.20%"
+    Received: "0.00%"
+
+      374 |   await expect(page.getByTestId("perf-context")).toContainText("9%");
+      375 |   await sel.getByTestId("variant-6").click();
+    > 376 |   expect(await si()).toBe(six);
+          |                      ^
+      377 | });
+      378 |
+      379 | test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+        at /home/runner/work/website/website/e2e/fund.spec.ts:376:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle 
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: getByTestId('dist-class-LDM001')
+    Expected pattern: /hl/
+    Received string:  "ds-card in"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveClass" getByTestId('dist-class-LDM001') with timeout 10000ms
+      - waiting for getByTestId('dist-class-LDM001')
+        5 × locator resolved to <div class="ds-card" data-testid="dist-class-LDM001">…</div>
+          - unexpected value "ds-card"
+        19 × locator resolved to <div class="ds-card in" data-testid="dist-class-LDM001">…</div>
+           - unexpected value "ds-card in"
+
+
+      175 |   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
+      176 |   const fp = page.getByTestId("dist-class-LDM001");
+    > 177 |   await expect(fp).toHaveClass(/hl/);
+          |                    ^
+      178 |   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
+      179 |   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
+      180 |   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:177:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: getByTestId('dist-class-LDM001')
+    Expected pattern: /hl/
+    Received string:  "ds-card in"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveClass" getByTestId('dist-class-LDM001') with timeout 10000ms
+      - waiting for getByTestId('dist-class-LDM001')
+        4 × locator resolved to <div class="ds-card" data-testid="dist-class-LDM001">…</div>
+          - unexpected value "ds-card"
+        20 × locator resolved to <div class="ds-card in" data-testid="dist-class-LDM001">…</div>
+           - unexpected value "ds-card in"
+
+
+      175 |   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
+      176 |   const fp = page.getByTestId("dist-class-LDM001");
+    > 177 |   await expect(fp).toHaveClass(/hl/);
+          |                    ^
+      178 |   // amounts with the series' own precision (6 decimals in the sample), so rows add up to the calendar totals
+      179 |   await expect(fp.getByTestId("dist-last-amount")).toHaveText(/^\$0\.\d{6}$/);
+      180 |   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
+        at /home/runner/work/website/website/e2e/fund.spec.ts:177:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-distributions-per-ser-6bf96-ull-history-behind-a-toggle-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "+8.20%"
+    Received: "+0.31%"
+
+      374 |   await expect(page.getByTestId("perf-context")).toContainText("9%");
+      375 |   await sel.getByTestId("variant-6").click();
+    > 376 |   expect(await si()).toBe(six);
+          |                      ^
+      377 | });
+      378 |
+      379 | test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+        at /home/runner/work/website/website/e2e/fund.spec.ts:376:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "+8.20%"
+    Received: "+0.66%"
+
+      374 |   await expect(page.getByTestId("perf-context")).toContainText("9%");
+      375 |   await sel.getByTestId("variant-6").click();
+    > 376 |   expect(await si()).toBe(six);
+          |                      ^
+      377 | });
+      378 |
+      379 | test("awards and rankings: Fund Library rank and quartile with source and as-at date; no Morningstar unless set", async ({ page }) => {
+        at /home/runner/work/website/website/e2e/fund.spec.ts:376:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/fund-Global-Minimum-Volati-d3b81-tor-no-NAV-no-distributions-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle 
+    [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions 
+    [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle 
+    [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions 
+  1 skipped
+  36 did not run
+  143 passed (6.1m)
