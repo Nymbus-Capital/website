@@ -425,9 +425,10 @@ test.describe("admin flows", () => {
         // home tile and strategies index
         for (const p of ["/", "/strategies"]) {
           await page.goto(p);
-          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveText(new RegExp(`^${returns} H$`));
+          // the tile shows only the headline class's own returns: F has no series here, so no class H figure appears
+          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveCount(0);
         }
-        await expect(page.getByTestId("compare-table").getByTestId("perf-class").nth(1)).toHaveText(new RegExp(`^${returns} H$`));
+        await expect(page.getByTestId("compare-table").getByTestId("perf-class").filter({ hasText: new RegExp(`${returns} H$`) })).toHaveCount(0);
       }
       await shot(page, "seb-class-h-strategies", info.project.name);
     } finally {
