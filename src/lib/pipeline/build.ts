@@ -778,6 +778,8 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     asOf, basis: "net", method: "compounded", firstMonth, monthly: toPoints(series), ...(indexMonthly ? { indexMonthly } : {}), trailing, calendar, growth,
     classCode: fsr.classCode, returnClass: shown!, returnClassLabel: `Series ${shown}`,
   };
+  // less than 12 monthly returns: the page says "since class inception" (same flag as the per-class series)
+  if (monthsBetween(firstMonth, asOf) + 1 < 12) performance.shortRecord = true;
   if (indexName) performance.indexName = indexName;
   return {
     performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts,
