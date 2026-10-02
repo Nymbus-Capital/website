@@ -260,7 +260,8 @@ test("without JavaScript every panel is on the page", async ({ browser }) => {
   await page.goto("/strategies/monthly-income");
   await expect(page.getByRole("heading", { level: 1, name: "Nymbus Monthly Income Fund" })).toBeVisible();
   for (const id of TABS) await expect(page.locator(`[role="tabpanel"][data-panel="${id}"]`)).toBeVisible();
-  await expect(page.getByTestId("trailing-table")).toBeAttached();
+  // Monthly Income F has no return series yet: its panels say "coming soon"
+  await expect(page.getByTestId("perf-soon")).toBeAttached();
   await expect(page.getByTestId("holdings-table")).toBeVisible();
   await ctx.close();
 });
