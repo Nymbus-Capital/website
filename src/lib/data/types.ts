@@ -326,7 +326,7 @@ export interface DocumentMeta {
 }
 
 /** Blocks an admin can hide on a fund page (`characteristics`, `breakdowns`, `holdings` apply to the daily portfolio too). */
-export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions"] as const;
+export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions", "rankings"] as const;
 export type HideBlock = (typeof HIDE_BLOCKS)[number];
 
 export type ClassType = "prospectus" | "om" | "none";

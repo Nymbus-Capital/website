@@ -2,8 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { HIDE_BLOCKS, type FundContent, type FundKey, type L10n } from "@/lib/data/types";
+import { HIDE_BLOCKS, type ClassType, type FundContent, type FundKey, type FundRankings, type L10n } from "@/lib/data/types";
 import { api, ApiError, L10nInput, useToast } from "./client";
+import { RankingsEditor } from "./RankingsEditor";
 
 const BLOCKS = HIDE_BLOCKS;
 const RISKS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
@@ -22,6 +23,12 @@ type Form = {
   minInvestment: string;
   distributions: L10n;
   headlineClass: string;
+  classTypes: Record<string, string>;
+  minSubsequent: string;
+  rspEligible: string;
+  liquidity: L10n;
+  cifscCategory: L10n;
+  rankings: FundRankings;
   performanceNote: L10n;
   managers: string;
   pinnedSnapshot: string;
@@ -40,6 +47,12 @@ const toForm = (c: FundContent): Form => ({
   minInvestment: c.minInvestment ?? "",
   distributions: c.distributions ?? E,
   headlineClass: c.headlineClass ?? "",
+  classTypes: { ...(c.classTypes ?? {}) },
+  minSubsequent: c.minSubsequent ?? "",
+  rspEligible: c.rspEligible ?? "",
+  liquidity: c.liquidity ?? E,
+  cifscCategory: c.cifscCategory ?? E,
+  rankings: structuredClone(c.rankings ?? {}),
   performanceNote: c.performanceNote ?? E,
   managers: (c.managers ?? []).join("\n"),
   pinnedSnapshot: c.pinnedSnapshot ?? "",
@@ -53,13 +66,19 @@ function toContent(f: Form): FundContent {
   out.mer = f.mer;
   out.minInvestment = f.minInvestment;
   out.headlineClass = f.headlineClass;
+  out.classTypes = Object.fromEntries(Object.entries(f.classTypes).filter(([, t]) => t)) as Record<string, ClassType>;
+  out.minSubsequent = f.minSubsequent;
+  if (f.rspEligible) out.rspEligible = f.rspEligible as FundContent["rspEligible"];
+  out.liquidity = f.liquidity;
+  out.cifscCategory = f.cifscCategory;
+  out.rankings = f.rankings;
   out.managers = f.managers.split("\n").map((s) => s.trim()).filter(Boolean);
   out.pinnedSnapshot = f.pinnedSnapshot || null;
   return out;
 }
 
 export function FundEditor({
-  fundKey, version: initialVersion, initial, defaults, classes, runs,
+  fundKey, version: initialVersion, initial, defaults, classes, runs, classTypeRows,
 }: {
   fundKey: FundKey;
   version: number;
@@ -67,6 +86,8 @@ export function FundEditor({
   defaults: { tagline: L10n; description: L10n; riskRating: string; headlineClass: string | null };
   classes: { fundserv: string; label: string }[];
   runs: { id: string; label: string }[];
+  /** share classes of the registry and of the published data, with the type the registry gives them */
+  classTypeRows: { fundserv: string; label: string; defaultType: ClassType }[];
 }) {
   const [form, setForm] = useState<Form>(() => toForm(initial));
   const [version, setVersion] = useState(initialVersion);
@@ -160,11 +181,43 @@ export function FundEditor({
             </select>
           </label>
         </div>
+        <div className="row">
+          <label className="adm-field"><span>minimum subsequent investment</span><input className="adm-input" value={form.minSubsequent} maxLength={80} placeholder="100 $" onChange={(e) => set("minSubsequent", e.target.value)} /></label>
+          <label className="adm-field">
+            <span>RSP / registered plans eligible</span>
+            <select value={form.rspEligible} onChange={(e) => set("rspEligible", e.target.value)}>
+              <option value="">not shown</option>
+              <option value="yes">yes</option>
+              <option value="no">no</option>
+            </select>
+          </label>
+        </div>
+        <L10nInput label="liquidity (redemptions)" hint="shown only when filled" value={form.liquidity} onChange={(v) => set("liquidity", v)} max={200} />
+        <L10nInput label="CIFSC category" hint="shown only when filled; empty = the Fund Library category of the ranking, if any" value={form.cifscCategory} onChange={(v) => set("cifscCategory", v)} max={120} />
         <label className="adm-field">
           <span>managers <em>one per line</em></span>
           <textarea value={form.managers} rows={3} onChange={(e) => set("managers", e.target.value)} />
         </label>
       </fieldset>
+
+      <fieldset className="adm-fieldset" data-testid="class-types">
+        <legend>class types</legend>
+        <p className="adm-small">A class is labelled “Prospectus class” or “Offering memorandum class” on the public page only when its type is known. “not set” shows no label.</p>
+        <div className="row">
+          {classTypeRows.map((c) => (
+            <label key={c.fundserv} className="adm-field">
+              <span>{c.label} <em>registry: {c.defaultType === "none" ? "not set" : c.defaultType === "om" ? "offering memorandum" : "prospectus"}</em></span>
+              <select value={form.classTypes[c.fundserv] ?? ""} onChange={(e) => set("classTypes", { ...form.classTypes, [c.fundserv]: e.target.value })}>
+                <option value="">registry default</option>
+                <option value="prospectus">prospectus class</option>
+                <option value="om">offering memorandum class</option>
+              </select>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <RankingsEditor value={form.rankings} onChange={(v) => set("rankings", v)} />
 
       <fieldset className="adm-fieldset">
         <legend>data snapshot</legend>
