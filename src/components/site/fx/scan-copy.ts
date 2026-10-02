@@ -16,15 +16,17 @@ export const SCAN_COPY = {
     "Animated illustration: a table of securities scanned for factor scores, with flagged signals.",
     "Illustration animée : un tableau de titres analysés selon des facteurs, avec des signaux repérés.",
   ),
+  /** drawn on the canvas itself, so no screenshot of the panel can lose it */
+  watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
   caption: l(
-    "Illustration only: generic labels and generated values, not actual securities, signals or results. The counters count what this animation scans.",
-    "Illustration seulement\u00a0: libellés génériques et valeurs générées, pas de titres, de signaux ni de résultats réels. Les compteurs comptent ce que cette animation analyse.",
+    "Generic labels and generated values: not actual securities, signals or results. The counters count what this animation scans.",
+    "Libellés génériques et valeurs générées\u00a0: pas de titres, de signaux ni de résultats réels. Les compteurs comptent ce que cette animation analyse.",
   ),
   counters: {
-    datapoints: l("Data points scanned", "Données analysées"),
-    securities: l("Securities screened", "Titres examinés"),
-    factors: l("Factors per security", "Facteurs par titre"),
-    signals: l("Signals flagged", "Signaux repérés"),
+    datapoints: l("Simulated data points scanned", "Simulé\u00a0: données analysées"),
+    securities: l("Simulated securities screened", "Simulé\u00a0: titres examinés"),
+    factors: l("Simulated factors per security", "Simulé\u00a0: facteurs par titre"),
+    signals: l("Simulated signals flagged", "Simulé\u00a0: signaux repérés"),
   },
   trio: [
     { title: l("Scientists", "Scientifiques"), text: l("Hypotheses, tested on data.", "Des hypothèses, testées sur les données.") },

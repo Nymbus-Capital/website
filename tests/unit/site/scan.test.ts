@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COLUMNS, COMPACT_KEYS, HIT_RATE, MEDIUM_KEYS, SECTORS, columnsFor, countersAfter, flicker, fmtNum, fmtZ, groupDigits, hash01, layout, rowAt, scanProgress } from "../../../src/components/site/fx/scan-model.ts";
+import { COLUMNS, COMPACT_KEYS, HIT_RATE, MEDIUM_KEYS, XS_KEYS, fitText, SECTORS, columnsFor, countersAfter, flicker, fmtNum, fmtZ, groupDigits, hash01, layout, rowAt, scanProgress } from "../../../src/components/site/fx/scan-model.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 
 test("hash01 is deterministic and in [0, 1)", () => {
@@ -42,7 +42,10 @@ test("the table names no issuer: sectors are generic labels, EN and FR", () => {
 });
 
 test("columns: compact and medium widths keep the identifier and the signal; layout fills the width", () => {
-  assert.deepEqual(columnsFor(360).map((c) => c.key), COMPACT_KEYS);
+  assert.deepEqual(columnsFor(419).map((c) => c.key), XS_KEYS);
+  assert.ok(!columnsFor(360).some((c) => c.key === "sector"), "no Sector column under 420 px");
+  assert.deepEqual(columnsFor(420).map((c) => c.key), COMPACT_KEYS);
+  assert.deepEqual(columnsFor(500).map((c) => c.key), COMPACT_KEYS);
   assert.deepEqual(columnsFor(700).map((c) => c.key), MEDIUM_KEYS);
   assert.equal(columnsFor(1200).length, COLUMNS.length);
   for (const w of [320, 390, 700, 1024, 1400]) {
@@ -111,4 +114,26 @@ test("scan copy exists in English and French and labels the animation as an illu
   assert.match(SCAN_COPY.illustration.en, /illustration/i);
   assert.match(SCAN_COPY.caption.en, /not actual securities, signals or results/);
   assert.match(SCAN_COPY.caption.fr, /pas de titres, de signaux ni de résultats réels/);
+});
+
+test("fitText: whole when it fits, else the longest prefix with an ellipsis that fits, else nothing", () => {
+  const m = (s: string) => s.length * 7; // 7 px per character
+  assert.equal(fitText("Banks", 100, m), "Banks");
+  assert.equal(fitText("Infrastructure", 70, m), "Infrastru…");
+  assert.ok(m(fitText("Infrastructure", 70, m)) <= 70);
+  assert.equal(fitText("Services publics", 40, m), "Serv…");
+  assert.equal(fitText("Immobilier", 6, m), "", "not even an ellipsis fits");
+  assert.equal(fitText("Immobilier", 7, m), "…");
+  assert.equal(fitText("x y", 0, m), "");
+  // never longer than the budget for any width
+  for (let w = 0; w < 160; w += 3) assert.ok(m(fitText("Matériaux et ressources", w, m)) <= Math.max(w, 0));
+});
+
+test("the illustration says so on the canvas and in every counter label (EN and FR)", () => {
+  assert.equal(SCAN_COPY.watermark.en, "ILLUSTRATION · generated values");
+  assert.equal(SCAN_COPY.watermark.fr, "ILLUSTRATION · valeurs générées");
+  for (const v of Object.values(SCAN_COPY.counters)) {
+    assert.match(v.en, /^Simulated /);
+    assert.match(v.fr, /^Simulé/);
+  }
 });

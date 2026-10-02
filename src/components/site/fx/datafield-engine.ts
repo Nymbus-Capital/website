@@ -11,6 +11,8 @@ export interface DataFieldOptions {
   strength?: number;
   /** dot spacing in CSS px (default 28, 32 on phones) */
   gap?: number;
+  /** frame-rate ceiling (default 26; 15 on coarse pointers) */
+  maxFps?: number;
 }
 
 const BUCKETS = 7;
@@ -20,6 +22,7 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
   const host = canvas.parentElement ?? canvas;
   if (!ctx) return { destroy() {} };
   const strength = opts.strength ?? 1;
+  const minGap = 1000 / Math.max(5, Math.min(60, opts.maxFps ?? 26)) - 2;
   let W = 0, H = 0, dpr = 1, gap = 28, cols = 0, rows = 0;
   let raf = 0, running = false, onscreen = false, visible = document.visibilityState === "visible";
   let clock = 0, last = 0, frames = 0, nextPulse = 0;
@@ -98,7 +101,7 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
     raf = 0;
     if (!running) return;
     const dt = last ? Math.min(100, now - last) : 16;
-    if (last && dt < 38) { raf = requestAnimationFrame(loop); return; }
+    if (last && dt < minGap) { raf = requestAnimationFrame(loop); return; }
     last = now;
     clock += dt;
     frame();

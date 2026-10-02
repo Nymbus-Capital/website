@@ -39,7 +39,7 @@ test("home (FR): AUM reads 1,9 G$ and the scan is labelled in French", async ({ 
   await expect(glance).toContainText(/1,9\s?G\$/);
   const panel = page.getByTestId("scan-panel");
   await panel.scrollIntoViewIfNeeded();
-  await expect(panel).toContainText(/Titres examinés/);
+  await expect(panel).toContainText(/titres examinés/i);
   await expect(page.locator("main")).not.toContainText(/VL quotidienne/i);
 });
 

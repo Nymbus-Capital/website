@@ -8,7 +8,7 @@
  *   <FxEffects/>    mounted once: magnetic buttons, card spotlight following the pointer, scroll progress line
  *   <AnalysisScan/> the home "analysis scan" panel (large table of rows scanned by a light, with counters)
  */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Cpu, FlaskConical, Landmark } from "lucide-react";
 import { onScrollFrame, reducedMotion, Reveal, useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
@@ -16,11 +16,29 @@ import { SCAN_COPY as C } from "./scan-copy";
 import { FACTORS } from "./scan-model";
 import "./fx.css";
 
+/* ------------------------------------------------------------------ user preferences */
+
+const subscribeMotion = (cb: () => void) => {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+/** prefers-reduced-motion, live: toggling it in the system settings destroys the engines and draws the still frame. */
+function useReducedMotion(): boolean {
+  return useSyncExternalStore(subscribeMotion, reducedMotion, () => false);
+}
+
+/** Data Saver on: canvases draw one still frame instead of animating. */
+const saveData = (): boolean => (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+/** Coarse pointer (phones, tablets): animated canvases are capped at 15 frames per second. */
+const coarsePointer = (): boolean => window.matchMedia("(pointer: coarse)").matches;
+
 /* ------------------------------------------------------------------ data field backdrop */
 
 export function DataField({ className, strength = 1 }: { className?: string; strength?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [on, setOn] = useState(false);
+  const reduced = useReducedMotion();
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
@@ -29,7 +47,7 @@ export function DataField({ className, strength = 1 }: { className?: string; str
     const boot = () => {
       import("./datafield-engine").then((m) => {
         if (dead) return;
-        engine = m.createDataField(c, { still: reducedMotion(), strength });
+        engine = m.createDataField(c, { still: reduced || saveData(), strength, ...(coarsePointer() ? { maxFps: 15 } : {}) });
         setOn(true);
       }).catch(() => {});
     };
@@ -38,7 +56,7 @@ export function DataField({ className, strength = 1 }: { className?: string; str
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "200px" });
     io.observe(c);
     return () => { dead = true; io.disconnect(); engine?.destroy(); };
-  }, [strength]);
+  }, [strength, reduced]);
   return (
     <div className={`dfield ${on ? "on" : ""} ${className ?? ""}`} aria-hidden="true" data-testid="data-field">
       <canvas ref={ref} />
@@ -58,9 +76,10 @@ export function Divider({ className }: { className?: string }) {
 /** Decorative blurred light that drifts with the scroll (`speed` 0.1 = 10 % of the scroll distance, opposite way). */
 export function Parallax({ className, speed = 0.12, style }: { className?: string; speed?: number; style?: CSSProperties }) {
   const ref = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion();
   useEffect(() => {
     const el = ref.current;
-    if (!el || reducedMotion()) return;
+    if (!el || reduced) return;
     let near = true;
     const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver((es) => { near = es.some((e) => e.isIntersecting); }, { rootMargin: "300px" }) : null;
     io?.observe(el);
@@ -70,8 +89,8 @@ export function Parallax({ className, speed = 0.12, style }: { className?: strin
       const d = (r.top + r.height / 2 - vh / 2) * -speed;
       el.style.transform = `translate3d(0, ${d.toFixed(1)}px, 0)`;
     });
-    return () => { off(); io?.disconnect(); };
-  }, [speed]);
+    return () => { off(); io?.disconnect(); el.style.transform = ""; };
+  }, [speed, reduced]);
   return <span ref={ref} className={`parallax ${className ?? ""}`} style={style} aria-hidden="true" />;
 }
 
@@ -84,6 +103,7 @@ export function Parallax({ className, speed = 0.12, style }: { className?: strin
  */
 export function FxEffects() {
   const bar = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion();
   useEffect(() => {
     const el = bar.current;
     if (!el) return;
@@ -93,7 +113,7 @@ export function FxEffects() {
     });
   }, []);
   useEffect(() => {
-    if (reducedMotion() || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (reduced || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     let raf = 0;
     let lastBtn: HTMLElement | null = null;
     let ev: PointerEvent | null = null;
@@ -122,8 +142,13 @@ export function FxEffects() {
     const onLeave = () => { if (lastBtn) { lastBtn.style.removeProperty("--tx"); lastBtn.style.removeProperty("--ty"); lastBtn = null; } };
     document.addEventListener("pointermove", onMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
-    return () => { document.removeEventListener("pointermove", onMove); document.documentElement.removeEventListener("pointerleave", onLeave); if (raf) cancelAnimationFrame(raf); };
-  }, []);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
+      if (raf) cancelAnimationFrame(raf);
+      onLeave(); // no button stays displaced (--tx / --ty) once the effect is off
+    };
+  }, [reduced]);
   return <span ref={bar} className="scroll-progress" aria-hidden="true" data-testid="scroll-progress" />;
 }
 
@@ -138,6 +163,7 @@ export function AnalysisScan() {
   const lang = useRef(locale);
   const scan = useRef<{ redraw(): void } | null>(null);
   const [ready, setReady] = useState(false);
+  const reduced = useReducedMotion();
   lang.current = locale;
   useEffect(() => {
     const c = canvas.current;
@@ -148,7 +174,9 @@ export function AnalysisScan() {
       import("./scan-engine").then((m) => {
         if (dead) return;
         engine = m.createScan(c, {
-          still: reducedMotion(),
+          still: reduced || saveData(),
+          ...(coarsePointer() ? { maxFps: 15 } : {}),
+          watermark: () => C.watermark[lang.current],
           lang: () => lang.current,
           counters: { datapoints: dp.current, securities: sec.current, signals: sg.current },
           onReady: () => setReady(true),
@@ -160,7 +188,7 @@ export function AnalysisScan() {
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "300px" });
     io.observe(c);
     return () => { dead = true; io.disconnect(); engine?.destroy(); scan.current = null; };
-  }, []);
+  }, [reduced]);
   useEffect(() => { scan.current?.redraw(); }, [locale]);
   const stat = (label: string, node: ReactNode) => (
     <div className="sc-stat"><dt>{label}</dt><dd className="tabnum">{node}</dd></div>
@@ -168,7 +196,8 @@ export function AnalysisScan() {
   const icons = [FlaskConical, Cpu, Landmark];
   return (
     <>
-      <figure className={`sc-panel ${ready ? "on" : ""}`} data-testid="scan-panel" role="img" aria-label={pick(C.alt)}>
+      <figure className="sc-fig">
+      <div className={`sc-panel ${ready ? "on" : ""}`} data-testid="scan-panel" role="img" aria-label={pick(C.alt)}>
         <div className="sc-bar" aria-hidden="true">
           <span className="sc-dots"><i /><i /><i /></span>
           <span className="sc-title">{pick(C.panel)}</span>
@@ -183,8 +212,9 @@ export function AnalysisScan() {
           {stat(pick(C.counters.factors), <b data-testid="count-factors">{FACTORS.length}</b>)}
           {stat(pick(C.counters.signals), <b ref={sg} data-testid="count-signals">0</b>)}
         </dl>
+      </div>
+      <figcaption className="fine sc-cap">{pick(C.caption)}</figcaption>
       </figure>
-      <p className="fine sc-cap">{pick(C.caption)}</p>
       <Reveal className="sc-trio" kind="pop" stagger={120}>
         {C.trio.map((t, i) => {
           const I = icons[i];

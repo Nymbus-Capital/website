@@ -32,11 +32,13 @@ export const COLUMNS: Column[] = [
   { key: "signal", label: l("Signal", "Signal"), w: 1.5, align: "c", kind: "signal" },
 ];
 export const COMPACT_KEYS = ["id", "sector", "f0", "f1", "signal"];
+/** Very narrow widths (under 420 px) drop the sector too: its labels do not fit next to the scores. */
+export const XS_KEYS = ["id", "f0", "f1", "signal"];
 /** Medium widths drop the term and spread. */
 export const MEDIUM_KEYS = ["id", "sector", "f0", "f1", "f2", "f3", "signal"];
 
 export function columnsFor(width: number): Column[] {
-  const keys = width < 560 ? COMPACT_KEYS : width < 900 ? MEDIUM_KEYS : null;
+  const keys = width < 420 ? XS_KEYS : width < 560 ? COMPACT_KEYS : width < 900 ? MEDIUM_KEYS : null;
   return keys ? COLUMNS.filter((c) => keys.includes(c.key)) : COLUMNS;
 }
 
@@ -51,6 +53,20 @@ export function layout(cols: Column[], width: number, pad = 16): { x: number; w:
     x += w;
     return out;
   });
+}
+
+/** `text` cut to the longest prefix (plus an ellipsis) that fits `maxW` according to `measure`; "" when nothing fits. */
+export function fitText(text: string, maxW: number, measure: (s: string) => number): string {
+  if (maxW <= 0 || !text) return "";
+  if (measure(text) <= maxW) return text;
+  const ell = "…";
+  let lo = 0, hi = text.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (measure(text.slice(0, mid).trimEnd() + ell) <= maxW) lo = mid; else hi = mid - 1;
+  }
+  const cut = text.slice(0, lo).trimEnd();
+  return cut && measure(cut + ell) <= maxW ? cut + ell : measure(ell) <= maxW ? ell : "";
 }
 
 /** 32-bit integer hash → [0, 1). Deterministic, stateless: row k and column c always give the same value. */
