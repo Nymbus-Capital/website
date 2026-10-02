@@ -1,0 +1,506 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: site.spec.ts >> reduced motion: content is visible without animations
+- Location: e2e/site.spec.ts:165:5
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Nymbus Capital, home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "nymbus" [ref=e6]
+      - navigation "Primary"
+      - generic [ref=e15]:
+        - button "Afficher le site en français" [ref=e16] [cursor=pointer]:
+          - generic [aria-hidden] [ref=e17]: en
+          - generic [aria-hidden] [ref=e18]: fr
+        - button "Open menu" [ref=e19] [cursor=pointer]
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - generic [ref=e38]:
+        - paragraph [ref=e40]: Montreal · systematic fixed income and alternatives
+        - heading "Scientific investing" [level=1] [ref=e42]:
+          - generic [aria-hidden] [ref=e43]:
+            - generic [ref=e44]: Scientific
+            - generic [ref=e45]: investing
+        - paragraph [ref=e47]: Scientists and engineers solving the harder problems in finance.
+        - generic [ref=e49]:
+          - link "Explore strategies" [ref=e50] [cursor=pointer]:
+            - /url: /strategies
+          - link "Investment solutions" [ref=e53] [cursor=pointer]:
+            - /url: /solutions
+      - region [ref=e54]:
+        - generic [ref=e56]:
+          - heading "Nymbus at a glance" [level=2] [ref=e58]
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]: $1.9B
+              - generic [ref=e62]: Assets under management, including mandates
+            - generic [ref=e63]:
+              - generic [ref=e64]: "4"
+              - generic [ref=e65]: Strategies
+            - generic [ref=e66]:
+              - generic [ref=e67]: "18"
+              - generic [ref=e68]: People, team and board
+            - generic [ref=e69]:
+              - generic [ref=e70]: "2"
+              - generic [ref=e71]: PhDs on the team
+      - region [ref=e72]:
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - paragraph [ref=e76]: Science at scale
+            - heading "Scientists and engineers, hard problems in finance" [level=2] [ref=e78]:
+              - generic [aria-hidden] [ref=e79]:
+                - generic [ref=e80]: Scientists
+                - generic [ref=e81]: and
+                - generic [ref=e82]: engineers,
+                - generic [ref=e83]: hard
+                - generic [ref=e84]: problems
+                - generic [ref=e85]: in
+                - generic [ref=e86]: finance
+            - generic [ref=e87]: Data at scale. Models tested before they are trusted.
+          - 'img "Animated illustration: a table of securities scanned for factor scores, with flagged signals." [ref=e89]':
+            - generic [aria-hidden] [ref=e90]:
+              - generic [ref=e95]: Analysis · universe, factors, signals
+              - generic [ref=e96]: Illustration
+            - generic [ref=e99]:
+              - generic [ref=e100]:
+                - term [ref=e101]: Data points scanned
+                - definition [ref=e102]: "0"
+              - generic [ref=e103]:
+                - term [ref=e104]: Securities screened
+                - definition [ref=e105]: "0"
+              - generic [ref=e106]:
+                - term [ref=e107]: Factors per security
+                - definition [ref=e108]: "4"
+              - generic [ref=e109]:
+                - term [ref=e110]: Signals flagged
+                - definition [ref=e111]: "0"
+          - paragraph [ref=e112]: "Illustration only: generic labels and generated values, not actual securities, signals or results. The counters count what this animation scans."
+          - generic [ref=e113]:
+            - generic [ref=e118]:
+              - heading "Scientists" [level=3] [ref=e119]
+              - paragraph [ref=e120]: Hypotheses, tested on data.
+            - generic [ref=e126]:
+              - heading "Engineers" [level=3] [ref=e127]
+              - paragraph [ref=e128]: Pipelines that run every day.
+            - generic [ref=e133]:
+              - heading "Together" [level=3] [ref=e134]
+              - paragraph [ref=e135]: The harder problems in fixed income.
+      - region [ref=e136]:
+        - generic [ref=e137]:
+          - generic [ref=e138]:
+            - paragraph [ref=e140]: Strategies
+            - heading "Our funds and strategies" [level=2] [ref=e142]:
+              - generic [aria-hidden] [ref=e143]:
+                - generic [ref=e144]: Our
+                - generic [ref=e145]: funds
+                - generic [ref=e146]: and
+                - generic [ref=e147]: strategies
+            - generic [ref=e148]: Two bond funds, a multi-strategy fund, a futures overlay.
+          - generic [ref=e150]:
+            - 'link "Short-term fixed income Sample data Fund · FundServ Monthly Income Monthly income from short-term corporate bonds +2.3% Since inception, annualized · Net of fees 1 year +1.0% Returns as of August 2026 · Net of fees · Returns: Series FP View the strategy" [ref=e151] [cursor=pointer]':
+              - /url: /strategies/monthly-income
+              - generic [ref=e152]:
+                - generic [aria-hidden] [ref=e153]: "01"
+                - generic [ref=e154]: Short-term fixed income
+                - generic [ref=e155]:
+                  - generic "Illustrative figures only, not actual performance." [ref=e156]: Sample data
+                  - generic [ref=e157]: Fund · FundServ
+              - heading "Monthly Income" [level=3] [ref=e158]
+              - generic [ref=e159]: Monthly income from short-term corporate bonds
+              - generic [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e163]:
+                    - generic [ref=e164]: +2.3%
+                    - generic [aria-hidden] [ref=e165]:
+                      - generic [ref=e166]: +
+                      - generic [ref=e168]:
+                        - generic [ref=e169]: "0"
+                        - generic [ref=e170]: "1"
+                        - generic [ref=e171]: "2"
+                        - generic [ref=e172]: "3"
+                        - generic [ref=e173]: "4"
+                        - generic [ref=e174]: "5"
+                        - generic [ref=e175]: "6"
+                        - generic [ref=e176]: "7"
+                        - generic [ref=e177]: "8"
+                        - generic [ref=e178]: "9"
+                      - generic [ref=e179]: .
+                      - generic [ref=e181]:
+                        - generic [ref=e182]: "0"
+                        - generic [ref=e183]: "1"
+                        - generic [ref=e184]: "2"
+                        - generic [ref=e185]: "3"
+                        - generic [ref=e186]: "4"
+                        - generic [ref=e187]: "5"
+                        - generic [ref=e188]: "6"
+                        - generic [ref=e189]: "7"
+                        - generic [ref=e190]: "8"
+                        - generic [ref=e191]: "9"
+                      - generic [ref=e192]: "%"
+                  - generic [ref=e193]: Since inception, annualized · Net of fees
+                - generic [ref=e195]:
+                  - generic [ref=e196]: 1 year
+                  - generic [ref=e197]: +1.0%
+                - generic [ref=e198]:
+                  - text: Returns as of August 2026 · Net of fees ·
+                  - generic [ref=e199]: "Returns: Series FP"
+              - generic [ref=e200]: View the strategy
+            - 'link "Core fixed income Sample data Fund · FundServ Sustainable Enhanced Bonds Canadian core bonds, managed systematically +3.8% Since inception, annualized · Net of fees 1 year −2.6% Returns as of August 2026 · Net of fees · Returns: Series F View the strategy" [ref=e203] [cursor=pointer]':
+              - /url: /strategies/sustainable-enhanced-bonds
+              - generic [ref=e204]:
+                - generic [aria-hidden] [ref=e205]: "02"
+                - generic [ref=e206]: Core fixed income
+                - generic [ref=e207]:
+                  - generic "Illustrative figures only, not actual performance." [ref=e208]: Sample data
+                  - generic [ref=e209]: Fund · FundServ
+              - heading "Sustainable Enhanced Bonds" [level=3] [ref=e210]
+              - generic [ref=e211]: Canadian core bonds, managed systematically
+              - generic [ref=e212]:
+                - generic [ref=e213]:
+                  - generic [ref=e215]:
+                    - generic [ref=e216]: +3.8%
+                    - generic [aria-hidden] [ref=e217]:
+                      - generic [ref=e218]: +
+                      - generic [ref=e220]:
+                        - generic [ref=e221]: "0"
+                        - generic [ref=e222]: "1"
+                        - generic [ref=e223]: "2"
+                        - generic [ref=e224]: "3"
+                        - generic [ref=e225]: "4"
+                        - generic [ref=e226]: "5"
+                        - generic [ref=e227]: "6"
+                        - generic [ref=e228]: "7"
+                        - generic [ref=e229]: "8"
+                        - generic [ref=e230]: "9"
+                      - generic [ref=e231]: .
+                      - generic [ref=e233]:
+                        - generic [ref=e234]: "0"
+                        - generic [ref=e235]: "1"
+                        - generic [ref=e236]: "2"
+                        - generic [ref=e237]: "3"
+                        - generic [ref=e238]: "4"
+                        - generic [ref=e239]: "5"
+                        - generic [ref=e240]: "6"
+                        - generic [ref=e241]: "7"
+                        - generic [ref=e242]: "8"
+                        - generic [ref=e243]: "9"
+                      - generic [ref=e244]: "%"
+                  - generic [ref=e245]: Since inception, annualized · Net of fees
+                - generic [ref=e247]:
+                  - generic [ref=e248]: 1 year
+                  - generic [ref=e249]: −2.6%
+                - generic [ref=e250]:
+                  - text: Returns as of August 2026 · Net of fees ·
+                  - generic [ref=e251]: "Returns: Series F"
+              - generic [ref=e252]: View the strategy
+            - 'link "Alternative strategies Sample data Fund · FundServ Multi-Strategy Four systematic strategies designed to have low correlation with one another +7.6% Since inception, annualized · Net of fees 1 year +9.4% Returns as of August 2026 · Net of fees · Returns: Series F View the strategy" [ref=e255] [cursor=pointer]':
+              - /url: /strategies/multi-strategy
+              - generic [ref=e256]:
+                - generic [aria-hidden] [ref=e257]: "03"
+                - generic [ref=e258]: Alternative strategies
+                - generic [ref=e259]:
+                  - generic "Illustrative figures only, not actual performance." [ref=e260]: Sample data
+                  - generic [ref=e261]: Fund · FundServ
+              - heading "Multi-Strategy" [level=3] [ref=e262]
+              - generic [ref=e263]: Four systematic strategies designed to have low correlation with one another
+              - generic [ref=e264]:
+                - generic [ref=e265]:
+                  - generic [ref=e267]:
+                    - generic [ref=e268]: +7.6%
+                    - generic [aria-hidden] [ref=e269]:
+                      - generic [ref=e270]: +
+                      - generic [ref=e272]:
+                        - generic [ref=e273]: "0"
+                        - generic [ref=e274]: "1"
+                        - generic [ref=e275]: "2"
+                        - generic [ref=e276]: "3"
+                        - generic [ref=e277]: "4"
+                        - generic [ref=e278]: "5"
+                        - generic [ref=e279]: "6"
+                        - generic [ref=e280]: "7"
+                        - generic [ref=e281]: "8"
+                        - generic [ref=e282]: "9"
+                      - generic [ref=e283]: .
+                      - generic [ref=e285]:
+                        - generic [ref=e286]: "0"
+                        - generic [ref=e287]: "1"
+                        - generic [ref=e288]: "2"
+                        - generic [ref=e289]: "3"
+                        - generic [ref=e290]: "4"
+                        - generic [ref=e291]: "5"
+                        - generic [ref=e292]: "6"
+                        - generic [ref=e293]: "7"
+                        - generic [ref=e294]: "8"
+                        - generic [ref=e295]: "9"
+                      - generic [ref=e296]: "%"
+                  - generic [ref=e297]: Since inception, annualized · Net of fees
+                - generic [ref=e299]:
+                  - generic [ref=e300]: 1 year
+                  - generic [ref=e301]: +9.4%
+                - generic [ref=e302]:
+                  - text: Returns as of August 2026 · Net of fees ·
+                  - generic [ref=e303]: "Returns: Series F"
+              - generic [ref=e304]: View the strategy
+            - link "Futures overlay (managed accounts) Sample data Managed accounts Global Minimum Volatility A futures overlay designed to have low correlation with bonds +8.2% Since inception, annualized · Gross of fees 1 year +6.1% Returns as of August 2026 · Gross of fees View the strategy" [ref=e307] [cursor=pointer]:
+              - /url: /strategies/global-minimum-volatility
+              - generic [ref=e308]:
+                - generic [aria-hidden] [ref=e309]: "04"
+                - generic [ref=e310]: Futures overlay (managed accounts)
+                - generic [ref=e311]:
+                  - generic "Illustrative figures only, not actual performance." [ref=e312]: Sample data
+                  - generic [ref=e313]: Managed accounts
+              - heading "Global Minimum Volatility" [level=3] [ref=e314]
+              - generic [ref=e315]: A futures overlay designed to have low correlation with bonds
+              - generic [ref=e316]:
+                - generic [ref=e317]:
+                  - generic [ref=e319]:
+                    - generic [ref=e320]: +8.2%
+                    - generic [aria-hidden] [ref=e321]:
+                      - generic [ref=e322]: +
+                      - generic [ref=e324]:
+                        - generic [ref=e325]: "0"
+                        - generic [ref=e326]: "1"
+                        - generic [ref=e327]: "2"
+                        - generic [ref=e328]: "3"
+                        - generic [ref=e329]: "4"
+                        - generic [ref=e330]: "5"
+                        - generic [ref=e331]: "6"
+                        - generic [ref=e332]: "7"
+                        - generic [ref=e333]: "8"
+                        - generic [ref=e334]: "9"
+                      - generic [ref=e335]: .
+                      - generic [ref=e337]:
+                        - generic [ref=e338]: "0"
+                        - generic [ref=e339]: "1"
+                        - generic [ref=e340]: "2"
+                        - generic [ref=e341]: "3"
+                        - generic [ref=e342]: "4"
+                        - generic [ref=e343]: "5"
+                        - generic [ref=e344]: "6"
+                        - generic [ref=e345]: "7"
+                        - generic [ref=e346]: "8"
+                        - generic [ref=e347]: "9"
+                      - generic [ref=e348]: "%"
+                  - generic [ref=e349]: Since inception, annualized · Gross of fees
+                - generic [ref=e351]:
+                  - generic [ref=e352]: 1 year
+                  - generic [ref=e353]: +6.1%
+                - generic [ref=e354]: Returns as of August 2026 · Gross of fees
+              - generic [ref=e355]: View the strategy
+          - paragraph [ref=e358]: Net of fees, in CAD. Past performance may not be repeated. See the important information below. Global Minimum Volatility returns are gross of fees (managed accounts, not a fund).
+          - link "View all strategies" [ref=e360] [cursor=pointer]:
+            - /url: /strategies
+      - region [ref=e363]:
+        - generic [ref=e364]:
+          - generic [ref=e365]:
+            - paragraph [ref=e367]: Investment process
+            - heading "One pipeline, from data to portfolio" [level=2] [ref=e369]:
+              - generic [aria-hidden] [ref=e370]:
+                - generic [ref=e371]: One
+                - generic [ref=e372]: pipeline,
+                - generic [ref=e373]: from
+                - generic [ref=e374]: data
+                - generic [ref=e375]: to
+                - generic [ref=e376]: portfolio
+            - generic [ref=e377]: Four documented, tested and monitored steps.
+          - list [ref=e379]:
+            - listitem [ref=e380]:
+              - generic [ref=e386]:
+                - paragraph [ref=e387]: "01"
+                - heading "Data and research" [level=3] [ref=e388]
+                - generic [ref=e389]: Market and fundamental data, cleaned and studied.
+            - listitem [ref=e390]:
+              - generic [ref=e394]:
+                - paragraph [ref=e395]: "02"
+                - heading "Signal generation" [level=3] [ref=e396]
+                - generic [ref=e397]: Machine-learning signals, kept only after statistical validation.
+            - listitem [ref=e398]:
+              - generic [ref=e404]:
+                - paragraph [ref=e405]: "03"
+                - heading "Portfolio construction" [level=3] [ref=e406]
+                - generic [ref=e407]: Optimization within risk, liquidity and sustainability limits.
+            - listitem [ref=e408]:
+              - generic [ref=e413]:
+                - paragraph [ref=e414]: "04"
+                - heading "Risk management" [level=3] [ref=e415]
+                - generic [ref=e416]: Continuous monitoring, adjustments and hedging. Risk management does not eliminate the risk of loss.
+          - generic [ref=e417]:
+            - link "Our approach" [ref=e418] [cursor=pointer]:
+              - /url: /approach
+            - link "Meet the team" [ref=e421] [cursor=pointer]:
+              - /url: /team
+      - region [ref=e424]:
+        - generic [ref=e425]:
+          - generic [ref=e426]:
+            - paragraph [ref=e428]: Clients and platforms
+            - heading "Institutions and partners we work with" [level=2] [ref=e430]:
+              - generic [aria-hidden] [ref=e431]:
+                - generic [ref=e432]: Institutions
+                - generic [ref=e433]: and
+                - generic [ref=e434]: partners
+                - generic [ref=e435]: we
+                - generic [ref=e436]: work
+                - generic [ref=e437]: with
+          - region "Logos of institutions and platforms we work with" [ref=e439]:
+            - list [ref=e441]:
+              - listitem:
+                - img "Fondaction"
+              - listitem:
+                - img "Fonds FMOQ"
+              - listitem:
+                - img "QEMP (Innocap)"
+              - listitem:
+                - img "Caisse de retraite et d’épargne du Groupe Securitas"
+              - listitem:
+                - img "GardaWorld"
+              - listitem:
+                - img "Bâtirente"
+              - listitem:
+                - img "National Bank Financial Wealth Management"
+              - listitem:
+                - img "RBC Dominion Securities"
+              - listitem:
+                - img "iA Financial Group"
+          - paragraph [ref=e442]: "Source: Nymbus Capital Inc. Representative list; not all clients are shown. QEMP: Quebec Emerging Managers Program (Innocap). Inclusion does not imply endorsement."
+      - region [ref=e443]:
+        - generic [ref=e444]:
+          - generic [ref=e445]:
+            - paragraph [ref=e447]: News and milestones
+            - heading "Recent developments" [level=2] [ref=e449]:
+              - generic [aria-hidden] [ref=e450]:
+                - generic [ref=e451]: Recent
+                - generic [ref=e452]: developments
+          - generic [ref=e453]:
+            - article [ref=e454]:
+              - generic [ref=e465]:
+                - paragraph [ref=e466]:
+                  - generic [ref=e467]: Partnership
+                  - time [ref=e468]: Jan 28, 2025
+                - heading "Mageska Capital and Nymbus Capital announce a partnership" [level=3] [ref=e469]
+                - 'button "Read more : Mageska Capital and Nymbus Capital announce a partnership" [ref=e470] [cursor=pointer]':
+                  - text: Read more
+                  - generic [ref=e473]: ": Mageska Capital and Nymbus Capital announce a partnership"
+            - article [ref=e474]:
+              - generic [ref=e483]:
+                - paragraph [ref=e484]:
+                  - generic [ref=e485]: ESG
+                  - time [ref=e486]: Apr 23, 2024
+                - heading "Nymbus becomes a signatory of the Tobacco-Free Finance Pledge" [level=3] [ref=e487]
+                - 'button "Read more : Nymbus becomes a signatory of the Tobacco-Free Finance Pledge" [ref=e488] [cursor=pointer]':
+                  - text: Read more
+                  - generic [ref=e491]: ": Nymbus becomes a signatory of the Tobacco-Free Finance Pledge"
+            - article [ref=e492]:
+              - generic [ref=e500]:
+                - paragraph [ref=e501]:
+                  - generic [ref=e502]: Community
+                  - time [ref=e503]: Oct 3, 2023
+                - heading "Nymbus partners with Dans la rue" [level=3] [ref=e504]
+                - 'button "Read more : Nymbus partners with Dans la rue" [ref=e505] [cursor=pointer]':
+                  - text: Read more
+                  - generic [ref=e508]: ": Nymbus partners with Dans la rue"
+      - generic [ref=e511]:
+        - heading "Let’s discuss your investment objectives" [level=2] [ref=e512]:
+          - generic [aria-hidden] [ref=e513]:
+            - generic [ref=e514]: Let’s
+            - generic [ref=e515]: discuss
+            - generic [ref=e516]: your
+            - generic [ref=e517]: investment
+            - generic [ref=e518]: objectives
+        - paragraph [ref=e520]: Talk to our team about your mandate.
+        - generic [ref=e522]:
+          - link "Get in touch" [ref=e523] [cursor=pointer]:
+            - /url: /contact
+          - link "View solutions" [ref=e526] [cursor=pointer]:
+            - /url: /solutions
+  - contentinfo [ref=e527]:
+    - generic [ref=e528]:
+      - generic [ref=e529]:
+        - generic [ref=e530]:
+          - link "Nymbus Capital, home" [ref=e531] [cursor=pointer]:
+            - /url: /
+            - img "nymbus" [ref=e532]
+          - paragraph [ref=e541]: Montreal portfolio manager building systematic fixed income and alternative strategies.
+          - generic [ref=e542]:
+            - generic [ref=e543]: 1002 Sherbrooke Street West, Suite 1900 Montreal, Quebec H3A 3L6
+            - link "514-985-1138" [ref=e544] [cursor=pointer]:
+              - /url: tel:+15149851138
+            - generic [ref=e545]: 1-833-227-2656 (toll-free)
+            - link "info@nymbus.ca" [ref=e546] [cursor=pointer]:
+              - /url: mailto:info@nymbus.ca
+        - generic [ref=e547]:
+          - heading "Strategies" [level=2] [ref=e548]
+          - list [ref=e549]:
+            - listitem [ref=e550]:
+              - link "Monthly Income" [ref=e551] [cursor=pointer]:
+                - /url: /strategies/monthly-income
+            - listitem [ref=e553]:
+              - link "Sustainable Enhanced Bonds" [ref=e554] [cursor=pointer]:
+                - /url: /strategies/sustainable-enhanced-bonds
+            - listitem [ref=e556]:
+              - link "Multi-Strategy" [ref=e557] [cursor=pointer]:
+                - /url: /strategies/multi-strategy
+            - listitem [ref=e559]:
+              - link "Global Minimum Volatility" [ref=e560] [cursor=pointer]:
+                - /url: /strategies/global-minimum-volatility
+        - generic [ref=e562]:
+          - heading "Company" [level=2] [ref=e563]
+          - list [ref=e564]:
+            - listitem [ref=e565]:
+              - link "About & team" [ref=e566] [cursor=pointer]:
+                - /url: /team
+            - listitem [ref=e567]:
+              - link "Approach" [ref=e568] [cursor=pointer]:
+                - /url: /approach
+            - listitem [ref=e569]:
+              - link "Sustainability" [ref=e570] [cursor=pointer]:
+                - /url: /sustainability
+            - listitem [ref=e571]:
+              - link "Solutions" [ref=e572] [cursor=pointer]:
+                - /url: /solutions
+        - generic [ref=e573]:
+          - heading "Resources" [level=2] [ref=e574]
+          - list [ref=e575]:
+            - listitem [ref=e576]:
+              - link "Contact" [ref=e577] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e578]:
+              - link "Privacy policy" [ref=e579] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e580]:
+              - link "Complaints & code of ethics" [ref=e581] [cursor=pointer]:
+                - /url: /legal
+            - listitem [ref=e582]:
+              - link "LinkedIn" [ref=e583] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/nymbus-capital/
+      - generic [ref=e587]:
+        - paragraph [ref=e588]: Nymbus Capital Inc. is registered as a portfolio manager and investment fund manager with the Autorité des marchés financiers (Québec). The information on this website is provided for information purposes only; it is not investment, tax, legal or accounting advice and should not be relied upon as such. It does not constitute an offer to sell or a solicitation of an offer to buy any security or investment fund in any jurisdiction where such an offer or solicitation is not authorized. Units of the Nymbus funds are offered only by means of their offering documents (simplified prospectus and fund facts, or offering memorandum to eligible investors, as applicable) and only where they may lawfully be sold.
+        - paragraph [ref=e589]: Commissions, trailing commissions, management fees and expenses all may be associated with mutual fund investments. Please read the fund facts and the prospectus (or offering memorandum) before investing. Mutual funds are not guaranteed, their values change frequently and past performance may not be repeated.
+        - paragraph [ref=e590]: The indicated rates of return are the historical annual compounded total returns, net of fees, including changes in unit value and reinvestment of all distributions, and do not take into account sales, redemption, distribution or optional charges or income taxes payable by any securityholder that would have reduced returns. Returns are in Canadian dollars for the series shown; periods of less than one year are not annualized.
+        - paragraph [ref=e591]: The benchmark is a broad-based FTSE Canada bond index shown for comparison purposes only. Indices are unmanaged, bear no fees or expenses and cannot be invested in directly; the composition and risk of a fund may differ materially from those of its benchmark.
+        - paragraph [ref=e592]: The Nymbus Monthly Income Fund was launched on October 5, 2021. Performance shown for periods before that date reflects the track record of the same investment strategy as managed by Nymbus Capital since January 2019; it is not the performance of the fund, and the fund’s returns may have differed had it existed during that period.
+        - paragraph [ref=e593]: Nymbus Global Minimum Volatility is a strategy offered through separately managed accounts; it is not an investment fund. Its returns are shown gross of management fees and other expenses, which reduce client returns; actual client returns vary by account. Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.
+        - paragraph [ref=e594]: "Source: London Stock Exchange Group plc and its group undertakings (collectively, the “LSE Group”). © LSE Group. FTSE Russell is a trading name of certain of the LSE Group companies. “FTSE®” is a trade mark of the relevant LSE Group companies and is used by any other LSE Group company under licence. All rights in the FTSE Russell indexes or data vest in the relevant LSE Group company which owns the index or the data. Neither LSE Group nor its licensors accept any liability for any errors or omissions in the indexes or data and no party may rely on any indexes or data contained in this communication. No further distribution of data from the LSE Group is permitted without the relevant LSE Group company’s express written consent. The LSE Group does not promote, sponsor or endorse the content of this communication."
+      - generic [ref=e595]:
+        - generic [ref=e596]: © 2026 Nymbus Capital Inc. All rights reserved.
+        - generic [ref=e597]: PRI signatory
+  - alert [ref=e598]
+```
