@@ -27,7 +27,8 @@ function nymbus_sc_register_types() {
 		'has_archive'         => false,
 		'rewrite'             => false,
 		'query_var'           => false,
-		'capability_type'     => 'post',
+		// own capabilities (granted to Editor and Administrator only, below): an Author cannot publish on the website
+		'capability_type'     => array( 'nymbus_item', 'nymbus_items' ),
 		'map_meta_cap'        => true,
 		'hierarchical'        => false,
 		'delete_with_user'    => false,
@@ -93,6 +94,8 @@ function nymbus_sc_register_types() {
 	nymbus_sc_register_meta();
 }
 
+add_filter( 'user_has_cap', 'nymbus_sc_grant_item_caps' );
+
 /** Registers every field as post meta (REST-visible to editors only; sanitised on write). */
 function nymbus_sc_register_meta() {
 	$sets = array(
@@ -140,12 +143,21 @@ function nymbus_sc_register_meta() {
 
 /**
  * REST gate: anonymous visitors cannot read the raw post-type routes (drafts are already protected by WordPress;
- * this also keeps "hidden" team members and unpublished fields off the public API) nor list the users.
+ * this also keeps "hidden" team members and unpublished fields off the public API), list the users, nor the media library
+ * (/wp/v2/media: file names, captions and uploader of every upload). Images themselves stay public under wp-content/uploads.
  */
 add_filter( 'rest_pre_dispatch', 'nymbus_sc_rest_gate', 10, 3 );
 function nymbus_sc_rest_gate( $result, $server, $request ) {
 	$route = $request->get_route();
-	if ( preg_match( '#^/wp/v2/(nymbus_news|nymbus_team|users)(/|$)#', $route ) && ! current_user_can( 'edit_posts' ) ) {
+	$deny  = false;
+	if ( preg_match( '#^/wp/v2/(nymbus_news|nymbus_team)(/|$)#', $route ) ) {
+		$deny = ! current_user_can( 'edit_nymbus_items' );
+	} elseif ( preg_match( '#^/wp/v2/users(/|$)#', $route ) ) {
+		$deny = ! current_user_can( 'edit_posts' );
+	} elseif ( preg_match( '#^/wp/v2/media(/|$)#', $route ) ) {
+		$deny = ! is_user_logged_in();
+	}
+	if ( $deny ) {
 		return new WP_Error( 'nymbus_rest_forbidden', __( 'Sign in to use this endpoint.', 'nymbus-site-content' ), array( 'status' => is_user_logged_in() ? 403 : 401 ) );
 	}
 	return $result;

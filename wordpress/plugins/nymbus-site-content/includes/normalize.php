@@ -122,6 +122,34 @@ function nymbus_sc_https_url( $v ) {
 	return $v;
 }
 
+/** The slug, else "p<post id>" when the row carries its post id (`wp_id`), else ''. */
+function nymbus_sc_row_id( array $r ) {
+	$fallback = isset( $r['wp_id'] ) && preg_match( '/^[1-9]\d{0,17}$/', (string) $r['wp_id'] ) ? 'p' . $r['wp_id'] : '';
+	return nymbus_sc_slug( isset( $r['id'] ) ? $r['id'] : '', $fallback );
+}
+
+/** Primitive capabilities of the custom capability type (nymbus_item / nymbus_items) of both post types. */
+function nymbus_sc_item_caps() {
+	$caps = array();
+	foreach ( array( 'edit_%s', 'edit_others_%s', 'publish_%s', 'read_private_%s', 'delete_%s', 'delete_private_%s', 'delete_published_%s', 'delete_others_%s', 'edit_private_%s', 'edit_published_%s' ) as $f ) {
+		$caps[] = sprintf( $f, 'nymbus_items' );
+	}
+	return $caps;
+}
+
+/**
+ * `user_has_cap` filter body: whoever can edit and publish other people's posts (Editor, Administrator) can manage the
+ * Nymbus content; Author, Contributor and Subscriber cannot publish it, even though they can write ordinary posts.
+ */
+function nymbus_sc_grant_item_caps( $allcaps ) {
+	if ( is_array( $allcaps ) && ! empty( $allcaps['edit_others_posts'] ) && ! empty( $allcaps['publish_posts'] ) ) {
+		foreach ( nymbus_sc_item_caps() as $cap ) {
+			$allcaps[ $cap ] = true;
+		}
+	}
+	return $allcaps;
+}
+
 function nymbus_sc_slug( $v, $fallback ) {
 	$v = is_string( $v ) ? strtolower( $v ) : '';
 	return preg_match( '/^[a-z0-9][a-z0-9-]{0,99}$/', $v ) ? $v : $fallback;
@@ -145,7 +173,7 @@ function nymbus_sc_bi( $en, $fr, $max, $multiline = false ) {
 
 /** One news row (raw strings from the posts) → document entry, or null when it cannot be shown. */
 function nymbus_sc_shape_news( array $r ) {
-	$id    = nymbus_sc_slug( isset( $r['id'] ) ? $r['id'] : '', '' );
+	$id    = nymbus_sc_row_id( $r );
 	$date  = nymbus_sc_date( isset( $r['date'] ) ? $r['date'] : '' );
 	$title = nymbus_sc_bi( isset( $r['title_en'] ) ? $r['title_en'] : '', isset( $r['title_fr'] ) ? $r['title_fr'] : '', 200 );
 	if ( '' === $id || '' === $date || ( '' === $title['en'] && '' === $title['fr'] ) ) {
@@ -167,7 +195,7 @@ function nymbus_sc_shape_news( array $r ) {
 
 /** One team row → document entry, or null (hidden members never reach this function; bad rows are dropped). */
 function nymbus_sc_shape_member( array $r ) {
-	$id   = nymbus_sc_slug( isset( $r['id'] ) ? $r['id'] : '', '' );
+	$id   = nymbus_sc_row_id( $r );
 	$name = nymbus_sc_plain( isset( $r['name'] ) ? $r['name'] : '', 120 );
 	$dept = isset( $r['department'] ) ? $r['department'] : '';
 	if ( '' === $id || '' === $name || ! in_array( $dept, nymbus_sc_departments(), true ) ) {

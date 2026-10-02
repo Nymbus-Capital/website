@@ -63,6 +63,11 @@ check( 'news without title dropped', nymbus_sc_shape_news( array_merge( $news, a
 check( 'news bad date dropped', nymbus_sc_shape_news( array_merge( $news, array( 'date' => '' ) ) ), null );
 check( 'news bad id dropped', nymbus_sc_shape_news( array_merge( $news, array( 'id' => 'Bad Id' ) ) ), null );
 
+check( 'news invalid slug falls back to p<id>', nymbus_sc_shape_news( array_merge( $news, array( 'id' => 'Bad Id', 'wp_id' => '42' ) ) )['id'], 'p42' );
+check( 'news empty slug falls back to p<id>', nymbus_sc_shape_news( array_merge( $news, array( 'id' => '', 'wp_id' => 7 ) ) )['id'], 'p7' );
+check( 'news valid slug wins over the post id', nymbus_sc_shape_news( array_merge( $news, array( 'id' => 'ok-slug', 'wp_id' => '42' ) ) )['id'], 'ok-slug' );
+check( 'news bad slug and bad post id dropped', nymbus_sc_shape_news( array_merge( $news, array( 'id' => 'Bad Id', 'wp_id' => 'x1' ) ) ), null );
+
 // --- team ---------------------------------------------------------------------------------------------------
 $m = array(
 	'id' => 'a-person', 'name' => '<script>x</script>Eve', 'department' => 'Leadership', 'additional_departments' => array( 'Board', 'Board', 'Leadership', 'Nope' ),
@@ -80,6 +85,8 @@ check( 'linkedin kept', nymbus_sc_shape_member( array_merge( $m, array( 'linkedi
 check( 'lookalike linkedin dropped', nymbus_sc_shape_member( array_merge( $m, array( 'linkedin' => 'https://notlinkedin.com/in/eve' ) ) )['linkedin'], null );
 check( 'member bad department dropped', nymbus_sc_shape_member( array_merge( $m, array( 'department' => 'Marketing' ) ) ), null );
 check( 'member without name dropped', nymbus_sc_shape_member( array_merge( $m, array( 'name' => '  ' ) ) ), null );
+
+check( 'member invalid slug falls back to p<id>', nymbus_sc_shape_member( array_merge( $m, array( 'id' => '%e9%c3', 'wp_id' => '9' ) ) )['id'], 'p9' );
 
 // --- texts --------------------------------------------------------------------------------------------------
 $texts = nymbus_sc_shape_texts(
@@ -106,6 +113,14 @@ check( 'news newest first, duplicates and junk dropped', array_map( function ( $
 check( 'team by order', array_map( function ( $x ) { return $x['id']; }, $doc['team'] ), array( 'a-person', 'p2' ) );
 check( 'empty texts encode as an object', json_encode( $doc['texts'] ), '{}' );
 check( 'empty document encodes arrays', json_encode( nymbus_sc_build_document( array(), array(), array() ) ), '{"schemaVersion":1,"news":[],"team":[],"texts":{}}' );
+
+// --- capabilities -------------------------------------------------------------------------------------------
+$editor = nymbus_sc_grant_item_caps( array( 'edit_posts' => true, 'edit_others_posts' => true, 'publish_posts' => true ) );
+check( 'editor can publish the content', $editor['publish_nymbus_items'] && $editor['edit_nymbus_items'] && $editor['edit_others_nymbus_items'], true );
+$author = nymbus_sc_grant_item_caps( array( 'edit_posts' => true, 'publish_posts' => true ) );
+check( 'author cannot publish the content', isset( $author['publish_nymbus_items'] ) || isset( $author['edit_nymbus_items'] ), false );
+check( 'contributor cannot', nymbus_sc_grant_item_caps( array( 'edit_posts' => true ) ), array( 'edit_posts' => true ) );
+check( 'ten capabilities of the custom type', count( nymbus_sc_item_caps() ), 10 );
 
 echo "$count checks, $failures failure(s)\n";
 exit( $failures ? 1 : 0 );

@@ -107,3 +107,12 @@ function nymbus_sc_status_panel() {
 	}
 	echo '</tbody></table>';
 }
+
+/** A production site without the content secret refuses the document (rest.php): tell the people who can fix it. */
+add_action( 'admin_notices', 'nymbus_sc_secret_notice' );
+function nymbus_sc_secret_notice() {
+	if ( ! current_user_can( 'manage_options' ) || '' !== nymbus_sc_config( 'NYMBUS_CONTENT_SECRET' ) || ! nymbus_sc_is_production() ) {
+		return;
+	}
+	echo '<div class="notice notice-error"><p>' . esc_html__( 'Nymbus Site Content: NYMBUS_CONTENT_SECRET is not set. The website cannot read the content (HTTP 503) until it is set here and as WP_CONTENT_SECRET on the website.', 'nymbus-site-content' ) . '</p></div>';
+}

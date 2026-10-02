@@ -2,9 +2,10 @@
 /**
  * GET /wp-json/nymbus/v1/site-content — the one normalized, read-only document the Next.js site renders from.
  *
- * Access: public unless NYMBUS_CONTENT_SECRET is set (environment variable or constant); then the request must carry the
- * same value in the `X-Nymbus-Content-Secret` header (constant-time comparison). The content is public website content
- * anyway; the secret only stops third parties from hammering the editor backend and from pre-reading content.
+ * Access: when NYMBUS_CONTENT_SECRET is set (environment variable or constant) the request must carry the same value in
+ * the `X-Nymbus-Content-Secret` header (constant-time comparison). Unset: public outside production, 503 in production
+ * (WP_ENVIRONMENT_TYPE). The content is public website content anyway; the secret only stops third parties from
+ * hammering the editor backend and from pre-reading content.
  *
  * Never leaks: only PUBLISHED posts (no draft, pending, private, scheduled, trashed), no password-protected posts,
  * no team member flagged "hide", nothing but the whitelisted fields (see includes/normalize.php).
@@ -39,10 +40,18 @@ function nymbus_sc_register_routes() {
 	);
 }
 
-/** Public, or the shared secret in the header. */
+/** True on a production site (WP_ENVIRONMENT_TYPE, default "production"). */
+function nymbus_sc_is_production() {
+	return function_exists( 'wp_get_environment_type' ) && 'production' === wp_get_environment_type();
+}
+
+/** The shared secret in the header; public only outside production (local / staging / development). */
 function nymbus_sc_rest_permission( $request ) {
 	$secret = nymbus_sc_config( 'NYMBUS_CONTENT_SECRET' );
 	if ( '' === $secret ) {
+		if ( nymbus_sc_is_production() ) {
+			return new WP_Error( 'nymbus_not_configured', __( 'The content secret is not configured.', 'nymbus-site-content' ), array( 'status' => 503 ) );
+		}
 		return true;
 	}
 	$given = $request->get_header( 'x-nymbus-content-secret' );
@@ -72,7 +81,8 @@ function nymbus_sc_collect_news() {
 		$img    = get_the_post_thumbnail_url( $p, 'large' );
 		$dt     = get_post_datetime( $p );
 		$rows[] = array(
-			'id'         => '' !== $p->post_name ? $p->post_name : 'p' . $id,
+			'id'         => (string) $p->post_name,
+			'wp_id'      => (string) $id,
 			'date'       => $dt ? $dt->format( 'Y-m-d' ) : '',
 			'title_en'   => html_entity_decode( (string) $p->post_title, ENT_QUOTES, 'UTF-8' ),
 			'title_fr'   => (string) get_post_meta( $id, nymbus_sc_meta_key( 'title', 'fr' ), true ),
@@ -109,7 +119,8 @@ function nymbus_sc_collect_team() {
 		$img    = get_the_post_thumbnail_url( $p, 'medium_large' );
 		$extra  = array_filter( explode( ',', (string) get_post_meta( $id, nymbus_sc_meta_key( 'additional_departments' ), true ) ) );
 		$rows[] = array(
-			'id'                     => '' !== $p->post_name ? $p->post_name : 'p' . $id,
+			'id'                     => (string) $p->post_name,
+			'wp_id'                  => (string) $id,
 			'name'                   => html_entity_decode( (string) $p->post_title, ENT_QUOTES, 'UTF-8' ),
 			'department'             => (string) get_post_meta( $id, nymbus_sc_meta_key( 'department' ), true ),
 			'additional_departments' => array_values( $extra ),
