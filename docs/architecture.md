@@ -105,6 +105,36 @@ never calls the dataplatform from the browser.
   history does not reach its start). The page labels it "12 months to <trailingTo>", not the last distribution. The page shows every amount of a series with one precision (4–6
   decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
 
+### Returns per class and GMV variants (`classes.ts`, `build.ts`, `validate.ts`, `components/fund/lib/select.ts`)
+
+- **Contract used** (dataplatform PR #626, `feat/monthly-net-returns-class`, open at the time of writing):
+  `GET /api/performance/monthly-net-returns?short_name=<SEST|SEB|Multistrat>&class_code=<STRATEGY|STRATEGY_H>&history=full`.
+  `STRATEGY` = SEST FP (LDM001), SEB F (LDM201), Multistrat F (LDM301); `STRATEGY_H` = SEB H (LDM202); anything else is 422.
+  The answer must echo `fundserv`, `class_display` and `history: "full"`; rows carry `source` (cibc | bridge | apex).
+  **Before the PR is deployed** the endpoint ignores the parameters and answers its default class without those
+  fields: the fetcher treats that as *not served* (`absent`, one info issue per fund) and never uses it as a class series.
+- `FundData.performanceByClass` (by FundServ), `defaultClass`: each class has its own performance and risk statistics.
+  The class series must be a contiguous run ending at the validated as-of month; otherwise that class is dropped with a
+  warn and shows "coming soon" (a class never borrows another class's figures). A class with < 12 months is published with
+  the periods that exist (`Performance.shortRecord`, no annualized figure, no risk statistics). The parameterless series is
+  the *legacy* class (SEST = FP, SEB = **H**, Multistrat = F): it stays the cross-checked main series, labelled with its
+  true class, and the class endpoint's answer for it is only a consistency check. The top-level `performance` / `risk`
+  is the **default class's (F)** series when the endpoint serves it, else the legacy class's.
+- **Not available yet** (what is missing): (1) PR #626 deployed; (2) Monthly Income **F LDM081** has no class series at
+  the dataplatform (`STRATEGY` for SEST is FP): the page shows "coming soon" for F; add `{ fundserv: "LDM081", ... }` to
+  `classSeries` in `fund-sources.ts` and the dataplatform class mapping when it exists; (3) the other classes (A, FP of SEB
+  and Multi-Strategy, USD classes) have no class series, so they also show "coming soon". The home page
+  (`components/site/home`, not touched here) still reads the top-level `performance`, which for Monthly Income is FP's.
+- **GMV variants**: `FundData.variants` ("3" | "6" | "9", default "6") from the factsheet blocks `GMV_3pct`, `GMV_6pct`,
+  `GMV_9pct`: returns, risk, characteristics, allocation and holdings per variant; the default variant equals the fund's own
+  data. A variant whose block is missing or fails the gates is dropped alone (warn); the page then shows nothing for it.
+- **Page**: `FundPage` holds the selected class and variant; `pickData` applies them before `stripHidden`. Class types
+  (prospectus / OM) come from the registry (`FundSpec.classes[].type`) and the admin (`FundContent.classTypes`); no type, no label.
+- **Rankings** (`FundContent.rankings`, seeded in `src/lib/data/defaults.ts`, merged field-level per fund): third-party
+  Fund Library rank / quartile per period, FundGrade and an optional Morningstar rating, edited by hand in the admin with
+  an "as at" date; shown in the *Awards and rankings* tab with the source link; `hide.rankings` removes the tab. Wordmarks
+  are CSS text: official brand assets may only be dropped in with the owners' permission.
+
 ## Conventions
 
 - All returns/weights/yields are decimal fractions in data; formatting happens in the UI only.
