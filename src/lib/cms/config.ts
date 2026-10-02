@@ -7,6 +7,7 @@
  *   WP_REVALIDATE_SECRET shared secret that authorises `POST /api/cms/revalidate` (same value as NYMBUS_REVALIDATE_SECRET in WordPress)
  *   WP_MEDIA_ORIGIN      optional public origin of the images (default: the origin of WP_BASE_URL when that is public https / loopback)
  *   CMS_REVALIDATE_SECONDS  optional, how long a fetched document is reused (default 60, 5 to 3600)
+ *   CMS_MAX_STALE_HOURS  optional, how long the last good copy is served while WordPress fails, then the static sources (default 72, 1 to 720)
  *
  * `http` is accepted only for a loopback host (local development) or a single-label private-network host name such as
  * `http://wordpress:80` (Northflank private network, like DATAPLATFORM_URL); everything else must be https. Images are
@@ -26,6 +27,8 @@ export interface CmsConfig {
   contentSecret: string | null;
   revalidateSecret: string | null;
   ttlMs: number;
+  /** after this long without a successful fetch the CMS content is not used (static fallback) */
+  maxStaleMs: number;
   timeoutMs: number;
 }
 
@@ -63,6 +66,7 @@ export function loadCmsConfig(env: Record<string, string | undefined> = process.
     mediaLoopback = base.loopback;
   }
   const ttl = Number(env.CMS_REVALIDATE_SECONDS);
+  const stale = Number(env.CMS_MAX_STALE_HOURS);
   return {
     baseUrl,
     endpoint: baseUrl + ENDPOINT_PATH,
@@ -71,6 +75,7 @@ export function loadCmsConfig(env: Record<string, string | undefined> = process.
     contentSecret: env.WP_CONTENT_SECRET?.trim() || null,
     revalidateSecret: env.WP_REVALIDATE_SECRET?.trim() || null,
     ttlMs: Number.isFinite(ttl) && ttl > 0 ? clamp(Math.trunc(ttl), 5, 3600) * 1000 : 60_000,
+    maxStaleMs: (Number.isFinite(stale) && stale > 0 ? clamp(Math.trunc(stale), 1, 720) : 72) * 3_600_000,
     timeoutMs: 4000,
   };
 }

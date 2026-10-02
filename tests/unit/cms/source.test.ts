@@ -12,7 +12,7 @@ const dir = mkdtempSync(path.join(tmpdir(), "nymbus-cms-"));
 process.env.SITE_DATA_DIR = dir;
 after(() => rmSync(dir, { recursive: true, force: true }));
 
-const { createCmsSource, LAST_GOOD, FAIL_BACKOFF_MS, MIN_FETCH_GAP_MS } = await import("../../../src/lib/cms/source.ts");
+const { createCmsSource, LAST_GOOD, LAST_GOOD_PREV, LAST_GOOD_META, FAIL_BACKOFF_MS, MIN_FETCH_GAP_MS, shrinkProblem } = await import("../../../src/lib/cms/source.ts");
 const { loadCmsConfig } = await import("../../../src/lib/cms/config.ts");
 
 const fixture = readFileSync(path.resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8");
@@ -56,9 +56,10 @@ test("within the TTL nothing is refetched; after it the stale copy is served whi
   assert.equal(a, b);
   assert.equal(b, c);
   assert.equal(h.calls(), 2, "three concurrent stale requests share one refresh");
-  release(ok(JSON.stringify({ ...JSON.parse(fixture), news: [] })));
+  release(ok(JSON.stringify({ ...JSON.parse(fixture), news: JSON.parse(fixture).news.slice(1) })));
   await tick();
-  assert.equal((await h.src.get())!.doc.news.length, 0, "the refreshed document replaces the stale one");
+  assert.equal((await h.src.get())!.doc.news.length, 3, "the refreshed document replaces the stale one");
+  assert.equal(JSON.parse(readFileSync(path.join(dir, ...LAST_GOOD_PREV), "utf8")).news.length, 4, "the replaced copy is kept as last-good.prev.json");
 });
 
 test("WordPress down on a cold start with an empty volume: null (callers use the static sources)", async () => {
@@ -98,6 +99,7 @@ test("a damaged or hostile last good file is ignored", async () => {
   assert.equal(await h2.src.get(), null);
   // images of a file written under another media origin are dropped on read
   writeFileSync(lastGoodFile, fixture);
+  writeFileSync(path.join(dir, ...LAST_GOOD_META), JSON.stringify({ at: Date.now() }));
   const other = createCmsSource(loadCmsConfig({ WP_BASE_URL: "https://cms.example.org" }, () => undefined)!, { fetchImpl: async () => new Response("x", { status: 500 }), log: () => undefined });
   const s = await other.get();
   assert.equal(s!.origin, "last-good");
@@ -154,4 +156,67 @@ test("log lines never contain the content secret", async () => {
   await src.get();
   assert.ok(logs.length > 0);
   assert.ok(logs.every((l) => !l.includes("sekrit-value")));
+});
+
+test("inside the back-off with nothing in memory (no volume copy) the source answers null at once, without a request", async () => {
+  const h = harness(() => { throw new TypeError("fetch failed"); });
+  assert.equal(await h.src.get(), null);
+  assert.equal(h.calls(), 1);
+  h.advance(FAIL_BACKOFF_MS - 1000);
+  assert.equal(await h.src.get(), null);
+  assert.equal(h.calls(), 1, "no new request inside the back-off");
+  h.advance(2000);
+  h.mode.fn = () => ok();
+  assert.equal((await h.src.get())!.origin, "live");
+});
+
+test("an empty or much smaller document never replaces a non-empty one (memory and volume)", async () => {
+  const h = harness(() => ok());
+  await h.src.get();
+  const before = readFileSync(lastGoodFile, "utf8");
+  const f = JSON.parse(fixture);
+  const cases: Record<string, unknown> = {
+    empty: { ...f, news: [], team: [] },
+    "less than half": { ...f, news: f.news.slice(0, 1), team: [] },
+    "lost items to validation": { ...f, news: [...f.news.slice(1), { id: "Bad Id!" }] },
+  };
+  for (const [name, body] of Object.entries(cases)) {
+    h.advance(61_000 + FAIL_BACKOFF_MS);
+    h.mode.fn = () => ok(JSON.stringify(body));
+    await h.src.get();
+    await tick();
+    const s = await h.src.get();
+    assert.equal(s!.doc.news.length, 4, `${name}: old document kept in memory`);
+    assert.equal(readFileSync(lastGoodFile, "utf8"), before, `${name}: last-good untouched`);
+  }
+  assert.ok(h.logs.some((l) => /refused: no item/.test(l)));
+  // after a restart (empty memory) the volume copy is the reference too
+  const cold = harness(() => ok(JSON.stringify(cases.empty)));
+  const s = await cold.src.get();
+  assert.equal(s!.origin, "last-good");
+  assert.equal(s!.doc.news.length, 4);
+  // a first-ever empty document is accepted (nothing to protect): the callers show the static sources
+  rmSync(path.join(dir, "cms"), { recursive: true, force: true });
+  const first = harness(() => ok(JSON.stringify(cases.empty)));
+  assert.equal((await first.src.get())!.doc.news.length, 0);
+  assert.equal(shrinkProblem(null, { schemaVersion: 1, news: [], team: [], texts: {} }, 0), null);
+});
+
+test("a copy older than maxStale (72 h) is not served: null, the callers use the static sources", async () => {
+  const h = harness(() => ok());
+  assert.ok(await h.src.get());
+  h.mode.fn = () => new Response("down", { status: 500 });
+  h.advance(71 * 3_600_000);
+  assert.equal((await h.src.get())!.origin, "live", "71 h: still served (stale)");
+  await tick();
+  h.advance(2 * 3_600_000 + FAIL_BACKOFF_MS);
+  assert.equal(await h.src.get(), null, "73 h without a successful fetch");
+  h.mode.fn = () => ok();
+  h.advance(FAIL_BACKOFF_MS + 1);
+  assert.equal((await h.src.get())!.origin, "live", "renewed as soon as WordPress answers");
+  // a volume copy with no recorded fetch time is as old as it can be
+  const cold = harness(() => new Response("down", { status: 500 }));
+  rmSync(path.join(dir, ...LAST_GOOD_META), { force: true });
+  cold.advance(100 * 3_600_000);
+  assert.equal(await cold.src.get(), null);
 });
