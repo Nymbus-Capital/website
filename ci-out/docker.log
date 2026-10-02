@@ -1,0 +1,40 @@
+#13 6.400 
+#13 6.424   Creating an optimized production build ...
+#13 13.64 ✓ Compiled successfully in 6.8s
+#13 13.64   Running TypeScript ...
+#13 20.74 Failed to compile.
+#13 20.74 
+#13 20.74 ./src/components/site/fx/scan-engine.ts:152:21
+#13 20.74 Type error: This condition will always return true since this function is always defined. Did you mean to call it instead?
+#13 20.74 
+#13 20.74 [0m [90m 150 |[39m                 ctx[33m![39m[33m.[39mfillStyle [33m=[39m row[33m.[39mscore [33m>=[39m [35m0[39m [33m?[39m [32m"rgba(26,115,232,.12)"[39m [33m:[39m [32m"rgba(194,65,12,.12)"[39m[33m;[39m
+#13 20.74  [90m 151 |[39m                 ctx[33m![39m[33m.[39mbeginPath()[33m;[39m
+#13 20.74 [31m[1m>[22m[39m[90m 152 |[39m                 [36mif[39m (ctx[33m![39m[33m.[39mroundRect) ctx[33m![39m[33m.[39mroundRect(px[33m,[39m yc [33m-[39m [35m9[39m[33m,[39m pw[33m,[39m [35m18[39m[33m,[39m [35m9[39m)[33m;[39m [36melse[39m ctx[33m![39m[33m.[39mrect(px[33m,[39m yc [33m-[39m [35m9[39m[33m,[39m pw[33m,[39m [35m18[39m)[33m;[39m
+#13 20.74  [90m     |[39m                     [31m[1m^[22m[39m
+#13 20.74  [90m 153 |[39m                 ctx[33m![39m[33m.[39mfill()[33m;[39m
+#13 20.74  [90m 154 |[39m                 ctx[33m![39m[33m.[39mfillStyle [33m=[39m row[33m.[39mscore [33m>=[39m [35m0[39m [33m?[39m [33mBLUE_D[39m [33m:[39m [33mORANGE[39m[33m;[39m
+#13 20.74  [90m 155 |[39m                 ctx[33m![39m[33m.[39mfont [33m=[39m [32m`600 9.5px ${SANS}`[39m[33m;[39m[0m
+#13 20.79 Next.js build worker exited with code: 1 and signal: null
+#13 ERROR: process "/bin/sh -c npm test && npm run build" did not complete successfully: exit code: 1
+------
+ > [build 5/5] RUN npm test && npm run build:
+20.74 Type error: This condition will always return true since this function is always defined. Did you mean to call it instead?
+20.74 
+20.74 [0m [90m 150 |[39m                 ctx[33m![39m[33m.[39mfillStyle [33m=[39m row[33m.[39mscore [33m>=[39m [35m0[39m [33m?[39m [32m"rgba(26,115,232,.12)"[39m [33m:[39m [32m"rgba(194,65,12,.12)"[39m[33m;[39m
+20.74  [90m 151 |[39m                 ctx[33m![39m[33m.[39mbeginPath()[33m;[39m
+20.74 [31m[1m>[22m[39m[90m 152 |[39m                 [36mif[39m (ctx[33m![39m[33m.[39mroundRect) ctx[33m![39m[33m.[39mroundRect(px[33m,[39m yc [33m-[39m [35m9[39m[33m,[39m pw[33m,[39m [35m18[39m[33m,[39m [35m9[39m)[33m;[39m [36melse[39m ctx[33m![39m[33m.[39mrect(px[33m,[39m yc [33m-[39m [35m9[39m[33m,[39m pw[33m,[39m [35m18[39m)[33m;[39m
+20.74  [90m     |[39m                     [31m[1m^[22m[39m
+20.74  [90m 153 |[39m                 ctx[33m![39m[33m.[39mfill()[33m;[39m
+20.74  [90m 154 |[39m                 ctx[33m![39m[33m.[39mfillStyle [33m=[39m row[33m.[39mscore [33m>=[39m [35m0[39m [33m?[39m [33mBLUE_D[39m [33m:[39m [33mORANGE[39m[33m;[39m
+20.74  [90m 155 |[39m                 ctx[33m![39m[33m.[39mfont [33m=[39m [32m`600 9.5px ${SANS}`[39m[33m;[39m[0m
+20.79 Next.js build worker exited with code: 1 and signal: null
+------
+Dockerfile:15
+--------------------
+  13 |     COPY --from=deps /app/node_modules ./node_modules
+  14 |     COPY . .
+  15 | >>> RUN npm test && npm run build
+  16 |     
+  17 |     FROM node:22-bookworm-slim AS run
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm test && npm run build" did not complete successfully: exit code: 1
