@@ -254,8 +254,10 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   it never hides or changes data** (hiding is the as-of rule above). `POST /api/admin/rankings/check` runs it on demand.
 - **Seeds** (`defaults.ts`): Morningstar 5 stars Class F as of 2026-10-01 for both bond funds (stated by Nymbus); Fund
   Library as at 2026-08-31; RBC Investor Services Pooled Fund Survey Q2 2026 for both bond funds, **confirmed**
-  (`scope: "fund"`, `basis` gross of management fees in CAD, periods + one-year periods ending June 30; returns stored as
-  `ror`, never sent to the page). The old pristine drafts migrate to these entries. Official Morningstar logo and 5-star
+  (`scope: "fund"`, `trackSince: "2019-01"` — strategy track record incl. pre-launch periods, labelled as such with a link
+  to the disclosures —, `basis` gross of management fees in CAD, standard periods + `rolling` 4-year periods ending June 30
+  2023–2026 (the survey table "Four year periods ending June 30"); category names in English in both languages; returns
+  stored as `ror`, never sent to the page). Entries stored with the earlier `annual` field migrate to `rolling` (4 years). The old pristine drafts migrate to these entries. Official Morningstar logo and 5-star
   image are shipped in `public/brand/third-party/` (served with the sandbox CSP by `next.config.ts`). A fund whose stored rankings lack `thirdParty` gets the drafts; saving an empty
   list keeps it empty.
 - **Morningstar on the overview**: the bond funds' Overview tab shows the rating in the side column

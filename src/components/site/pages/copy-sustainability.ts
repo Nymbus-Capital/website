@@ -98,7 +98,7 @@ export const SU = {
     accent: l("on the record", "publics"),
     items: [
       { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("UN-supported Principles for Responsible Investment.", "Principes pour l’investissement responsable, soutenus par l’ONU.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("A firm-level signature. The pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI, encourages signatories to consider tobacco-free policies across lending, insurance and investment.", "Une signature de la firme. L’engagement, une initiative de Tobacco Free Portfolios menée avec l’UNEP FI, invite les signataires à envisager des politiques sans tabac en matière de prêt, d’assurance et de placement.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("A firm-level signature. The pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI, encourages signatories to consider tobacco-free policies across lending, insurance and investment.", "Une signature de la firme. L’engagement, une initiative de Tobacco Free Portfolios menée avec l’IF du PNUE, invite les signataires à envisager des politiques sans tabac en matière de prêt, d’assurance et de placement.") },
     ],
     fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction") },
   },

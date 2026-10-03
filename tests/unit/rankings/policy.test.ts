@@ -74,7 +74,10 @@ test("seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact pe
     assert.match(e.basis!.en, /gross of management fees/);
     assert.match(e.basis!.fr, /avant déduction des frais de gestion/);
     assert.deepEqual(e.rows.map((r) => r.period), ["3M", "1Y", "2Y", "3Y", "5Y"], "10 years n/a: not seeded");
-    assert.deepEqual(e.annual!.map((x) => [x.end, x.percentile]), [["2026-06-30", 1], ["2025-06-30", 1], ["2024-06-30", 1], ["2023-06-30", 1]]);
+    // "Four year periods ending June 30": rolling 4-year periods, not one-year periods
+    assert.deepEqual(e.rolling!.map((x) => [x.end, x.years, x.percentile]), [["2026-06-30", 4, 1], ["2025-06-30", 4, 1], ["2024-06-30", 4, 1], ["2023-06-30", 4, 1]]);
+    assert.equal(e.trackSince, "2019-01", "strategy track record since January 2019 (before the fund's launch)");
+    assert.equal(e.category.fr, e.category.en, "the survey's English category names in both languages");
     assert.equal(thirdPartyStatus(e, NOW, 6), "shown");
   }
   assert.deepEqual(seb.rows.map((r) => r.percentile), [1, 1, 1, 1, 1]);
@@ -83,13 +86,14 @@ test("seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact pe
   assert.deepEqual(mi.rows.map((r) => r.ror), [2.02, 12.42, 10.9, 13.38, 7.23]);
   assert.equal(seb.category.en, "Canadian Fixed Income");
   assert.equal(mi.category.en, "Canadian Short Term Fixed Income");
-  assert.equal(mi.category.fr, "Revenu fixe canadien à court terme");
+  assert.equal(mi.category.fr, "Canadian Short Term Fixed Income");
 
   // public payload: percentiles only (no returns, no admin note / source reference)
   const pub = publicFundRankings({ thirdParty: [mi] }, { now: NOW, months: 6 })!.thirdParty![0];
   assert.equal("note" in pub || "sourceRef" in pub, false);
   assert.equal(pub.rows.some((r) => "ror" in r), false);
-  assert.equal(pub.annual!.some((x) => "ror" in x), false);
+  assert.equal(pub.rolling!.some((x) => "ror" in x), false);
+  assert.equal(pub.trackSince, "2019-01");
   assert.equal(pub.rows[0].percentile, 4);
 
   const empty = mergeContent(null);
@@ -111,13 +115,29 @@ test("seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact pe
   assert.equal(m2.funds["monthly-income"]!.rankings!.thirdParty![0].url, "https://www.rbcis.com/x.pdf");
 });
 
-test("fund-level entries: no class needed when scope is fund; basis needs EN and FR; one-year periods valid and within as-of", () => {
+test("fund-level entries: no class needed when scope is fund; basis needs EN and FR; rolling periods valid and within as-of", () => {
   assert.equal(thirdPartyStatus(rbc({ classLabel: "", scope: "fund" }), NOW, 6), "shown");
   assert.equal(thirdPartyStatus(rbc({ classLabel: "" }), NOW, 6), "incomplete");
   assert.equal(thirdPartyStatus(rbc({ basis: { en: "gross", fr: "" } }), NOW, 6), "incomplete");
-  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-06-30", percentile: 1 }] }), NOW, 6), "shown");
-  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-09-30", percentile: 1 }] }), NOW, 6), "incomplete", "ends after the as-of date");
-  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-06-30", percentile: null }] }), NOW, 6), "incomplete");
+  assert.equal(thirdPartyStatus(rbc({ rolling: [{ end: "2026-06-30", years: 4, percentile: 1 }] }), NOW, 6), "shown");
+  assert.equal(thirdPartyStatus(rbc({ rolling: [{ end: "2026-09-30", years: 4, percentile: 1 }] }), NOW, 6), "incomplete", "ends after the as-of date");
+  assert.equal(thirdPartyStatus(rbc({ rolling: [{ end: "2026-06-30", years: 4, percentile: null }] }), NOW, 6), "incomplete");
+  assert.equal(thirdPartyStatus(rbc({ rolling: [{ end: "2026-06-30", years: 0, percentile: 1 }] }), NOW, 6), "incomplete", "length in years required");
+  assert.equal(thirdPartyStatus(rbc({ trackSince: "2019-13" }), NOW, 6), "incomplete");
+});
+
+test("migration: entries saved with the previous 'annual' list become rolling 4-year periods; the seeded RBC copy gets its strategy scope and English categories", () => {
+  const legacy = {
+    provider: "rbc-pfs", classLabel: "", scope: "fund", category: { en: "Canadian Short Term Fixed Income", fr: "Revenu fixe canadien à court terme" }, asOf: "2026-06-30",
+    url: "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf", confirmed: true, rows: [{ period: "1Y", percentile: 1 }],
+    annual: [{ end: "2026-06-30", percentile: 1, ror: 11.52 }],
+  };
+  const m = mergeContent({ version: 1, updatedAt: "x", updatedBy: "x", firm: {}, pipeline: { publishMode: "review" }, funds: { "monthly-income": { rankings: { thirdParty: [legacy] } } } } as unknown as SiteContent);
+  const e = m.funds["monthly-income"]!.rankings!.thirdParty![0] as ThirdPartyRanking & { annual?: unknown };
+  assert.equal(e.annual, undefined);
+  assert.deepEqual(e.rolling, [{ end: "2026-06-30", percentile: 1, ror: 11.52, years: 4 }]);
+  assert.equal(e.trackSince, "2019-01");
+  assert.equal(e.category.fr, "Canadian Short Term Fixed Income");
 });
 
 test("cleanFundContent keeps third-party drafts and drops their empty optional fields", () => {

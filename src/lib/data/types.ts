@@ -390,10 +390,15 @@ export interface PercentileRow {
   ror?: number | null;
 }
 
-/** A one-year period ending on a date (RBC survey: "one-year periods ending June 30"). */
-export interface AnnualPercentileRow {
-  /** end of the 12-month period, YYYY-MM-DD */
+/**
+ * A rolling multi-year period ending on a date (RBC survey table "Four year periods ending June 30": columns 2026, 2025,
+ * 2024, 2023 are the 4-year annualized periods ending June 30 of each year).
+ */
+export interface RollingPercentileRow {
+  /** end of the period, YYYY-MM-DD */
   end: string;
+  /** length of the period in years (4 for the RBC survey table) */
+  years: number;
   percentile: number | null;
   ror?: number | null;
 }
@@ -420,8 +425,10 @@ export interface ThirdPartyRanking {
   /** edition of the survey or report ("Q2 2026"), when the source has one */
   edition?: string;
   rows: PercentileRow[];
-  /** one-year periods ending on given dates, when the source has them */
-  annual?: AnnualPercentileRow[];
+  /** rolling multi-year periods ending on given dates, when the source has them */
+  rolling?: RollingPercentileRow[];
+  /** the figures use the strategy's track record since this month (YYYY-MM), incl. periods before the fund's launch */
+  trackSince?: string;
   /** where in the source (e.g. "page 21 of 57"), admin reference */
   sourceRef?: string;
   /** public page or PDF the figures were read from (https) */

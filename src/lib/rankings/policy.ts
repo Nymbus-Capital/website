@@ -90,7 +90,8 @@ export function isCompleteThirdParty(e: ThirdPartyRanking | null | undefined): b
   if (!(e.scope === "fund" || e.classLabel?.trim()) || !e.category?.en?.trim() || !e.category?.fr?.trim()) return false;
   if (!isIsoDate(e.asOf) || !isHttpsUrl(e.url)) return false;
   if (e.basis && !(e.basis.en?.trim() && e.basis.fr?.trim())) return false;
-  if ((e.annual ?? []).some((a) => !isIsoDate(a.end) || a.end > e.asOf || !okPercentile(a.percentile))) return false;
+  if ((e.rolling ?? []).some((a) => !isIsoDate(a.end) || a.end > e.asOf || !okPercentile(a.percentile) || !Number.isInteger(a.years) || a.years < 1 || a.years > 20)) return false;
+  if (e.trackSince !== undefined && !/^\d{4}-(0[1-9]|1[0-2])$/.test(e.trackSince)) return false;
   return Array.isArray(e.rows) && e.rows.length > 0 && e.rows.every(rowHasFigure);
 }
 
@@ -146,12 +147,12 @@ export function publicRankings(
     .filter((e) => isCompleteThirdParty(e) && fresh(e.asOf) && (!e.fundserv || !own || own.some((c) => c.fundserv.toUpperCase() === e.fundserv!.toUpperCase())))
     .map((e) => {
       // admin note and source reference stay on the server; returns are not displayed, so not sent either
-      const { note: _note, sourceRef: _ref, annual, ...rest } = e;
+      const { note: _note, sourceRef: _ref, rolling, ...rest } = e;
       void _note; void _ref;
       return {
         ...rest,
         rows: e.rows.filter(rowHasFigure).map((r) => ({ period: r.period, percentile: r.percentile, ...(r.rank != null ? { rank: r.rank } : {}), ...(r.of != null ? { of: r.of } : {}) })),
-        ...(annual?.length ? { annual: annual.map((a) => ({ end: a.end, percentile: a.percentile })) } : {}),
+        ...(rolling?.length ? { rolling: rolling.map((a) => ({ end: a.end, years: a.years, percentile: a.percentile })) } : {}),
       };
     });
   return { fundLibrary, morningstar, thirdParty };
