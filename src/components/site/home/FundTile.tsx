@@ -128,6 +128,7 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
                 <>
                   <span className="fig m g-fund"><Odometer value={f.si} pct sign decimals={1} lang={locale} /></span>
                   <span className="fx-lbl">{pick(siLabel(f))} · {basis}</span>
+                  {f.perfVariant ? <span className="fx-lbl" data-testid="perf-variant-main">{pick(f.perfVariant)}</span> : null}
                 </>
               ) : null}
             </span>
@@ -156,6 +157,7 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
               {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
               {/* the class of the returns shown (may differ from the NAV series above) */}
               {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}
+              {f.perfVariant ? <> · <span data-testid="perf-variant">{pick(f.perfVariant)}</span></> : null}
             </span>
           ) : null}
         </span>

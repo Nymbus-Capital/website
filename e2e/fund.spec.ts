@@ -375,11 +375,43 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await sel.getByTestId("variant-9").click();
   const nine = await si();
   expect(new Set([six, three, nine]).size, "each variant has its own returns").toBe(3);
-  await expect(page.getByTestId("basis")).toContainText("Target downside volatility 9%");
+  // every figure names its downside volatility variant: hero, return strip, overview, performance, chart legend, disclosure
+  await expect(page.getByTestId("basis").getByTestId("variant-name")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("hero-variant")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("overview-variant")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("disclosure-variant")).toHaveText("9% downside volatility");
   await openTab(page, "performance");
-  await expect(page.getByTestId("perf-context")).toContainText("9%");
+  await expect(page.getByTestId("perf-context").getByTestId("perf-variant")).toHaveText("9% downside volatility");
+  await page.getByTestId("growth").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(9% downside volatility)");
   await sel.getByTestId("variant-6").click();
   expect(await si()).toBe(six);
+  await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility)");
+});
+
+test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({ page }) => {
+  for (const [lang, name] of [["en", /^6% downside volatility$/], ["fr", /^volatilité à la baisse de 6\s%$/]] as const) {
+    await page.goto("/");
+    if (lang === "fr") {
+      await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+      await page.reload();
+    }
+    const tile = page.getByTestId("strategy-global-minimum-volatility");
+    await expect(tile.getByTestId("perf-variant-main")).toHaveText(name);
+    await expect(tile.getByTestId("perf-variant")).toHaveText(name);
+    // the other strategies have no variant
+    await expect(page.getByTestId("strategy-monthly-income").getByTestId("perf-variant")).toHaveCount(0);
+    await page.goto("/strategies");
+    await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-variant")).toHaveText(name);
+    await expect(page.getByTestId("compare-table").getByTestId("perf-variant")).toHaveCount(1);
+    await expect(page.getByTestId("compare-table").getByTestId("perf-variant")).toHaveText(name);
+    await page.goto("/solutions");
+    await expect(page.getByTestId("solution-variant-global-minimum-volatility").first()).toHaveText(name);
+    await page.goto("/strategies/global-minimum-volatility");
+    await expect(page.getByTestId("basis").getByTestId("variant-name")).toHaveText(name);
+    await expect(page.getByTestId("disclosure-variant")).toHaveText(name);
+  }
 });
 
 test("awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only", async ({ page }) => {

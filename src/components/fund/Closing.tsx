@@ -47,8 +47,9 @@ export function FeatureSection({ spec, data, content, lang }: { spec: FundSpec; 
   );
 }
 
-export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer }: {
+export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer, ctx }: {
   spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean; firmDisclaimer?: { en: string; fr: string } | null;
+  ctx?: { variant: string | null };
 }) {
   // regulatory texts come from src/content/disclaimers.ts; the admin may override the firm text and, per fund,
   // the performance note (which then replaces the pre-launch boilerplate)
@@ -58,6 +59,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
   const hasBenchmark = !!(spec.benchmark || perf?.indexName);
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
+  const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   const asOf = [
     perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${monthLabel(perf.asOf, lang)}` : null,
     data?.nav?.asOf && !content.hide?.nav ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang)}` : null,
@@ -78,7 +80,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer 
               : preLaunch ? <p className="fxd-note" data-testid="perf-note">{tr(preLaunch, lang)}</p> : null}
             {cl || perf ? (
               <p className="fxd-note" data-testid="perf-class">
-                {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}{perf?.indexName ? ` · ${tr(T.perf.index, lang)}${colon(lang)}${perf.indexName}` : ""}
+                {tr(T.perf.classShown, lang)}{colon(lang)}{variant ? <><span data-testid="disclosure-variant">{tr(variant.name, lang)}</span>, </> : null}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}{perf?.indexName ? ` · ${tr(T.perf.index, lang)}${colon(lang)}${perf.indexName}` : ""}
               </p>
             ) : null}
             <p>{gross ? tr(T.disclosure.gross, lang) : tr(T.disclosure.net, lang)}</p>

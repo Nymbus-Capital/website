@@ -46,7 +46,7 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
                     const st = report.funds?.[f.key];
                     return (
                       <tr key={f.key}>
-                        <td>{f.short.en}</td>
+                        <td>{f.short.en}{s?.variant ? <div className="adm-small adm-muted">{s.variant}</div> : null}</td>
                         <td><Pill tone={fundStateTone(st)}>{st ?? "—"}</Pill></td>
                         <td className="tabnum">{s?.performanceAsOf ?? "—"}</td>
                         <td className="adm-muted">{s?.basis ?? "—"}</td>
