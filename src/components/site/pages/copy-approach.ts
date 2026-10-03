@@ -35,7 +35,7 @@ export const AP = {
     items: [
       { t: l("Ultra-micro analysis", "Analyse ultra-micro"), d: l("Each bond studied on its own, across entire universes.", "Chaque obligation étudiée individuellement, dans des univers entiers.") },
       { t: l("Systematic scans", "Balayages systématiques"), d: l("Bond universes screened for the most attractive assets for their risk.", "Des univers obligataires passés au crible, à la recherche des actifs les plus attrayants compte tenu de leur risque.") },
-      { t: l("Protective overlays", "Superpositions protectrices"), d: l("Futures overlays designed to have low correlation with bonds (risks below).", "Des superpositions de contrats à terme conçues pour avoir une faible corrélation avec les obligations (risques ci-dessous).") },
+      { t: l("Futures overlays", "Superpositions de contrats à terme"), d: l("Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).", "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).") },
     ],
     viz: l("Illustration: a bond universe, scanned bond by bond", "Illustration : un univers obligataire, balayé obligation par obligation"),
     illus: l("Illustration only", "Illustration seulement"),
@@ -87,7 +87,7 @@ export const AP = {
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
         l("Regime detection (risk-on / risk-off)", "Détection de régime (appétit ou aversion pour le risque)"),
         l("Duration and credit hedging", "Couverture de la durée et du crédit"),
-        l("Overlays sized to a downside-volatility target", "Superpositions calibrées selon une cible de volatilité baissière"),
+        l("Overlays sized to a downside-volatility target", "Superpositions calibrées selon une cible de volatilité à la baisse"),
       ],
       note: l(
         "Hedging seeks to limit losses in adverse conditions; it does not eliminate the risk of loss.",
@@ -145,8 +145,8 @@ export const AP = {
     solution: l("Our response", "Notre réponse"),
     solT: l("A managed futures overlay", "Une superposition de contrats à terme gérés"),
     solD: l(
-      "Our overlay is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
-      "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
+      "Our overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
+      "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
     ),
     stackT: l("Most of the capital stays invested", "La majeure partie du capital reste investie"),
     stackD: l(
@@ -171,19 +171,22 @@ export const AP = {
     title: l("Several strategies,", "Plusieurs stratégies,"),
     accent: l("across asset classes", "dans plusieurs catégories d’actifs"),
     lead: l(
-      "A liquid alternative: systematic strategies across asset classes, designed to have low correlation with stocks and bonds.",
-      "Une solution alternative liquide : des stratégies systématiques dans plusieurs catégories d’actifs, conçues pour avoir une faible corrélation avec les actions et les obligations.",
+      "A liquid, cross-asset alternative strategy: several systematic strategies, designed to have low correlation with stocks and bonds in down months.",
+      "Une stratégie alternative liquide et multi-actifs : plusieurs stratégies systématiques, conçues pour avoir une faible corrélation avec les actions et les obligations lors des mois de baisse.",
     ),
     strategies: [l("Low volatility", "Faible volatilité"), l("Directional", "Directionnelle"), l("Mean reversion", "Retour à la moyenne"), l("Hedging", "Couverture")],
     assets: [l("Rates", "Taux"), l("Credit", "Crédit"), l("Equity indices", "Indices boursiers"), l("Currencies", "Devises"), l("Commodities", "Matières premières")],
-    overlay: l("Protective overlay · listed futures", "Superposition protectrice · contrats à terme cotés"),
+    overlay: l("Futures overlay · designed to offset part of bond losses", "Superposition de contrats à terme · conçue pour compenser une partie des pertes obligataires"),
     strategiesK: l("Strategies", "Stratégies"),
     assetsK: l("Asset classes", "Catégories d’actifs"),
     offersT: l("Three ways to access it", "Trois façons d’y accéder"),
     offers: [
-      { t: l("Bond funds with an overlay", "Fonds obligataires avec superposition"), d: l("Monthly Income and Sustainable Enhanced Bonds.", "Revenu Mensuel et Obligations Durables Bonifiées."), href: "/strategies/monthly-income" },
-      { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("Several systematic strategies in one fund.", "Plusieurs stratégies systématiques dans un seul fonds."), href: "/strategies/multi-strategy" },
-      { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The overlay alone, on top of your portfolio.", "La superposition seule, ajoutée à votre portefeuille."), href: "/strategies/global-minimum-volatility" },
+      { t: l("Bond funds with an overlay", "Fonds obligataires avec superposition"), d: l("Both bond funds use the futures overlay.", "Les deux fonds obligataires utilisent la superposition."), links: [
+        { href: "/strategies/monthly-income", label: l("Monthly Income", "Revenu Mensuel") },
+        { href: "/strategies/sustainable-enhanced-bonds", label: l("Sustainable Enhanced Bonds", "Obligations Durables Bonifiées") },
+      ] },
+      { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("Several systematic strategies in one fund.", "Plusieurs stratégies systématiques dans un seul fonds."), links: [{ href: "/strategies/multi-strategy" }] },
+      { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The overlay alone, on top of your portfolio.", "La superposition seule, ajoutée à votre portefeuille."), links: [{ href: "/strategies/global-minimum-volatility" }] },
     ],
     note: l(
       "Illustration only: allocations change over time and not every strategy trades every asset class. Low correlation is an objective, not a guarantee. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
@@ -218,7 +221,7 @@ export const AP = {
     accent: l("and market veterans", "et des vétérans des marchés"),
     people: l("people on the team", "personnes dans l’équipe"),
     phd: l("PhDs", "doctorats"),
-    cfa: l("CFA or CIM holders", "titulaires CFA ou CIM"),
+    cfa: l("CFA or CIM holders", "titulaires de titres CFA ou CIM"),
     cta: l("Meet the team", "Rencontrer l’équipe"),
   },
   cta: {

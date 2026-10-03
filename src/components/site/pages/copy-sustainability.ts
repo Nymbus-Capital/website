@@ -22,8 +22,8 @@ export const SU = {
     title: l("Our commitments,", "Nos engagements,"),
     accent: l("and a sustainable bond fund", "et un fonds obligataire durable"),
     lead: l(
-      "Firm-wide, we are a PRI signatory. ESG criteria and exclusions apply only to the Sustainable Enhanced Bonds Fund, and not to its futures overlay, which trades exchange-traded futures rather than securities of individual issuers.",
-      "À l’échelle de la firme, nous sommes signataires des PRI. Les critères ESG et les exclusions s’appliquent uniquement au Fonds Obligations Durables Bonifiées, et non à sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels.",
+      "Firm-wide, we are a PRI signatory. The ESG criteria and exclusions on this page are those of the Sustainable Enhanced Bonds Fund; they do not apply to its futures overlay, which trades exchange-traded futures rather than securities of individual issuers.",
+      "À l’échelle de la firme, nous sommes signataires des PRI. Les critères ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées; ils ne visent pas sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels.",
     ),
     cta1: SEB,
     cta2: l("The fund’s exclusions", "Les exclusions du fonds"),
@@ -34,12 +34,12 @@ export const SU = {
     title: l("Commitments", "Des engagements"),
     accent: l("we hold as a firm", "pris par la firme"),
     lead: l(
-      "Public commitments of Nymbus Capital. ESG screens and exclusions are specific to the Sustainable Enhanced Bonds Fund.",
-      "Des engagements publics de Nymbus Capital. Les filtres ESG et les exclusions sont propres au Fonds Obligations Durables Bonifiées.",
+      "Public commitments of Nymbus Capital. The ESG screens and exclusions on this page are those of the Sustainable Enhanced Bonds Fund.",
+      "Des engagements publics de Nymbus Capital. Les filtres ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées.",
     ),
     items: [
       { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018.", "Signataire des PRI depuis 2018.") },
-      { t: l("Engagement", "Engagement"), d: l("Tobacco-Free Finance Pledge, 2024.", "Engagement pour une finance sans tabac, 2024.") },
+      { t: l("Engagement", "Engagement"), d: l("Signatory of the Tobacco-Free Finance Pledge since 2024.", "Signataire de l’Engagement pour une finance sans tabac depuis 2024.") },
       { t: l("Transparency", "Transparence"), d: l("The sustainable fund’s metrics, on its fund page.", "Les indicateurs du fonds durable, sur sa page.") },
     ],
   },
@@ -58,8 +58,8 @@ export const SU = {
     title: l("The fund’s", "Les exclusions"),
     accent: l("exclusions", "du fonds"),
     lead: l(
-      "The Sustainable Enhanced Bonds Fund excludes the issuers below, as set out in its offering documents. Our other funds and strategies do not apply these exclusions. They do not apply to exchange-traded futures used in the fund’s overlay.",
-      "Le Fonds Obligations Durables Bonifiées exclut les émetteurs ci-dessous, selon les modalités prévues dans ses documents de placement. Nos autres fonds et stratégies n’appliquent pas ces exclusions. Elles ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds.",
+      "The ESG criteria and exclusions below are those of the Sustainable Enhanced Bonds Fund, as set out in its offering documents. They do not apply to exchange-traded futures used in the fund’s overlay.",
+      "Les critères ESG et les exclusions ci-dessous sont ceux du Fonds Obligations Durables Bonifiées, selon les modalités prévues dans ses documents de placement. Ils ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds.",
     ),
     items: [
       { t: l("Coal and oil sands", "Charbon et sables bitumineux"), d: l("More than 5% of revenue from coal, oil sands or thermal coal power.", "Plus de 5 % des revenus tirés du charbon, des sables bitumineux ou de l’électricité au charbon.") },
@@ -98,7 +98,7 @@ export const SU = {
     accent: l("on the record", "publics"),
     items: [
       { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("UN-supported Principles for Responsible Investment.", "Principes pour l’investissement responsable, soutenus par l’ONU.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("An initiative led by Tobacco Free Portfolios.", "Une initiative menée par Tobacco Free Portfolios.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("The firm’s signature of an initiative led by Tobacco Free Portfolios.", "La signature, par la firme, d’une initiative menée par Tobacco Free Portfolios.") },
     ],
     fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction") },
   },

@@ -3,7 +3,7 @@
  * the pages cannot silently grow back; lower them when the copy is cut further. Legal pages are excluded.
  * Raised 2026-10-02 (content v3, Gabriel's requests): approach +risk-first section, +multi-strategy diagram and its
  * mandatory overlay disclosure; about +credentials band; solutions +three illustrative use cases, each with its risk
- * disclosure. The new texts are counted, aria labels included.
+ * disclosure. The new texts are counted, aria labels included. 2026-10-03: approach 740 (down-month correlation wording).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -32,7 +32,7 @@ const BUDGET: [string, unknown, number][] = [
   // the "diversifying engines" band (2026-10-02) has its own ceiling: home above stays as it was
   ["home engines band", OVERLAY_COPY, 160],
   ["about", AB, 285],
-  ["approach", AP, 720],
+  ["approach", AP, 740],
   ["contact", CT, 295],
   ["sustainability", SU, 350],
   ["solutions", [SOL_COPY, AUDIENCES], 545],

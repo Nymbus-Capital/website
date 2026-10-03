@@ -32,7 +32,7 @@ export const T = {
     noChange: l("No daily change published", "Aucune variation quotidienne publiée"),
     asOf: l("As of", "Au"),
     currency: l("Currency", "Devise"),
-    fundserv: l("FundServ", "FundServ"),
+    fundserv: l("Fundserv", "Fundserv"),
     trackRecord: l("Track record since", "Historique depuis"),
     fundLaunch: l("Fund launch", "Lancement du fonds"),
     mer: l("MER", "RFG"),
@@ -113,7 +113,7 @@ export const T = {
     feesNoneStrategy: l("Fees are set out in each client’s investment management agreement.", "Les frais sont précisés dans la convention de gestion de chaque client."),
     returns: l("Returns", "Rendements"),
     returnsMore: l("See all performance", "Voir tous les rendements"),
-    series: l("Series and FundServ codes", "Séries et codes FundServ"),
+    series: l("Series and Fundserv codes", "Séries et codes Fundserv"),
     team: l("Investment team", "Équipe de placement"),
     teamGeneric: l("The fund is managed by the Nymbus Capital investment team.", "Le fonds est géré par l’équipe de placement de Nymbus Capital."),
     teamGenericStrategy: l("The strategy is managed by the Nymbus Capital investment team.", "La stratégie est gérée par l’équipe de placement de Nymbus Capital."),
@@ -145,7 +145,7 @@ export const T = {
     mer: l("Management expense ratio (MER)", "Ratio des frais de gestion (RFG)"),
     aum: l("Fund assets", "Actif du fonds"),
     basis: l("Returns shown", "Rendements présentés"),
-    fundserv: l("FundServ", "FundServ"),
+    fundserv: l("Fundserv", "Fundserv"),
     nav: l("NAV per unit", "VL par part"),
     change: l("Daily change", "Variation quotidienne"),
     date: l("Valuation date", "Date d’évaluation"),
@@ -409,8 +409,8 @@ export type FeatureIcon = "calendar" | "timer" | "scan" | "shield" | "leaf" | "f
 
 /* risk disclosures of the futures overlay (compliance-reviewed wording, verbatim) */
 const LOW_CORR = l(
-  "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-  "conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+  "designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+  "conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
 );
 const OVERLAY_EXPOSURE = l(
   "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
@@ -495,13 +495,13 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
   },
   "global-minimum-volatility": {
     summary: l(
-      "A managed-futures overlay for family offices and institutions, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-      "Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+      "A managed-futures overlay for family offices and institutions, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+      "Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
     ),
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
       l("Most of the capital stays invested in the underlying portfolio", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent"),
-      l("Liquid futures, sized to each client’s downside volatility target", "Des contrats à terme liquides, calibrés selon la cible de volatilité baissière de chaque client"),
+      l("Liquid futures, sized to each client’s downside volatility target", "Des contrats à terme liquides, calibrés selon la cible de volatilité à la baisse de chaque client"),
     ],
     note: OVERLAY_EXPOSURE,
     feature: {
@@ -511,7 +511,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       cards: [
         { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most of the capital stays invested in the underlying portfolio.", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent.") },
         { icon: "layers", title: l("Liquid futures", "Contrats à terme liquides"), text: join(l("Exchange-traded futures, which require a margin deposit.", "Des contrats à terme cotés, qui exigent un dépôt de garantie."), OVERLAY_EXPOSURE) },
-        { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("Sized to the downside volatility agreed with the client.", "Calibrée selon la volatilité baissière convenue avec le client.") },
+        { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("Sized to the downside volatility agreed with the client.", "Calibrée selon la volatilité à la baisse convenue avec le client.") },
         { icon: "shield", title: l("Designed for low correlation", "Conçue pour une faible corrélation"), text: join(l("The overlay is", "La stratégie est"), LOW_CORR) },
       ],
     },

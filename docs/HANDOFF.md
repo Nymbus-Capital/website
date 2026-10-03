@@ -177,6 +177,17 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `fix/copy-v3` from `integ/v3`; not merged): fixes after the independent review of content v3 —
+  ESG attribution without "other funds" claims, pledge texts describe the firm's signature only (FR « Engagement pour une finance
+  sans tabac » incl. news title); no "protective" overlay as fact; pension objective "returns above inflation over a full rate cycle";
+  "liquid, cross-asset alternative strategy" instead of "liquid alternative"; "low correlation with bonds in down months" across
+  approach / fund pages / solutions; « volatilité à la baisse » everywhere (+ test forbidding « baissière »), "Fundserv"; no « ingénieurs »
+  for people (FR « scientifiques, informaticiens et analystes »); decks titles aligned; Guy Liébart's 59 years dropped (combined
+  experience 273+); both bond funds linked from "Bond funds with an overlay"; contrast, new-tab notice, portrait sizes.
+  Compliance § Content v3 rows R1–R10. **TODO**: Guy Liébart's and Xavier Girard's portraits are still hotlinked from
+  www.nymbus.ca (not in the repo, not in the decks list): add self-hosted copies when available. The frozen "Science at scale"
+  band still says « ingénieurs » (needs Gabriel's sign-off).
+
 - 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
   branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
   that order, `--no-ff`). Resolutions: one GMV label implementation, dp-only-data's `FundCard.perfVariant` from

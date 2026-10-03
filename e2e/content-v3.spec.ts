@@ -21,7 +21,7 @@ test("approach: risk-first section and the multi-strategy diagram, with links to
   await expect(ms.locator(".ap-ms-cell")).toHaveCount(20);
   await expect(ms).toContainText(/illustration only/i);
   await expect(ms).toContainText("The overlay adds futures exposure on top of the underlying portfolio");
-  for (const key of ["monthly-income", "multi-strategy", "global-minimum-volatility"]) {
+  for (const key of ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy", "global-minimum-volatility"]) {
     await expect(page.locator(`.ap-ms-offers a[href="/strategies/${key}"]`)).toHaveCount(1);
   }
   // the diagram fits the viewport (no horizontal page scroll on mobile)
@@ -97,11 +97,12 @@ test("GMV: every figure on the home, strategies and solutions pages names its do
 
 test("sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only", async ({ page, baseURL }) => {
   await page.goto("/sustainability");
-  await expect(page.locator("main")).toContainText("ESG criteria and exclusions apply only to the Sustainable Enhanced Bonds Fund");
+  await expect(page.locator("main")).toContainText("The ESG criteria and exclusions on this page are those of the Sustainable Enhanced Bonds Fund");
   const ex = page.locator("section#exclusions");
   await ex.scrollIntoViewIfNeeded();
-  await expect(ex).toContainText("Our other funds and strategies do not apply these exclusions.");
+  await expect(ex).toContainText("The ESG criteria and exclusions below are those of the Sustainable Enhanced Bonds Fund");
+  await expect(page.locator("main")).not.toContainText(/other funds and strategies/i);
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto("/sustainability");
-  await expect(page.locator("main")).toContainText("s’appliquent uniquement au Fonds Obligations Durables Bonifiées");
+  await expect(page.locator("main")).toContainText("sont ceux du Fonds Obligations Durables Bonifiées");
 });

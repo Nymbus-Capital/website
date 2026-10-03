@@ -92,7 +92,7 @@ export const AUDIENCES: AudienceCopy[] = [
       title: l("Pension plan: a liability-matching bond core, plus a second objective", "Régime de retraite : un noyau obligataire apparié au passif, et un second objectif"),
       steps: [
         l("Bonds matched to long-term liabilities, actively managed to seek added value", "Des obligations appariées au passif à long terme, gérées activement pour chercher une valeur ajoutée"),
-        l("A protective futures overlay on top, seeking to beat inflation whether rates rise or fall", "Une superposition protectrice de contrats à terme, qui cherche à battre l’inflation, que les taux montent ou baissent"),
+        l("A futures overlay on top, designed to offset part of bond losses, with an objective of returns above inflation over a full rate cycle", "Une superposition de contrats à terme, conçue pour compenser une partie des pertes obligataires, avec un objectif de rendement supérieur à l’inflation sur un cycle complet de taux"),
         l("Most of the capital stays in the liability-matching bonds", "La majeure partie du capital reste dans les obligations appariées au passif"),
       ],
       note: join(MAY_NOT, OVERLAY_ADDS),
@@ -107,8 +107,8 @@ export const AUDIENCES: AudienceCopy[] = [
       "Des obligations de base et des stratégies alternatives.",
     ),
     benefits: [
-      l("Diversification across strategies and asset classes", "Diversification entre stratégies et classes d’actifs"),
-      l("Alternatives designed for low correlation with bonds and equities", "Stratégies alternatives conçues pour être peu corrélées aux obligations et aux actions"),
+      l("Diversification across strategies and asset classes", "Diversification entre stratégies et catégories d’actifs"),
+      l("Alternatives designed for low down-month correlation with bonds and equities", "Stratégies alternatives conçues pour être peu corrélées aux obligations et aux actions lors des mois de baisse"),
       l("Direct access to the investment team", "Accès direct à l’équipe de placement"),
       l("Transparent, regular reporting", "Rapports transparents et réguliers"),
     ],
@@ -121,7 +121,7 @@ export const AUDIENCES: AudienceCopy[] = [
       title: l("Family office: capital efficiency through the overlay", "Bureau de gestion familiale : l’efficacité du capital par la superposition"),
       steps: [
         l("Existing portfolio positions serve as collateral for the futures", "Des positions existantes du portefeuille servent de garantie pour les contrats à terme"),
-        l("The overlay is sized to a targeted downside volatility", "La superposition est calibrée selon une volatilité baissière cible"),
+        l("The overlay is sized to a targeted downside volatility", "La superposition est calibrée selon une cible de volatilité à la baisse"),
         l("The existing portfolio stays invested", "Le portefeuille existant demeure investi"),
       ],
       note: join(
@@ -136,25 +136,25 @@ export const AUDIENCES: AudienceCopy[] = [
     name: l("Investment advisors", "Conseillers en placement"),
     who: l("Advisors registered with CIRO or a provincial securities regulator.", "Conseillers inscrits auprès de l’OCRI ou d’une autorité provinciale en valeurs mobilières."),
     intro: l(
-      "Our funds on FundServ, with documents and support.",
-      "Nos fonds sur FundServ, avec documents et soutien.",
+      "Our funds on Fundserv, with documents and support.",
+      "Nos fonds sur Fundserv, avec documents et soutien.",
     ),
     benefits: [
-      l("Funds on FundServ for client portfolios", "Fonds sur FundServ pour les portefeuilles de vos clients"),
+      l("Funds on Fundserv for client portfolios", "Fonds sur Fundserv pour les portefeuilles de vos clients"),
       l("Model portfolio integration support", "Soutien à l’intégration aux portefeuilles modèles"),
       l("A dedicated advisor support team", "Équipe de soutien réservée aux conseillers"),
       l("Due diligence documentation on request", "Documentation de vérification diligente sur demande"),
     ],
     vehicles: [
-      { name: l("Funds on FundServ", "Fonds sur FundServ"), text: l("Fund codes on each fund page.", "Codes de fonds sur chaque page de fonds.") },
+      { name: l("Funds on Fundserv", "Fonds sur Fundserv"), text: l("Fund codes on each fund page.", "Codes de fonds sur chaque page de fonds.") },
       { name: l("Dealer platforms", "Plateformes de courtiers"), text: l("National Bank Financial, RBC Dominion Securities, iA Financial Group.", "Financière Banque Nationale, RBC Dominion valeurs mobilières, iA Groupe financier.") },
     ],
     funds: ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy"],
     useCase: {
       title: l("Advisors: systematic funds for client portfolios", "Conseillers : des fonds systématiques pour les portefeuilles de vos clients"),
       steps: [
-        l("A systematic fixed income core, on FundServ", "Un noyau de revenu fixe systématique, sur FundServ"),
-        l("A liquid alternative sleeve to diversify", "Un volet alternatif liquide pour diversifier"),
+        l("A systematic fixed income core, on Fundserv", "Un noyau de revenu fixe systématique, sur Fundserv"),
+        l("A liquid, cross-asset alternative strategy to diversify", "Une stratégie alternative liquide et multi-actifs pour diversifier"),
         l("Documents and due diligence support from our team", "Documents et soutien à la vérification diligente par notre équipe"),
       ],
     },

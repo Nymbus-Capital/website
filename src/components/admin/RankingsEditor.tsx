@@ -49,7 +49,7 @@ export function RankingsEditor({ value, onChange, months = DEFAULT_MAX_AGE_MONTH
         <div key={i} className="adm-field" role="group" aria-label={`Fund Library ranking ${i + 1}`}>
           <div className="row">
             <label className="adm-field"><span>class (as the source names it)</span><input className="adm-input" value={e.classLabel} maxLength={40} placeholder="Class F" onChange={(ev) => setEntry(i, { classLabel: ev.target.value })} /></label>
-            <label className="adm-field"><span>FundServ</span><input className="adm-input" value={e.fundserv ?? ""} maxLength={12} placeholder="LDM201" onChange={(ev) => setEntry(i, { fundserv: ev.target.value })} /></label>
+            <label className="adm-field"><span>Fundserv</span><input className="adm-input" value={e.fundserv ?? ""} maxLength={12} placeholder="LDM201" onChange={(ev) => setEntry(i, { fundserv: ev.target.value })} /></label>
             <label className="adm-field"><span>as at (YYYY-MM-DD)</span><input className="adm-input" value={e.asOf} maxLength={10} placeholder="2026-08-31" onChange={(ev) => setEntry(i, { asOf: ev.target.value })} /></label>
             <label className="adm-field">
               <span>FundGrade</span>
@@ -157,7 +157,7 @@ function ThirdPartyEditor({ list, months, onChange }: { list: ThirdPartyRanking[
                 </select>
               </label>
               <label className="adm-field"><span>class (as the source names it)</span><input className="adm-input" aria-label={`${name} class`} value={e.classLabel} maxLength={40} placeholder="Class F / Pooled fund" onChange={(ev) => setEntry(i, { classLabel: ev.target.value })} /></label>
-              <label className="adm-field"><span>FundServ (optional)</span><input className="adm-input" aria-label={`${name} FundServ`} value={e.fundserv ?? ""} maxLength={12} onChange={(ev) => setEntry(i, { fundserv: ev.target.value || undefined })} /></label>
+              <label className="adm-field"><span>Fundserv (optional)</span><input className="adm-input" aria-label={`${name} Fundserv`} value={e.fundserv ?? ""} maxLength={12} onChange={(ev) => setEntry(i, { fundserv: ev.target.value || undefined })} /></label>
               <label className="adm-field"><span>period ended (YYYY-MM-DD)</span><input className="adm-input" aria-label={`${name} as of`} value={e.asOf} maxLength={10} placeholder="2026-06-30" onChange={(ev) => setEntry(i, { asOf: ev.target.value })} /></label>
               <label className="adm-field"><span>edition</span><input className="adm-input" aria-label={`${name} edition`} value={e.edition ?? ""} maxLength={40} placeholder="Q2 2026" onChange={(ev) => setEntry(i, { edition: ev.target.value || undefined })} /></label>
             </div>

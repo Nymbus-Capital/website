@@ -13,7 +13,7 @@ export const STRAT_COPY = {
   ),
   toTable: l("Compare the strategies", "Comparer les stratégies"),
   fundsTitle: l("Funds and strategies", "Fonds et stratégies"),
-  filterLabel: l("Filter by asset class", "Filtrer par classe d’actifs"),
+  filterLabel: l("Filter by asset class", "Filtrer par catégorie d’actifs"),
   one: l("strategy", "stratégie"),
   many: l("strategies", "stratégies"),
   none: l("No strategy in this category.", "Aucune stratégie dans cette catégorie."),

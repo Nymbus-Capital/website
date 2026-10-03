@@ -321,15 +321,29 @@ export function Approach({ members: team = staticTeam }: { members?: TeamMember[
         <MultiStrategy />
         <h3 className="h4 ap-ms-offers-t">{pick(AP.multi.offersT)}</h3>
         <Reveal as="ul" kind="pop" stagger={110} className="ap-ms-offers">
-          {AP.multi.offers.map((o, i) => (
-            <li key={i}>
-              <Link href={o.href} className="card ring ap-ms-offer">
-                <span className="ap-ms-offer-t">{pick(o.t)}</span>
-                <span className="ap-ms-offer-d">{pick(o.d)}</span>
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </li>
-          ))}
+          {AP.multi.offers.map((o, i) => {
+            const links = o.links as { href: string; label?: { en: string; fr: string } }[];
+            return (
+              <li key={i}>
+                {links.length === 1 ? (
+                  <Link href={links[0].href} className="card ring ap-ms-offer">
+                    <span className="ap-ms-offer-t">{pick(o.t)}</span>
+                    <span className="ap-ms-offer-d">{pick(o.d)}</span>
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                ) : (
+                  // several funds share the card: one link per fund page
+                  <div className="card ring ap-ms-offer">
+                    <span className="ap-ms-offer-t">{pick(o.t)}</span>
+                    <span className="ap-ms-offer-d">{pick(o.d)}</span>
+                    <span className="ap-ms-offer-l">
+                      {links.map((k) => <Link key={k.href} href={k.href} className="link">{k.label ? pick(k.label) : null} <ArrowRight aria-hidden="true" /></Link>)}
+                    </span>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </Reveal>
       </Section>
 
