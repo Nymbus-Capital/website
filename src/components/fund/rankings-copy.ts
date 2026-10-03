@@ -42,13 +42,15 @@ export const RK = {
   },
   adv: {
     eyebrow: l("Independent rankings", "Classements indépendants"),
-    title: l("How independent providers rank our funds", "Le classement de nos fonds par des fournisseurs indépendants"),
+    title: l("Third-party rankings", "Classements de tiers"),
     lead: l("Category rankings and ratings, each with its source and date.", "Classements et cotes par catégorie, chacun avec sa source et sa date."),
     asAt: l("As at", "Au"),
     source: l("Source", "Source"),
     rating: l("{n}-star overall rating", "Cote globale de {n} étoiles"),
     quartile: l("Q{q}", "Q{q}"),
     newTab: l("opens in a new tab", "nouvel onglet"),
+    perf: l("Standard performance of the fund", "Rendements standard du fonds"),
+    overall: l("overall", "globale"),
     rankOf: l("rank {rank} of {of}", "rang {rank} sur {of}"),
     note: l(
       "Rankings and ratings are provided by the third parties named, reproduced as at the dates shown and not updated daily; each applies to the series and category shown. Past performance does not predict future results, and rankings and ratings are not guarantees. See each source for its methodology.",

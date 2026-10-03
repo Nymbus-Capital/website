@@ -60,7 +60,8 @@ export default async function StrategyPage({ params }: Params) {
   void _pin;
   // third-party rankings: only confirmed, complete entries younger than the configured limit reach the page (drafts,
   // admin notes and stale figures stay on the server)
-  const rankings = publicFundRankings(allRankings, { now: new Date(), months: policyMonths(siteContent), classes: view.spec.classes });
+  // admin "hide rankings": nothing at all in the payload
+  const rankings = rest.hide?.rankings ? undefined : publicFundRankings(allRankings, { now: new Date(), months: policyMonths(siteContent), classes: view.spec.classes });
   const content = rankings ? { ...rest, rankings } : rest;
   // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client, nor any
   // block the admin hid (performance, growth, calendar, risk, NAV, portfolio blocks; the fund AUM unless explicitly

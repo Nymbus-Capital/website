@@ -10,6 +10,13 @@ import {
 import { checkDue, checkIntervalDays } from "../../../src/lib/rankings/schedule.ts";
 import type { SiteContent, ThirdPartyRanking } from "../../../src/lib/data/types.ts";
 
+/** run the check and fail the test if it was locked */
+async function check(o: Parameters<typeof runRbcSurveyCheck>[0]): Promise<RbcCheckState> {
+  const r = await runRbcSurveyCheck(o);
+  assert.ok(!("locked" in r), "check locked");
+  return r as RbcCheckState;
+}
+
 const fixture = (n: string) => readFileSync(new URL(`../../fixtures/rankings/${n}`, import.meta.url), "utf8");
 const NOW = new Date("2026-10-02T12:00:00Z");
 
@@ -51,15 +58,16 @@ function fakeFetch(pages: Record<string, string | number>, pdfs: string[] = [], 
 }
 
 test("detectLatestSurvey: listing + PDF probe of the next quarters; failures reported, never thrown", async () => {
-  const listing = "https://l/1";
+  const listing = "https://www.rbcis.com/test-listing";
+  const LATER = new Date("2026-11-15T12:00:00Z");
   const q3 = expectedPdfUrl({ year: 2026, quarter: 3 });
-  const r = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: fixture("rbc-listing.html") }, [q3]), listingUrls: [listing] });
+  const r = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: fixture("rbc-listing.html") }, [q3]), listingUrls: [listing], now: LATER });
   assert.equal(r.ok, true);
   assert.deepEqual([r.latest?.year, r.latest?.quarter, r.latest?.url], [2026, 3, q3], "Q3 PDF found by the probe");
   const none = await detectLatestSurvey({ fetchImpl: fakeFetch({}), listingUrls: [listing], now: NOW });
   assert.equal(none.latest, null);
   assert.equal(none.sources[0].ok, false);
-  const down = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: 503 }), listingUrls: [listing], known: { year: 2026, quarter: 2 } });
+  const down = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: 503 }), listingUrls: [listing], known: { year: 2026, quarter: 2 }, now: LATER });
   assert.equal(down.latest, null);
   assert.equal(down.sources[0].status, 503);
   assert.equal(down.ok, true, "the PDF host answered (404): the check itself ran");
@@ -102,17 +110,17 @@ test("runRbcSurveyCheck: stores state, keeps the last edition after a failure, a
       return fakeFetch(pages, [], log)(input, init);
     }) as typeof fetch;
     const c = content("2026-03-31");
-    const s1 = await runRbcSurveyCheck({ fetchImpl, now: NOW, content: c, log: () => undefined });
+    const s1 = await check({ fetchImpl, now: NOW, content: c, log: () => undefined });
     assert.equal(s1.ok, true);
     assert.equal(s1.latest?.label, "Q2 2026");
     assert.equal(s1.latest?.asOf, "2026-06-30");
     assert.equal(log.filter((l) => l === "HOOK").length, 1);
     assert.equal((await readRbcState())?.alertedFor, "Q2 2026");
     // second run: same edition, no second alert; then the network fails: last edition kept, ok false
-    await runRbcSurveyCheck({ fetchImpl, now: NOW, content: c, log: () => undefined });
+    await check({ fetchImpl, now: NOW, content: c, log: () => undefined });
     assert.equal(log.filter((l) => l === "HOOK").length, 1, "alerted once per edition");
     const offline = (async () => { throw new TypeError("fetch failed"); }) as typeof fetch;
-    const s3 = await runRbcSurveyCheck({ fetchImpl: offline, now: new Date("2026-10-09T12:00:00Z"), content: c, log: () => undefined });
+    const s3 = await check({ fetchImpl: offline, now: new Date("2026-10-09T12:00:00Z"), content: c, log: () => undefined });
     assert.equal(s3.ok, false);
     assert.equal(s3.latest?.label, "Q2 2026", "a failed check keeps the last detected edition");
     assert.equal(s3.lastSuccessAt, NOW.toISOString());
@@ -131,4 +139,59 @@ test("weekly schedule: due when never run or older than the interval", () => {
   assert.equal(checkIntervalDays({}), 7);
   assert.equal(checkIntervalDays({ RANKINGS_CHECK_DAYS: "14" }), 14);
   assert.equal(checkIntervalDays({ RANKINGS_CHECK_DAYS: "0" }), 7);
+});
+
+test("detection: a quarter not over (+ publication lag) or without a link never counts; foreign hosts refused", async () => {
+  const listing = "https://www.rbcis.com/test-listing";
+  const html = `<a href="/en/insights/2026/10/pooled-fund-survey-q3-26">Pooled Fund Survey – Q3 2026</a><p>Pooled Fund Survey – Q4 2026</p>
+    <a href="/en/insights/2026/08/pooled-fund-survey-q2-26">x</a>`;
+  const now = new Date("2026-10-03T12:00:00Z");
+  const r = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: html }), listingUrls: [listing], now });
+  assert.deepEqual([r.latest?.year, r.latest?.quarter], [2026, 2], "Q3 2026 ended 3 days ago: not yet published; Q4 title without a link ignored");
+  const titleOnly = await detectLatestSurvey({ fetchImpl: fakeFetch({ [listing]: "<h1>Pooled Fund Survey – Q2 2026</h1>" }), listingUrls: [listing], now });
+  assert.equal(titleOnly.latest, null, "a title without an article / PDF link is not a publication");
+  const evil = await detectLatestSurvey({ fetchImpl: fakeFetch({}), listingUrls: ["https://evil.example/insights"], now });
+  assert.match(evil.sources[0].error ?? "", /refused host/);
+  // a redirect off the RBC hosts is refused
+  const redirect = (async (input: string | URL | Request) => String(input) === listing
+    ? new Response(null, { status: 302, headers: { location: "https://evil.example/x" } })
+    : new Response(null, { status: 404 })) as typeof fetch;
+  const red = await detectLatestSurvey({ fetchImpl: redirect, listingUrls: [listing], now });
+  assert.match(red.sources[0].error ?? "", /refused host/);
+});
+
+test("listing pages are read up to 3 MB, then the download is cancelled", async () => {
+  const listing = "https://www.rbcis.com/test-listing";
+  let pulled = 0;
+  let cancelled = false;
+  const chunk = new TextEncoder().encode("x".repeat(1024 * 1024));
+  const big = (async () => new Response(new ReadableStream<Uint8Array>({
+    pull(c) { pulled++; if (pulled > 50) c.close(); else c.enqueue(chunk); },
+    cancel() { cancelled = true; },
+  }), { status: 200 })) as typeof fetch;
+  await detectLatestSurvey({ fetchImpl: big, listingUrls: [listing], now: new Date("2026-10-03T12:00:00Z") });
+  assert.ok(cancelled, "rest of the body cancelled");
+  assert.ok(pulled <= 8, `pulled ${pulled} MB`);
+});
+
+test("self-heal: a stored edition in the future or without a link is dropped; one check at a time", async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "rbc-heal-"));
+  const prevDir = process.env.SITE_DATA_DIR;
+  process.env.SITE_DATA_DIR = dir;
+  try {
+    const { writeJson } = await import("../../../src/lib/data/store.ts");
+    await writeJson(["rankings", "rbc-survey-check.json"], { ...state(), latest: { year: 2026, quarter: 4, asOf: "2026-12-31", label: "Q4 2026", detectedAt: NOW.toISOString(), url: "https://www.rbcis.com/x" } });
+    assert.deepEqual(rbcIssues({ ...state(), latest: { year: 2026, quarter: 4, asOf: "2026-12-31", label: "Q4 2026", detectedAt: "x", url: "https://www.rbcis.com/x" } }, content("2026-06-30"), NOW), [], "a future edition raises nothing");
+    const offline = (async () => { throw new TypeError("fetch failed"); }) as typeof fetch;
+    const s = await check({ fetchImpl: offline, now: NOW, log: () => undefined });
+    assert.equal(s.latest, undefined, "future stored edition dropped");
+    // a second check while one runs is refused
+    const { withLock } = await import("../../../src/lib/data/store.ts");
+    let inner: unknown;
+    await withLock("rankings-check", async () => { inner = await runRbcSurveyCheck({ fetchImpl: offline, now: NOW, log: () => undefined }); });
+    assert.deepEqual(inner, { locked: true });
+  } finally {
+    if (prevDir === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prevDir;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

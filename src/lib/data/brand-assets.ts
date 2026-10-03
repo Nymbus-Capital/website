@@ -48,26 +48,76 @@ export const MAX_BRAND_BYTES = 512 * 1024;
 const isPng = (b: Uint8Array) => b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 && b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a;
 const isWebp = (b: Uint8Array) => b.length > 12 && String.fromCharCode(...b.subarray(0, 4)) === "RIFF" && String.fromCharCode(...b.subarray(8, 12)) === "WEBP";
 
+/** Elements a plain vector logo needs. Anything else (script, animation, foreignObject, image, a, iframe, …) is refused. */
+const SVG_ELEMENTS = new Set([
+  "svg", "g", "path", "rect", "circle", "ellipse", "line", "polyline", "polygon", "defs", "lineargradient", "radialgradient", "stop",
+  "clippath", "mask", "pattern", "symbol", "use", "title", "desc", "text", "tspan", "style", "metadata",
+]);
+/** Attributes a plain vector logo needs (lower case). Event handlers, xml:base, external references are not in the list. */
+const SVG_ATTRS = new Set([
+  "xmlns", "xmlns:xlink", "version", "id", "class", "style", "viewbox", "preserveaspectratio", "x", "y", "width", "height", "d", "points",
+  "cx", "cy", "r", "rx", "ry", "x1", "y1", "x2", "y2", "fx", "fy", "dx", "dy", "offset", "transform", "fill", "fill-rule", "fill-opacity",
+  "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset", "stroke-opacity",
+  "opacity", "clip-path", "clip-rule", "clippathunits", "mask", "maskunits", "maskcontentunits", "stop-color", "stop-opacity",
+  "gradientunits", "gradienttransform", "spreadmethod", "patternunits", "patterncontentunits", "patterntransform", "href", "xlink:href",
+  "font-family", "font-size", "font-weight", "font-style", "text-anchor", "letter-spacing", "word-spacing", "dominant-baseline",
+  "xml:space", "data-name", "display", "visibility", "overflow", "enable-background", "isolation", "mix-blend-mode", "role", "aria-label",
+  "aria-hidden", "focusable", "type", "media",
+]);
+
+/** A CSS value / stylesheet is refused when it could fetch, escape or execute anything. */
+function cssProblem(css: string): string | null {
+  if (/\\/.test(css)) return "uses an escape sequence in a style";
+  if (/@import|@font-face|@namespace/i.test(css)) return "imports a stylesheet or font";
+  if (/image-set\(|expression\(|-moz-binding|behavior\s*:/i.test(css)) return "uses an unsafe style function";
+  if (/url\(\s*["']?\s*(?!#)/i.test(css)) return "references an external resource in a style";
+  if (/javascript:/i.test(css)) return "contains a javascript: URL";
+  return null;
+}
+
 /**
- * An SVG is accepted only when it is plain vector artwork: no script, event handler, foreign object, embedded document,
- * external reference (href / url() to anything but a local #id or an inline raster), entity declaration or styles that
- * import. Rejected, never "cleaned": the official file must be uploaded as delivered, or exported as PNG.
+ * An SVG is accepted only when it is plain vector artwork, checked against an allow-list of elements and attributes:
+ * no DOCTYPE / entities / CDATA, no script, animation, foreign or embedded content, no event handler, no reference
+ * outside the file (href only to a local #id), no style that imports, escapes or fetches. A file that fails is refused,
+ * never modified: the official file must be uploaded as delivered, or exported as PNG.
  */
 export function svgProblem(text: string): string | null {
-  const t = text.replace(/^﻿/, "");
+  let t = text.replace(/^﻿/, "");
   if (!/<svg[\s>]/i.test(t)) return "not an SVG document";
-  const rules: [RegExp, string][] = [
-    [/<script/i, "contains a script"],
-    [/<!ENTITY/i, "declares entities"],
-    [/<!DOCTYPE[^>]*\[/i, "has an internal DTD"],
-    [/<(foreignObject|iframe|embed|object|audio|video|use\b[^>]*href\s*=\s*["'](?!#))/i, "embeds external or foreign content"],
-    [/\son[a-z]+\s*=/i, "has an event handler attribute"],
-    [/javascript:/i, "contains a javascript: URL"],
-    [/(xlink:)?href\s*=\s*["']\s*(?!#|data:image\/(png|jpeg|webp);base64,)/i, "references an external resource"],
-    [/url\(\s*["']?\s*(?!#)/i, "references an external resource in a style"],
-    [/@import/i, "imports a stylesheet"],
-  ];
-  for (const [re, why] of rules) if (re.test(t)) return why;
+  if (/<!(?!--)/.test(t)) return "has a DOCTYPE, entity or CDATA section";
+  if (/javascript:/i.test(t)) return "contains a javascript: URL";
+  t = t.replace(/<!--[\s\S]*?-->/g, "").replace(/^\s*<\?xml[^?]*\?>/, "");
+  if (/<\?/.test(t)) return "has a processing instruction";
+  // style sheets: checked as CSS, then removed so their text is not parsed as markup
+  for (const m of t.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)) {
+    const why = cssProblem(m[1]);
+    if (why) return why;
+    if (/</.test(m[1])) return "has markup inside a style";
+  }
+  t = t.replace(/(<style\b[^>]*>)[\s\S]*?(<\/style\s*>)/gi, "$1$2");
+  const tag = /<\s*(\/?)\s*([A-Za-z][\w:.-]*)((?:\s+[^\s=>\/]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*)\s*(\/?)\s*>/g;
+  let rest = "";
+  let last = 0;
+  for (const m of t.matchAll(tag)) {
+    rest += t.slice(last, m.index);
+    last = (m.index ?? 0) + m[0].length;
+    const name = m[2].toLowerCase();
+    if (!SVG_ELEMENTS.has(name)) return `uses the element <${m[2]}>`;
+    if (m[1]) continue;
+    for (const a of m[3].matchAll(/([^\s=>\/]+)(?:\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g)) {
+      const attr = a[1].toLowerCase();
+      const value = a[3] ?? a[4] ?? a[5] ?? "";
+      if (!SVG_ATTRS.has(attr)) return `uses the attribute ${a[1]}`;
+      if ((attr === "href" || attr === "xlink:href") && !/^\s*#[\w.-]+\s*$/.test(value)) return "references an external resource";
+      if (attr === "style") {
+        const why = cssProblem(value);
+        if (why) return why;
+      }
+      if (/url\(\s*["']?\s*(?!#)/i.test(value)) return "references an external resource";
+    }
+  }
+  rest += t.slice(last);
+  if (/[<>]/.test(rest)) return "has malformed markup";
   return null;
 }
 
@@ -142,9 +192,11 @@ export async function saveBrandAsset(slot: BrandSlot, bytes: Uint8Array, type: B
     const all = await listUploadedBrand();
     const prev = all.find((m) => m.slot === slot);
     const meta: BrandMeta = { slot, type, size: bytes.length, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), uploadedBy: by, uploadedAt: new Date().toISOString() };
+    // new file, then the index pointing at it, and only then the old file of another type: a reader never sees an
+    // index entry without its file
     await writeFileAtomic(fileRel(slot, type), bytes);
-    if (prev && prev.type !== type) await removePath(fileRel(slot, prev.type));
     await writeJson(INDEX, [...all.filter((m) => m.slot !== slot), meta]);
+    if (prev && prev.type !== type) await removePath(fileRel(slot, prev.type)).catch(() => undefined);
     return meta;
   }, 60_000);
   if ("locked" in r) throw new Error("Another brand upload is in progress; try again.");

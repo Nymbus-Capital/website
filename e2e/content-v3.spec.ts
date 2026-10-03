@@ -78,7 +78,10 @@ test("solutions: three illustrative use cases, overlay disclosures, no ranking c
   // rankings appear only through the sourced AdvisorRankings list (awards-v2), never in the use-case copy itself
   await expect(page.getByTestId("use-case-advisor").locator(".sl-case-steps")).not.toContainText(/percentile|quartile|eVestment|Lipper/i);
   await expect(page.getByTestId("advisor-rankings")).toHaveCount(1);
-  await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(1);
+  // in its own "Third-party rankings" section after the advisors card, never inside the illustrative use case
+  await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
+  await expect(page.locator("#advisor-rankings").getByTestId("advisor-rankings")).toHaveCount(1);
+  await expect(page.locator("#advisor-rankings h2")).toHaveText("Third-party rankings");
 });
 
 test("GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant", async ({ page }) => {

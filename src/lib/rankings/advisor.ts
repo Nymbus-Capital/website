@@ -30,7 +30,11 @@ export interface AdvisorRankingItem {
   edition?: string;
   url: string;
   stars?: number;
+  /** Morningstar "out of N funds", when entered */
+  fundsInCategory?: number;
   figures: AdvisorFigure[];
+  /** the fund's standard performance (fund page, Performance tab) */
+  perfUrl: string;
 }
 
 export interface AdvisorFundInput {
@@ -45,10 +49,10 @@ export function advisorRankingItems(funds: AdvisorFundInput[], opts: { now: Date
   for (const f of funds) {
     if (f.content.hide?.rankings) continue;
     const r = publicRankings(f.content.rankings, { now: opts.now, months: opts.months, classes: f.classes });
-    const base = { fund: f.key, fundName: f.name };
+    const base = { fund: f.key, fundName: f.name, perfUrl: `/strategies/${f.key}#performance` };
     if (r.morningstar?.url) {
       const m = r.morningstar;
-      out.push({ ...base, kind: "morningstar", provider: "Morningstar", source: { en: "Morningstar", fr: "Morningstar" }, logo: opts.brand?.["morningstar-logo"], classLabel: m.classLabel, category: m.category, asOf: m.asOf, url: m.url!, stars: m.stars, figures: [] });
+      out.push({ ...base, kind: "morningstar", provider: "Morningstar", source: { en: "Morningstar", fr: "Morningstar" }, logo: opts.brand?.["morningstar-logo"], classLabel: m.classLabel, category: m.category, asOf: m.asOf, url: m.url!, stars: m.stars, ...(m.fundsInCategory ? { fundsInCategory: m.fundsInCategory } : {}), figures: [] });
     }
     for (const e of r.thirdParty) {
       const meta = PROVIDER_META[e.provider];

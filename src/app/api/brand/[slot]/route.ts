@@ -19,11 +19,15 @@ async function serve(request: Request, ctx: Ctx, head: boolean): Promise<Respons
   if (!isBrandSlot(slot)) return notFound();
   const f = await uploadedBrandFile(slot).catch(() => null);
   if (!f) return notFound();
-  const headers: Record<string, string> = { ...brandHeaders(f.meta.type, f.meta.sha256), "Content-Length": String(f.size) };
+  const base = brandHeaders(f.meta.type, f.meta.sha256);
   const inm = request.headers.get("if-none-match");
-  if (inm && inm.split(",").map((s) => s.trim().replace(/^W\//, "")).some((t) => t === headers.ETag || t === "*")) return new Response(null, { status: 304, headers });
+  // 304: no body, no Content-Length
+  if (inm && inm.split(",").map((s) => s.trim().replace(/^W\//, "")).some((t) => t === base.ETag || t === "*")) return new Response(null, { status: 304, headers: base });
+  const headers: Record<string, string> = { ...base, "Content-Length": String(f.size) };
   if (head) return new Response(null, { status: 200, headers });
   const stream = createReadStream(f.path);
+  // a read error (file replaced or removed meanwhile) ends the response instead of crashing the process
+  stream.on("error", (e) => console.error(`[brand] read ${slot}: ${e.message}`));
   request.signal?.addEventListener("abort", () => stream.destroy(), { once: true });
   return new Response(Readable.toWeb(stream) as unknown as ReadableStream<Uint8Array>, { status: 200, headers });
 }

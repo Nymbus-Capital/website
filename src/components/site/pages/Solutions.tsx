@@ -17,7 +17,9 @@ import { SampleTag, fundStyle } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
-import { AdvisorRankings } from "../AdvisorRankings";
+import { Fragment } from "react";
+import { AdvisorRankings, useAdvisorRankingItems } from "../AdvisorRankings";
+import { RK } from "@/components/fund/rankings-copy";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
@@ -56,7 +58,7 @@ const CASE_ICONS: Record<Audience, (typeof Building2)[]> = {
   advisor: [Layers, Shuffle, FileText],
 };
 
-/** Illustrative use case: numbered steps joined by a light line, its risk note, and (advisors) the rankings slot. */
+/** Illustrative use case: numbered steps joined by a light line and its risk note (no ranking inside: see RankingsSection). */
 function UseCase({ a }: { a: AudienceCopy }) {
   const { pick } = useTranslation();
   const icons = CASE_ICONS[a.key];
@@ -76,13 +78,28 @@ function UseCase({ a }: { a: AudienceCopy }) {
           );
         })}
       </Reveal>
-      {/* advisors: confirmed, fresh third-party rankings (awards-v2 data; renders nothing when there is none) */}
-      {a.key === "advisor" ? <AdvisorRankings /> : null}
       <div className="sl-case-notes">
         {a.useCase.note ? <p className="fine">{pick(a.useCase.note)}</p> : null}
         <p className="fine">{pick(S.useCaseNote)}</p>
       </div>
     </Reveal>
+  );
+}
+
+/**
+ * Third-party rankings for advisors, in their own section right after the advisors card (never inside an illustrative
+ * use case): each item with provider, class, periods, rank / percentile, out of N where available, as-of date, source link,
+ * and a link to the fund's standard performance. Renders nothing when there is no confirmed, current ranking.
+ */
+function RankingsSection({ tone }: { tone: "white" | "tint" }) {
+  const { pick } = useTranslation();
+  const items = useAdvisorRankingItems();
+  if (!items.length) return null;
+  return (
+    <Section tone={tone} tight id="advisor-rankings" labelledBy="advisor-rankings-t" className="sl-rank">
+      <SectionHead eyebrow={pick(RK.adv.eyebrow)} title={pick(RK.adv.title)} lead={pick(RK.adv.lead)} id="advisor-rankings-t" />
+      <AdvisorRankings items={items} title={false} />
+    </Section>
   );
 }
 
@@ -157,7 +174,10 @@ export function Solutions({ data }: { data: HomeData }) {
       </Section>
 
       {AUDIENCES.map((a, i) => (
-        <AudienceSection key={a.key} a={a} funds={funds} sample={data.sample} tone={i % 2 === 0 ? "tint" : "white"} />
+        <Fragment key={a.key}>
+          <AudienceSection a={a} funds={funds} sample={data.sample} tone={i % 2 === 0 ? "tint" : "white"} />
+          {a.key === "advisor" ? <RankingsSection tone={i % 2 === 0 ? "tint" : "white"} /> : null}
+        </Fragment>
       ))}
 
       <Section tight className="sl-notes">
