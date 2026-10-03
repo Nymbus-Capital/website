@@ -230,13 +230,15 @@ export function PublishRunButton({ run, publishedRunId }: { run: RunReport; publ
   if (!publishable) return <span className="adm-small">A {run.status} run cannot be published.</span>;
   // a run live in auto mode may still hold a performance class change back: publishing it again approves the change
   const classChange = !!run.classChanges?.length && !run.classChangesApprovedAt;
-  if (isLive && !classChange) return <Pill tone="ok">live on the site</Pill>;
+  // likewise new months no independent source confirms (auto mode published the run without them)
+  const review = !!run.reviewNeeded?.length && run.status === "pending-review";
+  if (isLive && !classChange && !review) return <Pill tone="ok">live on the site</Pill>;
   const pending = run.status === "pending-review" || run.status === "blocked";
   const go = async () => {
     const yes = await confirm({
       title: pending ? "publish this run?" : "roll back to this run?",
       body: pending
-        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${classChange ? ` This approves the performance class change of ${run.classChanges!.join(", ")}: every month is restated under the new class label.` : ""}${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
+        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${classChange ? ` This approves the performance class change of ${run.classChanges!.join(", ")}: every month is restated under the new class label.` : ""}${review ? ` This approves the new performance month(s) of ${run.reviewNeeded!.join(", ")} that no source independent of the dataplatform confirms: check them first.` : ""}${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
         : `The public site will go back to the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}). Later runs stay in the history.`,
       action: pending ? "publish" : "roll back",
       danger: !pending,

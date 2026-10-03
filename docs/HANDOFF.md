@@ -177,6 +177,17 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (cloud agent, branch `fix/data-v3` from `integ/v3`; **not merged**): fixes of the independent review
+  of the dataplatform-only pipeline. B1 class series cover every month from the class's first computable month (else
+  dropped, warn + alert), >= 12 months; M2 bridge seam continuity + factsheet confirmation without analytics July;
+  M3 unconfirmed new months never auto-published (auto: previous performance kept, run `pending-review` + alert; admin
+  approval publishes them; review mode unchanged); M4 revisions + class-change gate on every class entry and the
+  default class; M5 per-fund fee band, none for Monthly Income (FP performance fee); M6 signed duration / yield,
+  withheld above 0.5 % shorts, "bond holdings only" label with open futures; m7 CAD; m8 FTSE month-end vs TSX
+  holidays; m9 net assets of every active register class; m10 navStart = register `fund_data_start` (SEB / Multi
+  2023-07-01), never before the register inception; m11 identifier fallback, unresolved contracts unweighted; m12
+  alert when monthly-net-returns folds several Apex classes. Shared TSX calendar: `src/lib/pipeline/market-calendar.ts`.
+
 - 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
   branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
   that order, `--no-ff`). Resolutions: one GMV label implementation, dp-only-data's `FundCard.perfVariant` from

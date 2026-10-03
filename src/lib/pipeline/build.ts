@@ -395,7 +395,7 @@ function factsheetMonthValue(raw: RawPayloads, spec: FundSpec, classCode: string
 function multiClassAggregate(raw: RawPayloads, short: DpShort, code: string, month: string): { count: number; date: string } | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
-  const hit = res.data.rows.find((r) => r.class_code === code && r.date.slice(0, 7) === month.slice(0, 7) && typeof r.return_source_count === "number" && r.return_source_count > 1);
+  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && r.date.slice(0, 7) === month.slice(0, 7) && typeof r.return_source_count === "number" && r.return_source_count > 1);
   return hit ? { count: hit.return_source_count as number, date: hit.date } : null;
 }
 

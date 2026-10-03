@@ -63,7 +63,8 @@ export interface NavHistory {
   warnings: string[];
 }
 
-export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; [k: string]: unknown }
+/** `aggregates`: the dataplatform's STRATEGY / STRATEGY_H rows (no FundServ code), kept for their return_source_count only */
+export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; aggregates?: { date: string; class_code: string; return_source_count: number | null }[]; [k: string]: unknown }
 
 export interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
 export interface RegisteredFund {

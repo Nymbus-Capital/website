@@ -81,25 +81,35 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
 - **Per-class monthly returns** (`daily-chain.ts`, `build.ts` `classChain`): from `nav-timeseries` daily rows of one
   FundServ code. Apex months (`apex_distribution_aware`) compound daily returns over the Canadian trading calendar
   (port of the dataplatform `market_calendar` and `_monthly_rows`); CIBC months (`legacy_stored`) are taken only
-  complete, from the class's NAV start; July 2026 is bridged across the CIBC → Apex cut-over (port of PR #626
-  `_bridge`, tolerance 1 bp on the seam). Gates: the headline's Apex months must equal `monthly-net-returns` within
-  1e-8 (else error, the month withheld, never refilled from a factsheet); CIBC months are used only all-or-nothing, after
-  at least 6 months equal the analytics series within 0.2 bp; the bridge month only when consistent with analytics (or
-  analytics has none). Non-headline classes (SEST F LDM081, SEB F LDM201) use their own chain, verified the same way
-  against their own history, and must stay within the fund's fee band of the track-record class (`classSpread`).
-  Months before a class's first NAV (`navStart`) cannot be computed: `nav-timeseries` drops rows without a NAV.
-- **Portfolio** (`fund-portfolio.ts`): weights over the classes' net assets (Apex closing capital) — positions plus
-  cash may differ by accruals (warn beyond 5 %); characteristics from `latest_price` (duration, YTM;
-  a price more than 7 days from the book date is unpriced), coupon / maturity / issuer from the bond universe, rating =
-  composite else the lowest agency notch; green weight withheld when unknown for more than 10 % of the bonds; an
-  identifier matching two instruments is unresolved. The month-end book has no month-end price (latest only): its
+  complete and in CAD, from the class's first computable month (its first complete month on or after the fund's data
+  start `navStart` = the register's `fund_data_start`, never before the register `inception`, and its own first row);
+  July 2026 is bridged across the CIBC → Apex cut-over (port of PR #626 `_bridge`, drift tolerance 1 bp), with a seam
+  continuity check: when the first Apex return starts on the last CIBC day, last CIBC NAV × (1 + that return) must equal
+  the first Apex NAV within 1e-4. Gates: the headline's Apex months must equal `monthly-net-returns` within 1e-8 (else
+  error, the month withheld, never refilled from a factsheet); CIBC months are used only all-or-nothing, after at least 6
+  months equal the analytics series within 0.2 bp; the bridge month only when it agrees with analytics, or — without an
+  analytics month — with a same-class factsheet printing it (a disagreement withholds the month, no confirmation leaves it
+  out). When `monthly-net-returns` is unavailable because the dataplatform folds several Apex classes into its
+  STRATEGY / STRATEGY_H row (`return_source_count` > 1), an alert says so. Months before a class's first NAV cannot be
+  computed: `nav-timeseries` drops rows without a NAV.
+- **Portfolio** (`fund-portfolio.ts`): signed weights over the classes' net assets (Apex closing capital of EVERY active
+  register class that day, else positions plus cash, warned) — positions plus cash may differ by accruals (warn beyond
+  5 %); characteristics from `latest_price` (duration, YTM; a price more than 7 days from the book date is unpriced),
+  duration and YTM weighted by signed market value, withheld when short bonds exceed 0.5 % of net assets and labelled
+  "bond holdings only, excluding futures" when futures are open (their exposure is not in the book's values); coupon /
+  maturity / issuer from the bond universe, rating = composite else the lowest agency notch; green weight withheld when
+  unknown for more than 10 % of the bonds; identifiers are tried ISIN → CUSIP → FIGI, an ambiguous one falling through
+  to the next (unresolved when none resolves); an unresolved position with a quantity and no market value is a
+  contract, never a weight. The month-end book has no month-end price (latest only): its
   cross-check with the factsheet compares sectors, not duration / yield.
 - **FTSE**: the index of a short name is the latest `index_id` in `/short-names`. An earlier name (configured alias,
   or same `index_id`, or same index family) is chain-linked only when it has a level on the current series' first day
   and at least 5 equal daily returns (±0.02 bp) on common days; otherwise not joined (info). The former "seam" join
   (≤ 3 % level gap) was unsafe across FTSE's 2024-12 renaming (levels were rebased) and is gone. Universe: `univ` +
   `univ_overall` verified. Short corporate: the dataplatform's `short_corp` starts at the new generation (2024-12):
-  long-term benchmark periods before it are not shown (no main endpoint has the older history).
+  long-term benchmark periods before it are not shown (no main endpoint has the older history). A month's closing level
+  counts only when no TSX valuation day follows the month's last level (skipped days must be weekends or TSX holidays,
+  `market-calendar.ts`); otherwise that month (and the next) has no index return (warn).
 
 ### Daily portfolio: selection, cross-check, gates (`portfolio.ts`, `validate.ts`, config `PORTFOLIO`)
 
@@ -152,11 +162,16 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   Multi-Strategy F. Its months: analytics history (CIBC months replaced by the daily chain when verified, origin
   `navchain`), then the Apex months of `monthly-net-returns`, else the chain's Apex months when that endpoint is down;
   a track record ending more than 2 months before the target month is withheld (stale guard). A month on which an
-  existing factsheet of the same class disagrees blocks the new month / withholds the published one; the factsheet of
-  a new month is no longer required (opt-in `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1`).
+  existing factsheet of the same class disagrees blocks the new month / withholds the published one.
+- **Review gate (M3)**: a new month (after the previous publication) that no source independent of the dataplatform
+  confirms (analytics month, same-class factsheet monthly or trailing table) is listed in `FundContext.unconfirmed`;
+  in auto mode the run publishes that fund with its previous performance (every class with it) and stays
+  `pending-review` (`RunReport.reviewNeeded`, webhook alert) until an admin publishes it; review mode is unchanged.
+  `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1` still holds such a month in every mode until its factsheet exists.
 - Fund pages open on the default class F (`defaultClass`); SEB class F and Monthly Income class F come from their own
   daily chains (above). A payload `class_code` other than the class requested is an error.
-- A class change (H ↔ F, relative to the published performance) blocks in validation: auto mode publishes the run
+- A class change (H ↔ F, relative to the published performance — of the headline, of any class entry by FundServ
+  code, or of the page's default class) blocks in validation: auto mode publishes the run
   with that fund at its previous publication (`ValidationOutcome.autoData`), the stored run holds the change, and
   publishing the run (admin "approve class change & publish") approves it (`RunReport.classChanges`). Such a run
   cannot be pinned before approval.
@@ -171,14 +186,15 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
 ### Returns per class and GMV variants (`classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
 
 - `FundData.performanceByClass` (by FundServ) and `defaultClass`: the headline's class entry is the headline itself;
-  every other configured class (`classLabels` + `classFundserv`) is compounded from its own `nav-timeseries` chain
-  (CIBC / bridge months only when verified), ending at the headline's as-of, and checked against the fee band of the
-  track-record class. A class without a series (no NAV yet, gates failed) is absent and the page says "coming soon". A
-  class's figures are never taken from another class.
-- A class series must be a contiguous run ending at the headline's as-of month, with plausible months (`performanceProblems`),
-  else it is dropped with a warn (`validate.ts` `checkClassesAndVariants` repeats the gates on the published data, dropping
-  only that class). A class with < 12 months is published with the periods that exist (`Performance.shortRecord`, no
-  annualized figure, no risk statistics) and the page says "since class inception".
+  every other configured class (`classLabels` + `classFundserv`) is compounded from its own `nav-timeseries` chain.
+  A class without a series is absent and the page says "coming soon". A class's figures are never taken from another class.
+- A class series covers EVERY month from the class's first computable month to the headline's as-of: one unavailable or
+  unusable month (CIBC months while the headline did not verify the stored CIBC returns, an unconfirmed bridge) drops
+  the class — never a truncated run shown "since inception" — with a warn and an alert naming why. Fewer than 12 months:
+  not shown (the headline's regulatory rule, info). Then the fund's fee band against the track-record class
+  (`classSpread` per fund: SEB F − H in −5 to +30 bp and ±5 bp of the median; none for Monthly Income, whose FP class may
+  carry a performance fee, `classSpreadNote`) and plausibility (`performanceProblems`; `checkClassesAndVariants` repeats
+  them on the published data). Revisions of already published months are reported per class entry (warn + alert).
 - **Hold**: when only the performance fails validation (`validateSite` perf-only hold) the held performance carries every
   class and variant with it (`performanceByClass`, `defaultClass`, the default variant, the other variants from the previous
   publication, or dropped when there is none): never new classes next to an old headline, never the whole fund dropped.
@@ -324,7 +340,7 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `GITHUB_TOKEN` | contents:read on the analytics repo: pre-Apex monthly history (`fund_returns.json`) |
 | `ANALYTICS_REPO`, `ANALYTICS_BRANCH`, `ANALYTICS_RETURNS_PATH` | defaults `Nymbus-Capital/analytics`, `main`, `fund-analytics-app/backend/data/fund_returns.json` |
 | `ANALYTICS_RETURNS_FILE` | optional local copy of `fund_returns.json` (overrides GitHub) |
-| `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH` | default `0`; `1`: a new performance month goes live only once its factsheet exists and cross-checks (an existing disagreeing factsheet always blocks) |
+| `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH` | default `0`: a new month no independent source confirms needs an admin in auto mode (run `pending-review`); `1`: it waits for its factsheet in every mode (an existing disagreeing factsheet always blocks) |
 | `PIPELINE_SCHEDULE` | `HH:MM,HH:MM` America/Toronto, or `off` (default `06:45,12:45,18:45`) |
 | `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs (also: a new RBC pooled fund survey edition, once per edition) |
 | `RANKINGS_CHECK` | `off` disables the weekly RBC pooled fund survey check (e2e sets it) |

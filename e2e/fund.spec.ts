@@ -113,6 +113,9 @@ for (const f of FUNDS) {
       await expect(source).toContainText("Daily portfolio data");
       await expect(page.getByTestId("portfolio-asof")).toHaveText("as of September 28, 2026");
       await expect(page.getByTestId("metric-duration")).toBeVisible();
+      // the synthetic books hold futures: duration and yield are labelled as those of the bond holdings only
+      await expect(page.getByTestId("metric-scope-duration")).toContainText("bond holdings only, excluding futures");
+      await expect(page.getByTestId("metric-scope-rating")).toHaveCount(0);
       // a coverage footnote only where a characteristic is below full coverage (Monthly Income: one stale price)
       if (f.slug === "monthly-income") await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
       else await expect(page.getByTestId("coverage-note")).toHaveCount(0);
