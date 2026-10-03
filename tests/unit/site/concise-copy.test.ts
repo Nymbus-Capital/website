@@ -80,9 +80,9 @@ test("concise copy: overlay and distribution disclosures survive the cut, word f
   assert.ok(AP.overlay.stackD.en.includes(OVERLAY_ADDS));
   assert.match(AP.overlay.foot1.en, /^\* Source: Nymbus Capital Inc\. Statements reflect historical observations/);
   assert.match(AP.overlay.foot2.en, /^\*\* Source: Nymbus Capital Inc\. For illustrative purposes only\./);
-  // sustainability: the scope of ESG criteria and exclusions
-  assert.match(SU.hero.lead.en, /do not apply in the same way to our futures overlays, which trade exchange-traded futures rather than securities of individual issuers\.$/);
-  assert.match(SU.exclusions.lead.en, /They do not apply to exchange-traded futures used in our overlays\.$/);
+  // sustainability: the scope of ESG criteria and exclusions (the Sustainable Enhanced Bonds Fund only, never its overlay)
+  assert.match(SU.hero.lead.en, /apply only to the Sustainable Enhanced Bonds Fund, and not to its futures overlay, which trades exchange-traded futures rather than securities of individual issuers\.$/);
+  assert.match(SU.exclusions.lead.en, /They do not apply to exchange-traded futures used in the fund’s overlay\.$/);
   assert.match(HOME_COPY.process.steps[3].text.en, /Risk management does not eliminate the risk of loss\.$/);
 });
 
@@ -128,9 +128,9 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   assert.ok(overlay.fr.endsWith(OVERLAY_ADDS_FR));
   assert.ok(overlay.en.includes("most of the capital stays invested in the bonds"));
   // sustainability: ESG scope (fr) and the principles exception
-  assert.ok(SU.hero.lead.fr.endsWith("Ils ne s’appliquent pas de la même façon à nos stratégies de superposition, qui portent sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));
-  assert.ok(SU.exclusions.lead.fr.endsWith("Elles ne visent pas les contrats à terme cotés utilisés dans nos stratégies de superposition."));
-  assert.ok(SU.principles.lead.en.endsWith("Futures overlays, which do not hold securities of individual issuers, are outside their scope."));
-  assert.ok(SU.principles.lead.fr.endsWith("Les stratégies de superposition, qui ne détiennent pas de titres d’émetteurs individuels, n’en font pas partie."));
+  assert.ok(SU.hero.lead.fr.endsWith("et non à sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));
+  assert.ok(SU.exclusions.lead.fr.endsWith("Elles ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds."));
+  assert.ok(SU.principles.lead.en.endsWith("ESG screens and exclusions are specific to the Sustainable Enhanced Bonds Fund."));
+  assert.ok(SU.principles.lead.fr.endsWith("Les filtres ESG et les exclusions sont propres au Fonds Obligations Durables Bonifiées."));
   assert.ok(HOME_COPY.process.steps[3].text.fr.endsWith("La gestion des risques n’élimine pas le risque de perte."));
 });

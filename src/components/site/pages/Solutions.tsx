@@ -6,7 +6,7 @@
  * page (no hidden panels), so it reads without JavaScript.
  */
 import Link from "next/link";
-import { ArrowDown, ArrowRight, Briefcase, Building2, Check, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, Briefcase, Building2, Check, FileText, Gauge, Landmark, Layers, PiggyBank, Shield, Shuffle, Users, Wallet } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import type { FundKey } from "@/lib/data/types";
 import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
@@ -50,6 +50,42 @@ function FundLink({ f }: { f: FundCard }) {
   );
 }
 
+const CASE_ICONS: Record<Audience, (typeof Building2)[]> = {
+  institutional: [Landmark, Shield, PiggyBank],
+  family: [Wallet, Gauge, Briefcase],
+  advisor: [Layers, Shuffle, FileText],
+};
+
+/** Illustrative use case: numbered steps joined by a light line, its risk note, and (advisors) the rankings slot. */
+function UseCase({ a }: { a: AudienceCopy }) {
+  const { pick } = useTranslation();
+  const icons = CASE_ICONS[a.key];
+  return (
+    <Reveal self kind="pop" className="card sl-case" data-testid={`use-case-${a.key}`} style={{ ["--bc" as string]: TONE[a.key] }}>
+      <p className="sl-case-k">{pick(S.useCase)}</p>
+      <h3 className="h4 sl-case-t">{pick(a.useCase.title)}</h3>
+      <Reveal as="ol" stagger={140} className="sl-case-steps">
+        {a.useCase.steps.map((st, i) => {
+          const Icon = icons[i] ?? Check;
+          return (
+            <li key={i}>
+              <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "44px" }}><Icon /></span>
+              <span className="sl-case-n tabnum" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <span className="sl-case-d">{pick(st)}</span>
+            </li>
+          );
+        })}
+      </Reveal>
+      {/* advisors: confirmed, fresh third-party rankings (awards-v2 data; renders nothing when there is none) */}
+      {a.key === "advisor" ? <AdvisorRankings /> : null}
+      <div className="sl-case-notes">
+        {a.useCase.note ? <p className="fine">{pick(a.useCase.note)}</p> : null}
+        <p className="fine">{pick(S.useCaseNote)}</p>
+      </div>
+    </Reveal>
+  );
+}
+
 function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: Map<FundKey, FundCard>; sample: boolean; tone: "white" | "tint" }) {
   const { pick } = useTranslation();
   const I = ICON[a.key];
@@ -83,8 +119,7 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
           </Reveal>
         </div>
       </div>
-      {/* advisors: confirmed, fresh third-party rankings (renders nothing when there is none) */}
-      {a.key === "advisor" ? <AdvisorRankings /> : null}
+      <UseCase a={a} />
     </Section>
   );
 }

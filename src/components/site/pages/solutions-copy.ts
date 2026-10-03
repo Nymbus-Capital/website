@@ -17,7 +17,17 @@ export interface AudienceCopy {
   benefits: L[];
   vehicles: { name: L; text: L }[];
   funds: FundKey[];
+  /** illustrative use case (not a client testimonial, no performance promise); `note` = its risk disclosure */
+  useCase: { title: L; steps: L[]; note?: L };
 }
+
+/* compliance-reviewed overlay disclosures (same wording as the fund pages and the approach page) */
+const OVERLAY_ADDS = l(
+  "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+  "La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+);
+const MAY_NOT = l("The overlay may not reach its objective and can lose money.", "La superposition peut ne pas atteindre son objectif et peut subir des pertes.");
+const join = (...xs: L[]): L => ({ en: xs.map((x) => x.en).join(" "), fr: xs.map((x) => x.fr).join(" ") });
 
 export const SOL_COPY = {
   home: l("Home", "Accueil"),
@@ -50,6 +60,11 @@ export const SOL_COPY = {
     "Discutez de vos objectifs avec nous.",
   ),
   cta: l("Schedule a conversation", "Planifier une rencontre"),
+  useCase: l("Illustrative use case", "Cas d’utilisation illustratif"),
+  useCaseNote: l(
+    "Illustrative only: not a client testimonial and not a promise of performance.",
+    "À titre illustratif seulement : ni un témoignage de client, ni une promesse de rendement.",
+  ),
 };
 
 export const AUDIENCES: AudienceCopy[] = [
@@ -65,7 +80,7 @@ export const AUDIENCES: AudienceCopy[] = [
       l("Segregated mandates under your policy", "Mandats distincts selon votre politique"),
       l("A dedicated portfolio management team", "Une équipe de gestion spécialisée"),
       l("Risk reports and performance attribution", "Rapports de risque et attribution du rendement"),
-      l("Customizable ESG integration and exclusions", "Intégration ESG et exclusions personnalisables"),
+      l("Your own responsible-investment guidelines, if your policy sets them", "Vos propres lignes directrices d’investissement responsable, si votre politique en prévoit"),
     ],
     vehicles: [
       { name: l("Segregated mandate", "Mandat distinct"), text: l("Managed for you alone, under your guidelines.", "Géré pour vous seul, selon vos lignes directrices.") },
@@ -73,6 +88,15 @@ export const AUDIENCES: AudienceCopy[] = [
       { name: l("Funds", "Fonds"), text: l("The strategies, through our funds.", "Les stratégies, par l’entremise de nos fonds.") },
     ],
     funds: ["sustainable-enhanced-bonds", "monthly-income", "global-minimum-volatility", "multi-strategy"],
+    useCase: {
+      title: l("Pension plan: a liability-matching bond core, plus a second objective", "Régime de retraite : un noyau obligataire apparié au passif, et un second objectif"),
+      steps: [
+        l("Bonds matched to long-term liabilities, actively managed to seek added value", "Des obligations appariées au passif à long terme, gérées activement pour chercher une valeur ajoutée"),
+        l("A protective futures overlay on top, seeking to beat inflation whether rates rise or fall", "Une superposition protectrice de contrats à terme, qui cherche à battre l’inflation, que les taux montent ou baissent"),
+        l("Most of the capital stays in the liability-matching bonds", "La majeure partie du capital reste dans les obligations appariées au passif"),
+      ],
+      note: join(MAY_NOT, OVERLAY_ADDS),
+    },
   },
   {
     key: "family",
@@ -93,6 +117,19 @@ export const AUDIENCES: AudienceCopy[] = [
       { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility futures overlay. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la stratégie de superposition Global Minimum Volatility. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
     ],
     funds: ["global-minimum-volatility", "multi-strategy", "monthly-income", "sustainable-enhanced-bonds"],
+    useCase: {
+      title: l("Family office: capital efficiency through the overlay", "Bureau de gestion familiale : l’efficacité du capital par la superposition"),
+      steps: [
+        l("Existing portfolio positions serve as collateral for the futures", "Des positions existantes du portefeuille servent de garantie pour les contrats à terme"),
+        l("The overlay is sized to a targeted downside volatility", "La superposition est calibrée selon une volatilité baissière cible"),
+        l("The existing portfolio stays invested", "Le portefeuille existant demeure investi"),
+      ],
+      note: join(
+        MAY_NOT,
+        OVERLAY_ADDS,
+        l("Positions held as collateral may have to be sold to meet margin calls.", "Les positions données en garantie peuvent devoir être vendues pour répondre aux appels de marge."),
+      ),
+    },
   },
   {
     key: "advisor",
@@ -113,5 +150,13 @@ export const AUDIENCES: AudienceCopy[] = [
       { name: l("Dealer platforms", "Plateformes de courtiers"), text: l("National Bank Financial, RBC Dominion Securities, iA Financial Group.", "Financière Banque Nationale, RBC Dominion valeurs mobilières, iA Groupe financier.") },
     ],
     funds: ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy"],
+    useCase: {
+      title: l("Advisors: systematic funds for client portfolios", "Conseillers : des fonds systématiques pour les portefeuilles de vos clients"),
+      steps: [
+        l("A systematic fixed income core, on FundServ", "Un noyau de revenu fixe systématique, sur FundServ"),
+        l("A liquid alternative sleeve to diversify", "Un volet alternatif liquide pour diversifier"),
+        l("Documents and due diligence support from our team", "Documents et soutien à la vérification diligente par notre équipe"),
+      ],
+    },
   },
 ];

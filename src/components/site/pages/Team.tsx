@@ -6,14 +6,14 @@
  * Escape, backdrop click), and a join-us / contact band.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Handshake, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";
+import { ArrowUpRight, Award, BookOpen, Cpu, GraduationCap, Handshake, Hourglass, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";
 import { useInView, useScrub } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team as staticTeam, type TeamMember } from "@/data/team";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AB } from "./copy-about";
 import { Portrait } from "./Portrait";
-import { countCFA, countPhD, inDept, membersOf, type DeptFilter } from "./lib/people";
+import { badgesOf, combinedExperience, countCharter, countEngineering, countGraduate, countPhD, inDept, membersOf, type DeptFilter } from "./lib/people";
 import { mailto, mapsLink } from "./lib/inquiry";
 import "./pages.css";
 
@@ -35,6 +35,8 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
   const fr = locale === "fr";
   const P = AB.people;
   const roles = m ? (fr ? m.previousRolesFr ?? m.previousRoles : m.previousRoles) : undefined;
+  const edu = m ? (fr ? m.educationFr ?? m.education : m.education) : undefined;
+  const lang = fr ? "fr" : "en";
   return (
     // the native close event (Escape) is the only one that reaches the parent from here: when the parent already closed the
     // bio (X button, backdrop), the dialog closing in response must not close it a second time
@@ -49,7 +51,15 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
             <div>
               <h2 id="bio-name" className="h3">{m.name}</h2>
               <p className="ab-bio-role">{fr ? m.titleFr ?? m.title : m.title}</p>
-              {m.designations?.length ? <p className="ab-tags">{m.designations.map((d) => <span key={d} className="ab-tag">{d}</span>)}</p> : null}
+              <Badges m={m} lang={lang} />
+              {m.yearsExperience ? (
+                <p className="ab-bio-exp">{pick(P.exp).replace("{n}", `${m.yearsExperiencePlus ? "+" : ""}${m.yearsExperience}`)}</p>
+              ) : null}
+              {m.linkedin ? (
+                <a className="link ab-bio-li" href={m.linkedin} target="_blank" rel="noopener noreferrer" data-testid="bio-linkedin">
+                  {pick(P.linkedin)} <ArrowUpRight aria-hidden="true" />
+                </a>
+              ) : null}
             </div>
           </div>
           <div className="ab-bio-body">
@@ -61,16 +71,55 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
                 <ul role="list" className="pg-ticks">{roles.map((r) => <li key={r}>{r}</li>)}</ul>
               </>
             ) : null}
-            {m.education?.length ? (
+            {edu?.length ? (
               <>
                 <h3 className="ab-bio-h">{pick(P.edu)}</h3>
-                <ul role="list" className="pg-ticks">{m.education.map((r) => <li key={r}>{r}</li>)}</ul>
+                <ul role="list" className="pg-ticks">{edu.map((r) => <li key={r}>{r}</li>)}</ul>
               </>
             ) : null}
           </div>
         </div>
       ) : null}
     </dialog>
+  );
+}
+
+/** Short credential badges (PhD, CFA, CIM first, highlighted), rendered as text: no institution logos. */
+function Badges({ m, lang, max }: { m: TeamMember; lang: "en" | "fr"; max?: number }) {
+  const b = badgesOf(m, lang).slice(0, max);
+  if (!b.length) return null;
+  return <span className="ab-tags">{b.map((x) => <span key={x.label} className={`ab-tag ${x.key ? "key" : ""}`}>{x.label}</span>)}</span>;
+}
+
+/** Credentials band: every figure counted from the team list (static or CMS); a figure with no data is not shown. */
+function Credentials({ team }: { team: TeamMember[] }) {
+  const { locale, pick } = useTranslation();
+  const C = AB.creds;
+  const exp = combinedExperience(team);
+  const stats = [
+    { icon: GraduationCap, value: countPhD(team), label: C.phd, tone: "#1a73e8" },
+    { icon: Cpu, value: countEngineering(team), label: C.eng, tone: "#0b8fd6" },
+    { icon: BookOpen, value: countGraduate(team), label: C.grad, tone: "#00a3e0" },
+    { icon: Award, value: countCharter(team), label: C.charter, tone: "#188038" },
+    { icon: Hourglass, value: exp?.years ?? 0, suffix: exp?.plus ? "+" : undefined, label: C.years, tone: "#0b57d0" },
+  ].filter((s) => s.value > 0);
+  if (!stats.length) return null;
+  return (
+    <Section tone="tint" labelledBy="ab-cred-t" glow="tr" className="ab-cred-s">
+      <SectionHead eyebrow={pick(C.eyebrow)} title={pick(C.title)} accent={pick(C.accent)} lead={pick(C.lead)} id="ab-cred-t" center />
+      <Reveal as="ul" kind="pop" stagger={90} className="ab-cred" data-testid="credentials">
+        {stats.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <li key={i} className="card ring ab-cred-i" style={{ ["--bc" as string]: s.tone }}>
+              <span className="bubble" style={{ ["--bc" as string]: s.tone, ["--size" as string]: "44px" }} aria-hidden="true"><Icon /></span>
+              <Stat value={s.value} suffix={s.suffix} label={pick(s.label)} lang={locale} />
+            </li>
+          );
+        })}
+      </Reveal>
+      <p className="fine ab-cred-note">{pick(C.note)}</p>
+    </Section>
   );
 }
 
@@ -120,8 +169,6 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
           <div className="ab-hero-card card">
             <StatRow className="ab-hero-stats">
               <Stat value={team.length} label={pick(AB.hero.people)} lang={locale} />
-              <Stat value={countPhD(team)} label={pick(AB.hero.phd)} lang={locale} />
-              <Stat value={countCFA(team)} label={pick(AB.hero.cfa)} lang={locale} />
               <Stat text="2013" label={pick(AB.hero.since)} lang={locale} />
             </StatRow>
             <ul className="ab-hero-faces" aria-hidden="true">
@@ -133,6 +180,8 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
         <ButtonLink href="#people">{pick(AB.hero.cta1)}</ButtonLink>
         <ButtonLink href="/contact" variant="ghost">{pick(AB.hero.cta2)}</ButtonLink>
       </PageHero>
+
+      <Credentials team={team} />
 
       <Section labelledBy="ab-intro-t" glow="tr">
         <div className="split top ab-intro">
@@ -198,7 +247,7 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
                 <span className="ab-person-b">
                   <span className="ab-person-n">{m.name}</span>
                   <span className="ab-person-t">{fr ? m.titleFr ?? m.title : m.title}</span>
-                  {m.designations?.length ? <span className="ab-tags">{m.designations.slice(0, 3).map((d) => <span key={d} className="ab-tag">{d}</span>)}</span> : null}
+                  <Badges m={m} lang={fr ? "fr" : "en"} max={3} />
                 </span>
                 <span className="ab-person-go" aria-hidden="true"><ArrowUpRight /></span>
               </button>

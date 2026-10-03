@@ -65,8 +65,8 @@ export const HOME_COPY = {
       {
         title: l("Portfolio construction", "Construction du portefeuille"),
         text: l(
-          "Optimization within risk, liquidity and sustainability limits.",
-          "Optimisation dans des limites de risque, de liquidité et de durabilité.",
+          "Optimization within each mandate’s risk and liquidity limits.",
+          "Optimisation dans les limites de risque et de liquidité de chaque mandat.",
         ),
       },
       {
@@ -115,6 +115,7 @@ export const FUND_COPY = {
   navSeries: l("Series", "Série"),
   /** class of the returns shown (not of the NAV series next to them), followed by its code */
   perfClass: l("Returns: Series", "Rendements\u00a0: Série"),
+  /** the variant whose returns are shown (Global Minimum Volatility), e.g. "6% downside volatility" */
   ytd: l("YTD", "DDA"),
   y1: l("1 year", "1 an"),
   si: l("Since inception, annualized", "Depuis la création, annualisé"),

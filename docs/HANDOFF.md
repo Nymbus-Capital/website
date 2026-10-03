@@ -169,6 +169,12 @@ Not yet run against live data, not deployed.
    still read managers from `src/data/team.ts`, add News to the nav/footer if wanted, independent adversarial review
    (could not be spawned in the building session).
 
+14. **Content v3** (branch `feat/content-v3`, from `redesign/v3-keynote-live-data`, **not merged**): built, CI-tested. To do:
+   independent adversarial review, compliance rows V1–V12 (`docs/compliance-review.md` § Content v3), Gabriel to confirm the
+   decks titles (V6), the asset-class list of the multi-strategy diagram and the "liquid alternative" term (V3), the
+   Tobacco-Free pledge scope (V11); the awards work wires `<AdvisorRankings />` (`src/components/site/pages/AdvisorRankings.tsx`).
+   WordPress team entries have no years of experience: with the CMS on, the band hides that counter.
+
 ## 6. Session log
 
 - 2026-10-02 (cloud agent, branch `feat/dp-only-data` from `redesign/v3-keynote-live-data`; **not merged**):
@@ -212,6 +218,23 @@ Not yet run against live data, not deployed.
   (Fund Library and Morningstar included). Tests: `tests/unit/rankings/*`, e2e in `fund.spec.ts` (overview Morningstar text
   fallback, solutions list) and `admin.spec.ts` (draft → stale hidden → fresh shown, API refuses confirmed without URL,
   brand image upload / serve / delete). Docs: architecture "Awards v2", compliance W1–W7.
+
+- 2026-10-02 (sub-agent, branch `feat/content-v3`, from `redesign/v3-keynote-live-data`; not merged, nothing published):
+  **content v3**, Gabriel's eight requests. (1) /approach: new "Every strategy starts with risk" section after the hero
+  (ultra-micro analysis at scale; scans; protective overlays designed for low correlation) with an `UltraMicro` SVG (universe
+  scan + magnifier, "Illustration only"). (2) /approach: "Several strategies, across asset classes" section — CSS grid diagram
+  (4 strategies × 5 asset classes under an overlay band, reduced-motion safe, `role=img` with a full aria-label), the three ways
+  in (bond funds with overlay, Multi-Strategy, GMV), two pipeline bullets. (3) Team from `nymbus-decks/data/seed/team.json`:
+  titles, years, education EN/FR, LinkedIn (two wrong decks URLs dropped), 14 portraits re-encoded to `public/team/*.webp`
+  (≤ 400 px, ≤ 14 kB), no logos; WordPress team still wins. (4) Bios / about intro give futures overlays equal room.
+  (5) Credentials band on /team (2 PhDs, 3 eng/CS degrees, 9 graduate degrees, 6 CFA/CIM, 332+ years), badges, LinkedIn +
+  experience in the bio dialog; helpers in `pages/lib/people.ts`. (6) /solutions: one illustrative use-case card per audience
+  (pension LDI + overlay, family-office collateral + downside-volatility target, advisors) with overlay disclosures;
+  `<AdvisorRankings />` slot renders nothing. (7) ESG scoped to the SEB fund (/sustainability rewritten, home step, news,
+  solutions benefit) + `tests/unit/site/esg-scope.test.ts`. (8) GMV cards show the default variant's own figures named
+  "6% downside volatility" (`FundCard.variant`). Word budgets raised (about 285, approach 720, solutions 545). Tests:
+  `tests/unit/site/content-v3.test.ts`, `e2e/content-v3.spec.ts`. Compliance rows V1–V12. No adversarial sub-agent review
+  could be spawned from this session: still to do.
 
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
   Gabriel's brief: team dialogs centered, more tech-company motion, much less text, AUM C$1.9B, no daily NAV on home,
