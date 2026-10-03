@@ -169,8 +169,6 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
           <div className="ab-hero-card card">
             <StatRow className="ab-hero-stats">
               <Stat value={team.length} label={pick(AB.hero.people)} lang={locale} />
-              <Stat value={countPhD(team)} label={pick(AB.hero.phd)} lang={locale} />
-              <Stat value={countCharter(team)} label={pick(AB.hero.cfa)} lang={locale} />
               <Stat text="2013" label={pick(AB.hero.since)} lang={locale} />
             </StatRow>
             <ul className="ab-hero-faces" aria-hidden="true">

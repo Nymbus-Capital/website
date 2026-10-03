@@ -25,8 +25,6 @@ export const AB = {
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
     people: l("people", "personnes"),
-    phd: l("PhDs", "doctorats"),
-    cfa: l("CFA or CIM holders", "titulaires CFA ou CIM"),
     since: l("founded in Montreal", "fondée à Montréal"),
   },
   creds: {

@@ -563,7 +563,7 @@
 .ap-ms-grid { display: grid; grid-template-columns: clamp(96px, 22%, 180px) repeat(var(--cols), minmax(0, 1fr)); gap: 10px; align-items: center; }
 .ap-ms-row { display: contents; }
 .ap-ms-k { font-size: 11.5px; font-weight: 600; color: var(--mute); line-height: 1.3; }
-.ap-ms-a { font-size: 12.5px; font-weight: 600; color: var(--blue-d); text-align: center; line-height: 1.25; overflow-wrap: anywhere; hyphens: auto; }
+.ap-ms-a { font-size: 12.5px; font-weight: 600; color: var(--blue-d); text-align: center; line-height: 1.25; }
 .ap-ms-s { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
 .ap-ms-cell { position: relative; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--blue) 9%, var(--bg)); box-shadow: inset 0 0 0 1px rgba(26,115,232,.18); }
 .ap-ms-cell::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
@@ -587,7 +587,8 @@
   .ap-ms-offers { grid-template-columns: minmax(0, 1fr); }
   .ap-ms-grid { gap: 6px; grid-template-columns: 78px repeat(var(--cols), minmax(0, 1fr)); }
   .ap-ms-ovl { margin-left: 0; font-size: 13px; }
-  .ap-ms-a { font-size: 10.5px; }
+  /* narrow columns: asset-class headers read bottom-up instead of breaking mid-word */
+  .ap-ms-a { font-size: 11px; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; justify-self: center; align-self: end; text-align: left; }
   .ap-ms-s { font-size: 12px; }
   .ap-ms-k { font-size: 10px; }
   .ap-ms-cell { height: 30px; border-radius: 9px; }
