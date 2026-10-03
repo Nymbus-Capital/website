@@ -52,7 +52,8 @@ function ThirdPartyEntry({ e, lang, brand }: { e: ThirdPartyRanking; lang: Lang;
   return (
     <Block title={`${tr(meta.source, lang)}${e.edition ? ` — ${e.edition}` : ""}`} testId={`tp-${e.provider}`}
       aside={<Wordmark kind="tp" logo={brand?.[meta.logoSlot as keyof BrandAssets]}>{meta.name}</Wordmark>}
-      lead={<>{e.classLabel}{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
+      lead={<>{e.scope === "fund" ? tr(RK.tp.fundLevel, lang) : e.classLabel}{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
+      {e.basis ? <p className="fine aw-basis" data-testid="tp-basis">{tr(RK.tp.basis, lang).replace("{b}", tr(e.basis, lang))}</p> : null}
       <div className="fx-scroll">
         <table className="table ft-table aw-table" data-testid="tp-table">
           <caption className="sr-only">{tr(RK.tp.table, lang)}</caption>
@@ -62,6 +63,12 @@ function ThirdPartyEntry({ e, lang, brand }: { e: ThirdPartyRanking; lang: Lang;
               <tr key={r.period} data-testid={`tp-row-${r.period}`}>
                 <td>{periodLabel(r.period, lang)}</td>
                 <td><strong>{standing(r, lang)}</strong></td>
+              </tr>
+            ))}
+            {(e.annual ?? []).map((a) => (
+              <tr key={a.end} data-testid={`tp-annual-${a.end.slice(0, 4)}`}>
+                <td>{tr(RK.tp.annual, lang).replace("{date}", dateLabel(a.end, lang, true))}</td>
+                <td><strong>{a.percentile != null ? tr(RK.tp.percentile, lang).replace("{ord}", ordinal(a.percentile, lang)) : "—"}</strong></td>
               </tr>
             ))}
           </tbody>

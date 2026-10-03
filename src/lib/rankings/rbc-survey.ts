@@ -117,6 +117,18 @@ export interface RbcCheckState {
 
 const STATE = ["rankings", "rbc-survey-check.json"];
 
+/** Latest edition known when this release was built (read by Nymbus, 2026-10-03): the floor of every check. */
+export const SEEDED_RBC_LATEST: NonNullable<RbcCheckState["latest"]> = {
+  year: 2026, quarter: 2, asOf: "2026-06-30", label: "Q2 2026", detectedAt: "2026-10-03T00:00:00.000Z",
+  url: "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf",
+};
+
+/** The stored latest edition when valid (linked, publishable) and not older than the seed, else the seed. */
+export function effectiveLatest(state: Pick<RbcCheckState, "latest"> | null | undefined, now: Date): NonNullable<RbcCheckState["latest"]> {
+  const l = state?.latest;
+  return l && l.url && isPublishable(l, now) && quarterKey(l) >= quarterKey(SEEDED_RBC_LATEST) ? l : SEEDED_RBC_LATEST;
+}
+
 export const readRbcState = (): Promise<RbcCheckState | null> => readJson<RbcCheckState | null>(STATE, null).catch(() => null);
 
 const MAX_PAGE = 3 * 1024 * 1024;
@@ -258,14 +270,13 @@ export interface RankingIssue { level: "warn" | "info"; key: string; message: st
 /** Admin issues of the survey check (pure). */
 export function rbcIssues(state: RbcCheckState | null, content: Pick<SiteContent, "funds">, now: Date): RankingIssue[] {
   const out: RankingIssue[] = [];
-  if (!state) return [{ level: "info", key: "rankings.rbc.never", message: "The RBC pooled fund survey check has not run yet (it runs weekly; use “check now”)." }];
-  if (!state.ok) {
+  if (!state) out.push({ level: "info", key: "rankings.rbc.never", message: `The RBC pooled fund survey check has not run yet (it runs weekly; use “check now”). Latest edition known: ${SEEDED_RBC_LATEST.label}.` });
+  if (state && !state.ok) {
     out.push({ level: "warn", key: "rankings.rbc.check-failed", message: `RBC pooled fund survey check failed on ${state.checkedAt.slice(0, 10)} (${state.error ?? "no source reachable"}). Rankings are unchanged; the check retries next week.` });
   }
-  const age = state.lastSuccessAt ? (now.getTime() - Date.parse(state.lastSuccessAt)) / 86_400_000 : Infinity;
+  const age = !state ? 0 : state.lastSuccessAt ? (now.getTime() - Date.parse(state.lastSuccessAt)) / 86_400_000 : Infinity;
   if (age > 21) out.push({ level: "warn", key: "rankings.rbc.no-success", message: "No successful RBC pooled fund survey check in the last 3 weeks: check the published survey by hand (rbcis.com/en/insights)." });
-  const latest = state.latest && state.latest.url && isPublishable(state.latest, now) ? state.latest : null;
-  if (!latest) return out;
+  const latest = effectiveLatest(state, now);
   const stored = storedRbcAsOf(content);
   const funds = Object.entries(stored) as [FundKey, string][];
   if (!funds.length) {
@@ -295,7 +306,7 @@ async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?:
   const log = opts.log ?? ((m: string) => console.log(`[rankings] ${m}`));
   const stored = await readRbcState();
   // self-heal: a stored edition without a link or whose quarter is not over (+ lag) is dropped
-  const prevLatest = stored?.latest && stored.latest.url && isPublishable(stored.latest, now) ? stored.latest : undefined;
+  const prevLatest = effectiveLatest(stored, now);
   const prev = stored ? { ...stored, latest: prevLatest } : null;
   const storedDates = opts.content ? Object.values(storedRbcAsOf(opts.content)).sort() : [];
   const knownFromContent = storedDates.length ? quarterOf(storedDates[storedDates.length - 1]) : null;

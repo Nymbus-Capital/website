@@ -101,7 +101,7 @@ test("admin issues: Morningstar assets missing, drafts, stale entries; network s
   assert.deepEqual(missingMorningstarAssets(content, { "morningstar-logo": "/a", "morningstar-stars-5": "/b" }), []);
   const issues = rankingIssues(content, { now: NOW, months: 6, brand: {}, rbc: null });
   assert.ok(issues.some((i) => i.key === "rankings.morningstar.assets" && i.message.startsWith(MORNINGSTAR_ASSETS_MISSING)));
-  assert.ok(issues.some((i) => i.key === "rankings.monthly-income.tp.0.draft"));
+  assert.ok(!issues.some((i) => i.key.startsWith("rankings.monthly-income.tp.")), "seeded RBC entry confirmed and current");
   assert.ok(issues.some((i) => i.key === "rankings.rbc.never"));
   const late = rankingIssues(content, { now: new Date("2027-06-01T00:00:00Z"), months: 6, brand: {}, rbc: null });
   assert.ok(late.some((i) => i.key === "rankings.sustainable-enhanced-bonds.morningstar.stale"));

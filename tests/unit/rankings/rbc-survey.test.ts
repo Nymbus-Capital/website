@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
-  detectLatestSurvey, expectedPdfUrl, nextQuarter, parseSurveyRefs, quarterEnd, quarterOf, rbcIssues, readRbcState, runRbcSurveyCheck, storedRbcAsOf, type RbcCheckState,
+  detectLatestSurvey, effectiveLatest, expectedPdfUrl, nextQuarter, parseSurveyRefs, quarterEnd, quarterOf, rbcIssues, readRbcState, runRbcSurveyCheck, storedRbcAsOf, type RbcCheckState,
 } from "../../../src/lib/rankings/rbc-survey.ts";
 import { checkDue, checkIntervalDays } from "../../../src/lib/rankings/schedule.ts";
 import type { SiteContent, ThirdPartyRanking } from "../../../src/lib/data/types.ts";
@@ -184,7 +184,8 @@ test("self-heal: a stored edition in the future or without a link is dropped; on
     assert.deepEqual(rbcIssues({ ...state(), latest: { year: 2026, quarter: 4, asOf: "2026-12-31", label: "Q4 2026", detectedAt: "x", url: "https://www.rbcis.com/x" } }, content("2026-06-30"), NOW), [], "a future edition raises nothing");
     const offline = (async () => { throw new TypeError("fetch failed"); }) as typeof fetch;
     const s = await check({ fetchImpl: offline, now: NOW, log: () => undefined });
-    assert.equal(s.latest, undefined, "future stored edition dropped");
+    assert.equal(s.latest?.label, "Q2 2026", "future stored edition dropped; the shipped Q2 2026 edition is the floor");
+    assert.match(s.latest?.url ?? "", /FINAL_EN_Pooled_Fund_Survey_Q2_2026\.pdf$/);
     // a second check while one runs is refused
     const { withLock } = await import("../../../src/lib/data/store.ts");
     let inner: unknown;
@@ -194,4 +195,12 @@ test("self-heal: a stored edition in the future or without a link is dropped; on
     if (prevDir === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prevDir;
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("seeded latest edition: Q2 2026 with its link is the floor; a confirmed Q2 entry raises no update issue", () => {
+  const latest = effectiveLatest(null, NOW);
+  assert.deepEqual([latest.label, latest.asOf], ["Q2 2026", "2026-06-30"]);
+  assert.equal(effectiveLatest({ latest: { ...latest, year: 2025, quarter: 4, label: "Q4 2025", asOf: "2025-12-31" } }, NOW).label, "Q2 2026", "never older than the seed");
+  assert.deepEqual(rbcIssues(null, content("2026-06-30"), NOW).map((i) => i.key), ["rankings.rbc.never"]);
+  assert.equal(rbcIssues(null, content("2026-03-31"), NOW)[1].key, "rankings.rbc.new.sustainable-enhanced-bonds");
 });

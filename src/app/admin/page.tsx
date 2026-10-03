@@ -59,7 +59,7 @@ export default async function AdminDashboard() {
 
       <PipelinePanel initialStatus={status} initialRuns={runs} />
 
-      <RankingsPanel issues={rk.issues} months={rk.months} rbc={rk.rbc ? { checkedAt: rk.rbc.checkedAt, ok: rk.rbc.ok, latest: rk.rbc.latest ? { label: rk.rbc.latest.label, asOf: rk.rbc.latest.asOf, url: rk.rbc.latest.url } : undefined } : null} />
+      <RankingsPanel issues={rk.issues} months={rk.months} rbc={rk.rbc ? { checkedAt: rk.rbc.checkedAt, ok: rk.rbc.ok, latest: rk.latest } : null} latest={rk.latest} />
 
       <section className="adm-panel" aria-labelledby="live-title">
         <h2 id="live-title" className="adm-h2">

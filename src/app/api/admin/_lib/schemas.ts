@@ -66,7 +66,14 @@ export const percentileRowSchema = z.strictObject({
   percentile: z.number().int().min(1).max(100).nullable(),
   rank: z.number().int().min(1).max(100_000).nullable().optional(),
   of: z.number().int().min(1).max(100_000).nullable().optional(),
+  ror: z.number().min(-100).max(1000).nullable().optional(),
 }).refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
+
+export const annualRowSchema = z.strictObject({
+  end: isoDate,
+  percentile: z.number().int().min(1).max(100).nullable(),
+  ror: z.number().min(-100).max(1000).nullable().optional(),
+});
 
 /**
  * eVestment / LSEG Lipper / GMR / RBC pooled fund survey entry. A draft (confirmed false) may be incomplete; a confirmed
@@ -76,11 +83,15 @@ export const percentileRowSchema = z.strictObject({
 export const thirdPartyRankingSchema = z.strictObject({
   provider: z.enum(THIRD_PARTY_PROVIDERS),
   classLabel: text(40),
+  scope: z.literal("fund").optional(),
+  basis: z.strictObject({ en: text(160), fr: text(160) }).refine(bothOrNeither, "basis: both EN and FR (or neither)").optional(),
   fundserv: fundservCode.optional(),
   category: z.strictObject({ en: text(120), fr: text(120) }),
   asOf: z.union([isoDate, z.literal("")]),
   edition: text(40).optional(),
   rows: z.array(percentileRowSchema).max(RANKING_PERIODS.length),
+  annual: z.array(annualRowSchema).max(10).optional(),
+  sourceRef: text(80).optional(),
   url: httpsUrl.optional(),
   confirmed: z.boolean().optional(),
   note: text(600).optional(),
@@ -88,7 +99,8 @@ export const thirdPartyRankingSchema = z.strictObject({
   if (new Set(e.rows.map((r) => r.period)).size !== e.rows.length) ctx.addIssue({ code: "custom", message: "each period once", path: ["rows"] });
   if (!e.confirmed) return;
   const need = (ok: boolean, path: string, message: string) => { if (!ok) ctx.addIssue({ code: "custom", message, path: [path] }); };
-  need(e.classLabel.length > 0, "classLabel", "class is required to confirm");
+  need(e.classLabel.length > 0 || e.scope === "fund", "classLabel", "class (or “fund as a whole”) is required to confirm");
+  need((e.annual ?? []).every((a) => a.percentile != null && (e.asOf === "" || a.end <= e.asOf)), "annual", "every one-year period needs a percentile and must end by the as-of date");
   need(e.category.en.length > 0 && e.category.fr.length > 0, "category", "category (EN and FR) is required to confirm");
   need(e.asOf !== "", "asOf", "as-of date is required to confirm");
   need(!!e.url, "url", "source URL (https) is required to confirm");

@@ -82,11 +82,15 @@ export function AdvisorRankings({ items: own, title = true }: { items?: AdvisorR
                         {i.figures.map((f) => (
                           <span key={f.period} className="advr-fig"><b>{figureText(f, locale, pick)}</b> <span>{pick(RK.adv.periods[f.period])}</span></span>
                         ))}
+                        {(i.annual ?? []).map((a) => a.percentile != null ? (
+                          <span key={a.end} className="advr-fig"><b>{pick(RK.tp.percentile).replace("{ord}", ordinal(a.percentile, locale))}</b> <span>{pick(RK.tp.annual).replace("{date}", dateText(a.end, locale))}</span></span>
+                        ) : null)}
                       </span>
                     ) : null}
                   </span>
                   <span className="advr-meta">
-                    {pick(RK.ms.series).replace("{x}", i.classLabel.replace(CLASS_WORD, ""))}
+                    {i.fundLevel ? pick(RK.tp.fundShort) : pick(RK.ms.series).replace("{x}", i.classLabel.replace(CLASS_WORD, ""))}
+                    {i.basis ? <span data-testid="advisor-basis">{` · ${pick(RK.tp.basisShort).replace("{b}", pick(i.basis))}`}</span> : null}
                     {i.category ? ` · ${pick(i.category)}` : ""}
                     {i.edition ? ` · ${i.edition}` : ""}
                     {` · ${pick(RK.adv.asAt)} ${dateText(i.asOf, locale)} · `}

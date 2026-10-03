@@ -35,9 +35,9 @@ export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testI
   return (
     <section className={`ms-block ms-${variant}`} data-testid={testId} data-official={logo && stars ? "yes" : "no"} aria-label={tr(RK.ms.title, lang)}>
       <div className="ms-head">
-        {logo ? <img className="ms-logo" src={logo} alt="Morningstar" height={28} data-testid="morningstar-logo" /> : null}
+        {logo ? <img className="ms-logo" src={logo} alt="Morningstar" height={26} data-testid="morningstar-logo" /> : null}
         {stars ? (
-          <img className="ms-stars" src={stars} alt={text} height={22} data-testid="morningstar-stars-img" />
+          <img className="ms-stars" src={stars} alt={text} height={19} data-testid="morningstar-stars-img" />
         ) : null}
         {/* the text rating is always in the page: it is the only rendering when the official images are missing */}
         <p className={`ms-text ${stars ? "sr-only" : ""}`} data-testid="morningstar-text" data-stars={m.stars}>{text}</p>

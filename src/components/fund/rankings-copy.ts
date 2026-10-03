@@ -35,6 +35,11 @@ export const RK = {
     edition: l("Edition", "Édition"),
     category: l("Peer group", "Groupe de pairs"),
     periodEnd: l("Period ended", "Période terminée le"),
+    fundLevel: l("Fund as a whole (not a specific series)", "Fonds dans son ensemble (aucune série en particulier)"),
+    fundShort: l("Fund as a whole", "Fonds dans son ensemble"),
+    basis: l("Survey basis: returns {b}; percentile rank 1 = best.", "Base du sondage\u00a0: rendements {b}; rang centile 1 = meilleur."),
+    basisShort: l("returns {b}", "rendements {b}"),
+    annual: l("1 year to {date}", "1 an au {date}"),
     note: l(
       "Percentile ranks compare the returns of the series with those of the other funds in the same peer group over each period (1st percentile = top 1%). They are reproduced from the source named, as at the date shown; peer groups and methodologies differ between providers. Past performance does not predict future results.",
       "Les rangs centiles comparent les rendements de la série à ceux des autres fonds du même groupe de pairs pour chaque période (1er centile = premier 1 %). Ils sont reproduits de la source indiquée, à la date indiquée; les groupes de pairs et les méthodologies varient d’un fournisseur à l’autre. Les rendements passés ne prédisent pas les résultats futurs.",
