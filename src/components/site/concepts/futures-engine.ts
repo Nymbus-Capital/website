@@ -255,8 +255,8 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       const size = L.narrow ? 11.5 : 13.5;
       P.font(600, size);
       const w = P.measure(label), room = nodeR * 2 - 8;
-      if (w > room) P.font(600, Math.max(9, Math.floor(size * (room / w) * 10) / 10));
-      P.text(label, x, nodeY, room + 2, "center", COL.ink);
+      if (w > room) P.font(600, Math.max(9, Math.floor(size * (room / w) * 0.9 * 10) / 10));
+      P.text(label, x, nodeY, room + 6, "center", COL.ink);
     };
     ctx.globalAlpha = Math.max(f(0), f(1));
     node(lx, lab.long, COL.blue, pulseL);
