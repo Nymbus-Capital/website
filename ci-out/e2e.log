@@ -1,0 +1,342 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 238 tests using 2 workers
+
+  ✓    2 [desktop] › e2e/content-v3.spec.ts:32:5 › approach (fr): the new sections are translated (1.2s)
+  ✓    1 [desktop] › e2e/content-v3.spec.ts:9:5 › approach: risk-first section and the multi-strategy diagram, with links to the three ways in (2.3s)
+  ✓    3 [desktop] › e2e/content-v3.spec.ts:39:5 › team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio (2.3s)
+  ✓    4 [desktop] › e2e/content-v3.spec.ts:67:5 › solutions: three illustrative use cases, overlay disclosures, no ranking claim yet (1.6s)
+  ✓    6 [desktop] › e2e/content-v3.spec.ts:95:5 › sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only (1.2s)
+  ✓    5 [desktop] › e2e/content-v3.spec.ts:81:5 › GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant (2.6s)
+  ✓    7 [desktop] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (2.7s)
+  ✓    8 [desktop] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (3.3s)
+  ✘    9 [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (2.8s)
+  ✓   10 [desktop] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (1.9s)
+  ✘   11 [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (retry #1) (3.3s)
+  ✓   12 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (12.2s)
+  ✓   13 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (11.9s)
+  ✓   14 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (9.5s)
+  ✓   15 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (8.5s)
+  ✓   17 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (23.4s)
+  ✓   16 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (33.9s)
+  ✓   18 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (13.7s)
+  ✓   19 [desktop] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (6.7s)
+  ✓   20 [desktop] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (3.6s)
+  ✓   21 [desktop] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (3.5s)
+  ✓   23 [desktop] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (1.1s)
+  ✓   24 [desktop] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (1.1s)
+  ✓   22 [desktop] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (3.3s)
+  ✓   25 [desktop] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (1.0s)
+  ✓   26 [desktop] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (651ms)
+  ✓   27 [desktop] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (3.3s)
+  ✓   28 [desktop] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (4.4s)
+  ✓   29 [desktop] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (4.1s)
+  ✓   31 [desktop] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (3.3s)
+  ✓   30 [desktop] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (7.9s)
+  ✓   32 [desktop] › e2e/fund.spec.ts:413:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.3s)
+  ✓   33 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (6.9s)
+  ✓   34 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (7.4s)
+  ✓   35 [desktop] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (4.5s)
+  ✓   36 [desktop] › e2e/fund.spec.ts:491:5 › home tiles and the strategies index name the class of the returns (EN + FR) (4.2s)
+  ✓   37 [desktop] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (2.6s)
+  ✓   38 [desktop] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.3s)
+  ✓   40 [desktop] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (1.3s)
+  ✓   41 [desktop] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.5s)
+  ✓   39 [desktop] › e2e/home-v2.spec.ts:46:5 › home: the analysis scan is drawn, counts what it scans and stops when it leaves the screen (3.3s)
+  ✓   42 [desktop] › e2e/home-v2.spec.ts:101:5 › home: no horizontal overflow, the scan fits the viewport (1.2s)
+  ✓   43 [desktop] › e2e/home-v2.spec.ts:111:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (1.3s)
+  ✓   44 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (5.6s)
+  ✓   45 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (5.6s)
+  ✓   47 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (4.5s)
+  ✓   46 [desktop] › e2e/home.spec.ts:57:7 › home: screenshot (7.2s)
+  ✓   48 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.3s)
+  ✓   49 [desktop] › e2e/home.spec.ts:57:7 › strategies: screenshot (5.1s)
+  ✓   50 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (4.7s)
+  ✓   51 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (4.8s)
+  ✓   53 [desktop] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.6s)
+  ✓   52 [desktop] › e2e/home.spec.ts:57:7 › solutions: screenshot (6.4s)
+  ✓   54 [desktop] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (2.6s)
+  ✓   56 [desktop] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.1s)
+  ✓   55 [desktop] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.8s)
+  ✓   57 [desktop] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (2.0s)
+  ✓   58 [desktop] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.3s)
+  ✓   59 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.2s)
+  ✓   60 [desktop] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (1.6s)
+  ✓   62 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.1s)
+  ✓   63 [desktop] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (1.0s)
+  ✓   61 [desktop] › e2e/site.spec.ts:81:7 › / full-page screenshot (6.3s)
+  ✓   65 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (1.1s)
+  ✓   64 [desktop] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (4.7s)
+  ✓   66 [desktop] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.0s)
+  ✓   68 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (903ms)
+  ✓   69 [desktop] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (800ms)
+  ✓   67 [desktop] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (6.5s)
+  ✓   70 [desktop] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (4.5s)
+  ✓   71 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (1.5s)
+  ✓   72 [desktop] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (1.7s)
+  ✓   74 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (1.3s)
+  ✓   75 [desktop] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (1.2s)
+  ✓   73 [desktop] › e2e/site.spec.ts:81:7 › /team full-page screenshot (5.4s)
+  ✓   77 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (1.2s)
+  ✓   76 [desktop] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (4.1s)
+  ✓   78 [desktop] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (1.4s)
+  ✓   80 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (1.0s)
+  ✓   81 [desktop] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (755ms)
+  ✓   79 [desktop] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (5.7s)
+  ✓   83 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (846ms)
+  ✓   82 [desktop] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (4.4s)
+  ✓   84 [desktop] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (838ms)
+  ✓   86 [desktop] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.3s)
+  ✓   85 [desktop] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (4.6s)
+  ✓   87 [desktop] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (1.0s)
+  ✓   88 [desktop] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.9s)
+  -   90 [desktop] › e2e/site.spec.ts:141:5 › mobile menu opens, traps focus, closes with Escape
+  ✓   89 [desktop] › e2e/site.spec.ts:126:5 › language toggle switches the page to French and back (2.3s)
+  ✓   92 [desktop] › e2e/site.spec.ts:201:5 › team: filter by department and open a bio (3.0s)
+  ✓   91 [desktop] › e2e/site.spec.ts:165:5 › reduced motion: content is visible without animations (6.2s)
+  ✓   93 [desktop] › e2e/site.spec.ts:223:5 › contact: three steps, validated, then an email is prepared (no backend) (6.4s)
+  ✓   95 [desktop] › e2e/site.spec.ts:274:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.2s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"inset(0px 0px 0px 0%)","op":"1","anim":"ap-loop","disp":"block","w":900},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":96},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":84},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓   94 [desktop] › e2e/site.spec.ts:256:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.8s)
+  ✓   96 [desktop] › e2e/site.spec.ts:285:5 › admin does not get the public chrome (535ms)
+  ✓   97 [mobile] › e2e/content-v3.spec.ts:9:5 › approach: risk-first section and the multi-strategy diagram, with links to the three ways in (1.9s)
+  ✓   98 [mobile] › e2e/content-v3.spec.ts:32:5 › approach (fr): the new sections are translated (1.5s)
+  ✓  100 [mobile] › e2e/content-v3.spec.ts:67:5 › solutions: three illustrative use cases, overlay disclosures, no ranking claim yet (1.6s)
+  ✓   99 [mobile] › e2e/content-v3.spec.ts:39:5 › team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio (3.3s)
+  ✓  101 [mobile] › e2e/content-v3.spec.ts:81:5 › GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant (1.7s)
+  ✓  102 [mobile] › e2e/content-v3.spec.ts:95:5 › sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only (1.1s)
+  ✓  103 [mobile] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (2.1s)
+  ✓  104 [mobile] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (4.2s)
+  ✘  105 [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (3.8s)
+  ✓  106 [mobile] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (3.2s)
+  ✘  107 [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (retry #1) (3.2s)
+  ✓  108 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (15.9s)
+  ✓  109 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (15.0s)
+  ✓  110 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (11.8s)
+  ✓  111 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (11.3s)
+  ✓  113 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): global-minimum-volatility (32.7s)
+  ✓  112 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): monthly-income (49.6s)
+  ✓  114 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (18.9s)
+  ✓  116 [mobile] › e2e/fund.spec.ts:172:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (2.7s)
+  ✓  117 [mobile] › e2e/fund.spec.ts:227:5 › series selector switches the NAV card (1.7s)
+  ✓  118 [mobile] › e2e/fund.spec.ts:242:5 › tabs follow the URL hash and the keyboard (1.7s)
+  ✓  115 [mobile] › e2e/fund.spec.ts:162:7 › every tab at rest (screenshots): multi-strategy (9.9s)
+  ✓  120 [mobile] › e2e/fund.spec.ts:269:5 › legacy slug redirects to monthly income (932ms)
+  ✓  119 [mobile] › e2e/fund.spec.ts:257:5 › without JavaScript every panel is on the page (1.2s)
+  ✓  122 [mobile] › e2e/fund.spec.ts:281:5 › unknown slug is a 404 (617ms)
+  ✓  121 [mobile] › e2e/fund.spec.ts:276:5 › registry alias redirects to the canonical slug (1.1s)
+  ✓  123 [mobile] › e2e/fund.spec.ts:286:5 › French: labels, names and number formatting (3.1s)
+  ✓  124 [mobile] › e2e/fund.spec.ts:309:5 › class selector: returns follow the class; F is the default; a class without its own series says coming soon (3.5s)
+  ✓  125 [mobile] › e2e/fund.spec.ts:335:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (2.0s)
+  ✓  127 [mobile] › e2e/fund.spec.ts:385:5 › awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only (3.1s)
+  ✓  126 [mobile] › e2e/fund.spec.ts:358:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (6.7s)
+  ✓  128 [mobile] › e2e/fund.spec.ts:413:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.9s)
+  ✓  129 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (5.8s)
+  ✓  130 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (7.3s)
+  ✓  131 [mobile] › e2e/fund.spec.ts:456:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (5.5s)
+  ✓  132 [mobile] › e2e/fund.spec.ts:491:5 › home tiles and the strategies index name the class of the returns (EN + FR) (4.3s)
+  ✓  133 [mobile] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (3.0s)
+  ✓  134 [mobile] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.4s)
+  ✓  136 [mobile] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (1.0s)
+  ✓  137 [mobile] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.5s)
+  ✓  135 [mobile] › e2e/home-v2.spec.ts:46:5 › home: the analysis scan is drawn, counts what it scans and stops when it leaves the screen (3.3s)
+  ✓  138 [mobile] › e2e/home-v2.spec.ts:101:5 › home: no horizontal overflow, the scan fits the viewport (949ms)
+  ✓  139 [mobile] › e2e/home-v2.spec.ts:111:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (1.1s)
+  ✓  140 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (6.0s)
+  ✓  141 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (6.0s)
+  ✓  143 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (5.1s)
+  ✓  142 [mobile] › e2e/home.spec.ts:57:7 › home: screenshot (9.5s)
+  ✓  144 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.9s)
+  ✓  146 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (5.6s)
+  ✓  145 [mobile] › e2e/home.spec.ts:57:7 › strategies: screenshot (7.2s)
+  ✓  147 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (6.1s)
+  ✓  149 [mobile] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.8s)
+  ✓  148 [mobile] › e2e/home.spec.ts:57:7 › solutions: screenshot (8.9s)
+  ✓  150 [mobile] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (2.7s)
+  ✓  152 [mobile] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.1s)
+  ✓  151 [mobile] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.8s)
+  ✓  153 [mobile] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.7s)
+  ✓  154 [mobile] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.1s)
+  ✓  155 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (en) (1.5s)
+  ✓  156 [mobile] › e2e/site.spec.ts:67:9 › / renders its heading (fr) (1.6s)
+  ✓  158 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (en) (1.3s)
+  ✓  159 [mobile] › e2e/site.spec.ts:67:9 › /strategies renders its heading (fr) (1.3s)
+  ✓  157 [mobile] › e2e/site.spec.ts:81:7 › / full-page screenshot (8.2s)
+  ✓  161 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (en) (995ms)
+  ✓  160 [mobile] › e2e/site.spec.ts:81:7 › /strategies full-page screenshot (6.4s)
+  ✓  162 [mobile] › e2e/site.spec.ts:67:9 › /approach renders its heading (fr) (1.1s)
+  ✓  164 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (en) (740ms)
+  ✓  165 [mobile] › e2e/site.spec.ts:67:9 › /sustainability renders its heading (fr) (636ms)
+  ✓  166 [mobile] › e2e/site.spec.ts:81:7 › /sustainability full-page screenshot (6.1s)
+  ✓  163 [mobile] › e2e/site.spec.ts:81:7 › /approach full-page screenshot (8.5s)
+  ✓  167 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (en) (1.9s)
+  ✓  168 [mobile] › e2e/site.spec.ts:67:9 › /team renders its heading (fr) (2.0s)
+  ✓  170 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (en) (1.2s)
+  ✓  171 [mobile] › e2e/site.spec.ts:67:9 › /contact renders its heading (fr) (1.1s)
+  ✓  172 [mobile] › e2e/site.spec.ts:81:7 › /contact full-page screenshot (5.0s)
+  ✓  169 [mobile] › e2e/site.spec.ts:81:7 › /team full-page screenshot (7.8s)
+  ✓  173 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (en) (1.6s)
+  ✓  174 [mobile] › e2e/site.spec.ts:67:9 › /solutions renders its heading (fr) (1.6s)
+  ✓  176 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (en) (941ms)
+  ✓  177 [mobile] › e2e/site.spec.ts:67:9 › /legal renders its heading (fr) (926ms)
+  ✓  175 [mobile] › e2e/site.spec.ts:81:7 › /solutions full-page screenshot (7.6s)
+  ✓  178 [mobile] › e2e/site.spec.ts:81:7 › /legal full-page screenshot (5.6s)
+  ✓  179 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (en) (1.3s)
+  ✓  180 [mobile] › e2e/site.spec.ts:67:9 › /privacy renders its heading (fr) (1.5s)
+  ✓  182 [mobile] › e2e/site.spec.ts:90:5 › unknown route: 404 page in the site chrome (4.5s)
+  ✓  183 [mobile] › e2e/site.spec.ts:101:5 › odometer: the figure's accessible name is the final value (856ms)
+  ✓  181 [mobile] › e2e/site.spec.ts:81:7 › /privacy full-page screenshot (6.6s)
+  ✓  184 [mobile] › e2e/site.spec.ts:109:5 › home: live figures come from the data, never invented (2.6s)
+  ✓  185 [mobile] › e2e/site.spec.ts:126:5 › language toggle switches the page to French and back (2.5s)
+  ✓  186 [mobile] › e2e/site.spec.ts:141:5 › mobile menu opens, traps focus, closes with Escape (3.0s)
+  ✓  187 [mobile] › e2e/site.spec.ts:165:5 › reduced motion: content is visible without animations (4.3s)
+  ✓  188 [mobile] › e2e/site.spec.ts:201:5 › team: filter by department and open a bio (3.0s)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"none","op":"1","anim":"ap-loop","disp":"none","w":0},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓  190 [mobile] › e2e/site.spec.ts:256:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.6s)
+  ✓  189 [mobile] › e2e/site.spec.ts:223:5 › contact: three steps, validated, then an email is prepared (no backend) (5.5s)
+  ✓  192 [mobile] › e2e/site.spec.ts:285:5 › admin does not get the public chrome (709ms)
+  ✓  191 [mobile] › e2e/site.spec.ts:274:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.1s)
+  ✓  193 [cms] › e2e/cms.spec.ts:32:5 › news page: CMS items, newest first, markup stripped, image loads, French on request (990ms)
+  ✓  194 [cms] › e2e/cms.spec.ts:51:5 › news article: paragraphs, no script, 404 for an unknown item (679ms)
+  ✓  195 [cms] › e2e/cms.spec.ts:62:5 › home: three latest CMS news, link to all news, banner and AUM label from WordPress (1.0s)
+  ✓  196 [cms] › e2e/cms.spec.ts:72:5 › team page: members come from WordPress, not from the built-in list (892ms)
+  ✓  197 [cms] › e2e/cms.spec.ts:82:5 › CSP: the media origin is allowed for images, nothing else changed (74ms)
+  ✓  198 [cms] › e2e/cms.spec.ts:90:5 › revalidation route: authenticated, POST only (48ms)
+  ✓  199 [cms] › e2e/cms.spec.ts:100:5 › an edit in WordPress shows up after revalidation (2.6s)
+  ✓  200 [cms] › e2e/cms.spec.ts:107:5 › hostile content from WordPress is neutralised (3.7s)
+[WebServer] [cms] WordPress document not used: HTTP 503 (keeping the last good copy)
+  ✓  201 [cms] › e2e/cms.spec.ts:134:5 › WordPress down or answering garbage: the last good content stays (7.3s)
+  ✓  202 [cms] › e2e/cms.spec.ts:149:5 › without WP_BASE_URL the site is unchanged: static news and team (830ms)
+
+
+  1) [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    15.46875
+
+      81 |   // the close button keeps a 44 px hit area
+      82 |   const x = await dialog.getByRole("button", { name: /close|fermer/i }).boundingBox();
+    > 83 |   expect(x!.width).toBeGreaterThanOrEqual(44);
+         |                    ^
+      84 |   expect(x!.height).toBeGreaterThanOrEqual(44);
+      85 | });
+      86 |
+        at /home/runner/work/website/website/e2e/dialog.spec.ts:83:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    15.46875
+
+      81 |   // the close button keeps a 44 px hit area
+      82 |   const x = await dialog.getByRole("button", { name: /close|fermer/i }).boundingBox();
+    > 83 |   expect(x!.width).toBeGreaterThanOrEqual(44);
+         |                    ^
+      84 |   expect(x!.height).toBeGreaterThanOrEqual(44);
+      85 | });
+      86 |
+        at /home/runner/work/website/website/e2e/dialog.spec.ts:83:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    8.390625
+
+      81 |   // the close button keeps a 44 px hit area
+      82 |   const x = await dialog.getByRole("button", { name: /close|fermer/i }).boundingBox();
+    > 83 |   expect(x!.width).toBeGreaterThanOrEqual(44);
+         |                    ^
+      84 |   expect(x!.height).toBeGreaterThanOrEqual(44);
+      85 | });
+      86 |
+        at /home/runner/work/website/website/e2e/dialog.spec.ts:83:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    8.390625
+
+      81 |   // the close button keeps a 44 px hit area
+      82 |   const x = await dialog.getByRole("button", { name: /close|fermer/i }).boundingBox();
+    > 83 |   expect(x!.width).toBeGreaterThanOrEqual(44);
+         |                    ^
+      84 |   expect(x!.height).toBeGreaterThanOrEqual(44);
+      85 | });
+      86 |
+        at /home/runner/work/website/website/e2e/dialog.spec.ts:83:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dialog-team-a-press-that-s-d9768--backdrop-does-not-close-it-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it 
+    [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it 
+  1 skipped
+  38 did not run
+  197 passed (7.4m)
