@@ -56,7 +56,7 @@ export const AB = {
       "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
     ),
     points: [
-      l("Two specialties, equal weight: systematic fixed income and futures overlays", "Deux spécialités, à parts égales : revenu fixe systématique et superpositions"),
+      l("Two core specialties: systematic fixed income and futures overlays", "Deux spécialités au cœur de la firme : revenu fixe systématique et superpositions"),
       l("Bonds analyzed one by one; listed futures traded systematically", "Des obligations analysées une à une; des contrats à terme cotés négociés systématiquement"),
       l("Physicists, engineers and charterholders, alongside market veterans", "Physiciens, ingénieurs et analystes agréés, aux côtés de vétérans des marchés"),
     ] as L[],
