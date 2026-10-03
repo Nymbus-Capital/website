@@ -246,3 +246,11 @@ test("a failing headline class holds the performance (never dropped by the class
   assert.equal(v.variants!["3"], undefined, "a variant older than the fund's performance is not shown");
   assert.ok(v.variants!["9"]);
 });
+
+test("a class not launched yet (no own row up to the as-of): info only, no alert", async () => {
+  const notYet = history("LDM201", (rows) => rows.filter((r) => (r.date as string) >= "2026-09-01"));
+  const { data, context } = await build(notYet);
+  assert.equal(data.funds[SEB]!.performanceByClass!.LDM201, undefined);
+  assert.ok(data.issues.some((i) => i.level === "info" && /class F \(LDM201\): no computable month up to 2026-08 \(own data from 2026-09-01\)/.test(i.message)));
+  assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)));
+});

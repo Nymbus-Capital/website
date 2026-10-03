@@ -1331,7 +1331,8 @@ function buildClasses(
     }
     const months = ch.months.filter((m) => m.month <= asOf);
     if (!months.length || !ch.start) {
-      drop(`no computable month up to ${ym(asOf)}${ch.start ? ` (own data from ${ch.start})` : " (no own NAV row)"}`);
+      // a class not launched yet, or launched within the current month: nothing to show yet (not an anomaly)
+      c.info(key, `${lbl}: no computable month up to ${ym(asOf)}${ch.start ? ` (own data from ${ch.start})` : " (no own NAV row)"}; returns not shown for this class`);
       continue;
     }
     const first = months[0].month;
