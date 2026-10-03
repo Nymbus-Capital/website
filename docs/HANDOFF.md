@@ -177,6 +177,14 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `fix/overlay-v3` from `integ/v3`; not merged): reviewers' fixes to the home
+  "diversifying engines" band. Caption now ends with the verbatim futures-exposure disclosure (EN/FR,
+  `OVERLAY_EXPOSURE`); panel retitled "Diversifying engines · down months"; lanes = the Multi-Strategy Fund's four
+  strategies (Low volatility, Directional, Mean reversion, Hedging) + a separate "Futures overlay" lane kept out of the
+  blend ("Four strategies combined"); zero drift for every series (bond, lanes, blend; unit test); `role="img"` moved to
+  the canvas wrapper so the counters `<dl>` is readable; FR counters « Mois simulés » etc.; "Highlighted: moves
+  independently" / « En surbrillance : évolue indépendamment »; long lane names wrap on two lines, narrow legend on two
+  lines. Science at scale untouched (fingerprint test green). Compliance notes updated.
 - 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
   branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
   that order, `--no-ff`). Resolutions: one GMV label implementation, dp-only-data's `FundCard.perfVariant` from
