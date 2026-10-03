@@ -53,7 +53,7 @@ export interface RunReport {
    */
   reviewNeeded?: FundKey[];
   /** non-blocking notices (persistent, expected data limitations), also listed as warn issues */
-  advisories?: { fund: FundKey; message: string }[];
+  advisories?: { fund: FundKey; code: string; message: string }[];
 }
 
 export interface PublishedMeta { runId: string; publishedAt: string; publishedBy: string }
@@ -186,7 +186,7 @@ export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[
 async function alert(report: RunReport, fetchImpl: typeof fetch, previousAdvisories: Set<string> = new Set()): Promise<void> {
   const url = process.env.PIPELINE_ALERT_WEBHOOK;
   const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
-  const fresh = (report.advisories ?? []).filter((a) => !previousAdvisories.has(`${a.fund}|${a.message}`));
+  const fresh = (report.advisories ?? []).filter((a) => !previousAdvisories.has(`${a.fund}|${a.code}`));
   if (!url || (report.status !== "failed" && report.status !== "blocked" && !review && !fresh.length)) return;
   const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
   const text = [
@@ -215,7 +215,8 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
     let data: SiteData | null = null;
     let autoPublish: SiteData | null = null;
     // the previous run's notices: a non-blocking notice is posted once, when it first appears
-    const previousAdvisories = new Set(((await listRuns(1).catch(() => []))[0]?.advisories ?? []).map((a) => `${a.fund}|${a.message}`));
+    // keyed on fund + class code: a notice whose wording changes (month counts grow) is not posted again
+    const previousAdvisories = new Set(((await listRuns(1).catch(() => []))[0]?.advisories ?? []).map((a) => `${a.fund}|${a.code ?? a.message}`));
     try {
       const previous = await readJson<SiteData | null>(["published", "site-data.json"], null);
       raw = await fetchAll({ fetchImpl, now });
@@ -231,7 +232,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       if (v.classChanges.length) report.classChanges = v.classChanges;
       if (v.needsReview.length) report.reviewNeeded = v.needsReview;
       const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
-      const advisories = v.results.flatMap((r) => (r.advisories ?? []).map((m) => ({ fund: r.fund, message: m })));
+      const advisories = v.results.flatMap((r) => (r.advisories ?? []).map((a) => ({ fund: r.fund, code: a.code, message: a.message })));
       if (advisories.length) report.advisories = advisories;
       report.issues = [
         ...data.issues,

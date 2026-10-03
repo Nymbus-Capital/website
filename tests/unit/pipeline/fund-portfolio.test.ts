@@ -149,3 +149,15 @@ test("pricing fallback: a bond without a current master price takes its FTSE con
   const none = refs.map((r) => (r.nymbus_instrument_id === 2 ? { ...r, latest_price: null } : r));
   assert.ok(computeFundPortfolio(noFuture, none, { short: "SEST", netAssets: 1000 }).warnings.some((w) => /2 bond\(s\) without any price in the instrument master nor in the FTSE constituents: (SYNC00001, SYB0000000002|SYB0000000002, SYNC00001)/.test(w)));
 });
+
+test("FTSE fallback: matched by CUSIP when the position has no ISIN; a row without yield or duration, or out of range, does not price", () => {
+  const cusipOnly: HoldingsBook = { ...book, positions: [...book.positions.filter((x) => x.security_type !== "Future"), pos({ cusip: "SYNC00077", description: "Bond D (CUSIP only)", market_value_cad: 100 })] };
+  const d = ref({ nymbus_instrument_id: 7, cusip: "SYNC00077", latest_price: null, coupon_rate: 3, maturity_date: "2030-09-28" });
+  const at = (o: Partial<{ ytm: number | null; dur: number | null }>) => ({ date: AS_OF, rows: 1, byIsin: {}, byCusip: { SYNC00077: { date: AS_OF, ytm: 4, dur: 3, index: "short_corp", cusip: "SYNC00077", ...o } } });
+  const priced = (f: ReturnType<typeof at>) => computeFundPortfolio(cusipOnly, [...refs, d], { short: "SEST", netAssets: 1000, ftse: f }).coverage.priced_weight;
+  assert.equal(priced(at({})), round4(800 / 900), "A, B and D priced (C is unresolved)");
+  assert.equal(priced(at({ ytm: null })), round4(700 / 900), "no yield: unpriced");
+  assert.equal(priced(at({ dur: null })), round4(700 / 900), "no duration: unpriced");
+  assert.equal(priced(at({ ytm: 40 })), round4(700 / 900), "yield out of range");
+  assert.equal(priced(at({ dur: 55 })), round4(700 / 900), "duration out of range");
+});

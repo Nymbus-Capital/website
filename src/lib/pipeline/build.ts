@@ -87,7 +87,7 @@ export interface FundContext {
    * persistent, expected data limitations a human should know about but that never block publishing (e.g. a class not
    * shown because the fund's CIBC months cannot be verified): warn issues + a non-blocking notice in the run
    */
-  advisories?: string[];
+  advisories?: { code: string; message: string }[];
 }
 
 export interface BuildResult { data: SiteData; context: Partial<Record<FundKey, FundContext>> }
@@ -628,7 +628,7 @@ function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month
       for (const l of res.data.links ?? []) {
         if (l.kind !== "gap" || !l.gap) continue;
         const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
-        c.info(key, `FTSE ${ftseName}: earlier name ${l.name} linked across the one-day gap ${l.gap.last} → ${l.gap.first} (no overlap): implied gap return ${bp(l.gap.implied)}, yield/duration estimate ${bp(l.gap.estimate)}, residual ${bp(l.gap.residual)} within the threshold ${bp(l.gap.threshold)} (3 × p95 of ${l.gap.samples} daily residuals, at least 2 bp)`);
+        c.info(key, `FTSE ${ftseName}: earlier name ${l.name} linked across the one-day gap ${l.gap.last} → ${l.gap.first} (no overlap): implied gap return ${bp(l.gap.implied)}, yield/duration estimate ${bp(l.gap.estimate)}, residual ${bp(l.gap.residual)} within the threshold ${bp(l.gap.threshold)} (3 × p95 of ${l.gap.samples} daily residuals, between 2 and 5 bp)`);
       }
       out.prov = `FTSE ${ftseName} via dataplatform /api/ftse/index-summary, aggregate total-return level, month-end to month-end${joined}`;
     } else {
@@ -1318,11 +1318,11 @@ function comparablePrevious(prev: FundData | undefined, next: Performance): Perf
 function buildClasses(
   raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, pb: PerfBuild | null, performance: Performance | null,
   risk: RiskStats | null, risk3Y: RiskStats | null, c: Ctx, base: string,
-): { byClass: Record<string, ClassPerformance>; alerts: string[]; advisories: string[] } {
+): { byClass: Record<string, ClassPerformance>; alerts: string[]; advisories: { code: string; message: string }[] } {
   const src = FUND_SOURCES[spec.key];
   const classes = classSeriesOf(spec.key);
   const alerts: string[] = [];
-  const advisories: string[] = [];
+  const advisories: { code: string; message: string }[] = [];
   // the main series carried over (a source failed this run): the classes carried over with it
   const byClass: Record<string, ClassPerformance> = pb ? {} : performance && prev?.performanceByClass ? { ...prev.performanceByClass } : {};
   const head = performance?.classCode ? classes.find((k) => k.classCode === performance.classCode) : undefined;
@@ -1339,7 +1339,7 @@ function buildClasses(
     const wasPublished = !!prev?.performanceByClass?.[k.fundserv];
     const drop = (why: string, persistent = false): void => {
       c.warn(key, `${lbl}: ${why}; returns not shown for this class`);
-      if (persistent && !wasPublished) advisories.push(`${lbl} not shown: ${why}`);
+      if (persistent && !wasPublished) advisories.push({ code: k.fundserv, message: `${lbl} not shown: ${why}` });
       else alerts.push(`${lbl} not shown${wasPublished ? " (it was published before)" : ""}: ${why}`);
     };
     const ch = classChain(raw, spec, k.fundserv);

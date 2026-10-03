@@ -461,7 +461,9 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     for (const [name, w] of [...why].slice(0, FTSE_MAX_CANDIDATES)) {
       try {
         const daily = await rowsOf(name);
-        if (Object.keys(daily).length) cands.push({ name, levels: levelsOf(daily), why: w.why, daily, gapOk: w.strict });
+        // a test / synthetic series is never gap-linked
+        const synthetic = /synthetic/i.test(`${name} ${names.find((x) => x.short_name === name)?.index_name ?? ""}`);
+        if (Object.keys(daily).length) cands.push({ name, levels: levelsOf(daily), why: w.why, daily, gapOk: w.strict && !synthetic });
         else skipped.push(`${name} (no aggregate level)`);
       } catch (e: unknown) {
         skipped.push(`${name} (${errMsg(e)})`);
@@ -473,7 +475,7 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     let detail = `${days.length} day(s), ${days[0]} to ${days[days.length - 1]}`;
     if (j.used.length) {
       detail += `; earlier days under ${j.used.map((u) => u.kind === "gap" && u.gap
-        ? `${u.name} from ${u.from} (${u.why}; gap link ${u.gap.last} → ${u.gap.first}: implied return ${bp(u.gap.implied)}, estimate ${bp(u.gap.estimate)}, residual ${bp(u.gap.residual)} within ${bp(u.gap.threshold)} (3 × p95 of ${u.gap.samples} daily residuals, at least 2 bp))`
+        ? `${u.name} from ${u.from} (${u.why}; gap link ${u.gap.last} → ${u.gap.first}: implied return ${bp(u.gap.implied)}, estimate ${bp(u.gap.estimate)}, residual ${bp(u.gap.residual)} within ${bp(u.gap.threshold)} (3 × p95 of ${u.gap.samples} daily residuals, between 2 and 5 bp))`
         : `${u.name} from ${u.from} (${u.why}; linked at ${u.link} on ${u.checked} equal daily return(s))`).join(", ")}`;
     }
     const allSkipped = [...skipped, ...j.skipped];

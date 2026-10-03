@@ -8,7 +8,7 @@ import { ftseDaily, ftseFamily, ftseGapCheck, ftseReturnEstimate, joinFtseHistor
 import { bondDays } from "../../../src/lib/pipeline/market-calendar.ts";
 
 /** a synthetic index whose daily return is the yield/duration estimate plus a small deterministic noise (±0.4 bp) */
-function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: string } = {}): Record<string, FtseDay> {
+function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: string; noise?: number } = {}): Record<string, FtseDay> {
   const days = bondDays(from, to);
   const out: Record<string, FtseDay> = {};
   let level = 1000;
@@ -18,7 +18,7 @@ function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: str
     if (i > 0) {
       const prev = out[days[i - 1]];
       const est = ftseReturnEstimate(prev, { ytm }, Math.round((Date.parse(d) - Date.parse(days[i - 1])) / 86_400_000))!;
-      const noise = 0.00004 * Math.sin(i * 1.7) + (d === opts.gapDay ? opts.gapNoise ?? 0 : 0);
+      const noise = (opts.noise ?? 0.00004) * Math.sin(i * 1.7) + (d === opts.gapDay ? opts.gapNoise ?? 0 : 0);
       level *= 1 + est + noise;
     }
     out[d] = { level, ytm, dur };
@@ -97,4 +97,24 @@ test("ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', pref
   assert.equal(ftseFamily("FTSE Canada Universe Corporate Bond Index"), "univ corp");
   assert.equal(ftseFamily("FTSE Canada Universe Bond Index"), "univ");
   assert.equal(ftseFamily("FTSE Canada Mid Term Corporate Bond Index"), "mid corp");
+});
+
+test("gap tolerance is capped at 5 bp; a copied level (zero implied return) is never a link", () => {
+  // noisy analytics (±6 bp daily residuals): 3 × p95 would be about 18 bp, the tolerance stays at 5 bp
+  const noisy = synth("2024-01-02", "2025-06-30", { noise: 0.0006, gapDay: "2024-12-05", gapNoise: -0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7) });
+  const n = split(noisy, "2024-12-05", "2024-12-04");
+  const g = ftseGapCheck(n.curL, n.cur, n.oldL, n.old);
+  assert.ok(g.ok, g.ok ? "" : g.why);
+  if (g.ok) assert.equal(g.check.threshold, 5e-4);
+  // a 7 bp gap residual: within 3 × p95 of these noisy series, beyond the 5 bp cap → rejected
+  const off = synth("2024-01-02", "2025-06-30", { noise: 0.0006, gapDay: "2024-12-05", gapNoise: 0.0007 - 0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7) });
+  const o = split(off, "2024-12-05", "2024-12-04");
+  const r = ftseGapCheck(o.curL, o.cur, o.oldL, o.old);
+  assert.ok(!r.ok && /residual 7\.\d+ bp beyond 5\.00 bp/.test(r.why), r.ok ? "accepted" : r.why);
+  // the current series starts with the earlier name's last level copied: zero implied return, rejected
+  const { cur, old, curL, oldL } = split(ALL, "2024-12-05", "2024-12-04");
+  const k = oldL["2024-12-04"] / curL["2024-12-05"];
+  const copied = Object.fromEntries(Object.entries(curL).map(([d, v]) => [d, v * k]));
+  const z = ftseGapCheck(copied, cur, oldL, old);
+  assert.ok(!z.ok && /implied gap return is zero .*a copied level/.test(z.why), z.ok ? "accepted" : z.why);
 });

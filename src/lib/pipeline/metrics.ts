@@ -25,7 +25,7 @@
  *    `compounded=False` path): periods are sums, annualized = sum / years, growth = 1 + cumsum,
  *    drawdown = value - running peak (in units of the initial investment).
  */
-import { bondDays } from "./market-calendar.ts";
+import { bondDays, isBondDay } from "./market-calendar.ts";
 
 export type Series = Record<string, number>;
 export type Method = "compounded" | "arithmetic";
@@ -348,10 +348,11 @@ export interface FtseJoin {
 /**
  * a link needs this many equal daily returns on common days; "equal" within dailyTol (levels published to 4+ decimals).
  * Gap link: the gap-day return implied by equal bases must match the yield / duration estimate within
- * max(gapResidualMult × p95 |residual|, gapMinTol), stay below gapMaxReturn, the levels within gapMaxLevelDiff, and the
+ * min(max(gapResidualMult × p95 |residual|, gapMinTol), gapMaxTol), stay below gapMaxReturn, not be a copied level (|implied| <
+ * gapZero while the estimate is not), the levels within gapMaxLevelDiff, and the
  * tolerance needs gapMinSamples daily residuals (all of the current series, the earlier one's last gapOldDays days).
  */
-export const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6, gapResidualMult: 3, gapMinTol: 2e-4, gapMaxReturn: 0.01, gapMaxLevelDiff: 0.03, gapMinSamples: 20, gapOldDays: 250 };
+export const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6, gapResidualMult: 3, gapMinTol: 2e-4, gapMaxTol: 5e-4, gapZero: 1e-7, gapMaxReturn: 0.01, gapMaxLevelDiff: 0.03, gapMinSamples: 20, gapOldDays: 250 };
 
 /**
  * Daily index return estimated from the index's own analytics: carry (average yield, act/365) minus modified duration ×
@@ -365,11 +366,21 @@ export function ftseReturnEstimate(a: { ytm: number | null; dur: number | null }
 
 const calDays = (a: string, b: string): number => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
-/** residuals (actual − estimate) of consecutive days of one series */
+/** the first bond-market business day of its month (the index rebalances at the month-end: not a typical day) */
+function firstBondDayOfMonth(d: string): boolean {
+  if (!isBondDay(d)) return false;
+  for (let t = Date.parse(`${d.slice(0, 7)}-01T00:00:00Z`); ; t += 86_400_000) {
+    const x = new Date(t).toISOString().slice(0, 10);
+    if (isBondDay(x)) return x === d;
+  }
+}
+
+/** residuals (actual − estimate) of consecutive days of one series, rebalance days excluded */
 function residualsOf(levels: Record<string, number>, daily: Record<string, FtseDay>, days: string[]): number[] {
   const out: number[] = [];
   for (let i = 1; i < days.length; i++) {
     const a = days[i - 1], b = days[i];
+    if (firstBondDayOfMonth(b)) continue;
     const est = daily[a] && daily[b] ? ftseReturnEstimate(daily[a], daily[b], calDays(a, b)) : null;
     if (est === null || !(levels[a] > 0) || !(levels[b] > 0)) continue;
     out.push(levels[b] / levels[a] - 1 - est);
@@ -397,12 +408,13 @@ export function ftseGapCheck(cur: Record<string, number>, curDaily: Record<strin
   const res = [...residualsOf(cur, curDaily, curDays), ...residualsOf(old, oldDaily, oldDays.slice(-cfg.gapOldDays))].map(Math.abs).sort((a, b) => a - b);
   if (res.length < cfg.gapMinSamples) return { ok: false, why: `${res.length} daily residual(s) to calibrate the tolerance (${cfg.gapMinSamples} needed)` };
   const p95 = res[Math.min(res.length - 1, Math.ceil(0.95 * res.length) - 1)];
-  const threshold = Math.max(cfg.gapResidualMult * p95, cfg.gapMinTol);
+  const threshold = Math.min(Math.max(cfg.gapResidualMult * p95, cfg.gapMinTol), cfg.gapMaxTol);
   const residual = implied - estimate;
   const check: FtseGapCheck = { last, first, implied, estimate, residual, threshold, p95, samples: res.length };
   const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
+  if (Math.abs(implied) < cfg.gapZero && Math.abs(estimate) >= cfg.gapZero) return { ok: false, why: `implied gap return is zero (${old[last]} on ${last} = ${cur[first]} on ${first}: a copied level, not a market move) while the estimate is ${bp(estimate)}` };
   if (Math.abs(implied) >= cfg.gapMaxReturn) return { ok: false, why: `implied gap return ${bp(implied)} is not below ${(cfg.gapMaxReturn * 100).toFixed(0)}%` };
-  if (Math.abs(residual) > threshold) return { ok: false, why: `implied gap return ${bp(implied)} vs estimate ${bp(estimate)}: residual ${bp(residual)} beyond ${bp(threshold)} (3 × p95 of ${res.length} daily residuals, at least 2 bp)` };
+  if (Math.abs(residual) > threshold) return { ok: false, why: `implied gap return ${bp(implied)} vs estimate ${bp(estimate)}: residual ${bp(residual)} beyond ${bp(threshold)} (3 × p95 of ${res.length} daily residuals, between 2 and 5 bp)` };
   return { ok: true, check };
 }
 

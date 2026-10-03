@@ -42,7 +42,7 @@ export const METHOD = {
   source: "computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py)",
   weights: "market_value_cad / net assets (sum of the classes' Apex closing capital), signed",
   duration: "modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)",
-  yield: "yield to maturity (instrument latest price), same weighting and rules",
+  yield: "yield to maturity (instrument latest price), same weighting and rules; a bond priced from the FTSE constituents uses FTSE's yield, which may be to the effective (call) maturity for callable bonds",
   coupon: "coupon rate (instrument master), weighted by absolute market value over bond positions",
   rating: "composite rating, else the lowest of S&P / Moody's / Fitch / DBRS; notch-scored AAA=1…D=22, weighted mean notch rounded half up",
   prices_as_of: `instrument latest price, accepted within ${PRICE_MAX_AGE_DAYS} days of the book date; else the bond's FTSE Canada index constituent row (univ / short_corp, yield and modified duration) within the same window; else unpriced`,
@@ -241,14 +241,15 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
     const price = ref?.latest_price ?? null;
     const pd = str(price?.price_date);
     s.priced = !!pd && Math.abs(days(pd, asOf)) <= PRICE_MAX_AGE_DAYS;
-    if (pd && !s.priced && s.kind === "bond") { stale.push(s.key); staleDates.push(pd.slice(0, 10)); }
+    if (pd && !s.priced && s.kind === "bond") { stale.push(s.key); staleDates.push(`${s.key}|${pd.slice(0, 10)}`); }
     if (!pd && s.kind === "bond") noPrice.push(s.key);
     let ytm = s.priced ? num(price?.yield_to_maturity) : null;
     s.duration = s.priced ? num(price?.modified_duration) : null;
     // the instrument master has no current price (or its yield / duration is empty): the bond's FTSE constituent row
     if (s.kind === "bond" && ftse && (!s.priced || (ytm === null && s.duration === null))) {
       const f = (s.isin ? ftse.byIsin[s.isin] : undefined) ?? (s.cusip ? ftse.byCusip[s.cusip] : undefined);
-      if (f && Math.abs(days(f.date, asOf)) <= PRICE_MAX_AGE_DAYS && (f.ytm !== null || f.dur !== null)) {
+      // both a yield and a duration, in plausible ranges (yield −1 % to 25 %, duration 0 to 40 years)
+      if (f && Math.abs(days(f.date, asOf)) <= PRICE_MAX_AGE_DAYS && f.ytm !== null && f.dur !== null && f.ytm >= -1 && f.ytm <= 25 && f.dur >= 0 && f.dur <= 40) {
         s.priced = true;
         ytm = f.ytm;
         s.duration = f.dur;
@@ -266,7 +267,9 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
   if (derivLike.length) warnings.push(`${derivLike.length} unresolved position(s) with a quantity and no market value treated as derivatives (excluded from weights): ${sample(derivLike)}`);
   report(matured, "bond(s) held past their maturity date, left without a term");
   const staleNotFtse = stale.filter((k) => !fromFtse.includes(k));
-  const range = staleDates.length ? ` (their latest price dates: ${[...staleDates].sort()[0]} to ${[...staleDates].sort().at(-1)})` : "";
+  // the price dates of the bonds still unpriced (not those the FTSE constituents priced)
+  const still = staleDates.filter((x) => !fromFtse.includes(x.split("|")[0])).map((x) => x.split("|")[1]).sort();
+  const range = still.length ? ` (their latest price dates: ${still[0]} to ${still[still.length - 1]})` : "";
   report(staleNotFtse, `bond price(s) more than ${PRICE_MAX_AGE_DAYS} days from the book date and not in the FTSE constituents, treated as unpriced${range}`);
   report(noPrice.filter((k) => !fromFtse.includes(k)), "bond(s) without any price in the instrument master nor in the FTSE constituents");
   if (fromFtse.length) warnings.push(`${fromFtse.length} bond(s) priced from the FTSE Canada index constituents (yield, modified duration): no instrument-master price within ${PRICE_MAX_AGE_DAYS} days`);

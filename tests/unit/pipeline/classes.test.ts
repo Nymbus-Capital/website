@@ -117,7 +117,7 @@ test("CIBC months of the other classes are used only when the headline verified 
   assert.equal(seb.performanceByClass!.LDM201, undefined);
   // a persistent, expected limitation (the fund's CIBC months cannot be verified): a non-blocking advisory, not an alert
   assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)), JSON.stringify(context[SEB]!.alerts));
-  assert.ok(context[SEB]!.advisories?.some((a) => /class F \(LDM201\) not shown: not every month since its first computable month 2023-08 is usable .*: \d+ month\(s\) \(2023-08 to 2026-06\) stored CIBC daily returns not verified on the headline class$/.test(a)), JSON.stringify(context[SEB]!.advisories));
+  assert.ok(context[SEB]!.advisories?.some((a) => a.code === "LDM201" && /class F \(LDM201\) not shown: not every month since its first computable month 2023-08 is usable .*: \d+ month\(s\) \(2023-08 to 2026-06\) stored CIBC daily returns not verified on the headline class$/.test(a.message)), JSON.stringify(context[SEB]!.advisories));
   // one concise CIBC-mismatch warning for the fund
   const cibcWarns = data.issues.filter((i) => /stored CIBC daily returns of class H \(LDM202\) do not reproduce/.test(i.message));
   assert.equal(cibcWarns.length, 1);

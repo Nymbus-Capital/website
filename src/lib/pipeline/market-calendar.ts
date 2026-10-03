@@ -96,10 +96,10 @@ export function priorTradingDay(date: string): string | null {
 const bondCache = new Map<number, Set<string>>();
 
 /**
- * Canadian bond-market holidays of a year (CIRO recommended closures, which the FTSE Canada bond indices follow): the
- * TSX holidays plus the National Day for Truth and Reconciliation (Sep 30, from 2021) and Remembrance Day (Nov 11),
- * both observed on the Monday when they fall on a weekend. The bond market trades on days the TSX does not close for
- * and vice versa, so FTSE month-ends use this calendar and fund NAVs the TSX one.
+ * Canadian bond-market holidays of a year (the IIAC's recommended bond-market closures, which the FTSE Canada bond
+ * indices follow): the TSX holidays plus the National Day for Truth and Reconciliation (Sep 30, from 2021) and
+ * Remembrance Day (Nov 11), both observed on the Monday when they fall on a weekend. Every bond-market business day is a
+ * TSX day, not conversely: FTSE month-ends use this calendar, fund NAVs the TSX one.
  */
 export function caBondHolidays(year: number): Set<string> {
   const hit = bondCache.get(year);

@@ -51,7 +51,7 @@ export interface FundValidation {
    */
   alerts: string[];
   /** persistent, expected limitations reported without blocking (FundContext.advisories) */
-  advisories?: string[];
+  advisories?: { code: string; message: string }[];
 }
 
 const days = (a: string, b: Date): number => (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
@@ -541,7 +541,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     }
     for (const i of [...repairs, ...warnings]) if (i.level === "error") alerts.push(i.message);
     for (const i of input.issues) if (i.level === "error" && (i.key === base || i.key.startsWith(`${base}.`))) alerts.push(i.message);
-    results.push({ fund: key, blocking, warnings: [...repairs, ...warnings], alerts: [...new Set(alerts)], ...(ctx?.advisories?.length ? { advisories: [...new Set(ctx.advisories)] } : {}) });
+    results.push({ fund: key, blocking, warnings: [...repairs, ...warnings], alerts: [...new Set(alerts)], ...(ctx?.advisories?.length ? { advisories: ctx.advisories.filter((a, i, all) => all.findIndex((b) => b.code === a.code) === i) } : {}) });
   }
   data.issues = [...data.issues, ...extraIssues];
   data.asOf = computeAsOf(data.funds);

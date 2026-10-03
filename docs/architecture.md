@@ -118,8 +118,9 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   is linked only when it ends on the bond-market business day just before the current name's first day (one daily return
   missing), with equal bases: the implied gap return (first / last − 1) must match the estimate from the rows' own
   analytics, carry − duration × Δyield (`average_yield` act/365, `modified_duration` of the earlier day), within
-  max(3 × p95 of the daily residuals of the current series and the earlier one's last 250 days, 2 bp), stay below 1 %,
-  levels within 3 %. The source detail and an info issue give the implied return, estimate, residual and threshold.
+  min(max(3 × p95 of the daily residuals of the current series and the earlier one's last 250 days, first bond day of
+  each month excluded, 2 bp), 5 bp), stay below 1 %, not be a copied level (zero implied return), levels within 3 %;
+  never for a name marked synthetic. Bonds priced from FTSE need both yield and duration in range (−1–25 %, 0–40 years). The source detail and an info issue give the implied return, estimate, residual and threshold.
   An overlap of equal daily returns always wins. Family matching is order-insensitive ("Short Term Corporate" =
   "Corporate Short Term" = "short corp"); names containing every family word are tried by overlap only and listed in the
   source detail (up to 10) for the admin.
