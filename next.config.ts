@@ -49,6 +49,16 @@ const nextConfig: NextConfig = {
       },
       { source: "/admin/:path*", headers: [{ key: "Cache-Control", value: "no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/api/admin/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] },
+      // official third-party brand images shipped with the build (src/lib/data/brand-assets.ts): an SVG opened directly
+      // runs nothing (same headers as /api/brand/<slot>); tests/unit/rankings/brand-files.test.ts validates every file
+      {
+        source: "/brand/third-party/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+        ],
+      },
     ];
   },
 };

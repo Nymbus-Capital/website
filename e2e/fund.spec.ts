@@ -485,8 +485,11 @@ test("solutions: the advisors section lists the confirmed, fresh rankings with s
   await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-morningstar")).toContainText("Morningstar Rating™: 5 stars");
   await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-fundlibrary")).toContainText("August 31, 2026");
   for (const a of await list.locator("li a").all()) await expect(a).toHaveAttribute("href", /^https:\/\//);
+  await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
   await expect(list.getByTestId("advisor-item-rbc-pfs")).toHaveCount(0);
   await expect(list.getByTestId("advisor-ms-attribution")).toContainText("Morningstar");
+  await expect(list.getByTestId("advisor-perf-sustainable-enhanced-bonds")).toHaveAttribute("href", "/strategies/sustainable-enhanced-bonds#performance");
+  await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-morningstar")).toContainText("Series F");
   await expect(list.locator("img")).toHaveCount(0);
 });
 

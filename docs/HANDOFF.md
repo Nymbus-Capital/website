@@ -177,6 +177,17 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `fix/awards-v3` from `integ/v3`; not merged): fixes after the independent review of awards v2.
+  RBC check: an edition counts only with an article / PDF link on an RBC host and only when its quarter ended ≥ 21 days ago;
+  a stored "latest" in the future or without a link is dropped (self-heal); redirects followed by hand, RBC hosts only; pages
+  read up to 3 MB then cancelled; `withLock("rankings-check")` (manual "check now" answers 409 while one runs). SVG
+  validator: allow-list of elements / attributes, refuses DOCTYPE / CDATA / animation / backslash escapes / image-set.
+  `next.config.ts` serves `/brand/third-party/*` with the sandbox CSP + nosniff; `brand-files.test.ts` validates every
+  shipped file. `hide.rankings` → no rankings in the page payload. Brand: 304 without Content-Length, upload writes file +
+  index before removing the old type, stream errors logged. Morningstar "out of N funds" shown in the advisor list too
+  (compliance W1: required, enter N). /solutions: rankings moved out of the illustrative use case into their own
+  "Third-party rankings" section with a link to each fund's standard performance (compliance V9 updated).
+
 - 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
   branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
   that order, `--no-ff`). Resolutions: one GMV label implementation, dp-only-data's `FundCard.perfVariant` from

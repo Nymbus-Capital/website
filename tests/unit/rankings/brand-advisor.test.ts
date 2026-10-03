@@ -28,7 +28,13 @@ test("validateBrandImage: PNG / WebP / plain SVG only, size-capped; SVG with act
     "<svg><script>alert(1)</script></svg>", '<svg onload="x()"></svg>', '<svg><a href="javascript:x"/></svg>', "<svg><foreignObject/></svg>",
     '<svg><image href="https://evil.example/x.png"/></svg>', '<svg><style>@import url(x.css)</style></svg>', '<!DOCTYPE svg [<!ENTITY x "y">]><svg/>',
     '<svg><rect style="fill:url(https://x/y)"/></svg>', '<svg><use xlink:href="other.svg#a"/></svg>',
+    '<svg><animate attributeName="href" to="javascript:x"/></svg>', '<svg><set attributeName="fill" to="red"/></svg>', '<svg><animateMotion/></svg>',
+    '<!DOCTYPE svg><svg/>', '<svg><style>a{fill:\\75rl(x)}</style></svg>', '<svg><rect style="fill:\\75rl(x)"/></svg>',
+    '<svg><style>a{background:image-set("x.png" 1x)}</style></svg>', '<svg><image href="#a"/></svg>', '<svg><a href="#x"><rect/></a></svg>',
+    '<svg><rect xml:base="https://x/"/></svg>', '<svg><![CDATA[x]]></svg>', '<svg><rect onclick = "x"/></svg>', '<svg><rect/></svg><script/>',
   ]) assert.ok(svgProblem(bad), bad);
+  // a typical exported logo passes the allow-list
+  assert.equal(svgProblem('<?xml version="1.0" encoding="UTF-8"?>\n<!-- logo -->\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>Logo</title><style>.a{fill:#c00}</style><g class="a"><path d="M0 0h10v10z" fill-rule="evenodd"/></g></svg>'), null);
   const h = brandHeaders("image/svg+xml", "abc");
   assert.equal(h["Content-Type"], "image/svg+xml");
   assert.equal(h["X-Content-Type-Options"], "nosniff");

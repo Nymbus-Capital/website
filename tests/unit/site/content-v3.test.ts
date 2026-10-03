@@ -109,13 +109,14 @@ test("solutions: three illustrative use cases; overlay ones carry the futures-ex
   assert.ok(!/guarantee/i.test(text.replace(/not guaranteed/gi, "")));
 });
 
-test("solutions: the real AdvisorRankings (awards-v2) renders exactly once, in the advisors use-case card", () => {
+test("solutions: the real AdvisorRankings renders exactly once, in its own section after the advisors card (not in a use case)", () => {
   assert.ok(!existsSync(join(ROOT, "src/components/site/pages/AdvisorRankings.tsx")), "the content-v3 placeholder is gone");
   const sol = readFileSync(join(ROOT, "src/components/site/pages/Solutions.tsx"), "utf8");
-  assert.match(sol, /import \{ AdvisorRankings \} from "\.\.\/AdvisorRankings";/);
-  assert.equal(sol.match(/<AdvisorRankings \/>/g)?.length, 1);
-  const uc = sol.slice(sol.indexOf("function UseCase"), sol.indexOf("function AudienceSection"));
-  assert.match(uc, /a\.key === "advisor" \? <AdvisorRankings \/> : null/);
+  assert.match(sol, /import \{ AdvisorRankings, useAdvisorRankingItems \} from "\.\.\/AdvisorRankings";/);
+  assert.equal(sol.match(/<AdvisorRankings\b/g)?.length, 1);
+  const uc = sol.slice(sol.indexOf("function UseCase"), sol.indexOf("function RankingsSection"));
+  assert.ok(!/<AdvisorRankings/.test(uc), "never inside the illustrative use case");
+  assert.match(sol, /a\.key === "advisor" \? <RankingsSection/);
 });
 
 /* ------------------------------------------------------------------ Global Minimum Volatility: name the variant */

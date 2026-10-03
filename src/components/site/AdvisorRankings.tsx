@@ -8,7 +8,7 @@
  * with src/lib/rankings/advisor.ts), or `<AdvisorRankings items={…} />`. Renders nothing when there is no item.
  */
 import { createContext, useContext, type ReactNode } from "react";
-import { ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import type { AdvisorFigure, AdvisorRankingItem } from "@/lib/rankings/advisor";
 import { ordinal } from "@/lib/rankings/policy";
@@ -17,6 +17,11 @@ import { ratingText } from "@/components/fund/Morningstar";
 import "./advisor-rankings.css";
 
 const Ctx = createContext<AdvisorRankingItem[] | null>(null);
+
+/** Items from the provider (empty outside it). */
+export function useAdvisorRankingItems(): AdvisorRankingItem[] {
+  return useContext(Ctx) ?? [];
+}
 
 export function AdvisorRankingsProvider({ items, children }: { items: AdvisorRankingItem[]; children: ReactNode }) {
   return <Ctx.Provider value={items}>{children}</Ctx.Provider>;
@@ -30,7 +35,10 @@ function dateText(iso: string, locale: "en" | "fr"): string {
 }
 
 function figureText(f: AdvisorFigure, locale: "en" | "fr", pick: (l: { en: string; fr: string }) => string): string {
-  if (f.percentile != null) return pick(RK.tp.percentile).replace("{ord}", ordinal(f.percentile, locale));
+  if (f.percentile != null) {
+    const pct = pick(RK.tp.percentile).replace("{ord}", ordinal(f.percentile, locale));
+    return f.of != null ? `${pct} (${pick(RK.ms.outOf).replace("{n}", String(f.of))})` : pct;
+  }
   if (f.rank != null && f.of != null) return pick(RK.adv.rankOf).replace("{rank}", String(f.rank)).replace("{of}", String(f.of));
   return "";
 }
@@ -55,7 +63,7 @@ export function AdvisorRankings({ items: own, title = true }: { items?: AdvisorR
       ) : null}
       {funds.map(([key, name]) => (
         <div key={key} className="advr-fund" data-testid={`advisor-rankings-${key}`}>
-          <h4 className="advr-fund-n">{pick(name)}</h4>
+          {title ? <h4 className="advr-fund-n">{pick(name)}</h4> : <h3 className="advr-fund-n">{pick(name)}</h3>}
           <ul className="advr-list" role="list">
             {items.filter((i) => i.fund === key).map((i, n) => (
               <li key={`${i.kind}-${n}`} className="advr-item" data-testid={`advisor-item-${i.kind}`}>
@@ -64,7 +72,11 @@ export function AdvisorRankings({ items: own, title = true }: { items?: AdvisorR
                 </span>
                 <span className="advr-body">
                   <span className="advr-what">
-                    {i.kind === "morningstar" && i.stars ? <b>{ratingText({ stars: i.stars as 1 | 2 | 3 | 4 | 5 }, locale)}</b> : null}
+                    {i.kind === "morningstar" && i.stars ? (
+                      <span className="advr-fig">
+                        <b>{ratingText({ stars: i.stars as 1 | 2 | 3 | 4 | 5 }, locale)}</b> <span>{pick(RK.adv.overall)}{i.fundsInCategory ? `, ${pick(RK.ms.outOf).replace("{n}", i.fundsInCategory.toLocaleString(locale === "fr" ? "fr-CA" : "en-CA"))}` : ""}</span>
+                      </span>
+                    ) : null}
                     {i.figures.length ? (
                       <span className="advr-figs">
                         {i.figures.map((f) => (
@@ -86,6 +98,7 @@ export function AdvisorRankings({ items: own, title = true }: { items?: AdvisorR
               </li>
             ))}
           </ul>
+          <a className="link advr-perf" href={items.find((i) => i.fund === key)!.perfUrl} data-testid={`advisor-perf-${key}`}>{pick(RK.adv.perf)} <ArrowRight aria-hidden="true" /></a>
         </div>
       ))}
       <p className="fine advr-note">{pick(RK.adv.note)}</p>
