@@ -221,3 +221,29 @@ test("desktop nav: seven links fit without overlapping the logo or the tools, in
   await expect(page.getByTestId("menu-toggle")).toBeVisible();
   await ctx.close();
 });
+
+test("still frame of every step, captured for review (e2e/screenshots/concepts-*)", async ({ browser, baseURL }, info) => {
+  const mobile = info.project.name === "mobile";
+  const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL, viewport: mobile ? { width: 412, height: 915 } : { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto("/critical-concepts");
+  for (const locale of ["en", "fr"] as const) {
+    if (locale === "fr") {
+      await ctx.addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
+      await page.reload();
+    }
+    for (const id of IDS) {
+      const panel = page.getByTestId(`${id}-panel`);
+      await panel.scrollIntoViewIfNeeded();
+      await expect(panel).toHaveClass(/\bon\b/);
+      for (let k = 0; k < 4; k++) {
+        if (locale === "fr" && k < 3) continue; // French: the last step only
+        await page.getByTestId(`${id}-step-${k}`).click();
+        await expect(page.getByTestId(`${id}-host`)).toHaveAttribute("data-step", String(k));
+        await page.waitForTimeout(150);
+        await panel.screenshot({ path: `e2e/screenshots/concepts-${id}-${locale}-step${k + 1}-${info.project.name}.png` });
+      }
+    }
+  }
+  await ctx.close();
+});
