@@ -152,6 +152,9 @@ Not yet run against live data, not deployed.
    still read managers from `src/data/team.ts`, add News to the nav/footer if wanted, independent adversarial review
    (could not be spawned in the building session).
 
+14. **Content v3** [in progress — sub-agent, 2026-10-02, branch `feat/content-v3`]: approach risk-first + multi-strategy
+   diagram, team from nymbus-decks (photos, credentials band), solutions use cases, ESG scoped to SEB, GMV variant labels.
+
 ## 6. Session log
 
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
