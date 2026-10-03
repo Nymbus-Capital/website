@@ -1,23 +1,28 @@
 /**
  * overlay-model.ts — pure model of the home "diversifying engines" illustration: an endless, seeded stream of
- * generated months. A bond-market reference has calm months and stress episodes (clusters of down months); five
- * generic strategy engines are drawn mostly independently of it, the volatility engine is built to react when
- * stress rises (the overlay idea). From that stream: smoothed paths, down-month correlation, "lit" engines.
+ * generated months. A bond-market reference has calm months and stress episodes (clusters of down months). Five
+ * lanes, labelled with the Multi-Strategy Fund's four strategy names plus a futures overlay, are drawn mostly
+ * independently of it; hedging and the overlay are built to react when stress rises. Every series has zero drift
+ * (no lane, blend or reference trends up or down over time), so nothing reads as performance. From that stream:
+ * smoothed paths, down-month correlation, highlighted independent moves.
  * Everything is generated: no real strategy, position, return or correlation. Dependency-free (unit tested).
  */
 import { gauss, hash01 } from "./scan-model.ts";
 
 const l = (en: string, fr: string) => ({ en, fr });
 
-export interface Engine { key: string; label: { en: string; fr: string }; color: string }
+export interface Engine { key: string; label: { en: string; fr: string }; color: string; /** part of the blended line */ blend: boolean }
 
-/** Generic strategy types (no product names). */
+/**
+ * The Multi-Strategy Fund's four strategies (names as on the fund page and /approach) and the bond funds' futures
+ * overlay, which has its own lane and is never blended with the four.
+ */
 export const ENGINES: Engine[] = [
-  { key: "trend", label: l("Trend", "Tendance"), color: "#1a73e8" },
-  { key: "carry", label: l("Carry", "Portage"), color: "#0b8fd6" },
-  { key: "macro", label: l("Macro", "Macro"), color: "#6d5bd0" },
-  { key: "vol", label: l("Volatility", "Volatilité"), color: "#00a3e0" },
-  { key: "rv", label: l("Relative value", "Valeur relative"), color: "#0f9d8a" },
+  { key: "lowvol", label: l("Low volatility", "Faible volatilité"), color: "#0b8fd6", blend: true },
+  { key: "directional", label: l("Directional", "Directionnelle"), color: "#1a73e8", blend: true },
+  { key: "meanrev", label: l("Mean reversion", "Retour à la moyenne"), color: "#6d5bd0", blend: true },
+  { key: "hedging", label: l("Hedging", "Couverture"), color: "#00a3e0", blend: true },
+  { key: "overlay", label: l("Futures overlay", "Superposition"), color: "#0f9d8a", blend: false },
 ];
 export const BOND = { key: "bond", label: l("Bonds", "Obligations"), color: "#5f6368" };
 
@@ -51,19 +56,29 @@ export function isStress(n: number, seed = 0): boolean {
   return at >= start && at < start + len;
 }
 
-const BETA = [0.04, 0.05, -0.03, 0, 0.04];
-const SIGMA = [0.9, 0.55, 0.75, 0.6, 0.45];
-const DRIFT = [0.04, 0.1, 0.03, -0.06, 0.06];
+const BETA = [0.05, 0.03, -0.04, 0, 0];
+const SIGMA = [0.4, 0.9, 0.7, 0.55, 0.5];
+/** Share of stress months and mean |bond move| in them (block design above): the drift corrections use them. */
+const P_STRESS = (0.36 * 2.5) / 9;
+const STRESS_ABS = 0.9 + 0.8 * 0.79;
+/** P(stress month right after a stress month) */
+const P_STRESS_RUN = (0.36 * 1.5) / 9;
+const REACT = [0, 0, 0, 0.55, 0.45];
+const RUN = [0, 0.35, 0, 0, 0];
+/** zero drift: what a lane gains in stress months is taken back evenly, so no lane trends over time */
+const DRIFT = REACT.map((r, i) => -(r * STRESS_ABS * P_STRESS + RUN[i] * P_STRESS_RUN));
+/** calm-month drift of the reference that balances its stress months (zero drift overall) */
+const BOND_CALM = (P_STRESS * STRESS_ABS) / (1 - P_STRESS);
 
 /** Month `n` (any integer) of the stream for `seed`: deterministic, bounded. */
 export function monthAt(n: number, seed = 0): Month {
   const stress = isStress(n, seed);
   // calm months drift up slightly, stress months fall: the reference has no trend over the long run
-  const bond = clamp(stress ? -0.9 - Math.abs(gauss(n, 21, seed)) * 0.8 : 0.2 + gauss(n, 22, seed) * 0.55);
-  const engines = ENGINES.map((e, i) => {
+  const bond = clamp(stress ? -0.9 - Math.abs(gauss(n, 21, seed)) * 0.8 : BOND_CALM + gauss(n, 22, seed) * 0.55);
+  const engines = ENGINES.map((_, i) => {
     let v = DRIFT[i] + BETA[i] * bond + SIGMA[i] * gauss(n, 30 + i, seed);
-    if (e.key === "vol" && stress) v += 0.55 * Math.abs(bond); // built to react when volatility rises
-    if (e.key === "trend" && stress && isStress(n - 1, seed)) v += 0.35; // a persistent fall becomes a trend
+    if (stress) v += REACT[i] * Math.abs(bond); // hedging and the overlay: built to react when stress rises
+    if (stress && isStress(n - 1, seed)) v += RUN[i]; // directional: a persistent fall becomes a trend
     return clamp(v);
   });
   return { n, bond, engines, down: bond < 0, stress };
@@ -98,12 +113,13 @@ export function level(get: (n: number) => Month, n: number, series: number /* -1
 /** Upper bound of |level|: every move at its maximum. */
 export const LEVEL_BOUND = (MAX_MOVE * (1 - Math.pow(PHI, DEPTH))) / (1 - PHI);
 
-/** Equal-weight blend of the engines for a month. */
+const BLEND = ENGINES.map((e, i) => (e.blend ? i : -1)).filter((i) => i >= 0);
+/** Equal-weight blend of the four strategies for a month (the overlay lane is not part of it). */
 export function combinedMove(m: Month): number {
-  return m.engines.reduce((a, v) => a + v, 0) / m.engines.length;
+  return BLEND.reduce((a, i) => a + m.engines[i], 0) / BLEND.length;
 }
 
-/** An engine "lights" in a down month when it moves the other way (up): an independent move. */
+/** An engine is highlighted in a down month when it moves the other way (up): an independent move. */
 export function lit(m: Month, i: number): boolean {
   return m.down && m.engines[i] > 0;
 }
@@ -161,7 +177,7 @@ export const COUNTER_CYCLE = 120;
 export function overlayLayout(W: number, H: number) {
   const narrow = W < 700;
   const pad = narrow ? 12 : 20;
-  const foot = narrow ? 42 : 26; // watermark row (narrow: legend line above it)
+  const foot = narrow ? 58 : 26; // watermark row (narrow: two legend lines above it)
   const labW = Math.round(Math.max(64, Math.min(132, W * (narrow ? 0.3 : 0.11))));
   if (!narrow) {
     const hmW = Math.round(Math.min(340, W * 0.3));

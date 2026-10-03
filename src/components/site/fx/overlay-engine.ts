@@ -47,6 +47,18 @@ const START = 240;
 const MONTH_MS = 640;
 const NE = ENGINES.length;
 
+/** a label cut into two balanced lines at a space (null when it has no space) */
+function splitLabel(s: string): [string, string] | null {
+  const parts = s.split(" ");
+  if (parts.length < 2) return null;
+  let best = 1, diff = Infinity;
+  for (let k = 1; k < parts.length; k++) {
+    const d = Math.abs(parts.slice(0, k).join(" ").length - parts.slice(k).join(" ").length);
+    if (d < diff) { diff = d; best = k; }
+  }
+  return [parts.slice(0, best).join(" "), parts.slice(best).join(" ")];
+}
+
 const rgba = (hex: string, a: number) => {
   const v = parseInt(hex.slice(1), 16);
   return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
@@ -233,7 +245,10 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
       ctx!.beginPath(); ctx!.arc(L.pad + 4, yc, 3.5, 0, Math.PI * 2); ctx!.fill();
       ctx!.font = `500 ${L.narrow ? 10.5 : 12.5}px ${SANS}`;
       ctx!.fillStyle = INK2; ctx!.textAlign = "left";
-      text(lab.engines[i] ?? ENGINES[i].label.en, L.pad + 13, yc, L.labW - 18);
+      const name = lab.engines[i] ?? ENGINES[i].label.en, maxW = L.labW - 18;
+      const two = measure(name) > maxW ? splitLabel(name) : null;
+      if (two) { text(two[0], L.pad + 13, yc - 6.5, maxW); text(two[1], L.pad + 13, yc + 6.5, maxW); }
+      else text(name, L.pad + 13, yc, maxW);
     }
     // legend of the band (two rows on narrow screens)
     ctx!.font = `500 ${small}px ${SANS}`;
@@ -357,7 +372,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     const mark = opts.watermark?.();
     const fy = H - 13;
     // legend: down month swatch and lit dot
-    const legendY = L.narrow ? H - 30 : fy;
+    const legendY = L.narrow ? H - 46 : fy;
     let lx = L.narrow ? L.pad : L.x0;
     const maxX = L.narrow ? W - L.pad : L.x1;
     ctx!.font = `500 ${L.narrow ? 10 : 10.5}px ${SANS}`;
@@ -371,11 +386,12 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     ctx!.fillStyle = MUTE;
     const downW = Math.min(measure(lab.down), (maxX - lx) * 0.35);
     text(lab.down, lx + 15, legendY, downW);
-    const lx2 = lx + 15 + downW + 16;
+    // narrow: the "highlighted" key gets its own line
+    const lx2 = L.narrow ? L.pad - 1 : lx + 15 + downW + 16, litY = L.narrow ? H - 30 : legendY;
     if (lx2 + 30 < maxX) {
-      ctx!.fillStyle = halos[3][1]; ctx!.beginPath(); ctx!.arc(lx2 + 5, legendY, 6, 0, Math.PI * 2); ctx!.fill();
-      ctx!.fillStyle = ENGINES[3].color; ctx!.beginPath(); ctx!.arc(lx2 + 5, legendY, 3, 0, Math.PI * 2); ctx!.fill();
-      ctx!.fillStyle = MUTE; text(lab.lit, lx2 + 16, legendY, maxX - lx2 - 16);
+      ctx!.fillStyle = halos[3][1]; ctx!.beginPath(); ctx!.arc(lx2 + 5, litY, 6, 0, Math.PI * 2); ctx!.fill();
+      ctx!.fillStyle = ENGINES[3].color; ctx!.beginPath(); ctx!.arc(lx2 + 5, litY, 3, 0, Math.PI * 2); ctx!.fill();
+      ctx!.fillStyle = MUTE; text(lab.lit, lx2 + 16, litY, maxX - lx2 - 16);
     }
     if (mark) {
       ctx!.font = `600 ${L.narrow ? 10 : 10.5}px ${SANS}`;
