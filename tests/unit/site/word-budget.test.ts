@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { HOME_COPY } from "../../../src/components/site/home/copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
+import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
 import { AB } from "../../../src/components/site/pages/copy-about.ts";
 import { AP } from "../../../src/components/site/pages/copy-approach.ts";
 import { CT } from "../../../src/components/site/pages/copy-contact.ts";
@@ -25,6 +26,8 @@ function words(x: unknown, lang: "en" | "fr"): number {
 
 const BUDGET: [string, unknown, number][] = [
   ["home", [HOME_COPY, SCAN_COPY], 300],
+  // the "diversifying engines" band (2026-10-02) has its own ceiling: home above stays as it was
+  ["home engines band", OVERLAY_COPY, 160],
   ["about", AB, 235],
   ["approach", AP, 530],
   ["contact", CT, 295],
