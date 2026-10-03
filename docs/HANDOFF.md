@@ -175,6 +175,11 @@ Not yet run against live data, not deployed.
    Tobacco-Free pledge scope (V11); the awards work wires `<AdvisorRankings />` (`src/components/site/pages/AdvisorRankings.tsx`).
    WordPress team entries have no years of experience: with the CMS on, the band hides that counter.
 
+15. **Critical concepts** (branch `feat/critical-concepts`, from `redesign/v3-keynote-live-data`, **not merged**): page
+   `/critical-concepts` built and CI-tested. To do: independent adversarial review (design / a11y / compliance), compliance
+   rows CC1–CC4, Gabriel to confirm the $200 MM liquidity filter (the explainer deck says 175 M$) and the "≈10%" deposit.
+   Still frames of every step: `e2e/screenshots/concepts-*` on the `ci/run-*` branches.
+
 ## 6. Session log
 
 - 2026-10-03 (sub-agent, branch `feat/critical-concepts` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
@@ -192,7 +197,7 @@ Not yet run against live data, not deployed.
   models unit-tested (`tests/unit/site/critical-concepts.test.ts`: determinism, bounds, settlements sum to cumulative
   P&L, margin scales with volatility and covers the open P&L, coverage counts, layouts, copy rules, word budgets);
   e2e `e2e/critical-concepts.spec.ts` (+ route in `site.spec.ts`). Compliance rows CC1–CC4. **Open for Gabriel**:
-  $200 MM vs the explainer deck's 175 M$; "≈10%" deposit; independent adversarial review still to run.
+  $200 MM vs the explainer deck's 175 M$; "≈10%" deposit; independent adversarial review still to run (open item 15).
 
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:

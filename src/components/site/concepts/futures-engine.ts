@@ -19,8 +19,8 @@ export interface FuturesLabels {
   sum: string; realized: string; formula: string; watermark: string;
 }
 
-/** Still-frame clock of each step (days into the loop): positions, a settlement in flight, the volatile episode, mid-day. */
-const STILL_DAYS = [2.6, 5.22, 9.55, 12.82];
+/** Still-frame clock of the first three steps (days into the loop): positions, a settlement in flight, the volatile episode. */
+const STILL_DAYS = [2.6, 5.22, 9.55];
 const UP = COL.blue, DOWN = COL.orange;
 
 export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => FuturesLabels }): Runner {
@@ -43,7 +43,15 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
 
   const scene = {
     steps: FUTURES_STEP_MS,
-    stillAt: (s: number) => STILL_DAYS[Math.max(0, Math.min(3, s))] * DAY_MS,
+    stillAt: (s: number) => {
+      const k = Math.max(0, Math.min(3, s));
+      if (k < 3) return STILL_DAYS[k] * DAY_MS;
+      // "one day at risk": late in the step's day with the largest move, so the open P&L is visible
+      const days = getLoop(0).days;
+      let best = 11;
+      for (let d = 11; d <= 13; d++) if (Math.abs(days[d].move) > Math.abs(days[best].move)) best = d;
+      return (best + 0.82) * DAY_MS;
+    },
     resize(W: number, H: number) { L = futuresLayout(W, H); },
     draw(ctx: CanvasRenderingContext2D, W: number, H: number, t: number, still: boolean) {
       pen ??= makePen(ctx);
@@ -243,8 +251,12 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       g.addColorStop(0, "#fff"); g.addColorStop(1, rgba(color, 0.16));
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, nodeY, nodeR, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = rgba(color, 0.9); ctx.lineWidth = 1.8; ctx.stroke();
-      P.font(600, L.narrow ? 11.5 : 13.5);
-      P.text(label, x, nodeY, nodeR * 2 - 6, "center", COL.ink);
+      // the label shrinks to fit inside the circle (« Acheteur », « Vendeur »)
+      const size = L.narrow ? 11.5 : 13.5;
+      P.font(600, size);
+      const w = P.measure(label), room = nodeR * 2 - 8;
+      if (w > room) P.font(600, Math.max(9, Math.floor(size * (room / w) * 10) / 10));
+      P.text(label, x, nodeY, room + 2, "center", COL.ink);
     };
     ctx.globalAlpha = Math.max(f(0), f(1));
     node(lx, lab.long, COL.blue, pulseL);
