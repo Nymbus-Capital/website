@@ -185,6 +185,8 @@ Not yet run against live data, not deployed.
   (fingerprint updated with Gabriel's 2026-10-03 note; animation untouched). (3) Tobacco-Free pledge worded as a firm signature
   (Tobacco Free Portfolios, UNEP FI; OTPP 2018 source in compliance). (4) "Liquid alternative" + "Alternative Multi-Strategy"
   category restored for Multi-Strategy (approved). (5) Body copy trimmed, budgets lowered. Compliance rows W1–W5.
+  Follow-up: live decks.nymbus.ca team (/api/team) — 6 newer portraits, Léana D’Imperio and Philippe Rivet added (business
+  development), JPL title "Quant Developer & Trader"; counts 20 people / 7 CFA-CIM / 10 graduate / 293+ years (row W6).
 
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:
