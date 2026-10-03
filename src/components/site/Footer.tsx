@@ -42,6 +42,7 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDiscla
             <ul>
               <li><Link href="/team">{t("footer.about")}</Link></li>
               <li><Link href="/approach">{t("nav.approach")}</Link></li>
+              <li><Link href="/critical-concepts">{t("nav.concepts")}</Link></li>
               <li><Link href="/sustainability">{t("nav.sustainability")}</Link></li>
               <li><Link href="/solutions">{t("nav.solutions")}</Link></li>
             </ul>

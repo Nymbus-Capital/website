@@ -1,0 +1,318 @@
+/**
+ * futures-engine.ts — canvas scene of "how futures work" (/critical-concepts). A generated index moves day by day:
+ * settled days lock behind the glowing "today" column, where only the current day's move is open; at every close the
+ * move is paid in cash (index up: the short pays the long; down: the long pays the short), a coin stream crosses
+ * between the two sides and the day's settlement drops into the row below, whose sum is the total gain or loss. Each
+ * side's margin buffer is sized to a one-day move and widens in the volatile episode. Four focus steps highlight, in
+ * turn, the matched positions, the daily cash settlement, the margin buffer and the single day at risk.
+ */
+import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
+import {
+  DAYS, DAY_MS, FUTURES_STEP_MS, LOOP_MS, futuresLayout, futuresLoop, intraday, marginFor, settledThrough, sigmaOf, type Day,
+} from "./futures-model.ts";
+import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
+import { clamp, ease, span, stepAt } from "./timeline.ts";
+
+export interface FuturesLabels {
+  price: string; settled: string; today: string; long: string; short: string; exchange: string; matched: string;
+  upPays: string; downPays: string; buffer: string; bufferNote: string; calm: string; volatile: string; settleRow: string;
+  sum: string; realized: string; formula: string; watermark: string;
+}
+
+/** Still-frame clock of each step (days into the loop): positions, a settlement in flight, the volatile episode, mid-day. */
+const STILL_DAYS = [2.6, 5.22, 9.55, 12.6];
+const UP = COL.blue, DOWN = COL.orange;
+
+export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => FuturesLabels }): Runner {
+  let L = futuresLayout(1, 1);
+  let pen: Pen | null = null;
+  const loops = new Map<number, { days: Day[]; lo: number; hi: number }>();
+  const getLoop = (k: number) => {
+    let v = loops.get(k);
+    if (!v) {
+      if (loops.size > 6) loops.clear();
+      const days = futuresLoop(k);
+      let lo = Infinity, hi = -Infinity;
+      for (const d of days) { lo = Math.min(lo, d.open, d.close) - d.sigma * 0.5; hi = Math.max(hi, d.open, d.close) + d.sigma * 0.5; }
+      v = { days, lo, hi };
+      loops.set(k, v);
+    }
+    return v;
+  };
+  let bufEase = NaN;
+
+  const scene = {
+    steps: FUTURES_STEP_MS,
+    stillAt: (s: number) => STILL_DAYS[Math.max(0, Math.min(3, s))] * DAY_MS,
+    resize(W: number, H: number) { L = futuresLayout(W, H); },
+    draw(ctx: CanvasRenderingContext2D, W: number, H: number, t: number, still: boolean) {
+      pen ??= makePen(ctx);
+      const P = pen;
+      const lab = opts.labels();
+      const loopN = Math.floor(t / LOOP_MS);
+      const tl = t - loopN * LOOP_MS;
+      const dayF = tl / DAY_MS;
+      const d = Math.min(DAYS - 1, Math.floor(dayF)), u = dayF - d;
+      const { step } = stepAt(t, FUTURES_STEP_MS);
+      const { days, lo, hi } = getLoop(loopN);
+      const prev = d > 0 ? days[d - 1] : null;
+      // focus: the step's subject at full strength, the rest softened
+      const f = (k: number) => (step === k ? 1 : 0.5);
+      drawPrice(ctx, P, lab, days, d, u, lo, hi, step, f);
+      drawSettlements(ctx, P, lab, days, d, u, f(1), f(3), step);
+      const sigma = sigmaOf(d);
+      const target = marginFor(sigma);
+      bufEase = Number.isFinite(bufEase) && !still ? bufEase + (target - bufEase) * 0.08 : target;
+      drawParties(ctx, P, lab, prev, u, step, f, sigma, t);
+      ctx.globalAlpha = 1;
+      P.watermark(lab.watermark, W, H, L.pad);
+    },
+  };
+
+  function drawPrice(ctx: CanvasRenderingContext2D, P: Pen, lab: FuturesLabels, days: Day[], d: number, u: number, lo: number, hi: number, step: number, f: (k: number) => number) {
+    const R = L.price;
+    const small = L.narrow ? 10 : 11;
+    const top = R.y + 42, bottom = R.y + R.h - 16;
+    const cw = R.w / DAYS;
+    const y = (v: number) => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
+    const x = (day: number) => R.x + day * cw;
+    // title
+    P.font(600, small);
+    P.text(lab.price.toUpperCase(), R.x, R.y + 7, R.w * 0.5, "left", COL.mute);
+    // settled columns (locked) and the glowing "today" column
+    const settledA = step === 3 ? 1 : 0.6;
+    for (let k = 0; k < d; k++) {
+      ctx.fillStyle = rgba(COL.blue, 0.045 * settledA);
+      ctx.fillRect(x(k) + 1, top, cw - 2, bottom - top);
+    }
+    const tg = ctx.createLinearGradient(0, top, 0, bottom);
+    tg.addColorStop(0, rgba(COL.cyan, 0.05)); tg.addColorStop(0.5, rgba(COL.cyan, step === 3 ? 0.2 : 0.12)); tg.addColorStop(1, rgba(COL.cyan, 0.05));
+    ctx.fillStyle = tg; ctx.fillRect(x(d), top, cw, bottom - top);
+    ctx.fillStyle = rgba(COL.cyan, 0.8); ctx.fillRect(x(d), top, 1.5, bottom - top);
+    // day ticks
+    P.font(500, L.narrow ? 9 : 10);
+    for (let k = 0; k < DAYS; k++) {
+      if (L.narrow && k % 2 === 1 && k !== d) continue;
+      P.text(String(k + 1), x(k) + cw / 2, bottom + 9, cw * 2, "center", k === d ? COL.blueD : rgba(COL.mute, 0.8));
+    }
+    // last settlement level (today's open): the reference of the open P&L
+    const today = days[d];
+    const oy = y(today.open);
+    ctx.strokeStyle = rgba(COL.mute, 0.5); ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x(Math.max(0, d - 1)), oy); ctx.lineTo(x(d) + cw, oy); ctx.stroke();
+    ctx.setLineDash([]);
+    // path: settled closes, then today's intraday path up to now
+    const pts: [number, number][] = [[x(0), y(days[0].open)]];
+    for (let k = 0; k < d; k++) pts.push([x(k + 1), y(days[k].close)]);
+    const steps = 18;
+    const todayPts: [number, number][] = [];
+    for (let s = 0; s <= steps; s++) {
+      const uu = (u * s) / steps;
+      todayPts.push([x(d) + cw * uu, y(intraday(today, uu))]);
+    }
+    // open P&L shading between the price and today's open
+    const head = todayPts[todayPts.length - 1];
+    const upNow = head[1] <= oy;
+    ctx.beginPath();
+    ctx.moveTo(todayPts[0][0], oy);
+    for (const q of todayPts) ctx.lineTo(q[0], q[1]);
+    ctx.lineTo(head[0], oy); ctx.closePath();
+    ctx.fillStyle = rgba(upNow ? UP : DOWN, step === 3 ? 0.26 : 0.16); ctx.fill();
+    const g = ctx.createLinearGradient(R.x, 0, R.x + R.w, 0);
+    g.addColorStop(0, COL.blueD); g.addColorStop(1, COL.cyan);
+    ctx.strokeStyle = g; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+    ctx.beginPath();
+    pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
+    for (const q of todayPts) ctx.lineTo(q[0], q[1]);
+    ctx.stroke();
+    // settlement marks at each close
+    for (let k = 0; k < d; k++) {
+      const cx = x(k + 1), cy = y(days[k].close);
+      ctx.fillStyle = "#fff"; ctx.strokeStyle = days[k].move >= 0 ? UP : DOWN; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    // the close flash, right after a day ends
+    if (d > 0 && u < 0.3) {
+      const k = u / 0.3;
+      ctx.strokeStyle = rgba(days[d - 1].move >= 0 ? UP : DOWN, 0.6 * (1 - k)); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x(d), y(days[d - 1].close), 4 + 14 * k, 0, Math.PI * 2); ctx.stroke();
+    }
+    P.glowDot(head[0], head[1], 3.4, upNow ? UP : DOWN, 0.9);
+    // row above the chart: "settled" over the locked days, "today: unsettled" over the today column
+    ctx.globalAlpha = Math.max(f(3), 0.75);
+    P.font(600, small);
+    const tag = lab.today;
+    const tw = Math.min(P.measure(tag) + 16, R.w * 0.6);
+    const tx = Math.max(R.x, Math.min(R.x + R.w - tw, x(d) + cw / 2 - tw / 2));
+    P.round(tx, R.y + 17, tw, 18, 9);
+    ctx.fillStyle = rgba(COL.cyan, 0.14); ctx.fill();
+    P.text(tag, tx + tw / 2, R.y + 26, tw - 12, "center", COL.blueD);
+    const room = tx - R.x - 10;
+    if (d > 0 && room > 30) {
+      ctx.fillStyle = rgba(COL.blue, 0.35); ctx.fillRect(R.x, top - 5, Math.min(room, x(d) - R.x - 3), 2);
+      P.font(500, small);
+      P.text(`✓ ${lab.settled}`, R.x, R.y + 26, room, "left", COL.blueD);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSettlements(ctx: CanvasRenderingContext2D, P: Pen, lab: FuturesLabels, days: Day[], d: number, u: number, fRow: number, fSum: number, step: number) {
+    const R = L.settle;
+    const small = L.narrow ? 10 : 11;
+    const cw = L.price.w / DAYS;
+    const top = R.y + 20, bottom = R.y + R.h - (L.narrow ? 16 : 18);
+    const mid = (top + bottom) / 2;
+    ctx.globalAlpha = Math.max(fRow, fSum);
+    P.font(600, small);
+    const titleW = P.text(lab.settleRow.toUpperCase(), R.x, R.y + 7, R.w * (L.narrow ? 0.55 : 0.6), "left", COL.mute);
+    ctx.fillStyle = rgba(COL.mute, 0.28); ctx.fillRect(R.x, Math.round(mid), R.w, 1);
+    let maxAbs = 0.6;
+    for (const dd of days) maxAbs = Math.max(maxAbs, Math.abs(dd.move));
+    const scale = (bottom - top) / 2 / maxAbs;
+    for (let k = 0; k < d; k++) {
+      const grow = k === d - 1 ? ease(span(u, 0, 0.35)) : 1;
+      const v = days[k].long * grow;
+      const h = Math.abs(v) * scale;
+      const bx = R.x + k * cw + cw * 0.22, bw = cw * 0.56;
+      ctx.fillStyle = v >= 0 ? rgba(UP, 0.85) : rgba(DOWN, 0.8);
+      P.round(bx, v >= 0 ? mid - h : mid, bw, Math.max(1, h), 2); ctx.fill();
+    }
+    // their running sum: the same path as the price since the first open (sum of settlements = total gain or loss)
+    if (d > 0) {
+      ctx.globalAlpha = fSum;
+      ctx.strokeStyle = rgba(COL.cyan, 0.9); ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(R.x, mid);
+      for (let k = 1; k <= d; k++) {
+        const grow = k === d ? ease(span(u, 0, 0.35)) : 1;
+        const s = settledThrough(days, k - 1) + days[k - 1].long * grow;
+        ctx.lineTo(R.x + k * cw, Math.max(top, Math.min(bottom, mid - s * scale * 0.5)));
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+      P.font(500, L.narrow ? 9.5 : 10.5);
+      const sx = R.x + titleW + 14;
+      ctx.fillStyle = rgba(COL.cyan, 0.9); ctx.fillRect(sx, R.y + 6, 12, 2);
+      P.text(lab.sum, sx + 17, R.y + 7, R.x + R.w - sx - 17, "left", COL.ink2);
+    }
+    // the realized note sits under the row
+    ctx.globalAlpha = step === 3 || step === 1 ? 1 : 0.6;
+    P.font(500, L.narrow ? 9.5 : 10.5);
+    P.text(lab.realized, R.x, R.y + R.h - 5, R.w, "left", COL.ink2);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawParties(ctx: CanvasRenderingContext2D, P: Pen, lab: FuturesLabels, prev: Day | null, u: number, step: number, f: (k: number) => number, sigma: number, t: number) {
+    const R = L.parties;
+    const small = L.narrow ? 10.5 : 11.5;
+    const nodeR = L.narrow ? 24 : 32;
+    const exY = R.y + (L.narrow ? 14 : 18);
+    const nodeY = R.y + (L.narrow ? 70 : Math.max(96, R.h * 0.27));
+    const lx = R.x + nodeR + 6, rx = R.x + R.w - nodeR - 6;
+    const cx = (lx + rx) / 2;
+    // exchange matches equal long and short exposure
+    ctx.globalAlpha = f(0);
+    P.font(600, small);
+    const ew = Math.min(P.measure(lab.exchange) + 22, R.w * 0.6);
+    P.round(cx - ew / 2, exY - 11, ew, 22, 11);
+    ctx.fillStyle = rgba(COL.blue, 0.1); ctx.fill();
+    P.text(lab.exchange, cx, exY, ew - 12, "center", COL.blueD);
+    P.font(500, L.narrow ? 9.5 : 10.5);
+    P.text(lab.matched, cx, exY + 22, R.w, "center", COL.mute);
+    ctx.strokeStyle = rgba(COL.blue, 0.3); ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, exY + 32); ctx.quadraticCurveTo(cx, nodeY - 20, lx + nodeR * 0.7, nodeY - nodeR * 0.7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, exY + 32); ctx.quadraticCurveTo(cx, nodeY - 20, rx - nodeR * 0.7, nodeY - nodeR * 0.7); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    // the day's cash settlement: coins stream from the payer to the receiver right after each close
+    const flowing = prev && u < 0.5;
+    const upDay = prev ? prev.move >= 0 : true;
+    const k = flowing ? u / 0.5 : 0;
+    const winL = upDay; // index up: the long receives
+    const pulseL = flowing && winL ? Math.sin(Math.PI * k) : 0, pulseR = flowing && !winL ? Math.sin(Math.PI * k) : 0;
+    const node = (x: number, label: string, color: string, pulse: number) => {
+      if (pulse > 0) { ctx.fillStyle = rgba(color, 0.18 * pulse); ctx.beginPath(); ctx.arc(x, nodeY, nodeR + 10 * pulse, 0, Math.PI * 2); ctx.fill(); }
+      const g = ctx.createLinearGradient(x - nodeR, nodeY - nodeR, x + nodeR, nodeY + nodeR);
+      g.addColorStop(0, "#fff"); g.addColorStop(1, rgba(color, 0.16));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, nodeY, nodeR, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = rgba(color, 0.9); ctx.lineWidth = 1.8; ctx.stroke();
+      P.font(600, L.narrow ? 11.5 : 13.5);
+      P.text(label, x, nodeY, nodeR * 2 - 6, "center", COL.ink);
+    };
+    ctx.globalAlpha = Math.max(f(0), f(1));
+    node(lx, lab.long, COL.blue, pulseL);
+    node(rx, lab.short, COL.slate, pulseR);
+    // channel between them
+    const chY = nodeY;
+    const x0 = lx + nodeR + 8, x1 = rx - nodeR - 8;
+    ctx.fillStyle = rgba(COL.mute, 0.12); ctx.fillRect(x0, chY - 1, x1 - x0, 2);
+    const color = upDay ? UP : DOWN;
+    if (flowing) {
+      const from = winL ? x1 : x0, to = winL ? x0 : x1;
+      for (let c = 0; c < 7; c++) {
+        const q = clamp(k * 1.6 - c * 0.09);
+        if (q <= 0 || q >= 1) continue;
+        const xx = from + (to - from) * ease(q);
+        const yy = chY - Math.sin(Math.PI * q) * 16;
+        ctx.fillStyle = rgba(color, 0.9 * Math.sin(Math.PI * q));
+        ctx.beginPath(); ctx.arc(xx, yy, 3.4, 0, Math.PI * 2); ctx.fill();
+      }
+      // arrow head on the receiver's side
+      const ax = winL ? x0 : x1, dir = winL ? 1 : -1;
+      ctx.fillStyle = rgba(color, 0.8 * Math.sin(Math.PI * k));
+      ctx.beginPath(); ctx.moveTo(ax, chY); ctx.lineTo(ax + 9 * dir, chY - 5); ctx.lineTo(ax + 9 * dir, chY + 5); ctx.closePath(); ctx.fill();
+    }
+    // rule of the day
+    ctx.globalAlpha = Math.max(f(1), 0.7);
+    P.font(500, L.narrow ? 10 : 11);
+    const rule = upDay ? lab.upPays : lab.downPays;
+    const two = P.measure(rule) > x1 - x0 + 30 ? splitLabel(rule) : null;
+    const ry = chY + (L.narrow ? 16 : 20);
+    if (two) { P.text(two[0], cx, ry, R.w, "center", color); P.text(two[1], cx, ry + 13, R.w, "center", color); }
+    else P.text(rule, cx, ry, R.w, "center", color);
+    ctx.globalAlpha = 1;
+
+    // margin buffers, sized to a potential one-day move (they widen with volatility)
+    ctx.globalAlpha = f(2);
+    const by = L.narrow ? nodeY + nodeR + 46 : Math.max(nodeY + nodeR + 58, R.y + R.h * 0.6);
+    P.font(600, small);
+    P.text(lab.buffer, R.x, by - 16, R.w * 0.6, "left", COL.ink);
+    P.font(500, L.narrow ? 9.5 : 10.5);
+    P.text(lab.bufferNote, R.x, by - 2, R.w * 0.6, "left", COL.mute);
+    const hot = sigma > 1;
+    P.font(600, L.narrow ? 9.5 : 10.5);
+    const pill = hot ? lab.volatile : lab.calm;
+    const pw = Math.min(P.measure(pill) + 18, R.w * 0.5);
+    P.round(R.x + R.w - pw, by - 20, pw, 20, 10);
+    ctx.fillStyle = rgba(hot ? COL.amber : COL.teal, 0.14); ctx.fill();
+    P.text(pill, R.x + R.w - pw / 2, by - 10, pw - 10, "center", hot ? COL.orange : COL.teal);
+    const maxM = marginFor(1.5) * 1.12;
+    const track = (yy: number, label: string, color: string) => {
+      const tw = R.w - 70;
+      P.font(500, L.narrow ? 10 : 11);
+      P.text(label, R.x, yy + 6, 64, "left", COL.ink2);
+      P.round(R.x + 70, yy, tw, 12, 6); ctx.fillStyle = rgba(COL.mute, 0.1); ctx.fill();
+      const w = tw * (bufEase / maxM);
+      const g = ctx.createLinearGradient(R.x + 70, 0, R.x + 70 + w, 0);
+      g.addColorStop(0, rgba(color, 0.55)); g.addColorStop(1, color);
+      P.round(R.x + 70, yy, w, 12, 6); ctx.fillStyle = g; ctx.fill();
+      // shimmer: the buffer is cash at the ready
+      const sx = R.x + 70 + ((t / 12) % Math.max(1, w + 40)) - 20;
+      ctx.save(); P.round(R.x + 70, yy, w, 12, 6); ctx.clip();
+      ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.fillRect(sx, yy, 14, 12); ctx.restore();
+    };
+    track(by + 12, lab.long, COL.blue);
+    track(by + 34, lab.short, COL.slate);
+    ctx.globalAlpha = 1;
+
+    // formula chip
+    const fy = L.narrow ? Math.min(R.y + R.h - 16, by + 76) : Math.max(by + 76, R.y + R.h - 18);
+    P.font(500, L.narrow ? 10 : 11.5);
+    const fw = Math.min(P.measure(lab.formula) + 26, R.w);
+    P.round(R.x + (R.w - fw) / 2, fy - 13, fw, 26, 13);
+    ctx.fillStyle = rgba(COL.blue, 0.08); ctx.fill();
+    ctx.strokeStyle = rgba(COL.blue, 0.25); ctx.lineWidth = 1; ctx.stroke();
+    P.text(lab.formula, R.x + R.w / 2, fy, fw - 18, "center", COL.blueD);
+  }
+
+  return runScene(canvas, scene, opts);
+}

@@ -1,0 +1,61 @@
+/* =====================================================================================================
+   /critical-concepts (src/components/site/concepts): reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
+   .sc-stats from fx.css); canvases, controls and the hero jump links are its own. Light only.
+   ===================================================================================================== */
+.cc-sec { overflow-x: clip; }
+.cc-fig { max-width: 100%; }
+.cc-panel { box-shadow: 0 40px 80px -40px rgba(26,115,232,.36), 0 2px 8px rgba(16,24,40,.05); }
+/* the canvas draws its own labels and the "ILLUSTRATION" mark (engines); heights fit each scene's layout */
+.cc-canvas { display: block; width: 100%; opacity: 0; transition: opacity 1s var(--ease); }
+.cc-panel.on .cc-canvas { opacity: 1; }
+.cc-canvas-overlay { height: clamp(420px, 40vw, 500px); }
+.cc-canvas-futures { height: clamp(460px, 42vw, 520px); }
+.cc-canvas-coverage { height: clamp(460px, 42vw, 520px); }
+@media (max-width: 760px) {
+  .cc-canvas-overlay { height: 640px; }
+  .cc-canvas-futures { height: 720px; }
+  .cc-canvas-coverage { height: 560px; }
+}
+
+/* controls: play / pause and one button per step */
+.cc-ctrl { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); background: rgba(255,255,255,.85); }
+.cc-play { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line2); background: #fff; color: var(--blue-d); cursor: pointer; transition: box-shadow .2s, border-color .2s; }
+.cc-play:hover { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(26,115,232,.1); }
+.cc-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; flex: 1; }
+.cc-steps li { min-width: 0; }
+.cc-steps button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; max-width: 100%; padding: 4px 14px 4px 6px; border-radius: 99px; border: 1px solid transparent; background: transparent;
+  font: inherit; font-size: 13px; font-weight: 500; line-height: 1.25; color: var(--ink2); text-align: left; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.cc-steps button:hover { background: var(--surf); color: var(--ink); }
+.cc-steps .n { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surf); font-size: 12px; font-weight: 600; transition: background .3s, color .3s, box-shadow .3s; }
+.cc-steps .t { min-width: 0; overflow-wrap: anywhere; }
+.cc-steps button[aria-current] { background: rgba(26,115,232,.08); border-color: rgba(26,115,232,.28); color: var(--blue-d); }
+.cc-steps button[aria-current] .n { background: var(--g-brand); color: #fff; box-shadow: 0 0 12px rgba(26,115,232,.45); }
+.cc-play:focus-visible, .cc-steps button:focus-visible, .cc-jump a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* figures strip: three text figures for futures */
+.cc-stats-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cc-stats-text .sc-stat dd { font-size: clamp(17px, 1.8vw, 24px); }
+.cc-note { margin: 18px 0 0; max-width: 760px; color: var(--ink2); font-size: 15px; line-height: 1.55; }
+
+/* hero: jump links to the three concepts */
+.cc-jump { display: flex; flex-wrap: wrap; gap: 8px; }
+.cc-jump a { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 8px; border-radius: 99px; border: 1px solid var(--line); background: rgba(255,255,255,.8); color: var(--ink2); font-size: 14px; font-weight: 500; transition: border-color .2s, color .2s, box-shadow .2s; }
+.cc-jump a:hover { border-color: var(--blue); color: var(--blue-d); box-shadow: 0 6px 18px -8px rgba(26,115,232,.45); }
+.cc-jump a i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--g-brand); color: #fff; font-style: normal; font-size: 12px; font-weight: 600; }
+
+@media (max-width: 640px) {
+  .cc-ctrl { align-items: flex-start; padding: 10px; }
+  .cc-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .cc-steps button { width: 100%; font-size: 12.5px; padding: 4px 8px 4px 4px; gap: 6px; }
+  .cc-stats-3 { grid-template-columns: minmax(0, 1fr); }
+  .cc-stats-3 .sc-stat { border-left: 0; }
+  .cc-stats-3 .sc-stat:nth-child(n+2) { border-top: 1px solid var(--line); }
+}
+@media (forced-colors: active) {
+  .cc-steps button[aria-current] { border-color: Highlight; }
+  .cc-steps button[aria-current] .n { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  .cc-jump a i { background: CanvasText; color: Canvas; forced-color-adjust: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-canvas, .cc-steps button, .cc-steps .n, .cc-play, .cc-jump a { transition: none; }
+}
