@@ -605,8 +605,8 @@
 @media (max-width: 600px) { .ab-cred { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ab-cred-i:last-child { grid-column: 1 / -1; } }
 .ab-tag.key { color: #fff; background: var(--g-brand); box-shadow: 0 0 10px rgba(26,115,232,.35); font-weight: 600; }
 .ab-bio-exp { margin: 8px 0 0; font-size: 14px; color: var(--ink2); }
-.ab-bio-in { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 14px; }
-.ab-bio-in svg { width: 14px; height: 14px; }
+.ab-bio-li { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 14px; }
+.ab-bio-li svg { width: 14px; height: 14px; }
 
 /* reduced motion: nothing waits on a delay */
 @media (prefers-reduced-motion: reduce) {

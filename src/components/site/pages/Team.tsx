@@ -56,7 +56,7 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
                 <p className="ab-bio-exp">{pick(P.exp).replace("{n}", `${m.yearsExperiencePlus ? "+" : ""}${m.yearsExperience}`)}</p>
               ) : null}
               {m.linkedin ? (
-                <a className="link ab-bio-in" href={m.linkedin} target="_blank" rel="noopener noreferrer" data-testid="bio-linkedin">
+                <a className="link ab-bio-li" href={m.linkedin} target="_blank" rel="noopener noreferrer" data-testid="bio-linkedin">
                   {pick(P.linkedin)} <ArrowUpRight aria-hidden="true" />
                 </a>
               ) : null}
