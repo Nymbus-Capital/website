@@ -357,6 +357,32 @@ Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on
   summaries on /team, the Fondaction bullets, and the **six PRI principles list on /sustainability** (the PRI signatory
   statement and link remain). Home Partners no longer lists the dealer platforms or client types by name.
   `tests/unit/site/word-budget.test.ts` keeps the pages from growing back.
+## Home: "diversifying engines" band (branch `feat/home-overlay-viz`, 2026-10-02)
+
+Gabriel asked for a visual "as impactful as science at scale" about protective overlays and low-correlation strategies
+within the multi-strategy. New band right after science at scale (which is unchanged, guarded by
+`tests/unit/site/scan-frozen.test.ts`). Copy: `src/components/site/fx/overlay-copy.ts` (EN + FR). Please tick once reviewed:
+
+- [ ] **Generated illustration, not data.** A canvas animation of a generated bond reference (calm months and stress
+  episodes, down months shaded), five **generic strategy types** (trend, carry, macro, volatility, relative value: not
+  Nymbus sleeves, no weights, no positions) and their equal-weight blend, plus a concept heatmap. No axis values, no
+  percentages, no dates. "ILLUSTRATION · generated values" is drawn on the canvas; the chip says "Illustration"; the
+  caption says "Generic strategy types and generated values: not actual strategies or results." Counters are labelled
+  "Simulated …" and count only what the animation generates (they restart every 120 generated months).
+- [ ] **Correlation framed as a design objective, around down months** (downside correlation, Gabriel's standing view):
+  lead "Strategies designed to have low correlation in down months."; heatmap titled "Down-month correlation · concept",
+  computed on the generated down months only, colour scale "Opposite · Low · Together" with no numbers; caption "Low
+  down-month correlation is a design objective, not a guarantee." "Uncorrelated" is never used (unit test).
+- [ ] **Overlay claim**: pillar "Overlay — Futures designed to offset part of bond losses." (FR « Des contrats à terme
+  conçus pour compenser une partie des pertes obligataires. »), consistent with the fund-page wording ("designed … to
+  offset part of bond losses when volatility rises; it may not do so and can lose money"). Caption adds "Overlays and
+  strategies can lose money." Is that caveat enough on the home page, or must the full fund-page sentence appear?
+- [ ] **Visual reading risk**: during a generated stress episode the blended line dips less than the bond reference
+  (that is the diversification idea being illustrated). Confirm this generic depiction is acceptable in a sales
+  communication with the caption above, and that no performance comparison is implied (no values, no axis, no period).
+- [ ] Other pillars: "Distinct engines — Each engine seeks a different source of return." and "Down months first —
+  Diversification is judged when markets fall." (wording choice, not a factual claim about results).
+
 ## Fund pages v2 (2026-10-01): returns per class, rankings, GMV variants — to review
 
 Branch `feat/fund-pages-v2`. Everything below is **new wording or a new kind of statement**; none of it has been
