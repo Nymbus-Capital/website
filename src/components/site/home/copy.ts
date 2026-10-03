@@ -14,8 +14,8 @@ export const HOME_COPY = {
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
     lead: l(
-      "Scientists and technologists solving the harder problems in finance.",
-      "Des scientifiques, des informaticiens et des analystes s’attaquent aux problèmes difficiles de la finance.",
+      "Scientists, engineers and market veterans solving the harder problems in finance.",
+      "Des scientifiques, des développeurs et des vétérans des marchés s’attaquent aux problèmes difficiles de la finance.",
     ),
     cta1: l("Explore strategies", "Explorer les stratégies"),
     cta2: l("Investment solutions", "Solutions de placement"),
@@ -44,22 +44,22 @@ export const HOME_COPY = {
     title: l("One pipeline, from data", "Un seul processus, des données"),
     accent: l("to portfolio", "au portefeuille"),
     lead: l(
-      "Four documented, tested and monitored steps.",
-      "Quatre étapes documentées, testées et surveillées.",
+      "Four tested, monitored steps.",
+      "Quatre étapes testées et surveillées.",
     ),
     steps: [
       {
         title: l("Data and research", "Données et recherche"),
         text: l(
-          "Market and fundamental data, cleaned and studied.",
-          "Données de marché et fondamentales, nettoyées et étudiées.",
+          "Market and fundamental data, cleaned.",
+          "Données de marché et fondamentales, nettoyées.",
         ),
       },
       {
         title: l("Signal generation", "Génération de signaux"),
         text: l(
-          "Machine-learning signals, kept only after statistical validation.",
-          "Des signaux d’apprentissage automatique, conservés seulement après validation statistique.",
+          "Machine-learning signals, kept only once validated.",
+          "Des signaux d’apprentissage automatique, conservés une fois validés.",
         ),
       },
       {
@@ -72,8 +72,8 @@ export const HOME_COPY = {
       {
         title: l("Risk management", "Gestion des risques"),
         text: l(
-          "Continuous monitoring, adjustments and hedging. Risk management does not eliminate the risk of loss.",
-          "Surveillance continue, ajustements et couvertures. La gestion des risques n’élimine pas le risque de perte.",
+          "Continuous monitoring and hedging. Risk management does not eliminate the risk of loss.",
+          "Surveillance continue et couvertures. La gestion des risques n’élimine pas le risque de perte.",
         ),
       },
     ] as { title: L; text: L }[],
@@ -101,8 +101,8 @@ export const HOME_COPY = {
     title: l("Let’s discuss your", "Discutons de vos"),
     accent: l("investment objectives", "objectifs de placement"),
     text: l(
-      "Talk to our team about your mandate.",
-      "Parlez de votre mandat avec notre équipe.",
+      "Tell us about your mandate.",
+      "Parlez-nous de votre mandat.",
     ),
     contact: l("Get in touch", "Communiquez avec nous"),
     solutions: l("View solutions", "Voir les solutions"),

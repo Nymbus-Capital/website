@@ -8,8 +8,8 @@ export const STRAT_COPY = {
   title: l("Our funds and", "Nos fonds et"),
   accent: l("strategies", "stratégies"),
   lead: l(
-    "Systematic fixed income and alternatives. Figures published once each month is validated.",
-    "Revenu fixe et stratégies alternatives, de façon systématique. Chiffres publiés une fois chaque mois validé.",
+    "Systematic fixed income and alternatives. Monthly figures, once validated.",
+    "Revenu fixe systématique et stratégies alternatives. Chiffres mensuels, une fois validés.",
   ),
   toTable: l("Compare the strategies", "Comparer les stratégies"),
   fundsTitle: l("Funds and strategies", "Fonds et stratégies"),
@@ -26,7 +26,7 @@ export const STRAT_COPY = {
   ),
   cols: {
     fund: l("Strategy", "Stratégie"),
-    asset: l("Asset class", "Classe d’actifs"),
+    asset: l("Asset class", "Catégorie d’actifs"),
     vehicle: l("Vehicle", "Véhicule"),
     bench: l("Benchmark", "Indice de référence"),
     si: l("Since inception", "Depuis la création"),
@@ -40,13 +40,13 @@ export const STRAT_COPY = {
     "Les rendements depuis la création sont annualisés lorsque l’historique couvre au moins 12 mois, cumulatifs sinon. Les rendements depuis le début de l’année et sur 1 an ne sont pas annualisés.",
   ),
   dashNote: l(
-    "— : not published yet. A figure appears once it is available and validated; we never show an estimate in its place.",
-    "— : pas encore publié. Un chiffre apparaît une fois disponible et validé; nous n’affichons jamais d’estimation à sa place.",
+    "— : not published yet; we never show an estimate in its place.",
+    "— : pas encore publié; nous n’affichons jamais d’estimation à sa place.",
   ),
   ctaTitle: l("Which strategy fits", "Quelle stratégie convient à"),
   ctaAccent: l("your mandate?", "votre mandat?"),
   ctaText: l(
-    "Ask our team about any strategy and how it is offered.",
-    "Notre équipe répond à vos questions sur chaque stratégie et la façon d’y accéder.",
+    "Ask us about any strategy and how it is offered.",
+    "Posez-nous vos questions sur chaque stratégie et la façon d’y accéder.",
   ),
 };

@@ -6,7 +6,7 @@ import { l, type L } from "../../../lib/i18n/config.ts";
 
 export const SCAN_COPY = {
   eyebrow: l("Science at scale", "La science à grande échelle"),
-  title: l("Scientists and engineers,", "Des scientifiques et des ingénieurs,"),
+  title: l("Scientists, engineers and market veterans,", "Des scientifiques, des développeurs et des vétérans des marchés,"),
   accent: l("hard problems in finance", "les grands défis de la finance"),
   lead: l("Data at scale. Models tested before they are trusted.", "Des données à grande échelle. Des modèles testés avant d’être crus."),
   panel: l("Analysis · universe, factors, signals", "Analyse · univers, facteurs, signaux"),
@@ -30,7 +30,7 @@ export const SCAN_COPY = {
   },
   trio: [
     { title: l("Scientists", "Scientifiques"), text: l("Hypotheses, tested on data.", "Des hypothèses, testées sur les données.") },
-    { title: l("Engineers", "Ingénieurs"), text: l("Pipelines that run every day.", "Des chaînes de traitement qui roulent chaque jour.") },
-    { title: l("Together", "Ensemble"), text: l("The harder problems in fixed income.", "Les problèmes plus difficiles du revenu fixe.") },
+    { title: l("Engineers", "Développeurs"), text: l("Pipelines that run every day.", "Des chaînes de traitement qui roulent chaque jour.") },
+    { title: l("Market veterans", "Vétérans des marchés"), text: l("Decades in fixed income and derivatives.", "Des décennies en revenu fixe et en dérivés.") },
   ] as { title: L; text: L }[],
 };

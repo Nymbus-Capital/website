@@ -4,6 +4,8 @@
  * Raised 2026-10-02 (content v3, Gabriel's requests): approach +risk-first section, +multi-strategy diagram and its
  * mandatory overlay disclosure; about +credentials band; solutions +three illustrative use cases, each with its risk
  * disclosure. The new texts are counted, aria labels included. 2026-10-03: approach 740 (down-month correlation wording).
+ * Lowered 2026-10-03 (copy v4, Gabriel: "a little bit too much text"): body copy trimmed, disclosures verbatim; fund-page
+ * marketing texts (FUND_TEXTS) now have their own ceiling. Sustainability stays at 350 (accurate pledge wording added).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -16,6 +18,7 @@ import { CT } from "../../../src/components/site/pages/copy-contact.ts";
 import { SU } from "../../../src/components/site/pages/copy-sustainability.ts";
 import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
 import { STRAT_COPY } from "../../../src/components/site/pages/strategies-copy.ts";
+import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
 
 function words(x: unknown, lang: "en" | "fr"): number {
   if (Array.isArray(x)) return x.reduce((a: number, v) => a + words(v, lang), 0);
@@ -28,15 +31,16 @@ function words(x: unknown, lang: "en" | "fr"): number {
 }
 
 const BUDGET: [string, unknown, number][] = [
-  ["home", [HOME_COPY, SCAN_COPY], 300],
+  ["home", [HOME_COPY, SCAN_COPY], 285],
   // the "diversifying engines" band (2026-10-02) has its own ceiling: home above stays as it was
   ["home engines band", OVERLAY_COPY, 160],
-  ["about", AB, 285],
-  ["approach", AP, 740],
+  ["about", AB, 270],
+  ["approach", AP, 690],
   ["contact", CT, 295],
   ["sustainability", SU, 350],
-  ["solutions", [SOL_COPY, AUDIENCES], 545],
-  ["strategies", STRAT_COPY, 140],
+  ["solutions", [SOL_COPY, AUDIENCES], 520],
+  ["strategies", STRAT_COPY, 120],
+  ["fund pages (FUND_TEXTS)", FUND_TEXTS, 680],
 ];
 
 test("word budget: every page stays within its English ceiling, French within 25% more", () => {

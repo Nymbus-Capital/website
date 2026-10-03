@@ -80,7 +80,7 @@ export const AUDIENCES: AudienceCopy[] = [
       l("Segregated mandates under your policy", "Mandats distincts selon votre politique"),
       l("A dedicated portfolio management team", "Une équipe de gestion spécialisée"),
       l("Risk reports and performance attribution", "Rapports de risque et attribution du rendement"),
-      l("Your own responsible-investment guidelines, if your policy sets them", "Vos propres lignes directrices d’investissement responsable, si votre politique en prévoit"),
+      l("Your responsible-investment guidelines, if any", "Vos lignes directrices d’investissement responsable, s’il y a lieu"),
     ],
     vehicles: [
       { name: l("Segregated mandate", "Mandat distinct"), text: l("Managed for you alone, under your guidelines.", "Géré pour vous seul, selon vos lignes directrices.") },
@@ -89,11 +89,11 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     funds: ["sustainable-enhanced-bonds", "monthly-income", "global-minimum-volatility", "multi-strategy"],
     useCase: {
-      title: l("Pension plan: a liability-matching bond core, plus a second objective", "Régime de retraite : un noyau obligataire apparié au passif, et un second objectif"),
+      title: l("Pension plan: liability matching, plus a second objective", "Régime de retraite : appariement du passif, et un second objectif"),
       steps: [
-        l("Bonds matched to long-term liabilities, actively managed to seek added value", "Des obligations appariées au passif à long terme, gérées activement pour chercher une valeur ajoutée"),
-        l("A futures overlay on top, designed to offset part of bond losses, with an objective of returns above inflation over a full rate cycle", "Une superposition de contrats à terme, conçue pour compenser une partie des pertes obligataires, avec un objectif de rendement supérieur à l’inflation sur un cycle complet de taux"),
-        l("Most of the capital stays in the liability-matching bonds", "La majeure partie du capital reste dans les obligations appariées au passif"),
+        l("Liability-matching bonds, actively managed to seek added value", "Des obligations appariées au passif, gérées activement pour chercher une valeur ajoutée"),
+        l("A futures overlay, designed to offset part of bond losses, with an objective of returns above inflation over a full rate cycle", "Une superposition de contrats à terme, conçue pour compenser une partie des pertes obligataires, avec un objectif de rendement supérieur à l’inflation sur un cycle complet de taux"),
+        l("Most of the capital stays in the bonds", "La majeure partie du capital reste dans les obligations"),
       ],
       note: join(MAY_NOT, OVERLAY_ADDS),
     },
@@ -108,7 +108,7 @@ export const AUDIENCES: AudienceCopy[] = [
     ),
     benefits: [
       l("Diversification across strategies and asset classes", "Diversification entre stratégies et catégories d’actifs"),
-      l("Alternatives designed for low down-month correlation with bonds and equities", "Stratégies alternatives conçues pour être peu corrélées aux obligations et aux actions lors des mois de baisse"),
+      l("Liquid alternatives designed for low down-month correlation", "Des solutions alternatives liquides conçues pour une faible corrélation lors des mois de baisse"),
       l("Direct access to the investment team", "Accès direct à l’équipe de placement"),
       l("Transparent, regular reporting", "Rapports transparents et réguliers"),
     ],
@@ -118,10 +118,10 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     funds: ["global-minimum-volatility", "multi-strategy", "monthly-income", "sustainable-enhanced-bonds"],
     useCase: {
-      title: l("Family office: capital efficiency through the overlay", "Bureau de gestion familiale : l’efficacité du capital par la superposition"),
+      title: l("Family office: capital efficiency", "Bureau de gestion familiale : l’efficacité du capital"),
       steps: [
-        l("Existing portfolio positions serve as collateral for the futures", "Des positions existantes du portefeuille servent de garantie pour les contrats à terme"),
-        l("The overlay is sized to a targeted downside volatility", "La superposition est calibrée selon une cible de volatilité à la baisse"),
+        l("Existing positions serve as collateral for the futures", "Des positions existantes servent de garantie pour les contrats à terme"),
+        l("Overlay sized to a downside-volatility target", "Superposition calibrée selon une cible de volatilité à la baisse"),
         l("The existing portfolio stays invested", "Le portefeuille existant demeure investi"),
       ],
       note: join(
@@ -151,11 +151,11 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     funds: ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy"],
     useCase: {
-      title: l("Advisors: systematic funds for client portfolios", "Conseillers : des fonds systématiques pour les portefeuilles de vos clients"),
+      title: l("Advisors: systematic funds for your clients", "Conseillers : des fonds systématiques pour vos clients"),
       steps: [
         l("A systematic fixed income core, on Fundserv", "Un noyau de revenu fixe systématique, sur Fundserv"),
-        l("A liquid, cross-asset alternative strategy to diversify", "Une stratégie alternative liquide et multi-actifs pour diversifier"),
-        l("Documents and due diligence support from our team", "Documents et soutien à la vérification diligente par notre équipe"),
+        l("A liquid alternative to diversify", "Une solution alternative liquide pour diversifier"),
+        l("Documents and due diligence support", "Documents et soutien à la vérification diligente"),
       ],
     },
   },

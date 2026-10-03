@@ -1,9 +1,11 @@
 /**
  * Static team list (fallback when WordPress has no team). The 14 people of the nymbus-decks team list
  * (data/seed/team.json, the source of decks.nymbus.ca) take their titles, years of experience, education, designations,
- * LinkedIn and portraits from it (2026-10-02). Guy Liébart, Jason Laliberte, Luca Ieraci and Xavier Girard are not in
- * that list: they keep the previous site's data and have no `yearsExperience`. Credential counts are computed from this
- * file only (src/components/site/pages/lib/people.ts).
+ * LinkedIn and portraits from it (2026-10-02). Xavier Girard is not in that list but appears on the governance slide of
+ * the v3 keynote GMV deck (decks/nymbus-capital-global-minimum-volatility-6): his portrait and years of experience come
+ * from that slide (2026-10-03); his other fields are the previous site's. Guy Liébart, Jason Laliberte and Luca Ieraci
+ * are in neither: previous site's data, no `yearsExperience`. Credential counts are computed from this file only
+ * (src/components/site/pages/lib/people.ts).
  */
 export type Department = "Leadership" | "Investment Team" | "Quantitative Research" | "Operations" | "Board";
 
@@ -361,9 +363,10 @@ export const team: TeamMember[] = [
     previousRoles: ["Director, Business Development — Mackenzie Investments", "Collective Savings Representative — Sun Life"],
     previousRolesFr: ["Directeur, développement des affaires — Mackenzie Investments", "Représentant d’épargne collective — Sun Life"],
     yearJoined: 2024,
+    yearsExperience: 4,
     initials: "XG",
     color: "#0b57d0",
-    photo: "https://www.nymbus.ca/wp-content/uploads/2024/01/XAVIER.png",
+    photo: "/team/xavier-girard.webp",
   },
   {
     name: "Danira Csano",

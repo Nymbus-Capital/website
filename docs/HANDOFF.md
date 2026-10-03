@@ -177,6 +177,15 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `feat/copy-v4` from `redesign/v3-keynote-live-data`; not merged): **copy v4**. (1) Portraits: the
+  decks team photos were already the newest in the decks repository (seed `team.json` = what the keynote team slides render;
+  prospectus / GMV pptx embed the same); Xavier Girard now self-hosted from the GMV keynote governance slide (+4 years);
+  Guy Liébart still hotlinked from www.nymbus.ca (in no deck). (2) "Scientists, engineers and market veterans" / FR « des
+  scientifiques, des développeurs et des vétérans des marchés » across home hero, about, approach and the Science at scale copy
+  (fingerprint updated with Gabriel's 2026-10-03 note; animation untouched). (3) Tobacco-Free pledge worded as a firm signature
+  (Tobacco Free Portfolios, UNEP FI; OTPP 2018 source in compliance). (4) "Liquid alternative" + "Alternative Multi-Strategy"
+  category restored for Multi-Strategy (approved). (5) Body copy trimmed, budgets lowered. Compliance rows W1–W5.
+
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:
   the 2025-09 / 2026-09 index months came back); (2) verified one-day gap link between FTSE naming generations

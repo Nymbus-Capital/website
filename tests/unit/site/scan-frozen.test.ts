@@ -17,7 +17,8 @@ const read = (f: string) => readFileSync(join(FX, f), "utf8");
 test("science at scale: model, engine and copy are unchanged", () => {
   assert.equal(sha(read("scan-model.ts")), "3b2d10b59b33b3d84bae6383b85d733f3ab8725ed48851feddedcaaed1d6c1e0");
   assert.equal(sha(read("scan-engine.ts")), "2f093e085911dd6d69916abd8eb062eecb35e650ea282dc4190ce189ac57809a");
-  assert.equal(sha(read("scan-copy.ts")), "2ad81b12651eb50e74cb37ae679ddaca3184811839cde5d38ecfca380966ae4e");
+  // copy changed at Gabriel's request 2026-10-03 (title and third trio card: scientists, engineers and market veterans; FR « développeurs »)
+  assert.equal(sha(read("scan-copy.ts")), "95fb90d957206852c698ec6c7f62623b891b3a344553982b6d11be94e3e6c165");
 });
 
 test("science at scale: the AnalysisScan markup and the panel styles are unchanged", () => {

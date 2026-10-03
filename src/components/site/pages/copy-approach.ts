@@ -29,12 +29,12 @@ export const AP = {
     title: l("Every strategy starts", "Chaque stratégie part"),
     accent: l("with risk", "du risque"),
     lead: l(
-      "Ultra-micro analysis, at scale: each asset weighed for its risk.",
-      "Une analyse ultra-micro, à grande échelle : chaque actif évalué selon son risque.",
+      "Ultra-micro analysis, at scale.",
+      "Une analyse ultra-micro, à grande échelle.",
     ),
     items: [
-      { t: l("Ultra-micro analysis", "Analyse ultra-micro"), d: l("Each bond studied on its own, across entire universes.", "Chaque obligation étudiée individuellement, dans des univers entiers.") },
-      { t: l("Systematic scans", "Balayages systématiques"), d: l("Bond universes screened for the most attractive assets for their risk.", "Des univers obligataires passés au crible, à la recherche des actifs les plus attrayants compte tenu de leur risque.") },
+      { t: l("Ultra-micro analysis", "Analyse ultra-micro"), d: l("Each bond on its own, across entire universes.", "Chaque obligation, dans des univers entiers.") },
+      { t: l("Systematic scans", "Balayages systématiques"), d: l("Seeking the most attractive assets for their risk.", "À la recherche des actifs les plus attrayants compte tenu de leur risque.") },
       { t: l("Futures overlays", "Superpositions de contrats à terme"), d: l("Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).", "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).") },
     ],
     viz: l("Illustration: a bond universe, scanned bond by bond", "Illustration : un univers obligataire, balayé obligation par obligation"),
@@ -46,8 +46,8 @@ export const AP = {
     title: l("From raw data to a managed portfolio,", "Des données brutes au portefeuille géré,"),
     accent: l("in four steps", "en quatre étapes"),
     diagram: l(
-      "Diagram of the investment process: data and research, signal generation, portfolio construction and risk management, with monitoring results feeding back into research.",
-      "Schéma du processus de placement : données et recherche, génération de signaux, construction de portefeuille et gestion des risques; les résultats de la surveillance alimentent la recherche.",
+      "Investment process: data and research, signals, portfolio construction, risk management; monitoring feeds research.",
+      "Processus de placement : données et recherche, signaux, construction de portefeuille, gestion des risques; la surveillance alimente la recherche.",
     ),
     loop: l("Monitoring results feed back into research", "Les résultats de la surveillance alimentent la recherche"),
   },
@@ -58,7 +58,7 @@ export const AP = {
       bullets: [
         l("Proprietary credit scoring models", "Modèles propriétaires de notation de crédit"),
         l("Macro regime classification", "Classification des régimes macroéconomiques"),
-        l("Pattern recognition across large datasets", "Reconnaissance de régularités dans de grands ensembles de données"),
+        l("Pattern recognition at scale", "Reconnaissance de régularités à grande échelle"),
       ],
     },
     {
@@ -74,9 +74,8 @@ export const AP = {
       kicker: l("Optimization", "Optimisation"),
       title: l("Portfolio construction", "Construction de portefeuille"),
       bullets: [
-        l("Mean-variance with robust covariance estimation", "Moyenne-variance avec estimation robuste de la covariance"),
+        l("Robust mean-variance optimization", "Optimisation moyenne-variance robuste"),
         l("Risk parity and factor-aware allocation", "Parité des risques et allocation factorielle"),
-        l("Transaction-cost optimization", "Optimisation des coûts de transaction"),
         l("Allocation across strategies and asset classes", "Répartition entre stratégies et catégories d’actifs"),
       ],
     },
@@ -85,7 +84,6 @@ export const AP = {
       title: l("Risk management", "Gestion des risques"),
       bullets: [
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
-        l("Regime detection (risk-on / risk-off)", "Détection de régime (appétit ou aversion pour le risque)"),
         l("Duration and credit hedging", "Couverture de la durée et du crédit"),
         l("Overlays sized to a downside-volatility target", "Superpositions calibrées selon une cible de volatilité à la baisse"),
       ],
@@ -111,7 +109,7 @@ export const AP = {
         ] as [L, L][],
         steps: [
           l("Identify market regimes and trends", "Déterminer les régimes et les tendances de marché"),
-          l("Build the curve and credit matrix from bond market data", "Construire la matrice courbe-crédit à partir des données du marché obligataire"),
+          l("Build the curve-credit matrix", "Construire la matrice courbe-crédit"),
         ],
       },
       {
@@ -124,7 +122,7 @@ export const AP = {
           [l("Rebalancing", "Rééquilibrage"), l("Continuous, on alerts", "Continu, sur alertes")],
         ] as [L, L][],
         steps: [
-          l("Score and rank each cell’s bonds by yield and risk", "Évaluer et classer les obligations de chaque cellule selon le rendement et le risque"),
+          l("Rank each cell’s bonds by yield and risk", "Classer les obligations de chaque cellule selon le rendement et le risque"),
           l("Select the final securities", "Sélectionner les titres finaux"),
         ],
       },
@@ -171,8 +169,8 @@ export const AP = {
     title: l("Several strategies,", "Plusieurs stratégies,"),
     accent: l("across asset classes", "dans plusieurs catégories d’actifs"),
     lead: l(
-      "A liquid, cross-asset alternative strategy: several systematic strategies, designed to have low correlation with stocks and bonds in down months.",
-      "Une stratégie alternative liquide et multi-actifs : plusieurs stratégies systématiques, conçues pour avoir une faible corrélation avec les actions et les obligations lors des mois de baisse.",
+      "A liquid alternative across asset classes, designed to have low correlation with stocks and bonds in down months.",
+      "Une solution alternative liquide, multi-actifs, conçue pour avoir une faible corrélation avec les actions et les obligations lors des mois de baisse.",
     ),
     strategies: [l("Low volatility", "Faible volatilité"), l("Directional", "Directionnelle"), l("Mean reversion", "Retour à la moyenne"), l("Hedging", "Couverture")],
     assets: [l("Rates", "Taux"), l("Credit", "Crédit"), l("Equity indices", "Indices boursiers"), l("Currencies", "Devises"), l("Commodities", "Matières premières")],
@@ -181,16 +179,16 @@ export const AP = {
     assetsK: l("Asset classes", "Catégories d’actifs"),
     offersT: l("Three ways to access it", "Trois façons d’y accéder"),
     offers: [
-      { t: l("Bond funds with an overlay", "Fonds obligataires avec superposition"), d: l("Both bond funds use the futures overlay.", "Les deux fonds obligataires utilisent la superposition."), links: [
+      { t: l("Bond funds with an overlay", "Fonds obligataires avec superposition"), d: l("Both use the futures overlay.", "Les deux utilisent la superposition."), links: [
         { href: "/strategies/monthly-income", label: l("Monthly Income", "Revenu Mensuel") },
         { href: "/strategies/sustainable-enhanced-bonds", label: l("Sustainable Enhanced Bonds", "Obligations Durables Bonifiées") },
       ] },
-      { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("Several systematic strategies in one fund.", "Plusieurs stratégies systématiques dans un seul fonds."), links: [{ href: "/strategies/multi-strategy" }] },
+      { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("A liquid alternative, Alternative Multi-Strategy category.", "Une solution alternative liquide, catégorie Multistratégies alternatives."), links: [{ href: "/strategies/multi-strategy" }] },
       { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The overlay alone, on top of your portfolio.", "La superposition seule, ajoutée à votre portefeuille."), links: [{ href: "/strategies/global-minimum-volatility" }] },
     ],
     note: l(
-      "Illustration only: allocations change over time and not every strategy trades every asset class. Low correlation is an objective, not a guarantee. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
-      "Illustration seulement : les répartitions changent avec le temps et chaque stratégie ne porte pas sur chaque catégorie d’actifs. La faible corrélation est un objectif, non une garantie. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
+      "Illustration only: allocations change and not every strategy trades every asset class. Low correlation is an objective, not a guarantee. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+      "Illustration seulement : les répartitions changent et chaque stratégie ne porte pas sur chaque catégorie d’actifs. La faible corrélation est un objectif, non une garantie. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
     ),
   },
   research: {
@@ -217,7 +215,7 @@ export const AP = {
   },
   team: {
     eyebrow: l("The team", "L’équipe"),
-    title: l("Scientists", "Des scientifiques"),
+    title: l("Scientists, engineers", "Des scientifiques, des développeurs"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     people: l("people on the team", "personnes dans l’équipe"),
     phd: l("PhDs", "doctorats"),

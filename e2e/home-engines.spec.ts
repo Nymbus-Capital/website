@@ -109,13 +109,14 @@ test("engines band: no horizontal scroll at 360 px, panel inside the viewport", 
   await ctx.close();
 });
 
-test("science at scale is unchanged, and the engines band comes right after it", async ({ page }) => {
+// copy changed at Gabriel's request 2026-10-03 (title and third trio card); layout and animation unchanged
+test("science at scale is unchanged (apart from its 2026-10-03 copy), and the engines band comes right after it", async ({ page }) => {
   await page.goto("/");
   const sc = page.locator("section.sc");
   await sc.scrollIntoViewIfNeeded();
   const texts = (sel: string) => sc.locator(sel).evaluateAll((els) => els.map((e) => (e.textContent ?? "").replace(/\s+/g, " ").trim()));
   expect(await texts(".section-head .eyebrow")).toEqual(["Science at scale"]);
-  await expect(sc.locator("#scan-t")).toHaveAttribute("aria-label", "Scientists and engineers, hard problems in finance");
+  await expect(sc.locator("#scan-t")).toHaveAttribute("aria-label", "Scientists, engineers and market veterans, hard problems in finance");
   expect(await texts(".section-head .lead")).toEqual(["Data at scale. Models tested before they are trusted."]);
   expect(await texts(".sc-title, .sc-chip")).toEqual(["Analysis · universe, factors, signals", "Illustration"]);
   expect(norm(await sc.locator("figcaption").textContent())).toBe(
@@ -125,7 +126,7 @@ test("science at scale is unchanged, and the engines band comes right after it",
     "Simulated data points scanned", "Simulated securities screened", "Simulated factors per security", "Simulated signals flagged",
   ]);
   expect(await texts(".sc-trio h3, .sc-trio p")).toEqual([
-    "Scientists", "Hypotheses, tested on data.", "Engineers", "Pipelines that run every day.", "Together", "The harder problems in fixed income.",
+    "Scientists", "Hypotheses, tested on data.", "Engineers", "Pipelines that run every day.", "Market veterans", "Decades in fixed income and derivatives.",
   ]);
   await expect(sc.getByTestId("scan-canvas")).toHaveCount(1);
   await expect(page.getByTestId("scan-panel")).toHaveAttribute("aria-label", "Animated illustration: a table of securities scanned for factor scores, with flagged signals.");

@@ -34,13 +34,13 @@ export const SU = {
     title: l("Commitments", "Des engagements"),
     accent: l("we hold as a firm", "pris par la firme"),
     lead: l(
-      "Public commitments of Nymbus Capital. The ESG screens and exclusions on this page are those of the Sustainable Enhanced Bonds Fund.",
-      "Des engagements publics de Nymbus Capital. Les filtres ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées.",
+      "The ESG screens and exclusions on this page are those of the Sustainable Enhanced Bonds Fund.",
+      "Les filtres ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées.",
     ),
     items: [
       { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018.", "Signataire des PRI depuis 2018.") },
-      { t: l("Engagement", "Engagement"), d: l("Signatory of the Tobacco-Free Finance Pledge since 2024.", "Signataire de l’Engagement pour une finance sans tabac depuis 2024.") },
-      { t: l("Transparency", "Transparence"), d: l("The sustainable fund’s metrics, on its fund page.", "Les indicateurs du fonds durable, sur sa page.") },
+      { t: l("Engagement", "Engagement"), d: l("Tobacco-Free Finance Pledge signatory since 2024.", "Signataire de l’Engagement pour une finance sans tabac depuis 2024.") },
+      { t: l("Transparency", "Transparence"), d: l("The sustainable fund’s metrics, on its page.", "Les indicateurs du fonds durable, sur sa page.") },
     ],
   },
   integration: {
@@ -73,8 +73,8 @@ export const SU = {
     title: l("Financing the transition", "Financer la transition"),
     accent: l("through fixed income", "par le revenu fixe"),
     text: l(
-      "The Sustainable Enhanced Bonds Fund can hold green bonds labelled under frameworks such as the ICMA Green Bond Principles. Same criteria as any other security in the fund.",
-      "Le Fonds Obligations Durables Bonifiées peut détenir des obligations vertes désignées selon des cadres comme les Principes de l’ICMA. Mêmes critères que tout autre titre du fonds.",
+      "The Sustainable Enhanced Bonds Fund can hold green bonds labelled under frameworks such as the ICMA Green Bond Principles, on the same criteria as its other securities.",
+      "Le Fonds Obligations Durables Bonifiées peut détenir des obligations vertes désignées selon des cadres comme les Principes de l’ICMA, selon les mêmes critères que ses autres titres.",
     ),
     uses: [l("Renewable energy", "Énergie renouvelable"), l("Energy efficiency", "Efficacité énergétique"), l("Clean transportation", "Transport propre"), l("Green buildings", "Bâtiments écologiques")],
     note: l("ESG measures, when published, are on the fund page.", "Les mesures ESG, si publiées, figurent sur la page du fonds."),
@@ -98,7 +98,7 @@ export const SU = {
     accent: l("on the record", "publics"),
     items: [
       { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("UN-supported Principles for Responsible Investment.", "Principes pour l’investissement responsable, soutenus par l’ONU.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("The firm’s signature of an initiative led by Tobacco Free Portfolios.", "La signature, par la firme, d’une initiative menée par Tobacco Free Portfolios.") },
+      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("A firm-level signature. The pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI, encourages signatories to consider tobacco-free policies across lending, insurance and investment.", "Une signature de la firme. L’engagement, une initiative de Tobacco Free Portfolios menée avec l’UNEP FI, invite les signataires à envisager des politiques sans tabac en matière de prêt, d’assurance et de placement.") },
     ],
     fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction") },
   },

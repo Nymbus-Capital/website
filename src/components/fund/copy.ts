@@ -432,18 +432,18 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     ),
     focus: [
       l("Mainly short-term Canadian corporate bonds", "Surtout des obligations de sociétés canadiennes à court terme"),
-      l("Selected by our two-system quantitative process", "Sélectionnées par notre processus quantitatif à deux systèmes"),
+      l("Selected by our two-system process", "Sélectionnées par notre processus à deux systèmes"),
       l("Credit risk and relative value, bond by bond", "Risque de crédit et valeur relative, obligation par obligation"),
     ],
     note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, OVERLAY_EXPOSURE),
     feature: {
       eyebrow: l("Monthly Income Fund", "Fonds Revenu Mensuel"),
       title: l("Built for monthly income", "Conçu pour un revenu mensuel"),
-      lead: l("Four features shape how the fund is managed.", "Quatre caractéristiques définissent la gestion du fonds."),
+      lead: l("What shapes the fund.", "Ce qui définit le fonds."),
       cards: [
         { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST) },
-        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Short maturities keep rate sensitivity low. Current duration: Portfolio tab.", "Des échéances courtes limitent la sensibilité aux taux. Durée actuelle : onglet Portefeuille.") },
-        { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Same models for every issuer: credit risk against yield.", "Mêmes modèles pour chaque émetteur : risque de crédit contre rendement.") },
+        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Low rate sensitivity. Current duration: Portfolio tab.", "Faible sensibilité aux taux. Durée actuelle : onglet Portefeuille.") },
+        { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Credit risk weighed against yield, issuer by issuer.", "Risque de crédit contre rendement, émetteur par émetteur.") },
         { icon: "shield", title: l("Futures overlay", "Stratégie de superposition"), text: join(l("An overlay", "Une stratégie de superposition"), LOW_CORR, OVERLAY_EXPOSURE) },
       ],
     },
@@ -467,15 +467,15 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
         { icon: "filter", title: l("Exclusion screens", "Filtres d’exclusion"), text: l("Issuers in conflict with the fund’s criteria are excluded.", "Les émetteurs contraires aux critères du fonds sont exclus.") },
         { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("ESG data weighed with credit and valuation, issuer by issuer.", "Données ESG prises en compte avec le crédit et l’évaluation, émetteur par émetteur.") },
         { icon: "sprout", title: l("Green bonds", "Obligations vertes"), text: l("The fund can hold bonds financing environmental projects.", "Le fonds peut détenir des obligations qui financent des projets environnementaux.") },
-        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Sustainability metrics such as carbon intensity, reported monthly for the portfolio and its index.", "Des indicateurs de durabilité comme l’intensité carbone, publiés chaque mois pour le portefeuille et son indice."), needs: "esg" },
+        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Metrics such as carbon intensity, monthly, for the portfolio and its index.", "Des indicateurs comme l’intensité carbone, chaque mois, pour le portefeuille et son indice."), needs: "esg" },
       ],
       link: { href: "/sustainability", label: l("Our sustainability approach", "Notre approche de durabilité") },
     },
   },
   "multi-strategy": {
     summary: l(
-      "An alternative fund of systematic strategies, designed to behave differently from stocks and bonds.",
-      "Un fonds alternatif de stratégies systématiques, conçues pour se comporter différemment des actions et des obligations.",
+      "A liquid alternative fund of systematic strategies, designed to behave differently from stocks and bonds.",
+      "Un fonds alternatif liquide de stratégies systématiques, conçues pour se comporter différemment des actions et des obligations.",
     ),
     focus: [
       l("Low-volatility, directional, mean-reversion and hedging strategies", "Stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture"),
@@ -485,11 +485,11 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     feature: {
       eyebrow: l("Multi-Strategy Fund", "Fonds Multistratégies"),
       title: l("Four complementary strategies", "Quatre stratégies complémentaires"),
-      lead: l("Distinct roles, aimed at diversifying sources of return.", "Des rôles distincts, visant à diversifier les sources de rendement."),
+      lead: l("Alternative Multi-Strategy category: distinct roles, diversified sources of return.", "Catégorie Multistratégies alternatives : des rôles distincts, des sources de rendement diversifiées."),
       cards: [
         { icon: "waves", title: l("Low volatility", "Faible volatilité"), text: l("Seeks returns with lower volatility.", "Vise des rendements assortis d’une volatilité plus faible.") },
         { icon: "trend", title: l("Directional", "Directionnelle"), text: l("Follows persistent trends, up or down.", "Suit les tendances persistantes, à la hausse comme à la baisse.") },
-        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Takes positions when prices stray far from usual levels, expecting them to revert.", "Prend position lorsque les prix s’écartent fortement de leurs niveaux habituels, en prévision de leur retour.") },
+        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Positions for prices returning to usual levels.", "Se positionne pour un retour des prix vers leurs niveaux habituels.") },
         { icon: "umbrella", title: l("Hedging", "Couverture"), text: l("Designed to gain in market stress and offset part of the other strategies’ losses; it may not do so.", "Conçue pour profiter des tensions de marché et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.") },
       ],
     },
@@ -510,7 +510,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       title: l("How the overlay works", "Le fonctionnement de la stratégie"),
       lead: l("Futures on top of the portfolio you already own.", "Des contrats à terme ajoutés au portefeuille que vous détenez déjà."),
       cards: [
-        { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most of the capital stays invested in the underlying portfolio.", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent.") },
+        { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most capital stays in your portfolio.", "L’essentiel du capital reste dans votre portefeuille.") },
         { icon: "layers", title: l("Liquid futures", "Contrats à terme liquides"), text: join(l("Exchange-traded futures, which require a margin deposit.", "Des contrats à terme cotés, qui exigent un dépôt de garantie."), OVERLAY_EXPOSURE) },
         { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("Sized to the downside volatility agreed with the client.", "Calibrée selon la volatilité à la baisse convenue avec le client.") },
         { icon: "shield", title: l("Designed for low correlation", "Conçue pour une faible corrélation"), text: join(l("The overlay is", "La stratégie est"), LOW_CORR) },
