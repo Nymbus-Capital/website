@@ -177,6 +177,16 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
+  branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
+  that order, `--no-ff`). Resolutions: one GMV label implementation, dp-only-data's `FundCard.perfVariant` from
+  `shownVariant` (config/funds.ts); content-v3's per-variant figures kept, its `FundCard.variant` / `variantText` /
+  `FUND_COPY.variant` removed (FundTile, StrategiesIndex, Solutions use `perfVariant`; solutions testid
+  `solution-variant-<key>`). AdvisorRankings: content-v3's placeholder `pages/AdvisorRankings.tsx` deleted; the real
+  awards-v2 component renders once, inside the advisors use-case card on /solutions. Overview keeps the variant lead and
+  the Morningstar block. Word budgets: content-v3 ceilings + the engines band; copy-typography includes RK and
+  OVERLAY_COPY. Science-at-scale files untouched (fingerprint test green). Sample unchanged after `npm run pipeline -- sample`.
+
 - 2026-10-02 (cloud agent, branch `feat/dp-only-data` from `redesign/v3-keynote-live-data`; **not merged**):
   Gabriel: "all the data comes from the dataplatform … avoid PR 631 and other changes on dataplatform … compute whatever
   you need within the backend of the website". Done: (1) per-class monthly returns from the `nav-timeseries` daily chain
