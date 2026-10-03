@@ -1,0 +1,196 @@
+/**
+ * concepts-copy.ts — copy of /critical-concepts (overlays, futures, coverage at scale), EN + FR (Québec typography).
+ * Few words: the animations carry the explanation. Every drawn value is generated; the coverage figures are
+ * illustrative estimates (docs/compliance-review.md § Critical concepts). Low correlation is never stated as a fact;
+ * wherever overlays are described, the verbatim futures-exposure disclosure follows.
+ */
+import { l, type L } from "../../../lib/i18n/config.ts";
+import { OVERLAY_EXPOSURE } from "../fx/overlay-copy.ts";
+
+export { OVERLAY_EXPOSURE };
+
+const NB = " ";
+
+export interface ConceptCopy {
+  eyebrow: L; title: L; accent: L; lead: L;
+  panel: L; chip: L; alt: L;
+  steps: L[];
+  stats: { label: L; value: L }[];
+  caption: L;
+}
+
+export const CC = {
+  meta: {
+    title: l("Critical concepts", "Concepts clés"),
+    description: l(
+      "Overlays, futures and coverage at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
+      `Superpositions, contrats à terme et suivi à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
+    ),
+  },
+  hero: {
+    eyebrow: l("Critical concepts", "Concepts clés"),
+    title: l("Three ideas", "Trois idées"),
+    accent: l("behind our funds", "derrière nos fonds"),
+    lead: l("Overlays, futures and coverage at scale, in motion.", "Superpositions, contrats à terme et suivi à grande échelle, en mouvement."),
+  },
+  jump: l("Concepts on this page", "Concepts de cette page"),
+  watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
+  controls: {
+    group: l("Animation controls", "Commandes de l’animation"),
+    play: l("Play animation", "Lire l’animation"),
+    pause: l("Pause animation", "Mettre l’animation en pause"),
+    step: l("Step", "Étape"),
+  },
+
+  overlay: {
+    eyebrow: l("Concept 1 · Overlays", "Concept 1 · Superpositions"),
+    title: l("What is", "Qu’est-ce qu’une"),
+    accent: l("an overlay?", "superposition?"),
+    lead: l("Keep the core invested. A small deposit adds a second strategy on top.", "La base reste investie. Un petit dépôt ajoute une deuxième stratégie par-dessus."),
+    panel: l("Overlay · same capital, two sources of return", "Superposition · même capital, deux sources de rendement"),
+    chip: l("Illustration", "Illustration"),
+    alt: l(
+      "Animated illustration: a core portfolio stays fully invested; a small deposit supports a futures overlay stacked on top; both return streams add up in the combined portfolio.",
+      `Illustration animée${NB}: un portefeuille de base reste entièrement investi; un petit dépôt soutient une superposition de contrats à terme par-dessus; les deux sources de rendement s’additionnent dans le portefeuille combiné.`,
+    ),
+    steps: [
+      l("Core: 100% invested", `Base${NB}: 100${NB}% investie`),
+      l("≈10% deposit", `Dépôt ≈${NB}10${NB}%`),
+      l("Overlay on top", "Superposition par-dessus"),
+      l("Two return streams", "Deux sources de rendement"),
+    ],
+    stats: [
+      { label: l("Core portfolio invested", "Portefeuille de base investi"), value: l("100%", `100${NB}%`) },
+      { label: l("Margin deposit", "Dépôt de garantie"), value: l("≈10%", `≈${NB}10${NB}%`) },
+      { label: l("Overlay exposure", "Exposition de la superposition"), value: l("100%", `100${NB}%`) },
+      { label: l("Sources of return", "Sources de rendement"), value: l("2", "2") },
+    ],
+    caption: l(
+      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. ${OVERLAY_EXPOSURE.en}`,
+      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. ${OVERLAY_EXPOSURE.fr}`,
+    ),
+    canvas: {
+      core: l("Core portfolio", "Portefeuille de base"),
+      coreSub: l("100% invested · stays invested", `100${NB}% investi · reste investi`),
+      deposit: l("Deposit", "Dépôt"),
+      depositSub: l("≈10%", `≈${NB}10${NB}%`),
+      overlay: l("Overlay exposure · 100%", `Superposition · 100${NB}%`),
+      overlaySub: l("futures", "contrats à terme"),
+      bracket: l("Same capital base", "Même capital"),
+      coreRet: l("Core return", "Rendement de la base"),
+      ovRet: l("Overlay return", "Rendement de la superposition"),
+      combined: l("Combined", "Combiné"),
+      tagline: l("Same capital base. Two sources of return.", "Même capital. Deux sources de rendement."),
+      loss: l("Overlay losses add up too", "Les pertes s’additionnent aussi"),
+    },
+  },
+
+  futures: {
+    eyebrow: l("Concept 2 · Futures", "Concept 2 · Contrats à terme"),
+    title: l("How futures", "Comment fonctionnent"),
+    accent: l("work", "les contrats à terme"),
+    lead: l(
+      "Gains and losses change hands in cash every day: only one day of market movement is ever unsettled.",
+      `Gains et pertes sont réglés en espèces chaque jour${NB}: seule la variation d’une journée reste à régler.`,
+    ),
+    panel: l("Futures · daily settlement", "Contrats à terme · règlement quotidien"),
+    chip: l("Illustration", "Illustration"),
+    alt: l(
+      "Animated illustration: a generated index moves day by day; each close settles the day’s move in cash between the long and the short; the margin buffer grows when volatility rises.",
+      `Illustration animée${NB}: un indice généré varie jour après jour; chaque clôture règle la variation du jour en espèces entre l’acheteur et le vendeur; le dépôt de garantie augmente quand la volatilité monte.`,
+    ),
+    steps: [
+      l("Long meets short", "Acheteur et vendeur"),
+      l("Daily cash settlement", "Règlement quotidien"),
+      l("Margin buffer", "Dépôt de garantie"),
+      l("One day at risk", "Un seul jour à risque"),
+    ],
+    stats: [
+      { label: l("Unsettled at any time", "Non réglé à tout moment"), value: l("1 day", "1 jour") },
+      { label: l("Settlement", "Règlement"), value: l("Daily, in cash", "Quotidien, en espèces") },
+      { label: l("Margin buffer", "Dépôt de garantie"), value: l("Grows with volatility", "Suit la volatilité") },
+    ],
+    caption: l(
+      "Simplified illustration with generated prices. Margin and settlement rules vary by contract, exchange, broker and market conditions; losses can exceed the margin deposited. Daily settlement describes cash flows, not tax treatment.",
+      `Illustration simplifiée, prix générés. Les règles de dépôt et de règlement varient selon le contrat, la bourse, le courtier et les conditions de marché; les pertes peuvent dépasser le dépôt. Le règlement quotidien décrit des flux d’espèces, pas un traitement fiscal.`,
+    ),
+    canvas: {
+      price: l("Index (generated)", "Indice (généré)"),
+      settled: l("Settled", "Réglé"),
+      today: l("Today: unsettled", `Aujourd’hui${NB}: non réglé`),
+      long: l("Long", "Acheteur"),
+      short: l("Short", "Vendeur"),
+      exchange: l("Exchange", "Bourse"),
+      matched: l("Equal long and short exposure", "Expositions égales et opposées"),
+      upPays: l("Index up: short pays long", `Hausse${NB}: le vendeur paie l’acheteur`),
+      downPays: l("Index down: long pays short", `Baisse${NB}: l’acheteur paie le vendeur`),
+      buffer: l("Margin buffer", "Dépôt de garantie"),
+      bufferNote: l("sized to a one-day move", "calibré sur une journée"),
+      calm: l("Calm market", "Marché calme"),
+      volatile: l("Volatile: larger buffer", `Volatil${NB}: dépôt plus élevé`),
+      settleRow: l("Daily cash settlements (long)", "Règlements quotidiens (acheteur)"),
+      sum: l("Their sum = total gain or loss", "Leur somme = gain ou perte total"),
+      realized: l("Like realizing gains and losses daily (not a tax statement)", "Comme réaliser gains et pertes chaque jour (pas un énoncé fiscal)"),
+      formula: l("futures return ≈ underlying return − overnight rate", "rendement du contrat ≈ rendement du sous-jacent − taux à un jour"),
+    },
+  },
+
+  coverage: {
+    eyebrow: l("Concept 3 · Coverage at scale", "Concept 3 · Le suivi à grande échelle"),
+    title: l("Why machines", "Pourquoi les machines"),
+    accent: l("see more", "en voient plus"),
+    lead: l(
+      "One team covers a fraction of the bond universe in depth. Our systems review every liquid bond, every day.",
+      "Une équipe suit en profondeur une fraction de l’univers obligataire. Nos systèmes examinent chaque obligation liquide, chaque jour.",
+    ),
+    panel: l("Coverage · Canadian investment-grade bonds", "Suivi · obligations canadiennes de qualité investissement"),
+    chip: l("Illustrative estimates", "Estimations illustratives"),
+    alt: l(
+      "Animated illustration: about 2,000 dots stand for the Canadian investment-grade bond index; a team of six analysts lights about 180 of them; a systematic scan then lights every liquid bond, across layers of history.",
+      `Illustration animée${NB}: environ 2${NB}000 points représentent l’indice obligataire canadien de qualité investissement; une équipe de six analystes en allume environ 180; un balayage systématique allume ensuite chaque obligation liquide, sur des couches d’historique.`,
+    ),
+    steps: [
+      l("≈2,000 bonds", `≈${NB}2${NB}000 obligations`),
+      l("One team: 150–180", `Une équipe${NB}: 150 à 180`),
+      l("Systematic scan", "Balayage systématique"),
+      l("Full history, remembered", "Tout l’historique, en mémoire"),
+    ],
+    stats: [
+      { label: l("Securities per analyst per year", "Titres par analyste par an"), value: l("≈30", `≈${NB}30`) },
+      { label: l("Covered by a team of 5–6", "Suivis par une équipe de 5 ou 6"), value: l("150–180", "150–180") },
+      { label: l("Bonds in the Canadian IG index", "Obligations de l’indice canadien"), value: l("≈2,000", `≈${NB}2${NB}000`) },
+      { label: l("Liquidity filter (outstanding)", "Seuil de liquidité (en circulation)"), value: l("≥ $200 MM", `≥${NB}200${NB}M$`) },
+    ],
+    note: l(
+      "Bonds trade over the counter, where prices are scattered and opaque: doing this systematically is hard.",
+      `Les obligations se négocient hors cote, où les prix sont dispersés et opaques${NB}: le faire de façon systématique est difficile.`,
+    ),
+    caption: l(
+      "Illustrative estimates from discussions with analysts; generated dots, not actual bonds. Systematic models can be wrong.",
+      `Estimations illustratives tirées de discussions avec des analystes; points générés, pas des obligations réelles. Les modèles systématiques peuvent se tromper.`,
+    ),
+    canvas: {
+      pm: l("Portfolio manager", "Gestionnaire"),
+      analyst: l("Analyst", "Analyste"),
+      perYear: l("≈30 securities a year each", `≈${NB}30 titres par an chacun`),
+      covered: l("Covered in depth", "Suivis en profondeur"),
+      of: l("of ≈2,000", `sur ≈${NB}2${NB}000`),
+      universe: l("Canadian IG index · ≈2,000 bonds", `Indice canadien · ≈${NB}2${NB}000 obligations`),
+      liquid: l("Filter: ≥ $200 MM outstanding", `Seuil${NB}: ≥${NB}200${NB}M$ en circulation`),
+      below: l("below the filter", "sous le seuil"),
+      scanned: l("Every liquid bond, every day", "Chaque obligation liquide, chaque jour"),
+      memory: l("Every day of history, remembered", "Chaque jour d’historique, en mémoire"),
+      otc: l("Over the counter: scattered, opaque data", `Hors cote${NB}: données dispersées et opaques`),
+      dot: l("Each dot: one bond", `Chaque point${NB}: une obligation`),
+      team: l("A fundamental team", "Une équipe fondamentale"),
+      systems: l("Our systems", "Nos systèmes"),
+    },
+  },
+};
+
+/** The three concepts in page order (anchor id, copy). */
+export const CONCEPTS: { id: "overlay" | "futures" | "coverage"; copy: ConceptCopy }[] = [
+  { id: "overlay", copy: CC.overlay },
+  { id: "futures", copy: CC.futures },
+  { id: "coverage", copy: CC.coverage },
+];

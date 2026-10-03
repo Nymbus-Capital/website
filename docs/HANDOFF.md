@@ -175,6 +175,11 @@ Not yet run against live data, not deployed.
    Tobacco-Free pledge scope (V11); the awards work wires `<AdvisorRankings />` (`src/components/site/pages/AdvisorRankings.tsx`).
    WordPress team entries have no years of experience: with the CMS on, the band hides that counter.
 
+15. **Critical concepts** (branch `feat/critical-concepts`, from `redesign/v3-keynote-live-data`, **not merged**): page
+   `/critical-concepts` built and CI-tested. To do: independent adversarial review (design / a11y / compliance), compliance
+   rows CC1–CC4, Gabriel to confirm the $200 MM liquidity filter (the explainer deck says 175 M$) and the "≈10%" deposit.
+   Still frames of every step: `e2e/screenshots/concepts-*` on the `ci/run-*` branches.
+
 ## 6. Session log
 
 - 2026-10-03 (sub-agent, branch `feat/awards-assets` from `redesign/v3-keynote-live-data`; not merged): Gabriel's assets and
@@ -199,6 +204,22 @@ Not yet run against live data, not deployed.
   category restored for Multi-Strategy (approved). (5) Body copy trimmed, budgets lowered. Compliance rows C1–C5 (§ Copy v4).
   Follow-up: live decks.nymbus.ca team (/api/team) — 6 newer portraits, Léana D’Imperio and Philippe Rivet added (business
   development), JPL title "Quant Developer & Trader"; counts 20 people / 7 CFA-CIM / 10 graduate / 293+ years (row C6).
+- 2026-10-03 (sub-agent, branch `feat/critical-concepts` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
+  request "add a section called 'critical concepts' on the navigation … 3 main concepts … same type of amazing animations".
+  New page `/critical-concepts` (nav after Approach — the desktop nav now switches to the menu button below 1240 px and
+  tightens links below 1360 px — and footer). Three canvas panels in `src/components/site/concepts/` on the scan /
+  engines motion contract (shared `runner.ts`: lazy, off-screen / hidden-tab pause, DPR 1.5, 30/15 fps, still frame per
+  step under reduced motion incl. live change, Data Saver still, `data-frames` / `data-running` / `data-step`), with
+  play / pause and step buttons (arrow keys, Home / End): (1) **overlay**: core 100% invested → ≈10% deposit to scale →
+  beam opens into a full futures exposure on top → two generated return streams stacking into the combined one, a
+  losing overlay period called out; (2) **futures**: generated index day by day, settled days lock, only today's move
+  open, coin stream between long and short at each close, settlement row whose running sum is the total P&L, margin
+  buffers widen in a volatile episode, formula chip; (3) **coverage at scale** ("Why machines see more"): 2,000 dots,
+  $200 MM filter, PM + 6 analysts lighting 30 each (180), systematic scan of every liquid bond, history layers. Pure
+  models unit-tested (`tests/unit/site/critical-concepts.test.ts`: determinism, bounds, settlements sum to cumulative
+  P&L, margin scales with volatility and covers the open P&L, coverage counts, layouts, copy rules, word budgets);
+  e2e `e2e/critical-concepts.spec.ts` (+ route in `site.spec.ts`). Compliance rows CC1–CC4. **Open for Gabriel**:
+  $200 MM vs the explainer deck's 175 M$; "≈10%" deposit; independent adversarial review still to run (open item 15).
 
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:
