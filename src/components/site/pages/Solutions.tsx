@@ -40,6 +40,7 @@ function FundLink({ f }: { f: FundCard }) {
             <span>{pick(f.siAnnualized ? F.siAnn : F.siCumShort)}{f.basis === "gross" ? <> · <abbr title={pick(HL.grossLong)} data-testid="gross-marker">{pick(HL.gross)}</abbr></> : null}</span>
             {/* each fund has its own as-of month: never one date for several funds */}
             {f.asOf ? <span data-testid={`solution-asof-${f.key}`}>{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
+            {f.perfVariant ? <span data-testid={`solution-variant-${f.key}`}>{pick(f.perfVariant)}</span> : null}
           </span>
         ) : null}
         <ArrowRight aria-hidden="true" className="sl-fund-go" />

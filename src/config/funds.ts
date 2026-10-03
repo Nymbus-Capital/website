@@ -16,6 +16,16 @@ export interface FundClassSpec {
   type?: "prospectus" | "om";
 }
 
+/** a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown */
+export interface VariantSpec { id: string; label: L10n; name: L10n }
+
+/** Global Minimum Volatility variants are named by their target downside volatility, everywhere a figure is shown. */
+const gmvVariant = (pct: number): VariantSpec => ({
+  id: String(pct),
+  label: { en: `${pct}%`, fr: `${pct}\u00a0%` },
+  name: { en: `${pct}% downside volatility`, fr: `volatilité à la baisse de ${pct}\u00a0%` },
+});
+
 export interface FundSpec {
   key: FundKey;
   name: L10n;
@@ -39,7 +49,7 @@ export interface FundSpec {
   /** classes known to the site, the default (F) first; the selector adds the other live classes from the NAV data */
   classes: FundClassSpec[];
   /** variants of a strategy offered with their own figures (Global Minimum Volatility: target downside volatility, %); the default first is "6" */
-  variants?: { id: string; label: L10n }[];
+  variants?: VariantSpec[];
   defaults: {
     riskRating: "low" | "low-medium" | "medium" | "medium-high" | "high";
     tagline: L10n;
@@ -127,9 +137,9 @@ export const FUNDS: FundSpec[] = [
     headlineClass: null,
     classes: [],
     variants: [
-      { id: "6", label: { en: "6%", fr: "6\u00a0%" } },
-      { id: "3", label: { en: "3%", fr: "3\u00a0%" } },
-      { id: "9", label: { en: "9%", fr: "9\u00a0%" } },
+      gmvVariant(6),
+      gmvVariant(3),
+      gmvVariant(9),
     ],
     defaults: {
       riskRating: "low",
@@ -141,6 +151,12 @@ export const FUNDS: FundSpec[] = [
     },
   },
 ];
+
+/** The variant whose figures are shown (the selected one, else the published default, else the first); null without variants. */
+export function shownVariant(spec: Pick<FundSpec, "variants">, id: string | null | undefined): VariantSpec | null {
+  if (!spec.variants?.length) return null;
+  return spec.variants.find((v) => v.id === id) ?? spec.variants[0];
+}
 
 export const FUND_KEYS = FUNDS.map((f) => f.key);
 export const fundSpec = (key: string): FundSpec | undefined =>

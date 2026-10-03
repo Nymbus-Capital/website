@@ -8,6 +8,7 @@ import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { buildSiteData, navChange, revisions } from "../../../src/lib/pipeline/build.ts";
+import { ftseFamily } from "../../../src/lib/pipeline/metrics.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { NavPoint, RawPayloads } from "../../../src/lib/pipeline/raw.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
@@ -33,15 +34,16 @@ async function editJson(file: string, fn: (j: any) => void): Promise<void> { // 
   await writeFile(file, JSON.stringify(j));
 }
 
-test("end to end: history from analytics + dataplatform ready months, published index, every block", async () => {
+test("end to end: history from analytics + the dataplatform daily NAV chain + ready months, published index, every block", async () => {
   const { raw: r, calls } = await raw();
   assert.ok(calls.every((c) => c.url.startsWith("http://dataplatform.test/")), "only the configured base URL is called");
   assert.ok(calls.every((c) => !c.headers.authorization), "no auth header unless configured");
   const { data, context } = buildSiteData(r, null, NOW);
   assert.deepEqual(data.asOf, { performance: "2026-08-31", nav: "2026-09-28", aum: "2026-09-28", factsheet: "2026-08" });
   // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table),
-  // and the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown)
-  const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio";
+  // the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown), and the
+  // short_corp history that starts with its 2024-12 naming generation (like the live data: no earlier name to join)
+  const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio" || k === "funds.monthly-income.performance.index" || k === "funds.monthly-income.trailing.index";
   assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;
@@ -49,34 +51,48 @@ test("end to end: history from analytics + dataplatform ready months, published 
   assert.equal(p.firstMonth, "2019-01-31");
   assert.equal(p.monthly.length, 92);
   assert.equal(p.monthly[p.monthly.length - 1].r, -0.00121918, "Aug 2026 = dataplatform ready month");
-  assert.equal(p.monthly[p.monthly.length - 2].r, -0.00139, "Jul 2026 = analytics history");
-  // python3 reference (compounded / annualized from the fixture files)
-  near(p.trailing.fund["1Y"], 0.010394449520831683);
-  near(p.trailing.fund["3Y"], 0.010184756985094356);
-  near(p.trailing.fund.SI, 0.022692721033146235);
-  near(p.trailing.fund.YTD, -0.0006185939561148546);
+  // Jul 2026 (cut-over) = NAV bridge: Apex NAV per unit 2026-07-31 / CIBC NAV per unit 2026-06-30 − 1 (python3 from nav_history_LDM001.json)
+  near(p.monthly[p.monthly.length - 2].r, -0.0013904499930977865);
+  // python3 reference: analytics 2019-01..2021-10, LDM001 CIBC daily returns compounded 2021-11..2026-06, bridge, Apex
+  near(p.trailing.fund["1Y"], 0.010394608387722215);
+  near(p.trailing.fund["3Y"], 0.01018483867950315);
+  near(p.trailing.fund.SI, 0.02269285607812921);
+  near(p.trailing.fund.YTD, -0.000619425414889796);
   assert.equal(p.trailing.fund["10Y"], null);
   // class label: derived from the class of the data (Monthly Income STRATEGY = FP)
   assert.equal(p.classCode, "STRATEGY");
   assert.equal(p.returnClass, "FP");
   assert.equal(p.returnClassLabel, "Series FP");
   assert.match(data.provenance["funds.monthly-income.performance"], /every month class_code STRATEGY, shown as class FP/);
-  assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(91 month/);
+  assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(34 month\(s\): 2019-01 to 2021-10/);
   // every index figure computed from FTSE short_corp levels (python3 reference from the fixture rows)
   assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index", "from /short-names index_name");
   near(p.trailing.index!["1M"], 0.003790669539088798);
   near(p.trailing.index!["1Y"], 0.0023965137671608794);
-  near(p.trailing.index!["3Y"], 0.021837070759135324);
-  near(p.trailing.index!.SI, 0.023120001983536698);
+  // short_corp from 2024-12 only (no earlier generation at the dataplatform): no 2Y / 3Y / 5Y / SI index figure
+  assert.equal(p.trailing.index!["3Y"], null);
+  assert.equal(p.trailing.index!.SI, null);
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === "funds.monthly-income.trailing.index" && /index 2Y, 3Y, 5Y, SI not shown: FTSE short_corp does not cover the whole period/.test(i.message)));
   near(p.trailing.index!.YTD, -0.0030955530445111457);
   near(p.indexMonthly![p.indexMonthly!.length - 1].r, 0.003790669539088798);
-  assert.equal(p.indexMonthly!.length, 92);
+  assert.equal(p.indexMonthly!.length, 20, "2025-01 to 2026-08");
   // VA = fund − FTSE index
-  near(p.trailing.va!["1Y"], 0.010394449520831683 - 0.0023965137671608794, 1e-12);
-  near(p.trailing.va!.SI, 0.022692721033146235 - 0.023120001983536698, 1e-12);
+  assert.match(data.provenance["funds.monthly-income.performance"], /nav-timeseries LDM001 \(cibc 2021-11 to 2026-06, bridge 2026-07\) daily NAV chain compounded by the website \(57 month/);
+  assert.ok(data.issues.some((i) => i.level === "info" && /stored CIBC daily returns of class FP \(LDM001\) reproduce the analytics history on 56 month/.test(i.message)));
+  near(p.trailing.va!["1Y"], 0.010394608387722215 - 0.0023965137671608794, 1e-12);
+  assert.equal(p.trailing.va!.SI, null);
+  // class F (LDM081) from its own daily chain since its launch; the page opens on it (python3: compounded LDM081 months)
+  assert.deepEqual(Object.keys(mi.performanceByClass!), ["LDM001", "LDM081"]);
+  assert.equal(mi.defaultClass, "LDM081");
+  const f81 = mi.performanceByClass!.LDM081.performance;
+  assert.equal(f81.firstMonth, "2024-03-31");
+  assert.equal(f81.returnClassLabel, "Series F");
+  near(f81.trailing.fund.SI, 0.008302597453765825);
+  near(f81.trailing.fund["1Y"], 0.007370174765965576);
+  assert.deepEqual(mi.performanceByClass!.LDM001.performance, p, "the headline class entry is the headline itself");
   const c2025 = p.calendar.find((r) => r.year === 2025)!;
   near(c2025.index, 0.02320695456298516);
-  near(p.growth[p.growth.length - 1].index, 11915.266029999995, 1e-6);
+  assert.equal(p.growth[p.growth.length - 1].index, null, "the index growth line needs every month since inception");
   // published index figures differ (ETF before 2026-05): info only
   assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.monthly-income.trailing.index.1Y" && /expected before 2026-05/.test(i.message)));
   assert.equal(p.calendar[p.calendar.length - 1].partial, true);
@@ -105,29 +121,37 @@ test("end to end: history from analytics + dataplatform ready months, published 
 
   assert.equal(mi.aum!.cad, 213_580_246);
 
-  // SEB on a dataplatform that ignores class_code / history (deployed before 2026-10-01): the class F full history is
-  // not confirmed, the class H sources (analytics + STRATEGY_H Apex months) are used and LABELLED H
+  // SEB: the track record (headline) is the class H series (analytics strategy months + LDM202 daily chain + Apex
+  // months), LABELLED H; class F (LDM201) is compounded from its own daily chain since the fund's data start (2023-08)
   const seb = data.funds["sustainable-enhanced-bonds"]!.performance!;
   assert.equal(seb.firstMonth, "2019-02-28");
   assert.equal(seb.classCode, "STRATEGY_H");
   assert.equal(seb.returnClass, "H");
   assert.equal(seb.returnClassLabel, "Series H");
-  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.sustainable-enhanced-bonds.performance" && /class F \(STRATEGY\) full history not used: answered class STRATEGY_H instead of STRATEGY/.test(i.message)));
   assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /every month class_code STRATEGY_H, shown as class H/);
+  const sebF = data.funds["sustainable-enhanced-bonds"]!.performanceByClass!.LDM201!.performance;
+  assert.equal(sebF.firstMonth, "2023-08-31");
+  assert.equal(sebF.classCode, "STRATEGY");
+  assert.equal(sebF.returnClassLabel, "Series F");
+  near(sebF.trailing.fund.SI, 0.026826115117879468);
+  near(sebF.trailing.fund["1Y"], -0.026222032408454443);
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-08 to 2026-06, bridge 2026-07, apex 2026-08\); fee band vs class H checked on 37 month/);
+  assert.equal(data.funds["sustainable-enhanced-bonds"]!.defaultClass, "LDM201");
   // the class-H factsheet is cross-checked as before (same class)
   assert.ok(context["sustainable-enhanced-bonds"]!.factsheetTrailing, "factsheet trailing cross-check kept for class H");
-  // the request asked for class F with its full history, and class H explicitly for the track-record fetch
-  assert.ok(calls.some((c) => /monthly-net-returns\?short_name=SEB&.*class_code=STRATEGY&history=full/.test(c.url)));
-  assert.ok(calls.some((c) => /monthly-net-returns\?short_name=SEB&.*class_code=STRATEGY_H(&|$)/.test(c.url) && !/history=/.test(c.url)));
-  // FTSE univ, history joined over the renamed index (python3 reference)
+  // only main-branch contracts: monthly-net-returns with short_name and dates, each class's daily history by fundserv
+  assert.ok(calls.every((c) => !/class_code=|history=/.test(c.url)), "no parameter the dataplatform main branch does not have");
+  for (const fsv of ["LDM001", "LDM081", "LDM201", "LDM202", "LDM301"]) assert.ok(calls.some((c) => c.url.includes("/api/performance/nav-timeseries?") && c.url.includes(`fundserv=${fsv}`)), fsv);
+  assert.ok(calls.every((c) => !/fund-portfolio|\/api\/performance\/distributions/.test(c.url)), "no endpoint that only exists on an unmerged dataplatform branch");
+  // FTSE univ, history chain-linked over its earlier generation univ_overall (python3 reference from the two fixture files)
   near(seb.trailing.index!["1Y"], -0.031101481717578983);
-  near(seb.trailing.index!.SI, 0.015257215343614572);
+  near(seb.trailing.index!.SI, 0.015257215399883783);
   assert.equal(seb.indexMonthly!.length, 91);
   assert.equal(data.funds["multi-strategy"]!.performance!.returnClass, "F");
 
-  // Multi-strategy: python3 SI 0.07627897978009623, no benchmark
+  // Multi-strategy: python3 SI 0.07627904672671759 (analytics to 2023-06, LDM301 chain), no benchmark
   const ms = data.funds["multi-strategy"]!.performance!;
-  near(ms.trailing.fund.SI, 0.07627897978009623);
+  near(ms.trailing.fund.SI, 0.07627904672671759);
   assert.equal(ms.trailing.index, undefined);
   assert.equal(ms.indexMonthly, undefined);
 
@@ -149,40 +173,91 @@ test("SEST benchmark default is short_corp; FTSE_INDEX_SEST overrides it", async
   assert.equal(o.raw.ftse.short_overall.ok, false, "no rows for short_overall in the fixtures");
 });
 
-test("FTSE history joined across a rename (same index_id), siblings ignored", async () => {
+test("FTSE history: an earlier naming generation is chain-linked only on equal daily returns over a common period", async () => {
   const { raw: r } = await raw();
   const u = r.ftse.univ.data!;
-  assert.equal(u.first, "2018-12-27", "history from the old name");
-  assert.deepEqual(u.joined, ["ftse_tmx_canada_univ"]);
-  assert.match(r.ftse.univ.detail!, /earlier years under ftse_tmx_canada_univ \(index_id 2001\)/);
-  // a level break at the seam: not joined
-  const broken: Route = (url) => {
-    if (url.pathname === "/api/ftse/index-summary" && url.searchParams.get("short_name") === "ftse_tmx_canada_univ") {
-      const rows = loadFixture("dataplatform/ftse_ftse_tmx_canada_univ.json") as { total_return: number }[];
-      return json(rows.map((x) => ({ ...x, total_return: x.total_return * 0.9 })));
+  assert.equal(u.first, "2018-12-27", "history from the earlier generation");
+  assert.deepEqual(u.joined, ["univ_overall"]);
+  assert.match(r.ftse.univ.detail!, /earlier days under univ_overall from 2018-12-27 \(configured earlier name; linked at 2024-11-25 on 9 equal daily return\(s\)\)/);
+  // the levels were re-based (× 0.87): chain-linked, so the month-end returns are the earlier name's own
+  type Row = { date: string; rating: string | null; term: string | null; total_return: number };
+  const old = loadFixture("dataplatform/ftse_univ_overall.json") as Row[];
+  const agg = (rows: Row[], d: string) => rows.find((x) => x.date === d && x.rating === null && x.term === null)!.total_return;
+  near(u.levels["2024-10-31"] / u.levels["2024-09-30"] - 1, agg(old, "2024-10-31") / agg(old, "2024-09-30") - 1, 1e-15);
+  // short_corp: like the live data, no earlier name (nothing with its index_id or family in /short-names)
+  assert.equal(r.ftse.short_corp.data!.first, "2024-12-02");
+  assert.match(r.ftse.short_corp.detail!, /no earlier name found \(none with index_id 1101 or family "short corp" among 5 short-names\)/);
+
+  // an earlier short_corp generation (other index_id, same name family): its rows up to `until`, levels re-based, and
+  // 24 synthetic month-ends before the current name's first day
+  const names = loadFixture("dataplatform/ftse_short_names.json") as object[];
+  const cur = (loadFixture("dataplatform/ftse_short_corp.json") as Row[]).filter((x) => x.rating === null && x.term === null);
+  const earlier = (o: { until: string; noise?: number; name?: string; indexName?: string }): Route => {
+    const name = o.name ?? "ftse_tmx_canada_short_corp";
+    const base = { short_name: name, index_name: o.indexName ?? "FTSE TMX Canada Short Term Corporate Bond Index", rating: null, term: null, industry_sector: null, industry_group: null };
+    const rows: (typeof base & { date: string; total_return: number })[] = cur.filter((x) => x.date <= o.until).map((x) => ({ ...base, date: x.date, total_return: x.total_return * 0.5 * (x.date === "2024-12-04" ? 1 + (o.noise ?? 0) : 1) }));
+    let level = cur[0].total_return * 0.5;
+    for (let i = 0; i < 24; i++) {
+      const d = new Date(Date.UTC(2024, 11 - i, 0)).toISOString().slice(0, 10); // 2024-11-30, 2024-10-31, …
+      level /= 1.002;
+      rows.unshift({ ...base, date: d, total_return: level });
     }
-    return undefined;
+    return (url) => {
+      if (url.pathname === "/api/ftse/index-summary/short-names") return json([...names, { short_name: name, index_id: 7777, index_name: base.index_name }]);
+      if (url.pathname === "/api/ftse/index-summary" && url.searchParams.get("short_name") === name) return json(rows);
+      return undefined;
+    };
   };
-  const b = await raw({}, broken);
-  assert.equal(b.raw.ftse.univ.data!.first, "2024-12-05");
-  assert.match(b.raw.ftse.univ.detail!, /not joined: ftse_tmx_canada_univ \(level jumps 11\.1% at 2024-12-05\)/);
+  const ok = await raw({}, earlier({ until: "2024-12-09" }));
+  assert.deepEqual(ok.raw.ftse.short_corp.data!.joined, ["ftse_tmx_canada_short_corp"]);
+  assert.equal(ok.raw.ftse.short_corp.data!.first, "2022-12-31");
+  assert.match(ok.raw.ftse.short_corp.detail!, /earlier days under ftse_tmx_canada_short_corp from 2022-12-31 \(same index family "short corp" \(FTSE TMX Canada Short Term Corporate Bond Index\); linked at 2024-12-02 on 5 equal daily return\(s\)\)/);
+  near(ok.raw.ftse.short_corp.data!.levels["2024-11-29"] ?? ok.raw.ftse.short_corp.data!.levels["2024-11-30"], cur[0].total_return / 1.002, 1e-9);
+  // the same name with different daily returns on the common days: another index, not joined
+  const differ = await raw({}, earlier({ until: "2024-12-09", noise: 0.002 }));
+  assert.equal(differ.raw.ftse.short_corp.data!.first, "2024-12-02");
+  assert.match(differ.raw.ftse.short_corp.detail!, /not joined: ftse_tmx_canada_short_corp \(daily returns differ on common days \(up to \d+\.\d+ bp\): another index\)/);
+  // too short an overlap to compare 5 daily returns
+  const short = await raw({}, earlier({ until: "2024-12-04" }));
+  assert.match(short.raw.ftse.short_corp.detail!, /not joined: ftse_tmx_canada_short_corp \(3 common day\(s\): at least 6 needed to compare daily returns\)/);
+  // stopping the day before the current name starts: no overlap to verify the re-based levels, not joined
+  const seam = await raw({}, earlier({ until: "2024-11-30" }));
+  assert.equal(seam.raw.ftse.short_corp.data!.first, "2024-12-02");
+  assert.match(seam.raw.ftse.short_corp.detail!, /not joined: ftse_tmx_canada_short_corp \(no level on 2024-12-02, the first day of the current series: no overlap to verify a link\)/);
+  // a sibling of another family is never a candidate
+  const sib = await raw({}, earlier({ until: "2024-12-09", name: "short_overall_x", indexName: "FTSE Canada Short Term Overall Bond Index" }));
+  assert.equal(sib.raw.ftse.short_corp.data!.first, "2024-12-02");
+  assert.ok(!/short_overall_x/.test(sib.raw.ftse.short_corp.detail!));
 });
 
+test("ftseFamily: publisher prefixes, Bond Index, Overall and Term do not change the family", () => {
+  assert.equal(ftseFamily("FTSE Canada Universe Bond Index"), "univ");
+  assert.equal(ftseFamily("FTSE Canada Universe Overall Bond Index"), "univ");
+  assert.equal(ftseFamily("FTSE TMX Canada Universe Bond Index"), "univ");
+  assert.equal(ftseFamily("FTSE Canada Short Term Corporate Bond Index"), "short corp");
+  assert.equal(ftseFamily("DEX Short Term Corporate Bond Index"), "short corp");
+  assert.equal(ftseFamily("FTSE Canada Short Term Overall Bond Index"), "short");
+  assert.equal(ftseFamily("FTSE Canada Universe Corporate Bond Index"), "univ corp");
+  assert.equal(ftseFamily(null), "");
+});
 test("H1: a month missing from every source interrupts the track record (error); analytics vs dataplatform difference warns", async () => {
   const hole: Route = () => undefined;
   const dir = await fsCopy();
   const af = path.join(dir, "an.json");
   const an = loadFixture("analytics_fund_returns.json") as { dates: string[]; returns: Record<string, (number | null)[]> };
-  an.returns["Nymbus Sustainable Enhanced Bonds"][an.dates.indexOf("2024-03-31")] = null;
-  an.returns["Nymbus Monthly Income"][an.dates.indexOf("2026-07-31")] = null; // July filled by the factsheet table (-0.14%)
+  // months before the class's own NAV history (strategy track record) exist in the analytics history only
+  an.returns["Nymbus Sustainable Enhanced Bonds"][an.dates.indexOf("2022-03-31")] = null;
+  an.returns["Nymbus Monthly Income"][an.dates.indexOf("2020-07-31")] = null; // filled by the factsheet table (1.17%)
+  an.returns["Nymbus Monthly Income"][an.dates.indexOf("2026-07-31")] = null; // the cut-over month: NAV bridge
   await writeFile(af, JSON.stringify(an));
-  for (const f of ["bonds_data_2026-08.json", "bonds_data_2026-07.json"]) await editJson(path.join(dir, f), (j) => { delete j["QCFI-SEB"]["Monthly Returns: Nymbus QCFI-SEB Net"]["2024"]; });
+  for (const f of ["bonds_data_2026-08.json", "bonds_data_2026-07.json"]) await editJson(path.join(dir, f), (j) => { delete j["QCFI-SEB"]["Monthly Returns: Nymbus QCFI-SEB Net"]["2022"]; });
   const { data } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir, ANALYTICS_RETURNS_FILE: af }, hole)).raw, null, NOW);
-  assert.equal(data.funds["sustainable-enhanced-bonds"]!.performance, null, "track record 2019-02..2024-02 cannot reach the as-of");
-  assert.ok(data.issues.some((i) => i.level === "error" && /interrupted after 2024-02: 2024-03 missing/.test(i.message)));
-  const jul = data.funds["monthly-income"]!.performance!.monthly.find((x) => x.month === "2026-07-31")!;
-  assert.equal(jul.r, -0.0014, "factsheet table value (2 decimals)");
-  assert.ok(data.issues.some((i) => i.level === "warn" && /2026-07: factsheet .* figures used/.test(i.message)));
+  assert.equal(data.funds["sustainable-enhanced-bonds"]!.performance, null, "track record 2019-02..2022-02 cannot reach the as-of");
+  assert.ok(data.issues.some((i) => i.level === "error" && /interrupted after 2022-02: 2022-03 missing/.test(i.message)));
+  const mi = data.funds["monthly-income"]!.performance!.monthly;
+  assert.equal(mi.find((x) => x.month === "2020-07-31")!.r, 0.0117, "factsheet table value (2 decimals)");
+  assert.ok(data.issues.some((i) => i.level === "warn" && /2020-07: factsheet .* figures used/.test(i.message)));
+  near(mi.find((x) => x.month === "2026-07-31")!.r, -0.0013904499930977865, 1e-15);
 
   const diff: Route = (url) => {
     if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
@@ -205,21 +280,21 @@ test("H1: analytics unavailable -> track record cannot start in 2019: performanc
   void context;
 });
 
-test("H3: a new month waits for its factsheet (held, info); an inconsistent factsheet blocks the new month", async () => {
+test("H3: by default a new month does not wait for its factsheet; opt-in waits (held, info); an inconsistent factsheet blocks the new month", async () => {
   const prevDir = await fsCopy();
   await rm(path.join(prevDir, "bonds_data_2026-08.json"));
   await rm(path.join(prevDir, "factsheet_data_2026-08.json"));
-  const first = buildSiteData((await raw({ FACTSHEET_DATA_DIR: prevDir })).raw, null, NOW);
-  // no previous publication: the newest cross-checkable month is July
+  // default (the factsheet job is not a dependency any more): August published without its factsheet
+  const dflt = buildSiteData((await raw({ FACTSHEET_DATA_DIR: prevDir })).raw, null, NOW);
+  assert.equal(dflt.data.funds["monthly-income"]!.performance!.asOf, "2026-08-31");
+  const first = buildSiteData((await raw({ FACTSHEET_DATA_DIR: prevDir })).raw, null, NOW, { requireFactsheetForNewMonth: true });
+  // opt-in, no previous publication: the newest cross-checkable month is July
   const p = first.data.funds["monthly-income"]!.performance!;
   assert.equal(p.asOf, "2026-07-31");
-  near(p.trailing.fund["1Y"], 0.00494802750682144);
+  near(p.trailing.fund["1Y"], 0.004947973075484446);
   assert.equal(first.context["monthly-income"]!.parts.performance, "held");
   assert.ok(first.data.issues.some((i) => i.level === "info" && /2026-08 not published yet: waiting for the factsheet of 2026-08/.test(i.message)));
   assert.ok(!first.context["monthly-income"]!.alerts.length, "waiting is not an alert");
-  // gate disabled: August published without its factsheet
-  const off = buildSiteData((await raw({ FACTSHEET_DATA_DIR: prevDir })).raw, null, NOW, { requireFactsheetForNewMonth: false });
-  assert.equal(off.data.funds["monthly-income"]!.performance!.asOf, "2026-08-31");
 
   // August factsheet disagrees beyond tolerance on 1Y (computed 1.04 %, published 2.0 %): August is not published
   const bad = await fsCopy();
@@ -308,7 +383,7 @@ async function julyOnly(): Promise<SiteData> {
   const d0 = await fsCopy();
   await rm(path.join(d0, "bonds_data_2026-08.json"));
   await rm(path.join(d0, "factsheet_data_2026-08.json"));
-  return buildSiteData((await raw({ FACTSHEET_DATA_DIR: d0 })).raw, null, NOW).data;
+  return buildSiteData((await raw({ FACTSHEET_DATA_DIR: d0 })).raw, null, NOW, { requireFactsheetForNewMonth: true }).data;
 }
 const wrongAug: Route = (url) => {
   if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
@@ -326,10 +401,11 @@ for (const [label, mutate] of [
     const first = await julyOnly();
     const dir = await fsCopy();
     await editJson(path.join(dir, "bonds_data_2026-08.json"), (j) => mutate(j.SEST["Trailing Returns Net"]["Nymbus Monthly Income Fund"]));
-    const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir }, wrongAug)).raw, first, NOW);
+    // opt-in factsheet gate: August waits for a usable factsheet
+    const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, first, NOW, { requireFactsheetForNewMonth: true });
     const p = b.data.funds["monthly-income"]!.performance!;
-    assert.equal(p.asOf, "2026-07-31", "August (20 % return, unverifiable) not published");
-    near(p.trailing.fund["1Y"], 0.00494802750682144);
+    assert.equal(p.asOf, "2026-07-31", "August not cross-checked: not published under the opt-in gate");
+    near(p.trailing.fund["1Y"], 0.004947973075484446);
     assert.ok(b.data.issues.some((i) => i.level === "warn" && /fund trailing row missing or incomplete/.test(i.message)));
   });
 }
@@ -365,13 +441,23 @@ test("N1: fund monthly-table mismatch beyond print precision: blocking after the
   assert.deepEqual(b3.context["monthly-income"]!.alerts, []);
 });
 
+test("N0: by default a new month the dataplatform views disagree on is withheld (chain vs monthly-net-returns)", async () => {
+  const first = await julyOnly();
+  const b = buildSiteData((await raw({}, wrongAug)).raw, first, NOW);
+  assert.equal(b.data.funds["monthly-income"]!.performance!.asOf, "2026-07-31", "August (20 % at monthly-net-returns, -0.12 % in the daily chain) not published");
+  assert.ok(b.data.issues.some((i) => i.level === "error" && /2026-08: daily NAV chain -0\.1219% vs monthly-net-returns 20\.0000%: two dataplatform views of the same days disagree; month withheld/.test(i.message)));
+});
+
 test("N4: analytics unavailable -> factsheet-rebuilt history alerts, risk statistics withheld", async () => {
   const { data, context } = buildSiteData((await raw({ ANALYTICS_RETURNS_FILE: path.join(os.tmpdir(), "nope-analytics.json") })).raw, null, NOW);
   const mi = data.funds["monthly-income"]!;
   assert.equal(mi.performance!.monthly[0].r, 0.0057, "2019-01 as printed in the factsheet table (0.57 %)");
   assert.equal(mi.risk, null);
   assert.equal(mi.risk3Y, null);
-  assert.ok(context["monthly-income"]!.alerts.some((a) => /analytics history unavailable: 91 month\(s\) rebuilt/.test(a)));
+  // 2019-01..2026-06 rebuilt (the stored CIBC daily returns cannot be verified without the analytics history); the cut-over
+  // month from the NAV bridge (its own gates), August from the dataplatform
+  assert.ok(context["monthly-income"]!.alerts.some((a) => /analytics history unavailable: 90 month\(s\) rebuilt/.test(a)), JSON.stringify(context["monthly-income"]!.alerts));
+  assert.ok(data.issues.some((i) => /only 0 month\(s\) in common with the analytics history/.test(i.message)));
   assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.risk" && /rounded factsheet figures/.test(i.message)));
 });
 
@@ -394,7 +480,7 @@ test("FTSE for all benchmarks: no factsheet index table / published VA changed -
   const { data, context } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
   const p = data.funds["monthly-income"]!.performance!;
   near(p.trailing.index!["1Y"], 0.0023965137671608794);
-  near(p.trailing.va!["1Y"], 0.010394449520831683 - 0.0023965137671608794, 1e-12);
+  near(p.trailing.va!["1Y"], 0.010394608387722215 - 0.0023965137671608794, 1e-12);
   assert.deepEqual(context["monthly-income"]!.alerts, [], "no N5 alert any more");
   assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.trailing.va.1Y" && i.level === "info"), "published VA: cross-check only");
 });

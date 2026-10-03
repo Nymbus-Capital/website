@@ -9,6 +9,7 @@ import type { FundKey, L10n, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
 import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
 import { defaultClassCode, pickData } from "../../fund/lib/select.ts";
+import { shownVariant } from "../../../config/funds.ts";
 
 export type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
@@ -42,6 +43,8 @@ export interface FundCard {
   nav: { code: string; display: string; currency: string; nav: number; changePct: number | null; date: string | null } | null;
   /** class of the published returns ("F", "H", "FP"), derived from the class of their data; null when none */
   perfClass: string | null;
+  /** the strategy variant of the returns shown (Global Minimum Volatility: "6% downside volatility"); null without variants */
+  perfVariant: L10n | null;
 }
 
 export interface HomeData {
@@ -109,6 +112,8 @@ export function toFundCard(v: FundView): FundCard {
       ? { code: cls.fundserv, display: cls.display, currency: cls.currency, nav: cls.nav, changePct: isNum(cls.changePct) ? cls.changePct : null, date: cls.date }
       : null,
     perfClass: perf?.returnClass ?? null,
+    // the published returns of a strategy with variants are its default variant's: always named
+    perfVariant: perf ? shownVariant(spec, data?.defaultVariant)?.name ?? null : null,
   };
 }
 

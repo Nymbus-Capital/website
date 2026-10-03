@@ -167,6 +167,8 @@ function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; cont
   const perf = content.hide?.performance ? null : data?.performance ?? null;
   const si = perf?.trailing.fund.SI ?? null;
   const ann = si != null && isAnnualized("SI", perf?.firstMonth, perf?.asOf);
+  // the figure of a strategy with variants is always named by its variant (GMV: "6% downside volatility")
+  const heroVariant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
   return (
     <div ref={tilt} className="navcard" data-testid="strategy-card">
       <span className="nc-shine" aria-hidden="true" />
@@ -190,6 +192,7 @@ function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; cont
         <>
           <div className="nc-fig" data-testid="hero-figure"><Odometer value={si} pct decimals={1} lang={lang} duration={1500} /></div>
           <p className="nc-change flat"><span>{tr(ann ? T.nav.siGross : T.nav.siGrossCum, lang)}</span></p>
+          {heroVariant ? <p className="nc-change flat" data-testid="hero-variant"><span>{tr(heroVariant.name, lang)}</span></p> : null}
         </>
       ) : <p className="nc-empty">{tr(T.perf.none, lang)}</p>}
       <dl className="nc-facts">
@@ -221,7 +224,7 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
             <h2 id="fr-title" className="fr-title">{tr(T.badges.title, lang)}</h2>
             {badges.length && perf ? (
               <p className="fr-sub" data-testid="basis">
-                {variant ? <>{tr(T.variants.label, lang)} {tr(variant.label, lang)}, </> : null}
+                {variant ? <><span data-testid="variant-name">{tr(variant.name, lang)}</span>, </> : null}
                 {cl ? <>{cl}, {basis}</> : cap(basis)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
                 {sel && !variant ? <> <ClassTypeBadge type={sel.type} lang={lang} testId="returns-class-type" /></> : null}
               </p>

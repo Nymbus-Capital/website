@@ -36,11 +36,12 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
     va: tr(T.perf.va, lang),
   };
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
-  // the growth chart legend / tooltip names the class of the series drawn
-  const growthNames = cl ? { ...names, fund: `${names.fund} (${cl})` } : names;
+  const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
+  // the growth chart legend / tooltip names the class (or the strategy variant) of the series drawn
+  const tag = variant ? tr(variant.name, lang) : cl;
+  const growthNames = tag ? { ...names, fund: `${names.fund} (${tag})` } : names;
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
-  const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
 
   return (
@@ -49,7 +50,7 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
         <p className="fp-context" data-testid="perf-context">
           {tr(T.perf.classShown, lang)}{colon(lang)}{cl ? `${cl}, ` : ""}{tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
           {benchmarkLabel(perf.indexName, spec.benchmark, lang) ? <> · {tr(T.perf.index, lang)}{colon(lang)}{benchmarkLabel(perf.indexName, spec.benchmark, lang)}</> : null}
-          {variant ? <> · {tr(T.variants.label, lang)} {tr(variant.label, lang)}</> : null}
+          {variant ? <> · <span data-testid="perf-variant">{tr(variant.name, lang)}</span></> : null}
           {sel && !variant ? <> <ClassTypeBadge type={sel.type} lang={lang} testId="perf-class-type" /></> : null}
         </p>
       ) : null}

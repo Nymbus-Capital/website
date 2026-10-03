@@ -64,10 +64,12 @@ test("daily breakdowns: display order, rating and term order kept, weights as th
   const p = fund("sustainable-enhanced-bonds").portfolio!;
   const b = dailyBreakdowns(p);
   assert.deepEqual(b.map((x) => x.key), ["assetType", "country", "sector", "rating", "term"]);
-  assert.deepEqual(b.find((x) => x.key === "rating")!.rows.map((r) => r.label), ["AAA", "AA", "A", "BBB", "BB", "Cash"]);
-  assert.deepEqual(b.find((x) => x.key === "term")!.rows.map((r) => r.label), ["0-1", "1-3", "3-5", "5-7", "7-10", "10+", "Cash"]);
-  for (const x of b) assert.ok(Math.abs(x.rows.reduce((a, r) => a + (r.fund ?? 0), 0) - 1) < 0.001, x.key);
-  assert.deepEqual(partialCoverage(p.characteristics).map((m) => m.id), ["duration", "ytm"]);
+  assert.deepEqual(b.find((x) => x.key === "rating")!.rows.map((r) => r.label), ["AAA", "AA", "A", "Cash"]);
+  assert.deepEqual(b.find((x) => x.key === "term")!.rows.map((r) => r.label), ["1-3", "3-5", "5-7", "7-10", "10+", "Unknown maturity", "Cash"]);
+  // weights over net assets (PR #621 contract): positions plus cash are 100.4 % of net assets in the fixture (accruals)
+  for (const x of b) assert.ok(Math.abs(x.rows.reduce((a, r) => a + (r.fund ?? 0), 0) - 1.004) < 0.001, x.key);
+  assert.deepEqual(partialCoverage(p.characteristics).map((m) => m.id), []);
+  assert.deepEqual(partialCoverage(fund("monthly-income").portfolio!.characteristics).map((m) => m.id), ["duration", "ytm"]);
   assert.equal(categoryLabel("1-3", "en", "term"), "1–3 years");
   assert.equal(categoryLabel("0-1", "en", "term"), "0–1 year");
   assert.equal(categoryLabel("10+", "fr", "term"), "10 ans et plus");
@@ -76,6 +78,12 @@ test("daily breakdowns: display order, rating and term order kept, weights as th
   assert.equal(categoryLabel("United States", "fr"), "États-Unis");
   assert.equal(categoryLabel("Unknown label", "fr"), "Unknown label");
   assert.equal(categoryLabel("Financials", "en"), "Financials");
+  // labels of the website-computed book (Bloomberg industry sectors, fund-portfolio.ts buckets)
+  assert.equal(categoryLabel("Financial", "fr"), "Services financiers");
+  assert.equal(categoryLabel("Consumer, Non-cyclical", "fr"), "Consommation de base");
+  assert.equal(categoryLabel("Unknown maturity", "fr", "term"), "Échéance inconnue");
+  assert.equal(categoryLabel("Other assets", "fr"), "Autres actifs");
+  assert.equal(categoryLabel("Bonds (unclassified)", "fr"), "Obligations (non classées)");
 });
 
 test("distributions: headline first, newest-first history (12 or all), last 24 bars oldest first", () => {

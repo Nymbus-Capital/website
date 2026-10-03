@@ -76,7 +76,7 @@ export const T = {
     siShort: l("Since series inception", "Depuis la création de la série"),
   },
   variants: {
-    label: l("Target downside volatility", "Volatilité baissière cible"),
+    label: l("Target downside volatility", "Volatilité à la baisse cible"),
     shown: l("Variant", "Variante"),
     note: l("Figures follow the variant selected.", "Les chiffres suivent la variante sélectionnée."),
   },

@@ -86,11 +86,13 @@ const GMV_GROSS: Text = {
   en:
     "Nymbus Global Minimum Volatility is a strategy offered through separately managed accounts; it is not an investment fund. " +
     "Its returns are shown gross of management fees and other expenses, which reduce client returns; actual client returns vary by account. " +
-    "Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.",
+    "Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative. " +
+    "Unless another variant is selected on the strategy page, the returns shown are those of the 6% downside volatility variant; the strategy is also offered with 3% and 9% downside volatility targets, whose returns differ.",
   fr:
     "Nymbus Global Minimum Volatility est une stratégie offerte au moyen de comptes gérés distincts; il ne s’agit pas d’un fonds d’investissement. " +
     "Ses rendements sont présentés avant déduction des frais de gestion et des autres frais, lesquels réduisent le rendement des clients; le rendement réel varie d’un compte à l’autre. " +
-    "Les rendements sont arithmétiques (sommes simples des rendements mensuels sur l’exposition notionnelle, non composés) et avant déduction des frais; le graphique de croissance est illustratif.",
+    "Les rendements sont arithmétiques (sommes simples des rendements mensuels sur l’exposition notionnelle, non composés) et avant déduction des frais; le graphique de croissance est illustratif. " +
+    "Sauf si une autre variante est sélectionnée sur la page de la stratégie, les rendements présentés sont ceux de la variante à volatilité à la baisse de 6\u00a0%; la stratégie est aussi offerte avec des cibles de volatilité à la baisse de 3\u00a0% et de 9\u00a0%, dont les rendements diffèrent.",
 };
 
 const FTSE: Text = {
@@ -112,8 +114,8 @@ const SUMMARY_NET: Text = {
 };
 
 const SUMMARY_GROSS: Text = {
-  en: "Global Minimum Volatility returns are gross of fees (managed accounts, not a fund).",
-  fr: "Les rendements de Global Minimum Volatility sont présentés avant déduction des frais (comptes gérés, pas un fonds).",
+  en: "Global Minimum Volatility returns (6% downside volatility variant unless another is selected) are gross of fees (managed accounts, not a fund).",
+  fr: "Les rendements de Global Minimum Volatility (variante à volatilité à la baisse de 6\u00a0%, sauf si une autre est sélectionnée) sont présentés avant déduction des frais (comptes gérés, pas un fonds).",
 };
 
 const BASIS_NET: Text = { en: "net of fees", fr: "après déduction des frais" };
@@ -181,7 +183,7 @@ export const DISCLAIMERS: Disclaimer[] = [
     label: "Global Minimum Volatility: gross of fees, managed accounts, not a fund",
     text: GMV_GROSS,
     where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "GMV strategy page, hero + disclosure", href: "/strategies/global-minimum-volatility#disclosure" }],
-    review: ["Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).", "Target volatility variant shown (6 %).", "Arithmetic-returns sentence added 2026-09-30. Is the series actual accounts, a composite or a model? If model/hypothetical, it must be labelled as such."],
+    review: ["Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).", "Target volatility variant shown (6 %); variant sentence added 2026-10-02: every GMV figure names its downside volatility variant.", "Arithmetic-returns sentence added 2026-09-30. Is the series actual accounts, a composite or a model? If model/hypothetical, it must be labelled as such."],
   },
   {
     id: "ftse",

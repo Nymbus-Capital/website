@@ -50,11 +50,11 @@ export function factsheetTolerance(period: string, decimals = 1): { round: numbe
   return { round: half + 1e-9, block: half + (SHORT_PERIODS.has(period) ? 0.0005 : 0.001) + 1e-9 };
 }
 
-/** Tolerances (decimal returns). */
 /**
- * Independent gate of a preferred-class series (SEB class F) against the track-record class (H) of the same months:
- * the monthly difference F − H is a fee difference, so it must stay in [minDiff, maxDiff] and within maxFromMedian of
- * its median (reference: July 2026 ≈ +11.6 bp). A breach blocks the class F series (previous publication kept).
+ * Default fee band of a non-headline class (compounded from its own daily NAV chain) against the track-record class of
+ * the same months: the monthly difference is a fee difference, so it must stay in [minDiff, maxDiff] and within
+ * maxFromMedian of its median. A fund may set its own band (fund-sources.ts classSpread: SEB F − H, July 2026 ≈ +11.6
+ * bp). A breach blocks that class's series (previous publication kept).
  */
 export const CLASS_SPREAD = { minDiff: -0.0005, maxDiff: 0.003, maxFromMedian: 0.0005 } as const;
 
@@ -69,7 +69,14 @@ export const TOL = {
   analyticsVsDataplatform: 5e-6,
   /** revision of an already published month worth a warning + alert */
   revision: 1e-6,
+  /** the website's compounding of the Apex daily chain vs dataplatform monthly-net-returns (same rows, same rule) */
+  chainVsDataplatform: 1e-8,
+  /** stored CIBC daily returns compounded vs the analytics monthly history (a missed distribution is 10 to 100 times this) */
+  chainVsAnalytics: 2e-5,
 };
+
+/** Daily NAV chain (daily-chain.ts, build.ts): CIBC months are used only after this many months agree with the analytics history. */
+export const CHAIN = { minVerifiedMonths: 6 } as const;
 
 /**
  * Daily portfolio (dataplatform /api/apex/fund-portfolio). Selection (build.ts / portfolio.ts): the daily book is the

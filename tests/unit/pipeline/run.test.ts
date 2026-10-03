@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { getRun, listRuns, pipelineStatus, publishRun, pruneSnapshots, runPipeline, type RunReport } from "../../../src/lib/pipeline/index.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
-import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, fullHistoryRoute, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 let dir = "";
@@ -65,8 +65,11 @@ test("raw folder: AUM contains fund totals only (no investor-level fields)", asy
   assert.ok(rawFiles.includes("aum.json"));
   assert.ok(rawFiles.includes("monthly-net-returns_SEST.json"));
   assert.ok(rawFiles.includes("factsheets_bonds_data_2026-08.json"));
-  for (const f of ["fund-portfolio_SEST.json", "fund-portfolio-month-end_SEB.json", "distributions_Multistrat.json"]) assert.ok(rawFiles.includes(f), f);
-  assert.ok(r.sources.some((s) => s.name === "dataplatform fund-portfolio SEST" && s.ok));
+  for (const f of ["holdings_SEST.json", "holdings-month-end_SEB.json", "instruments.json", "nav-history_LDM201.json", "nav-history_LDM081.json"]) assert.ok(rawFiles.includes(f), f);
+  assert.ok(!rawFiles.some((f) => f.startsWith("distributions_")), "no distributions endpoint on the dataplatform main branch");
+  assert.ok(r.sources.some((s) => s.name === "dataplatform nav-timeseries LDM202 (daily history)" && s.ok));
+  assert.ok(r.sources.some((s) => s.name === "dataplatform apex/holdings SEST" && s.ok));
+  assert.ok(r.sources.some((s) => s.name === "dataplatform instruments (batch + bond universe)" && s.ok));
   const aum = await readFile(path.join(dir, "snapshots", r.id, "raw", "aum.json"), "utf8");
   assert.deepEqual(Object.keys(JSON.parse(aum).data.totals).sort(), ["Multistrat", "OTHER", "SEB", "SEST"]);
   const all = (await Promise.all(rawFiles.map((f) => readFile(path.join(dir, "snapshots", r.id, "raw", f), "utf8")))).join("\n");
@@ -147,7 +150,8 @@ test("a failed source produces issues and a BLOCKED (not silently published) run
   await assert.rejects(publishRun(r2.id, "a"), /failed/);
 });
 
-test("H1/H3: a held month (waiting for its factsheet) is published without alert; stale performance alerts", async () => {
+test("H1/H3: with the opt-in factsheet gate a held month is published without alert; stale performance alerts", async () => {
+  process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH = "1";
   const fsDir = path.join(dir, "fs");
   await mkdir(fsDir, { recursive: true });
   for (const f of ["bonds_data_2026-07.json", "factsheet_data_2026-07.json"]) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
@@ -155,18 +159,19 @@ test("H1/H3: a held month (waiting for its factsheet) is published without alert
   const posted: string[] = [];
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
-  // the dataplatform serves SEB class F (the July archive publishes class F: same class, cross-checked)
-  const r = await run({ routes: [hook, fullHistoryRoute] });
+  // SEB is class H; the July archive publishes class F: not compared (class mismatch, info), July still counts as its factsheet
+  const r = await run({ routes: [hook] });
   // performance at 2026-07 (held until the August factsheet), factsheet parts from July: not an alert
   assert.equal(r.asOf.performance, "2026-07-31");
   assert.equal(r.status, "published", JSON.stringify(r.issues.filter((i) => i.level === "error")));
   assert.equal(posted.length, 0);
   // two months later nothing moved: stale -> blocked + alert
-  const late = await run({ routes: [hook, fullHistoryRoute], now: new Date("2026-11-03T14:00:00Z") });
+  const late = await run({ routes: [hook], now: new Date("2026-11-03T14:00:00Z") });
   assert.equal(late.status, "blocked");
   assert.ok(late.issues.some((i) => /stale: performance as of 2026-07 while 2026-10 is closed/.test(i.message)));
   assert.equal(posted.length, 1);
   delete process.env.PIPELINE_ALERT_WEBHOOK;
+  delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
 test("M5: revision of an already published month -> blocked (auto: published + alert; review: waits)", async () => {
@@ -235,7 +240,8 @@ test("blocked fund: others published (auto), blocked fund keeps previous, alert 
   j.GMV_6pct["Monthly Returns Gross"]["2020"]["03-Mar"] = "40.0%";
   await writeFile(f8, JSON.stringify(j));
   process.env.FACTSHEET_DATA_DIR = fsDir;
-  // SEB: the dataplatform August return changes to 40 % after publication: the factsheet contradicts it -> withheld
+  // SEB: monthly-net-returns restates August to 40 % after publication while the daily NAV chain still gives the
+  // published value: two dataplatform views disagree -> August withheld, the published performance kept
   const bad: Route = (u) => {
     if (u.pathname === "/api/performance/monthly-net-returns" && u.searchParams.get("short_name") === "SEB") {
       const m = loadFixture("dataplatform/mnr_SEB.json") as { rows: { month: string; net_return: number | null }[] };
@@ -253,7 +259,8 @@ test("blocked fund: others published (auto), blocked fund keeps previous, alert 
   const prev = await readJ<SiteData>("snapshots", first.id, "site-data.json");
   assert.deepEqual(pub.funds["global-minimum-volatility"]!.performance, prev.funds["global-minimum-volatility"]!.performance, "previous performance kept");
   assert.deepEqual(pub.funds["global-minimum-volatility"]!.risk, prev.funds["global-minimum-volatility"]!.risk);
-  assert.equal(pub.funds["sustainable-enhanced-bonds"]!.performance, null, "withheld rather than a contradicted number");
+  assert.deepEqual(pub.funds["sustainable-enhanced-bonds"]!.performance, prev.funds["sustainable-enhanced-bonds"]!.performance, "the published performance kept, never the contradicted number");
+  assert.ok(r.issues.some((i) => i.level === "error" && /2026-08: daily NAV chain .* vs monthly-net-returns 40\.0000%: two dataplatform views of the same days disagree/.test(i.message)));
   assert.ok(pub.funds["sustainable-enhanced-bonds"]!.nav, "other SEB parts still published");
   assert.equal(posted.length, 1);
   const msg = JSON.parse(posted[0]) as { text: string };
@@ -350,47 +357,34 @@ test("without admin content, runs wait for approval (review is the default)", as
   await assert.rejects(readFile(path.join(dir, "published", "site-data.json"), "utf8"));
 });
 
-test("class change (SEB H -> F): never published without an admin, even in auto mode; publishing the run approves it", async () => {
-  const first = await run(); // dataplatform before PR #626: SEB class H, published (auto)
-  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY_H");
-  const r = await run({ routes: [fullHistoryRoute], now: new Date("2026-09-30T14:00:00Z") }); // PR #626 deployed
+test("class change (SEB F -> H): never published without an admin, even in auto mode; publishing the run approves it", async () => {
+  await run(); // SEB class H, published (auto)
+  // a publication whose SEB headline was class F (as the unmerged dataplatform PR #626 would have made it)
+  const pub = await readJ<SiteData>("published", "site-data.json");
+  Object.assign(pub.funds["sustainable-enhanced-bonds"]!.performance!, { classCode: "STRATEGY", returnClass: "F", returnClassLabel: "Series F" });
+  await writeFile(path.join(dir, "published", "site-data.json"), JSON.stringify(pub));
+  const r = await run({ now: new Date("2026-09-30T14:00:00Z") });
   assert.equal(r.status, "blocked");
   assert.deepEqual(r.classChanges, ["sustainable-enhanced-bonds"]);
   assert.ok(r.publishedAt, "auto mode: the run went live for the other funds");
-  assert.ok(r.issues.some((i) => i.key === "funds.sustainable-enhanced-bonds.performance.class" && /class change from class H \(STRATEGY_H\) to class F \(STRATEGY\).*an admin must approve/.test(i.message)));
+  assert.ok(r.issues.some((i) => i.key === "funds.sustainable-enhanced-bonds.performance.class" && /class change from class F \(STRATEGY\) to class H \(STRATEGY_H\).*an admin must approve/.test(i.message)));
   const live = await readJ<SiteData>("published", "site-data.json");
   assert.equal(live.runId, r.id);
-  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY_H", "the class change is not live");
-  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "H");
+  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY", "the class change is not live");
   assert.match(live.provenance["funds.sustainable-enhanced-bonds.performance"], /^carried over from the publication of/);
   assert.equal(live.funds["monthly-income"]!.performance!.asOf, "2026-08-31", "other funds updated");
   // the stored run holds the change (what an approval publishes)
-  assert.equal((await readJ<SiteData>("snapshots", r.id, "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY");
+  assert.equal((await readJ<SiteData>("snapshots", r.id, "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY_H");
   // a later run without approval still holds it back
-  const again = await run({ routes: [fullHistoryRoute], now: new Date("2026-09-30T18:00:00Z") });
+  const again = await run({ now: new Date("2026-09-30T18:00:00Z") });
   assert.deepEqual(again.classChanges, ["sustainable-enhanced-bonds"]);
-  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "H");
+  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "F");
   // approval: an admin publishes the run
   const ok = await publishRun(again.id, "approver@nymbus.ca");
   assert.equal(ok.classChangesApprovedBy, "approver@nymbus.ca");
-  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "F");
-  // from then on class F is the published class: no change, published normally
-  const next = await run({ routes: [fullHistoryRoute], now: new Date("2026-09-30T20:00:00Z") });
+  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "H");
+  // from then on class H is the published class: no change, published normally
+  const next = await run({ now: new Date("2026-09-30T20:00:00Z") });
   assert.equal(next.classChanges, undefined);
   assert.equal(next.status, "published", JSON.stringify(next.issues.filter((i) => i.level === "error")));
-  void first;
-});
-
-test("class F published + the full history fails: the class F publication is kept, never class H", async () => {
-  await run({ routes: [fullHistoryRoute] }); // first publication already class F (nothing to change from)
-  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "F");
-  const down: Route = (u) => (u.pathname === "/api/performance/monthly-net-returns" && u.searchParams.get("history") === "full" ? json({ detail: "boom" }, 500) : undefined);
-  process.env.PIPELINE_RETRY_BASE_MS = "0";
-  const r = await run({ routes: [down, fullHistoryRoute], now: new Date("2026-09-30T14:00:00Z") });
-  assert.equal(r.status, "blocked");
-  assert.equal(r.classChanges, undefined);
-  assert.ok(r.issues.some((i) => /class F \(STRATEGY\) full history not usable \(unavailable .*HTTP 500.*the published class F \(STRATEGY\) performance is kept/.test(i.message)), JSON.stringify(r.issues.filter((i) => i.level === "error")));
-  const live = await readJ<SiteData>("published", "site-data.json");
-  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performance!.classCode, "STRATEGY");
-  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performance!.returnClass, "F");
 });

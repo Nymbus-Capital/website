@@ -60,7 +60,7 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
         />
         <aside className="adm-grid" aria-label="live numbers">
           <section className="adm-panel">
-            <h2 className="adm-h2">live numbers</h2>
+            <h2 className="adm-h2">live numbers{live.variant ? <span className="adm-muted" data-testid="admin-live-variant"> · {live.variant}</span> : null}</h2>
             <div className="adm-grid c2">
               <div className="adm-kpi"><span className="k">1 year</span><span className="v grad">{pct(live.r1Y)}</span></div>
               <div className="adm-kpi"><span className="k">since inception</span><span className="v">{pct(live.rSI)}</span></div>

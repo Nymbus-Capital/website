@@ -196,6 +196,8 @@ test.describe("admin flows", () => {
     await expect(page.getByRole("heading", { level: 1, name: "dashboard" })).toBeVisible();
     await expect(page.getByTestId("pipeline-status")).toBeVisible();
     await expect(page.locator(".adm-user")).toContainText("alice@nymbus.ca");
+    // the GMV returns row names its downside volatility variant
+    await expect(page.getByTestId("admin-variant-global-minimum-volatility")).toHaveText("6% downside volatility");
     await shot(page, "dashboard", info.project.name);
     for (const [path, name] of [["/admin/runs", "runs"], ["/admin/settings", "settings"], ["/admin/audit", "audit"]] as const) {
       const r = await page.goto(path);

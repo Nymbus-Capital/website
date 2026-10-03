@@ -8,9 +8,9 @@ import { mkdirSync, readFileSync } from "node:fs";
  */
 // daily: the sample has a daily portfolio book (bond funds); the multi-strategy book is below the coverage thresholds
 // series: radio buttons of the class selector (registry classes + classes with a NAV); dist: series with distributions;
-// returns: the default class (F) has its own return series (Monthly Income F has none yet: "coming soon", FP has)
+// returns: the default class (F) has its own return series (compounded by the website from the dataplatform daily NAV chain)
 const FUNDS = [
-  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, dist: 4, daily: true, green: false, returns: false },
+  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, dist: 4, daily: true, green: false, returns: true },
   { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 4, dist: 3, daily: true, green: true, returns: true },
   { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3, dist: 3, daily: false, green: false, returns: true },
   // managed accounts, not a fund: gross figures, no NAV / FundServ series, no distributions
@@ -113,7 +113,9 @@ for (const f of FUNDS) {
       await expect(source).toContainText("Daily portfolio data");
       await expect(page.getByTestId("portfolio-asof")).toHaveText("as of September 28, 2026");
       await expect(page.getByTestId("metric-duration")).toBeVisible();
-      await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
+      // a coverage footnote only where a characteristic is below full coverage (Monthly Income: one stale price)
+      if (f.slug === "monthly-income") await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
+      else await expect(page.getByTestId("coverage-note")).toHaveCount(0);
       await expect(page.getByTestId("breakdown-rating")).toBeVisible();
       await expect(page.getByTestId("holdings-table").locator("tbody tr")).toHaveCount(10);
       await expect(page.getByTestId("holdings-table").locator("thead")).toContainText("Coupon");
@@ -260,8 +262,9 @@ test("without JavaScript every panel is on the page", async ({ browser }) => {
   await page.goto("/strategies/monthly-income");
   await expect(page.getByRole("heading", { level: 1, name: "Nymbus Monthly Income Fund" })).toBeVisible();
   for (const id of TABS) await expect(page.locator(`[role="tabpanel"][data-panel="${id}"]`)).toBeVisible();
-  // Monthly Income F has no return series yet: its panels say "coming soon"
-  await expect(page.getByTestId("perf-soon")).toBeAttached();
+  // Monthly Income F has its own return series: the performance panel is server-rendered with it
+  await expect(page.getByTestId("perf-context")).toBeAttached();
+  await expect(page.getByTestId("perf-soon")).toHaveCount(0);
   await expect(page.getByTestId("holdings-table")).toBeVisible();
   await ctx.close();
 });
@@ -289,7 +292,11 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Fonds Nymbus Revenu Mensuel" })).toBeVisible();
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="overview"]')).toHaveText("Aperçu");
-  await expect(page.getByTestId("figures-soon")).toContainText("Les rendements de la série F seront bientôt publiés");
+  // class F (LDM081) has its own returns, computed from its daily NAV chain
+  await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
+  // a class without its own series says so, never another class's figures
+  await page.getByTestId("series-LDM021").click();
+  await expect(page.getByTestId("figures-soon")).toContainText(/Les rendements de la série .+ seront bientôt publiés/);
   await page.getByTestId("series-LDM001").click();
   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
   await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
@@ -375,11 +382,43 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await sel.getByTestId("variant-9").click();
   const nine = await si();
   expect(new Set([six, three, nine]).size, "each variant has its own returns").toBe(3);
-  await expect(page.getByTestId("basis")).toContainText("Target downside volatility 9%");
+  // every figure names its downside volatility variant: hero, return strip, overview, performance, chart legend, disclosure
+  await expect(page.getByTestId("basis").getByTestId("variant-name")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("hero-variant")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("overview-variant")).toHaveText("9% downside volatility");
+  await expect(page.getByTestId("disclosure-variant")).toHaveText("9% downside volatility");
   await openTab(page, "performance");
-  await expect(page.getByTestId("perf-context")).toContainText("9%");
+  await expect(page.getByTestId("perf-context").getByTestId("perf-variant")).toHaveText("9% downside volatility");
+  await page.getByTestId("growth").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(9% downside volatility)");
   await sel.getByTestId("variant-6").click();
   expect(await si()).toBe(six);
+  await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility)");
+});
+
+test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({ page }) => {
+  for (const [lang, name] of [["en", /^6% downside volatility$/], ["fr", /^volatilité à la baisse de 6\s%$/]] as const) {
+    await page.goto("/");
+    if (lang === "fr") {
+      await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+      await page.reload();
+    }
+    const tile = page.getByTestId("strategy-global-minimum-volatility");
+    await expect(tile.getByTestId("perf-variant-main")).toHaveText(name);
+    await expect(tile.getByTestId("perf-variant")).toHaveText(name);
+    // the other strategies have no variant
+    await expect(page.getByTestId("strategy-monthly-income").getByTestId("perf-variant")).toHaveCount(0);
+    await page.goto("/strategies");
+    await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-variant")).toHaveText(name);
+    await expect(page.getByTestId("compare-table").getByTestId("perf-variant")).toHaveCount(1);
+    await expect(page.getByTestId("compare-table").getByTestId("perf-variant")).toHaveText(name);
+    await page.goto("/solutions");
+    await expect(page.getByTestId("solution-variant-global-minimum-volatility").first()).toHaveText(name);
+    await page.goto("/strategies/global-minimum-volatility");
+    await expect(page.getByTestId("basis").getByTestId("variant-name")).toHaveText(name);
+    await expect(page.getByTestId("disclosure-variant")).toHaveText(name);
+  }
 });
 
 test("awards and rankings: Fund Library rank and quartile with source and as-at date; Morningstar 5 stars on the bond funds only", async ({ page }) => {
@@ -436,53 +475,57 @@ test("calendar-year chart: a value label on every bar, none overlapping, no hori
 
 /**
  * Performance class label (Gabriel 2026-10-01: the label must match the class of the data). The expected label is
- * read from the class code of the sample's own data (`performance.classCode`), never assumed: the sample is built as
- * if the dataplatform served SEB class F (PR #626); the class H rendering (what production shows before that) is
- * covered by the admin test that pins SEB to a class H run (admin.spec.ts). The NAV card keeps the register's own
- * series (LDM201 = F), independent of the returns' class.
+ * read from the sample's own data (`performanceByClass[<FundServ>].performance.returnClass`), never assumed. Pages open
+ * on the default class F (its own series, from the dataplatform daily NAV chain); the track-record class (Monthly
+ * Income FP, SEB H) is one click away. The NAV card keeps the register's own series, independent of the returns' class.
  */
-const SAMPLE = JSON.parse(readFileSync("src/lib/data/sample-site-data.json", "utf8")) as { funds: Record<string, { performance: { classCode?: string; returnClass?: string } | null }> };
-const CLASS_OF: Record<string, Record<string, string>> = {
-  "monthly-income": { STRATEGY: "FP" },
-  "sustainable-enhanced-bonds": { STRATEGY: "F", STRATEGY_H: "H" },
-  "multi-strategy": { STRATEGY: "F" },
+type PerfLite = { classCode?: string; returnClass?: string } | null;
+const SAMPLE = JSON.parse(readFileSync("src/lib/data/sample-site-data.json", "utf8")) as {
+  funds: Record<string, { defaultClass?: string; performance: PerfLite; performanceByClass?: Record<string, { performance: PerfLite }> }>;
 };
-const NO_HEADLINE_SERIES = new Set(["monthly-income"]);
-const codeOf = (slug: string): string => CLASS_OF[slug][SAMPLE.funds[slug].performance!.classCode!];
+/** classes visited per fund: the default (F) and the track-record class; letters of every class of the fund */
+const CLASS_OF: Record<string, { visit: string[]; letters: string[] }> = {
+  "monthly-income": { visit: ["LDM081", "LDM001"], letters: ["F", "FP"] },
+  "sustainable-enhanced-bonds": { visit: ["LDM201", "LDM202"], letters: ["F", "H"] },
+  "multi-strategy": { visit: ["LDM301"], letters: ["F"] },
+};
+const classLetter = (slug: string, fs: string): string => SAMPLE.funds[slug].performanceByClass![fs].performance!.returnClass!;
 /** "Series F" but not "Series FP" (and the other way round) */
 const seriesRe = (word: string, code: string): RegExp => new RegExp(`${word} ${code}(?![A-Za-z])`);
 
 for (const slug of Object.keys(CLASS_OF)) {
   test(`performance class label follows the data's class everywhere (EN + FR): ${slug}`, async ({ page }) => {
-    const perf = SAMPLE.funds[slug].performance!;
-    const code = codeOf(slug);
-    expect(code, `class ${perf.classCode} has a label`).toBeTruthy();
-    expect(perf.returnClass).toBe(code);
-    const others = Object.values(CLASS_OF[slug]).filter((c) => c !== code);
+    expect(SAMPLE.funds[slug].defaultClass).toBe(CLASS_OF[slug].visit[0]);
     for (const [lang, word, fund] of [["en", "Series", "Fund"], ["fr", "Série", "Fonds"]] as const) {
       await page.goto(`/strategies/${slug}`);
       if (lang === "fr") {
         await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
         await page.reload();
       }
-      // Monthly Income opens on class F (LDM081), which has no series yet: its returns are the FP class (LDM001)
-      if (slug === "monthly-income") await page.getByTestId("nav-card").getByTestId("series-LDM001").click();
-      const exact = seriesRe(word, code);
-      // header return badges, overview returns, disclosures: this class, never another class of the fund
-      for (const tid of ["basis", "overview-returns", "perf-class"]) {
-        await expect(page.getByTestId(tid)).toContainText(exact);
-        for (const o of others) await expect(page.getByTestId(tid)).not.toContainText(seriesRe(word, o));
+      for (const [i, fs] of CLASS_OF[slug].visit.entries()) {
+        const code = classLetter(slug, fs);
+        const others = CLASS_OF[slug].letters.filter((c) => c !== code);
+        if (i > 0) {
+          await openTab(page, "overview");
+          await page.getByTestId("nav-card").getByTestId(`series-${fs}`).click();
+        }
+        const exact = seriesRe(word, code);
+        // header return badges, overview returns, disclosures: this class, never another class of the fund
+        for (const tid of ["basis", "overview-returns", "perf-class"]) {
+          await expect(page.getByTestId(tid)).toContainText(exact);
+          for (const o of others) await expect(page.getByTestId(tid)).not.toContainText(seriesRe(word, o));
+        }
+        // performance tab context line and growth chart legend
+        await openTab(page, "performance");
+        await expect(page.getByTestId("perf-context")).toContainText(exact);
+        for (const o of others) await expect(page.getByTestId("perf-context")).not.toContainText(seriesRe(word, o));
+        await page.getByTestId("growth").scrollIntoViewIfNeeded();
+        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fund} (${word} ${code})`);
       }
-      // performance tab context line and growth chart legend
-      await openTab(page, "performance");
-      await expect(page.getByTestId("perf-context")).toContainText(exact);
-      for (const o of others) await expect(page.getByTestId("perf-context")).not.toContainText(seriesRe(word, o));
-      await page.getByTestId("growth").scrollIntoViewIfNeeded();
-      await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fund} (${word} ${code})`);
       if (slug === "sustainable-enhanced-bonds") {
-        // the NAV card is the register's class LDM201 (F) whatever the class of the returns
+        // the NAV card is the register's class of the series selected, whatever the class of the returns
         await openTab(page, "overview");
-        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM201");
+        await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM202");
       }
     }
   });
@@ -500,17 +543,16 @@ test("home tiles and the strategies index name the class of the returns (EN + FR
       }
       for (const slug of Object.keys(CLASS_OF)) {
         const cls = page.getByTestId(`strategy-${slug}`).getByTestId("perf-class");
-        // the tile shows the headline class's own returns only: none while that class has no series (Monthly Income F)
-        if (NO_HEADLINE_SERIES.has(slug)) await expect(cls).toHaveCount(0);
-        else await expect(cls).toHaveText(label(codeOf(slug)));
+        // the tile shows the default class's own returns (F for every fund)
+        await expect(cls).toHaveText(label(classLetter(slug, SAMPLE.funds[slug].defaultClass!)));
       }
       // a strategy without classes (GMV) shows none
       await expect(page.getByTestId("strategy-global-minimum-volatility").getByTestId("perf-class")).toHaveCount(0);
     }
     // the comparison table: every fund with a class, in registry order
     const cells = page.getByTestId("compare-table").getByTestId("perf-class");
-    const shown = Object.keys(CLASS_OF).filter((k) => !NO_HEADLINE_SERIES.has(k));
+    const shown = Object.keys(CLASS_OF);
     await expect(cells).toHaveCount(shown.length);
-    for (const [i, slug] of shown.entries()) await expect(cells.nth(i)).toHaveText(label(codeOf(slug)));
+    for (const [i, slug] of shown.entries()) await expect(cells.nth(i)).toHaveText(label(classLetter(slug, SAMPLE.funds[slug].defaultClass!)));
   }
 });

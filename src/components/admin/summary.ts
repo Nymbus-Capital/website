@@ -2,6 +2,7 @@
  * Compact per-fund summary of a SiteData (run detail, fund editor context). Pure, dependency-free.
  */
 import type { FundData, FundKey, SiteData } from "../../lib/data/types.ts";
+import { fundSpec, shownVariant } from "../../config/funds.ts";
 
 /**
  * A run may be pinned (public numbers frozen on it) only if its data went through publication: status
@@ -20,6 +21,8 @@ export interface FundSummary {
   key: FundKey;
   performanceAsOf: string | null;
   basis: "net" | "gross" | null;
+  /** the strategy variant the returns are of (Global Minimum Volatility: "6% downside volatility"), null without variants */
+  variant: string | null;
   r1M: number | null;
   rYTD: number | null;
   r1Y: number | null;
@@ -40,6 +43,7 @@ export function summarizeFund(key: FundKey, f: FundData | undefined | null): Fun
     key,
     performanceAsOf: f?.performance?.asOf ?? null,
     basis: f?.performance?.basis ?? null,
+    variant: f?.performance ? shownVariant(fundSpec(key) ?? {}, f.defaultVariant)?.name.en ?? null : null,
     r1M: n(t["1M"]),
     rYTD: n(t.YTD),
     r1Y: n(t["1Y"]),

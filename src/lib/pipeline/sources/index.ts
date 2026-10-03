@@ -4,9 +4,9 @@
 import { FUNDS } from "../../../config/funds.ts";
 import { FUND_SOURCES } from "../fund-sources.ts";
 import type { FundKey } from "../../data/types.ts";
-import type { DpShort, FundPortfolio, RawPayloads, SourceResult } from "../raw.ts";
+import type { DpShort, HoldingsBook, InstrumentRefs, NavPoint, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
-import { dpClient, fetchApexFunds, fetchAum, fetchDistributions, fetchFtse, fetchFundPortfolio, fetchMonthlyNetReturns, fetchNav, fetchUnitholderFunds } from "./dataplatform.ts";
+import { dpClient, fetchApexFunds, fetchAum, fetchFtse, fetchHoldings, fetchInstruments, fetchMonthlyNetReturns, fetchNav, fetchNavHistory, fetchUnitholderFunds } from "./dataplatform.ts";
 import { fetchFactsheets } from "./factsheets.ts";
 import { fetchAnalytics } from "./analytics.ts";
 import type { FetchImpl } from "./http.ts";
@@ -32,43 +32,59 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const noDp = <T>(): SourceResult<T> => ({ ok: false, data: null, error: "dataplatform: DATAPLATFORM_URL not configured" });
 
   const monthlyReturns: RawPayloads["monthlyReturns"] = {};
-  const monthlyReturnsFull: NonNullable<RawPayloads["monthlyReturnsFull"]> = {};
+  const navHistory: NonNullable<RawPayloads["navHistory"]> = {};
   const nav: RawPayloads["nav"] = {};
   const ftse: RawPayloads["ftse"] = {};
-  const portfolio: NonNullable<RawPayloads["portfolio"]> = {};
-  const portfolioMonthEnd: NonNullable<RawPayloads["portfolioMonthEnd"]> = {};
-  const distributions: NonNullable<RawPayloads["distributions"]> = {};
+  const holdings: NonNullable<RawPayloads["holdings"]> = {};
 
   const today = opts.now.toISOString().slice(0, 10);
   const jobs: Promise<unknown>[] = [];
   for (const s of shorts) {
     const fs = FUND_SOURCES[keyOf[s]];
-    jobs.push((c ? fetchMonthlyNetReturns(c, s, target, { classCode: fs.trackRecordClass }) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
-    if (fs.preferredClass) jobs.push((c ? fetchMonthlyNetReturns(c, s, target, { classCode: fs.preferredClass, history: "full" }) : Promise.resolve(noDp())).then((r) => { monthlyReturnsFull[s] = r as never; }));
-    jobs.push((c ? fetchNav(c, s, opts.now) : Promise.resolve(noDp())).then((r) => { nav[s] = r as never; }));
-    jobs.push((c ? fetchPortfolios(c, s, target) : Promise.resolve({ latest: noDp<never>(), monthEnd: null })).then((r) => {
-      portfolio[s] = r.latest;
-      if (r.monthEnd) portfolioMonthEnd[s] = r.monthEnd;
-    }));
-    jobs.push((c ? fetchDistributions(c, s) : Promise.resolve(noDp())).then((r) => { distributions[s] = r as never; }));
+    // main-branch contract: short_name + dates only (the answer names its class: checked by the build)
+    jobs.push((c ? fetchMonthlyNetReturns(c, s, target) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
+    // each class with a series: its daily rows from the fund's NAV start (the website compounds the months)
+    if (fs.navStart) {
+      for (const fsv of new Set(Object.values(fs.classFundserv).filter((x): x is string => !!x))) {
+        jobs.push((c ? fetchNavHistory(c, s, fsv, fs.navStart, today) : Promise.resolve(noDp())).then((r) => { navHistory[fsv] = r as never; }));
+      }
+    }
+    // NAV of the last weeks (NAV card, the book dates and the net assets), then the Apex book(s) of those days
+    jobs.push((async () => {
+      const n = c ? await fetchNav(c, s, opts.now) : noDp<never>();
+      nav[s] = n;
+      if (!c) { holdings[s] = { latest: noDp(), monthEnd: null }; return; }
+      const days = bookDays(n.ok && n.data ? n.data.rows : [], target);
+      if (!days.latest) { holdings[s] = { latest: { ok: false, data: null, error: `apex/holdings ${s}: no Apex FINAL_NAV valuation day in the NAV rows (${n.ok ? "none in the last weeks" : n.error})` }, monthEnd: null }; return; }
+      const latest = await fetchHoldings(c, s, days.latest);
+      const monthEnd = days.monthEnd && days.monthEnd.slice(0, 7) !== days.latest.slice(0, 7) ? await fetchHoldings(c, s, days.monthEnd) : null;
+      holdings[s] = { latest, monthEnd };
+    })());
   }
-  for (const n of ftseNames) jobs.push((c ? fetchFtse(c, n, today) : Promise.resolve(noDp())).then((r) => { ftse[n] = r as never; }));
+  for (const n of ftseNames) jobs.push((c ? fetchFtse(c, n, today, FUND_SOURCES[FUNDS.find((f) => ftseIndex[f.key] === n)!.key].ftseAliases ?? []) : Promise.resolve(noDp())).then((r) => { ftse[n] = r as never; }));
   const apexP = c ? fetchApexFunds(c) : Promise.resolve(noDp<never>());
   const uhP = c ? fetchUnitholderFunds(c) : Promise.resolve(noDp<never>());
   const aumP = c ? fetchAum(c) : Promise.resolve(noDp<never>());
   const fsP = fetchFactsheets(target, opts.fetchImpl, env);
   const anP = fetchAnalytics(opts.fetchImpl, env);
   const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
-  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, monthlyReturnsFull, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, portfolio, portfolioMonthEnd, distributions };
+  // the instrument master of every security held (one pass for all funds and both book dates)
+  const books = Object.values(holdings).flatMap((h) => [h?.latest, h?.monthEnd]).filter((b): b is SourceResult<HoldingsBook> => !!b?.ok && !!b.data).map((b) => b.data!);
+  let instruments: SourceResult<InstrumentRefs> | undefined;
+  if (c && books.length) {
+    const securities = books.flatMap((b) => b.positions.map((p) => ({ isin: p.isin, cusip: p.cusip, figi: p.bloomberg_id })));
+    instruments = await fetchInstruments(c, securities, books.map((b) => b.date).sort()[0]);
+  }
+  // distributions: no endpoint on the dataplatform main branch (PR #621 not merged): not fetched, none shown
+  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, navHistory, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, holdings, ...(instruments ? { instruments } : {}) };
 }
 
 /**
- * Latest portfolio book, plus the book of the last closed month-end for the factsheet cross-check (skipped when the
- * latest book already is in that month, or when the latest call failed: the endpoint is then down or not deployed).
+ * Book dates of a fund from its NAV rows: the latest Apex FINAL_NAV valuation day, and the last one of the last closed
+ * month (for the month-end cross-check with the factsheet).
  */
-/** `monthEnd`: the last closed month-end as a full date (lastClosedMonth returns YYYY-MM-DD; the endpoint rejects YYYY-MM). */
-async function fetchPortfolios(c: NonNullable<ReturnType<typeof dpClient>>, s: DpShort, monthEnd: string): Promise<{ latest: SourceResult<FundPortfolio>; monthEnd: SourceResult<FundPortfolio> | null }> {
-  const latest = await fetchFundPortfolio(c, s);
-  if (!latest.ok || !latest.data || latest.data.as_of.slice(0, 7) === monthEnd.slice(0, 7)) return { latest, monthEnd: null };
-  return { latest, monthEnd: await fetchFundPortfolio(c, s, monthEnd) };
+export function bookDays(rows: NavPoint[], monthEnd: string): { latest: string | null; monthEnd: string | null } {
+  const apex = [...new Set(rows.filter((r) => r.source === "apex" && (r.nav_type ?? "FINAL_NAV") === "FINAL_NAV").map((r) => String(r.date).slice(0, 10)))].sort();
+  const inMonth = apex.filter((d) => d.slice(0, 7) === monthEnd.slice(0, 7));
+  return { latest: apex.at(-1) ?? null, monthEnd: inMonth.at(-1) ?? null };
 }

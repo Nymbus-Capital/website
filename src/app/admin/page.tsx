@@ -87,6 +87,7 @@ export default async function AdminDashboard() {
                         <span className="adm-swatch" style={{ background: f.color.solid }} />
                         {f.short.en}
                       </span>
+                      {s.variant ? <div className="adm-small adm-muted" data-testid={`admin-variant-${f.key}`}>{s.variant}</div> : null}
                     </td>
                     <td>{fc.hidden ? <Pill tone="warn">hidden</Pill> : <Pill tone="ok">visible</Pill>}</td>
                     <td className="tabnum">{s.performanceAsOf ?? "—"}</td>

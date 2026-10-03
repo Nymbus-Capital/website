@@ -38,6 +38,7 @@ export function Overview({ spec, content, data, lang, ctx }: Props) {
   const fundWord = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
+  const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
 
   return (
     <div className="container fp">
@@ -52,7 +53,7 @@ export function Overview({ spec, content, data, lang, ctx }: Props) {
           </Block>
           <Block title={tr(T.overview.returns, lang)} testId="overview-returns"
             aside={rows.length ? <a className="link" href="#performance">{tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" /></a> : null}
-            lead={rows.length && perf ? <>{cl ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}` : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}</> : null}>
+            lead={rows.length && perf ? <>{variant ? <><span data-testid="overview-variant">{tr(variant.name, lang)}</span>, </> : null}{cl ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}` : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))} · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}</> : null}>
             {rows.length ? (
               <div className="fx-scroll">
                 <table className="table ft-table">

@@ -86,6 +86,10 @@ Not yet run against live data, not deployed.
   - **Hosting**: move from GitHub Pages (`nymbus-capital.github.io/website`) to Northflank, in the
     project where the dataplatform runs; Claude sets everything up, Gabriel adds credentials.
 - Publish mode defaults to **review** until an admin switches it to auto.
+- 2026-10-02: **dataplatform main endpoints only, no dataplatform change for the website**: groupings and derived
+  figures are computed in the website backend from those endpoints (`docs/architecture.md` § Sources). **Benchmarks:
+  FTSE for the bond funds.** **Every Global Minimum Volatility figure names its downside volatility variant**; the
+  record of about 10 %/yr is the **6 % downside volatility** variant.
 
 ## 5. Open items (claim before starting)
 
@@ -117,7 +121,12 @@ Not yet run against live data, not deployed.
    index differences before May 2026 (factsheets used XSB/XBB ETFs then).
 6. **Compliance review of disclaimers** — `docs/compliance-review.md`; then "mark as reviewed" in admin.
 7. **Custom domain** `www.nymbus.ca` when approved (`docs/deploy.md`), then disable GitHub Pages.
-8. **Daily portfolio + distributions** (branch `feat/api-portfolio-distributions`, based on the PR #1 branch): the
+8. **Superseded 2026-10-02 by `feat/dp-only-data`** (portfolio computed by the website from main endpoints; dataplatform
+   PRs **#621, #626 and #631 are no longer needed** by the website). Remaining no-workaround gaps on main endpoints:
+   distributions (no endpoint), Monthly Income `short_corp` benchmark before 2024-12 (only in the bbg2 mirror / B2),
+   GMV live variants (bbg2 mirror only: factsheet stays the GMV source), months of a class before its first NAV (SEB F
+   before 2023-07), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield (latest prices
+   only). Old text: **Daily portfolio + distributions** (branch `feat/api-portfolio-distributions`, based on the PR #1 branch): the
    website consumes the two new dataplatform endpoints (contract of 2026-09-30, `docs/architecture.md` § Sources).
    Until the **dataplatform PR** implementing `/api/apex/fund-portfolio` and `/api/performance/distributions` is
    deployed, they answer 404: one info issue per run, the site behaves as before. After deployment: run in review
@@ -130,7 +139,9 @@ Not yet run against live data, not deployed.
 10. Nice to have: contact form backend (currently mailto), fund inception dates for funds other than
    Monthly Income (`FUND_INCEPTION` in `src/content/disclaimers.ts`), holiday calendar for FTSE
    month-ends (currently weekdays).
-11. **Class series at the dataplatform** (PR #626 `feat/monthly-net-returns-class`, open): deploy it, then run in review mode
+11. **Superseded 2026-10-02** (class series computed by the website from `nav-timeseries`; PR #626 not needed). On the
+   first live runs of `feat/dp-only-data` in review mode, check SEB F (LDM201) and Monthly Income F (LDM081) against the
+   administrator and watch the `navchain` / `classes` issues. Old text: **Class series at the dataplatform** (PR #626 `feat/monthly-net-returns-class`, open): deploy it, then run in review mode
    and check that SEB F (LDM201), SEB H (LDM202), Multi-Strategy F and Monthly Income FP match the administrator. Until then the
    endpoint ignores `class_code`: the pipeline treats it as "not served" (info issue) and SEB shows its H series labelled H.
    **Monthly Income F (LDM081) has no class series** (dataplatform `STRATEGY` for SEST is FP): the page opens on "coming soon"
@@ -153,6 +164,24 @@ Not yet run against live data, not deployed.
    (could not be spawned in the building session).
 
 ## 6. Session log
+
+- 2026-10-02 (cloud agent, branch `feat/dp-only-data` from `redesign/v3-keynote-live-data`; **not merged**):
+  Gabriel: "all the data comes from the dataplatform … avoid PR 631 and other changes on dataplatform … compute whatever
+  you need within the backend of the website". Done: (1) per-class monthly returns from the `nav-timeseries` daily chain
+  (`daily-chain.ts`: ports of the dataplatform trading calendar, `_monthly_rows` and PR #626's July bridge), headline
+  Apex months must equal `monthly-net-returns` (1e-8), CIBC months used all-or-nothing after ≥ 6 equal analytics
+  months (0.2 bp); SEST F (LDM081) and SEB F (LDM201) now have their own series (fee-band checked); headline stays the
+  track-record class (SEST FP, SEB H, Multi F); pages open on F. (2) Portfolio computed from `/api/apex/holdings` +
+  `/api/instruments/batch` + `/api/instruments` (`fund-portfolio.ts`, port of PR #621), same coverage gates and
+  month-end cross-check (sectors only: no month-end prices). (3) FTSE: earlier naming generations chain-linked only
+  on equal daily returns over common days; the old ≤ 3 % seam join was unsafe (FTSE rebased levels at the 2024-12
+  renaming) and is gone. `univ_overall` + `univ` verified for SEB; `short_corp` starts 2024-12 at the dataplatform, so
+  Monthly Income's long-term benchmark periods are not shown (no workaround on main endpoints). (4) Distributions not
+  fetched (no main endpoint; NAV-move derivation not exact): tab shows the policy text, info issue. (5) Stale
+  track-record guard; a withheld month is never refilled from a factsheet; `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH`
+  now defaults to `0` (an existing disagreeing factsheet still blocks) — **Gabriel to confirm**. (6) GMV variant named
+  everywhere ("6% downside volatility" / « volatilité à la baisse de 6 % », or the selected one), unit + e2e tests.
+  Fixtures, sample and docs updated.
 
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
   Gabriel's brief: team dialogs centered, more tech-company motion, much less text, AUM C$1.9B, no daily NAV on home,

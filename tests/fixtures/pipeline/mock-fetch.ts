@@ -34,6 +34,16 @@ export function fixtureRoute(url: URL): Response | undefined {
     return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
   }
   if (p === "/api/performance/nav-timeseries") {
+    // one class's daily history (fundserv=…), else the last weeks of every class of the fund (short_name=…)
+    const fundserv = q.get("fundserv");
+    if (fundserv) {
+      try {
+        const h = loadFixture(`dataplatform/nav_history_${fundserv}.json`) as { rows: { date: string }[] };
+        return json({ ...h, rows: filterDates(h.rows, url) });
+      } catch {
+        return json({ rows: [], row_count: 0, warnings: [] });
+      }
+    }
     const j = loadFixture(`dataplatform/nav_${q.get("short_name")}.json`) as { rows: { date: string }[] };
     return json({ ...j, rows: filterDates(j.rows, url) });
   }
@@ -55,6 +65,31 @@ export function fixtureRoute(url: URL): Response | undefined {
       return json({ detail: "Unsupported official fund" }, 422);
     }
   }
+  if (p === "/api/apex/holdings") {
+    const fund = q.get("fund") ?? "";
+    const date = q.get("date") ?? "";
+    if (!["SEST", "SEB", "Multistrat"].includes(fund)) return json({ detail: `unknown fund '${fund}'` }, 404);
+    try {
+      return json(loadFixture(`dataplatform/holdings_${fund}_${date}.json`));
+    } catch {
+      // like the real endpoint: a day without a book is an empty answer, not an error
+      return json({ fund, fund_short_name: fund, start_date: date, end_date: date, nav_type: "FINAL_NAV", positions_count: 0, cash_count: 0, unrealised_pl_count: 0, warnings: [], positions: [], cash: [], unrealised_pl: [] });
+    }
+  }
+  if (p === "/api/instruments/batch") {
+    const type = q.get("identifier_type") ?? "";
+    const values = new Set(q.getAll("values").map((v) => v.toUpperCase()));
+    const { details } = loadFixture("dataplatform/instruments.json") as { details: Record<string, unknown>[] };
+    return json(details.filter((d) => typeof d[type] === "string" && values.has((d[type] as string).toUpperCase())));
+  }
+  if (p === "/api/instruments") {
+    const { universe } = loadFixture("dataplatform/instruments.json") as { universe: Record<string, unknown>[] };
+    const after = q.get("maturity_after");
+    const rows = universe.filter((u) => (!q.get("asset_class") || u.asset_class === q.get("asset_class")) && (!after || (typeof u.maturity_date === "string" && u.maturity_date >= after)));
+    const offset = Number(q.get("offset") ?? 0);
+    const limit = Number(q.get("limit") ?? 100);
+    return new Response(JSON.stringify(rows.slice(offset, offset + limit)), { status: 200, headers: { "content-type": "application/json", "x-total-count": String(rows.length) } });
+  }
   if (p === "/api/apex/funds") return json(loadFixture("dataplatform/apex_funds.json"));
   if (p === "/api/unitholders/funds") return json(loadFixture("dataplatform/unitholders_funds.json"));
   if (p === "/api/unitholders/aum") return json(loadFixture("dataplatform/aum.json"));
@@ -69,34 +104,6 @@ export function fixtureRoute(url: URL): Response | undefined {
   }
   return undefined;
 }
-
-/** class identity the dataplatform repeats in monthly-net-returns answers (PR #626) */
-const MNR_IDENTITY: Record<string, Record<string, { class_display: string; fundserv: string }>> = {
-  SEST: { STRATEGY: { class_display: "FP", fundserv: "LDM001" } },
-  SEB: { STRATEGY: { class_display: "F", fundserv: "LDM201" }, STRATEGY_H: { class_display: "H", fundserv: "LDM202" } },
-  Multistrat: { STRATEGY: { class_display: "F", fundserv: "LDM301" } },
-};
-
-/**
- * The dataplatform once it serves `class_code` + `history` on monthly-net-returns (PR #626): `history=full` answers
- * SEB class F with every month; the Apex-only answers repeat `class_display`, `fundserv` and `history: "apex"`.
- * Without this route the fixtures behave like the server deployed before that change: both parameters are ignored
- * and SEB answers with its default STRATEGY_H (Apex-only) track record, without those fields.
- */
-export const fullHistoryRoute: Route = (url) => {
-  const q = url.searchParams;
-  if (url.pathname !== "/api/performance/monthly-net-returns") return undefined;
-  const sn = q.get("short_name") ?? "";
-  const end = q.get("end_date") ?? "9999";
-  if (q.get("history") === "full") {
-    const j = loadFixture(`dataplatform/mnr_${sn}_${q.get("class_code")}_full.json`) as { rows: { month: string }[] };
-    return json({ ...j, rows: j.rows.filter((r) => r.month <= end) });
-  }
-  const j = loadFixture(`dataplatform/mnr_${sn}.json`) as { class_code: string; rows: { month: string }[] };
-  const code = q.get("class_code") ?? j.class_code;
-  if (code !== j.class_code) return json({ detail: `class_code ${code} is not served by this fixture` }, 422);
-  return json({ ...j, ...MNR_IDENTITY[sn]?.[code], history: "apex", rows: j.rows.filter((r) => r.month <= end) });
-};
 
 export interface MockFetch {
   fetch: typeof fetch;
