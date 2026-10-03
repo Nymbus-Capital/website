@@ -18,6 +18,8 @@ export const E2E_ENV = {
   AUTH_SECRET: "e2e-auth-secret-0123456789abcdef0123456789abcdef",
   ADMIN_ALLOWED_DOMAINS: "nymbus.ca",
   PIPELINE_SCHEDULE: "off",
+  // no network calls to rbcis.com from CI
+  RANKINGS_CHECK: "off",
   // cookies are Secure in production; the e2e server is plain http on localhost
   AUTH_INSECURE_COOKIES_FOR_LOCALHOST: "1",
 };

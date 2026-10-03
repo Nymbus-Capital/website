@@ -21,5 +21,14 @@ export async function register(): Promise<void> {
       const { startScheduler } = await import("./lib/pipeline/schedule.ts");
       startScheduler();
     }
+    // weekly third-party rankings freshness check (RBC pooled fund survey); RANKINGS_CHECK=off disables it
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
+      try {
+        const { startRankingsCheck } = await import("./lib/rankings/schedule.ts");
+        startRankingsCheck();
+      } catch (e: unknown) {
+        console.log(`[rankings] freshness check not started: ${(e as Error)?.message ?? e}`);
+      }
+    }
   }
 }

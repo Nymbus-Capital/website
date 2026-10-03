@@ -3,6 +3,7 @@
  */
 import type { FundSpec } from "@/config/funds";
 import type { DocumentMeta, FundContent, FundData, FundKey, L10n } from "@/lib/data/types";
+import type { BrandAssets } from "@/lib/data/brand-assets";
 
 /** Public projection of a published document (see toPublicDocument in lib/data/documents.ts): no uploader / hash. */
 export type PublicDocument = Pick<DocumentMeta, "id" | "scope" | "type" | "lang" | "title" | "date" | "fileName" | "size">;
@@ -41,4 +42,6 @@ export interface FundPageProps {
   funds: FundLink[];
   /** admin override of the firm disclaimer (settings); null → boilerplate of src/content/disclaimers.ts */
   firmDisclaimer?: L10n | null;
+  /** official third-party brand images available (Morningstar logo / stars, provider logos); absent → text */
+  brand?: BrandAssets;
 }

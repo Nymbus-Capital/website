@@ -18,15 +18,18 @@ import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } 
 import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
 import { classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
 import { ClassTypeBadge } from "./ClassBadge";
-import { cifscCategory } from "./lib/rankings.ts";
+import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
+import type { BrandAssets } from "@/lib/data/brand-assets";
+import { MorningstarRatingBlock } from "./Morningstar";
+import { RK } from "./rankings-copy";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx; brand?: BrandAssets }
 
 const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
 
-export function Overview({ spec, content, data, lang, ctx }: Props) {
+export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
   const texts = FUND_TEXTS[spec.key];
   const isFund = spec.vehicle === "fund";
   const perf = content.hide?.performance ? null : data?.performance ?? null;
@@ -38,6 +41,8 @@ export function Overview({ spec, content, data, lang, ctx }: Props) {
   const fundWord = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
+  // Morningstar rating of the fund, prominently on the overview (bond funds); the server removed a stale one
+  const ms = isFund ? rankingsToShow(content, spec.classes)?.morningstar ?? null : null;
 
   return (
     <div className="container fp">
@@ -83,6 +88,12 @@ export function Overview({ spec, content, data, lang, ctx }: Props) {
           </Block>
         </div>
         <aside className="fxov-side">
+          {ms ? (
+            <Block title={tr(RK.ms.title, lang)} testId="overview-morningstar" className="fxov-ms"
+              aside={<a className="link" href="#awards">{tr(T.tabs.awards, lang)} <ArrowRight aria-hidden="true" /></a>}>
+              <MorningstarRatingBlock m={ms} brand={brand} lang={lang} variant="overview" testId="overview-morningstar-rating" />
+            </Block>
+          ) : null}
           <FactsCard spec={spec} content={content} data={data} lang={lang} />
           <FeesCard spec={spec} content={content} lang={lang} />
         </aside>

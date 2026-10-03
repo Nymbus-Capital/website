@@ -26,7 +26,7 @@ import { classOptions, initialSelection, pickData, type ClassCtx, type Selection
 import type { FundPageProps } from "./types";
 import "./fund.css";
 
-export function FundPage({ spec, content, data: published, sample, docs, funds, firmDisclaimer }: FundPageProps) {
+export function FundPage({ spec, content, data: published, sample, docs, funds, firmDisclaimer, brand }: FundPageProps) {
   const { locale } = useTranslation();
   const lang: Lang = locale === "fr" ? "fr" : "en";
   const isFund = spec.vehicle === "fund";
@@ -47,12 +47,12 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
   const props = { spec, content, data, lang, ctx };
   const hasAwards = !!rankingsToShow(content, spec.classes);
   const tabs = [
-    { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} /> },
+    { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} brand={brand} /> },
     { id: "performance", label: tr(T.tabs.performance, lang), content: <PerformanceTab {...props} /> },
     { id: "portfolio", label: tr(T.tabs.portfolio, lang), content: <PortfolioTab {...props} /> },
     // managed accounts (no fund units) make no distributions
     ...(isFund ? [{ id: "distributions", label: tr(T.tabs.distributions, lang), content: <DistributionsTab spec={spec} content={content} data={data} lang={lang} /> }] : []),
-    ...(hasAwards ? [{ id: "awards", label: tr(T.tabs.awards, lang), content: <AwardsTab spec={spec} content={content} lang={lang} /> }] : []),
+    ...(hasAwards ? [{ id: "awards", label: tr(T.tabs.awards, lang), content: <AwardsTab spec={spec} content={content} lang={lang} brand={brand} /> }] : []),
     { id: "documents", label: tr(T.tabs.documents, lang), content: <DocumentsTab spec={spec} docs={docs} lang={lang} /> },
   ];
   return (

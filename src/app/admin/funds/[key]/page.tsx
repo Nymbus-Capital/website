@@ -10,6 +10,8 @@ import { FundEditor } from "@/components/admin/FundEditor";
 import { isPinnable, summarizeFund } from "@/components/admin/summary";
 import { money, num, pct, when } from "@/components/admin/format";
 import { safeRuns } from "../../_lib/data";
+import { morningstarMissing } from "../../_lib/rankings";
+import { policyMonths } from "@/lib/rankings/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,8 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
   const spec = FUNDS.find((f) => f.key === key);
   if (!spec) notFound();
   const [content, site, runs] = await Promise.all([getContent(), getSiteData(), safeRuns(60)]);
+  const fundOnly = { ...content, funds: { [spec.key]: content.funds[spec.key as FundKey] ?? {} } };
+  const rankingsCtx = { months: policyMonths(content), morningstarMissing: await morningstarMissing(fundOnly) };
   const fc = content.funds[spec.key as FundKey] ?? {};
   const live = summarizeFund(spec.key, site?.funds?.[spec.key]);
   const pinnable = runs
@@ -57,6 +61,7 @@ export default async function FundPage({ params }: { params: Promise<{ key: stri
           classes={live.classes.map((c) => ({ fundserv: c.fundserv, label: `${c.fundserv} · ${c.display} (${c.currency})` }))}
           runs={pinnable}
           classTypeRows={classTypeRows}
+          rankingsCtx={rankingsCtx}
         />
         <aside className="adm-grid" aria-label="live numbers">
           <section className="adm-panel">
