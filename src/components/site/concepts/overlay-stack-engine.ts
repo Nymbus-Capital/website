@@ -5,14 +5,14 @@
  * stream particles into a chart where each generated period stacks the core and overlay contributions into the
  * combined one (overlay losses add up too). Lazily imported; drawn by runner.ts.
  */
-import { COL, makePen, rgba, type Pen } from "./draw-kit.ts";
+import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
 import { OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, overlayStackLayout, periodAt, stackBlocks, type Period } from "./overlay-stack-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 
 export interface OverlayStackLabels {
   core: string; coreSub: string; deposit: string; depositSub: string; overlay: string; overlaySub: string;
-  bracket: string; coreRet: string; ovRet: string; combined: string; tagline: string; loss: string; watermark: string;
+  bracket: string; bracketSub: string; coreRet: string; ovRet: string; combined: string; tagline: string; loss: string; watermark: string;
 }
 
 const STARTS = stepStarts(OVERLAY_STEP_MS);
@@ -34,7 +34,7 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     steps: OVERLAY_STEP_MS,
     stillAt: (s: number) => STARTS[s] + OVERLAY_STEP_MS[s] * (s === 3 ? 0.82 : 0.9),
     resize(W: number, H: number) { L = overlayStackLayout(W, H); B = stackBlocks(L.stack, L.narrow); },
-    draw(ctx: CanvasRenderingContext2D, W: number, H: number, t: number) {
+    draw(ctx: CanvasRenderingContext2D, W: number, H: number, t: number, still: boolean) {
       pen ??= makePen(ctx);
       const P = pen;
       const lab = opts.labels();
@@ -78,14 +78,22 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         P.text(lab.core, core.x + 14, core.y + 20, core.w - 28, "left", COL.ink);
         P.font(500, small);
         P.text(lab.coreSub, core.x + 14, core.y + 39, core.w - 28, "left", COL.ink2);
-        // bracket: same capital base
-        const by = B.bracketY;
+        // bracket: the same capital base covers the core and the deposit posted from it
+        const br = B.bracket, by = br.y, LB = B.labels;
         ctx.strokeStyle = rgba(COL.mute, 0.55); ctx.lineWidth = 1.2;
+        const bx1 = br.x0 + core.w + (br.x1 - br.x0 - core.w) * a1;
         ctx.beginPath();
-        ctx.moveTo(core.x + 1, by); ctx.lineTo(core.x + 1, by + 6); ctx.lineTo(core.x + core.w - 1, by + 6); ctx.lineTo(core.x + core.w - 1, by);
+        ctx.moveTo(br.x0 + 1, by); ctx.lineTo(br.x0 + 1, by + 6); ctx.lineTo(bx1 - 1, by + 6); ctx.lineTo(bx1 - 1, by);
         ctx.stroke();
-        P.font(500, small);
-        P.text(lab.bracket, core.x + core.w / 2, by + 19, core.w, "center", COL.mute);
+        P.font(600, small);
+        P.text(lab.bracket, (br.x0 + bx1) / 2, LB.bracket.y + 7, LB.bracket.w, "center", COL.ink2);
+        if (a1 > 0) {
+          ctx.globalAlpha = fade * a1;
+          P.font(500, L.narrow ? 10 : 11);
+          const two = P.measure(lab.bracketSub) > LB.sub1.w ? splitLabel(lab.bracketSub) : null;
+          if (two) { P.text(two[0], LB.sub1.x + LB.sub1.w / 2, LB.sub1.y + 7, LB.sub1.w, "center", COL.mute); P.text(two[1], LB.sub2.x + LB.sub2.w / 2, LB.sub2.y + 7, LB.sub2.w, "center", COL.mute); }
+          else P.text(lab.bracketSub, LB.sub1.x + LB.sub1.w / 2, LB.sub1.y + 7, LB.sub1.w, "center", COL.mute);
+        }
         ctx.globalAlpha = fade;
       }
 
@@ -103,9 +111,9 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         // labels under the deposit (the beam rises from its top), aligned to the right edge of the stack
         const right = L.stack.x + L.stack.w;
         P.font(600, small);
-        P.text(lab.depositSub, right, B.bracketY + 6, 90, "right", COL.blueD);
+        P.text(lab.depositSub, right, B.labels.depositA.y + 7, B.labels.depositA.w, "right", COL.blueD);
         P.font(500, small - 0.5);
-        P.text(lab.deposit, right, B.bracketY + 21, 120, "right", COL.ink2);
+        P.text(lab.deposit, right, B.labels.depositB.y + 7, B.labels.depositB.w, "right", COL.ink2);
         ctx.globalAlpha = fade;
       }
 
@@ -154,20 +162,20 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       }
 
       /* ---------- return chart: two streams stacking into the combined portfolio */
-      drawChart(ctx, P, lab, t, a3, loop, step, fade);
+      drawChart(ctx, P, lab, t, a3, loop, step, fade, still);
       ctx.globalAlpha = 1;
       P.watermark(lab.watermark, W, H, L.pad);
     },
   };
 
-  function drawChart(ctx: CanvasRenderingContext2D, P: Pen, lab: OverlayStackLabels, t: number, a3: number, loop: number, step: number, fade: number) {
+  function drawChart(ctx: CanvasRenderingContext2D, P: Pen, lab: OverlayStackLabels, t: number, a3: number, loop: number, step: number, fade: number, still: boolean) {
     const C = L.chart;
     const small = L.narrow ? 10.5 : 11.5;
     const legendH = L.narrow ? 38 : 26;
     const taglineH = 26;
     const top = C.y + legendH, bottom = C.y + C.h - taglineH;
     const mid = (top + bottom) / 2, half = (bottom - top) / 2;
-    const show = step === 3 ? 1 : 0.35;
+    const show = step === 3 ? 1 : 0.7;
     // legend
     ctx.globalAlpha = fade * show;
     P.font(500, small);
@@ -184,7 +192,18 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     // zero line and time arrow
     ctx.fillStyle = rgba(COL.mute, 0.3); ctx.fillRect(C.x, Math.round(mid), C.w, 1);
     ctx.globalAlpha = fade;
-    if (step !== 3) return;
+    if (step !== 3) {
+      // desktop: a faint placeholder of the chart to come (steps 1–3)
+      if (!L.narrow) {
+        const bw0 = C.w / 17, sc0 = half / (MAX_CONTRIB * 1.05);
+        ctx.fillStyle = rgba(COL.mute, 0.08);
+        for (let i = 0; i < 16; i++) {
+          const v = periodAt(i, 7).combined * sc0;
+          P.round(C.x + bw0 * (i + 0.5) - bw0 * 0.28, v >= 0 ? mid - v : mid, bw0 * 0.56, Math.max(2, Math.abs(v)), 2); ctx.fill();
+        }
+      }
+      return;
+    }
     const n = Math.floor((a3 * OVERLAY_STEP_MS[3]) / PERIOD_MS);
     const cap = 16;
     const bw = C.w / (cap + 1);
@@ -219,7 +238,7 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     if (pts.length) P.glowDot(pts[pts.length - 1].x, pts[pts.length - 1].y, 3, COL.blue, 0.8);
     // streams: particles from the core and the overlay into the newest bar
     const head = pts[pts.length - 1];
-    if (head) {
+    if (head && !still) {
       const srcs: [number, number, string][] = [
         [B.core.x + B.core.w, B.core.y + B.core.h / 2, CORE_C],
         [B.overlay.x + B.overlay.w, B.overlay.y + B.overlay.h / 2, COL.cyan],
@@ -227,7 +246,7 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       for (const [sx0, sy, c] of srcs) {
         // narrow: both streams leave the bottom of the stack (core from its middle, overlay down the beam's side)
         const sx = L.narrow ? (c === CORE_C ? B.core.x + B.core.w * 0.4 : B.deposit.x + B.deposit.w / 2) : sx0 + 6;
-        const sY = L.narrow ? B.bracketY + 34 : sy;
+        const sY = L.narrow ? B.labels.sub2.y + 16 : sy;
         for (let k = 0; k < 7; k++) {
           const u = ((t / 1400) + k / 7 + (c === CORE_C ? 0 : 0.07)) % 1;
           const cx = L.narrow ? (sx + head.x) / 2 + (c === CORE_C ? -30 : 30) : (sx + head.x) / 2;

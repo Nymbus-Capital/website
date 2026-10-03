@@ -115,6 +115,10 @@ test("controls: pause / play, steps by click and arrow keys", async ({ page }) =
   await page.keyboard.press("Home");
   await expect(host).toHaveAttribute("data-step", "0");
   await expect(page.getByTestId("futures-step-0")).toHaveAccessibleName(/^Step 1, Long meets short$/);
+  // roving tabindex: one tab stop, on the current step
+  await expect(page.getByTestId("futures-panel").locator('.cc-steps button[tabindex="0"]')).toHaveCount(1);
+  await expect(page.getByTestId("futures-step-0")).toHaveAttribute("tabindex", "0");
+  await expect(page.getByTestId("futures-step-2")).toHaveAttribute("tabindex", "-1");
   // keyboard play: Tab back to the play button and press Enter
   await play.focus();
   await page.keyboard.press("Enter");
@@ -222,28 +226,42 @@ test("desktop nav: seven links fit without overlapping the logo or the tools, in
   await ctx.close();
 });
 
+/** Puts the panel under the sticky nav's height, drops focus and hover, so captures show the canvas alone. */
+async function frameForCapture(page: Page, id: string) {
+  await page.evaluate((tid) => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    const el = document.querySelector(`[data-testid="${tid}"]`)!;
+    window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 96);
+  }, `${id}-panel`);
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(200);
+}
+
 test("still frame of every step, captured for review (e2e/screenshots/concepts-*)", async ({ browser, baseURL }, info) => {
   const mobile = info.project.name === "mobile";
-  const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL, viewport: mobile ? { width: 412, height: 915 } : { width: 1440, height: 900 } });
-  const page = await ctx.newPage();
-  await page.goto("/critical-concepts");
-  for (const locale of ["en", "fr"] as const) {
-    if (locale === "fr") {
-      await ctx.addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
-      await page.reload();
-    }
-    for (const id of IDS) {
-      const panel = page.getByTestId(`${id}-panel`);
-      await panel.scrollIntoViewIfNeeded();
-      await expect(panel).toHaveClass(/\bon\b/);
-      for (let k = 0; k < 4; k++) {
-        if (locale === "fr" && k < 3) continue; // French: the last step only
-        await page.getByTestId(`${id}-step-${k}`).click();
-        await expect(page.getByTestId(`${id}-host`)).toHaveAttribute("data-step", String(k));
-        await page.waitForTimeout(150);
-        await panel.screenshot({ path: `e2e/screenshots/concepts-${id}-${locale}-step${k + 1}-${info.project.name}.png` });
+  const sizes: { tag: string; viewport: { width: number; height: number }; steps: number[] }[] = mobile
+    ? [{ tag: "mobile", viewport: { width: 412, height: 915 }, steps: [0, 1, 2, 3] }, { tag: "360", viewport: { width: 360, height: 780 }, steps: [1, 2, 3] }]
+    : [{ tag: "desktop", viewport: { width: 1440, height: 900 }, steps: [0, 1, 2, 3] }];
+  for (const size of sizes) {
+    const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL, viewport: size.viewport });
+    const page = await ctx.newPage();
+    for (const locale of ["en", "fr"] as const) {
+      await ctx.addCookies([{ name: "nymbus-locale", value: locale, url: baseURL! }]);
+      await page.goto("/critical-concepts");
+      for (const id of IDS) {
+        const panel = page.getByTestId(`${id}-panel`);
+        await panel.scrollIntoViewIfNeeded();
+        await expect(panel).toHaveClass(/\bon\b/);
+        // FR: the last step only at desktop / mobile; every captured step at 360 px
+        const steps = locale === "fr" && size.tag !== "360" ? [3] : size.steps;
+        for (const k of steps) {
+          await page.getByTestId(`${id}-step-${k}`).click();
+          await expect(page.getByTestId(`${id}-host`)).toHaveAttribute("data-step", String(k));
+          await frameForCapture(page, id);
+          await panel.screenshot({ path: `e2e/screenshots/concepts-${id}-${locale}-step${k + 1}-${size.tag}.png` });
+        }
       }
     }
+    await ctx.close();
   }
-  await ctx.close();
 });

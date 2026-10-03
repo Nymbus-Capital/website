@@ -170,11 +170,11 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       const small = L.narrow ? 10 : 11;
       P.font(600, small);
       ctx.globalAlpha = fade * appear;
-      P.text(lab.universe.toUpperCase(), G.x, G.y - L.depthY - 14, G.w * 0.6, "left", COL.mute);
-      P.font(500, small);
-      P.text(lab.dot, G.x + G.w, G.y - L.depthY - 14, G.w * 0.38, "right", COL.mute);
+      // narrow: the title gets the whole row (the "each dot" key would truncate it)
+      P.text(lab.universe.toUpperCase(), G.x, L.titleY, L.narrow ? L.area.w : G.w * 0.6, "left", COL.mute);
+      if (!L.narrow) { P.font(500, small); P.text(lab.dot, G.x + G.w, L.titleY, G.w * 0.38, "right", COL.mute); }
       // filter legend, under the grid
-      const ly = G.y + G.h + 12;
+      const ly = L.legendY;
       ctx.globalAlpha = fade * filter;
       ctx.strokeStyle = rgba(COL.mute, 0.5); ctx.lineWidth = 0.9;
       ctx.beginPath(); ctx.arc(G.x + 4, ly, 3.2, 0, Math.PI * 2); ctx.stroke();
@@ -225,7 +225,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   function drawTeam(ctx: CanvasRenderingContext2D, P: Pen, lab: CoverageLabels, step: number, year: number, scan: number, fade: number) {
     const T = L.team;
     const small = L.narrow ? 10 : 11.5;
-    const teamA = step === 0 ? 0.35 : step === 1 ? 1 : 0.55;
+    const teamA = step === 1 ? 1 : 0.7;
     ctx.globalAlpha = fade * teamA;
     // portfolio manager
     const pm = L.narrow ? { x: T.x + 22, y: T.y + 46 } : { x: T.x + 20, y: T.y + 46 };
@@ -271,7 +271,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       P.text(lab.covered, T.x, y0 + 70, T.w, "left", COL.ink2);
       // our systems: a progress of the scan, then the memory
       const sy = y0 + 104;
-      ctx.globalAlpha = fade * (step >= 2 ? 1 : 0.3);
+      ctx.globalAlpha = fade * (step >= 2 ? 1 : 0.7);
       P.font(600, 11);
       P.text(lab.systems.toUpperCase(), T.x, sy, T.w, "left", COL.mute);
       P.round(T.x, sy + 14, T.w, 6, 3); ctx.fillStyle = rgba(COL.mute, 0.14); ctx.fill();
@@ -285,10 +285,10 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
     } else {
       // narrow: one line under the team row with the live counter
       const covered = Math.round(Math.min(1, year) * ANALYSTS * PER_ANALYST);
-      ctx.globalAlpha = fade * (step >= 1 ? 1 : 0.5);
+      ctx.globalAlpha = fade * (step >= 1 ? 1 : 0.7);
       P.font(600, 11);
       const s = step >= 2 ? lab.scanned : `${lab.covered} · ${covered} ${lab.of}`;
-      P.text(s, T.x, T.y + 72, T.w, "left", step >= 2 ? COL.blueD : COL.ink2);
+      P.text(s, T.x, T.y + 80, T.w, "left", step >= 2 ? COL.blueD : COL.ink2);
     }
     ctx.globalAlpha = fade;
   }
