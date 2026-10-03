@@ -9,7 +9,7 @@ import type { SiteData } from "../data/types.ts";
 import { buildSiteData } from "./build.ts";
 import { fetchAll } from "./sources/index.ts";
 import { FIXTURE_NOW } from "../../../tests/fixtures/pipeline/generate.ts";
-import { fixtureEnv, loadFixture, mockFetch } from "../../../tests/fixtures/pipeline/mock-fetch.ts";
+import { fixtureEnv, json, loadFixture, mockFetch } from "../../../tests/fixtures/pipeline/mock-fetch.ts";
 import { parseDistributions } from "./sources/contracts.ts";
 import type { DpShort } from "./raw.ts";
 
@@ -29,16 +29,19 @@ export async function buildSample(): Promise<SiteData> {
   return data;
 }
 
-/** e2e fixture: the SEB fund as the dataplatform serves it before PR #626 (class H), pinned by an e2e admin test */
+/** e2e fixture: the SEB fund with class F's daily chain unavailable (class H only), pinned by an e2e admin test */
 export const CLASS_H_SAMPLE_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../e2e/fixtures/seb-class-h-site-data.json");
 
 /**
- * SYNTHETIC SEB data built from the fixtures WITHOUT the full-history route (class H labelled H), as a "live" run
- * snapshot (the only kind an admin can pin), SEB only.
+ * SYNTHETIC SEB data built from the fixtures with the class F (LDM201) daily NAV history failing (HTTP 500): the track
+ * record is class H labelled H and class F has no series ("coming soon"), as a "live" run snapshot (the only kind an
+ * admin can pin), SEB only.
  */
 export async function buildClassHSample(): Promise<SiteData> {
   const now = new Date(FIXTURE_NOW);
-  const raw = await fetchAll({ fetchImpl: mockFetch().fetch, now, env: fixtureEnv() });
+  const noClassF = (u: URL): Response | undefined =>
+    u.pathname === "/api/performance/nav-timeseries" && u.searchParams.get("fundserv") === "LDM201" ? json({ detail: "synthetic failure" }, 500) : undefined;
+  const raw = await fetchAll({ fetchImpl: mockFetch(noClassF).fetch, now, env: fixtureEnv() });
   const { data } = buildSiteData(raw, null, now, { mode: "live" });
   const key = "sustainable-enhanced-bonds" as const;
   return {
