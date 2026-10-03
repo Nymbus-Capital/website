@@ -136,10 +136,16 @@ Not yet run against live data, not deployed.
    **Monthly Income F (LDM081) has no class series** (dataplatform `STRATEGY` for SEST is FP): the page opens on "coming soon"
    for F. Needs a dataplatform change (class mapping for SEST F) and a `classSeries` entry in `fund-sources.ts`.
    The home page (other agent) reads the top-level `performance`: for Monthly Income that is still FP's, for SEB it becomes F's.
-12. **Rankings / awards**: Morningstar stars not confirmed (pages unreadable when collected): nobody has entered a rating.
-   The Fund Library figures are as at 2026-08-31 and edited by hand (*Admin → Funds → awards and rankings*); decide who updates
-   them and when the tab is hidden if stale. French category names are our translation (compliance, row F6). Official logos
-   are not used: brand assets only with the owners' permission.
+12. **Rankings / awards** — branch `feat/awards-v2` (not merged): Morningstar 5 stars (Class F, as of 2026-10-01, stated by
+   Nymbus) on the bond funds' Overview + awards tab; RBC pooled fund survey / eVestment / LSEG Lipper / GMR entries
+   (admin-editable, hidden until confirmed with URL + date); staleness limit in settings (default 6 months, all providers);
+   weekly RBC survey check (admin issue + webhook, never hides data); AdvisorRankings on /solutions. **Gabriel to do**:
+   (a) provide the **official Morningstar files** (`public/brand/third-party/morningstar-logo.svg|png` and
+   `morningstar-stars-5.svg|png`, or upload them in *Admin → Settings → third-party brand assets*) — until then the rating is
+   text and the admin shows "official Morningstar assets missing"; (b) enter the **RBC survey percentiles** per period from
+   the Q2 2026 PDF (drafts pre-filled with 1st percentile; add class, peer group, quarter end 2026-06-30, PDF URL, tick
+   confirmed); (c) enter eVestment / LSEG Lipper / GMR figures with their source links; (d) compliance rows W1–W7
+   (`docs/compliance-review.md`), incl. Morningstar "out of N funds". French category names are our translation (row F6).
 13. **Admin to fill** (shown only when filled): class types for classes other than LDM081 / LDM001, minimum subsequent
    investment, RSP eligibility, liquidity, CIFSC category, portfolio managers, management fee / MER; upload factsheet / fund
    facts / prospectus / proxy-voting / tax-factor documents. Compliance: `docs/compliance-review.md` § Fund pages v2.
@@ -153,6 +159,30 @@ Not yet run against live data, not deployed.
    (could not be spawned in the building session).
 
 ## 6. Session log
+
+- 2026-10-02 (sub-agent, branch `feat/awards-v2`, from `redesign/v3-keynote-live-data`; **not merged**): **awards v2**.
+  (1) Morningstar block on the Overview tab of Monthly Income and SEB (`components/fund/Morningstar.tsx`) and in the awards
+  tab: text rating "Morningstar Rating™: 5 stars" + series, as-of date, source link, methodology and © attribution; official
+  logo / star images only from files in `public/brand/third-party/` or uploaded in admin settings (`brand-assets.ts`,
+  `/api/admin/upload/brand`, `/api/brand/<slot>` with exact type + nosniff + sandbox CSP); the old CSS stars and the
+  red "MORNINGSTAR" wordmark were removed (look-alikes). (2) RBC Investor Services research: the survey now lives at
+  **rbcis.com** (rbcits.com is the old name). Latest edition **Q2 2026** (quarter end 2026-06-30), published 2026-08-05:
+  article `https://www.rbcis.com/en/insights/2026/08/pooled-fund-survey-q2-26`, PDF
+  `https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf` (individual funds with percentile
+  ranks per period). The PDF could only be read up to its Canadian Fixed Income table (page ~20, managers A–M): **Nymbus was
+  not found in the readable part and could not be checked**, so nothing is seeded: drafts (1st percentile pre-filled, no
+  URL / date) are admin-only until confirmed. Q4 2025: article `…/insights/2026/02/pooled-fund-survey-q4-25`. Listing:
+  `https://www.rbcis.com/en/our-insights.page` (filter "Pooled Fund Survey"; the cards visible without JavaScript did not
+  include the survey on 2026-10-02, hence the PDF-address probe). (3) Freshness: `src/lib/rankings/{policy,rbc-survey,
+  schedule,issues,advisor}.ts`; staleness limit `rankingPolicy.maxAgeMonths` (settings, default 6) for Morningstar, Fund
+  Library, RBC, eVestment, LSEG Lipper, GMR; weekly RBC check (instrumentation, `RANKINGS_CHECK=off` in e2e), dashboard
+  panel "third-party rankings" with issues + "check now". (4) Generic entries for eVestment / LSEG Lipper / GMR in the
+  fund editor; `AdvisorRankings` (`components/site/AdvisorRankings.tsx`, provider via `AdvisorRankingsProvider` in
+  `/solutions/page.tsx`) placed in the advisors section of /solutions — if another branch adds a bare
+  `<AdvisorRankings />` placeholder there too, keep only one. Every shown ranking now requires an https source link
+  (Fund Library and Morningstar included). Tests: `tests/unit/rankings/*`, e2e in `fund.spec.ts` (overview Morningstar text
+  fallback, solutions list) and `admin.spec.ts` (draft → stale hidden → fresh shown, API refuses confirmed without URL,
+  brand image upload / serve / delete). Docs: architecture "Awards v2", compliance W1–W7.
 
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
   Gabriel's brief: team dialogs centered, more tech-company motion, much less text, AUM C$1.9B, no daily NAV on home,
