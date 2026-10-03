@@ -252,3 +252,24 @@
 @media (max-width: 480px) { .sl-fund { grid-template-columns: 10px minmax(0, 1fr) 18px; } .sl-fund-f { grid-column: 2; align-items: flex-start; text-align: left; } .sl-fund-go { grid-row: 1; grid-column: 3; } }
 .sl-notes .fine { max-width: 900px; margin: 0 0 8px; }
 .sl-asof { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; font-size: 12.5px; color: var(--mute); }
+/* illustrative use case under each audience: numbered steps joined by a light line */
+.sl-case { margin-top: clamp(24px, 3vw, 36px); padding: clamp(20px, 2.6vw, 32px); overflow: hidden; }
+.sl-case::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, var(--bc), #4fd1ff); }
+.sl-case-k { display: inline-flex; align-items: center; height: 26px; padding: 0 11px; margin: 0 0 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600;
+  color: color-mix(in srgb, var(--bc) 80%, #000); background: color-mix(in srgb, var(--bc) 10%, #fff); }
+.sl-case-t { margin: 0 0 20px; max-width: 760px; }
+.sl-case-steps { position: relative; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 32px); }
+.sl-case-steps::before { content: ""; position: absolute; left: 22px; right: 22px; top: 21px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bc) 50%, #fff), #9fdcf3); }
+.sl-case-steps li { position: relative; display: grid; gap: 10px; align-content: start; }
+.sl-case-steps .bubble { background: var(--bg); }
+.sl-case-n { font-size: 12.5px; font-weight: 600; color: var(--mute); }
+.sl-case-d { font-size: 15px; line-height: 1.55; color: var(--ink); }
+.sl-case-notes { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.sl-case-notes .fine { margin: 0; max-width: 980px; }
+@media (max-width: 760px) {
+  .sl-case-steps { grid-template-columns: minmax(0, 1fr); }
+  .sl-case-steps::before { left: 21px; right: auto; top: 22px; bottom: 22px; width: 2px; height: auto; }
+  .sl-case-steps li { grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; }
+  .sl-case-steps .bubble { grid-row: 1 / span 2; }
+}

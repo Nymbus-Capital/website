@@ -12,7 +12,7 @@ import type { HomeData } from "../home/data";
 import { Intro } from "../home/Intro";
 import { CATEGORY_COPY, FUND_COPY as F, HOME_COPY, VEHICLE_COPY } from "../home/copy";
 import { STRAT_COPY as S } from "./strategies-copy";
-import { FundTile, RiskScale, SampleTag, fundStyle } from "../home/FundTile";
+import { FundTile, RiskScale, SampleTag, fundStyle, variantText } from "../home/FundTile";
 import { cell, dayText, filterFunds, monthText, navText, type Filter } from "../home/figures";
 import { HL } from "../home/labels";
 import "../home/home.css";
@@ -95,7 +95,7 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                     <th scope="row">
                       <Link href={`/strategies/${f.key}`} className="xs-name"><i aria-hidden="true" />{pick(f.short)}</Link>
                       <span className="xs-sub xs-wrap">{pick(f.assetClass)}</span>
-                      {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}{f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}</span> : null}
+                      {f.asOf ? <span className="xs-sub">{pick(F.asOf)} {monthText(f.asOf, locale)}{f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}{f.variant ? <> · <span data-testid="perf-variant">{variantText(f.variant, pick)}</span></> : null}</span> : null}
                     </th>
                     <td className="xs-l">{pick(f.vehicle === "fund" ? VEHICLE_COPY.fund : VEHICLE_COPY.strategy)}{f.code ? <span className="xs-sub tabnum">{f.code}</span> : null}</td>
                     <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>

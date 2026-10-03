@@ -46,8 +46,8 @@ export const NEWS: NewsItem[] = [
     category: "esg",
     title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire du Tobacco-Free Finance Pledge"),
     summary: l(
-      "We exclude tobacco companies from the securities we select directly.",
-      "Nous excluons les sociétés de tabac des titres que nous choisissons directement.",
+      "A firm commitment; tobacco is among the Sustainable Enhanced Bonds Fund’s exclusions.",
+      "Un engagement de la firme; le tabac figure parmi les exclusions du Fonds Obligations Durables Bonifiées.",
     ),
     body: l(
       "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",

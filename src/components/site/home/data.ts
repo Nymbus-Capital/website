@@ -8,7 +8,7 @@ import type { FundView } from "@/lib/data/site";
 import type { FundKey, L10n, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
 import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
-import { defaultClassCode, pickData } from "../../fund/lib/select.ts";
+import { defaultClassCode, initialSelection, pickData } from "../../fund/lib/select.ts";
 
 export type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
@@ -42,6 +42,8 @@ export interface FundCard {
   nav: { code: string; display: string; currency: string; nav: number; changePct: number | null; date: string | null } | null;
   /** class of the published returns ("F", "H", "FP"), derived from the class of their data; null when none */
   perfClass: string | null;
+  /** target downside volatility of the variant whose returns are shown (Global Minimum Volatility: "6%"); null when the strategy has no variants */
+  variant: L10n | null;
 }
 
 export interface HomeData {
@@ -75,9 +77,13 @@ export function toFundCard(v: FundView): FundCard {
   const data = stripHidden(v.data, content);
   // returns are the headline class's own series: none when it has none (never another class's next to its NAV)
   const head = defaultClassCode(data, spec, content);
-  const perfData = data && spec.classes?.length
-    ? (head ? pickData(data, spec, content, { classCode: head, variant: null }).data : { ...data, performance: null, risk: null, risk3Y: null })
-    : data;
+  // a strategy with variants (GMV 3 / 6 / 9 %): the default variant's own figures, always shown with its name
+  const variantId = spec.variants?.length ? initialSelection(data, spec, content).variant : null;
+  const perfData = variantId
+    ? pickData(data, spec, content, { classCode: null, variant: variantId }).data
+    : data && spec.classes?.length
+      ? (head ? pickData(data, spec, content, { classCode: head, variant: null }).data : { ...data, performance: null, risk: null, risk3Y: null })
+      : data;
   const perf = perfData?.performance ?? null;
   const si = perf?.trailing.fund.SI;
   const ytd = perf?.trailing.fund.YTD;
@@ -109,6 +115,7 @@ export function toFundCard(v: FundView): FundCard {
       ? { code: cls.fundserv, display: cls.display, currency: cls.currency, nav: cls.nav, changePct: isNum(cls.changePct) ? cls.changePct : null, date: cls.date }
       : null,
     perfClass: perf?.returnClass ?? null,
+    variant: (variantId && spec.variants?.find((x) => x.id === variantId)?.label) || null,
   };
 }
 

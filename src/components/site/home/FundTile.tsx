@@ -22,6 +22,9 @@ export const fundStyle = (f: Pick<FundCard, "color">) =>
 
 export const hasPerf = (f: FundCard) => f.si !== null || f.ytd !== null || f.y1 !== null;
 
+/** "6% downside volatility" / « volatilité baissière de 6 % »: the variant whose figures are shown. */
+export const variantText = (v: L, pick: (x: L) => string) => pick(F.variant).replace("{v}", pick(v));
+
 export function siLabel(f: FundCard): L {
   return f.siAnnualized ? F.si : F.siCum;
 }
@@ -156,6 +159,8 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
               {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
               {/* the class of the returns shown (may differ from the NAV series above) */}
               {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}
+              {/* GMV: the figures are one variant's; its name always goes with them */}
+              {f.variant ? <> · <span data-testid="perf-variant">{variantText(f.variant, pick)}</span></> : null}
             </span>
           ) : null}
         </span>

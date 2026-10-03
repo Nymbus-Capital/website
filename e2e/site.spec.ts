@@ -12,7 +12,7 @@ const ROUTES = [
   { path: "/", name: "home", en: /scientific investing/i, fr: /investissement scientifique/i },
   { path: "/strategies", name: "strategies", en: /our funds and strategies/i, fr: /nos fonds et stratégies/i },
   { path: "/approach", name: "approach", en: /at the intersection of technology, data and finance/i, fr: /à l’intersection de la technologie, des données et de la finance/i },
-  { path: "/sustainability", name: "sustainability", en: /responsible investing, built into the process/i, fr: /l’investissement responsable, intégré au processus/i },
+  { path: "/sustainability", name: "sustainability", en: /our commitments, and a sustainable bond fund/i, fr: /nos engagements, et un fonds obligataire durable/i },
   { path: "/team", name: "team", en: /scientists and market veterans/i, fr: /des scientifiques et des vétérans des marchés/i },
   { path: "/contact", name: "contact", en: /get in touch/i, fr: /communiquez avec nous/i },
   { path: "/solutions", name: "solutions", en: /solutions tailored to your mandate/i, fr: /des solutions adaptées à votre mandat/i },

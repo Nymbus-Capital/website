@@ -6,14 +6,15 @@
  * page (no hidden panels), so it reads without JavaScript.
  */
 import Link from "next/link";
-import { ArrowDown, ArrowRight, Briefcase, Building2, Check, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, Briefcase, Building2, Check, FileText, Gauge, Landmark, Layers, PiggyBank, Shield, Shuffle, Users, Wallet } from "lucide-react";
+import { AdvisorRankings } from "./AdvisorRankings";
 import { useTranslation } from "@/lib/i18n";
 import type { FundKey } from "@/lib/data/types";
 import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
 import type { FundCard, HomeData } from "../home/data";
 import { Intro } from "../home/Intro";
 import { FUND_COPY as F } from "../home/copy";
-import { SampleTag, fundStyle } from "../home/FundTile";
+import { SampleTag, fundStyle, variantText } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
@@ -40,11 +41,47 @@ function FundLink({ f }: { f: FundCard }) {
             <span>{pick(f.siAnnualized ? F.siAnn : F.siCumShort)}{f.basis === "gross" ? <> · <abbr title={pick(HL.grossLong)} data-testid="gross-marker">{pick(HL.gross)}</abbr></> : null}</span>
             {/* each fund has its own as-of month: never one date for several funds */}
             {f.asOf ? <span data-testid={`solution-asof-${f.key}`}>{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
+            {f.variant ? <span data-testid="perf-variant">{variantText(f.variant, pick)}</span> : null}
           </span>
         ) : null}
         <ArrowRight aria-hidden="true" className="sl-fund-go" />
       </Link>
     </li>
+  );
+}
+
+const CASE_ICONS: Record<Audience, (typeof Building2)[]> = {
+  institutional: [Landmark, Shield, PiggyBank],
+  family: [Wallet, Gauge, Briefcase],
+  advisor: [Layers, Shuffle, FileText],
+};
+
+/** Illustrative use case: numbered steps joined by a light line, its risk note, and (advisors) the rankings slot. */
+function UseCase({ a }: { a: AudienceCopy }) {
+  const { pick } = useTranslation();
+  const icons = CASE_ICONS[a.key];
+  return (
+    <Reveal self kind="pop" className="card sl-case" data-testid={`use-case-${a.key}`} style={{ ["--bc" as string]: TONE[a.key] }}>
+      <p className="sl-case-k">{pick(S.useCase)}</p>
+      <h3 className="h4 sl-case-t">{pick(a.useCase.title)}</h3>
+      <Reveal as="ol" stagger={140} className="sl-case-steps">
+        {a.useCase.steps.map((st, i) => {
+          const Icon = icons[i] ?? Check;
+          return (
+            <li key={i}>
+              <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "44px" }}><Icon /></span>
+              <span className="sl-case-n tabnum" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <span className="sl-case-d">{pick(st)}</span>
+            </li>
+          );
+        })}
+      </Reveal>
+      {a.key === "advisor" ? <AdvisorRankings /> : null}
+      <div className="sl-case-notes">
+        {a.useCase.note ? <p className="fine">{pick(a.useCase.note)}</p> : null}
+        <p className="fine">{pick(S.useCaseNote)}</p>
+      </div>
+    </Reveal>
   );
 }
 
@@ -81,6 +118,7 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
           </Reveal>
         </div>
       </div>
+      <UseCase a={a} />
     </Section>
   );
 }

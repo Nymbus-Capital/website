@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists and market veterans building systematic strategies. Meet the team.",
-      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques et des vétérans des marchés qui bâtissent des stratégies systématiques. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des ingénieurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -19,15 +19,33 @@ export const AB = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Independent Montreal portfolio manager, since 2013.",
-      "Gestionnaire de portefeuille indépendant à Montréal, depuis 2013.",
+      "Independent Montreal manager of systematic fixed income and futures overlays, since 2013.",
+      "Gestionnaire montréalais indépendant en revenu fixe systématique et en superpositions, depuis 2013.",
     ),
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
     people: l("people", "personnes"),
-    phd: l("PhDs in physics", "doctorats en physique"),
-    cfa: l("CFA charterholders", "titulaires de la charte CFA"),
+    phd: l("PhDs", "doctorats"),
+    cfa: l("CFA or CIM holders", "titulaires CFA ou CIM"),
     since: l("founded in Montreal", "fondée à Montréal"),
+  },
+  creds: {
+    eyebrow: l("Credentials", "Compétences"),
+    title: l("Scientists, engineers", "Scientifiques, ingénieurs"),
+    accent: l("and charterholders", "et titulaires de chartes"),
+    lead: l(
+      "The scientific method, applied to bonds and listed futures.",
+      "La méthode scientifique, appliquée aux obligations et aux contrats à terme cotés.",
+    ),
+    phd: l("PhDs", "doctorats"),
+    eng: l("Engineering or computer-science degrees", "diplômes en ingénierie ou en informatique"),
+    grad: l("Master’s and doctoral degrees", "maîtrises et doctorats"),
+    charter: l("CFA or CIM holders", "titulaires CFA ou CIM"),
+    years: l("Years of combined experience", "années d’expérience cumulées"),
+    note: l(
+      "People counted from the team list below, board included. Experience as stated by each person; “+” marks a lower bound.",
+      "Personnes dénombrées à partir de la liste de l’équipe ci-dessous, conseil compris. Expérience telle que déclarée par chacun; « + » indique un minimum.",
+    ),
   },
   intro: {
     eyebrow: l("Who we are", "Qui nous sommes"),
@@ -38,9 +56,9 @@ export const AB = {
       "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
     ),
     points: [
-      l("Bond markets produce more data than a team can analyze", "Les marchés obligataires produisent plus de données qu’une équipe ne peut en analyser"),
-      l("A scientific process puts that data to work", "Un processus scientifique met ces données à profit"),
-      l("Physicists and computer scientists, alongside fixed income managers", "Physiciens et informaticiens, aux côtés de gestionnaires en revenu fixe"),
+      l("Two specialties, equal weight: systematic fixed income and futures overlays", "Deux spécialités, à parts égales : revenu fixe systématique et superpositions"),
+      l("Bonds analyzed one by one; listed futures traded systematically", "Des obligations analysées une à une; des contrats à terme cotés négociés systématiquement"),
+      l("Physicists, engineers and charterholders, alongside market veterans", "Physiciens, ingénieurs et analystes agréés, aux côtés de vétérans des marchés"),
     ] as L[],
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
@@ -86,6 +104,8 @@ export const AB = {
     bio: l("Biography", "Biographie"),
     edu: l("Education", "Formation"),
     prev: l("Previous roles", "Postes précédents"),
+    linkedin: l("LinkedIn profile", "Profil LinkedIn"),
+    exp: l("{n} years of experience", "{n} ans d’expérience"),
     close: l("Close", "Fermer"),
     depts: [
       { key: "all", label: l("Everyone", "Tout le monde") },

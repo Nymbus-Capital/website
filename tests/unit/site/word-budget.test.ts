@@ -1,6 +1,9 @@
 /**
  * Word budget (2026-10-01): "diminish the text as much as possible". Ceilings sit just above today's copy so
  * the pages cannot silently grow back; lower them when the copy is cut further. Legal pages are excluded.
+ * Raised 2026-10-02 (content v3, Gabriel's requests): approach +risk-first section, +multi-strategy diagram and its
+ * mandatory overlay disclosure; about +credentials band; solutions +three illustrative use cases, each with its risk
+ * disclosure. The new texts are counted, aria labels included.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -25,11 +28,11 @@ function words(x: unknown, lang: "en" | "fr"): number {
 
 const BUDGET: [string, unknown, number][] = [
   ["home", [HOME_COPY, SCAN_COPY], 300],
-  ["about", AB, 235],
-  ["approach", AP, 530],
+  ["about", AB, 285],
+  ["approach", AP, 720],
   ["contact", CT, 295],
   ["sustainability", SU, 350],
-  ["solutions", [SOL_COPY, AUDIENCES], 340],
+  ["solutions", [SOL_COPY, AUDIENCES], 545],
   ["strategies", STRAT_COPY, 140],
 ];
 

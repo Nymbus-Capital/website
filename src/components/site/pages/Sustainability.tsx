@@ -1,8 +1,8 @@
 "use client";
 /**
- * /sustainability: responsible investing as part of the systematic process. The previous site's sections
- * (principles, ESG integration, exclusion policy, green bonds, Fondaction, PRI), facts only: the old ESG
- * metrics, green-bond allocation chart and "PRI alignment scorecard" were placeholders and are not shown.
+ * /sustainability: firm commitments (PRI, Tobacco-Free Finance Pledge, Fondaction) and the Sustainable Enhanced Bonds
+ * Fund, the only fund with ESG criteria and exclusions (integration, exclusion policy, green bonds). Facts only: the old
+ * ESG metrics, green-bond allocation chart and "PRI alignment scorecard" were placeholders and are not shown.
  */
 import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
 import { useInView } from "@/components/v3/motion";
@@ -59,7 +59,7 @@ export function Sustainability() {
         <SectionHead eyebrow={pick(SU.principles.eyebrow)} title={pick(SU.principles.title)} accent={pick(SU.principles.accent)} lead={pick(SU.principles.lead)} id="su-pr-t" />
         <CardGrid cols={3}>
           {SU.principles.items.map((it, i) => {
-            const Icon = [Sprout, Eye, Award][i];
+            const Icon = [Award, Handshake, Eye][i];
             return <FeatureCard key={i} icon={<Icon />} title={pick(it.t)} className="ring su-card"><p>{pick(it.d)}</p></FeatureCard>;
           })}
         </CardGrid>
