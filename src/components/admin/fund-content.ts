@@ -47,6 +47,10 @@ export function cleanFundContent(f: FundContent): FundContent {
 /** Drop empty optional fields of a third-party entry (rows without any figure are kept: the admin is still typing). */
 function cleanThirdParty(e: ThirdPartyRanking): ThirdPartyRanking {
   const out: ThirdPartyRanking = { provider: e.provider, classLabel: e.classLabel, category: e.category, asOf: e.asOf, rows: e.rows };
+  if (e.scope === "fund") out.scope = "fund";
+  if (e.basis && (e.basis.en || e.basis.fr)) out.basis = e.basis;
+  if (e.annual?.length) out.annual = e.annual;
+  if (e.sourceRef) out.sourceRef = e.sourceRef;
   if (e.fundserv) out.fundserv = e.fundserv;
   if (e.edition) out.edition = e.edition;
   if (e.url) out.url = e.url;

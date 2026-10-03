@@ -163,6 +163,14 @@ function ThirdPartyEditor({ list, months, onChange }: { list: ThirdPartyRanking[
             </div>
             <L10nInput label={`${name} peer group`} value={e.category} onChange={(v) => setEntry(i, { category: v })} max={120} />
             <label className="adm-field"><span>source page or PDF (https)</span><input className="adm-input" aria-label={`${name} source URL`} value={e.url ?? ""} maxLength={300} onChange={(ev) => setEntry(i, { url: ev.target.value.trim() || undefined })} /></label>
+            <div className="row">
+              <label className="adm-check">
+                <input type="checkbox" aria-label={`${name} fund as a whole`} checked={e.scope === "fund"} onChange={(ev) => setEntry(i, { scope: ev.target.checked ? "fund" : undefined })} />
+                <span>the source ranks the fund as a whole, not a series (class may stay empty)</span>
+              </label>
+              <label className="adm-field"><span>where in the source (admin only)</span><input className="adm-input" aria-label={`${name} source reference`} value={e.sourceRef ?? ""} maxLength={80} placeholder="page 21 of 57" onChange={(ev) => setEntry(i, { sourceRef: ev.target.value || undefined })} /></label>
+            </div>
+            <L10nInput label={`${name} basis`} hint="as the source states it, e.g. gross of management fees, in Canadian dollars (shown next to the figures)" value={e.basis ?? { en: "", fr: "" }} onChange={(v) => setEntry(i, { basis: v.en || v.fr ? v : undefined })} max={160} />
             <table className="adm-table" aria-label={`${name} percentile by period`}>
               <thead><tr><th>period</th><th>percentile (1 = best)</th><th>rank</th><th>of</th><th /></tr></thead>
               <tbody>
@@ -181,6 +189,21 @@ function ThirdPartyEditor({ list, months, onChange }: { list: ThirdPartyRanking[
                 ))}
               </tbody>
             </table>
+            <table className="adm-table" aria-label={`${name} one-year periods`}>
+              <thead><tr><th>one-year period ending (YYYY-MM-DD)</th><th>percentile (1 = best)</th><th /></tr></thead>
+              <tbody>
+                {(e.annual ?? []).map((a, k) => (
+                  <tr key={k}>
+                    <td><input className="adm-input" aria-label={`${name} year end ${k + 1}`} value={a.end} maxLength={10} onChange={(ev) => setEntry(i, { annual: (e.annual ?? []).map((x, j) => (j === k ? { ...x, end: ev.target.value } : x)) })} /></td>
+                    <td><input className="adm-input" aria-label={`${name} year percentile ${k + 1}`} inputMode="numeric" value={a.percentile ?? ""} onChange={(ev) => setEntry(i, { annual: (e.annual ?? []).map((x, j) => (j === k ? { ...x, percentile: optNum(ev.target.value) } : x)) })} /></td>
+                    <td><button type="button" className="adm-btn ghost" onClick={() => setEntry(i, { annual: (e.annual ?? []).filter((_, j) => j !== k) })}>remove</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="adm-actions">
+              <button type="button" className="adm-btn ghost" onClick={() => setEntry(i, { annual: [...(e.annual ?? []), { end: "", percentile: null }] })}>add a one-year period</button>
+            </div>
             <label className="adm-check">
               <input type="checkbox" aria-label={`${name} confirmed`} checked={!!e.confirmed} onChange={(ev) => setEntry(i, { confirmed: ev.target.checked })} />
               <span>confirmed — I checked every figure, the class, the peer group and the date on the source page (publishes it)</span>

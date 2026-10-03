@@ -548,12 +548,13 @@ html:not(.js) .ft-bar { display: none; }
 .aw-q { display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 8px; border-radius: 99px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--surf); color: var(--ink2); }
 .aw-q[data-q="1"] { background: color-mix(in srgb, var(--fund) 14%, #fff); color: var(--fund-ink); }
 .aw-note { margin: 4px 0 0; max-width: 78ch; }
+.aw-basis { margin: 0 0 10px; }
 /* provider names are neutral text (no imitation of third-party branding); official logos only as delivered files */
 .aw-logo { display: block; height: 24px; width: auto; max-width: 160px; object-fit: contain; }
 .ms-block { display: grid; gap: 6px; }
 .ms-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.ms-logo { height: 28px; width: auto; max-width: 180px; object-fit: contain; }
-.ms-stars { height: 22px; width: auto; max-width: 160px; object-fit: contain; }
+.ms-logo { display: block; height: 26px; width: auto; max-width: 124px; object-fit: contain; }
+.ms-stars { display: block; height: 19px; width: auto; max-width: 100px; object-fit: contain; }
 .ms-text { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
 .ms-detail { margin: 0; color: var(--ink2); }
 .ms-source, .ms-legal { margin: 0; max-width: 78ch; }

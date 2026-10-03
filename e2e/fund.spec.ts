@@ -437,8 +437,21 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   await expect(tab.getByTestId("morningstar")).toBeVisible();
   await expect(tab.getByTestId("morningstar")).toContainText("Series F");
   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
-  // no third-party logo images: wordmarks are text
-  await expect(tab.locator("img")).toHaveCount(0);
+  // the only images are the official Morningstar files shipped in public/brand/third-party (other providers: text)
+  for (const src of await tab.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src")))) expect(src).toMatch(/^\/brand\/third-party\/morningstar-/);
+  // RBC Investor Services Pooled Fund Survey Q2 2026: fund-level, gross of management fees, percentiles per period
+  const rbc = tab.getByTestId("tp-rbc-pfs");
+  await expect(rbc).toContainText("RBC Investor Services Pooled Fund Survey — Q2 2026");
+  await expect(rbc).toContainText("Fund as a whole (not a specific series)");
+  await expect(rbc).toContainText("Canadian Fixed Income");
+  await expect(rbc).toContainText("June 30, 2026");
+  await expect(rbc.getByTestId("tp-basis")).toContainText("gross of management fees, in Canadian dollars");
+  for (const p of ["3M", "1Y", "2Y", "3Y", "5Y"]) await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
+  await expect(rbc.getByTestId("tp-row-10Y")).toHaveCount(0);
+  await expect(rbc.getByTestId("tp-annual-2023")).toContainText("1 year to June 30, 2023");
+  await expect(rbc.getByRole("link", { name: /RBC Investor Services/ })).toHaveAttribute("href", "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf");
+  // returns are stored for reference, never sent to the page
+  expect(await page.content()).not.toMatch(/\bror\b|sourceRef/);
   // the CIFSC category line of the facts comes from the ranking category
   await openTab(page, "overview");
   await expect(page.getByTestId("fund-facts")).toContainText("Canadian Fixed Income");
@@ -452,27 +465,45 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]')).toHaveCount(0);
 });
 
-test("Morningstar on the overview of both bond funds: text rating (no official files in the repo), class, as-of date, source, attribution", async ({ page }) => {
+test("Morningstar on the overview of both bond funds: official logo and stars images, text alternative, class, as-of, source, attribution", async ({ page }) => {
   for (const slug of ["monthly-income", "sustainable-enhanced-bonds"]) {
     await page.goto(`/strategies/${slug}`);
     const block = page.locator('[role="tabpanel"][data-panel="overview"]').getByTestId("overview-morningstar");
     await expect(block, slug).toBeVisible();
+    const logo = block.getByTestId("morningstar-logo");
+    const stars = block.getByTestId("morningstar-stars-img");
+    await expect(logo).toHaveAttribute("src", "/brand/third-party/morningstar-logo.png");
+    await expect(logo).toHaveAttribute("alt", "Morningstar");
+    await expect(stars).toHaveAttribute("src", "/brand/third-party/morningstar-stars-5.png");
+    await expect(stars).toHaveAttribute("alt", "Morningstar Rating™: 5 stars");
+    // loaded, and sized for the layout (logo ~110-140 px wide, stars ~90-110 px)
+    for (const img of [logo, stars]) expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
+    const lb = (await logo.boundingBox())!;
+    const sb = (await stars.boundingBox())!;
+    expect(lb.width).toBeGreaterThanOrEqual(105);
+    expect(lb.width).toBeLessThanOrEqual(140);
+    expect(sb.width).toBeGreaterThanOrEqual(85);
+    expect(sb.width).toBeLessThanOrEqual(110);
+    const panel = (await block.boundingBox())!;
+    expect(lb.x + lb.width).toBeLessThanOrEqual(panel.x + panel.width);
+    await expect(block.getByTestId("overview-morningstar-rating")).toHaveAttribute("data-official", "yes");
+    // the text rating stays in the page for assistive technology
     await expect(block.getByTestId("morningstar-text")).toHaveText("Morningstar Rating™: 5 stars");
     await expect(block.getByTestId("morningstar-class")).toContainText("Series F");
     await expect(block.getByTestId("morningstar-class")).toContainText("October 1, 2026");
     await expect(block.getByTestId("morningstar-source")).toHaveAttribute("href", /^https:\/\/global\.morningstar\.com\//);
     await expect(block.getByTestId("morningstar-attribution")).toContainText("© 2026 Morningstar");
     await expect(block.getByTestId("morningstar-attribution")).toContainText("Past performance does not predict future results");
-    // official images absent: no image and no imitation graphic (no SVG stars)
-    await expect(block.locator("img")).toHaveCount(0);
+    // no drawn imitation
     await expect(block.locator(".ms-head svg, .aw-stars, [data-testid='morningstar-stars']")).toHaveCount(0);
-    await expect(block.getByTestId("overview-morningstar-rating")).toHaveAttribute("data-official", "no");
-    // the seeded RBC survey entry is a draft: never on the page
-    await expect(page.getByTestId("tp-rbc-pfs")).toHaveCount(0);
   }
+  const res = await page.request.get("/brand/third-party/morningstar-stars-5.png");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toBe("image/png");
+  expect(res.headers()["content-security-policy"]).toContain("sandbox");
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.reload();
-  await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-text")).toHaveText(/^Cote Morningstar™\s:\s5 étoiles$/);
+  await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-stars-img")).toHaveAttribute("alt", /^Cote Morningstar™\s:\s5 étoiles$/);
   await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-class")).toContainText("Série F");
   // not on the other funds
   for (const slug of ["multi-strategy", "global-minimum-volatility"]) {
@@ -481,7 +512,21 @@ test("Morningstar on the overview of both bond funds: text rating (no official f
   }
 });
 
-test("solutions: the advisors section lists the confirmed, fresh rankings with source link and date (no draft)", async ({ page }) => {
+test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1st across all periods'); French labels", async ({ page }) => {
+  await page.goto("/strategies/monthly-income#awards");
+  const rbc = page.getByTestId("tp-rbc-pfs");
+  await expect(rbc).toContainText("Canadian Short Term Fixed Income");
+  await expect(rbc.getByTestId("tp-row-3M")).toContainText("4th percentile");
+  for (const p of ["1Y", "2Y", "3Y", "5Y"]) await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
+  await expect(page.locator("body")).not.toContainText(/1st percentile (across|in) all periods/i);
+  await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+  await page.reload();
+  await expect(rbc).toContainText("Revenu fixe canadien à court terme");
+  await expect(rbc.getByTestId("tp-row-3M")).toContainText(/4e\scentile/);
+  await expect(rbc.getByTestId("tp-basis")).toContainText("avant déduction des frais de gestion");
+});
+
+test("solutions: the advisors section lists the confirmed, fresh rankings with source link and date", async ({ page }) => {
   await page.goto("/solutions#advisor");
   const list = page.getByTestId("advisor-rankings");
   await expect(list).toBeVisible();
@@ -489,11 +534,15 @@ test("solutions: the advisors section lists the confirmed, fresh rankings with s
   await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-fundlibrary")).toContainText("August 31, 2026");
   for (const a of await list.locator("li a").all()) await expect(a).toHaveAttribute("href", /^https:\/\//);
   await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
-  await expect(list.getByTestId("advisor-item-rbc-pfs")).toHaveCount(0);
+  const rbcItem = list.getByTestId("advisor-rankings-monthly-income").getByTestId("advisor-item-rbc-pfs");
+  await expect(rbcItem).toContainText("4th percentile");
+  await expect(rbcItem).toContainText("Fund as a whole");
+  await expect(rbcItem.getByTestId("advisor-basis")).toContainText("gross of management fees");
+  await expect(rbcItem).toContainText("June 30, 2026");
   await expect(list.getByTestId("advisor-ms-attribution")).toContainText("Morningstar");
   await expect(list.getByTestId("advisor-perf-sustainable-enhanced-bonds")).toHaveAttribute("href", "/strategies/sustainable-enhanced-bonds#performance");
   await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-morningstar")).toContainText("Series F");
-  await expect(list.locator("img")).toHaveCount(0);
+  for (const src of await list.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src")))) expect(src).toMatch(/^\/brand\/third-party\/morningstar-/);
 });
 
 test("calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll", async ({ page }) => {

@@ -60,31 +60,64 @@ test("publicRankings: drafts, notes and stale entries never reach the page; netw
   assert.equal(publicRankings({ thirdParty: [rbc({ asOf: "2020-03-31" })] }, { now: null }).thirdParty.length, 1);
 });
 
-test("seeded RBC drafts: pre-filled 1st percentile, hidden until confirmed with URL and date; removing them sticks", () => {
-  for (const [key, list] of Object.entries(SEEDED_THIRD_PARTY)) {
-    for (const e of list!) {
-      assert.equal(e.provider, "rbc-pfs");
-      assert.equal(e.confirmed, false, `${key}: draft`);
-      assert.equal(e.url, undefined, `${key}: no URL seeded (the PDF could not be read)`);
-      assert.equal(e.asOf, "", `${key}: no as-of seeded`);
-      assert.ok(e.rows.every((r) => r.percentile === 1));
-      assert.equal(thirdPartyStatus(e, NOW, 6), "draft");
-    }
+test("seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact percentiles; old drafts migrate; removal sticks", () => {
+  const seb = SEEDED_THIRD_PARTY["sustainable-enhanced-bonds"]![0];
+  const mi = SEEDED_THIRD_PARTY["monthly-income"]![0];
+  for (const e of [seb, mi]) {
+    assert.equal(e.provider, "rbc-pfs");
+    assert.equal(e.confirmed, true);
+    assert.equal(e.url, "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf");
+    assert.equal(e.asOf, "2026-06-30");
+    assert.equal(e.edition, "Q2 2026");
+    assert.equal(e.scope, "fund");
+    assert.equal(e.classLabel, "", "no invented class");
+    assert.match(e.basis!.en, /gross of management fees/);
+    assert.match(e.basis!.fr, /avant déduction des frais de gestion/);
+    assert.deepEqual(e.rows.map((r) => r.period), ["3M", "1Y", "2Y", "3Y", "5Y"], "10 years n/a: not seeded");
+    assert.deepEqual(e.annual!.map((x) => [x.end, x.percentile]), [["2026-06-30", 1], ["2025-06-30", 1], ["2024-06-30", 1], ["2023-06-30", 1]]);
+    assert.equal(thirdPartyStatus(e, NOW, 6), "shown");
   }
+  assert.deepEqual(seb.rows.map((r) => r.percentile), [1, 1, 1, 1, 1]);
+  assert.deepEqual(mi.rows.map((r) => r.percentile), [4, 1, 1, 1, 1], "Monthly Income 1 quarter: 4th percentile, never '1st across all periods'");
+  assert.deepEqual(seb.rows.map((r) => r.ror), [3.16, 10.04, 9.51, 11.39, 6.83]);
+  assert.deepEqual(mi.rows.map((r) => r.ror), [2.02, 12.42, 10.9, 13.38, 7.23]);
+  assert.equal(seb.category.en, "Canadian Fixed Income");
+  assert.equal(mi.category.en, "Canadian Short Term Fixed Income");
+  assert.equal(mi.category.fr, "Revenu fixe canadien à court terme");
+
+  // public payload: percentiles only (no returns, no admin note / source reference)
+  const pub = publicFundRankings({ thirdParty: [mi] }, { now: NOW, months: 6 })!.thirdParty![0];
+  assert.equal("note" in pub || "sourceRef" in pub, false);
+  assert.equal(pub.rows.some((r) => "ror" in r), false);
+  assert.equal(pub.annual!.some((x) => "ror" in x), false);
+  assert.equal(pub.rows[0].percentile, 4);
+
   const empty = mergeContent(null);
-  assert.equal(empty.funds["monthly-income"]!.rankings!.thirdParty!.length, 1);
-  assert.equal(empty.funds["sustainable-enhanced-bonds"]!.rankings!.thirdParty![0].rows.length, 6);
+  assert.equal(empty.funds["monthly-income"]!.rankings!.thirdParty![0].confirmed, true);
   assert.equal(empty.funds["multi-strategy"]!.rankings!.thirdParty, undefined);
-  assert.equal(publicFundRankings(empty.funds["monthly-income"]!.rankings, { now: NOW, months: 6 })!.thirdParty, undefined, "draft not public");
-  // stored rankings without the list get the drafts; an admin who removed them saves [] and it stays empty
+  // migration: a stored copy of the old pristine draft becomes the confirmed entry; other entries are kept
+  const oldDraft = { provider: "rbc-pfs", classLabel: "", category: { en: "", fr: "" }, asOf: "", rows: [{ period: "1Y", percentile: 1 }], confirmed: false };
+  const other = rbc({ provider: "evestment" });
   const stored = { version: 1, updatedAt: "x", updatedBy: "x", firm: {}, pipeline: { publishMode: "review" }, funds: {
-    "monthly-income": { rankings: { fundLibrary: [] } },
+    "monthly-income": { rankings: { fundLibrary: [], thirdParty: [oldDraft, other] } },
     "sustainable-enhanced-bonds": cleanFundContent({ rankings: { thirdParty: [] } }),
   } } as unknown as SiteContent;
   const m = mergeContent(stored);
-  assert.equal(m.funds["monthly-income"]!.rankings!.thirdParty!.length, 1);
-  assert.deepEqual(m.funds["monthly-income"]!.rankings!.fundLibrary, []);
-  assert.deepEqual(m.funds["sustainable-enhanced-bonds"]!.rankings!.thirdParty, []);
+  assert.deepEqual(m.funds["monthly-income"]!.rankings!.thirdParty!.map((e) => [e.provider, e.confirmed]), [["rbc-pfs", true], ["evestment", true]]);
+  assert.deepEqual(m.funds["sustainable-enhanced-bonds"]!.rankings!.thirdParty, [], "removed by the admin: stays empty");
+  // an RBC entry the admin edited is never replaced
+  const edited = { ...oldDraft, url: "https://www.rbcis.com/x.pdf" };
+  const m2 = mergeContent({ ...stored, funds: { "monthly-income": { rankings: { thirdParty: [edited] } } } } as unknown as SiteContent);
+  assert.equal(m2.funds["monthly-income"]!.rankings!.thirdParty![0].url, "https://www.rbcis.com/x.pdf");
+});
+
+test("fund-level entries: no class needed when scope is fund; basis needs EN and FR; one-year periods valid and within as-of", () => {
+  assert.equal(thirdPartyStatus(rbc({ classLabel: "", scope: "fund" }), NOW, 6), "shown");
+  assert.equal(thirdPartyStatus(rbc({ classLabel: "" }), NOW, 6), "incomplete");
+  assert.equal(thirdPartyStatus(rbc({ basis: { en: "gross", fr: "" } }), NOW, 6), "incomplete");
+  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-06-30", percentile: 1 }] }), NOW, 6), "shown");
+  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-09-30", percentile: 1 }] }), NOW, 6), "incomplete", "ends after the as-of date");
+  assert.equal(thirdPartyStatus(rbc({ annual: [{ end: "2026-06-30", percentile: null }] }), NOW, 6), "incomplete");
 });
 
 test("cleanFundContent keeps third-party drafts and drops their empty optional fields", () => {

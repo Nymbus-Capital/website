@@ -445,67 +445,72 @@ test.describe("admin flows", () => {
     await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
   });
 
-  test("rankings: RBC survey draft hidden; confirmed but stale hidden; fresh shown with source and date; brand image slots", async ({ page, context, request }, info) => {
+  test("rankings: seeded RBC entry shown; new entry draft → stale hidden → fresh shown with source and date; brand image slots", async ({ page, context, request }, info) => {
     test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
     const fund = "sustainable-enhanced-bonds";
     const original = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content.funds[fund];
 
     await page.goto("/admin");
-    await expect(page.getByTestId("rankings-panel")).toContainText("official Morningstar assets missing");
-    await expect(page.getByTestId("rankings-panel")).toContainText("draft");
+    // official Morningstar files are shipped: no missing-assets warning; the seeded RBC entry is confirmed
+    await expect(page.getByTestId("rankings-panel")).toBeVisible();
+    await expect(page.getByTestId("rankings-panel")).not.toContainText("official Morningstar assets missing");
+    await expect(page.getByTestId("rankings-panel")).toContainText("Q2 2026");
 
     await page.goto(`/admin/funds/${fund}`);
     const ed = page.getByTestId("tp-editor");
-    await expect(ed.getByTestId("tp-status-0")).toHaveText("draft — hidden");
-    await expect(page.getByTestId("morningstar-assets-missing")).toBeVisible();
-    const n = "RBC Investor Services 1";
+    await expect(ed.getByTestId("tp-status-0")).toHaveText("shown on the site");
+    await expect(page.getByTestId("morningstar-assets-missing")).toHaveCount(0);
+    // a new eVestment entry: draft, then confirmed but stale (hidden), then fresh (shown)
+    await page.getByTestId("tp-add-evestment").click();
+    await expect(ed.getByTestId("tp-status-1")).toHaveText("draft — hidden");
+    const n = "eVestment 2";
     const label = (s: string) => page.getByLabel(`${n} ${s}`, { exact: true });
-    await label("class").fill("Pooled fund");
-    await label("peer group (EN)").fill("Canadian Fixed Income");
-    await label("peer group (FR)").fill("Revenu fixe canadien");
+    await label("class").fill("Strategy composite");
+    await label("peer group (EN)").fill("Canadian Core Plus Fixed Income");
+    await label("peer group (FR)").fill("Revenu fixe canadien de base plus");
     await label("as of").fill("2025-12-31");
-    await label("edition").fill("Q4 2025");
-    await label("source URL").fill("https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q4_2025.pdf");
+    await label("source URL").fill("https://www.evestment.example/e2e-ranking");
+    await ed.getByTestId("tp-entry-1").getByRole("button", { name: "add period", exact: true }).click();
+    await label("percentile 1M").fill("3");
     await label("confirmed").check();
-    await expect(ed.getByTestId("tp-status-0")).toHaveText("out of date — hidden");
+    await expect(ed.getByTestId("tp-status-1")).toHaveText("out of date — hidden");
     await page.getByTestId("save-fund").click();
     await expect(page.locator(".adm-toast.ok")).toContainText("Saved");
     await shot(page, "rankings", info.project.name);
 
     // stale: neither on the page nor in its payload
     const staleHtml = await request.get(`/strategies/${fund}`).then((r) => r.text());
-    expect(staleHtml).not.toContain("Pooled_Fund_Survey_Q4_2025");
+    expect(staleHtml).not.toContain("e2e-ranking");
     await page.goto(`/strategies/${fund}#awards`);
     await expect(page.getByTestId("awards")).toBeVisible();
-    await expect(page.getByTestId("tp-rbc-pfs")).toHaveCount(0);
+    await expect(page.getByTestId("tp-evestment")).toHaveCount(0);
+    await expect(page.getByTestId("tp-rbc-pfs")).toBeVisible();
 
     // fresh (end of the last quarter): shown on the awards tab and in the advisors list, with source link and date
     const now = new Date();
     const qEnd = new Date(Date.UTC(now.getUTCFullYear(), Math.floor(now.getUTCMonth() / 3) * 3, 0)).toISOString().slice(0, 10);
     await page.goto(`/admin/funds/${fund}`);
     await label("as of").fill(qEnd);
-    await expect(page.getByTestId("tp-editor").getByTestId("tp-status-0")).toHaveText("shown on the site");
+    await expect(page.getByTestId("tp-editor").getByTestId("tp-status-1")).toHaveText("shown on the site");
     await page.getByTestId("save-fund").click();
     await expect(page.locator(".adm-toast.ok")).toContainText("Saved");
     await page.goto(`/strategies/${fund}#awards`);
-    const entry = page.getByTestId("tp-rbc-pfs");
+    const entry = page.getByTestId("tp-evestment");
     await expect(entry).toBeVisible();
-    await expect(entry).toContainText("RBC Investor Services Pooled Fund Survey");
-    await expect(entry.getByTestId("tp-row-1Y")).toContainText("1st percentile");
-    await expect(entry.getByRole("link", { name: /RBC Investor Services/ })).toHaveAttribute("href", /^https:\/\/www\.rbcis\.com\//);
-    await expect(page.getByTestId("tp-note")).toContainText("Percentile ranks");
+    await expect(entry.getByTestId("tp-row-1M")).toContainText("3rd percentile");
+    await expect(entry.getByRole("link", { name: /eVestment/ })).toHaveAttribute("href", "https://www.evestment.example/e2e-ranking");
     await page.goto("/solutions#advisor");
-    await expect(page.getByTestId("advisor-item-rbc-pfs")).toContainText("1st percentile");
+    await expect(page.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-evestment")).toContainText("3rd percentile");
 
     // a confirmed entry without its source URL is refused by the API
     const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
-    const noUrl = { ...cur.funds[fund].rankings.thirdParty[0], url: undefined };
+    const noUrl = { ...cur.funds[fund].rankings.thirdParty[1], url: undefined };
     const bad = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: { ...cur.funds[fund], rankings: { ...cur.funds[fund].rankings, thirdParty: [noUrl] } } } });
     expect(bad.status()).toBe(400);
     expect(await bad.text()).toContain("source URL");
 
-    // restore the seeded draft
+    // restore the seeded content
     const restore = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: original } });
     expect(restore.status(), await restore.text()).toBe(200);
 
@@ -524,7 +529,8 @@ test.describe("admin flows", () => {
     expect((await request.post("/api/admin/upload/brand", { multipart: { slot: "gmr-logo", file: { name: "gmr.png", mimeType: "image/png", buffer: png } } })).status()).toBe(401);
     await page.goto("/admin/settings");
     await expect(page.getByTestId("brand-gmr-logo")).toContainText("uploaded");
-    await expect(page.getByTestId("brand-morningstar-logo")).toContainText("missing");
+    await expect(page.getByTestId("brand-morningstar-logo")).toContainText("shipped");
+    await expect(page.getByTestId("brand-morningstar-stars-4")).toContainText("missing");
     const del = await request.delete("/api/admin/brand/gmr-logo", { headers: adminHeaders(token, false) });
     expect(del.status()).toBe(200);
     expect((await request.get("/api/brand/gmr-logo")).status()).toBe(404);

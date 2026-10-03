@@ -151,9 +151,9 @@ Not yet run against live data, not deployed.
    Nymbus) on the bond funds' Overview + awards tab; RBC pooled fund survey / eVestment / LSEG Lipper / GMR entries
    (admin-editable, hidden until confirmed with URL + date); staleness limit in settings (default 6 months, all providers);
    weekly RBC survey check (admin issue + webhook, never hides data); AdvisorRankings on /solutions. **Gabriel to do**:
-   (a) provide the **official Morningstar files** (`public/brand/third-party/morningstar-logo.svg|png` and
+   (a) *(done 2026-10-03, `feat/awards-assets`)* provide the **official Morningstar files** (`public/brand/third-party/morningstar-logo.svg|png` and
    `morningstar-stars-5.svg|png`, or upload them in *Admin → Settings → third-party brand assets*) — until then the rating is
-   text and the admin shows "official Morningstar assets missing"; (b) enter the **RBC survey percentiles** per period from
+   text and the admin shows "official Morningstar assets missing"; (b) *(done 2026-10-03: Q2 2026 seeded, confirmed)* enter the **RBC survey percentiles** per period from
    the Q2 2026 PDF (drafts pre-filled with 1st percentile; add class, peer group, quarter end 2026-06-30, PDF URL, tick
    confirmed); (c) enter eVestment / LSEG Lipper / GMR figures with their source links; (d) compliance rows W1–W7
    (`docs/compliance-review.md`), incl. Morningstar "out of N funds". French category names are our translation (row F6).
@@ -176,6 +176,19 @@ Not yet run against live data, not deployed.
    WordPress team entries have no years of experience: with the CMS on, the band hides that counter.
 
 ## 6. Session log
+
+- 2026-10-03 (sub-agent, branch `feat/awards-assets` from `redesign/v3-keynote-live-data`; not merged): Gabriel's assets and
+  data. (1) Official Morningstar files (provided by Gabriel, Nymbus holds the permission) shipped as
+  `public/brand/third-party/morningstar-logo.png` and `morningstar-stars-5.png`: the Overview and awards tabs of both bond
+  funds and the /solutions list show the logo (~124 px) and stars image (~98 px) with the text alternative, series,
+  as-of, source and attribution; served with the sandbox CSP. (2) RBC Investor Services Pooled Fund Survey Q2 2026 seeded as
+  **confirmed** entries (as-of 2026-06-30, PDF URL, edition "Q2 2026"): SEB "Canadian Fixed Income" p. 21, percentile 1 for
+  1Q, 1/2/3/5Y and one-year periods to June 30 2023–2026; Monthly Income "Canadian Short Term Fixed Income" p. 26, **1Q = 4th
+  percentile**, 1 for the rest. New fields: `scope: "fund"` (survey ranks the fund, no series; class not required),
+  `basis` (shown: "returns gross of management fees, in Canadian dollars"), `annual[]` (one-year periods), `sourceRef`,
+  `ror` (stored, never sent to the page). A stored copy of the old pristine draft migrates to the confirmed entry. (3) RBC
+  check: Q2 2026 (with link) is the shipped floor (`SEEDED_RBC_LATEST`); a confirmed Q2 entry raises no update issue.
+  Compliance W8 (Morningstar files), W9 (RBC figures, gross-of-fees basis). Open: Morningstar "out of N funds" still to enter (W1).
 
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:

@@ -86,8 +86,11 @@ export const rowHasFigure = (r: ThirdPartyRanking["rows"][number]): boolean => o
 /** Complete enough to publish (ignoring age and class): confirmed, source link, as-of date, class, category, figures. */
 export function isCompleteThirdParty(e: ThirdPartyRanking | null | undefined): boolean {
   if (!e || e.confirmed !== true || !isProvider(e.provider)) return false;
-  if (!e.classLabel?.trim() || !e.category?.en?.trim() || !e.category?.fr?.trim()) return false;
+  // a series, or explicitly the fund as a whole (a survey that ranks the fund, not a series)
+  if (!(e.scope === "fund" || e.classLabel?.trim()) || !e.category?.en?.trim() || !e.category?.fr?.trim()) return false;
   if (!isIsoDate(e.asOf) || !isHttpsUrl(e.url)) return false;
+  if (e.basis && !(e.basis.en?.trim() && e.basis.fr?.trim())) return false;
+  if ((e.annual ?? []).some((a) => !isIsoDate(a.end) || a.end > e.asOf || !okPercentile(a.percentile))) return false;
   return Array.isArray(e.rows) && e.rows.length > 0 && e.rows.every(rowHasFigure);
 }
 
@@ -142,9 +145,14 @@ export function publicRankings(
   const thirdParty = (r?.thirdParty ?? [])
     .filter((e) => isCompleteThirdParty(e) && fresh(e.asOf) && (!e.fundserv || !own || own.some((c) => c.fundserv.toUpperCase() === e.fundserv!.toUpperCase())))
     .map((e) => {
-      const { note: _note, ...rest } = e;
-      void _note;
-      return { ...rest, rows: e.rows.filter(rowHasFigure) };
+      // admin note and source reference stay on the server; returns are not displayed, so not sent either
+      const { note: _note, sourceRef: _ref, annual, ...rest } = e;
+      void _note; void _ref;
+      return {
+        ...rest,
+        rows: e.rows.filter(rowHasFigure).map((r) => ({ period: r.period, percentile: r.percentile, ...(r.rank != null ? { rank: r.rank } : {}), ...(r.of != null ? { of: r.of } : {}) })),
+        ...(annual?.length ? { annual: annual.map((a) => ({ end: a.end, percentile: a.percentile })) } : {}),
+      };
     });
   return { fundLibrary, morningstar, thirdParty };
 }

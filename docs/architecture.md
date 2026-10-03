@@ -253,8 +253,10 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   update rankings") and one `PIPELINE_ALERT_WEBHOOK` message per edition. **A failed check only logs and shows an issue;
   it never hides or changes data** (hiding is the as-of rule above). `POST /api/admin/rankings/check` runs it on demand.
 - **Seeds** (`defaults.ts`): Morningstar 5 stars Class F as of 2026-10-01 for both bond funds (stated by Nymbus); Fund
-  Library as at 2026-08-31; RBC entries for both bond funds as **drafts** (1st percentile pre-filled, no URL, no date) —
-  the survey PDF could not be read here. A fund whose stored rankings lack `thirdParty` gets the drafts; saving an empty
+  Library as at 2026-08-31; RBC Investor Services Pooled Fund Survey Q2 2026 for both bond funds, **confirmed**
+  (`scope: "fund"`, `basis` gross of management fees in CAD, periods + one-year periods ending June 30; returns stored as
+  `ror`, never sent to the page). The old pristine drafts migrate to these entries. Official Morningstar logo and 5-star
+  image are shipped in `public/brand/third-party/` (served with the sandbox CSP by `next.config.ts`). A fund whose stored rankings lack `thirdParty` gets the drafts; saving an empty
   list keeps it empty.
 - **Morningstar on the overview**: the bond funds' Overview tab shows the rating in the side column
   (`components/fund/Morningstar.tsx`), with class, as-of date, source link, methodology and © attribution

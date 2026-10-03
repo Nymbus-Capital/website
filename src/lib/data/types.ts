@@ -386,6 +386,16 @@ export interface PercentileRow {
   percentile: number | null;
   rank?: number | null;
   of?: number | null;
+  /** return of the period as the source states it (percent, e.g. 10.04), stored for reference; shown only with its basis */
+  ror?: number | null;
+}
+
+/** A one-year period ending on a date (RBC survey: "one-year periods ending June 30"). */
+export interface AnnualPercentileRow {
+  /** end of the 12-month period, YYYY-MM-DD */
+  end: string;
+  percentile: number | null;
+  ror?: number | null;
 }
 
 /**
@@ -395,8 +405,12 @@ export interface PercentileRow {
  */
 export interface ThirdPartyRanking {
   provider: ThirdPartyProvider;
-  /** class / vehicle the ranking is for, as the source names it ("Class F", "Pooled fund") */
+  /** class / vehicle the ranking is for, as the source names it ("Class F"); may be empty when `scope` is "fund" */
   classLabel: string;
+  /** "fund": the source ranks the fund (or its strategy) as a whole, not a series (RBC pooled fund survey) */
+  scope?: "fund";
+  /** basis of the figures as the source states it ("gross of management fees, in Canadian dollars"); shown next to them */
+  basis?: L10n;
   /** FundServ code when the ranking is for one series (must be a class of the fund) */
   fundserv?: string;
   /** peer group / category as the source names it */
@@ -406,6 +420,10 @@ export interface ThirdPartyRanking {
   /** edition of the survey or report ("Q2 2026"), when the source has one */
   edition?: string;
   rows: PercentileRow[];
+  /** one-year periods ending on given dates, when the source has them */
+  annual?: AnnualPercentileRow[];
+  /** where in the source (e.g. "page 21 of 57"), admin reference */
+  sourceRef?: string;
   /** public page or PDF the figures were read from (https) */
   url?: string;
   /** the admin checked every figure on the source page */

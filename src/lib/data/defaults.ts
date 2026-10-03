@@ -42,20 +42,32 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
 };
 
 /**
- * RBC Investor Services pooled fund survey: DRAFT structures only (never shown). Nymbus states its bond funds are in the
- * 1st percentile for every period; the public survey PDF could not be read here (2026-10-02: the Q2 2026 edition was
- * only readable up to its Canadian Fixed Income table), so no figure is published until an admin checks each period,
- * the class, the category and the quarter in the PDF, adds its URL and ticks "confirmed".
+ * RBC Investor Services Pooled Fund Survey, Q2 2026 (periods ending 2026-06-30), read by Nymbus from the public PDF.
+ * The survey ranks the fund (strategy track record since Jan-19), not a series, and its returns are gross of management
+ * fees in CAD (survey p. 3); PR = percentile ranking, 1 = best. Confirmed seeds: the admin edits them; a newer edition is
+ * flagged by the weekly check (src/lib/rankings/rbc-survey.ts).
  */
-const rbcDraft = (periods: RankingPeriod[]): ThirdPartyRanking => ({
-  provider: "rbc-pfs", classLabel: "", category: { en: "", fr: "" }, asOf: "", edition: "",
-  rows: periods.map((period) => ({ period, percentile: 1 })), confirmed: false,
-  note: "Draft pre-filled from Nymbus' statement (1st percentile, all periods). Check every period, the class, the category and the quarter in the survey PDF (rbcis.com/en/insights), add the PDF URL and the quarter-end date, then tick confirmed.",
+export const RBC_Q2_2026_URL = "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf";
+const RBC_BASIS = { en: "gross of management fees, in Canadian dollars", fr: "avant déduction des frais de gestion, en dollars canadiens" };
+type R = [RankingPeriod, number, number];
+const rbc = (category: { en: string; fr: string }, page: string, rows: R[], annual: [string, number, number][]): ThirdPartyRanking => ({
+  provider: "rbc-pfs", classLabel: "", scope: "fund", basis: RBC_BASIS, category, asOf: "2026-06-30", edition: "Q2 2026", url: RBC_Q2_2026_URL,
+  sourceRef: page, confirmed: true,
+  rows: rows.map(([period, percentile, ror]) => ({ period, percentile, ror })),
+  annual: annual.map(([end, percentile, ror]) => ({ end, percentile, ror })),
+  note: "RBC Investor Services Pooled Fund Survey Q2 2026, read by Nymbus (2026-10-03). Fund-level ranking (inception Jan-19 in the survey), gross of management fees. 10-year: n/a.",
 });
 export const SEEDED_THIRD_PARTY: Partial<Record<FundKey, ThirdPartyRanking[]>> = {
-  "monthly-income": [rbcDraft(["3M", "1Y", "2Y", "3Y", "4Y"])],
-  "sustainable-enhanced-bonds": [rbcDraft(["3M", "1Y", "2Y", "3Y", "4Y", "5Y"])],
+  "sustainable-enhanced-bonds": [rbc({ en: "Canadian Fixed Income", fr: "Revenu fixe canadien" }, "page 21 of 57",
+    [["3M", 1, 3.16], ["1Y", 1, 10.04], ["2Y", 1, 9.51], ["3Y", 1, 11.39], ["5Y", 1, 6.83]],
+    [["2026-06-30", 1, 10.79], ["2025-06-30", 1, 6.04], ["2024-06-30", 1, 4.88], ["2023-06-30", 1, 5.1]])],
+  "monthly-income": [rbc({ en: "Canadian Short Term Fixed Income", fr: "Revenu fixe canadien à court terme" }, "page 26 of 57",
+    [["3M", 4, 2.02], ["1Y", 1, 12.42], ["2Y", 1, 10.9], ["3Y", 1, 13.38], ["5Y", 1, 7.23]],
+    [["2026-06-30", 1, 11.52], ["2025-06-30", 1, 5.96], ["2024-06-30", 1, 10.31], ["2023-06-30", 1, 9.76]])],
 };
+
+/** The untouched draft the previous release seeded (no URL, no date, not confirmed): replaced by the confirmed seed. */
+const pristineDraft = (e: ThirdPartyRanking): boolean => e.provider === "rbc-pfs" && !e.confirmed && !e.url && !e.asOf;
 
 export const DEFAULT_CONTENT: SiteContent = {
   version: 0,
@@ -85,7 +97,12 @@ function mergeFunds(stored: SiteContent["funds"] | undefined): SiteContent["fund
   }
   for (const [key, drafts] of Object.entries(SEEDED_THIRD_PARTY) as [FundKey, ThirdPartyRanking[]][]) {
     const cur = out[key] ?? {};
-    if (!cur.rankings?.thirdParty) out[key] = { ...cur, rankings: { ...(cur.rankings ?? {}), thirdParty: structuredClone(drafts) } };
+    const list = cur.rankings?.thirdParty;
+    if (!list) out[key] = { ...cur, rankings: { ...(cur.rankings ?? {}), thirdParty: structuredClone(drafts) } };
+    else if (list.some(pristineDraft) && !list.some((e) => e.provider === "rbc-pfs" && !pristineDraft(e))) {
+      // migration: the stored copy of the old RBC draft becomes the confirmed Q2 2026 entry
+      out[key] = { ...cur, rankings: { ...cur.rankings, thirdParty: [...structuredClone(drafts), ...list.filter((e) => !pristineDraft(e))] } };
+    }
   }
   return out;
 }
