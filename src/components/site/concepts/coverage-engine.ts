@@ -170,9 +170,9 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       const small = L.narrow ? 10 : 11;
       P.font(600, small);
       ctx.globalAlpha = fade * appear;
-      P.text(lab.universe.toUpperCase(), G.x, L.titleY, G.w * 0.6, "left", COL.mute);
-      P.font(500, small);
-      P.text(lab.dot, G.x + G.w, L.titleY, G.w * 0.38, "right", COL.mute);
+      // narrow: the title gets the whole row (the "each dot" key would truncate it)
+      P.text(lab.universe.toUpperCase(), G.x, L.titleY, L.narrow ? L.area.w : G.w * 0.6, "left", COL.mute);
+      if (!L.narrow) { P.font(500, small); P.text(lab.dot, G.x + G.w, L.titleY, G.w * 0.38, "right", COL.mute); }
       // filter legend, under the grid
       const ly = L.legendY;
       ctx.globalAlpha = fade * filter;
