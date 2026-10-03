@@ -69,8 +69,9 @@ export const percentileRowSchema = z.strictObject({
   ror: z.number().min(-100).max(1000).nullable().optional(),
 }).refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
 
-export const annualRowSchema = z.strictObject({
+export const rollingRowSchema = z.strictObject({
   end: isoDate,
+  years: z.number().int().min(1).max(20),
   percentile: z.number().int().min(1).max(100).nullable(),
   ror: z.number().min(-100).max(1000).nullable().optional(),
 });
@@ -90,7 +91,8 @@ export const thirdPartyRankingSchema = z.strictObject({
   asOf: z.union([isoDate, z.literal("")]),
   edition: text(40).optional(),
   rows: z.array(percentileRowSchema).max(RANKING_PERIODS.length),
-  annual: z.array(annualRowSchema).max(10).optional(),
+  rolling: z.array(rollingRowSchema).max(10).optional(),
+  trackSince: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "expected YYYY-MM").optional(),
   sourceRef: text(80).optional(),
   url: httpsUrl.optional(),
   confirmed: z.boolean().optional(),
@@ -100,7 +102,7 @@ export const thirdPartyRankingSchema = z.strictObject({
   if (!e.confirmed) return;
   const need = (ok: boolean, path: string, message: string) => { if (!ok) ctx.addIssue({ code: "custom", message, path: [path] }); };
   need(e.classLabel.length > 0 || e.scope === "fund", "classLabel", "class (or “fund as a whole”) is required to confirm");
-  need((e.annual ?? []).every((a) => a.percentile != null && (e.asOf === "" || a.end <= e.asOf)), "annual", "every one-year period needs a percentile and must end by the as-of date");
+  need((e.rolling ?? []).every((a) => a.percentile != null && (e.asOf === "" || a.end <= e.asOf)), "rolling", "every rolling period needs a percentile and must end by the as-of date");
   need(e.category.en.length > 0 && e.category.fr.length > 0, "category", "category (EN and FR) is required to confirm");
   need(e.asOf !== "", "asOf", "as-of date is required to confirm");
   need(!!e.url, "url", "source URL (https) is required to confirm");

@@ -15,7 +15,8 @@ import { T, tr } from "./copy";
 import { RK } from "./rankings-copy";
 import { Block } from "./Block";
 import { MorningstarRatingBlock } from "./Morningstar";
-import { dateLabel, type Lang } from "./lib/format.ts";
+import { dateLabel, monthLabel, type Lang } from "./lib/format.ts";
+import { FUND_INCEPTION } from "@/content/disclaimers";
 import { rankingsToShow } from "./lib/rankings.ts";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
@@ -46,14 +47,28 @@ export function standing(r: ThirdPartyRanking["rows"][number], lang: Lang): stri
   return tr(RK.tp.rankOf, lang).replace("{rank}", String(r.rank)).replace("{of}", String(r.of));
 }
 
-function ThirdPartyEntry({ e, lang, brand }: { e: ThirdPartyRanking; lang: Lang; brand?: BrandAssets }) {
+/** Who the figures are for: the strategy track record (incl. pre-launch periods), the fund as a whole, or a series. */
+export function scopeLabel(e: Pick<ThirdPartyRanking, "scope" | "trackSince" | "classLabel">, lang: Lang, short = false): string {
+  if (e.trackSince) return tr(short ? RK.tp.strategyShort : RK.tp.strategyScope, lang).replace("{month}", monthLabel(e.trackSince, lang));
+  if (e.scope === "fund") return tr(short ? RK.tp.fundShort : RK.tp.fundLevel, lang);
+  return e.classLabel;
+}
+
+function ThirdPartyEntry({ e, lang, brand, fundKey }: { e: ThirdPartyRanking; lang: Lang; brand?: BrandAssets; fundKey: string }) {
   const meta = PROVIDER_META[e.provider];
   const code = e.fundserv ? ` (${e.fundserv})` : "";
+  const launch = FUND_INCEPTION[fundKey]?.fundLaunch;
   return (
     <Block title={`${tr(meta.source, lang)}${e.edition ? ` — ${e.edition}` : ""}`} testId={`tp-${e.provider}`}
       aside={<Wordmark kind="tp" logo={brand?.[meta.logoSlot as keyof BrandAssets]}>{meta.name}</Wordmark>}
-      lead={<>{e.scope === "fund" ? tr(RK.tp.fundLevel, lang) : e.classLabel}{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
+      lead={<><span data-testid="tp-scope">{scopeLabel(e, lang)}</span>{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
       {e.basis ? <p className="fine aw-basis" data-testid="tp-basis">{tr(RK.tp.basis, lang).replace("{b}", tr(e.basis, lang))}</p> : null}
+      {e.trackSince ? (
+        <p className="fine aw-basis" data-testid="tp-prelaunch">
+          {tr(RK.tp.preLaunch, lang).replace("{month}", monthLabel(e.trackSince, lang)).replace("{launch}", launch ? tr(RK.tp.launchOn, lang).replace("{date}", tr(launch, lang)) : "")}{" "}
+          <a className="link" href="#disclosure">{tr(RK.tp.disclosures, lang)}</a>
+        </p>
+      ) : null}
       <div className="fx-scroll">
         <table className="table ft-table aw-table" data-testid="tp-table">
           <caption className="sr-only">{tr(RK.tp.table, lang)}</caption>
@@ -65,9 +80,9 @@ function ThirdPartyEntry({ e, lang, brand }: { e: ThirdPartyRanking; lang: Lang;
                 <td><strong>{standing(r, lang)}</strong></td>
               </tr>
             ))}
-            {(e.annual ?? []).map((a) => (
-              <tr key={a.end} data-testid={`tp-annual-${a.end.slice(0, 4)}`}>
-                <td>{tr(RK.tp.annual, lang).replace("{date}", dateLabel(a.end, lang, true))}</td>
+            {(e.rolling ?? []).map((a) => (
+              <tr key={`${a.years}-${a.end}`} data-testid={`tp-rolling-${a.years}y-${a.end.slice(0, 4)}`}>
+                <td>{tr(RK.tp.rolling, lang).replace("{n}", String(a.years)).replace("{date}", dateLabel(a.end, lang, true))}</td>
                 <td><strong>{a.percentile != null ? tr(RK.tp.percentile, lang).replace("{ord}", ordinal(a.percentile, lang)) : "—"}</strong></td>
               </tr>
             ))}
@@ -125,7 +140,7 @@ export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; cont
           <MorningstarRatingBlock m={ms} brand={brand} lang={lang} variant="full" />
         </Block>
       ) : null}
-      {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} />)}
+      {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} fundKey={spec.key} />)}
       {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} brand={brand} />)}
       {r.thirdParty.length ? <p className="fine aw-note" data-testid="tp-note">{tr(RK.tp.note, lang)}</p> : null}
       <p className="fine aw-note" data-testid="awards-note">{tr(T.awards.note, lang)}</p>

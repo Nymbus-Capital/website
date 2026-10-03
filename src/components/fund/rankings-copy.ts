@@ -37,12 +37,23 @@ export const RK = {
     periodEnd: l("Period ended", "Période terminée le"),
     fundLevel: l("Fund as a whole (not a specific series)", "Fonds dans son ensemble (aucune série en particulier)"),
     fundShort: l("Fund as a whole", "Fonds dans son ensemble"),
+    strategyScope: l(
+      "Strategy track record since {month} (includes periods before the fund’s launch)",
+      "Historique de la stratégie depuis {month} (comprend des périodes antérieures au lancement du fonds)",
+    ),
+    strategyShort: l("Strategy track record since {month}", "Historique de la stratégie depuis {month}"),
+    preLaunch: l(
+      "These rankings use the strategy’s track record since {month}, which includes periods before the fund’s launch{launch}; the fund’s own returns may differ.",
+      "Ces classements reposent sur l’historique de la stratégie depuis {month}, qui comprend des périodes antérieures au lancement du fonds{launch}; les rendements du fonds lui-même peuvent différer.",
+    ),
+    launchOn: l(" on {date}", " le {date}"),
+    disclosures: l("See the disclosures", "Voir les informations importantes"),
     basis: l("Survey basis: returns {b}; percentile rank 1 = best.", "Base du sondage\u00a0: rendements {b}; rang centile 1 = meilleur."),
     basisShort: l("returns {b}", "rendements {b}"),
-    annual: l("1 year to {date}", "1 an au {date}"),
+    rolling: l("{n} years to {date}", "{n} ans au {date}"),
     note: l(
-      "Percentile ranks compare the returns of the series with those of the other funds in the same peer group over each period (1st percentile = top 1%). They are reproduced from the source named, as at the date shown; peer groups and methodologies differ between providers. Past performance does not predict future results.",
-      "Les rangs centiles comparent les rendements de la série à ceux des autres fonds du même groupe de pairs pour chaque période (1er centile = premier 1 %). Ils sont reproduits de la source indiquée, à la date indiquée; les groupes de pairs et les méthodologies varient d’un fournisseur à l’autre. Les rendements passés ne prédisent pas les résultats futurs.",
+      "Percentile ranks compare the returns of the fund’s strategy or series (as stated on each ranking) with those of the other funds in the same peer group over each period (1st percentile = top 1%). They are reproduced from the source named, as at the date shown, on that source’s basis (the RBC Investor Services survey uses returns gross of management fees); peer groups and methodologies differ between providers. Past performance does not predict future results.",
+      "Les rangs centiles comparent les rendements de la stratégie ou de la série du fonds (selon ce qu’indique chaque classement) à ceux des autres fonds du même groupe de pairs pour chaque période (1er\u00a0centile = premier 1\u00a0%). Ils sont reproduits de la source indiquée, à la date indiquée, sur la base de cette source (le sondage de RBC Services aux investisseurs utilise des rendements avant déduction des frais de gestion); les groupes de pairs et les méthodologies varient d’un fournisseur à l’autre. Les rendements passés ne prédisent pas les résultats futurs.",
     ),
   },
   adv: {
@@ -58,8 +69,8 @@ export const RK = {
     overall: l("overall", "globale"),
     rankOf: l("rank {rank} of {of}", "rang {rank} sur {of}"),
     note: l(
-      "Rankings and ratings are provided by the third parties named, reproduced as at the dates shown and not updated daily; each applies to the series and category shown. Past performance does not predict future results, and rankings and ratings are not guarantees. See each source for its methodology.",
-      "Les classements et les cotes sont fournis par les tiers indiqués, reproduits aux dates indiquées et non mis à jour quotidiennement; chacun vise la série et la catégorie indiquées. Les rendements passés ne prédisent pas les résultats futurs, et les classements et les cotes ne sont pas des garanties. Consultez chaque source pour sa méthodologie.",
+      "Rankings and ratings are provided by the third parties named, reproduced as at the dates shown and not updated daily; each applies to the series or strategy and the category shown, on the source’s basis. Past performance does not predict future results, and rankings and ratings are not guarantees. See each source for its methodology.",
+      "Les classements et les cotes sont fournis par les tiers indiqués, reproduits aux dates indiquées et non mis à jour quotidiennement; chacun vise la série ou la stratégie et la catégorie indiquées, sur la base de la source. Les rendements passés ne prédisent pas les résultats futurs, et les classements et les cotes ne sont pas des garanties. Consultez chaque source pour sa méthodologie.",
     ),
     periods: {
       "1M": l("1 mo", "1 mois"), "3M": l("3 mo", "3 mois"), "6M": l("6 mo", "6 mois"), YTD: l("YTD", "Cumul annuel"),

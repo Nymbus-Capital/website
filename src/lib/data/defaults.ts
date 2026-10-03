@@ -50,21 +50,40 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
 export const RBC_Q2_2026_URL = "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf";
 const RBC_BASIS = { en: "gross of management fees, in Canadian dollars", fr: "avant déduction des frais de gestion, en dollars canadiens" };
 type R = [RankingPeriod, number, number];
-const rbc = (category: { en: string; fr: string }, page: string, rows: R[], annual: [string, number, number][]): ThirdPartyRanking => ({
-  provider: "rbc-pfs", classLabel: "", scope: "fund", basis: RBC_BASIS, category, asOf: "2026-06-30", edition: "Q2 2026", url: RBC_Q2_2026_URL,
-  sourceRef: page, confirmed: true,
+/** RBC category names stay in English in both languages: they are the survey's own names (no official French version). */
+const rbcCategory = (name: string) => ({ en: name, fr: name });
+const rbc = (category: { en: string; fr: string }, page: string, rows: R[], fourYear: [string, number, number][]): ThirdPartyRanking => ({
+  provider: "rbc-pfs", classLabel: "", scope: "fund", trackSince: "2019-01", basis: RBC_BASIS, category, asOf: "2026-06-30", edition: "Q2 2026",
+  url: RBC_Q2_2026_URL, sourceRef: page, confirmed: true,
   rows: rows.map(([period, percentile, ror]) => ({ period, percentile, ror })),
-  annual: annual.map(([end, percentile, ror]) => ({ end, percentile, ror })),
-  note: "RBC Investor Services Pooled Fund Survey Q2 2026, read by Nymbus (2026-10-03). Fund-level ranking (inception Jan-19 in the survey), gross of management fees. 10-year: n/a.",
+  // table "Four year periods ending June 30": rolling 4-year (annualized) periods, not one-year periods
+  rolling: fourYear.map(([end, percentile, ror]) => ({ end, years: 4, percentile, ror })),
+  note: "RBC Investor Services Pooled Fund Survey Q2 2026, read by Nymbus (2026-10-03). Strategy track record (inception Jan-19 in the survey, before the fund's launch), gross of management fees. Columns 2026-2023 = rolling 4-year periods ending June 30. 10-year: n/a.",
 });
 export const SEEDED_THIRD_PARTY: Partial<Record<FundKey, ThirdPartyRanking[]>> = {
-  "sustainable-enhanced-bonds": [rbc({ en: "Canadian Fixed Income", fr: "Revenu fixe canadien" }, "page 21 of 57",
+  "sustainable-enhanced-bonds": [rbc(rbcCategory("Canadian Fixed Income"), "page 21 of 57",
     [["3M", 1, 3.16], ["1Y", 1, 10.04], ["2Y", 1, 9.51], ["3Y", 1, 11.39], ["5Y", 1, 6.83]],
     [["2026-06-30", 1, 10.79], ["2025-06-30", 1, 6.04], ["2024-06-30", 1, 4.88], ["2023-06-30", 1, 5.1]])],
-  "monthly-income": [rbc({ en: "Canadian Short Term Fixed Income", fr: "Revenu fixe canadien à court terme" }, "page 26 of 57",
+  "monthly-income": [rbc(rbcCategory("Canadian Short Term Fixed Income"), "page 26 of 57",
     [["3M", 4, 2.02], ["1Y", 1, 12.42], ["2Y", 1, 10.9], ["3Y", 1, 13.38], ["5Y", 1, 7.23]],
     [["2026-06-30", 1, 11.52], ["2025-06-30", 1, 5.96], ["2024-06-30", 1, 10.31], ["2023-06-30", 1, 9.76]])],
 };
+
+type LegacyEntry = ThirdPartyRanking & { annual?: { end: string; percentile: number | null; ror?: number | null }[] };
+/**
+ * Entries stored with the previous release's `annual` list: that RBC table is "Four year periods ending June 30", so
+ * they become rolling 4-year periods; the stored copy of the seeded RBC entry also gets its strategy scope and the
+ * survey's English category names.
+ */
+function migrateEntry(e: LegacyEntry): ThirdPartyRanking {
+  const { annual, ...rest } = e;
+  const out: ThirdPartyRanking = annual && !rest.rolling ? { ...rest, rolling: annual.map((a) => ({ ...a, years: 4 })) } : rest;
+  if (out.provider === "rbc-pfs" && out.url === RBC_Q2_2026_URL && out.scope === "fund") {
+    if (!out.trackSince) out.trackSince = "2019-01";
+    if (out.category.fr === "Revenu fixe canadien" || out.category.fr === "Revenu fixe canadien à court terme") out.category = rbcCategory(out.category.en);
+  }
+  return out;
+}
 
 /** The untouched draft the previous release seeded (no URL, no date, not confirmed): replaced by the confirmed seed. */
 const pristineDraft = (e: ThirdPartyRanking): boolean => e.provider === "rbc-pfs" && !e.confirmed && !e.url && !e.asOf;
@@ -97,7 +116,8 @@ function mergeFunds(stored: SiteContent["funds"] | undefined): SiteContent["fund
   }
   for (const [key, drafts] of Object.entries(SEEDED_THIRD_PARTY) as [FundKey, ThirdPartyRanking[]][]) {
     const cur = out[key] ?? {};
-    const list = cur.rankings?.thirdParty;
+    const list = cur.rankings?.thirdParty?.map((e) => migrateEntry(e as LegacyEntry));
+    if (list && cur.rankings) out[key] = { ...cur, rankings: { ...cur.rankings, thirdParty: list } };
     if (!list) out[key] = { ...cur, rankings: { ...(cur.rankings ?? {}), thirdParty: structuredClone(drafts) } };
     else if (list.some(pristineDraft) && !list.some((e) => e.provider === "rbc-pfs" && !pristineDraft(e))) {
       // migration: the stored copy of the old RBC draft becomes the confirmed Q2 2026 entry

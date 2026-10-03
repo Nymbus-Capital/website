@@ -37,8 +37,10 @@ export interface AdvisorRankingItem {
   fundLevel?: boolean;
   /** basis of the figures ("gross of management fees, …") */
   basis?: L10n;
-  /** one-year periods ending on given dates */
-  annual?: { end: string; percentile: number | null }[];
+  /** rolling multi-year periods ending on given dates */
+  rolling?: { end: string; years: number; percentile: number | null }[];
+  /** strategy track record since (YYYY-MM): includes periods before the fund's launch */
+  trackSince?: string;
   /** the fund's standard performance (fund page, Performance tab) */
   perfUrl: string;
 }
@@ -66,7 +68,8 @@ export function advisorRankingItems(funds: AdvisorFundInput[], opts: { now: Date
         ...base, kind: e.provider, provider: meta.name, source: meta.source, logo: opts.brand?.[meta.logoSlot as keyof BrandAssets], classLabel: e.classLabel,
         category: e.category, asOf: e.asOf, edition: e.edition || undefined, url: e.url!, figures: e.rows.map((x) => ({ period: x.period, percentile: x.percentile, rank: x.rank ?? null, of: x.of ?? null })),
         ...(e.scope === "fund" ? { fundLevel: true } : {}), ...(e.basis ? { basis: e.basis } : {}),
-        ...(e.annual?.length ? { annual: e.annual.map((a) => ({ end: a.end, percentile: a.percentile })) } : {}),
+        ...(e.rolling?.length ? { rolling: e.rolling.map((a) => ({ end: a.end, years: a.years, percentile: a.percentile })) } : {}),
+        ...(e.trackSince ? { trackSince: e.trackSince } : {}),
       });
     }
     for (const e of r.fundLibrary) {

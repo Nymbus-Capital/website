@@ -442,13 +442,18 @@ test("awards and rankings: Fund Library rank and quartile with source and as-at 
   // RBC Investor Services Pooled Fund Survey Q2 2026: fund-level, gross of management fees, percentiles per period
   const rbc = tab.getByTestId("tp-rbc-pfs");
   await expect(rbc).toContainText("RBC Investor Services Pooled Fund Survey — Q2 2026");
-  await expect(rbc).toContainText("Fund as a whole (not a specific series)");
+  await expect(rbc.getByTestId("tp-scope")).toHaveText("Strategy track record since January 2019 (includes periods before the fund’s launch)");
+  await expect(rbc.getByTestId("tp-prelaunch")).toContainText("includes periods before the fund’s launch");
+  await expect(rbc.getByTestId("tp-prelaunch").getByRole("link", { name: "See the disclosures" })).toHaveAttribute("href", "#disclosure");
   await expect(rbc).toContainText("Canadian Fixed Income");
   await expect(rbc).toContainText("June 30, 2026");
   await expect(rbc.getByTestId("tp-basis")).toContainText("gross of management fees, in Canadian dollars");
   for (const p of ["3M", "1Y", "2Y", "3Y", "5Y"]) await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
   await expect(rbc.getByTestId("tp-row-10Y")).toHaveCount(0);
-  await expect(rbc.getByTestId("tp-annual-2023")).toContainText("1 year to June 30, 2023");
+  // "Four year periods ending June 30": rolling 4-year periods
+  for (const y of ["2026", "2025", "2024", "2023"]) await expect(rbc.getByTestId(`tp-rolling-4y-${y}`)).toContainText(`4 years to June 30, ${y}`);
+  await expect(rbc).not.toContainText("1 year to June 30");
+  await expect(page.getByTestId("tp-note")).toContainText("gross of management fees");
   await expect(rbc.getByRole("link", { name: /RBC Investor Services/ })).toHaveAttribute("href", "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf");
   // returns are stored for reference, never sent to the page
   expect(await page.content()).not.toMatch(/\bror\b|sourceRef/);
@@ -521,7 +526,10 @@ test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1s
   await expect(page.locator("body")).not.toContainText(/1st percentile (across|in) all periods/i);
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.reload();
-  await expect(rbc).toContainText("Revenu fixe canadien à court terme");
+  await expect(rbc).toContainText("Canadian Short Term Fixed Income");
+  await expect(rbc.getByTestId("tp-scope")).toContainText("Historique de la stratégie depuis janvier 2019");
+  await expect(rbc.getByTestId("tp-prelaunch")).toContainText("5 octobre 2021");
+  await expect(rbc.getByTestId("tp-rolling-4y-2023")).toContainText("4 ans au 30 juin 2023");
   await expect(rbc.getByTestId("tp-row-3M")).toContainText(/4e\scentile/);
   await expect(rbc.getByTestId("tp-basis")).toContainText("avant déduction des frais de gestion");
 });
@@ -536,7 +544,8 @@ test("solutions: the advisors section lists the confirmed, fresh rankings with s
   await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
   const rbcItem = list.getByTestId("advisor-rankings-monthly-income").getByTestId("advisor-item-rbc-pfs");
   await expect(rbcItem).toContainText("4th percentile");
-  await expect(rbcItem).toContainText("Fund as a whole");
+  await expect(rbcItem.getByTestId("advisor-scope")).toContainText("Strategy track record since January 2019");
+  await expect(rbcItem).toContainText("4 years to June 30, 2023");
   await expect(rbcItem.getByTestId("advisor-basis")).toContainText("gross of management fees");
   await expect(rbcItem).toContainText("June 30, 2026");
   await expect(list.getByTestId("advisor-ms-attribution")).toContainText("Morningstar");

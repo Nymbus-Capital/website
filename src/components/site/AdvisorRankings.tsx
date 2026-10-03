@@ -34,6 +34,10 @@ function dateText(iso: string, locale: "en" | "fr"): string {
   return new Intl.DateTimeFormat(locale === "fr" ? "fr-CA" : "en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).format(d);
 }
 
+function monthText(ym: string, locale: "en" | "fr"): string {
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-CA" : "en-CA", { year: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${ym}-01T00:00:00Z`));
+}
+
 function figureText(f: AdvisorFigure, locale: "en" | "fr", pick: (l: { en: string; fr: string }) => string): string {
   if (f.percentile != null) {
     const pct = pick(RK.tp.percentile).replace("{ord}", ordinal(f.percentile, locale));
@@ -82,14 +86,14 @@ export function AdvisorRankings({ items: own, title = true }: { items?: AdvisorR
                         {i.figures.map((f) => (
                           <span key={f.period} className="advr-fig"><b>{figureText(f, locale, pick)}</b> <span>{pick(RK.adv.periods[f.period])}</span></span>
                         ))}
-                        {(i.annual ?? []).map((a) => a.percentile != null ? (
-                          <span key={a.end} className="advr-fig"><b>{pick(RK.tp.percentile).replace("{ord}", ordinal(a.percentile, locale))}</b> <span>{pick(RK.tp.annual).replace("{date}", dateText(a.end, locale))}</span></span>
+                        {(i.rolling ?? []).map((a) => a.percentile != null ? (
+                          <span key={`${a.years}-${a.end}`} className="advr-fig"><b>{pick(RK.tp.percentile).replace("{ord}", ordinal(a.percentile, locale))}</b> <span>{pick(RK.tp.rolling).replace("{n}", String(a.years)).replace("{date}", dateText(a.end, locale))}</span></span>
                         ) : null)}
                       </span>
                     ) : null}
                   </span>
                   <span className="advr-meta">
-                    {i.fundLevel ? pick(RK.tp.fundShort) : pick(RK.ms.series).replace("{x}", i.classLabel.replace(CLASS_WORD, ""))}
+                    <span data-testid="advisor-scope">{i.trackSince ? pick(RK.tp.strategyScope).replace("{month}", monthText(i.trackSince, locale)) : i.fundLevel ? pick(RK.tp.fundShort) : pick(RK.ms.series).replace("{x}", i.classLabel.replace(CLASS_WORD, ""))}</span>
                     {i.basis ? <span data-testid="advisor-basis">{` · ${pick(RK.tp.basisShort).replace("{b}", pick(i.basis))}`}</span> : null}
                     {i.category ? ` · ${pick(i.category)}` : ""}
                     {i.edition ? ` · ${i.edition}` : ""}

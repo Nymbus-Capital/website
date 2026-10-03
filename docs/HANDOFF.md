@@ -182,13 +182,22 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `fix/rbc-v4` from `integ/v4`; not merged): RBC seed review fixes. (1) The survey columns
+  2026/2025/2024/2023 are **rolling 4-year periods ending June 30** ("Four year periods ending June 30"), not one-year
+  periods: field `annual` → `rolling[]` (`years: 4`), labels "4 years to June 30, 2026" / « 4 ans au 30 juin 2026 » (page,
+  /solutions, admin); stored `annual` entries migrate. (2) Scope label "Strategy track record since January 2019 (includes
+  periods before the fund’s launch)" (`trackSince: "2019-01"`) + pre-launch sentence with a link to the disclosures (Monthly
+  Income names its 2021-10-05 launch); entries stay confirmed. (3) Percentile note scope-aware ("fund’s strategy or
+  series"), gross basis for RBC. (4) RBC category names in English in both languages. (5) FR « IF du PNUE » for UNEP FI
+  (news, sustainability). Compliance W9 rewritten.
+
 - 2026-10-03 (sub-agent, branch `feat/awards-assets` from `redesign/v3-keynote-live-data`; not merged): Gabriel's assets and
   data. (1) Official Morningstar files (provided by Gabriel, Nymbus holds the permission) shipped as
   `public/brand/third-party/morningstar-logo.png` and `morningstar-stars-5.png`: the Overview and awards tabs of both bond
   funds and the /solutions list show the logo (~124 px) and stars image (~98 px) with the text alternative, series,
   as-of, source and attribution; served with the sandbox CSP. (2) RBC Investor Services Pooled Fund Survey Q2 2026 seeded as
   **confirmed** entries (as-of 2026-06-30, PDF URL, edition "Q2 2026"): SEB "Canadian Fixed Income" p. 21, percentile 1 for
-  1Q, 1/2/3/5Y and one-year periods to June 30 2023–2026; Monthly Income "Canadian Short Term Fixed Income" p. 26, **1Q = 4th
+  1Q, 1/2/3/5Y and the "four year periods ending June 30" 2023–2026 (rolling 4-year; first mislabelled one-year, fixed in `fix/rbc-v4`); Monthly Income "Canadian Short Term Fixed Income" p. 26, **1Q = 4th
   percentile**, 1 for the rest. New fields: `scope: "fund"` (survey ranks the fund, no series; class not required),
   `basis` (shown: "returns gross of management fees, in Canadian dollars"), `annual[]` (one-year periods), `sourceRef`,
   `ror` (stored, never sent to the page). A stored copy of the old pristine draft migrates to the confirmed entry. (3) RBC
