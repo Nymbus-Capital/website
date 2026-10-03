@@ -7,13 +7,14 @@ import { api, L10nInput, useToast } from "./client";
 
 const E: L10n = { en: "", fr: "" };
 
-export function SettingsForm({ version: v0, firm, publishMode: pm0 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review" }) {
+export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths: m0 = 6 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review"; maxAgeMonths?: number }) {
   const [version, setVersion] = useState(v0);
   const [aumLabel, setAum] = useState<L10n>(firm.aumLabel ?? E);
   const [bannerOn, setBannerOn] = useState(!!firm.announcement);
   const [announcement, setAnn] = useState<L10n>(firm.announcement ?? E);
   const [disclaimer, setDisc] = useState<L10n>(firm.disclaimer ?? E);
   const [publishMode, setPm] = useState(pm0);
+  const [maxAge, setMaxAge] = useState(String(m0));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
@@ -26,7 +27,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0 }: { version:
     try {
       const r = await api<{ content: { version: number } }>("/api/admin/content/settings", {
         method: "PUT",
-        json: { version, firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer }, publishMode },
+        json: { version, firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer }, publishMode, rankingPolicy: { maxAgeMonths: Math.min(24, Math.max(1, Math.trunc(Number(maxAge)) || 6)) } },
       });
       setVersion(r.content.version);
       toast("ok", `Saved (content v${r.content.version}).`);
@@ -64,6 +65,11 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0 }: { version:
           </label>
         </fieldset>
         <p className="adm-small">Runs that fail a blocking check never publish the fund concerned: it keeps its previous data either way.</p>
+        <label className="adm-field">
+          <span>hide third-party rankings older than (months)</span>
+          <input className="adm-input" type="number" min={1} max={24} step={1} value={maxAge} onChange={(e) => setMaxAge(e.target.value)} data-testid="rankings-max-age" />
+          <span className="adm-small">Morningstar, Fund Library, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.</span>
+        </label>
         <div className="adm-actions">
           <span className="adm-small">v{version}</span>
           <span className="sp" />

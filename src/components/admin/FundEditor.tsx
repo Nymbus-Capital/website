@@ -78,7 +78,7 @@ function toContent(f: Form): FundContent {
 }
 
 export function FundEditor({
-  fundKey, version: initialVersion, initial, defaults, classes, runs, classTypeRows,
+  fundKey, version: initialVersion, initial, defaults, classes, runs, classTypeRows, rankingsCtx,
 }: {
   fundKey: FundKey;
   version: number;
@@ -88,6 +88,8 @@ export function FundEditor({
   runs: { id: string; label: string }[];
   /** share classes of the registry and of the published data, with the type the registry gives them */
   classTypeRows: { fundserv: string; label: string; defaultType: ClassType }[];
+  /** staleness limit and missing official Morningstar files, for the rankings editor's warnings */
+  rankingsCtx?: { months: number; morningstarMissing: string[] };
 }) {
   const [form, setForm] = useState<Form>(() => toForm(initial));
   const [version, setVersion] = useState(initialVersion);
@@ -217,7 +219,7 @@ export function FundEditor({
         </div>
       </fieldset>
 
-      <RankingsEditor value={form.rankings} onChange={(v) => set("rankings", v)} />
+      <RankingsEditor value={form.rankings} onChange={(v) => set("rankings", v)} months={rankingsCtx?.months} morningstarMissing={rankingsCtx?.morningstarMissing} />
 
       <fieldset className="adm-fieldset">
         <legend>data snapshot</legend>

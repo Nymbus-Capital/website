@@ -2,7 +2,7 @@
  * Default admin content and its merge with the stored document: the SINGLE source used by the read model
  * (site.ts getContent) and the writer (content.ts updateContent). Dependency-free (unit tested under plain Node).
  */
-import type { FundContent, FundKey, FundLibraryRanking, RankingPeriod, SiteContent } from "./types.ts";
+import type { FundContent, FundKey, FundLibraryRanking, RankingPeriod, SiteContent, ThirdPartyRanking } from "./types.ts";
 
 /** rows from "rank/of" pairs; quartile given per row (the source states it for every period) */
 const rows = (...r: [RankingPeriod, number, number, 1 | 2 | 3 | 4][]): FundLibraryRanking["rows"] => r.map(([period, rank, of, quartile]) => ({ period, rank, of, quartile }));
@@ -41,6 +41,22 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
   },
 };
 
+/**
+ * RBC Investor Services pooled fund survey: DRAFT structures only (never shown). Nymbus states its bond funds are in the
+ * 1st percentile for every period; the public survey PDF could not be read here (2026-10-02: the Q2 2026 edition was
+ * only readable up to its Canadian Fixed Income table), so no figure is published until an admin checks each period,
+ * the class, the category and the quarter in the PDF, adds its URL and ticks "confirmed".
+ */
+const rbcDraft = (periods: RankingPeriod[]): ThirdPartyRanking => ({
+  provider: "rbc-pfs", classLabel: "", category: { en: "", fr: "" }, asOf: "", edition: "",
+  rows: periods.map((period) => ({ period, percentile: 1 })), confirmed: false,
+  note: "Draft pre-filled from Nymbus' statement (1st percentile, all periods). Check every period, the class, the category and the quarter in the survey PDF (rbcis.com/en/insights), add the PDF URL and the quarter-end date, then tick confirmed.",
+});
+export const SEEDED_THIRD_PARTY: Partial<Record<FundKey, ThirdPartyRanking[]>> = {
+  "monthly-income": [rbcDraft(["3M", "1Y", "2Y", "3Y", "4Y"])],
+  "sustainable-enhanced-bonds": [rbcDraft(["3M", "1Y", "2Y", "3Y", "4Y", "5Y"])],
+};
+
 export const DEFAULT_CONTENT: SiteContent = {
   version: 0,
   updatedAt: "1970-01-01T00:00:00.000Z",
@@ -56,12 +72,20 @@ export const DEFAULT_CONTENT: SiteContent = {
 /** Previous default of the firm AUM label: a stored copy of it was never edited by hand, so it follows the new default. */
 const LEGACY_AUM = [{ en: "$1.8B+", fr: "1,8 G$+" }];
 
-/** Stored fund content; the seeded rankings apply to a fund that has none stored (hide.rankings removes them). */
+/**
+ * Stored fund content; the seeded rankings apply to a fund that has none stored (hide.rankings removes them). The
+ * third-party drafts apply to a fund whose stored rankings have no `thirdParty` list (an admin who removed them saves
+ * an empty list, which stays empty).
+ */
 function mergeFunds(stored: SiteContent["funds"] | undefined): SiteContent["funds"] {
   const out: SiteContent["funds"] = { ...(stored ?? {}) };
   for (const [key, rankings] of Object.entries(SEEDED_RANKINGS) as [FundKey, NonNullable<FundContent["rankings"]>][]) {
     const cur = out[key];
     if (!cur?.rankings) out[key] = { ...(cur ?? {}), rankings: structuredClone(rankings) };
+  }
+  for (const [key, drafts] of Object.entries(SEEDED_THIRD_PARTY) as [FundKey, ThirdPartyRanking[]][]) {
+    const cur = out[key] ?? {};
+    if (!cur.rankings?.thirdParty) out[key] = { ...cur, rankings: { ...(cur.rankings ?? {}), thirdParty: structuredClone(drafts) } };
   }
   return out;
 }

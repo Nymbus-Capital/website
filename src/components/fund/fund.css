@@ -542,16 +542,19 @@ html:not(.js) .ft-bar { display: none; }
 .fx-chart-in.scroll svg { max-width: none; }
 
 .aw-wm { display: inline-flex; align-items: baseline; height: 28px; align-items: center; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; color: var(--ink); background: var(--surf); box-shadow: inset 0 0 0 1px var(--fx-axis); }
-.aw-wm-fl { color: #0b3b6f; }
-.aw-wm-ms { color: #b3001b; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; }
-.aw-wm-fg { color: #0b3b6f; font-size: 12px; }
 .aw-grade { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
 .aw-grade-v { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; font-size: 22px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--fund-from), var(--fund-to)); }
 .aw-table td, .aw-table th { white-space: nowrap; }
 .aw-q { display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 8px; border-radius: 99px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--surf); color: var(--ink2); }
 .aw-q[data-q="1"] { background: color-mix(in srgb, var(--fund) 14%, #fff); color: var(--fund-ink); }
-.aw-ms-row { display: flex; align-items: center; gap: 10px; margin: 0; }
-.aw-stars { display: inline-flex; gap: 3px; }
-.aw-stars svg { fill: var(--fx-axis); }
-.aw-stars svg.on { fill: #e8a400; }
 .aw-note { margin: 4px 0 0; max-width: 78ch; }
+/* provider names are neutral text (no imitation of third-party branding); official logos only as delivered files */
+.aw-logo { display: block; height: 24px; width: auto; max-width: 160px; object-fit: contain; }
+.ms-block { display: grid; gap: 6px; }
+.ms-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ms-logo { height: 28px; width: auto; max-width: 180px; object-fit: contain; }
+.ms-stars { height: 22px; width: auto; max-width: 160px; object-fit: contain; }
+.ms-text { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
+.ms-detail { margin: 0; color: var(--ink2); }
+.ms-source, .ms-legal { margin: 0; max-width: 78ch; }
+.ms-overview .ms-legal { font-size: 11px; line-height: 1.5; }

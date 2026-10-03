@@ -17,6 +17,7 @@ import { SampleTag, fundStyle } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
+import { AdvisorRankings } from "../AdvisorRankings";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
@@ -82,6 +83,8 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
           </Reveal>
         </div>
       </div>
+      {/* advisors: confirmed, fresh third-party rankings (renders nothing when there is none) */}
+      {a.key === "advisor" ? <AdvisorRankings /> : null}
     </Section>
   );
 }

@@ -1,31 +1,24 @@
 "use client";
 /**
- * Awards and rankings tab: Fund Library category rank and quartile per period, FundGrade, and the Morningstar overall
- * rating when the admin has confirmed one. Third-party data kept in the admin content (updated manually), always shown
- * with its source and "as at" date. The logos are CSS wordmarks (text), not the owners' artwork.
+ * Awards and rankings tab: Fund Library category rank and quartile per period, FundGrade, the Morningstar overall
+ * rating, and percentile rankings from RBC Investor Services (pooled fund survey), eVestment, LSEG Lipper and GMR once
+ * an admin confirmed them. Third-party data kept in the admin content (updated manually), always shown with its source,
+ * link and as-of date; the server page already removed drafts and stale entries. Provider names are plain text unless
+ * the official logo file is present (no imitation artwork).
  */
 import { ExternalLink } from "lucide-react";
-import type { FundContent, FundLibraryRanking } from "@/lib/data/types";
+import type { FundContent, FundLibraryRanking, ThirdPartyRanking } from "@/lib/data/types";
+import type { BrandAssets } from "@/lib/data/brand-assets";
+import { ordinal, PROVIDER_META } from "@/lib/rankings/policy";
 import type { PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
+import { RK } from "./rankings-copy";
 import { Block } from "./Block";
+import { MorningstarRatingBlock } from "./Morningstar";
 import { dateLabel, type Lang } from "./lib/format.ts";
 import { rankingsToShow } from "./lib/rankings.ts";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
-
-function Stars({ n, lang }: { n: number; lang: Lang }) {
-  const label = tr(T.awards.stars, lang).replace("{n}", String(n));
-  return (
-    <span className="aw-stars" role="img" aria-label={label} data-testid="morningstar-stars" data-stars={n}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg key={i} viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" className={i <= n ? "on" : "off"}>
-          <path d="M10 1.6l2.5 5.4 5.9.7-4.4 4 1.2 5.8L10 14.6l-5.2 2.9 1.2-5.8-4.4-4 5.9-.7z" />
-        </svg>
-      ))}
-    </span>
-  );
-}
 
 const EXTRA_PERIODS: Record<string, { en: string; fr: string }> = { "6M": { en: "6 months", fr: "6 mois" }, "4Y": { en: "4 years", fr: "4 ans" } };
 function periodLabel(p: string, lang: Lang): string {
@@ -33,14 +26,57 @@ function periodLabel(p: string, lang: Lang): string {
   return known ? tr(known, lang) : p;
 }
 
-/** Text-only wordmark badges (no third-party artwork). */
-const Wordmark = ({ kind, children }: { kind: "fl" | "ms" | "fg"; children: string }) => <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
+/** Provider name as plain text, or its official logo when the file is present. */
+export const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
+  logo ? <img className="aw-logo" src={logo} alt={children} height={24} /> : <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
 
-function Entry({ e, lang }: { e: FundLibraryRanking; lang: Lang }) {
+const sep = (lang: Lang) => (lang === "fr" ? "\u00a0: " : ": ");
+
+function SourceLink({ url, name, lang }: { url?: string; name: string; lang: Lang }) {
+  return url ? (
+    <p className="fine fxb-foot">
+      {tr(T.awards.source, lang)}{sep(lang)}<a className="link" href={url} target="_blank" rel="noopener noreferrer">{name}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({lang === "fr" ? "nouvel onglet" : "opens in a new tab"})</span></a>
+    </p>
+  ) : <p className="fine fxb-foot">{tr(T.awards.source, lang)}{sep(lang)}{name}</p>;
+}
+
+/** "1st percentile" / « 1er centile », else "3 of 108". */
+export function standing(r: ThirdPartyRanking["rows"][number], lang: Lang): string {
+  if (r.percentile != null) return tr(RK.tp.percentile, lang).replace("{ord}", ordinal(r.percentile, lang));
+  return tr(RK.tp.rankOf, lang).replace("{rank}", String(r.rank)).replace("{of}", String(r.of));
+}
+
+function ThirdPartyEntry({ e, lang, brand }: { e: ThirdPartyRanking; lang: Lang; brand?: BrandAssets }) {
+  const meta = PROVIDER_META[e.provider];
+  const code = e.fundserv ? ` (${e.fundserv})` : "";
+  return (
+    <Block title={`${tr(meta.source, lang)}${e.edition ? ` — ${e.edition}` : ""}`} testId={`tp-${e.provider}`}
+      aside={<Wordmark kind="tp" logo={brand?.[meta.logoSlot as keyof BrandAssets]}>{meta.name}</Wordmark>}
+      lead={<>{e.classLabel}{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
+      <div className="fx-scroll">
+        <table className="table ft-table aw-table" data-testid="tp-table">
+          <caption className="sr-only">{tr(RK.tp.table, lang)}</caption>
+          <thead><tr><th scope="col">{tr(RK.tp.period, lang)}</th><th scope="col">{tr(RK.tp.standing, lang)}</th></tr></thead>
+          <tbody>
+            {e.rows.map((r) => (
+              <tr key={r.period} data-testid={`tp-row-${r.period}`}>
+                <td>{periodLabel(r.period, lang)}</td>
+                <td><strong>{standing(r, lang)}</strong></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <SourceLink url={e.url} name={tr(meta.source, lang)} lang={lang} />
+    </Block>
+  );
+}
+
+function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Lang; brand?: BrandAssets }) {
   const code = e.fundserv ? ` (${e.fundserv})` : "";
   return (
     <Block title={`${tr(T.awards.series, lang)} ${e.classLabel.replace(CLASS_WORD, "")}${code}`} testId={`ranking-${e.fundserv ?? e.classLabel}`}
-      aside={<Wordmark kind="fl">Fund Library</Wordmark>}
+      aside={<Wordmark kind="fl" logo={brand?.["fundlibrary-logo"]}>Fund Library</Wordmark>}
       lead={<>{tr(T.awards.category, lang)}{lang === "fr" ? " " : ""}: <strong>{tr(e.category, lang)}</strong> · {tr(T.awards.asAt, lang)} {dateLabel(e.asOf, lang, true)}</>}>
       {e.fundGrade ? (
         <div className="aw-grade" data-testid="fundgrade">
@@ -65,31 +101,26 @@ function Entry({ e, lang }: { e: FundLibraryRanking; lang: Lang }) {
           </table>
         </div>
       ) : null}
-      {e.url ? (
-        <p className="fine fxb-foot">
-          {tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: <a className="link" href={e.url} target="_blank" rel="noopener noreferrer">Fund Library<ExternalLink aria-hidden="true" /><span className="sr-only"> ({lang === "fr" ? "nouvel onglet" : "opens in a new tab"})</span></a>
-        </p>
-      ) : <p className="fine fxb-foot">{tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: Fund Library</p>}
+      <SourceLink url={e.url} name="Fund Library" lang={lang} />
     </Block>
   );
 }
 
-export function AwardsTab({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Lang }) {
+export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; content: FundContent; lang: Lang; brand?: BrandAssets }) {
   const r = rankingsToShow(content, spec.classes);
   if (!r) return null;
   const ms = r.morningstar;
   return (
     <div className="container fp" data-testid="awards">
       <p className="fp-context">{tr(T.awards.intro, lang)}</p>
-      {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} />)}
       {ms ? (
-        <Block title={tr(T.awards.morningstar, lang)} aside={<Wordmark kind="ms">Morningstar</Wordmark>} testId="morningstar"
-          lead={<>{ms.category ? `${tr(T.awards.category, lang)}${lang === "fr" ? " " : ""}: ${tr(ms.category, lang)} · ` : ""}{tr(T.awards.asAt, lang)} {dateLabel(ms.asOf, lang, true)}</>}>
-          <p className="aw-ms-row"><Stars n={ms.stars} lang={lang} /> <strong data-testid="morningstar-class">{tr(T.awards.series, lang)} {ms.classLabel.replace(CLASS_WORD, "")}</strong></p>
-          {ms.url ? <p className="fine fxb-foot">{tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: <a className="link" href={ms.url} target="_blank" rel="noopener noreferrer">Morningstar<ExternalLink aria-hidden="true" /><span className="sr-only"> ({lang === "fr" ? "nouvel onglet" : "opens in a new tab"})</span></a></p>
-            : <p className="fine fxb-foot">{tr(T.awards.source, lang)}{lang === "fr" ? " " : ""}: Morningstar</p>}
+        <Block title={tr(T.awards.morningstar, lang)} testId="awards-morningstar">
+          <MorningstarRatingBlock m={ms} brand={brand} lang={lang} variant="full" />
         </Block>
       ) : null}
+      {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} />)}
+      {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} brand={brand} />)}
+      {r.thirdParty.length ? <p className="fine aw-note" data-testid="tp-note">{tr(RK.tp.note, lang)}</p> : null}
       <p className="fine aw-note" data-testid="awards-note">{tr(T.awards.note, lang)}</p>
     </div>
   );

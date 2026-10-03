@@ -23,7 +23,9 @@ test("rankingsToShow: hidden, empty or malformed entries show nothing", () => {
   assert.equal(rankingsToShow({ rankings: { fundLibrary: [{ classLabel: "Class F", category: { en: "x", fr: "y" }, asOf: "2026-08-31", rows: [] }] } }, undefined, NOW), null);
   assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 7 as never, asOf: "2026-08-31", classLabel: "Class F" } } }, undefined, NOW), null, "stars outside 1 to 5");
   assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 5, asOf: "", classLabel: "Class F" } } }, undefined, NOW), null, "a rating needs its as-at date");
-  assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F" } } }, undefined, NOW)!.morningstar!.stars, 5);
+  assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F" } } }, undefined, NOW), null, "a rating needs its source link");
+  assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F", url: "https://global.morningstar.com/x" } } }, undefined, NOW)!.morningstar!.stars, 5);
+  assert.equal(rankingsToShow({ rankings: { fundLibrary: [{ ...seb().rankings!.fundLibrary![0], url: undefined }] } }, undefined, NOW), null, "a Fund Library ranking needs its source link");
   assert.equal(rankingsToShow({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31" } as never } }, undefined, NOW), null, "a rating needs its class");
 });
 
@@ -58,7 +60,7 @@ test("rankingsToShow: Fund Library entries of a class the fund does not have are
   assert.equal(rankingsToShow({ rankings: { fundLibrary: [{ ...seb().rankings!.fundLibrary![0], fundserv: undefined }] } }, own, NOW), null, "no FundServ: cannot be matched");
   const late = new Date("2027-05-01T00:00:00Z");
   assert.equal(rankingsToShow(seb(), own, late), null, "as at 2026-08-31 and 2026-10-01: both older than 6 months");
-  const mixed = { rankings: { fundLibrary: seb().rankings!.fundLibrary, morningstar: { stars: 5 as const, asOf: "2027-02-01", classLabel: "Class F" } } };
+  const mixed = { rankings: { fundLibrary: seb().rankings!.fundLibrary, morningstar: { stars: 5 as const, asOf: "2027-02-01", classLabel: "Class F", url: "https://global.morningstar.com/x" } } };
   const r = rankingsToShow(mixed, own, late)!;
   assert.equal(r.fundLibrary.length, 0); assert.equal(r.morningstar?.stars, 5);
 });

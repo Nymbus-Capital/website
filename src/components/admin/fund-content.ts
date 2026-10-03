@@ -3,7 +3,7 @@
  * lists are dropped so the public page falls back to the registry defaults. `hide` keeps `true` entries and
  * `aum: false` — AUM is hidden by default and only an explicit `false` publishes it.
  */
-import type { FundContent } from "../../lib/data/types.ts";
+import type { FundContent, ThirdPartyRanking } from "../../lib/data/types.ts";
 
 export function cleanFundContent(f: FundContent): FundContent {
   const out: Record<string, unknown> = {};
@@ -33,6 +33,8 @@ export function cleanFundContent(f: FundContent): FundContent {
       const rk: NonNullable<FundContent["rankings"]> = {};
       if (lib.length) rk.fundLibrary = lib;
       if (r.morningstar) rk.morningstar = r.morningstar;
+      // kept even when empty: an empty list means "removed", so the seeded drafts do not come back
+      if (Array.isArray(r.thirdParty)) rk.thirdParty = r.thirdParty.map(cleanThirdParty);
       if (Object.keys(rk).length === 0) continue;
       out[k] = rk;
       continue;
@@ -40,6 +42,17 @@ export function cleanFundContent(f: FundContent): FundContent {
     out[k] = v;
   }
   return out as FundContent;
+}
+
+/** Drop empty optional fields of a third-party entry (rows without any figure are kept: the admin is still typing). */
+function cleanThirdParty(e: ThirdPartyRanking): ThirdPartyRanking {
+  const out: ThirdPartyRanking = { provider: e.provider, classLabel: e.classLabel, category: e.category, asOf: e.asOf, rows: e.rows };
+  if (e.fundserv) out.fundserv = e.fundserv;
+  if (e.edition) out.edition = e.edition;
+  if (e.url) out.url = e.url;
+  if (e.confirmed) out.confirmed = true;
+  if (e.note) out.note = e.note;
+  return out;
 }
 
 /** A bilingual admin text is valid when both languages are set or both are empty (after trimming). */

@@ -199,6 +199,44 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   an "as at" date; shown in the *Awards and rankings* tab with the source link; `hide.rankings` removes the tab. Wordmarks
   are CSS text: official brand assets may only be dropped in with the owners' permission.
 
+### Awards v2: rankings freshness, official brand assets (`src/lib/rankings/`, `src/lib/data/brand-assets.ts`)
+
+- **What may be shown** (`rankings/policy.ts`, pure): every ranking or rating needs its source name, an https source link,
+  an as-of date and its class; missing → not shown. Fund Library (rank / quartile), Morningstar (stars, class, optional
+  category and "out of N funds"), and `FundRankings.thirdParty[]` entries for the **RBC Investor Services pooled fund
+  survey, eVestment, LSEG Lipper and GMR** (provider, class, optional FundServ, peer group EN/FR, period-end date,
+  edition, per-period percentile 1–100 and / or rank out of N, URL, `confirmed`, admin-only `note`). A third-party entry
+  is public only when `confirmed` and complete; drafts are admin-only.
+- **Staleness**: an entry whose as-of date is older than `SiteContent.rankingPolicy.maxAgeMonths` (admin settings, default
+  6, 1–24) is hidden — same rule for every provider. "Re-confirming" = entering the source's newer as-of date. The fund
+  page (`strategies/[slug]/page.tsx`) and `/solutions` filter on the server (`publicFundRankings`,
+  `advisorRankingItems`): drafts, notes and stale figures never reach the RSC payload; the client only re-checks the shape.
+- **RBC survey check** (`rankings/rbc-survey.ts`, `rankings/schedule.ts`, started by `instrumentation.ts`): every 6 h the
+  process runs the check when the stored one (`rankings/rbc-survey-check.json` on the volume) is older than
+  `RANKINGS_CHECK_DAYS` (7). It reads the public insights listing (`https://www.rbcis.com/en/our-insights.page`, then the
+  legacy `rbcits.com` address), parses survey editions from article links, PDF links and titles, and HEAD-probes the
+  predictable PDF address (`/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q<q>_<yyyy>.pdf`) of the next quarters. A
+  quarter newer than a fund's confirmed RBC entry gives a dashboard issue ("New RBC pooled fund survey Qx published —
+  update rankings") and one `PIPELINE_ALERT_WEBHOOK` message per edition. **A failed check only logs and shows an issue;
+  it never hides or changes data** (hiding is the as-of rule above). `POST /api/admin/rankings/check` runs it on demand.
+- **Seeds** (`defaults.ts`): Morningstar 5 stars Class F as of 2026-10-01 for both bond funds (stated by Nymbus); Fund
+  Library as at 2026-08-31; RBC entries for both bond funds as **drafts** (1st percentile pre-filled, no URL, no date) —
+  the survey PDF could not be read here. A fund whose stored rankings lack `thirdParty` gets the drafts; saving an empty
+  list keeps it empty.
+- **Morningstar on the overview**: the bond funds' Overview tab shows the rating in the side column
+  (`components/fund/Morningstar.tsx`), with class, as-of date, source link, methodology and © attribution
+  (`rankings-copy.ts`, compliance row W3). The awards tab shows the same block.
+- **Official brand assets** (`brand-assets.ts`): slots `morningstar-logo`, `morningstar-stars-1..5`, `rbc-logo`,
+  `evestment-logo`, `lseg-lipper-logo`, `gmr-logo`, `fundlibrary-logo`. A slot is filled by a file shipped in
+  `public/brand/third-party/<slot>.svg|png|webp` or uploaded in *Admin → Settings → third-party brand assets*
+  (`POST /api/admin/upload/brand`, stored at `brand/files/<slot>.<ext>`, served by `GET /api/brand/<slot>` with its exact
+  type, `nosniff`, a sandboxing CSP and an ETag; PNG / WebP / plain SVG only, scripts / handlers / external references
+  refused, 512 KB). The upload wins. An empty slot renders **text** (e.g. "Morningstar Rating™: 5 stars") — never an
+  imitation graphic; the dashboard and the fund editor warn "official Morningstar assets missing".
+- **AdvisorRankings** (`components/site/AdvisorRankings.tsx`): compact list per fund across providers; reads items from
+  `AdvisorRankingsProvider` (set by `/solutions/page.tsx`) or an `items` prop; renders nothing when empty. Placed in the
+  advisors section of `/solutions`.
+
 ## Conventions
 
 - All returns/weights/yields are decimal fractions in data; formatting happens in the UI only.
@@ -288,7 +326,9 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `ANALYTICS_RETURNS_FILE` | optional local copy of `fund_returns.json` (overrides GitHub) |
 | `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH` | default `0`; `1`: a new performance month goes live only once its factsheet exists and cross-checks (an existing disagreeing factsheet always blocks) |
 | `PIPELINE_SCHEDULE` | `HH:MM,HH:MM` America/Toronto, or `off` (default `06:45,12:45,18:45`) |
-| `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs |
+| `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs (also: a new RBC pooled fund survey edition, once per edition) |
+| `RANKINGS_CHECK` | `off` disables the weekly RBC pooled fund survey check (e2e sets it) |
+| `RANKINGS_CHECK_DAYS` | days between two survey checks (default 7, 1–60) |
 | `SHOW_SAMPLE_DATA` | `1` to allow the synthetic sample in production (demo environments only) |
 | `WP_BASE_URL` | optional: base URL of the WordPress content backend (`https://…`; `http` only for localhost or a single-label private host). Unset = CMS off, static content |
 | `WP_CONTENT_SECRET` | optional shared secret sent as `X-Nymbus-Content-Secret` (same value as `NYMBUS_CONTENT_SECRET` in WordPress) |
