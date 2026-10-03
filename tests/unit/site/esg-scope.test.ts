@@ -78,7 +78,12 @@ test("ESG scope: the sustainability page says the criteria are the fund's, and k
     assert.match(SU.exclusions.lead[lang], SEB[lang], `exclusions lead (${lang})`);
     assert.match(SU.integration.eyebrow[lang], SEB[lang], `integration eyebrow (${lang})`);
   }
-  assert.match(SU.exclusions.lead.en, /Our other funds and strategies do not apply these exclusions\./);
+  assert.match(SU.exclusions.lead.en, /^The ESG criteria and exclusions below are those of the Sustainable Enhanced Bonds Fund/);
+  // attribution only: no claim about what the firm's other portfolios exclude, and the pledge never reads as a portfolio exclusion
+  for (const lang of ["en", "fr"] as const) {
+    assert.ok(!/other funds|autres fonds/i.test(JSON.stringify(SU)), "no statement about the other funds' exclusions");
+    for (const c of SU.commitments.items) assert.ok(!/exclu/i.test(c.d[lang]), `pledge text (${lang}) implies a portfolio exclusion`);
+  }
   assert.ok(SU.commitments.items.some((c) => /PRI/.test(c.t.en)) && SU.commitments.items.some((c) => /Tobacco-Free Finance Pledge/.test(c.t.en)));
 });
 

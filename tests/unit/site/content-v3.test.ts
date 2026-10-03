@@ -62,13 +62,14 @@ test("team: the counters see what the data holds today (2 PhDs, 3 engineering / 
   assert.equal(countEngineering(team), 3);
   assert.equal(countCharter(team), 6);
   assert.equal(countGraduate(team), 9);
-  assert.equal(combinedExperience(team)!.years, 332);
+  assert.equal(combinedExperience(team)!.years, 273);
 });
 
 test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French", () => {
   const jessica = team.find((m) => m.name === "Jessica Martins")!;
-  assert.deepEqual(badgesOf(jessica, "en"), [{ label: "PhD", key: true }]);
-  assert.deepEqual(badgesOf(jessica, "fr"), [{ label: "Ph. D.", key: true }]);
+  assert.deepEqual(badgesOf(jessica, "en").map((b) => [b.label, b.key]), [["PhD", true]]);
+  assert.deepEqual(badgesOf(jessica, "fr").map((b) => [b.label, b.key]), [["Ph. D.", true]]);
+  assert.equal(badgesOf(team.find((m) => m.name === "Gabriel Cefaloni")!, "fr")[0].long, "Gestionnaire de placements agréé (CIM)");
   const diane = team.find((m) => m.name === "Diane Dusabimana")!;
   assert.deepEqual(badgesOf(diane, "en").map((b) => b.label), ["CFA", "CPA", "MBA"]);
 });
@@ -85,9 +86,11 @@ test("team: wording gives the futures overlays room next to fixed income (about 
 
 test("approach: risk-first and multi-strategy sections keep low correlation as an objective, with the overlay disclosure", () => {
   assert.match(AP.risk.lead.en, /^Ultra-micro analysis, at scale/);
-  assert.match(AP.risk.items[2].d.en, /designed to have low correlation/);
+  assert.match(AP.risk.items[2].d.en, /^Designed to offset part of bond losses, with low correlation with bonds in down months/);
+  assert.ok(!/protective|protectri/i.test(JSON.stringify([AP, AUDIENCES])), "no 'protective' overlay as a fact");
+  assert.ok(!/liquid alternative[^,]|alternative liquide[^ ]/i.test(JSON.stringify([AP, AUDIENCES])), "'liquid alternative' is a defined term: say 'liquid, cross-asset alternative strategy'");
   assert.ok(!/uncorrelated|non corrélé/i.test(JSON.stringify(AP)), "no 'uncorrelated' as a fact");
-  assert.match(AP.multi.lead.en, /designed to have low correlation with stocks and bonds/);
+  assert.match(AP.multi.lead.en, /^A liquid, cross-asset alternative strategy: .*designed to have low correlation with stocks and bonds in down months\.$/);
   assert.ok(AP.multi.note.en.endsWith(OVERLAY_ADDS));
   assert.ok(AP.multi.note.fr.endsWith(OVERLAY_ADDS_FR));
   assert.match(AP.multi.note.en, /^Illustration only/);

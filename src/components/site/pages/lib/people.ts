@@ -57,17 +57,17 @@ export function combinedExperience(members: readonly TeamMember[]): { years: num
   return { years, plus: known.length < members.length || known.some((m) => m.yearsExperiencePlus) };
 }
 
-const BADGES: { re: RegExp; en: string; fr: string; key?: boolean }[] = [
-  { re: /^PhD\b/i, en: "PhD", fr: "Ph. D.", key: true },
-  { re: /^CFA$/, en: "CFA", fr: "CFA", key: true },
-  { re: /^CIM$/, en: "CIM", fr: "CIM", key: true },
-  { re: /^CPA$/, en: "CPA", fr: "CPA" },
-  { re: /^M\.?\s?Sc\b/i, en: "M.Sc.", fr: "M. Sc." },
-  { re: /^MBA\b/i, en: "MBA", fr: "MBA" },
+const BADGES: { re: RegExp; en: string; fr: string; long: { en: string; fr: string }; key?: boolean }[] = [
+  { re: /^PhD\b/i, en: "PhD", fr: "Ph. D.", long: { en: "Doctorate (PhD)", fr: "Doctorat (Ph. D.)" }, key: true },
+  { re: /^CFA$/, en: "CFA", fr: "CFA", long: { en: "Chartered Financial Analyst", fr: "Analyste financier agréé (CFA)" }, key: true },
+  { re: /^CIM$/, en: "CIM", fr: "CIM", long: { en: "Chartered Investment Manager", fr: "Gestionnaire de placements agréé (CIM)" }, key: true },
+  { re: /^CPA$/, en: "CPA", fr: "CPA", long: { en: "Chartered Professional Accountant", fr: "Comptable professionnel agréé (CPA)" } },
+  { re: /^M\.?\s?Sc\b/i, en: "M.Sc.", fr: "M. Sc.", long: { en: "Master of Science", fr: "Maîtrise ès sciences" } },
+  { re: /^MBA\b/i, en: "MBA", fr: "MBA", long: { en: "Master of Business Administration", fr: "Maîtrise en administration des affaires" } },
 ];
 
 /** Short credential badges of a person (PhD, CFA, CIM, CPA, M.Sc., MBA), each once, key credentials first. */
-export function badgesOf(m: TeamMember, lang: "en" | "fr"): { label: string; key: boolean }[] {
+export function badgesOf(m: TeamMember, lang: "en" | "fr"): { label: string; long: string; key: boolean }[] {
   const q = quals(m);
-  return BADGES.filter((b) => q.some((d) => b.re.test(d))).map((b) => ({ label: b[lang], key: !!b.key }));
+  return BADGES.filter((b) => q.some((d) => b.re.test(d))).map((b) => ({ label: b[lang], long: b.long[lang], key: !!b.key }));
 }

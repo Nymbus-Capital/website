@@ -14,8 +14,8 @@ export const HOME_COPY = {
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
     lead: l(
-      "Scientists and engineers solving the harder problems in finance.",
-      "Des scientifiques et des ingénieurs s’attaquent aux problèmes difficiles de la finance.",
+      "Scientists and technologists solving the harder problems in finance.",
+      "Des scientifiques, des informaticiens et des analystes s’attaquent aux problèmes difficiles de la finance.",
     ),
     cta1: l("Explore strategies", "Explorer les stratégies"),
     cta2: l("Investment solutions", "Solutions de placement"),
@@ -115,7 +115,6 @@ export const FUND_COPY = {
   navSeries: l("Series", "Série"),
   /** class of the returns shown (not of the NAV series next to them), followed by its code */
   perfClass: l("Returns: Series", "Rendements\u00a0: Série"),
-  /** the variant whose returns are shown (Global Minimum Volatility), e.g. "6% downside volatility" */
   ytd: l("YTD", "DDA"),
   y1: l("1 year", "1 an"),
   si: l("Since inception, annualized", "Depuis la création, annualisé"),
@@ -162,6 +161,6 @@ export const CATEGORY_COPY = {
 
 /** Vehicle as the cards and the comparison table word it. */
 export const VEHICLE_COPY = {
-  fund: l("Fund · FundServ", "Fonds · FundServ"),
+  fund: l("Fund · Fundserv", "Fonds · Fundserv"),
   strategy: l("Managed accounts", "Comptes gérés"),
 };

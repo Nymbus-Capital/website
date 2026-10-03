@@ -44,14 +44,14 @@ export const NEWS: NewsItem[] = [
     id: "tobacco-free",
     date: "2024-04-23",
     category: "esg",
-    title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire du Tobacco-Free Finance Pledge"),
+    title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire de l’Engagement pour une finance sans tabac"),
     summary: l(
-      "A firm commitment; tobacco is among the Sustainable Enhanced Bonds Fund’s exclusions.",
-      "Un engagement de la firme; le tabac figure parmi les exclusions du Fonds Obligations Durables Bonifiées.",
+      "A commitment by the firm to an initiative led by Tobacco Free Portfolios.",
+      "Un engagement de la firme envers une initiative menée par Tobacco Free Portfolios.",
     ),
     body: l(
       "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",
-      "Nymbus a signé le Tobacco-Free Finance Pledge, mené par Tobacco Free Portfolios.",
+      "Nymbus a signé l’Engagement pour une finance sans tabac (Tobacco-Free Finance Pledge), mené par Tobacco Free Portfolios.",
     ),
   },
   {

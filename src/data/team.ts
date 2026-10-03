@@ -1,3 +1,10 @@
+/**
+ * Static team list (fallback when WordPress has no team). The 14 people of the nymbus-decks team list
+ * (data/seed/team.json, the source of decks.nymbus.ca) take their titles, years of experience, education, designations,
+ * LinkedIn and portraits from it (2026-10-02). Guy Liébart, Jason Laliberte, Luca Ieraci and Xavier Girard are not in
+ * that list: they keep the previous site's data and have no `yearsExperience`. Credential counts are computed from this
+ * file only (src/components/site/pages/lib/people.ts).
+ */
 export type Department = "Leadership" | "Investment Team" | "Quantitative Research" | "Operations" | "Board";
 
 export interface TeamMember {
@@ -17,7 +24,7 @@ export interface TeamMember {
   previousRoles?: string[];
   previousRolesFr?: string[];
   yearJoined?: number;
-  /** years of experience as stated in the firm's team material (nymbus-decks); never estimated */
+  /** years of experience as stated in the nymbus-decks team list; absent for anyone not in it (never estimated) */
   yearsExperience?: number;
   /** true when the stated figure is a lower bound ("+40 years") */
   yearsExperiencePlus?: boolean;
@@ -103,7 +110,7 @@ export const team: TeamMember[] = [
     education: ["B.Com Market Finance, Applied Mathematics, Computer Science"],
     educationFr: ["B.A.A., finance de marché, mathématiques appliquées, informatique"],
     designations: ["CIM"],
-    previousRoles: ["Associate & Portfolio Manager, GC Capital", "Portfolio Manager, Interest Rate & Equity Derivatives, Groupe ARB"],
+    previousRoles: ["Partner & Portfolio Manager, GC Capital", "Portfolio Manager, Interest Rate & Equity Derivatives, Groupe ARB"],
     previousRolesFr: ["Associé et gestionnaire de portefeuille, GC Capital", "Gestionnaire de portefeuille, dérivés taux d’intérêt et actions, Groupe ARB"],
     yearJoined: 2013,
     yearsExperience: 19,
@@ -115,7 +122,7 @@ export const team: TeamMember[] = [
   {
     name: "Mathieu Poulin-Brière",
     title: "Partner, Systematic Overlays",
-    titleFr: "Associé, superpositions systématiques",
+    titleFr: "Associé, stratégies systématiques",
     department: "Leadership",
     additionalDepartments: ["Investment Team", "Board"],
     bio: "Leads the systematic overlay strategies on listed futures, across asset classes. Joined in 2021 from Perseus Capital, a quantitative hedge fund, after 13 years in systematic trading.",
@@ -147,7 +154,6 @@ export const team: TeamMember[] = [
     designations: ["MBA"],
     previousRoles: ["President & Portfolio Manager, Gestion Sodagep", "Executive Vice-President, Canagex", "Assistant Director, Bonds — CDPQ"],
     previousRolesFr: ["Président et gest. de portefeuille, Gestion Sodagep", "Vice-président exécutif, Canagex", "Sous-directeur, obligations — CDPQ"],
-    yearsExperience: 59,
     initials: "GL",
     color: "#1a73e8",
     photo: "https://www.nymbus.ca/wp-content/uploads/2025/06/Guy.png",
@@ -179,12 +185,12 @@ export const team: TeamMember[] = [
     department: "Investment Team",
     bio: "Leads investment platform engineering: data infrastructure, trading systems and internal tools. 11+ years in software, including Google’s Vertex AI platform and IBM Watson.",
     bioFr: "Dirige l’ingénierie des plateformes de placement : infrastructure de données, systèmes de négoce et outils internes. Plus de 11 ans en génie logiciel, notamment sur la plateforme Vertex AI de Google et chez IBM Watson.",
-    summary: "11+ years in AI/ML platform engineering; former Senior Staff Engineer on Google Vertex AI and Senior Engineer on IBM Watson",
-    summaryFr: "11+ ans en ingénierie de plateformes IA/ML; ancien ingénieur principal sénior sur Google Vertex AI et ingénieur sénior sur IBM Watson",
+    summary: "11 years in AI/ML platform software, including Vertex AI and IBM Watson",
+    summaryFr: "11 ans en logiciels de plateformes IA/ML, notamment Vertex AI et IBM Watson",
     education: ["B.Sc. Computer Science"],
     educationFr: ["B. Sc., informatique"],
-    previousRoles: ["Senior Staff Software Engineer, Vertex AI — Google", "Senior Engineer, Watson — IBM"],
-    previousRolesFr: ["Ingénieur logiciel principal sénior, Vertex AI — Google", "Ingénieur sénior, Watson — IBM"],
+    previousRoles: ["Senior Engineer, Vertex AI", "Engineer, IBM Watson"],
+    previousRolesFr: ["Ingénieur principal, Vertex AI", "Ingénieur, IBM Watson"],
     yearJoined: 2025,
     yearsExperience: 11,
     initials: "LH",
@@ -262,15 +268,15 @@ export const team: TeamMember[] = [
     title: "Chief Compliance Officer",
     titleFr: "Cheffe de la conformité",
     department: "Operations",
-    bio: "Oversees compliance, regulatory affairs and operations. 16 years of experience, including Head of Compliance in Asset Management.",
+    bio: "Oversees compliance, regulatory affairs and operations. 16 years of experience, including Practice Leader, Asset Management Compliance.",
     bioFr: "Supervise la conformité, les affaires réglementaires et les opérations. 16 ans d’expérience, dont responsable de la conformité en gestion d’actifs.",
     summary: "MBA, CPA, CFA with compliance leadership across major financial institutions",
     summaryFr: "MBA, CPA, CFA avec leadership en conformité dans les grandes institutions financières",
     education: ["MBA, Accounting"],
     educationFr: ["MBA, comptabilité"],
     designations: ["MBA", "CPA", "CFA"],
-    previousRoles: ["Senior Director, Compliance", "Head of Compliance, Asset Management", "Senior Analyst, Portfolio Compliance & Operations"],
-    previousRolesFr: ["Directrice sénior, Conformité", "Responsable Conformité, Gestion d’actifs", "Analyste sénior, Conformité Portefeuille et Opérations"],
+    previousRoles: ["Senior Compliance Manager", "Practice Leader, Asset Management Compliance", "Senior Analyst, Portfolio & Trading Compliance"],
+    previousRolesFr: ["Directrice principale, conformité", "Responsable, conformité en gestion d’actifs", "Analyste principale, conformité des portefeuilles et de la négociation"],
     yearsExperience: 16,
     initials: "DD",
     color: "#00a3e0",
@@ -314,7 +320,7 @@ export const team: TeamMember[] = [
   {
     name: "Fraser Coburn",
     title: "Director, Client Relations",
-    titleFr: "Directeur, relations clients",
+    titleFr: "Directeur, relations avec la clientèle",
     department: "Operations",
     bio: "Director of Client Relations for the advisor and wealth management channels. 25 years of experience, including BlackRock, Invesco and RBC.",
     bioFr: "Directeur, relations clients pour les conseillers et la gestion de patrimoine. 25 ans d’expérience, notamment chez BlackRock, Invesco et RBC.",

@@ -19,10 +19,10 @@ const words = (s: string) => s.trim().split(/\s+/).length;
 const sentences = (s: string) => s.split(/(?<=[a-z0-9)][.!?])\s+(?=[A-ZÀ-Ý0-9])/).filter(Boolean).length;
 
 const OVERLAY_ADDS = "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.";
-const LOW_CORR = "designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.";
+const LOW_CORR = "designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.";
 const DIST = "Distributions are not guaranteed, may change and may include a return of capital.";
 const OVERLAY_ADDS_FR = "La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.";
-const LOW_CORR_FR = "conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.";
+const LOW_CORR_FR = "conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.";
 const DIST_FR = "Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.";
 
 test("concise copy: page leads are short (15 words or fewer)", () => {
@@ -74,14 +74,14 @@ test("concise copy: overlay and distribution disclosures survive the cut, word f
   assert.ok(FUND_TEXTS["monthly-income"].feature.cards.find((c) => c.icon === "calendar")!.text.en.includes(DIST));
   // approach page: the overlay caveat, the overlay exposure disclosure and both footnotes
   assert.deepEqual(AP.overlay.solD, {
-    en: "Our overlay is designed to have low correlation with bonds and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
-    fr: "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
+    en: "Our overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
+    fr: "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
   });
   assert.ok(AP.overlay.stackD.en.includes(OVERLAY_ADDS));
   assert.match(AP.overlay.foot1.en, /^\* Source: Nymbus Capital Inc\. Statements reflect historical observations/);
   assert.match(AP.overlay.foot2.en, /^\*\* Source: Nymbus Capital Inc\. For illustrative purposes only\./);
   // sustainability: the scope of ESG criteria and exclusions (the Sustainable Enhanced Bonds Fund only, never its overlay)
-  assert.match(SU.hero.lead.en, /apply only to the Sustainable Enhanced Bonds Fund, and not to its futures overlay, which trades exchange-traded futures rather than securities of individual issuers\.$/);
+  assert.match(SU.hero.lead.en, /are those of the Sustainable Enhanced Bonds Fund; they do not apply to its futures overlay, which trades exchange-traded futures rather than securities of individual issuers\.$/);
   assert.match(SU.exclusions.lead.en, /They do not apply to exchange-traded futures used in the fund’s overlay\.$/);
   assert.match(HOME_COPY.process.steps[3].text.en, /Risk management does not eliminate the risk of loss\.$/);
 });
@@ -128,9 +128,9 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   assert.ok(overlay.fr.endsWith(OVERLAY_ADDS_FR));
   assert.ok(overlay.en.includes("most of the capital stays invested in the bonds"));
   // sustainability: ESG scope (fr) and the principles exception
-  assert.ok(SU.hero.lead.fr.endsWith("et non à sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));
-  assert.ok(SU.exclusions.lead.fr.endsWith("Elles ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds."));
-  assert.ok(SU.principles.lead.en.endsWith("ESG screens and exclusions are specific to the Sustainable Enhanced Bonds Fund."));
-  assert.ok(SU.principles.lead.fr.endsWith("Les filtres ESG et les exclusions sont propres au Fonds Obligations Durables Bonifiées."));
+  assert.ok(SU.hero.lead.fr.endsWith("ils ne visent pas sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));
+  assert.ok(SU.exclusions.lead.fr.endsWith("Ils ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds."));
+  assert.ok(SU.principles.lead.en.endsWith("The ESG screens and exclusions on this page are those of the Sustainable Enhanced Bonds Fund."));
+  assert.ok(SU.principles.lead.fr.endsWith("Les filtres ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées."));
   assert.ok(HOME_COPY.process.steps[3].text.fr.endsWith("La gestion des risques n’élimine pas le risque de perte."));
 });

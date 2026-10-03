@@ -57,7 +57,7 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
               ) : null}
               {m.linkedin ? (
                 <a className="link ab-bio-li" href={m.linkedin} target="_blank" rel="noopener noreferrer" data-testid="bio-linkedin">
-                  {pick(P.linkedin)} <ArrowUpRight aria-hidden="true" />
+                  {pick(P.linkedin)} <ArrowUpRight aria-hidden="true" /><span className="sr-only"> {pick(P.newTab)}</span>
                 </a>
               ) : null}
             </div>
@@ -88,7 +88,7 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
 function Badges({ m, lang, max }: { m: TeamMember; lang: "en" | "fr"; max?: number }) {
   const b = badgesOf(m, lang).slice(0, max);
   if (!b.length) return null;
-  return <span className="ab-tags">{b.map((x) => <span key={x.label} className={`ab-tag ${x.key ? "key" : ""}`}>{x.label}</span>)}</span>;
+  return <span className="ab-tags">{b.map((x) => <abbr key={x.label} title={x.long} className={`ab-tag ${x.key ? "key" : ""}`}>{x.label}</abbr>)}</span>;
 }
 
 /** Credentials band: every figure counted from the team list (static or CMS); a figure with no data is not shown. */

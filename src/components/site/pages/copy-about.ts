@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
-      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des ingénieurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, technologists and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des informaticiens et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -28,17 +28,17 @@ export const AB = {
     since: l("founded in Montreal", "fondée à Montréal"),
   },
   creds: {
-    eyebrow: l("Credentials", "Compétences"),
-    title: l("Scientists, engineers", "Scientifiques, ingénieurs"),
-    accent: l("and charterholders", "et titulaires de chartes"),
+    eyebrow: l("Credentials", "Titres et diplômes"),
+    title: l("Scientists, technologists", "Scientifiques, informaticiens"),
+    accent: l("and investment professionals", "et analystes"),
     lead: l(
       "The scientific method, applied to bonds and listed futures.",
       "La méthode scientifique, appliquée aux obligations et aux contrats à terme cotés.",
     ),
     phd: l("PhDs", "doctorats"),
-    eng: l("Engineering or computer-science degrees", "diplômes en ingénierie ou en informatique"),
+    eng: l("Engineering & computer-science degrees", "diplômes en génie et en informatique"),
     grad: l("Master’s and doctoral degrees", "maîtrises et doctorats"),
-    charter: l("CFA or CIM holders", "titulaires CFA ou CIM"),
+    charter: l("CFA or CIM holders", "titulaires de titres CFA ou CIM"),
     years: l("Years of combined experience", "années d’expérience cumulées"),
     note: l(
       "People counted from the team list below, board included. Experience as stated by each person; “+” marks a lower bound.",
@@ -56,7 +56,7 @@ export const AB = {
     points: [
       l("Two core specialties: systematic fixed income and futures overlays", "Deux spécialités au cœur de la firme : revenu fixe systématique et superpositions"),
       l("Bonds analyzed one by one; listed futures traded systematically", "Des obligations analysées une à une; des contrats à terme cotés négociés systématiquement"),
-      l("Physicists, engineers and charterholders, alongside market veterans", "Physiciens, ingénieurs et analystes agréés, aux côtés de vétérans des marchés"),
+      l("Physicists, technologists and charterholders, alongside market veterans", "Physiciens, informaticiens et analystes, aux côtés de vétérans des marchés"),
     ] as L[],
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
@@ -103,6 +103,7 @@ export const AB = {
     edu: l("Education", "Formation"),
     prev: l("Previous roles", "Postes précédents"),
     linkedin: l("LinkedIn profile", "Profil LinkedIn"),
+    newTab: l("(opens in a new tab)", "(s’ouvre dans un nouvel onglet)"),
     exp: l("{n} years of experience", "{n} ans d’expérience"),
     close: l("Close", "Fermer"),
     depts: [
@@ -118,8 +119,8 @@ export const AB = {
     title: l("Work", "Travailler"),
     accent: l("with us", "avec nous"),
     text: l(
-      "Researchers, engineers and investors: write to us.",
-      "Chercheurs, ingénieurs et investisseurs : écrivez-nous.",
+      "Researchers, technologists and investors: write to us.",
+      "Chercheurs, informaticiens et investisseurs : écrivez-nous.",
     ),
     careers: l("Send us your résumé", "Envoyez-nous votre CV"),
     careersSubject: l("Careers", "Carrières"),

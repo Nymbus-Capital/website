@@ -197,6 +197,16 @@ Not yet run against live data, not deployed.
   index before removing the old type, stream errors logged. Morningstar "out of N funds" shown in the advisor list too
   (compliance W1: required, enter N). /solutions: rankings moved out of the illustrative use case into their own
   "Third-party rankings" section with a link to each fund's standard performance (compliance V9 updated).
+- 2026-10-03 (sub-agent, branch `fix/copy-v3` from `integ/v3`; not merged): fixes after the independent review of content v3 —
+  ESG attribution without "other funds" claims, pledge texts describe the firm's signature only (FR « Engagement pour une finance
+  sans tabac » incl. news title); no "protective" overlay as fact; pension objective "returns above inflation over a full rate cycle";
+  "liquid, cross-asset alternative strategy" instead of "liquid alternative"; "low correlation with bonds in down months" across
+  approach / fund pages / solutions; « volatilité à la baisse » everywhere (+ test forbidding « baissière »), "Fundserv"; no « ingénieurs »
+  for people (FR « scientifiques, informaticiens et analystes »); decks titles aligned; Guy Liébart's 59 years dropped (combined
+  experience 273+); both bond funds linked from "Bond funds with an overlay"; contrast, new-tab notice, portrait sizes.
+  Compliance § Content v3 rows R1–R10. **TODO**: Guy Liébart's and Xavier Girard's portraits are still hotlinked from
+  www.nymbus.ca (not in the repo, not in the decks list): add self-hosted copies when available. The frozen "Science at scale"
+  band still says « ingénieurs » (needs Gabriel's sign-off).
 
 - 2026-10-03 (sub-agent, branch `integ/v3` from `redesign/v3-keynote-live-data`; **not merged into the redesign
   branch**): integration of `feat/dp-only-data`, `feat/awards-v2`, `feat/content-v3`, `feat/home-overlay-viz` (merged in
