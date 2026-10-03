@@ -177,6 +177,23 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `feat/critical-concepts` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
+  request "add a section called 'critical concepts' on the navigation … 3 main concepts … same type of amazing animations".
+  New page `/critical-concepts` (nav after Approach — the desktop nav now switches to the menu button below 1240 px and
+  tightens links below 1360 px — and footer). Three canvas panels in `src/components/site/concepts/` on the scan /
+  engines motion contract (shared `runner.ts`: lazy, off-screen / hidden-tab pause, DPR 1.5, 30/15 fps, still frame per
+  step under reduced motion incl. live change, Data Saver still, `data-frames` / `data-running` / `data-step`), with
+  play / pause and step buttons (arrow keys, Home / End): (1) **overlay**: core 100% invested → ≈10% deposit to scale →
+  beam opens into a full futures exposure on top → two generated return streams stacking into the combined one, a
+  losing overlay period called out; (2) **futures**: generated index day by day, settled days lock, only today's move
+  open, coin stream between long and short at each close, settlement row whose running sum is the total P&L, margin
+  buffers widen in a volatile episode, formula chip; (3) **coverage at scale** ("Why machines see more"): 2,000 dots,
+  $200 MM filter, PM + 6 analysts lighting 30 each (180), systematic scan of every liquid bond, history layers. Pure
+  models unit-tested (`tests/unit/site/critical-concepts.test.ts`: determinism, bounds, settlements sum to cumulative
+  P&L, margin scales with volatility and covers the open P&L, coverage counts, layouts, copy rules, word budgets);
+  e2e `e2e/critical-concepts.spec.ts` (+ route in `site.spec.ts`). Compliance rows CC1–CC4. **Open for Gabriel**:
+  $200 MM vs the explainer deck's 175 M$; "≈10%" deposit; independent adversarial review still to run.
+
 - 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
   first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:
   the 2025-09 / 2026-09 index months came back); (2) verified one-day gap link between FTSE naming generations
