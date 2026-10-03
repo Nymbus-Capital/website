@@ -9,6 +9,7 @@ import { RK } from "../../../src/components/fund/rankings-copy.ts";
 import { HOME_COPY, FUND_COPY, RISK_COPY, CATEGORY_COPY, VEHICLE_COPY } from "../../../src/components/site/home/copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
+import { CC } from "../../../src/components/site/concepts/concepts-copy.ts";
 import { NEWS, NEWS_CATEGORY } from "../../../src/components/site/home/news.ts";
 import { AB } from "../../../src/components/site/pages/copy-about.ts";
 import { AP } from "../../../src/components/site/pages/copy-approach.ts";
@@ -37,7 +38,7 @@ function frStrings(x: unknown, where: string, inFr: boolean, out: [string, strin
 
 const SOURCES: [string, unknown, boolean][] = [
   ["fund/copy T", T, false], ["fund/copy FUND_TEXTS", FUND_TEXTS, false], ["fund/rankings-copy RK", RK, false],
-  ["home HOME_COPY", HOME_COPY, false], ["fx SCAN_COPY", SCAN_COPY, false], ["fx OVERLAY_COPY", OVERLAY_COPY, false], ["home FUND_COPY", FUND_COPY, false], ["home RISK_COPY", RISK_COPY, false],
+  ["home HOME_COPY", HOME_COPY, false], ["fx SCAN_COPY", SCAN_COPY, false], ["fx OVERLAY_COPY", OVERLAY_COPY, false], ["concepts CC", CC, false], ["home FUND_COPY", FUND_COPY, false], ["home RISK_COPY", RISK_COPY, false],
   ["home CATEGORY_COPY", CATEGORY_COPY, false], ["home VEHICLE_COPY", VEHICLE_COPY, false],
   ["news NEWS", NEWS, false], ["news NEWS_CATEGORY", NEWS_CATEGORY, false],
   ["about AB", AB, false], ["approach AP", AP, false], ["contact CT", CT, false], ["sustainability SU", SU, false],

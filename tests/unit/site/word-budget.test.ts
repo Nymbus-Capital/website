@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { HOME_COPY } from "../../../src/components/site/home/copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
+import { CC } from "../../../src/components/site/concepts/concepts-copy.ts";
 import { AB } from "../../../src/components/site/pages/copy-about.ts";
 import { AP } from "../../../src/components/site/pages/copy-approach.ts";
 import { CT } from "../../../src/components/site/pages/copy-contact.ts";
@@ -37,6 +38,8 @@ const BUDGET: [string, unknown, number][] = [
   ["sustainability", SU, 350],
   ["solutions", [SOL_COPY, AUDIENCES], 545],
   ["strategies", STRAT_COPY, 140],
+  // /critical-concepts (2026-10-03): everything counted, canvas labels, alt texts and the overlay disclosure included
+  ["critical concepts", CC, 580],
 ];
 
 test("word budget: every page stays within its English ceiling, French within 25% more", () => {
