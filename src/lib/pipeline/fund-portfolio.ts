@@ -17,6 +17,8 @@ import type { FundPortfolio, HoldingsBook, HoldingsPosition, InstrumentRef, Port
 
 export const PRICE_MAX_AGE_DAYS = 7;
 export const GREEN_UNKNOWN_LIMIT = 0.1;
+/** short bond positions above this share of net assets: duration and yield are not shown (a long-only average misstates them) */
+export const SHORT_LIMIT = 0.005;
 const BOOK_GAP_WARNING = 0.05;
 const MIN_WEIGHT = 1e-6;
 
@@ -39,9 +41,9 @@ const AGENCIES = ["sp", "moody", "fitch", "dbrs"];
 export const METHOD = {
   source: "computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py)",
   weights: "market_value_cad / net assets (sum of the classes' Apex closing capital), signed",
-  duration: "modified duration (instrument latest price), weighted by absolute market value over bond positions, renormalised over covered weight",
-  yield: "yield to maturity (instrument latest price), same weighting",
-  coupon: "coupon rate (instrument master), same weighting",
+  duration: "modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)",
+  yield: "yield to maturity (instrument latest price), same weighting and rules",
+  coupon: "coupon rate (instrument master), weighted by absolute market value over bond positions",
   rating: "composite rating, else the lowest of S&P / Moody's / Fitch / DBRS; notch-scored AAA=1…D=22, weighted mean notch rounded half up",
   prices_as_of: `instrument latest price, accepted within ${PRICE_MAX_AGE_DAYS} days of the book date (else unpriced)`,
 };
@@ -184,14 +186,17 @@ export function refIndex(refs: InstrumentRef[]): { isin: Map<string, InstrumentR
   return idx;
 }
 
-function resolve(s: Security, idx: ReturnType<typeof refIndex>): { ref: InstrumentRef | null; ambiguous: boolean } {
+/** ISIN, then CUSIP, then FIGI: an identifier shared by two instruments is skipped for the next type; ambiguous only when no type resolves */
+export function resolve(s: Pick<Security, "isin" | "cusip" | "bloombergId">, idx: ReturnType<typeof refIndex>): { ref: InstrumentRef | null; ambiguous: boolean } {
   const tries: [keyof typeof idx, string | null][] = [["isin", s.isin], ["cusip", s.cusip], ["figi", s.bloombergId && FIGI.test(s.bloombergId) ? s.bloombergId : null]];
+  let ambiguous = false;
   for (const [k, v] of tries) {
     if (!v || !idx[k].has(v)) continue;
     const r = idx[k].get(v)!;
-    return r ? { ref: r, ambiguous: false } : { ref: null, ambiguous: true };
+    if (r) return { ref: r, ambiguous: false };
+    ambiguous = true;
   }
-  return { ref: null, ambiguous: false };
+  return { ref: null, ambiguous };
 }
 
 function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings: string[]): void {
@@ -199,6 +204,7 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
   const ambiguous: string[] = [];
   const stale: string[] = [];
   const matured: string[] = [];
+  const derivLike: string[] = [];
   for (const s of list) {
     const { ref, ambiguous: amb } = resolve(s, idx);
     if (amb) ambiguous.push(s.key);
@@ -207,6 +213,11 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
     const text = (s.apexType ?? "").toLowerCase();
     s.kind = DERIVATIVE_CLASSES.has(assetClass) || (!assetClass && DERIVATIVE_WORDS.some((w) => text.includes(w))) ? "derivative"
       : assetClass === "BOND" || (!assetClass && BOND_WORDS.some((w) => text.includes(w))) ? "bond" : "other";
+    // an unresolved position holding a quantity with no market value is a contract (future / option), never a weight
+    if (!ref && s.kind === "other" && s.mv === 0 && s.quantity !== 0) {
+      s.kind = "derivative";
+      derivLike.push(s.key);
+    }
     const cls = ref?.classification ?? null;
     s.name = s.description ?? str(ref?.name) ?? s.key;
     s.sector = s.sector ?? str(cls?.industry_sector) ?? str(ref?.sector);
@@ -238,6 +249,7 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
     if (k.length) warnings.push(`${k.length} ${what}: ${sample(k)}`);
   };
   report(ambiguous, "position(s) with an ambiguous identifier left unresolved");
+  if (derivLike.length) warnings.push(`${derivLike.length} unresolved position(s) with a quantity and no market value treated as derivatives (excluded from weights): ${sample(derivLike)}`);
   report(matured, "bond(s) held past their maturity date, left without a term");
   report(stale, `bond price(s) more than ${PRICE_MAX_AGE_DAYS} days from the book date, treated as unpriced`);
 }
@@ -249,6 +261,16 @@ function weightedMean(pairs: [number, number | null][]): { value: number | null;
   const known = pairs.filter(([, v]) => v !== null).map(([w, v]) => [Math.abs(w), v as number] as const);
   const kw = known.reduce((a, [w]) => a + w, 0);
   const coverage = total ? kw / total : null;
+  if (kw < MIN_WEIGHT) return { value: null, coverage };
+  return { value: known.reduce((a, [w, v]) => a + w * v, 0) / kw, coverage };
+}
+
+/** signed weights (a short position offsets a long one); coverage over absolute weights */
+function signedMean(pairs: [number, number | null][]): { value: number | null; coverage: number | null } {
+  const total = pairs.reduce((a, [w]) => a + Math.abs(w), 0);
+  const known = pairs.filter(([, v]) => v !== null) as [number, number][];
+  const kw = known.reduce((a, [w]) => a + w, 0);
+  const coverage = total ? known.reduce((a, [w]) => a + Math.abs(w), 0) / total : null;
   if (kw < MIN_WEIGHT) return { value: null, coverage };
   return { value: known.reduce((a, [w, v]) => a + w * v, 0) / kw, coverage };
 }
@@ -315,15 +337,27 @@ export function computeFundPortfolio(book: HoldingsBook, refs: InstrumentRef[], 
     const missing = bonds.filter((b) => (flag === "resolved" ? !b.ref : !b.priced));
     if (missing.length) warnings.push(`${missing.length} bond position(s) (${(100 * missing.reduce((a, b) => a + (b.mv as number), 0) / denominator).toFixed(1)}% of the denominator) ${label}: ${sample(missing.map((b) => b.isin ?? b.key))}`);
   }
-  const measure = (field: "duration" | "ytm" | "coupon" | "years", digits: number) => {
-    const m = weightedMean(bonds.map((b) => [b.mv as number, b[field]]));
+  const measure = (field: "duration" | "ytm" | "coupon" | "years", digits: number, signed = false) => {
+    const m = (signed ? signedMean : weightedMean)(bonds.map((b) => [b.mv as number, b[field]]));
     return m.value === null ? undefined : { value: round(m.value, digits), coverage: m.coverage === null ? null : round(m.coverage, 4) };
   };
   const notch = weightedMean(bonds.map((b) => [b.mv as number, b.notch]));
   const characteristics: FundPortfolio["characteristics"] = {};
   const put = <K extends keyof FundPortfolio["characteristics"]>(k: K, v: FundPortfolio["characteristics"][K] | undefined) => { if (v) characteristics[k] = v; };
-  put("modified_duration", measure("duration", 2));
-  put("yield_to_maturity", measure("ytm", 4));
+  // duration and yield describe the fund's rate exposure: short bonds above SHORT_LIMIT withhold them; open futures
+  // (exposure not in the book's market values) restrict them to the bond holdings, labelled as such
+  const shortWeight = bonds.filter((b) => (b.mv as number) < 0).reduce((a, b) => a - (b.mv as number), 0) / denominator;
+  const openFutures = derivatives.filter((d) => d.quantity !== 0);
+  if (shortWeight > SHORT_LIMIT) {
+    warnings.push(`short bond positions are ${(100 * shortWeight).toFixed(2)}% of the denominator (above ${(100 * SHORT_LIMIT).toFixed(1)}%): duration and yield to maturity not shown`);
+  } else {
+    const scope = openFutures.length ? { scope: "bond_holdings" as const } : {};
+    const dur = measure("duration", 2, true);
+    const ytm = measure("ytm", 4, true);
+    put("modified_duration", dur && { ...dur, ...scope });
+    put("yield_to_maturity", ytm && { ...ytm, ...scope });
+    if (openFutures.length && (dur || ytm)) warnings.push(`${openFutures.length} open futures position(s): duration and yield to maturity are those of the bond holdings only (futures exposure not included)`);
+  }
   put("coupon", measure("coupon", 4));
   put("average_maturity", measure("years", 2));
   if (notch.value !== null) characteristics.average_rating = { value: notchLabel(Math.floor(notch.value + 0.5)), coverage: notch.coverage === null ? null : round(notch.coverage, 4) };

@@ -398,8 +398,13 @@ export interface ValidationOutcome {
    * replaced by its previous publication (== data when there is none)
    */
   autoData: SiteData;
-  /** funds whose performance class changes: the run needs an admin approval to publish them */
+  /** funds whose performance class changes (headline or any class entry): the run needs an admin approval to publish them */
   classChanges: FundKey[];
+  /**
+   * funds with new performance months that no source independent of the dataplatform confirms (FundContext.unconfirmed):
+   * auto mode publishes them with their previous performance (autoData) and the run waits for an admin review
+   */
+  needsReview: FundKey[];
   results: FundValidation[];
   funds: Partial<Record<FundKey, "updated" | "kept-previous" | "unavailable">>;
 }
@@ -415,6 +420,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
   const funds: ValidationOutcome["funds"] = {};
   const extraIssues: Issue[] = [];
   const held: Partial<Record<FundKey, FundData>> = {};
+  const review: FundKey[] = [];
   const keys = new Set<FundKey>([...(Object.keys(context) as FundKey[]), ...(Object.keys(data.funds) as FundKey[])]);
   for (const key of keys) {
     const base = `funds.${key}`;
@@ -454,8 +460,11 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     // published without an admin approving the run, whatever the publish mode (the previous publication stays live)
     const fromClass = prev?.performance ? perfClassCode(key, prev.performance) : null;
     const toClass = f.performance?.classCode ?? null;
-    const classChange: Issue | null = !blocking.length && fromClass && toClass && fromClass !== toClass
-      ? { key: `${base}.performance.class`, level: "error", message: `performance class change from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass}): every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
+    // the same gate on every class entry (the page's default class included) and on the default class itself
+    const entryChanges = classEntryChanges(key, prev, f);
+    const headChange = !!(fromClass && toClass && fromClass !== toClass);
+    const classChange: Issue | null = !blocking.length && (headChange || entryChanges.length)
+      ? { key: `${base}.performance.class`, level: "error", message: `performance class change ${[headChange ? `from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass})` : null, ...entryChanges].filter(Boolean).join("; ")}: every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
       : null;
     // performance (and what is computed from it: trailing, risk) is gated on its own: when only it fails, the NAV,
     // AUM, portfolio and distributions still publish and the performance alone is held (previous kept, else withheld)
@@ -520,13 +529,13 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       if (classChange) {
         extraIssues.push(classChange);
         held[key] = carry();
-      }
+      } else if (ctx?.unconfirmed?.length && f.performance && ctx.parts.performance !== "carried") review.push(key);
     }
     const alerts = [...(ctx?.alerts ?? [])];
     if (blocking.length) alerts.push(perfBlocking.length === blocking.length ? "performance held back by validation" : "blocked by validation");
     if (classChange) {
       blocking.push(classChange);
-      alerts.push(`performance class change to class ${classLabel(key, toClass) ?? "?"} needs approval`);
+      alerts.push(headChange ? `performance class change to class ${classLabel(key, toClass) ?? "?"} needs approval` : `class change of ${entryChanges.length} class entr${entryChanges.length > 1 ? "ies" : "y"} needs approval`);
     }
     for (const i of [...repairs, ...warnings]) if (i.level === "error") alerts.push(i.message);
     for (const i of input.issues) if (i.level === "error" && (i.key === base || i.key.startsWith(`${base}.`))) alerts.push(i.message);
@@ -546,7 +555,55 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     }
     autoData.asOf = computeAsOf(autoData.funds);
   }
-  return { data, autoData, classChanges, results, funds };
+  // unconfirmed new months: auto mode publishes the fund with its previous performance (every class with it); the new
+  // month goes live when an admin publishes this run
+  const needsReview = review.filter((k) => !held[k]);
+  if (needsReview.length) {
+    if (autoData === data) autoData = structuredClone(data);
+    for (const key of needsReview) {
+      const base = `funds.${key}`;
+      const f = autoData.funds[key]!;
+      const prevF = prevLive?.funds[key] ? fundWithClassLabel(prevLive.funds[key]!) : null;
+      f.performance = prevF?.performance ?? null;
+      f.risk = prevF?.risk ?? null;
+      if (prevF?.risk3Y !== undefined) f.risk3Y = prevF.risk3Y;
+      else delete f.risk3Y;
+      if (prevF?.performanceByClass) {
+        f.performanceByClass = prevF.performanceByClass;
+        if (prevF.defaultClass) f.defaultClass = prevF.defaultClass;
+        else delete f.defaultClass;
+      } else {
+        delete f.performanceByClass;
+        delete f.defaultClass;
+      }
+      for (const k of Object.keys(autoData.provenance)) if (k === `${base}.performance` || k.startsWith(`${base}.performance.`) || k === `${base}.risk`) delete autoData.provenance[k];
+      if (prevF?.performance) {
+        for (const [k, v] of Object.entries(prevLive!.provenance)) {
+          if (k === `${base}.performance` || k.startsWith(`${base}.performance.`) || k === `${base}.risk`) autoData.provenance[k] = v.startsWith("carried over") ? v : `carried over from the publication of ${prevLive!.generatedAt} (${v})`;
+        }
+      }
+      const months = context[key]?.unconfirmed ?? [];
+      data.issues.push({ key: `${base}.performance.review`, level: "warn", message: `needs review: new month(s) ${months.map((m) => m.slice(0, 7)).join(", ")} confirmed by no source independent of the dataplatform; auto mode keeps ${prevF?.performance ? `the previous performance (as of ${prevF.performance.asOf.slice(0, 7)})` : "no performance"} live until an admin publishes this run` });
+    }
+    autoData.issues = data.issues;
+    autoData.asOf = computeAsOf(autoData.funds);
+  }
+  return { data, autoData, classChanges, needsReview, results, funds };
+}
+
+/** class changes of the class entries (same FundServ code, another class) and of the page's default class */
+function classEntryChanges(key: FundKey, prev: FundData | undefined, f: FundData): string[] {
+  if (!prev) return [];
+  const out: string[] = [];
+  const code = (p: { classCode?: string; returnClass?: string } | null | undefined): string | null => p?.classCode ?? p?.returnClass ?? null;
+  for (const [fsv, entry] of Object.entries(f.performanceByClass ?? {})) {
+    const old = prev.performanceByClass?.[fsv];
+    const a = code(old?.performance);
+    const b = code(entry.performance);
+    if (old && a && b && a !== b) out.push(`class entry ${fsv} from ${classLabel(key, a) ?? a} (${a}) to ${classLabel(key, b) ?? b} (${b})`);
+  }
+  if (prev.defaultClass && f.defaultClass && prev.defaultClass !== f.defaultClass && prev.performanceByClass?.[prev.defaultClass]) out.push(`default class from ${prev.defaultClass} to ${f.defaultClass}`);
+  return out;
 }
 
 /** Gates of one fund, without merging (convenience for the admin / tests). */

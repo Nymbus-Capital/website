@@ -78,7 +78,7 @@ export function coveredMetrics(book: FundPortfolio): { metrics: PortfolioMetric[
       hidden.push(`${m.from} (coverage ${src.coverage === null ? "unknown" : pct(src.coverage)})`);
       continue;
     }
-    metrics.push({ id: m.id, value: src.value, unit: m.unit, coverage: Math.min(1, src.coverage) });
+    metrics.push({ id: m.id, value: src.value, unit: m.unit, coverage: Math.min(1, src.coverage), ...(src.scope === "bond_holdings" ? { scope: "bondHoldings" as const } : {}) });
   }
   return { metrics, hidden };
 }

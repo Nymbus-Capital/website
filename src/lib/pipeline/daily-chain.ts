@@ -17,96 +17,9 @@
  *    using any CIBC month (build.ts). A `nav_price_ratio` row (price return, distribution-blind) is never compounded.
  */
 import { addMonths, toMonthEnd } from "./metrics.ts";
+import { tradingDays, priorTradingDay } from "./market-calendar.ts";
 
-/* ------------------------------------------------------------------ Canadian (TSX) market holidays */
-
-const iso = (t: number): string => new Date(t).toISOString().slice(0, 10);
-const utc = (y: number, m: number, d: number): number => Date.UTC(y, m - 1, d);
-const DAY = 86_400_000;
-
-/** Easter Sunday (anonymous Gregorian computus), UTC ms. */
-function easter(year: number): number {
-  const a = year % 19;
-  const b = Math.floor(year / 100), c = year % 100;
-  const d = Math.floor(b / 4), e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4), k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return utc(year, month, day);
-}
-
-const weekday = (t: number): number => new Date(t).getUTCDay(); // 0 Sunday … 6 Saturday
-
-/** n-th weekday (0 Sunday … 6 Saturday) of a month */
-function nthWeekday(year: number, month: number, wd: number, n: number): number {
-  const first = utc(year, month, 1);
-  return first + (((wd - weekday(first) + 7) % 7) + 7 * (n - 1)) * DAY;
-}
-
-/** a fixed-date holiday on a weekend is observed the next Monday */
-function observed(t: number): number {
-  const w = weekday(t);
-  return w === 6 ? t + 2 * DAY : w === 0 ? t + DAY : t;
-}
-
-const holidayCache = new Map<number, Set<string>>();
-
-/**
- * TSX statutory holidays of a year: port of the dataplatform's `app/core/market_calendar.py` (the calendar its monthly
- * net returns and the PR #626 bridge use), so a month counts as complete here exactly when it does there.
- */
-export function caMarketHolidays(year: number): Set<string> {
-  const hit = holidayCache.get(year);
-  if (hit) return hit;
-  const may24 = utc(year, 5, 24);
-  const victoria = may24 - ((weekday(may24) + 6) % 7) * DAY; // the Monday on or before May 24
-  const christmas = observed(utc(year, 12, 25));
-  let boxing = observed(utc(year, 12, 26));
-  if (boxing === christmas) boxing += DAY;
-  const days = [
-    observed(utc(year, 1, 1)),
-    nthWeekday(year, 2, 1, 3), // Family Day
-    easter(year) - 2 * DAY, // Good Friday
-    victoria,
-    observed(utc(year, 7, 1)), // Canada Day
-    nthWeekday(year, 8, 1, 1), // Civic Holiday
-    nthWeekday(year, 9, 1, 1), // Labour Day
-    nthWeekday(year, 10, 1, 2), // Thanksgiving
-    christmas,
-    boxing,
-  ];
-  const set = new Set(days.map(iso));
-  holidayCache.set(year, set);
-  return set;
-}
-
-export const isTradingDay = (d: string): boolean => {
-  const t = Date.parse(`${d}T00:00:00Z`);
-  const w = weekday(t);
-  return w !== 0 && w !== 6 && !caMarketHolidays(Number(d.slice(0, 4))).has(d);
-};
-
-/** Canadian valuation days from `from` to `to` (inclusive, YYYY-MM-DD), ascending. */
-export function tradingDays(from: string, to: string): string[] {
-  const out: string[] = [];
-  for (let t = Date.parse(`${from}T00:00:00Z`); t <= Date.parse(`${to}T00:00:00Z`); t += DAY) {
-    const d = iso(t);
-    if (isTradingDay(d)) out.push(d);
-  }
-  return out;
-}
-
-/** last valuation day before `date` (within 10 days, like the dataplatform's `prior`) */
-export function priorTradingDay(date: string): string | null {
-  const t = Date.parse(`${date}T00:00:00Z`);
-  const days = tradingDays(iso(t - 10 * DAY), iso(t - DAY));
-  return days.length ? days[days.length - 1] : null;
-}
+export { caMarketHolidays, isTradingDay, priorTradingDay, tradingDays } from "./market-calendar.ts";
 
 /* ------------------------------------------------------------------ rows */
 
@@ -186,8 +99,8 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
   const have = new Set(days);
   const missing = expected.filter((d) => !have.has(d));
   if (missing.length) return { ...out, issue: `Incomplete CIBC valuation-day coverage (missing ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ", …" : ""}); no partial-month compounding` };
-  const bad = rs.find((r) => r.source !== "cibc" || r.net_return_method !== "legacy_stored" || !validReturn(r.net_daily_return));
-  if (bad) return { ...out, issue: `${bad.date}: ${bad.source !== "cibc" ? `source ${bad.source ?? "unknown"}` : bad.net_return_method !== "legacy_stored" ? `return method ${bad.net_return_method ?? "unknown"} (not the stored CIBC net return)` : "no valid daily net return"}` };
+  const bad = rs.find((r) => r.source !== "cibc" || r.currency !== "CAD" || r.net_return_method !== "legacy_stored" || !validReturn(r.net_daily_return));
+  if (bad) return { ...out, issue: `${bad.date}: ${bad.source !== "cibc" ? `source ${bad.source ?? "unknown"}` : bad.currency !== "CAD" ? `currency ${bad.currency ?? "unknown"} (CAD expected)` : bad.net_return_method !== "legacy_stored" ? `return method ${bad.net_return_method ?? "unknown"} (not the stored CIBC net return)` : "no valid daily net return"}` };
   const value = prod(rs.map((r) => r.net_daily_return as number)) - 1;
   if (!validReturn(value)) return { ...out, issue: "Invalid compounded monthly return" };
   // diagnostics: chain vs NAV per unit ratio from the previous month-end (a gap is a distribution, or a missed day)
@@ -208,6 +121,8 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   const priorEnd = priorTradingDay(`${ym}-01`);
   const prevYm = addMonths(month, -1).slice(0, 7);
   const prior = monthRows(rows, prevYm).filter((r) => r.source === "cibc" && finite(r.nav_per_share_cad));
+  const priorDay = prior.length ? prior[prior.length - 1] : null;
+  if (priorDay && priorDay.currency !== "CAD") return fail(`CIBC month-end NAV per unit of ${priorDay.date} is not in CAD (${priorDay.currency ?? "unknown"})`);
   const day = prior.length ? prior[prior.length - 1].date : null;
   const base = prior.filter((r) => r.date === day);
   const apex = monthRows(rows, ym).filter((r) => r.source === "apex");
@@ -225,6 +140,7 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   const wantApex = july.filter((d) => d >= firstApex);
   if (cibcDays.length !== wantCibc.length || cibcDays.some((d, i) => d !== wantCibc[i])) return fail("Incomplete CIBC valuation-day coverage before the first Apex day");
   if (apexDays.length !== wantApex.length || apexDays.some((d, i) => d !== wantApex[i])) return fail("Incomplete Apex valuation-day coverage after the cut-over");
+  if (cibcJuly.some((r) => r.currency !== "CAD")) return fail("CIBC daily rows before the first Apex day are not in CAD");
   if (cibcJuly.some((r) => !(finite(r.nav_per_share_cad) && r.nav_per_share_cad > 0) || !validReturn(r.net_daily_return) || r.net_return_method !== "legacy_stored")) {
     return fail("CIBC daily NAV per unit or stored return is unavailable before the first Apex day");
   }
@@ -239,13 +155,44 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   const drifts = (rs: DailyRow[], start: number): boolean => Math.abs((prod(rs.map((r) => r.net_daily_return as number)) * start) / (rs[rs.length - 1].nav_per_share_cad as number) - 1) > BRIDGE_TOLERANCE;
   if (cibcJuly.length && drifts(cibcJuly, baseNav)) return fail("CIBC daily returns disagree with its NAV per unit (distribution before the switch?)");
   if (apex.length > 1 && drifts(apex.slice(1), apex[0].nav_per_share_cad as number)) return fail("Apex daily returns disagree with its NAV per unit (distribution before month-end?)");
+  // seam continuity: when the first Apex day's return starts on the last CIBC day, the CIBC NAV per unit carried by that
+  // return must give the first Apex NAV per unit (a different unit value or an unbooked distribution at the switch)
+  const lastCibc = cibcJuly.length ? cibcJuly[cibcJuly.length - 1] : base[0];
+  const a0 = apex[0];
+  if (a0.return_start_date === lastCibc.date && validReturn(a0.net_daily_return)) {
+    const carried = (lastCibc.nav_per_share_cad as number) * (1 + a0.net_daily_return);
+    if (Math.abs(carried / (a0.nav_per_share_cad as number) - 1) > BRIDGE_TOLERANCE) {
+      return fail(`seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`);
+    }
+  }
   const value = (apex[apex.length - 1].nav_per_share_cad as number) / baseNav - 1;
   return validReturn(value) ? { ...out, status: "ready", r: value } : fail("Invalid bridged monthly return");
 }
 
 /**
- * Every month of one class from its data start to `endMonth`: CIBC months, the cut-over bridge, Apex months. Months
- * before the first month whose valuation days all fall on or after `navStart` are not listed.
+ * First day of a class's own data: its first row on or after the fund's data start (a class launched later than the
+ * fund starts at its own first valuation; the register serves no class inception date). null without rows.
+ */
+export function classStart(rows: DailyRow[], navStart: string): string | null {
+  let first: string | null = null;
+  for (const r of rows) {
+    if (typeof r.date !== "string") continue;
+    const d = r.date.slice(0, 10);
+    if (d >= navStart && (first === null || d < first)) first = d;
+  }
+  return first;
+}
+
+/** First month whose every valuation day falls on or after `start` (the class's first computable month). */
+export function firstComputableMonth(start: string): string {
+  const m = toMonthEnd(start);
+  const days = tradingDays(`${m.slice(0, 7)}-01`, m);
+  return days.length && days[0] >= start ? m : addMonths(m, 1);
+}
+
+/**
+ * Every month of one class from its first computable month (classStart, firstComputableMonth) to `endMonth`: CIBC
+ * months, the cut-over bridge, Apex months.
  */
 export function classMonths(rows: DailyRow[], opts: ChainOptions): ChainMonth[] {
   const cutover = opts.cutover ?? CUTOVER;
@@ -257,13 +204,11 @@ export function classMonths(rows: DailyRow[], opts: ChainOptions): ChainMonth[] 
     .map((r) => ({ ...r, date: r.date.slice(0, 10) }))
     .filter((r) => r.date >= opts.navStart && r.date <= opts.endMonth);
   const out: ChainMonth[] = [];
-  // the month containing navStart is listed only if navStart is on or before its first valuation day
-  for (let m = toMonthEnd(opts.navStart); m <= opts.endMonth; m = addMonths(m, 1)) {
-    if (m < bridge) {
-      const cm = cibcMonth(own, m, opts.navStart);
-      if (cm.issue?.startsWith("before the class's own data start") && !out.length) continue;
-      out.push(cm);
-    } else if (m === bridge) out.push(bridgeMonth(own, m, cutover));
+  const start = classStart(own, opts.navStart);
+  if (!start) return out;
+  for (let m = firstComputableMonth(start); m <= opts.endMonth; m = addMonths(m, 1)) {
+    if (m < bridge) out.push(cibcMonth(own, m, start));
+    else if (m === bridge) out.push(bridgeMonth(own, m, cutover));
     else out.push(apexMonth(own, m));
   }
   return out;

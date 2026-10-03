@@ -185,7 +185,8 @@ export type BreakdownKey = "sector" | "rating" | "term" | "country" | "asset_typ
 export const BREAKDOWN_KEYS: readonly BreakdownKey[] = ["sector", "rating", "term", "country", "asset_type"];
 
 /** one characteristic: value (number, or a rating notch), and the share of the bond weight that had an input */
-export interface PortfolioMeasure { value: number | string; coverage: number | null }
+/** `scope: "bond_holdings"`: the figure covers the bond holdings only (open futures not included) */
+export interface PortfolioMeasure { value: number | string; coverage: number | null; scope?: "bond_holdings" }
 export interface WeightRow { label: string; weight: number; count: number | null }
 export interface PortfolioHoldingRow {
   name: string; issuer: string | null; weight: number; coupon: number | null; maturity: string | null;

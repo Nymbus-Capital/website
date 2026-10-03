@@ -37,9 +37,11 @@ export interface FundSources {
    */
   trackRecordClass: ClassCode | null;
   /**
-   * First day of the fund's own NAV history at the dataplatform (nav-timeseries): earlier rows under the same fund code
-   * belong to another strategy (SEST is a reused code) or are placeholders. A class's computed series starts at its first
-   * complete month on or after this day. null: no class series.
+   * First day of the fund's own NAV history at the dataplatform: the fund register's `fund_data_start` (apex.fund; not
+   * served by /api/apex/funds, so mirrored here — keep equal to the register). Earlier rows under the same fund code
+   * belong to another strategy (SEST is a reused code) or are placeholders. Never before the register's `inception`
+   * when /api/apex/funds gives one (build.ts effectiveNavStart). A class's computed series starts at its first complete
+   * month on or after this day and its own first valuation. null: no class series.
    */
   navStart: string | null;
   /**
@@ -58,9 +60,12 @@ export interface FundSources {
   /**
    * Fee band of another class against the track-record class, month by month (class − track): total returns of two
    * classes of one book differ by their fees only, so the difference stays in [minDiff, maxDiff] and within maxFromMedian
-   * of its median. A breach (e.g. a distribution missed by one class) drops that class.
+   * of its median. A breach (e.g. a distribution missed by one class) drops that class (warn + alert). null: no band for
+   * this fund (its classes may differ by more than a fixed fee, `classSpreadNote` says why); the other class gates apply.
    */
-  classSpread: FeeBand;
+  classSpread: FeeBand | null;
+  /** why a fund has no fee band (shown in the class's issues and provenance) */
+  classSpreadNote?: string;
   /** variants of a strategy in the factsheet archive (Global Minimum Volatility), default first; null otherwise */
   variants: { id: string; key: string }[] | null;
   /** factsheet archive: file prefix and fund key inside it */
@@ -79,12 +84,15 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseIndex: "short_corp",
     analytics: "Nymbus Monthly Income",
     trackRecordClass: "STRATEGY",
-    // SEST is a reused fund code: the Monthly Income book starts at the 2021-10-05 re-seed (dataplatform USAGE_MAPPING)
+    // register fund_data_start (= inception): SEST is a reused fund code, the Monthly Income book starts at the 2021-10-05 re-seed
     navStart: "2021-10-05",
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "FP", LDM081: "F" },
     classFundserv: { STRATEGY: "LDM001", LDM081: "LDM081" },
-    classSpread: DEFAULT_SPREAD,
+    // F − FP is not a fixed fee difference: FP may carry a performance fee, so no monthly band is reliable. Class F stays
+    // gated by its own complete daily chain, the CIBC verification of the headline, plausibility and revision checks
+    classSpread: null,
+    classSpreadNote: "class FP may carry a performance fee: F − FP is not a fixed fee difference",
     variants: null,
     factsheet: { file: "bonds_data", key: "SEST" },
   },
@@ -96,11 +104,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseAliases: ["univ_overall"],
     analytics: "Nymbus Sustainable Enhanced Bonds",
     // analytics history and the dataplatform default track record are the H class (STRATEGY_H). The F class (STRATEGY,
-    // LDM201) is computed from its own daily NAV chain since the fund's data start (2023-07-05); its strategy months
+    // LDM201) is computed from its own daily NAV chain since the fund's data start (register fund_data_start); its strategy months
     // before that exist only as stored monthly figures that no dataplatform endpoint serves. The factsheet generator
     // published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
     trackRecordClass: "STRATEGY_H",
-    navStart: "2023-07-05",
+    navStart: "2023-07-01",
     factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
     classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
     classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
@@ -114,7 +122,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseIndex: null,
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
     trackRecordClass: "STRATEGY",
-    navStart: "2023-06-12",
+    navStart: "2023-07-01",
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "F" },
     classFundserv: { STRATEGY: "LDM301" },
@@ -131,7 +139,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     factsheetClass: [],
     classLabels: {},
     classFundserv: {},
-    classSpread: DEFAULT_SPREAD,
+    classSpread: null,
     // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each. No dataplatform endpoint serves
     // these strategy series (their live track records sit in the dataplatform's internal bbg2 mirror only)
     variants: [{ id: "6", key: "GMV_6pct" }, { id: "3", key: "GMV_3pct" }, { id: "9", key: "GMV_9pct" }],
