@@ -28,7 +28,13 @@ test("engines band: drawn, advancing, labelled as an illustration, paused off sc
   expect(await canvasInk(page)).toBeGreaterThan(300);
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("data-running", "true");
   await expect(panel).toContainText(/illustration/i);
-  await expect(page.getByTestId("overlay-caption")).toContainText(/generated values: not actual strategies or results/);
+  await expect(page.getByTestId("overlay-caption")).toContainText(/generated values, not actual positions or results/);
+  await expect(page.getByTestId("overlay-caption")).toContainText("The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
+  // only the drawing is an image; the counters stay readable
+  await expect(page.getByTestId("overlay-host")).toHaveAttribute("role", "img");
+  await expect(panel).not.toHaveAttribute("role", "img");
+  expect(await panel.locator("dl").evaluate((el) => el.closest("[role=img]") === null)).toBe(true);
+  await expect(panel.locator("dl dt").first()).toHaveText("Simulated months");
   await expect(page.getByTestId("overlay-caption")).toContainText(/design objective, not a guarantee/);
   await expect(page.getByTestId("ov-count-engines")).toHaveText("5");
   await expect.poll(async () => Number((await page.getByTestId("ov-count-months").innerText()).replace(/\D/g, ""))).toBeGreaterThan(0);
@@ -61,6 +67,8 @@ test("engines band (FR): French labels and caption", async ({ page, baseURL }) =
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toContainText(/mois de baisse/i);
   await expect(page.getByTestId("overlay-caption")).toContainText(/un objectif, pas une garantie/);
+  await expect(page.getByTestId("overlay-caption")).toContainText(/exposition additionnelle au moyen de contrats à terme/);
+  await expect(panel.locator("dl dt")).toHaveText(["Mois simulés", "Mois de baisse simulés", "Moteurs simulés", "Mouvements autonomes simulés"]);
 });
 
 test("reduced motion: the engines band is one still frame, and follows a live change of the preference", async ({ browser, baseURL }) => {

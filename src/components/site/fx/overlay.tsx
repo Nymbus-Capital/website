@@ -79,13 +79,14 @@ export function OverlayEngines() {
   return (
     <>
       <figure className="sc-fig ov-fig" data-testid="overlay-figure">
-        <div className={`sc-panel ov-panel ${ready ? "on" : ""}`} data-testid="overlay-panel" role="img" aria-label={pick(C.alt)}>
+        <div className={`sc-panel ov-panel ${ready ? "on" : ""}`} data-testid="overlay-panel">
           <div className="sc-bar" aria-hidden="true">
             <span className="sc-dots"><i /><i /><i /></span>
             <span className="sc-title">{pick(C.panel)}</span>
             <span className="sc-chip">{pick(C.illustration)}</span>
           </div>
-          <div className="sc-body" data-testid="overlay-host">
+          {/* only the drawing is an image: the counters below stay readable as a list */}
+          <div className="sc-body" data-testid="overlay-host" role="img" aria-label={pick(C.alt)}>
             <canvas ref={canvas} className="ov-canvas" aria-hidden="true" data-testid="overlay-canvas" />
           </div>
           <dl className="sc-stats">
