@@ -368,12 +368,54 @@ export interface MorningstarRating {
   /** class the rating is for, as the source names it ("Class F"): required, a rating is never shown without it */
   classLabel: string;
   category?: L10n;
+  /** number of funds rated in the category, when the source states it ("out of N funds") */
+  fundsInCategory?: number;
   url?: string;
+}
+
+/** Third-party providers of percentile / category rankings entered by hand in the admin (besides Fund Library and Morningstar). */
+export const THIRD_PARTY_PROVIDERS = ["rbc-pfs", "evestment", "lipper", "gmr"] as const;
+export type ThirdPartyProvider = (typeof THIRD_PARTY_PROVIDERS)[number];
+
+/** One period of a third-party ranking: a percentile (1 = best) and / or a rank out of a number of funds. */
+export interface PercentileRow {
+  period: RankingPeriod;
+  /** percentile rank in the peer group, 1 (best) to 100; null when the source gives a rank only */
+  percentile: number | null;
+  rank?: number | null;
+  of?: number | null;
+}
+
+/**
+ * A ranking from RBC Investor Services (pooled fund survey), eVestment, LSEG Lipper or GMR. Shown publicly only when
+ * `confirmed` and complete (source URL, as-of date, class, category, at least one period) and not older than the
+ * staleness limit. A draft (not confirmed) is admin-only: it never reaches a public page.
+ */
+export interface ThirdPartyRanking {
+  provider: ThirdPartyProvider;
+  /** class / vehicle the ranking is for, as the source names it ("Class F", "Pooled fund") */
+  classLabel: string;
+  /** FundServ code when the ranking is for one series (must be a class of the fund) */
+  fundserv?: string;
+  /** peer group / category as the source names it */
+  category: L10n;
+  /** end of the period measured (quarter end for the RBC survey), YYYY-MM-DD; "" in a draft */
+  asOf: string;
+  /** edition of the survey or report ("Q2 2026"), when the source has one */
+  edition?: string;
+  rows: PercentileRow[];
+  /** public page or PDF the figures were read from (https) */
+  url?: string;
+  /** the admin checked every figure on the source page */
+  confirmed?: boolean;
+  /** admin-only note (never published) */
+  note?: string;
 }
 
 export interface FundRankings {
   fundLibrary?: FundLibraryRanking[];
   morningstar?: MorningstarRating;
+  thirdParty?: ThirdPartyRanking[];
 }
 
 export interface FundContent {
@@ -429,4 +471,6 @@ export interface SiteContent {
    * "compliance review required" banner while `textsHash` differs from the current disclaimersHash().
    */
   compliance?: { approvedAt: string; approvedBy: string; textsHash: string } | null;
+  /** third-party rankings: an entry whose as-of date is older than `maxAgeMonths` is hidden (default 6) */
+  rankingPolicy?: { maxAgeMonths: number };
 }

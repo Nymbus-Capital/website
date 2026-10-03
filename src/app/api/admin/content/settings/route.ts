@@ -1,4 +1,4 @@
-/** PUT /api/admin/content/settings { version, firm, publishMode } — firm-wide texts and the pipeline publish mode. */
+/** PUT /api/admin/content/settings { version, firm, publishMode, rankingPolicy? } — firm-wide texts, the pipeline publish mode, the rankings staleness limit. */
 import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
 import { updateContent } from "@/lib/data/content";
@@ -26,12 +26,12 @@ export async function PUT(request: NextRequest) {
     const saved = await updateContent(
       body.version,
       (cur) => {
-        before = { firm: cur.firm, pipeline: cur.pipeline };
-        return { ...cur, firm, pipeline: { ...cur.pipeline, publishMode: body.publishMode } };
+        before = { firm: cur.firm, pipeline: cur.pipeline, rankingPolicy: cur.rankingPolicy };
+        return { ...cur, firm, pipeline: { ...cur.pipeline, publishMode: body.publishMode }, ...(body.rankingPolicy ? { rankingPolicy: body.rankingPolicy } : {}) };
       },
       user.email,
     );
-    await audit({ by: user.email, action: "content.settings.save", detail: { version: saved.version, before, after: { firm, pipeline: saved.pipeline } } });
+    await audit({ by: user.email, action: "content.settings.save", detail: { version: saved.version, before, after: { firm, pipeline: saved.pipeline, rankingPolicy: saved.rankingPolicy } } });
     return ok({ content: saved });
   } catch (e) {
     return contentError("content.settings", e);

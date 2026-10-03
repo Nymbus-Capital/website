@@ -10,10 +10,10 @@ const pattern = m[1].replace(/\\\\/g, "\\");
 const re = new RegExp(`^${pattern}$`);
 
 test("proxy matcher covers pages and admin API, skips assets, downloads and uploads", () => {
-  for (const p of ["/", "/strategies/multi-strategy", "/admin", "/admin/funds/x", "/api/admin/status", "/api/admin/uploadx", "/api/admin/upload", "/api/auth/login"]) {
+  for (const p of ["/", "/strategies/multi-strategy", "/admin", "/admin/funds/x", "/api/admin/status", "/api/admin/uploadx", "/api/admin/upload", "/api/auth/login", "/api/admin/brand/morningstar-logo", "/api/brandx", "/brandx"]) {
     assert.ok(re.test(p), `should match ${p}`);
   }
-  for (const p of ["/_next/static/chunks/a.js", "/fonts/poppins-400.woff", "/favicon.svg", "/api/documents/20260101T000000-aaaaaaaa", "/api/admin/upload/documents", "/api/health"]) {
+  for (const p of ["/_next/static/chunks/a.js", "/fonts/poppins-400.woff", "/favicon.svg", "/api/documents/20260101T000000-aaaaaaaa", "/api/admin/upload/documents", "/api/admin/upload/brand", "/api/health", "/api/brand/morningstar-logo", "/brand/third-party/morningstar-logo.svg"]) {
     assert.ok(!re.test(p), `should not match ${p}`);
   }
 });

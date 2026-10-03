@@ -3,7 +3,7 @@
  */
 import { z } from "zod";
 import { FUND_KEYS } from "@/config/funds";
-import { HIDE_BLOCKS, RANKING_PERIODS, type FundKey } from "@/lib/data/types";
+import { HIDE_BLOCKS, RANKING_PERIODS, THIRD_PARTY_PROVIDERS, type FundKey } from "@/lib/data/types";
 import { bothOrNeither } from "@/components/admin/fund-content";
 
 const FUND_KEY_VALUES = FUND_KEYS as [FundKey, ...FundKey[]];
@@ -57,12 +57,49 @@ export const morningstarSchema = z.strictObject({
   asOf: isoDate,
   classLabel: text(40).min(1),
   category: l10n(120).refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required").optional(),
+  fundsInCategory: z.number().int().min(1).max(100_000).optional(),
   url: httpsUrl.optional(),
+});
+
+export const percentileRowSchema = z.strictObject({
+  period: z.enum(RANKING_PERIODS),
+  percentile: z.number().int().min(1).max(100).nullable(),
+  rank: z.number().int().min(1).max(100_000).nullable().optional(),
+  of: z.number().int().min(1).max(100_000).nullable().optional(),
+}).refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
+
+/**
+ * eVestment / LSEG Lipper / GMR / RBC pooled fund survey entry. A draft (confirmed false) may be incomplete; a confirmed
+ * entry needs everything the public page shows with it: class, category EN + FR, as-of date, https source and a figure
+ * (percentile, or rank out of N) for every period.
+ */
+export const thirdPartyRankingSchema = z.strictObject({
+  provider: z.enum(THIRD_PARTY_PROVIDERS),
+  classLabel: text(40),
+  fundserv: fundservCode.optional(),
+  category: z.strictObject({ en: text(120), fr: text(120) }),
+  asOf: z.union([isoDate, z.literal("")]),
+  edition: text(40).optional(),
+  rows: z.array(percentileRowSchema).max(RANKING_PERIODS.length),
+  url: httpsUrl.optional(),
+  confirmed: z.boolean().optional(),
+  note: text(600).optional(),
+}).superRefine((e, ctx) => {
+  if (new Set(e.rows.map((r) => r.period)).size !== e.rows.length) ctx.addIssue({ code: "custom", message: "each period once", path: ["rows"] });
+  if (!e.confirmed) return;
+  const need = (ok: boolean, path: string, message: string) => { if (!ok) ctx.addIssue({ code: "custom", message, path: [path] }); };
+  need(e.classLabel.length > 0, "classLabel", "class is required to confirm");
+  need(e.category.en.length > 0 && e.category.fr.length > 0, "category", "category (EN and FR) is required to confirm");
+  need(e.asOf !== "", "asOf", "as-of date is required to confirm");
+  need(!!e.url, "url", "source URL (https) is required to confirm");
+  need(e.rows.length > 0, "rows", "at least one period is required to confirm");
+  need(e.rows.every((r) => r.percentile != null || (r.rank != null && r.of != null)), "rows", "every period needs a percentile or a rank out of N to confirm");
 });
 
 export const fundRankingsSchema = z.strictObject({
   fundLibrary: z.array(fundLibraryRankingSchema).max(6).optional(),
   morningstar: morningstarSchema.optional(),
+  thirdParty: z.array(thirdPartyRankingSchema).max(12).optional(),
 });
 
 export const fundContentSchema = z.strictObject({
@@ -102,6 +139,7 @@ export const saveSettingsSchema = z.strictObject({
     disclaimer: l10n(4000).optional(),
   }),
   publishMode: z.enum(["auto", "review"]),
+  rankingPolicy: z.strictObject({ maxAgeMonths: z.number().int().min(1).max(24) }).optional(),
 });
 
 export const runPipelineSchema = z.strictObject({ dryRun: z.boolean().default(false) });
