@@ -5,6 +5,7 @@
  * (AUM: fund totals only, never investor-level rows; FTSE: aggregate daily levels only).
  */
 import type { FundKey } from "../data/types.ts";
+import type { DailyRow } from "./daily-chain.ts";
 
 export type DpShort = "SEST" | "SEB" | "Multistrat";
 
@@ -49,8 +50,19 @@ export interface NavPoint {
   return_start_date?: string | null;
   nav_type?: string | null;
   short_name?: string | null;
+  /** rows aggregated into this one (1 for a class row) */
+  return_source_count?: number | null;
+  /** class NAV in CAD (the fund's net assets are the sum over its classes) */
+  net_asset_value_cad?: number | null;
   [k: string]: unknown;
 }
+/** one class's daily rows (nav-timeseries fundserv=…), reduced to the fields the chain needs */
+export interface NavHistory {
+  fundserv: string;
+  rows: (DailyRow & { fundserv: string })[];
+  warnings: string[];
+}
+
 export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; [k: string]: unknown }
 
 export interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
@@ -101,8 +113,13 @@ export interface RawPayloads {
   ftseIndex: Partial<Record<FundKey, string | null>>;
   /** monthly net returns of the fund's track-record class (FUND_SOURCES.trackRecordClass, Apex months) */
   monthlyReturns: Partial<Record<DpShort, SourceResult<MonthlyNetReturnsResponse>>>;
-  /** monthly net returns of the preferred class with `history=full` (FUND_SOURCES.preferredClass); optional */
+  /** monthly net returns with `history=full` (dataplatform PR #626, never merged; only in older snapshots, unused) */
   monthlyReturnsFull?: Partial<Record<DpShort, SourceResult<MonthlyNetReturnsResponse>>>;
+  /**
+   * daily nav-timeseries rows of each class with a series (FUND_SOURCES.classFundserv), keyed by FundServ code, from the
+   * fund's NAV start: the website compounds the monthly returns itself (daily-chain.ts). Optional (older snapshots)
+   */
+  navHistory?: Record<string, SourceResult<NavHistory>>;
   nav: Partial<Record<DpShort, SourceResult<NavSeriesResponse>>>;
   apexFunds: SourceResult<RegisteredFund[]>;
   unitholderFunds: SourceResult<FundRef[]>;
@@ -111,12 +128,53 @@ export interface RawPayloads {
   factsheets: SourceResult<FactsheetFiles>;
   /** official monthly history before the Apex cutover (analytics repo) */
   analytics: SourceResult<AnalyticsReturns>;
-  /** latest daily portfolio analytics per fund (/api/apex/fund-portfolio); optional (older snapshots, tests) */
+  /**
+   * Apex book of each fund (/api/apex/holdings) on its latest FINAL_NAV valuation day, and on the last valuation day of the
+   * last closed month (factsheet cross-check; null when the latest book is in that month). The website computes the
+   * portfolio analytics from them (fund-portfolio.ts). Optional (older snapshots)
+   */
+  holdings?: Partial<Record<DpShort, { latest: SourceResult<HoldingsBook>; monthEnd: SourceResult<HoldingsBook> | null }>>;
+  /** instrument master references of the held securities (/api/instruments/batch + bond universe pages); optional */
+  instruments?: SourceResult<InstrumentRefs>;
+  /** portfolio analytics in the PR #621 contract shape: older snapshots only (the endpoint never reached the main branch) */
   portfolio?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
-  /** the same at the last closed month-end, for the factsheet cross-check (absent when the latest book is that month-end) */
   portfolioMonthEnd?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
-  /** per-class distributions (/api/performance/distributions); optional */
+  /** per-class distributions (PR #621 contract): no endpoint on the dataplatform main branch; only when supplied */
   distributions?: Partial<Record<DpShort, SourceResult<ClassDistributions>>>;
+}
+
+/* ------------------------------------------------------------------ Apex holdings and instrument master (main-branch endpoints) */
+
+/** /api/apex/holdings position, reduced */
+export interface HoldingsPosition {
+  date: string; bloomberg_id: string | null; isin: string | null; cusip: string | null; sedol: string | null; security_id: string | null;
+  description: string | null; security_type: string | null; sector: string | null; country: string | null; currency: string | null;
+  quantity: number | null; market_value_cad: number | null;
+}
+/** /api/apex/holdings bank / broker balance line, reduced */
+export interface HoldingsCash { date: string; currency: string | null; glc_description: string | null; closing_bal_cad: number | null }
+/** one fund's Apex FINAL_NAV book of one valuation day */
+export interface HoldingsBook { fund: string; date: string; positions: HoldingsPosition[]; cash: HoldingsCash[]; warnings: string[] }
+
+/** an instrument as the website needs it: batch detail (ratings, reference, classification, latest price) + universe terms */
+export interface InstrumentRef {
+  nymbus_instrument_id: number;
+  isin: string | null; cusip: string | null; figi: string | null; name: string | null; asset_class: string | null; security_type: string | null;
+  ratings: { agency: string; rating: string; source?: string | null }[];
+  reference: { is_green_bond?: boolean | null } | null;
+  classification: { industry_sector?: string | null; country_of_risk?: string | null; market_sector?: string | null } | null;
+  latest_price: { price_date?: string | null; modified_duration?: number | null; yield_to_maturity?: number | null } | null;
+  /** from the bond universe (/api/instruments): coupon rate in percent, maturity, issuer, Bloomberg sector / country / market sector */
+  coupon_rate?: number | string | null; maturity_date?: string | null; issuer?: string | null; sector?: string | null; country_of_risk?: string | null; market_sector?: string | null;
+}
+export interface InstrumentRefs {
+  refs: InstrumentRef[];
+  /** identifiers asked, by type, and how many matched */
+  asked: Record<string, number>;
+  matched: number;
+  /** bond universe rows read (coupon / maturity); complete = every page was read */
+  universeRows: number;
+  universeComplete: boolean;
 }
 
 /* ------------------------------------------------------------------ fund portfolio (dataplatform contract A) */
