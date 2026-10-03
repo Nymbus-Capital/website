@@ -52,6 +52,8 @@ export interface RunReport {
    * previous performance and stays "pending-review" until an admin publishes it (the new months included)
    */
   reviewNeeded?: FundKey[];
+  /** non-blocking notices (persistent, expected data limitations), also listed as warn issues */
+  advisories?: { fund: FundKey; message: string }[];
 }
 
 export interface PublishedMeta { runId: string; publishedAt: string; publishedBy: string }
@@ -179,14 +181,16 @@ export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[
   return removed;
 }
 
-async function alert(report: RunReport, fetchImpl: typeof fetch): Promise<void> {
+async function alert(report: RunReport, fetchImpl: typeof fetch, previousAdvisories: Set<string> = new Set()): Promise<void> {
   const url = process.env.PIPELINE_ALERT_WEBHOOK;
   const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
-  if (!url || (report.status !== "failed" && report.status !== "blocked" && !review)) return;
+  const fresh = (report.advisories ?? []).filter((a) => !previousAdvisories.has(`${a.fund}|${a.message}`));
+  if (!url || (report.status !== "failed" && report.status !== "blocked" && !review && !fresh.length)) return;
   const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
   const text = [
-    `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.publishedAt ? ", other funds published" : ", nothing published"})`,
+    `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.status === "published" ? ", published" : report.publishedAt ? ", other funds published" : ", nothing published"})`,
     ...(review ? [`new month(s) of ${report.reviewNeeded!.join(", ")} confirmed by no independent source: publish the run in the admin to approve them`] : []),
+    ...fresh.map((a) => `attention (not blocking) ${a.fund}: ${a.message.slice(0, 300)}`),
     ...Object.entries(report.funds).map(([k, v]) => `${k}: ${v}`),
     ...errors,
   ].join("\n");
@@ -208,6 +212,8 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
     let raw: RawPayloads | null = null;
     let data: SiteData | null = null;
     let autoPublish: SiteData | null = null;
+    // the previous run's notices: a non-blocking notice is posted once, when it first appears
+    const previousAdvisories = new Set(((await listRuns(1).catch(() => []))[0]?.advisories ?? []).map((a) => `${a.fund}|${a.message}`));
     try {
       const previous = await readJson<SiteData | null>(["published", "site-data.json"], null);
       raw = await fetchAll({ fetchImpl, now });
@@ -223,7 +229,13 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       if (v.classChanges.length) report.classChanges = v.classChanges;
       if (v.needsReview.length) report.reviewNeeded = v.needsReview;
       const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
-      report.issues = [...data.issues, ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i)];
+      const advisories = v.results.flatMap((r) => (r.advisories ?? []).map((m) => ({ fund: r.fund, message: m })));
+      if (advisories.length) report.advisories = advisories;
+      report.issues = [
+        ...data.issues,
+        ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i),
+        ...advisories.map((a) => ({ key: `funds.${a.fund}`, level: "warn" as const, message: `attention (not blocking): ${a.message}` })),
+      ];
       const updated = Object.values(v.funds).some((s) => s === "updated");
       const blocked = v.results.some((r) => r.blocking.length > 0 || r.alerts.length > 0);
       const mode = await publishMode();
@@ -257,7 +269,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       report.issues = [...report.issues, { key: "run", level: "error", message: `could not store the run: ${errMsg(e)}` }];
       await writeJson(["snapshots", id, "report.json"], report).catch(() => undefined);
     }
-    await alert(report, fetchImpl);
+    await alert(report, fetchImpl, previousAdvisories);
     return report;
   });
 }

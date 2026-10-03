@@ -90,3 +90,39 @@ export function priorTradingDay(date: string): string | null {
   const days = tradingDays(iso(t - 10 * DAY), iso(t - DAY));
   return days.length ? days[days.length - 1] : null;
 }
+
+/* ------------------------------------------------------------------ Canadian bond market (FTSE Canada indices) */
+
+const bondCache = new Map<number, Set<string>>();
+
+/**
+ * Canadian bond-market holidays of a year (CIRO recommended closures, which the FTSE Canada bond indices follow): the
+ * TSX holidays plus the National Day for Truth and Reconciliation (Sep 30, from 2021) and Remembrance Day (Nov 11),
+ * both observed on the Monday when they fall on a weekend. The bond market trades on days the TSX does not close for
+ * and vice versa, so FTSE month-ends use this calendar and fund NAVs the TSX one.
+ */
+export function caBondHolidays(year: number): Set<string> {
+  const hit = bondCache.get(year);
+  if (hit) return hit;
+  const set = new Set(caMarketHolidays(year));
+  if (year >= 2021) set.add(iso(observed(utc(year, 9, 30))));
+  set.add(iso(observed(utc(year, 11, 11))));
+  bondCache.set(year, set);
+  return set;
+}
+
+export const isBondDay = (d: string): boolean => {
+  const t = Date.parse(`${d}T00:00:00Z`);
+  const w = weekday(t);
+  return w !== 0 && w !== 6 && !caBondHolidays(Number(d.slice(0, 4))).has(d);
+};
+
+/** Canadian bond-market business days from `from` to `to` (inclusive), ascending. */
+export function bondDays(from: string, to: string): string[] {
+  const out: string[] = [];
+  for (let t = Date.parse(`${from}T00:00:00Z`); t <= Date.parse(`${to}T00:00:00Z`); t += DAY) {
+    const d = iso(t);
+    if (isBondDay(d)) out.push(d);
+  }
+  return out;
+}

@@ -169,7 +169,7 @@ test("FTSE: only fully aggregate rows count (no sub-index fallback)", () => {
   assert.deepEqual(ftseLevels(rows), { "2026-01-30": 100, "2026-03-31": 110 });
 });
 
-test("FTSE month-end: closing level on the last TSX valuation day (skipped days must be holidays), month closed, no open-month return", () => {
+test("FTSE month-end: closing level on the last bond-market business day (skipped days must be holidays), month closed, no open-month return", () => {
   assert.deepEqual(lastWeekdays("2026-01"), { last: "2026-01-30", earliest: "2026-01-28" });
   assert.deepEqual(lastWeekdays("2026-05"), { last: "2026-05-29", earliest: "2026-05-27" });
   const m = monthEndReturns({
@@ -183,7 +183,7 @@ test("FTSE month-end: closing level on the last TSX valuation day (skipped days 
   });
   assert.equal(m.series["2026-01-31"], 102 / 100 - 1);
   assert.equal(m.series["2026-02-28"], 103.02 / 102 - 1);
-  assert.match(m.dropped[0].reason, /no level for the TSX valuation day\(s\) .*2026-03-31 … before the month-end/);
+  assert.match(m.dropped[0].reason, /no level for the bond-market business day\(s\) .*2026-03-31 … before the month-end/);
   assert.equal(m.series["2026-03-31"], undefined);
   assert.equal(m.series["2026-04-30"], undefined);
   assert.equal(m.series["2026-05-31"], 106.05 / 105 - 1);
@@ -195,7 +195,13 @@ test("FTSE month-end: closing level on the last TSX valuation day (skipped days 
   assert.deepEqual(levelsToMonthly({ "2025-12-31": 100, "2026-02-27": 103, "2026-03-31": 104 }), {}, "a month without levels breaks the chain");
 });
 
-test("m8: a month-end skipped on a TSX holiday is accepted, a skipped business day is not", () => {
+test("m8: a month-end skipped on a bond-market holiday is accepted, a skipped business day is not", () => {
+  // Truth and Reconciliation Day: the bond market (and FTSE Canada) closes on Sep 30 although the TSX is open
+  const tr = monthEndReturns({ "2025-08-29": 100, "2025-09-29": 101, "2025-10-31": 102, "2026-08-31": 103, "2026-09-29": 104, "2026-10-01": 104 });
+  close(tr.series["2025-09-30"], 0.01);
+  close(tr.series["2025-10-31"], 102 / 101 - 1);
+  assert.equal(tr.dropped.length, 0, JSON.stringify(tr.dropped));
+  // Remembrance Day on a Saturday (2023-11-11) is observed Monday 13: not a month-end case, but the calendar knows it
   // Good Friday 2024-03-29: the 28th closes March 2024
   const a = monthEndReturns({ "2024-02-29": 100, "2024-03-28": 101, "2024-04-30": 102, "2024-05-01": 103 });
   close(a.series["2024-03-31"], 0.01);
@@ -206,7 +212,7 @@ test("m8: a month-end skipped on a TSX holiday is accepted, a skipped business d
   assert.equal(b.series["2026-04-30"], undefined);
   assert.equal(b.series["2026-05-31"], undefined);
   assert.deepEqual(b.dropped.map((d) => d.month), ["2026-04-30"]);
-  assert.match(b.dropped[0].reason, /no level for the TSX valuation day\(s\) 2026-04-30/);
+  assert.match(b.dropped[0].reason, /no level for the bond-market business day\(s\) 2026-04-30/);
   // Boxing Day 2026 observed on Monday 28 and Christmas on Friday 25: a level on 2026-12-31 closes December
   const c = monthEndReturns({ "2026-11-30": 100, "2026-12-31": 101, "2027-01-04": 101 });
   close(c.series["2026-12-31"], 0.01);

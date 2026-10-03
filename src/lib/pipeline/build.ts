@@ -83,6 +83,11 @@ export interface FundContext {
    * (analytics history, a same-class factsheet monthly table or trailing table): auto mode keeps them for an admin
    */
   unconfirmed?: string[];
+  /**
+   * persistent, expected data limitations a human should know about but that never block publishing (e.g. a class not
+   * shown because the fund's CIBC months cannot be verified): warn issues + a non-blocking notice in the run
+   */
+  advisories?: string[];
 }
 
 export interface BuildResult { data: SiteData; context: Partial<Record<FundKey, FundContext>> }
@@ -518,7 +523,8 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string): C
       const off = common.filter((m) => Math.abs((m.r as number) - analyticsMonths[m.month]) > TOL.chainVsAnalytics);
       if (cibc.length) {
         if (off.length) {
-          c.warn(key, `stored CIBC daily returns of ${lbl} do not reproduce the analytics history (beyond ${(TOL.chainVsAnalytics * 10_000).toFixed(1)} bp) for ${monthRanges(off.map((m) => m.month))} (${off.slice(0, 3).map((m) => `${ym(m.month)}: chain ${pct4(m.r as number)} vs analytics ${pct4(analyticsMonths[m.month])}`).join("; ")}): CIBC months not taken from the dataplatform (method not verified; analytics kept)`);
+          const worst = off.reduce((a, m) => (Math.abs((m.r as number) - analyticsMonths[m.month]) > Math.abs((a.r as number) - analyticsMonths[a.month]) ? m : a));
+          c.warn(key, `stored CIBC daily returns of ${lbl} do not reproduce the analytics history on ${off.length} of ${common.length} month(s) (beyond ${(TOL.chainVsAnalytics * 10_000).toFixed(1)} bp; largest ${ym(worst.month)}: chain ${pct4(worst.r as number)} vs analytics ${pct4(analyticsMonths[worst.month])}): the fund's CIBC months are not taken from the dataplatform (analytics kept; no other class can use them)`);
         } else if (common.length < CHAIN.minVerifiedMonths) {
           c.info(key, `stored CIBC daily returns of ${lbl}: only ${common.length} month(s) in common with the analytics history (${CHAIN.minVerifiedMonths} needed to verify them): CIBC months not taken from the dataplatform`);
         } else {
@@ -619,6 +625,11 @@ function buildIndex(raw: RawPayloads, spec: FundSpec, fsb: { name: string; month
       for (let m = firstMonth; m <= asOf; m = addMonths(m, 1)) if (!(m in out.monthly)) missing.push(m);
       if (missing.length) c.warn(key, `FTSE ${ftseName} has no monthly return for ${monthRanges(missing)}: index figures needing these months are not shown`);
       const joined = res.data.joined?.length ? ` (history joined over ${res.data.joined.join(", ")})` : "";
+      for (const l of res.data.links ?? []) {
+        if (l.kind !== "gap" || !l.gap) continue;
+        const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
+        c.info(key, `FTSE ${ftseName}: earlier name ${l.name} linked across the one-day gap ${l.gap.last} → ${l.gap.first} (no overlap): implied gap return ${bp(l.gap.implied)}, yield/duration estimate ${bp(l.gap.estimate)}, residual ${bp(l.gap.residual)} within the threshold ${bp(l.gap.threshold)} (3 × p95 of ${l.gap.samples} daily residuals, at least 2 bp)`);
+      }
       out.prov = `FTSE ${ftseName} via dataplatform /api/ftse/index-summary, aggregate total-return level, month-end to month-end${joined}`;
     } else {
       c.warn(key, `FTSE ${ftseName} unavailable (${res?.error ?? "not fetched"}): no index figure shown`);
@@ -1305,24 +1316,29 @@ function comparablePrevious(prev: FundData | undefined, next: Performance): Perf
 function buildClasses(
   raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, pb: PerfBuild | null, performance: Performance | null,
   risk: RiskStats | null, risk3Y: RiskStats | null, c: Ctx, base: string,
-): { byClass: Record<string, ClassPerformance>; alerts: string[] } {
+): { byClass: Record<string, ClassPerformance>; alerts: string[]; advisories: string[] } {
   const src = FUND_SOURCES[spec.key];
   const classes = classSeriesOf(spec.key);
   const alerts: string[] = [];
+  const advisories: string[] = [];
   // the main series carried over (a source failed this run): the classes carried over with it
   const byClass: Record<string, ClassPerformance> = pb ? {} : performance && prev?.performanceByClass ? { ...prev.performanceByClass } : {};
   const head = performance?.classCode ? classes.find((k) => k.classCode === performance.classCode) : undefined;
   if (head && performance) byClass[head.fundserv] = { fundserv: head.fundserv, display: head.display, performance, risk, risk3Y };
-  if (!pb?.performance || !pb.ref || !head) return { byClass, alerts };
+  if (!pb?.performance || !pb.ref || !head) return { byClass, alerts, advisories };
   const asOf = pb.performance.asOf;
   const ref = pb.ref;
   for (const k of classes) {
     if (k.classCode === head.classCode) continue;
     const key = `${base}.performance.classes.${k.fundserv}`;
     const lbl = `class ${k.display} (${k.fundserv})`;
-    const drop = (why: string): void => {
+    // a class that was published and disappears always needs a human (blocking alert); a class never published that
+    // stays out for a persistent, expected limitation (unverifiable CIBC months) is a non-blocking advisory
+    const wasPublished = !!prev?.performanceByClass?.[k.fundserv];
+    const drop = (why: string, persistent = false): void => {
       c.warn(key, `${lbl}: ${why}; returns not shown for this class`);
-      alerts.push(`${lbl} not shown: ${why}`);
+      if (persistent && !wasPublished) advisories.push(`${lbl} not shown: ${why}`);
+      else alerts.push(`${lbl} not shown${wasPublished ? " (it was published before)" : ""}: ${why}`);
     };
     const ch = classChain(raw, spec, k.fundserv);
     if (ch.error) {
@@ -1339,12 +1355,19 @@ function buildClasses(
     // every month from the class's first computable month: an unusable one drops the class (never a truncated run)
     const unusable = months.map((m) => ({
       m,
+      unverified: m.status === "ready" && m.r !== null && ((m.source === "cibc" && !ref.verify.cibc) || (m.source === "bridge" && !ref.verify.bridge)),
       why: m.status !== "ready" || m.r === null ? m.issue ?? m.status
         : m.source === "cibc" && !ref.verify.cibc ? "stored CIBC daily returns not verified on the headline class"
         : m.source === "bridge" && !ref.verify.bridge ? "cut-over bridge not confirmed on the headline class" : null,
     })).filter((x) => x.why);
     if (unusable.length) {
-      drop(`${unusable.length} month(s) unusable after its first computable month ${ym(first)} (own data from ${ch.start}): ${unusable.slice(0, 3).map((x) => `${ym(x.m.month)} ${x.why}`).join("; ")}${unusable.length > 3 ? "; …" : ""}`);
+      const unverified = unusable.filter((x) => x.unverified);
+      const other = unusable.filter((x) => !x.unverified);
+      const parts = [
+        unverified.length ? `${unverified.length} month(s) (${monthRanges(unverified.map((x) => x.m.month))}) ${unverified[0].why}` : null,
+        other.length ? `${other.length} month(s) unavailable: ${other.slice(0, 3).map((x) => `${ym(x.m.month)} ${x.why}`).join("; ")}${other.length > 3 ? "; …" : ""}` : null,
+      ].filter(Boolean).join("; ");
+      drop(`not every month since its first computable month ${ym(first)} is usable (own data from ${ch.start}): ${parts}`, !other.length);
       continue;
     }
     if (months[months.length - 1].month !== asOf) {
@@ -1376,7 +1399,7 @@ function buildClasses(
     const checked = src.classSpread ? `fee band vs class ${head.display} checked on ${sortedKeys(series).filter((m) => m in ref.sourceMonths).length} month(s)` : `no fee band (${src.classSpreadNote ?? "not configured"})`;
     c.prov[key] = `monthly net returns of ${lbl} ${ym(first)} to ${ym(asOf)} (every month since its first computable month; own data from ${ch.start}) compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=${k.fundserv} (${chainNote(sortedKeys(series), ch.months)}); ${checked}`;
   }
-  return { byClass, alerts };
+  return { byClass, alerts, advisories };
 }
 
 /** Variants of a strategy (GMV): one factsheet block each; the default variant's data is the fund's own. */
@@ -1470,6 +1493,7 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     performanceByClass = cls.byClass;
     defaultClass = spec.headlineClass ?? undefined;
     ctx.alerts.push(...cls.alerts);
+    if (cls.advisories.length) ctx.advisories = cls.advisories;
   }
 
   // revisions of already published months (M5), against the same class of the previous publication; a change of class

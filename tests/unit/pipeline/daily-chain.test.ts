@@ -1,7 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { apexMonth, bridgeMonth, caMarketHolidays, cibcMonth, classMonths, classStart, firstComputableMonth, isTradingDay, priorTradingDay, tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
+import { bondDays, caBondHolidays, isBondDay } from "../../../src/lib/pipeline/market-calendar.ts";
 import { synthClassRows, monthsOf } from "../../fixtures/pipeline/nav-history.ts";
+
+test("Canadian bond-market holidays (FTSE Canada): TSX holidays + Truth and Reconciliation Day + Remembrance Day, weekend-observed", () => {
+  assert.equal(isBondDay("2025-09-30"), false, "Truth and Reconciliation Day 2025 (Tuesday)");
+  assert.equal(isBondDay("2026-09-30"), false, "Truth and Reconciliation Day 2026 (Wednesday)");
+  assert.equal(isTradingDay("2025-09-30"), true, "the TSX is open");
+  assert.equal(isBondDay("2026-11-11"), false, "Remembrance Day 2026 (Wednesday)");
+  assert.ok(caBondHolidays(2023).has("2023-10-02"), "Sep 30 2023 is a Saturday: observed Monday Oct 2");
+  assert.ok(caBondHolidays(2023).has("2023-11-13"), "Nov 11 2023 is a Saturday: observed Monday 13");
+  assert.ok(!caBondHolidays(2020).has("2020-09-30"), "Truth and Reconciliation Day exists from 2021");
+  assert.ok(caBondHolidays(2026).has("2026-12-28") && caBondHolidays(2026).has("2026-07-01") && caBondHolidays(2026).has("2026-02-16"));
+  assert.deepEqual(bondDays("2025-09-26", "2025-10-01"), ["2025-09-26", "2025-09-29", "2025-10-01"]);
+});
 import type { Series } from "../../../src/lib/pipeline/metrics.ts";
 
 const close = (a: number | null | undefined, b: number, eps = 1e-12): void => {

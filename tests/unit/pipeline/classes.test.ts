@@ -79,8 +79,8 @@ test("class gates: a fee-band breach drops the class; a hole after the first com
   const hole = history("LDM201", (rows) => rows.filter((r) => r.date !== "2025-02-11"));
   const b = await build(hole);
   assert.equal(b.data.funds[SEB]!.performanceByClass!.LDM201, undefined, "no truncated run");
-  assert.ok(b.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /1 month\(s\) unusable after its first computable month 2023-08 \(own data from 2023-07-05\): 2025-02 Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
-  assert.ok(alertOf(b.context, /class F \(LDM201\) not shown: 1 month\(s\) unusable/));
+  assert.ok(b.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /not every month since its first computable month 2023-08 is usable \(own data from 2023-07-05\): 1 month\(s\) unavailable: 2025-02 Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
+  assert.ok(alertOf(b.context, /class F \(LDM201\) not shown: not every month .*1 month\(s\) unavailable/), "a data hole is an anomaly: blocking alert");
   // the history endpoint failing for class F: class F not shown ("coming soon"), H unchanged
   const down: Route = (url) => (url.pathname === "/api/performance/nav-timeseries" && url.searchParams.get("fundserv") === "LDM201" ? json({ detail: "x" }, 500) : undefined);
   const c = await build(down);
@@ -111,11 +111,22 @@ test("CIBC months of the other classes are used only when the headline verified 
   const priceOnly = history("LDM202", (rows) => rows.map((r) => (r.date === "2024-03-28" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)));
   const { data, context } = await build(priceOnly);
   const seb = data.funds[SEB]!;
-  assert.ok(data.issues.some((i) => i.level === "warn" && /stored CIBC daily returns of class H \(LDM202\) do not reproduce the analytics history .* for 2024-03/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "warn" && /stored CIBC daily returns of class H \(LDM202\) do not reproduce the analytics history .*largest 2024-03/.test(i.message)));
   assert.match(data.provenance[`funds.${SEB}.performance`], /analytics fund_returns\.json "Nymbus Sustainable Enhanced Bonds" \(89 month\(s\): 2019-02 to 2026-06/);
   // class F would start at 2023-08 but its CIBC months cannot be used: never a series "since" the bridge month
   assert.equal(seb.performanceByClass!.LDM201, undefined);
-  assert.ok(context[SEB]!.alerts.some((a) => /class F \(LDM201\) not shown: \d+ month\(s\) unusable after its first computable month 2023-08 .*stored CIBC daily returns not verified on the headline class/.test(a)));
+  // a persistent, expected limitation (the fund's CIBC months cannot be verified): a non-blocking advisory, not an alert
+  assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)), JSON.stringify(context[SEB]!.alerts));
+  assert.ok(context[SEB]!.advisories?.some((a) => /class F \(LDM201\) not shown: not every month since its first computable month 2023-08 is usable .*: \d+ month\(s\) \(2023-08 to 2026-06\) stored CIBC daily returns not verified on the headline class$/.test(a)), JSON.stringify(context[SEB]!.advisories));
+  // one concise CIBC-mismatch warning for the fund
+  const cibcWarns = data.issues.filter((i) => /stored CIBC daily returns of class H \(LDM202\) do not reproduce/.test(i.message));
+  assert.equal(cibcWarns.length, 1);
+  assert.match(cibcWarns[0].message, /on 1 of \d+ month\(s\) \(beyond 0\.2 bp; largest 2024-03: chain .* vs analytics .*\): the fund's CIBC months are not taken from the dataplatform/);
+  // the same class published before and now gone: blocking alert (an approval item)
+  const prevBuild = await build();
+  const again = buildSiteData(await fetchAll({ fetchImpl: mockFetch(priceOnly).fetch, now: NOW, env: fixtureEnv() }), prevBuild.validated, NOW);
+  assert.ok(again.context[SEB]!.alerts.some((a) => /class F \(LDM201\) not shown \(it was published before\)/.test(a)));
+  assert.ok(!again.context[SEB]!.advisories?.length);
 });
 
 test("a class whose series is shorter than 12 months: only the periods that exist, flagged, no risk statistics", () => {

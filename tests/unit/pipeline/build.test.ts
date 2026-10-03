@@ -223,7 +223,9 @@ test("FTSE history: an earlier naming generation is chain-linked only on equal d
   // stopping the day before the current name starts: no overlap to verify the re-based levels, not joined
   const seam = await raw({}, earlier({ until: "2024-11-30" }));
   assert.equal(seam.raw.ftse.short_corp.data!.first, "2024-12-02");
-  assert.match(seam.raw.ftse.short_corp.detail!, /not joined: ftse_tmx_canada_short_corp \(no level on 2024-12-02, the first day of the current series: no overlap to verify a link\)/);
+  assert.match(seam.raw.ftse.short_corp.detail!, /not joined: ftse_tmx_canada_short_corp \(no level on 2024-12-02 \(no overlap\); gap link not verified: levels [\d.]+ on 2024-11-30 and [\d.]+ on 2024-12-02 differ by 100\.40% \(re-based\)\)/);
+  // the admin sees the names that look like an earlier generation
+  assert.match(seam.raw.ftse.short_corp.detail!, /short-names whose name contains "short corp": ftse_tmx_canada_short_corp \(FTSE TMX Canada Short Term Corporate Bond Index, index_id 7777\)/);
   // a sibling of another family is never a candidate
   const sib = await raw({}, earlier({ until: "2024-12-09", name: "short_overall_x", indexName: "FTSE Canada Short Term Overall Bond Index" }));
   assert.equal(sib.raw.ftse.short_corp.data!.first, "2024-12-02");

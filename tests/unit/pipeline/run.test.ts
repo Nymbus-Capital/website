@@ -174,6 +174,29 @@ test("H1/H3: with the opt-in factsheet gate a held month is published without al
   delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
+test("a class never published that stays out because the fund's CIBC months are unverifiable: published (not blocked), one non-blocking notice, posted once", async () => {
+  // SEB H's stored CIBC returns no longer reproduce analytics: class F (LDM201) cannot use its CIBC months
+  const priceOnly: Route = (u) => {
+    if (u.pathname !== "/api/performance/nav-timeseries" || u.searchParams.get("fundserv") !== "LDM202") return undefined;
+    const j = loadFixture("dataplatform/nav_history_LDM202.json") as { rows: Record<string, unknown>[] };
+    return json({ ...j, rows: j.rows.map((r) => (r.date === "2024-03-28" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)) });
+  };
+  const posted: string[] = [];
+  process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
+  const r = await run({ routes: [priceOnly, hook] });
+  assert.equal(r.status, "published", JSON.stringify(r.issues.filter((x) => x.level === "error")));
+  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /class F \(LDM201\) not shown/.test(a.message)));
+  assert.ok(r.issues.some((x) => x.level === "warn" && /attention \(not blocking\): class F \(LDM201\) not shown/.test(x.message)));
+  assert.equal(posted.length, 1);
+  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: class F \(LDM201\) not shown/);
+  // the same notice on the next run: not posted again
+  const r2 = await run({ routes: [priceOnly, hook] });
+  assert.equal(r2.status, "published");
+  assert.equal(posted.length, 1);
+  delete process.env.PIPELINE_ALERT_WEBHOOK;
+});
+
 test("M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
   // a first publication with the July archives only (performance as of 2026-07, confirmed by the July factsheets)
   const fsDir = path.join(dir, "fs-m3");

@@ -11,7 +11,7 @@
  */
 import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, HoldingsBook, HoldingsPosition, InstrumentRef, InstrumentRefs, MonthlyNetReturnsResponse, NavHistory, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
-import { ftseFamily, ftseGroupingSummary, ftseLevels, joinFtseHistory, type FtseCandidate, type FtseRow } from "../metrics.ts";
+import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../metrics.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
 export interface DpClient {
@@ -370,29 +370,35 @@ export function fetchInstruments(c: DpClient, securities: { isin?: string | null
 }
 
 export const FTSE_START = "2000-01-01";
-/** at most this many earlier-name candidates are read per index */
-export const FTSE_MAX_CANDIDATES = 8;
+/** at most this many earlier-name candidates are read per index (strict ones first, then loose name matches) */
+export const FTSE_MAX_CANDIDATES = 12;
+/** short_names listed in the source detail as possible earlier names (loose word match), for the admin */
+export const FTSE_LISTED_LOOSE = 10;
 
 /**
  * Aggregate daily levels of one FTSE index over its whole history. ftse.bond_index_summary names an index by a slug of
  * its published name, so the days before a naming generation sit under another short_name (e.g. "univ_overall" before
  * the 2024-12 generation of "univ"). Candidates: the configured aliases, the names sharing the index_id, and the names
- * of the same family (metrics.ts ftseFamily) in /short-names. A candidate is joined only on equal daily returns over a
- * common period that includes the current name's first day (metrics.ts joinFtseHistory): levels are never compared
- * across names (FTSE re-bases them). The detail lists what was joined and why every other candidate was not.
+ * of the same family (metrics.ts ftseFamily) in /short-names, then loose matches (every family word in the name, e.g.
+ * "short" and "corp"). A candidate is joined on equal daily returns over a common period that includes the current name's
+ * first day; a strict candidate (alias, index_id, family) without overlap may be joined across a verified one-day gap
+ * (metrics.ts ftseGapCheck). The detail lists what was joined, the gap verification, the loose name matches and why
+ * every other candidate was not.
  */
 export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: string[] = []): Promise<SourceResult<FtseLevels>> {
   const label = `ftse index-summary ${short}`;
   return guarded(label, async () => {
     let lastRows: FtseRow[] = [];
-    const rowsOf = async (name: string): Promise<Record<string, number>> => {
+    const levelsOf = (d: Record<string, FtseDay>): Record<string, number> => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, v.level]));
+    const rowsOf = async (name: string): Promise<Record<string, FtseDay>> => {
       const { status, body } = await get(c, "/api/ftse/index-summary", { short_name: name, start_date: FTSE_START, end_date: endDate });
       if (status !== 200) throw new Error(`${name}: HTTP ${status}`);
       if (!Array.isArray(body)) throw new Error(`${name}: unexpected payload`);
       if (name === short) lastRows = body as FtseRow[];
-      return ftseLevels(body as FtseRow[]);
+      return ftseDaily(body as FtseRow[]);
     };
-    const cur = await rowsOf(short);
+    const curDaily = await rowsOf(short);
+    const cur = levelsOf(curDaily);
     if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level (${ftseGroupingSummary(lastRows)})`);
     const notes: string[] = [];
     let names: { short_name: string; index_id?: number | null; index_name?: string | null }[] = [];
@@ -405,32 +411,45 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     }
     const me = names.find((n) => n.short_name === short);
     const family = ftseFamily(me?.index_name ?? null);
-    const why = new Map<string, string>();
-    for (const a of aliases) if (a !== short) why.set(a, "configured earlier name");
+    const why = new Map<string, { why: string; strict: boolean }>();
+    for (const a of aliases) if (a !== short) why.set(a, { why: "configured earlier name", strict: true });
     for (const n of names) {
       if (n.short_name === short || why.has(n.short_name)) continue;
-      if (me?.index_id != null && n.index_id === me.index_id) why.set(n.short_name, `same index_id ${me.index_id}`);
-      else if (family && ftseFamily(n.index_name) === family) why.set(n.short_name, `same index family "${family}" (${n.index_name})`);
+      if (me?.index_id != null && n.index_id === me.index_id) why.set(n.short_name, { why: `same index_id ${me.index_id}`, strict: true });
+      else if (family && ftseFamily(n.index_name) === family) why.set(n.short_name, { why: `same index family "${family}" (${n.index_name})`, strict: true });
     }
+    // loose matches: every word of the family in the published name (e.g. "short" and "corp"); overlap links only
+    const words = family.split(" ").filter(Boolean);
+    const loose = words.length ? names.filter((n) => n.short_name !== short && !why.has(n.short_name) && words.every((w) => ftseFamily(n.index_name).split(" ").includes(w))) : [];
+    for (const n of loose) why.set(n.short_name, { why: `name contains "${words.join(" ")}" (${n.index_name})`, strict: false });
     const cands: FtseCandidate[] = [];
     const skipped: string[] = [];
-    for (const [name, reason] of [...why].slice(0, FTSE_MAX_CANDIDATES)) {
+    for (const [name, w] of [...why].slice(0, FTSE_MAX_CANDIDATES)) {
       try {
-        const lv = await rowsOf(name);
-        if (Object.keys(lv).length) cands.push({ name, levels: lv, why: reason });
+        const daily = await rowsOf(name);
+        if (Object.keys(daily).length) cands.push({ name, levels: levelsOf(daily), why: w.why, daily, gapOk: w.strict });
         else skipped.push(`${name} (no aggregate level)`);
       } catch (e: unknown) {
         skipped.push(`${name} (${errMsg(e)})`);
       }
     }
-    const j = joinFtseHistory(cur, cands);
+    const j = joinFtseHistory(cur, cands, undefined, curDaily);
     const days = Object.keys(j.levels);
+    const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
     let detail = `${days.length} day(s), ${days[0]} to ${days[days.length - 1]}`;
-    if (j.used.length) detail += `; earlier days under ${j.used.map((u) => `${u.name} from ${u.from} (${u.why}; linked at ${u.link} on ${u.checked} equal daily return(s))`).join(", ")}`;
+    if (j.used.length) {
+      detail += `; earlier days under ${j.used.map((u) => u.kind === "gap" && u.gap
+        ? `${u.name} from ${u.from} (${u.why}; gap link ${u.gap.last} → ${u.gap.first}: implied return ${bp(u.gap.implied)}, estimate ${bp(u.gap.estimate)}, residual ${bp(u.gap.residual)} within ${bp(u.gap.threshold)} (3 × p95 of ${u.gap.samples} daily residuals, at least 2 bp))`
+        : `${u.name} from ${u.from} (${u.why}; linked at ${u.link} on ${u.checked} equal daily return(s))`).join(", ")}`;
+    }
     const allSkipped = [...skipped, ...j.skipped];
     if (allSkipped.length) detail += `; not joined: ${allSkipped.join(", ")}`;
     else if (!j.used.length) detail += `; no earlier name found (${names.length ? `none with index_id ${me?.index_id ?? "?"} or family "${family || "?"}" among ${names.length} short-names` : "short-names unavailable"})`;
+    // for the admin: names that look like an earlier generation (loose word match), whether tried or not
+    const listed = names.filter((n) => n.short_name !== short && words.length && words.every((w) => ftseFamily(n.index_name).split(" ").includes(w) || n.short_name.toLowerCase().includes(w))).slice(0, FTSE_LISTED_LOOSE);
+    if (listed.length) detail += `; short-names whose name contains "${words.join(" ")}": ${listed.map((n) => `${n.short_name} (${n.index_name ?? "?"}${n.index_id != null ? `, index_id ${n.index_id}` : ""})`).join(", ")}`;
     if (notes.length) detail += `; ${notes.join("; ")}`;
-    return { ok: true, data: { levels: j.levels, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: j.used.map((u) => u.name), indexName: me?.index_name ?? null }, detail };
+    const links = j.used.map((u) => ({ name: u.name, kind: u.kind, link: u.link, from: u.from, ...(u.gap ? { gap: u.gap } : {}) }));
+    return { ok: true, data: { levels: j.levels, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: j.used.map((u) => u.name), links, indexName: me?.index_name ?? null }, detail };
   });
 }

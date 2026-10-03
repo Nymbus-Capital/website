@@ -1,0 +1,100 @@
+/**
+ * FTSE naming generations without overlap: the verified one-day gap link (metrics.ts ftseGapCheck / joinFtseHistory),
+ * and the broadened index-family matching. Synthetic index rows only.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { ftseDaily, ftseFamily, ftseGapCheck, ftseReturnEstimate, joinFtseHistory, type FtseDay } from "../../../src/lib/pipeline/metrics.ts";
+import { bondDays } from "../../../src/lib/pipeline/market-calendar.ts";
+
+/** a synthetic index whose daily return is the yield/duration estimate plus a small deterministic noise (±0.4 bp) */
+function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: string } = {}): Record<string, FtseDay> {
+  const days = bondDays(from, to);
+  const out: Record<string, FtseDay> = {};
+  let level = 1000;
+  days.forEach((d, i) => {
+    const ytm = 4 + 0.3 * Math.sin(i / 20);
+    const dur = 7 - 0.001 * i;
+    if (i > 0) {
+      const prev = out[days[i - 1]];
+      const est = ftseReturnEstimate(prev, { ytm }, Math.round((Date.parse(d) - Date.parse(days[i - 1])) / 86_400_000))!;
+      const noise = 0.00004 * Math.sin(i * 1.7) + (d === opts.gapDay ? opts.gapNoise ?? 0 : 0);
+      level *= 1 + est + noise;
+    }
+    out[d] = { level, ytm, dur };
+  });
+  return out;
+}
+const split = (all: Record<string, FtseDay>, first: string, oldLast: string, rebase = 1) => {
+  const cur = Object.fromEntries(Object.entries(all).filter(([d]) => d >= first).map(([d, x]) => [d, { ...x, level: x.level * rebase }]));
+  const old = Object.fromEntries(Object.entries(all).filter(([d]) => d <= oldLast));
+  const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
+  return { cur, old, curL: lv(cur), oldL: lv(old) };
+};
+const ALL = synth("2024-01-02", "2025-06-30");
+
+test("gap link accepted: the earlier name ends on the bond-market day before the current one, same base, implied return = estimate", () => {
+  const { cur, old, curL, oldL } = split(ALL, "2024-12-05", "2024-12-04");
+  const g = ftseGapCheck(curL, cur, oldL, old);
+  assert.ok(g.ok, g.ok ? "" : g.why);
+  if (!g.ok) return;
+  assert.equal(g.check.last, "2024-12-04");
+  assert.equal(g.check.first, "2024-12-05");
+  assert.ok(Math.abs(g.check.residual) <= g.check.threshold);
+  assert.equal(g.check.threshold, 2e-4, "3 × p95 of ±0.4 bp residuals is below the 2 bp floor");
+  assert.ok(g.check.samples > 300);
+  const j = joinFtseHistory(curL, [{ name: "old_name", levels: oldL, why: "configured earlier name", daily: old, gapOk: true }], undefined, cur);
+  assert.deepEqual(j.used.map((u) => [u.name, u.kind, u.link]), [["old_name", "gap", "2024-12-05"]]);
+  assert.equal(Object.keys(j.levels)[0], "2024-01-02");
+  assert.equal(j.levels["2024-06-28"], ALL["2024-06-28"].level, "equal bases: the earlier levels are used as published");
+  // a loose name match (not the same index for sure) is never gap-linked
+  const loose = joinFtseHistory(curL, [{ name: "old_name", levels: oldL, why: "name contains", daily: old, gapOk: false }], undefined, cur);
+  assert.deepEqual(loose.used, []);
+  assert.match(loose.skipped[0], /gap links only for the same index/);
+});
+
+test("gap link rejected: re-based levels, a two-day gap, a gap-day return off the estimate", () => {
+  const rebased = split(ALL, "2024-12-05", "2024-12-04", 0.87);
+  const r = ftseGapCheck(rebased.curL, rebased.cur, rebased.oldL, rebased.old);
+  assert.ok(!r.ok && /differ by -13\.\d+% \(re-based\)/.test(r.why), r.ok ? "accepted" : r.why);
+  const two = split(ALL, "2024-12-05", "2024-12-03");
+  const t = ftseGapCheck(two.curL, two.cur, two.oldL, two.old);
+  assert.ok(!t.ok && /2 daily returns missing between 2024-12-03 and 2024-12-05 \(2024-12-04 without a level\)/.test(t.why), t.ok ? "accepted" : t.why);
+  // the gap day moved 0.5 % beyond the analytics: another index (or a re-basing), not linked
+  const jump = synth("2024-01-02", "2025-06-30", { gapDay: "2024-12-05", gapNoise: 0.005 });
+  const j = split(jump, "2024-12-05", "2024-12-04");
+  const k = ftseGapCheck(j.curL, j.cur, j.oldL, j.old);
+  assert.ok(!k.ok && /residual 50\.\d+ bp beyond 2\.00 bp/.test(k.why), k.ok ? "accepted" : k.why);
+  // no yield / duration on the gap days: not verifiable
+  const noY = split(ALL, "2024-12-05", "2024-12-04");
+  noY.old["2024-12-04"] = { ...noY.old["2024-12-04"], ytm: null };
+  const n = ftseGapCheck(noY.curL, noY.cur, noY.oldL, noY.old);
+  assert.ok(!n.ok && /no average yield \/ modified duration/.test(n.why));
+  // an overlap link always wins over a gap link
+  const over = split(ALL, "2024-12-05", "2024-12-20");
+  const both = joinFtseHistory(over.curL, [
+    { name: "gap_name", levels: split(ALL, "2024-12-05", "2024-12-04").oldL, why: "family", daily: split(ALL, "2024-12-05", "2024-12-04").old, gapOk: true },
+    { name: "overlap_name", levels: over.oldL, why: "family", daily: over.old, gapOk: true },
+  ], undefined, over.cur);
+  assert.equal(both.used[0].name, "overlap_name");
+  assert.equal(both.used[0].kind, "overlap");
+});
+
+test("ftseDaily keeps the index row's average yield and modified duration (numbers or numeric strings)", () => {
+  const d = ftseDaily([
+    { date: "2024-12-04", total_return: 100, rating: null, term: null, industry_sector: null, industry_group: null, average_yield: 3.9, modified_duration: "7.1" },
+    { date: "2024-12-05", total_return: 101, rating: null, term: null, industry_sector: null, industry_group: null, average_yield: null },
+  ]);
+  assert.deepEqual(d, { "2024-12-04": { level: 100, ytm: 3.9, dur: 7.1 }, "2024-12-05": { level: 101, ytm: null, dur: null } });
+});
+
+test("ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', prefixes and 'overall' do not change the family", () => {
+  assert.equal(ftseFamily("FTSE Canada Short Term Corporate Bond Index"), "short corp");
+  assert.equal(ftseFamily("FTSE Canada Corporate Short Term Bond Index"), "short corp");
+  assert.equal(ftseFamily("FTSE TMX Canada Short-Term Corporate Overall Bond Index"), "short corp");
+  assert.equal(ftseFamily("FTSE Canada Short Corporate Bond Index"), "short corp");
+  assert.equal(ftseFamily("FTSE Canada Short Term Overall Bond Index"), "short");
+  assert.equal(ftseFamily("FTSE Canada Universe Corporate Bond Index"), "univ corp");
+  assert.equal(ftseFamily("FTSE Canada Universe Bond Index"), "univ");
+  assert.equal(ftseFamily("FTSE Canada Mid Term Corporate Bond Index"), "mid corp");
+});

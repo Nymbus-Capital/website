@@ -81,7 +81,12 @@ export interface FundRef { short_name: string; name: string; apex_account?: stri
 /** AUM reduced to fund-level totals (the only thing ever stored or published). */
 export interface AumTotals { snapshot_date: string | null; warningCount: number; totals: Record<string, number> }
 
-export interface FtseLevels { levels: Record<string, number>; rowCount: number; first: string | null; last: string | null; joined?: string[]; /** published index name (/api/ftse/index-summary/short-names) */ indexName?: string | null }
+export interface FtseLevels {
+  levels: Record<string, number>; rowCount: number; first: string | null; last: string | null; joined?: string[];
+  /** how each earlier name was linked (overlap of equal daily returns, or a verified one-day gap with its check) */
+  links?: { name: string; kind: "overlap" | "gap"; link: string; from: string; gap?: { last: string; first: string; implied: number; estimate: number; residual: number; threshold: number; p95: number; samples: number } }[];
+  /** published index name (/api/ftse/index-summary/short-names) */ indexName?: string | null;
+}
 
 /** analytics repo fund_returns.json, reduced to the series the website uses */
 export interface AnalyticsReturns { dates: string[]; returns: Record<string, (number | null)[]>; where: string }
