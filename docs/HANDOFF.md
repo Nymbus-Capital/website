@@ -236,6 +236,20 @@ Not yet run against live data, not deployed.
   `tests/unit/site/content-v3.test.ts`, `e2e/content-v3.spec.ts`. Compliance rows V1–V12. No adversarial sub-agent review
   could be spawned from this session: still to do.
 
+- 2026-10-02 (sub-agent, branch `feat/home-overlay-viz`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
+  Gabriel: "I love the science at scale section … don't change anything about that. Something similar for protective
+  overlays and/or uncorrelated strategies within the multi-strat, very impactful". New home band right after science at
+  scale: **"Diversifying engines"** (`src/components/site/fx/overlay*.{ts,tsx,css}`: pure seeded `overlay-model.ts`,
+  canvas `overlay-engine.ts`, component `OverlayEngines`, copy EN+FR). Time flows into a glowing "now" line: a generated
+  bond reference dips through stress episodes (down months shaded), five generic engine lanes move on their own, engines
+  that move up in a down month light up and leave marks, particles stream into the blended path, and a down-month
+  (downside) correlation heatmap "concept" eases live. Same motion contract as the scan (lazy, off-screen / hidden-tab
+  pause, DPR 1.5, 30/15 fps, still frame under reduced motion incl. live change, Data Saver still, `data-frames` /
+  `data-running`), reuses the scan panel chrome (`.sc-panel`, `.sc-stats`, `.sc-trio`). Science at scale is untouched
+  and frozen by `tests/unit/site/scan-frozen.test.ts` (hashes) + e2e text checks. Tests: `tests/unit/site/overlay.test.ts`,
+  `e2e/home-engines.spec.ts`; copy in word-budget (own ceiling) and FR typography tests. Compliance:
+  `docs/compliance-review.md` § "diversifying engines". Decisions for Gabriel: the wording (esp. the overlay pillar),
+  strategy-type names (generic, not our sleeves), whether the heatmap should show Nymbus's actual engine list.
 - 2026-10-01 (home, branch `feat/home-v2`, from `redesign/v3-keynote-live-data`; **not merged, not published**):
   Gabriel's brief: team dialogs centered, more tech-company motion, much less text, AUM C$1.9B, no daily NAV on home,
   bring back the "scanning billions of datapoints" table. Done: (1) dialogs: Tailwind preflight removed the UA
