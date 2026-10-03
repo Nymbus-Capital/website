@@ -1,9 +1,13 @@
 /**
  * Static team list (fallback when WordPress has no team). The 14 people of the nymbus-decks team list
  * (data/seed/team.json, the source of decks.nymbus.ca) take their titles, years of experience, education, designations,
- * LinkedIn and portraits from it (2026-10-02). Guy Liébart, Jason Laliberte, Luca Ieraci and Xavier Girard are not in
- * that list: they keep the previous site's data and have no `yearsExperience`. Credential counts are computed from this
- * file only (src/components/site/pages/lib/people.ts).
+ * LinkedIn and portraits from it (2026-10-02), updated 2026-10-03 from the live decks.nymbus.ca team (/api/team): newer
+ * portraits for Jennifer Pinkerton, Danira Csano, Jean-Philippe Lejeune, Gabriel Cefaloni, Fraser Coburn and Lyes Hammadi,
+ * live titles, and two new people (Léana D’Imperio, Philippe Rivet). Xavier Girard is not in that list but appears on the governance slide of
+ * the v3 keynote GMV deck (decks/nymbus-capital-global-minimum-volatility-6): his portrait and years of experience come
+ * from that slide (2026-10-03); his other fields are the previous site's. Guy Liébart, Jason Laliberte and Luca Ieraci
+ * are in neither: previous site's data, no `yearsExperience`. Credential counts are computed from this file only
+ * (src/components/site/pages/lib/people.ts).
  */
 export type Department = "Leadership" | "Investment Team" | "Quantitative Research" | "Operations" | "Board";
 
@@ -222,7 +226,7 @@ export const team: TeamMember[] = [
   },
   {
     name: "Jean-Philippe Lejeune",
-    title: "Quantitative Developer & Trader",
+    title: "Quant Developer & Trader",
     titleFr: "Développeur quantitatif et négociateur",
     department: "Quantitative Research",
     additionalDepartments: ["Investment Team"],
@@ -361,9 +365,45 @@ export const team: TeamMember[] = [
     previousRoles: ["Director, Business Development — Mackenzie Investments", "Collective Savings Representative — Sun Life"],
     previousRolesFr: ["Directeur, développement des affaires — Mackenzie Investments", "Représentant d’épargne collective — Sun Life"],
     yearJoined: 2024,
+    yearsExperience: 4,
     initials: "XG",
     color: "#0b57d0",
-    photo: "https://www.nymbus.ca/wp-content/uploads/2024/01/XAVIER.png",
+    photo: "/team/xavier-girard.webp",
+  },
+  {
+    name: "Léana D’Imperio",
+    title: "Manager, Business Development",
+    titleFr: "Gestionnaire, développement des affaires",
+    department: "Operations",
+    bio: "Business development manager. 6 years of experience, including relationship management in business markets and financial advice.",
+    bioFr: "Gestionnaire, développement des affaires. 6 ans d’expérience, notamment en gestion de relations, marchés des entreprises, et en conseil financier.",
+    education: ["MBA"],
+    educationFr: ["MBA"],
+    designations: ["MBA", "CIM"],
+    previousRoles: ["Relationship Manager, Business Markets", "Business Development Associate", "Financial Advisor"],
+    previousRolesFr: ["Directrice de comptes, marchés des entreprises", "Associée, développement des affaires", "Conseillère financière"],
+    yearsExperience: 6,
+    initials: "LD",
+    color: "#1a73e8",
+    photo: "/team/leana-d-imperio.webp",
+    linkedin: "https://www.linkedin.com/in/l%C3%A9ana-d%E2%80%99imperio-mba-690ab1195/",
+  },
+  {
+    name: "Philippe Rivet",
+    title: "Manager, Business Development",
+    titleFr: "Gestionnaire, développement des affaires",
+    department: "Operations",
+    bio: "Business development manager. 10 years of experience, including global marketing (digital and channel) and marketing operations.",
+    bioFr: "Gestionnaire, développement des affaires. 10 ans d’expérience, notamment en marketing mondial (numérique et canaux) et en opérations marketing.",
+    education: ["BBA, International Business & Economics"],
+    educationFr: ["B.A.A., commerce international et économie"],
+    previousRoles: ["Global Marketing Manager, Digital & Channel", "Marketing Operations Manager"],
+    previousRolesFr: ["Gestionnaire, marketing mondial, numérique et canaux", "Gestionnaire, opérations marketing"],
+    yearsExperience: 10,
+    initials: "PR",
+    color: "#0277bd",
+    photo: "/team/philippe-rivet.webp",
+    linkedin: "https://www.linkedin.com/in/philippe-rivet/",
   },
   {
     name: "Danira Csano",

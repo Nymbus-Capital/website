@@ -11,6 +11,7 @@ import { T, FUND_TEXTS } from "../../../src/components/fund/copy.ts";
 import { HOME_COPY, FUND_COPY, VEHICLE_COPY } from "../../../src/components/site/home/copy.ts";
 import { AB } from "../../../src/components/site/pages/copy-about.ts";
 import { AP } from "../../../src/components/site/pages/copy-approach.ts";
+import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
 
@@ -35,8 +36,8 @@ test("visitor copy writes Fundserv (not FundServ)", () => {
   assert.deepEqual(all.filter((s) => /FundServ/.test(s)), []);
 });
 
-test("about and approach copy never call the team « ingénieurs » (FR) or 'engineers' (EN)", () => {
-  const fr = leaves([AB, AP]).filter((s) => /ingénieur/i.test(s));
-  const en = leaves([AB, AP]).filter((s) => /\bengineers\b/i.test(s));
-  assert.deepEqual([...fr, ...en], []);
+// EN "engineers" is fine (Gabriel, 2026-10-03: "scientists, engineers and market veterans"); FR uses « développeurs »
+test("about, approach, home and science-at-scale copy never call the team « ingénieurs » (FR)", () => {
+  const fr = leaves([AB, AP, HOME_COPY, SCAN_COPY]).filter((s) => /ingénieur/i.test(s));
+  assert.deepEqual(fr, []);
 });

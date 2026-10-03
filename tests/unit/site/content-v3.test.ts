@@ -56,13 +56,14 @@ test("team: credential counts are computed from the data, never typed", () => {
   assert.equal(countHolding([], /x/), 0);
 });
 
-test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 6 CFA or CIM)", () => {
+test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 7 CFA or CIM; live decks team 2026-10-03)", () => {
   // pinned so a data change is a visible, reviewed change of the public figures
   assert.equal(countPhD(team), 2);
   assert.equal(countEngineering(team), 3);
-  assert.equal(countCharter(team), 6);
-  assert.equal(countGraduate(team), 9);
-  assert.equal(combinedExperience(team)!.years, 273);
+  assert.equal(countCharter(team), 7);
+  assert.equal(countGraduate(team), 10);
+  assert.equal(combinedExperience(team)!.years, 293);
+  assert.equal(team.length, 20);
 });
 
 test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French", () => {
@@ -88,9 +89,11 @@ test("approach: risk-first and multi-strategy sections keep low correlation as a
   assert.match(AP.risk.lead.en, /^Ultra-micro analysis, at scale/);
   assert.match(AP.risk.items[2].d.en, /^Designed to offset part of bond losses, with low correlation with bonds in down months/);
   assert.ok(!/protective|protectri/i.test(JSON.stringify([AP, AUDIENCES])), "no 'protective' overlay as a fact");
-  assert.ok(!/liquid alternative[^,]|alternative liquide[^ ]/i.test(JSON.stringify([AP, AUDIENCES])), "'liquid alternative' is a defined term: say 'liquid, cross-asset alternative strategy'");
+  // "liquid alternative" approved for Multi-Strategy by Gabriel (2026-10-03), category "Alternative Multi-Strategy"
+  assert.match(AP.multi.offers[1].d.en, /Alternative Multi-Strategy/);
+  assert.match(AP.multi.offers[1].d.fr, /Multistratégies alternatives/);
   assert.ok(!/uncorrelated|non corrélé/i.test(JSON.stringify(AP)), "no 'uncorrelated' as a fact");
-  assert.match(AP.multi.lead.en, /^A liquid, cross-asset alternative strategy: .*designed to have low correlation with stocks and bonds in down months\.$/);
+  assert.match(AP.multi.lead.en, /^A liquid alternative across asset classes, designed to have low correlation with stocks and bonds in down months\.$/);
   assert.ok(AP.multi.note.en.endsWith(OVERLAY_ADDS));
   assert.ok(AP.multi.note.fr.endsWith(OVERLAY_ADDS_FR));
   assert.match(AP.multi.note.en, /^Illustration only/);

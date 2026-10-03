@@ -46,12 +46,12 @@ export const NEWS: NewsItem[] = [
     category: "esg",
     title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire de l’Engagement pour une finance sans tabac"),
     summary: l(
-      "A commitment by the firm to an initiative led by Tobacco Free Portfolios.",
-      "Un engagement de la firme envers une initiative menée par Tobacco Free Portfolios.",
+      "A firm-level signature of an initiative of Tobacco Free Portfolios, hosted with UNEP FI.",
+      "Une signature de la firme, pour une initiative de Tobacco Free Portfolios menée avec l’UNEP FI.",
     ),
     body: l(
-      "Nymbus signed the Tobacco-Free Finance Pledge, led by Tobacco Free Portfolios.",
-      "Nymbus a signé l’Engagement pour une finance sans tabac (Tobacco-Free Finance Pledge), mené par Tobacco Free Portfolios.",
+      "Nymbus signed the Tobacco-Free Finance Pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI. Signatories are encouraged to consider adopting tobacco-free finance policies across lending, insurance and investment.",
+      "Nymbus a signé l’Engagement pour une finance sans tabac (Tobacco-Free Finance Pledge), une initiative de Tobacco Free Portfolios menée avec l’UNEP FI. Les signataires sont invités à envisager l’adoption de politiques financières sans tabac en matière de prêt, d’assurance et de placement.",
     ),
   },
   {

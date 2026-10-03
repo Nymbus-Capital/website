@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, technologists and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
-      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des informaticiens et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des développeurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -19,8 +19,8 @@ export const AB = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Independent Montreal manager of systematic fixed income and futures overlays, since 2013.",
-      "Gestionnaire montréalais indépendant en revenu fixe systématique et en superpositions, depuis 2013.",
+      "Systematic fixed income and futures overlays, from Montreal, since 2013.",
+      "Revenu fixe systématique et superpositions, à Montréal, depuis 2013.",
     ),
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
@@ -29,11 +29,11 @@ export const AB = {
   },
   creds: {
     eyebrow: l("Credentials", "Titres et diplômes"),
-    title: l("Scientists, technologists", "Scientifiques, informaticiens"),
-    accent: l("and investment professionals", "et analystes"),
+    title: l("Scientists, engineers", "Scientifiques, développeurs"),
+    accent: l("and market veterans", "et vétérans des marchés"),
     lead: l(
-      "The scientific method, applied to bonds and listed futures.",
-      "La méthode scientifique, appliquée aux obligations et aux contrats à terme cotés.",
+      "The scientific method, applied to bonds and futures.",
+      "La méthode scientifique, appliquée aux obligations et aux contrats à terme.",
     ),
     phd: l("PhDs", "doctorats"),
     eng: l("Engineering & computer-science degrees", "diplômes en génie et en informatique"),
@@ -41,8 +41,8 @@ export const AB = {
     charter: l("CFA or CIM holders", "titulaires de titres CFA ou CIM"),
     years: l("Years of combined experience", "années d’expérience cumulées"),
     note: l(
-      "People counted from the team list below, board included. Experience as stated by each person; “+” marks a lower bound.",
-      "Personnes dénombrées à partir de la liste de l’équipe ci-dessous, conseil compris. Expérience telle que déclarée par chacun; « + » indique un minimum.",
+      "Counted from the team list below, board included; “+” marks a lower bound.",
+      "Dénombrés à partir de la liste de l’équipe ci-dessous, conseil compris; « + » indique un minimum.",
     ),
   },
   intro: {
@@ -54,9 +54,9 @@ export const AB = {
       "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
     ),
     points: [
-      l("Two core specialties: systematic fixed income and futures overlays", "Deux spécialités au cœur de la firme : revenu fixe systématique et superpositions"),
-      l("Bonds analyzed one by one; listed futures traded systematically", "Des obligations analysées une à une; des contrats à terme cotés négociés systématiquement"),
-      l("Physicists, technologists and charterholders, alongside market veterans", "Physiciens, informaticiens et analystes, aux côtés de vétérans des marchés"),
+      l("Two specialties: systematic fixed income and futures overlays", "Deux spécialités : revenu fixe systématique et superpositions"),
+      l("Bonds analyzed one by one; futures traded systematically", "Des obligations analysées une à une; des contrats à terme négociés systématiquement"),
+      l("Scientists, engineers and market veterans, side by side", "Scientifiques, développeurs et vétérans des marchés, côte à côte"),
     ] as L[],
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
@@ -73,9 +73,9 @@ export const AB = {
     items: [
       { t: l("Innovation", "Innovation"), d: l("We adopt what research supports.", "Nous adoptons ce que la recherche confirme.") },
       { t: l("Agility", "Agilité"), d: l("Research reaches production quickly.", "La recherche passe vite en production.") },
-      { t: l("Accountability", "Responsabilité"), d: l("Transparent methods. Fiduciary duty first.", "Des méthodes transparentes. Le devoir fiduciaire d’abord.") },
+      { t: l("Accountability", "Responsabilité"), d: l("Transparent methods, fiduciary duty first.", "Méthodes transparentes, devoir fiduciaire d’abord.") },
       { t: l("Integrity", "Intégrité"), d: l("Clients’ interests first.", "L’intérêt des clients d’abord.") },
-      { t: l("Collaboration", "Collaboration"), d: l("Scientists and practitioners challenge each other.", "Scientifiques et praticiens confrontent leurs idées.") },
+      { t: l("Collaboration", "Collaboration"), d: l("Scientists and practitioners, challenging each other.", "Scientifiques et praticiens confrontent leurs idées.") },
     ],
   },
   milestones: {
@@ -95,7 +95,7 @@ export const AB = {
     eyebrow: l("Our team", "Notre équipe"),
     title: l("The people", "Les gens"),
     accent: l("behind the science", "derrière la science"),
-    lead: l("Select a person to read their biography.", "Choisissez une personne pour lire sa biographie."),
+    lead: l("Select a person for their biography.", "Choisissez une personne pour sa biographie."),
     filter: l("Filter by department", "Filtrer par service"),
     showing: l("{n} people shown", "{n} personnes affichées"),
     open: l("Read the biography of", "Lire la biographie de"),
@@ -119,8 +119,8 @@ export const AB = {
     title: l("Work", "Travailler"),
     accent: l("with us", "avec nous"),
     text: l(
-      "Researchers, technologists and investors: write to us.",
-      "Chercheurs, informaticiens et investisseurs : écrivez-nous.",
+      "Researchers, engineers and investors: write to us.",
+      "Chercheurs, développeurs et investisseurs : écrivez-nous.",
     ),
     careers: l("Send us your résumé", "Envoyez-nous votre CV"),
     careersSubject: l("Careers", "Carrières"),
