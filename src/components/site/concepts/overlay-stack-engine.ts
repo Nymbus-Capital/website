@@ -100,12 +100,12 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         g.addColorStop(0, COL.sky); g.addColorStop(1, COL.cyan);
         P.round(dx, deposit.y, deposit.w, deposit.h, 6);
         ctx.fillStyle = g; ctx.fill();
-        // labels above the deposit, aligned to the right edge of the stack
+        // labels under the deposit (the beam rises from its top), aligned to the right edge of the stack
         const right = L.stack.x + L.stack.w;
         P.font(600, small);
-        P.text(lab.depositSub, right, deposit.y - 30, 90, "right", COL.blueD);
+        P.text(lab.depositSub, right, B.bracketY + 6, 90, "right", COL.blueD);
         P.font(500, small - 0.5);
-        P.text(lab.deposit, right, deposit.y - 14, 120, "right", COL.ink2);
+        P.text(lab.deposit, right, B.bracketY + 21, 120, "right", COL.ink2);
         ctx.globalAlpha = fade;
       }
 
@@ -225,8 +225,9 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         [B.overlay.x + B.overlay.w, B.overlay.y + B.overlay.h / 2, COL.cyan],
       ];
       for (const [sx0, sy, c] of srcs) {
-        const sx = L.narrow ? sx0 - B.core.w / 2 : sx0 + 6;
-        const sY = L.narrow ? (c === CORE_C ? B.bracketY + 26 : sy) : sy;
+        // narrow: both streams leave the bottom of the stack (core from its middle, overlay down the beam's side)
+        const sx = L.narrow ? (c === CORE_C ? B.core.x + B.core.w * 0.4 : B.deposit.x + B.deposit.w / 2) : sx0 + 6;
+        const sY = L.narrow ? B.bracketY + 34 : sy;
         for (let k = 0; k < 7; k++) {
           const u = ((t / 1400) + k / 7 + (c === CORE_C ? 0 : 0.07)) % 1;
           const cx = L.narrow ? (sx + head.x) / 2 + (c === CORE_C ? -30 : 30) : (sx + head.x) / 2;

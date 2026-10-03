@@ -80,12 +80,12 @@ export function coverageLayout(W: number, H: number) {
     team = { x: pad, y: 12, w: W - 2 * pad, h: 78 };
     area = { x: pad, y: 12 + 78 + 16, w: W - 2 * pad, h: H - foot - (12 + 78 + 16) - 10 };
   }
-  // room above / right of the grid for the history layers of the memory step
-  const depth = narrow ? 14 : 26;
-  const cell = Math.max(3, Math.min((area.w - depth) / cols, (area.h - depth) / rows));
+  // room to the right of (and above) the grid for the history layers of the memory step: sheets stacked in depth
+  const depthX = narrow ? 22 : 96, depthY = narrow ? 10 : 30;
+  const cell = Math.max(3, Math.min((area.w - depthX) / cols, (area.h - depthY) / rows));
   const gw = cell * cols, gh = cell * rows;
-  const grid: Rect = { x: area.x + (area.w - depth - gw) / 2, y: area.y + depth + (area.h - depth - gh) / 2, w: gw, h: gh };
-  return { narrow, pad, foot, team, area, grid, cell, cols, rows, depth };
+  const grid: Rect = { x: area.x + (area.w - depthX - gw) / 2, y: area.y + depthY + (area.h - depthY - gh) / 2, w: gw, h: gh };
+  return { narrow, pad, foot, team, area, grid, cell, cols, rows, depthX, depthY };
 }
 
 /** Cell centre of universe position i in a grid (column-major, so sector bands are vertical). */

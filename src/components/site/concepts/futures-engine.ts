@@ -20,7 +20,7 @@ export interface FuturesLabels {
 }
 
 /** Still-frame clock of each step (days into the loop): positions, a settlement in flight, the volatile episode, mid-day. */
-const STILL_DAYS = [2.6, 5.22, 9.55, 12.6];
+const STILL_DAYS = [2.6, 5.22, 9.55, 12.82];
 const UP = COL.blue, DOWN = COL.orange;
 
 export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => FuturesLabels }): Runner {
@@ -137,6 +137,14 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       ctx.strokeStyle = rgba(days[d - 1].move >= 0 ? UP : DOWN, 0.6 * (1 - k)); ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x(d), y(days[d - 1].close), 4 + 14 * k, 0, Math.PI * 2); ctx.stroke();
     }
+    // the open P&L meter on the right edge of the today column: today's move, and nothing older
+    const mx = x(d) + cw - 5;
+    ctx.globalAlpha = Math.max(f(3), 0.55);
+    ctx.fillStyle = rgba(upNow ? UP : DOWN, 0.9);
+    P.round(mx - 2, Math.min(oy, head[1]), 4, Math.max(2, Math.abs(head[1] - oy)), 2); ctx.fill();
+    ctx.fillStyle = rgba(COL.mute, 0.7);
+    ctx.fillRect(mx - 5, oy - 0.5, 10, 1);
+    ctx.globalAlpha = 1;
     P.glowDot(head[0], head[1], 3.4, upNow ? UP : DOWN, 0.9);
     // row above the chart: "settled" over the locked days, "today: unsettled" over the today column
     ctx.globalAlpha = Math.max(f(3), 0.75);

@@ -197,7 +197,7 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
     inside(L.team, W, H, `team ${W}`);
     assert.ok(L.cell >= 3, `cell ${W}: ${L.cell}`);
     // history layers (memory step) stay on the canvas
-    assert.ok(L.grid.y - L.depth >= 0 && L.grid.x + L.grid.w + L.depth <= W);
+    assert.ok(L.grid.y - L.depthY - 20 >= 0 && L.grid.x + L.grid.w + L.depthX + 6 <= W, `depth ${W}`);
     const seen = new Set<string>();
     for (let i = 0; i < UNIVERSE; i++) {
       const c = cellOf(i, L);

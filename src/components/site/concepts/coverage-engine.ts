@@ -77,20 +77,25 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       const r = Math.max(0.8, L.cell * 0.26);
       const scanX = G.x + G.w * scan;
 
-      /* ---------- history layers behind the grid (memory step) */
+      /* ---------- history layers behind the grid (memory step): sheets stacked in depth, oldest at the back */
       if (mem > 0 && layer) {
-        for (let k = LAYERS; k >= 1; k--) {
-          const o = (L.depth * k) / LAYERS * mem;
-          ctx.globalAlpha = fade * mem * (0.06 + 0.22 * (1 - k / (LAYERS + 1)));
-          ctx.drawImage(layer, G.x - 2 + o, G.y - 2 - o, G.w + 4, G.h + 4);
-        }
-        // a light runs from the oldest layer to today, again and again
+        const sheet = (k: number, alpha: number) => {
+          const ox = (L.depthX * k) / LAYERS * mem, oy = -(L.depthY * k) / LAYERS * mem;
+          ctx.globalAlpha = fade * mem;
+          P.round(G.x - 6 + ox, G.y - 6 + oy, G.w + 12, G.h + 12, 8);
+          ctx.fillStyle = "rgba(250,252,255,.92)"; ctx.fill();
+          ctx.strokeStyle = rgba(COL.blue, 0.22); ctx.lineWidth = 1; ctx.stroke();
+          if (alpha > 0) { ctx.globalAlpha = fade * mem * alpha; ctx.drawImage(layer!, G.x - 2 + ox, G.y - 2 + oy, G.w + 4, G.h + 4); }
+        };
+        for (let k = LAYERS; k >= 1; k--) sheet(k, 0.1 + 0.25 * (1 - k / (LAYERS + 1)));
+        sheet(0, 0);
+        // a light runs from the oldest sheet to today, again and again
         const run = (t / 1600) % 1;
         const k = LAYERS * (1 - run);
-        const o = (L.depth * k) / LAYERS * mem;
+        const ox = (L.depthX * k) / LAYERS * mem, oy = -(L.depthY * k) / LAYERS * mem;
         ctx.globalAlpha = fade * mem * Math.sin(Math.PI * run) * 0.9;
-        ctx.strokeStyle = rgba(COL.sky, 0.9); ctx.lineWidth = 1.5;
-        P.round(G.x - 3 + o, G.y - 3 - o, G.w + 6, G.h + 6, 6); ctx.stroke();
+        ctx.strokeStyle = rgba(COL.sky, 0.95); ctx.lineWidth = 1.6;
+        P.round(G.x - 6 + ox, G.y - 6 + oy, G.w + 12, G.h + 12, 8); ctx.stroke();
         ctx.globalAlpha = fade;
       }
 
@@ -165,9 +170,9 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       const small = L.narrow ? 10 : 11;
       P.font(600, small);
       ctx.globalAlpha = fade * appear;
-      P.text(lab.universe.toUpperCase(), G.x, G.y - L.depth - 8 + (L.narrow ? 4 : 0), G.w * 0.6, "left", COL.mute);
+      P.text(lab.universe.toUpperCase(), G.x, G.y - L.depthY - 14, G.w * 0.6, "left", COL.mute);
       P.font(500, small);
-      P.text(lab.dot, G.x + G.w, G.y - L.depth - 8 + (L.narrow ? 4 : 0), G.w * 0.38, "right", COL.mute);
+      P.text(lab.dot, G.x + G.w, G.y - L.depthY - 14, G.w * 0.38, "right", COL.mute);
       // filter legend, under the grid
       const ly = G.y + G.h + 12;
       ctx.globalAlpha = fade * filter;
