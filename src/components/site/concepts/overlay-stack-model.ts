@@ -47,11 +47,16 @@ export function overlayStackLayout(W: number, H: number) {
   return { narrow, pad, foot, stack, chart };
 }
 
-/** Blocks inside the stack area: the core, the deposit beside it (its width = DEPOSIT_SHARE of the core) and the overlay on top. */
+/**
+ * Blocks inside the stack area: the core, the deposit beside it (its width = DEPOSIT_SHARE of the core) and the overlay
+ * on top; under them the deposit's labels, then one bracket spanning core + deposit ("same capital base") with its
+ * two-line sub-label. `labels` are the boxes of those texts (unit-tested not to overlap).
+ */
 export function stackBlocks(s: Rect, narrow: boolean) {
   const gap = narrow ? 10 : 14;
   const labelH = narrow ? 18 : 22;
-  const bracketH = narrow ? 30 : 36;
+  const under = narrow ? 34 : 36; // core bottom → bracket line (room for the deposit labels)
+  const bracketH = under + 58;
   const coreW = (s.w - gap) / (1 + DEPOSIT_SHARE);
   const depW = coreW * DEPOSIT_SHARE;
   const free = s.h - labelH - bracketH;
@@ -61,6 +66,19 @@ export function stackBlocks(s: Rect, narrow: boolean) {
   const core: Rect = { x: s.x, y: coreY, w: coreW, h: coreH };
   const deposit: Rect = { x: s.x + coreW + gap, y: coreY + coreH - Math.max(18, coreH * 0.42), w: depW, h: Math.max(18, coreH * 0.42) };
   const overlay: Rect = { x: s.x, y: coreY - 8 - ovH, w: coreW * EXPOSURE_SHARE, h: ovH };
-  const bracketY = coreY + coreH + 10;
-  return { core, deposit, overlay, bracketY, gap };
+  const bottom = coreY + coreH;
+  const bracketY = bottom + under;
+  const bracket = { x0: s.x, x1: s.x + s.w, y: bracketY };
+  const right = s.x + s.w;
+  const box = (cx: number, cy: number, w: number, align: "left" | "center" | "right"): Rect =>
+    ({ x: align === "right" ? cx - w : align === "center" ? cx - w / 2 : cx, y: cy - 7, w, h: 14 });
+  const depLabelW = Math.min(120, s.w * 0.4);
+  const labels = {
+    depositA: box(right, bottom + 10, depLabelW, "right"),
+    depositB: box(right, bottom + 24, depLabelW, "right"),
+    bracket: box((bracket.x0 + bracket.x1) / 2, bracketY + 19, s.w, "center"),
+    sub1: box((bracket.x0 + bracket.x1) / 2, bracketY + 34, s.w, "center"),
+    sub2: box((bracket.x0 + bracket.x1) / 2, bracketY + 48, s.w, "center"),
+  };
+  return { core, deposit, overlay, bracketY, bracket, labels, gap };
 }

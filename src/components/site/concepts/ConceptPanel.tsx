@@ -2,7 +2,7 @@
 /**
  * ConceptPanel.tsx — one animated panel of /critical-concepts (overlay, futures, coverage): the scan-panel chrome,
  * a lazily created canvas engine, keyboard-accessible controls (play / pause, one button per step, arrow keys), the
- * figures strip and a visible caption. Same contract as the home panels: nothing loads until the panel is near the
+ * figures strip and a visible caption. Step buttons use a roving tabindex (one tab stop; arrows, Home, End move it). Same contract as the home panels: nothing loads until the panel is near the
  * viewport, the loop pauses off screen / in a hidden tab, one still frame per step under reduced motion (live) or
  * Data Saver, 15 fps on coarse pointers; test hooks data-frames / data-running / data-step on the canvas host.
  */
@@ -133,7 +133,7 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
           <ol className="cc-steps" ref={steps} onKeyDown={onKey}>
             {copy.steps.map((s, i) => (
               <li key={i}>
-                <button type="button" onClick={() => go(i)} aria-current={i === step ? "step" : undefined} data-testid={`${id}-step-${i}`}>
+                <button type="button" onClick={() => go(i)} aria-current={i === step ? "step" : undefined} tabIndex={i === step ? 0 : -1} data-testid={`${id}-step-${i}`}>
                   <span className="n" aria-hidden="true">{i + 1}</span>
                   <span className="sr-only">{pick(CC.controls.step)} {i + 1}, </span>
                   <span className="t">{pick(s)}</span>

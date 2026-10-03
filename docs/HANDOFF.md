@@ -182,6 +182,16 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `fix/concepts-v4` from `integ/v4`; not merged): fixes after the independent review of
+  /critical-concepts. Overlay: one "Same capital base" bracket over core + deposit with the collateral sub-label;
+  placeholder chart in steps 1–3 (desktop); no particles in still frames. Futures: clearing-house node between long and
+  short, payment rule only while coins flow ("Day N close: …"), newest settlement bar glows in sync, running sum moved
+  onto the price chart as a bracket ("Sum = total P&L"), formula chip with step 4, parties block centred (canvas shorter).
+  Coverage: grid title anchored to the grid area, narrow team row 92 px, legend kept above the watermark; label boxes
+  unit-tested apart. FR legend « Base » / « Superposition ». Text alpha ≥ 0.7. Roving tabindex on the step buttons.
+  Captures: 360 px EN + FR steps 2–4, focus and scroll offset cleared. Compliance CC3(a) is a question for Gabriel
+  (keeps $200 MM), new row CC5.
+
 - 2026-10-03 (sub-agent, branch `feat/awards-assets` from `redesign/v3-keynote-live-data`; not merged): Gabriel's assets and
   data. (1) Official Morningstar files (provided by Gabriel, Nymbus holds the permission) shipped as
   `public/brand/third-party/morningstar-logo.png` and `morningstar-stars-5.png`: the Overview and awards tabs of both bond

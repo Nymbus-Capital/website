@@ -65,6 +65,19 @@ export function gridShape(W: number): { cols: number; rows: number } {
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
+/** Boxes of the texts drawn around the grid (team line or panel, grid title, legend, watermark): unit-tested apart. */
+export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {
+  const L = coverageLayout(W, H);
+  const boxes: Record<string, Rect> = {
+    title: { x: L.grid.x, y: L.titleY - 7, w: L.grid.w, h: 14 },
+    grid: { x: L.grid.x - 6, y: L.grid.y - L.depthY - 6, w: L.grid.w + L.depthX + 12, h: L.grid.h + L.depthY + 12 },
+    legend: { x: L.grid.x, y: L.legendY - 7, w: L.grid.w, h: 14 },
+    watermark: { x: L.pad, y: H - 20, w: Math.min(W - 2 * L.pad, 190), h: 14 },
+  };
+  if (L.narrow) boxes.team = { x: L.team.x, y: L.team.y, w: L.team.w, h: L.team.h };
+  return boxes;
+}
+
 /** Layout: team panel on the left (a row on top on narrow screens), the dot grid beside (below). */
 export function coverageLayout(W: number, H: number) {
   const narrow = W < 700;
@@ -75,17 +88,22 @@ export function coverageLayout(W: number, H: number) {
   if (!narrow) {
     const tw = Math.round(Math.max(170, Math.min(250, W * 0.22)));
     team = { x: pad, y: 18, w: tw, h: H - foot - 18 - 8 };
-    area = { x: pad + tw + 28, y: 30, w: W - pad - (pad + tw + 28), h: H - foot - 30 - 12 };
+    area = { x: pad + tw + 28, y: 14, w: W - pad - (pad + tw + 28), h: H - foot - 14 - 28 };
   } else {
-    team = { x: pad, y: 12, w: W - 2 * pad, h: 78 };
-    area = { x: pad, y: 12 + 78 + 16, w: W - 2 * pad, h: H - foot - (12 + 78 + 16) - 10 };
+    team = { x: pad, y: 12, w: W - 2 * pad, h: 92 };
+    area = { x: pad, y: 12 + 92 + 12, w: W - 2 * pad, h: H - foot - (12 + 92 + 12) - 28 };
   }
+  // the grid title row is anchored to the top of the grid area; the grid (and its history sheets) start below it
+  const titleY = area.y + 4;
+  const gArea: Rect = { x: area.x, y: area.y + 18, w: area.w, h: area.h - 18 };
   // room to the right of (and above) the grid for the history layers of the memory step: sheets stacked in depth
   const depthX = narrow ? 22 : 96, depthY = narrow ? 10 : 30;
-  const cell = Math.max(3, Math.min((area.w - depthX) / cols, (area.h - depthY) / rows));
+  const cell = Math.max(3, Math.min((gArea.w - depthX) / cols, (gArea.h - depthY) / rows));
   const gw = cell * cols, gh = cell * rows;
-  const grid: Rect = { x: area.x + (area.w - depthX - gw) / 2, y: area.y + depthY + (area.h - depthY - gh) / 2, w: gw, h: gh };
-  return { narrow, pad, foot, team, area, grid, cell, cols, rows, depthX, depthY };
+  const grid: Rect = { x: gArea.x + (gArea.w - depthX - gw) / 2, y: gArea.y + depthY + (gArea.h - depthY - gh) / 2, w: gw, h: gh };
+  // filter legend under the grid, never in the watermark row
+  const legendY = Math.min(grid.y + gh + 15, H - foot - 12);
+  return { narrow, pad, foot, team, area, grid, cell, cols, rows, depthX, depthY, titleY, legendY };
 }
 
 /** Cell centre of universe position i in a grid (column-major, so sector bands are vertical). */

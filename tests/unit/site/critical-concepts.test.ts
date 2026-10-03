@@ -17,7 +17,7 @@ import {
   settledThrough, sigmaOf, unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
-  ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, cellOf, coverageLayout, gridShape, sectorOf, teamCoverage,
+  ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, cellOf, coverageLabelBoxes, coverageLayout, gridShape, sectorOf, teamCoverage,
   universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
@@ -81,7 +81,17 @@ test("overlay: the deposit is drawn to scale (about 10% of the full exposure) an
     for (const [k, b] of [["core", B.core], ["deposit", B.deposit], ["overlay", B.overlay]] as const) inside(b, W, H, `${k} ${W}`);
     assert.ok(B.overlay.y + B.overlay.h <= B.core.y, "overlay stacked on top of the core");
     assert.ok(B.deposit.x >= B.core.x + B.core.w, "deposit beside the core");
-    assert.ok(B.bracketY + 26 <= H, `bracket ${W}`);
+    // the bracket spans core + deposit (one capital base); its labels and the deposit's never collide
+    assert.equal(B.bracket.x0, B.core.x);
+    assert.ok(Math.abs(B.bracket.x1 - (B.deposit.x + B.deposit.w)) < 1e-9);
+    const boxes = Object.entries(B.labels);
+    for (const [k, b] of boxes) assert.ok(b.y + b.h <= L.stack.y + L.stack.h + 2 && b.y + b.h <= H - 20, `${k} label ${W}: ${JSON.stringify(b)}`);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const [ka, a] = boxes[i], [kb, b] = boxes[j];
+      const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+      assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}`);
+    }
+    assert.ok(B.labels.depositA.y >= B.core.y + B.core.h && B.labels.depositB.y + 14 <= B.bracketY, `deposit labels between core and bracket ${W}`);
     // nothing overlaps between the stack and the chart
     if (L.narrow) assert.ok(L.stack.y + L.stack.h <= L.chart.y); else assert.ok(L.stack.x + L.stack.w <= L.chart.x);
   }
@@ -145,7 +155,7 @@ test("futures: four focus steps over one loop; layouts fit", () => {
   const s2 = stepStarts(FUTURES_STEP_MS)[2];
   assert.ok(s2 / DAY_MS <= HIGH_VOL_FROM + 0.5 && (s2 + FUTURES_STEP_MS[2]) / DAY_MS >= HIGH_VOL_TO);
   for (const [W, H0] of SIZES) {
-    const H = W < 700 ? 720 : H0;
+    const H = W < 700 ? 690 : H0;
     const L = futuresLayout(W, H);
     for (const [k, b] of [["price", L.price], ["settle", L.settle], ["parties", L.parties]] as const) inside(b, W, H, `${k} ${W}`);
     assert.ok(L.price.y + L.price.h <= L.settle.y);
@@ -197,7 +207,7 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
     inside(L.team, W, H, `team ${W}`);
     assert.ok(L.cell >= 3, `cell ${W}: ${L.cell}`);
     // history layers (memory step) stay on the canvas
-    assert.ok(L.grid.y - L.depthY - 20 >= 0 && L.grid.x + L.grid.w + L.depthX + 6 <= W, `depth ${W}`);
+    assert.ok(L.grid.y - L.depthY - 6 >= L.titleY + 7 && L.grid.x + L.grid.w + L.depthX + 6 <= W, `depth ${W}`);
     const seen = new Set<string>();
     for (let i = 0; i < UNIVERSE; i++) {
       const c = cellOf(i, L);
@@ -208,6 +218,19 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
     if (!L.narrow) assert.ok(L.team.x + L.team.w <= L.grid.x); else assert.ok(L.team.y + L.team.h <= L.grid.y);
   }
   assert.equal(COVERAGE_STEP_MS.length, 4);
+});
+
+test("coverage: texts around the grid never overlap (team row, title, grid and history sheets, legend, watermark)", () => {
+  for (const [W, H0] of [...SIZES, [320, 560], [360, 560], [412, 560]] as [number, number][]) {
+    const H = W < 700 ? 560 : H0;
+    const boxes = Object.entries(coverageLabelBoxes(W, H));
+    for (const [k, b] of boxes) inside(b, W, H, `${k} ${W}`);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const [ka, a] = boxes[i], [kb, b] = boxes[j];
+      const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+      assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}×${H}: ${JSON.stringify(a)} ${JSON.stringify(b)}`);
+    }
+  }
 });
 
 /* ------------------------------------------------------------------ copy */
