@@ -9,14 +9,19 @@ import type { SiteData } from "../data/types.ts";
 import { buildSiteData } from "./build.ts";
 import { fetchAll } from "./sources/index.ts";
 import { FIXTURE_NOW } from "../../../tests/fixtures/pipeline/generate.ts";
-import { fixtureEnv, fullHistoryRoute, mockFetch } from "../../../tests/fixtures/pipeline/mock-fetch.ts";
+import { fixtureEnv, loadFixture, mockFetch } from "../../../tests/fixtures/pipeline/mock-fetch.ts";
+import { parseDistributions } from "./sources/contracts.ts";
+import type { DpShort } from "./raw.ts";
 
 export const SAMPLE_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/sample-site-data.json");
 
 export async function buildSample(): Promise<SiteData> {
   const now = new Date(FIXTURE_NOW);
-  // the dataplatform as it serves class_code + history=full (SEB shown with its class F series, Gabriel 2026-10-01)
-  const raw = await fetchAll({ fetchImpl: mockFetch(fullHistoryRoute).fetch, now, env: fixtureEnv() });
+  // the dataplatform main-branch endpoints only: every class series compounded by the website from nav-timeseries
+  const raw = await fetchAll({ fetchImpl: mockFetch().fetch, now, env: fixtureEnv() });
+  // distributions: the dataplatform main branch has no endpoint (production shows the policy text only, the tab is
+  // hidden); the sample supplies the synthetic PR #621 contract payload so the Distributions tab stays exercised
+  raw.distributions = Object.fromEntries(("SEST SEB Multistrat".split(" ") as DpShort[]).map((s) => [s, { ok: true, data: parseDistributions(loadFixture(`dataplatform/distributions_${s}.json`)) }]));
   const { data } = buildSiteData(raw, null, now, { mode: "sample" });
   // the sample mirrors what each fund really has: no placeholders for blocks a fund lacks
   data.provenance = Object.fromEntries(Object.entries(data.provenance).map(([k, v]) => [k, `SYNTHETIC sample: ${v}`]));

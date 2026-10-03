@@ -1,7 +1,9 @@
 /**
- * Daily portfolio and per-series distributions (dataplatform fund-data contract A and B): tolerant parsers,
- * fetchers (404 = not deployed yet), selection thresholds and fallback, month-end cross-check, validation gates,
- * and the build against the synthetic fixtures. Expected values are literals read from the fixture files.
+ * Daily portfolio and per-series distributions: the PR #621 contract parsers and fetchers (kept for older snapshots and
+ * a future endpoint), selection thresholds and fallback, month-end cross-check, validation gates, and the build against
+ * the synthetic fixtures, where the daily book is computed by the website from the Apex holdings and the instrument
+ * master (fund-portfolio.ts) and distributions are shown only when a payload is supplied (no endpoint on the
+ * dataplatform main branch). Expected values are literals read from the fixture files.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -11,9 +13,9 @@ import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfol
 import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
 import { DISTRIBUTIONS } from "../../../src/lib/pipeline/config.ts";
 import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite, yearBefore } from "../../../src/lib/pipeline/validate.ts";
-import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, computedBook as computedBookOf } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
-import type { ClassDistributions, FundPortfolio, SourceResult } from "../../../src/lib/pipeline/raw.ts";
+import type { ClassDistributions, DpShort, FundPortfolio, RawPayloads, SourceResult } from "../../../src/lib/pipeline/raw.ts";
 import type { ClassDistribution, FundData, SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 
@@ -22,6 +24,17 @@ const client = (...routes: Route[]) => dpClient(mockFetch(...routes).fetch, { DA
 const book = (over: Record<string, unknown> = {}): FundPortfolio => parseFundPortfolio({ ...(loadFixture("dataplatform/portfolio_SEST.json") as object), ...over })!;
 const ok = <T>(data: T): SourceResult<T> => ({ ok: true, data });
 const O = { base: "funds.monthly-income", short: "SEST", now: NOW, greenBonds: false };
+/** the fixtures fetched, with distributions supplied ("ok": the PR #621 contract fixtures; "down": a failed read) */
+async function rawWith(opts: { routes?: Route[]; now?: Date; dist?: "ok" | "down" } = {}): Promise<RawPayloads> {
+  const raw = await fetchAll({ fetchImpl: mockFetch(...(opts.routes ?? [])).fetch, now: opts.now ?? NOW, env: fixtureEnv() });
+  if (opts.dist) {
+    raw.distributions = {};
+    for (const s of ["SEST", "SEB", "Multistrat"] as DpShort[]) {
+      raw.distributions[s] = opts.dist === "ok" ? ok(parseDistributions({ ...(loadFixture(`dataplatform/distributions_${s}.json`) as object), end_date: (opts.now ?? NOW).toISOString().slice(0, 10) })!) : { ok: false, data: null, error: `distributions ${s}: HTTP 503` };
+    }
+  }
+  return raw;
+}
 
 /* ------------------------------------------------------------------ parsers */
 
@@ -137,7 +150,7 @@ test("selectPortfolio: thresholds (priced >= 90 %, resolved >= 95 %), freshness,
   assert.equal(sel.portfolio?.greenBondsWeight, null, "green weight only for the funds that publish it");
   assert.deepEqual(sel.portfolio?.totals, { holdings: 86, bonds: 84, cashWeight: 0.042, derivatives: 2 });
   assert.equal(sel.portfolio?.topHoldings.length, 10);
-  assert.match(sel.provenance!, /fund-portfolio SEST \(FINAL_NAV book 2026-09-28; priced 97.0%, resolved 99.0%/);
+  assert.match(sel.provenance!, /fund-portfolio: SEST FINAL_NAV book 2026-09-28; priced 97.0%, resolved 99.0%/);
   assert.deepEqual(sel.issues, []);
 
   const fallback = (over: Record<string, unknown>) => selectPortfolio(ok(book(over)), O);
@@ -262,7 +275,7 @@ test("distributions gates: amount vs NAV, dates, last row, trailing 12 months, c
 /* ------------------------------------------------------------------ portfolio gates */
 
 test("portfolio gates: implausible parts dropped one by one, the block when nothing is left, never the fund", async () => {
-  const b = buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  const b = buildSiteData(await rawWith({ dist: "ok" }), null, NOW);
   const fund = () => structuredClone(b.data.funds["monthly-income"]!);
   const run = (f: (x: FundData) => void) => { const x = fund(); f(x); return { x, issues: checkPortfolio(x, "p", NOW) }; };
 
@@ -306,71 +319,87 @@ test("portfolio gates: implausible parts dropped one by one, the block when noth
 /* ------------------------------------------------------------------ build */
 
 async function build(...routes: Route[]): Promise<{ data: SiteData }> {
-  return buildSiteData(await fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  return buildSiteData(await rawWith({ routes, dist: "ok" }), null, NOW);
 }
-const notDeployed: Route = (u) => (u.pathname.startsWith("/api/apex/fund-portfolio") || u.pathname === "/api/performance/distributions" ? json({ detail: "Not Found" }, 404) : undefined);
 
-test("build: daily book primary for covered funds, factsheet kept for the others; distributions per series", async () => {
-  const { data } = await build();
+test("build: daily book computed by the website for covered funds, factsheet kept for the others; distributions only when supplied", async () => {
+  const m = mockFetch();
+  const r = await fetchAll({ fetchImpl: m.fetch, now: NOW, env: fixtureEnv() });
+  // main-branch endpoints only: the Apex books of the latest valuation day and of the last closed month's last one
+  const holdings = m.calls.map((c) => new URL(c.url)).filter((u) => u.pathname === "/api/apex/holdings");
+  assert.deepEqual(holdings.map((u) => `${u.searchParams.get("fund")} ${u.searchParams.get("date")}`).sort(), ["Multistrat 2026-08-31", "Multistrat 2026-09-28", "SEB 2026-08-31", "SEB 2026-09-28", "SEST 2026-08-31", "SEST 2026-09-28"]);
+  assert.ok(m.calls.some((c) => c.url.includes("/api/instruments/batch?identifier_type=isin")));
+  assert.equal(m.calls.filter((c) => new URL(c.url).pathname === "/api/instruments").length, 3, "bond universe read page by page until a short page");
+  assert.ok(m.calls.every((c) => !/fund-portfolio|\/api\/performance\/distributions/.test(c.url)));
+  const { data } = buildSiteData(r, null, NOW);
   const mi = data.funds["monthly-income"]!;
   assert.equal(mi.portfolio?.source, "daily");
   assert.equal(mi.portfolio?.asOf, "2026-09-28");
-  assert.deepEqual(mi.portfolio?.breakdowns.term?.map((r) => r.label), ["0-1", "1-3", "3-5", "5-7", "Cash"]);
+  assert.deepEqual(mi.portfolio?.breakdowns.term?.map((x) => x.label), ["0-1", "1-3", "3-5", "Cash"]);
+  assert.deepEqual(mi.portfolio?.breakdowns.sector?.slice(0, 3).map((x) => x.label), ["Financial", "Government", "Energy"]);
+  assert.equal(mi.portfolio?.coverage?.priced, 0.9637, "one bond's price is 45 days old: unpriced");
   assert.equal(mi.factsheetMonth, "2026-08", "the factsheet figures are still published alongside (ESG, fallback)");
-  assert.equal(data.funds["sustainable-enhanced-bonds"]!.portfolio?.greenBondsWeight, 0.0734);
-  assert.deepEqual(data.funds["sustainable-enhanced-bonds"]!.portfolio?.characteristics.map((m) => m.id), ["duration", "ytm", "coupon", "rating"], "maturity coverage 85 %");
+  const seb = data.funds["sustainable-enhanced-bonds"]!;
+  assert.equal(seb.portfolio?.greenBondsWeight, 0.2608);
+  assert.deepEqual(seb.portfolio?.characteristics.map((x) => x.id), ["duration", "ytm", "rating"], "coupon and maturity coverage 86.5 % (perpetual bonds)");
   assert.equal(data.funds["multi-strategy"]!.portfolio, null, "coverage below the thresholds");
   assert.equal(data.funds["global-minimum-volatility"]!.portfolio, null);
-  assert.deepEqual(mi.distributions?.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM081"]);
-  assert.deepEqual(data.funds["multi-strategy"]!.distributions?.classes[0].calendarYears.map((y) => y.year), [2019, 2020, 2021, 2023, 2024, 2025]);
-  assert.match(data.provenance["funds.monthly-income.portfolio"], /^dataplatform \/api\/apex\/fund-portfolio SEST/);
-  assert.match(data.provenance["funds.monthly-income.distributions"], /^dataplatform \/api\/performance\/distributions SEST/);
+  assert.match(data.provenance["funds.monthly-income.portfolio"], /^computed by the website from dataplatform \/api\/apex\/holdings, \/api\/instruments\/batch, \/api\/instruments \(bond universe\) and \/api\/performance\/nav-timeseries .*: SEST FINAL_NAV book 2026-09-28; priced 96\.4%, resolved 100\.0%/);
+  // no distributions endpoint on the dataplatform main branch: none shown, one info issue
+  assert.equal(mi.distributions, null);
+  assert.deepEqual(data.issues.filter((i) => i.key.startsWith("sources.")).map((i) => [i.key, i.level]), [["sources.distributions", "info"]]);
   // the month-end cross-check ran and passed for both bond funds (no issue under the crossCheck keys)
   assert.deepEqual(data.issues.filter((i) => i.key.includes("crossCheck")), []);
+  // a supplied distributions payload (the PR #621 contract) is still displayed per series
+  const withDist = (await build()).data;
+  assert.deepEqual(withDist.funds["monthly-income"]!.distributions?.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM081"]);
+  assert.deepEqual(withDist.funds["multi-strategy"]!.distributions?.classes[0].calendarYears.map((y) => y.year), [2019, 2020, 2021, 2023, 2024, 2025]);
 });
 
-test("build: the month-end book is requested with a full date (last day of the closed month) and is cross-checked", async () => {
-  const m = mockFetch();
-  await fetchAll({ fetchImpl: m.fetch, now: NOW, env: fixtureEnv() });
-  const dated = m.calls.map((c) => new URL(c.url)).filter((u) => u.pathname === "/api/apex/fund-portfolio" && u.searchParams.has("date"));
-  assert.deepEqual(dated.map((u) => `${u.searchParams.get("fund")} ${u.searchParams.get("date")}`).sort(), ["Multistrat 2026-08-31", "SEB 2026-08-31", "SEST 2026-08-31"]);
-
+test("build: the month-end book is cross-checked with the factsheet of the month (sectors; no duration: latest prices only)", async () => {
+  const { data } = await build();
+  const me = computedBookOf(await rawWith(), "SEST", "monthEnd");
+  assert.equal(me?.data?.as_of, "2026-08-31");
+  assert.equal(me?.data?.characteristics.modified_duration, undefined, "a month-old book has no current price: no duration to compare");
+  assert.deepEqual(data.issues.filter((i) => i.key.startsWith("funds.monthly-income.portfolio.crossCheck")), []);
   // a month-end book that disagrees with the August factsheet produces cross-check warnings (the check really runs)
   const divergent: Route = (u) => {
-    if (u.pathname !== "/api/apex/fund-portfolio" || u.searchParams.get("fund") !== "SEST" || u.searchParams.get("date") !== "2026-08-31") return undefined;
-    const me = structuredClone(loadFixture("dataplatform/portfolio_SEST_2026-08-31.json")) as { characteristics: { modified_duration: { value: number } } };
-    me.characteristics.modified_duration.value = 4.9;
-    return json(me);
+    if (u.pathname !== "/api/apex/holdings" || u.searchParams.get("fund") !== "SEST" || u.searchParams.get("date") !== "2026-08-31") return undefined;
+    const h = structuredClone(loadFixture("dataplatform/holdings_SEST_2026-08-31.json")) as { positions: { description: string; market_value_cad: number }[] };
+    for (const p of h.positions) if (/^Synthetic Energy/.test(p.description)) p.market_value_cad *= 3;
+    return json(h);
   };
-  const { data } = await build(divergent);
-  const cc = data.issues.filter((i) => i.key.startsWith("funds.monthly-income.portfolio.crossCheck"));
-  assert.deepEqual(cc.map((i) => [i.key, i.level]), [["funds.monthly-income.portfolio.crossCheck.duration", "warn"]]);
-  assert.match(cc[0].message, /month-end cross-check 2026-08-31: duration 4.90 \(daily book\) vs 2.41 \(factsheet 2026-08\)/);
-  assert.equal(data.funds["monthly-income"]!.portfolio?.source, "daily", "a cross-check warning never withholds the daily book");
+  const d2 = (await build(divergent)).data;
+  const cc = d2.issues.filter((i) => i.key.startsWith("funds.monthly-income.portfolio.crossCheck"));
+  assert.deepEqual(cc.map((i) => [i.key, i.level]), [["funds.monthly-income.portfolio.crossCheck.sector", "warn"]]);
+  assert.match(cc[0].message, /month-end cross-check 2026-08-31: sector Energy 35\.\d% \(daily book\) vs 12\.1% \(factsheet 2026-08\)/);
+  assert.equal(d2.funds["monthly-income"]!.portfolio?.source, "daily", "a cross-check warning never withholds the daily book");
 });
 
-test("build: endpoints not deployed (404) → one info issue each, everything else exactly as before", async () => {
-  const before = await build(notDeployed);
-  const after = await build();
-  const infos = before.data.issues.filter((i) => i.key.startsWith("sources."));
-  assert.deepEqual(infos.map((i) => [i.key, i.level]), [["sources.fund-portfolio", "info"], ["sources.distributions", "info"]]);
-  assert.match(infos[0].message, /not available \(HTTP 404, not deployed yet\?\) for SEST, SEB, Multistrat/);
-  for (const [k, f] of Object.entries(before.data.funds)) {
+test("build: holdings or the instrument master failing → factsheet figures (warn), everything else unchanged", async () => {
+  const before = (await build((u) => (u.pathname === "/api/instruments/batch" ? json({ detail: "x" }, 500) : undefined))).data;
+  const after = (await build()).data;
+  for (const [k, f] of Object.entries(before.funds)) {
     assert.equal(f!.portfolio, null, k);
-    assert.equal(f!.distributions, null, k);
-    const { portfolio: _p, distributions: _d, ...rest } = f!;
-    const { portfolio: _p2, distributions: _d2, ...rest2 } = after.data.funds[k as keyof SiteData["funds"]]!;
-    assert.deepEqual(rest, rest2, `${k}: the other blocks do not depend on the new endpoints`);
+    const { portfolio: _p, ...rest } = f!;
+    const { portfolio: _p2, ...rest2 } = after.funds[k as keyof SiteData["funds"]]!;
+    assert.deepEqual(rest, rest2, `${k}: the other blocks do not depend on the portfolio sources`);
   }
-  const strip = (issues: SiteData["issues"]) => issues.filter((i) => !/\.portfolio|\.distributions|^sources\./.test(i.key));
-  assert.deepEqual(strip(before.data.issues), strip(after.data.issues));
-  assert.ok(!before.data.issues.some((i) => i.level !== "info" && /portfolio|distributions/.test(i.key)));
+  assert.ok(before.issues.some((i) => i.key === "funds.monthly-income.portfolio" && i.level === "warn" && /instrument master unavailable \(instruments: HTTP 500 on \/api\/instruments\/batch\?identifier_type=isin/.test(i.message)), JSON.stringify(before.issues.filter((i) => /portfolio/.test(i.key))));
+  const noHoldings = (await build((u) => (u.pathname === "/api/apex/holdings" ? json({ detail: "x" }, 500) : undefined))).data;
+  assert.equal(noHoldings.funds["sustainable-enhanced-bonds"]!.portfolio, null);
+  assert.ok(noHoldings.issues.some((i) => i.key === "funds.sustainable-enhanced-bonds.portfolio" && /apex\/holdings SEB 2026-09-28: HTTP 500/.test(i.message)));
+  // a holdings answer naming another fund is a failure, never another fund's book under this one
+  const wrong: Route = (u) => (u.pathname === "/api/apex/holdings" && u.searchParams.get("fund") === "SEST" ? json({ ...(loadFixture("dataplatform/holdings_SEB_2026-09-28.json") as object) }) : undefined);
+  const w = (await build(wrong)).data;
+  assert.equal(w.funds["monthly-income"]!.portfolio, null);
+  assert.ok(w.issues.some((i) => /payload is for fund "SEB", not SEST/.test(i.message)));
 });
 
-test("build: a failing endpoint keeps the previous daily book and distributions; validation drops a book once too old", async () => {
+test("build: a failing source keeps the previous daily book and distributions; validation drops a book once too old", async () => {
   const prev = (await build()).data;
-  const down: Route = (u) => (u.pathname === "/api/apex/fund-portfolio" || u.pathname === "/api/performance/distributions" ? new Response("x", { status: 500 }) : undefined);
-  const raw = await fetchAll({ fetchImpl: mockFetch(down).fetch, now: NOW, env: fixtureEnv() });
+  const down: Route = (u) => (u.pathname === "/api/apex/holdings" ? new Response("x", { status: 500 }) : undefined);
+  const raw = await rawWith({ routes: [down], dist: "down" });
   const { data, context } = buildSiteData(raw, prev, NOW);
   assert.deepEqual(data.funds["monthly-income"]!.portfolio, prev.funds["monthly-income"]!.portfolio);
   assert.deepEqual(data.funds["monthly-income"]!.distributions, prev.funds["monthly-income"]!.distributions);
@@ -527,12 +556,11 @@ test("distributions gates: the trailing 12 months are checked over the data plat
 });
 
 test("distributions carried over after failed reads are dropped after 10 days without a successful read", async () => {
-  const { data: prev, context } = buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW);
+  const { data: prev, context } = buildSiteData(await rawWith({ dist: "ok" }), null, NOW);
   assert.equal(prev.funds["monthly-income"]!.distributions!.checkedAt, "2026-09-29");
-  const down: Route = (u) => (u.pathname === "/api/performance/distributions" ? new Response("x", { status: 503 }) : undefined);
   const at = async (iso: string) => {
     const now = new Date(iso);
-    const b = buildSiteData(await fetchAll({ fetchImpl: mockFetch(down).fetch, now, env: fixtureEnv() }), prev, now);
+    const b = buildSiteData(await rawWith({ now, dist: "down" }), prev, now);
     return validateSite(b.data, b.context, prev, now);
   };
   const soon = await at("2026-10-09T14:00:00Z"); // 10 days

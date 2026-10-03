@@ -72,7 +72,8 @@ async function publishMode(): Promise<"auto" | "review"> {
   return (await readContent())?.pipeline?.publishMode === "auto" ? "auto" : "review";
 }
 
-export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "1").trim() !== "0";
+/** opt-in (PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1): a new month also waits for its factsheet. Default off: the factsheet job is not a dependency */
+export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "0").trim() === "1";
 
 /** sources summary for the report */
 function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
@@ -82,12 +83,17 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
     out.push({ name, ok: r.ok, ...(r.ok ? (r.detail ? { detail: r.detail } : {}) : { detail: r.error }) });
   };
   for (const [s, r] of Object.entries(raw.monthlyReturns)) add(`dataplatform monthly-net-returns ${s}`, r);
-  for (const [s, r] of Object.entries(raw.monthlyReturnsFull ?? {})) add(`dataplatform monthly-net-returns ${s} (preferred class, full history)`, r);
+  for (const [s, r] of Object.entries(raw.navHistory ?? {})) add(`dataplatform nav-timeseries ${s} (daily history)`, r);
   for (const [s, r] of Object.entries(raw.nav)) add(`dataplatform nav-timeseries ${s}`, r);
   add("dataplatform apex/funds", raw.apexFunds);
   add("dataplatform unitholders/funds", raw.unitholderFunds);
   add("dataplatform unitholders/aum", raw.aum);
   for (const [s, r] of Object.entries(raw.ftse)) add(`dataplatform ftse index-summary ${s}`, r);
+  for (const [s, h] of Object.entries(raw.holdings ?? {})) {
+    add(`dataplatform apex/holdings ${s}`, h?.latest);
+    if (h?.monthEnd) add(`dataplatform apex/holdings ${s} (month-end)`, h.monthEnd);
+  }
+  add("dataplatform instruments (batch + bond universe)", raw.instruments);
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) add(`dataplatform fund-portfolio ${s}`, r);
   for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) add(`dataplatform fund-portfolio ${s} (month-end)`, r);
   for (const [s, r] of Object.entries(raw.distributions ?? {})) add(`dataplatform distributions ${s}`, r);
@@ -106,9 +112,14 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
     "aum.json": raw.aum.ok && raw.aum.data ? { ok: true, data: { snapshot_date: raw.aum.data.snapshot_date, warningCount: raw.aum.data.warningCount, totals: { ...raw.aum.data.totals } } } : { ok: false, error: raw.aum.error },
   };
   for (const [s, r] of Object.entries(raw.monthlyReturns)) files[`monthly-net-returns_${s}.json`] = r;
-  for (const [s, r] of Object.entries(raw.monthlyReturnsFull ?? {})) files[`monthly-net-returns-full_${s}.json`] = r;
+  for (const [s, r] of Object.entries(raw.navHistory ?? {})) files[`nav-history_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.nav)) files[`nav_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.ftse)) files[`ftse_${s}.json`] = r;
+  for (const [s, h] of Object.entries(raw.holdings ?? {})) {
+    if (h) files[`holdings_${s}.json`] = h.latest;
+    if (h?.monthEnd) files[`holdings-month-end_${s}.json`] = h.monthEnd;
+  }
+  if (raw.instruments) files["instruments.json"] = raw.instruments;
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) files[`fund-portfolio_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) files[`fund-portfolio-month-end_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.distributions ?? {})) files[`distributions_${s}.json`] = r;

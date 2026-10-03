@@ -21,6 +21,11 @@ const CATEGORY_FR: Record<string, string> = {
   canada: "Canada", "united states": "États-Unis", "corporate bonds": "Obligations de sociétés", "provincial bonds": "Obligations provinciales",
   "federal bonds": "Obligations fédérales", "municipal bonds": "Obligations municipales", "government bonds": "Obligations gouvernementales",
   "supranational bonds": "Obligations supranationales", funds: "Fonds",
+  // Bloomberg industry sectors and the website-computed book (fund-portfolio.ts)
+  financial: "Services financiers", industrial: "Industrie", "consumer, non-cyclical": "Consommation de base", "consumer, cyclical": "Consommation discrétionnaire",
+  "basic materials": "Matériaux", diversified: "Diversifié", "mortgage-backed bonds": "Obligations hypothécaires",
+  "preferred shares": "Actions privilégiées", "bonds (unclassified)": "Obligations (non classées)", "unknown maturity": "Échéance inconnue",
+  "other assets": "Autres actifs", unclassified: "Non classé",
 };
 
 /** Label of a breakdown row: term buckets spelled out ("1-3" → "1–3 years" / "1–3 ans"), known categories in French. */

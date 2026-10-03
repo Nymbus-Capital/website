@@ -5,14 +5,19 @@
   "index_name": "FTSE Canada Short Term Corporate Bond Index"
  },
  {
+  "short_name": "short_overall",
+  "index_id": 1102,
+  "index_name": "FTSE Canada Short Term Overall Bond Index"
+ },
+ {
   "short_name": "univ",
   "index_id": 2001,
   "index_name": "FTSE Canada Universe Bond Index"
  },
  {
-  "short_name": "ftse_tmx_canada_univ",
+  "short_name": "univ_overall",
   "index_id": 2001,
-  "index_name": "FTSE TMX Canada Universe Bond Index"
+  "index_name": "FTSE Canada Universe Overall Bond Index"
  },
  {
   "short_name": "univ_corp",

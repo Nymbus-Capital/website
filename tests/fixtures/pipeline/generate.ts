@@ -5,14 +5,19 @@
  *
  * Output (this folder):
  *   dataplatform/mnr_<SHORT>.json      /api/performance/monthly-net-returns responses (2019 → 2026-08)
- *   dataplatform/mnr_SEB_STRATEGY_full.json   the same with class_code=STRATEGY&history=full (SEB class F, every month)
+ *   dataplatform/nav_history_<FUNDSERV>.json   /api/performance/nav-timeseries fundserv=… daily history of each class with a
+ *                                      series (CIBC stored returns, the 2026-07 cut-over, Apex distribution-aware returns)
  *   dataplatform/nav_<SHORT>.json      /api/performance/nav-timeseries responses (last 3 weeks, apex + cibc duplicates)
  *   dataplatform/apex_funds.json       /api/apex/funds (live funds, one dormant class)
  *   dataplatform/unitholders_funds.json
  *   dataplatform/aum.json              /api/unitholders/aum (with extra investor-level-looking fields to prove they are stripped)
  *   dataplatform/ftse_<name>.json      /api/ftse/index-summary rows (last 3 business days of each month, aggregate + rating rows)
- *   dataplatform/portfolio_<SHORT>.json, portfolio_<SHORT>_2026-08-31.json   /api/apex/fund-portfolio (latest book, month-end book)
- *   dataplatform/distributions_<SHORT>.json   /api/performance/distributions (every class, a dormant one included)
+ *   dataplatform/portfolio_<SHORT>.json, portfolio_<SHORT>_2026-08-31.json   PR #621 fund-portfolio contract (never on the
+ *                                      dataplatform main branch: only the parser / selection unit tests read it)
+ *   dataplatform/distributions_<SHORT>.json   PR #621 distributions contract (no endpoint on the dataplatform main branch:
+ *                                      only the display-logic unit tests read it)
+ *   dataplatform/holdings_<SHORT>_<date>.json   /api/apex/holdings (latest and month-end Apex books)
+ *   dataplatform/instruments.json      /api/instruments/batch details + /api/instruments bond-universe rows
  *   factsheets/bonds_data_2026-08.json, factsheets/factsheet_data_2026-08.json   archives in the real shape
  *
  * The factsheet figures are computed from the same synthetic series (rounded like the producer), so the
@@ -22,6 +27,8 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addMonths, annualize, calendarYears, compound, downsideDeviation, maxDrawdown, monthEnd, pstdev, sum, trailing, window, type Method, type Series } from "../../../src/lib/pipeline/metrics.ts";
+import { synthClassRows } from "./nav-history.ts";
+import { CLASS_SHARE, holdingsPayload, instrumentsPayload, netAssetsOf, type Short } from "./holdings.ts";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const FIXTURE_NOW = "2026-09-29T14:00:00.000Z";
@@ -79,6 +86,9 @@ for (const m of months("2019-02-28", LAST_MONTH)) seb[m] = r8(0.0006 + 0.9 * idx
 /** SEB class F (dataplatform STRATEGY): the same book with a different fee load than the H class above (synthetic) */
 const sebF: Series = {};
 for (const m of months("2019-02-28", LAST_MONTH)) sebF[m] = r8(seb[m] + 0.0012);
+/** Monthly Income class F (LDM081): the same book with a slightly higher fee than class FP (synthetic) */
+const sestF: Series = {};
+for (const m of months("2019-01-31", LAST_MONTH)) sestF[m] = r8(sest[m] - 0.00025);
 const multi: Series = {};
 const multiAll = multi;
 for (const m of months("2019-01-31", LAST_MONTH)) multi[m] = r8(0.0055 + 0.019 * g());
@@ -201,21 +211,6 @@ function mnr(short: string, s: Series, first: string): unknown {
   return { short_name: short, class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
 }
 
-/**
- * monthly-net-returns with `class_code` + `history=full` (dataplatform PR #626, docs/api/monthly-net-returns.md):
- * every month from the class's first stored month, each with its source — stored CIBC months through 2026-06, the
- * 2026-07 CIBC-to-Apex bridge, Apex months from 2026-08 — and the class identity (class_display, fundserv).
- */
-export const BRIDGE_MONTH = "2026-07-31";
-function mnrFull(short: string, classCode: string, display: string, fundserv: string, s: Series, first: string): unknown {
-  const rows = months(first, LAST_MONTH).map((m) => {
-    const source = m >= APEX_READY_FROM ? "apex" : m === BRIDGE_MONTH ? "bridge" : "cibc";
-    const method = source === "apex" ? "compounded_apex_net_daily" : source === "bridge" ? "cibc_apex_nav_bridge" : "stored_cibc_net_monthly";
-    return { month: m, net_return: s[m], status: "ready", source, method, source_dates: [], source_row_ids: [], issue: null };
-  });
-  return { short_name: short, class_code: classCode, class_display: display, fundserv, history: "full", currency: "CAD", return_basis: "net_of_fees", methodology_version: "cibc-stored-bridge-apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
-}
-
 function businessDays(from: string, to: string): string[] {
   const out: string[] = [];
   for (let t = Date.parse(from); t <= Date.parse(to); t += 86_400_000) {
@@ -255,6 +250,20 @@ function navPayload(short: string): unknown {
   const days = businessDays("2026-09-08", "2026-09-28");
   const rnd = gauss(mulberry32(short.length * 7919 + 13));
   const rows: Record<string, unknown>[] = [];
+  // earlier weeks (separate stream: the last weeks above are unchanged): the month-end book date and the net assets
+  const early = gauss(mulberry32(short.length * 104723 + 5));
+  const na = (fundserv: string, d: string): number => Math.round(netAssetsOf(short as Short, d) * (CLASS_SHARE[fundserv] ?? 0) * 100) / 100;
+  for (const k of CLASSES[short]) {
+    let w = Math.round(k.nav * 0.99 * 1e4) / 1e4;
+    let prev: string | null = "2026-08-13";
+    for (const d of businessDays("2026-08-14", "2026-09-04")) {
+      const r = 0.001 * early();
+      w = Math.round(w * (1 + r) * 1e4) / 1e4;
+      const usd = k.currency === "USD";
+      rows.push({ date: d, fundserv: k.fundserv, class_display: k.display, class_code: k.display, currency: k.currency, short_name: short, nav_type: "FINAL_NAV", fund_mapped: true, account: "SYNTHETIC", fund_name: `SYNTHETIC ${short}`, class_name_raw: k.display, source: "apex", nav_per_share_local: w, nav_per_share_cad: usd ? Math.round(w * 1.37 * 1e4) / 1e4 : w, net_daily_return: r8(r), net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: prev, return_source_count: 1, net_asset_value_cad: na(k.fundserv, d) });
+      prev = d;
+    }
+  }
   for (const k of CLASSES[short]) {
     let v = k.nav;
     let prevDay: string | null = "2026-09-07";
@@ -272,12 +281,35 @@ function navPayload(short: string): unknown {
       if (k.fundserv === "LDM205" && d === "2026-09-25") continue;
       const usd = k.currency === "USD";
       const base = { date: d, fundserv: k.fundserv, class_display: k.display, class_code: k.display, currency: k.currency, short_name: short, nav_type: "FINAL_NAV", fund_mapped: true, account: "SYNTHETIC", fund_name: `SYNTHETIC ${short}`, class_name_raw: k.display };
-      rows.push({ ...base, source: "apex", nav_per_share_local: v, nav_per_share_cad: usd ? Math.round(v * 1.37 * 1e4) / 1e4 : v, net_daily_return: ret, net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: start, return_source_count: 1 });
+      rows.push({ ...base, source: "apex", nav_per_share_local: v, nav_per_share_cad: usd ? Math.round(v * 1.37 * 1e4) / 1e4 : v, net_daily_return: ret, net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: start, return_source_count: 1, net_asset_value_cad: na(k.fundserv, d) });
       // a lagging second source on some days: must lose against apex
       if (d >= "2026-09-24") rows.push({ ...base, source: "cibc", nav_per_share_local: Math.round(v * 1.003 * 1e4) / 1e4, nav_per_share_cad: null, net_daily_return: null, net_return_method: "nav_price_ratio", return_start_date: null });
     }
   }
-  return { short_name: short, start_date: "2026-09-08", end_date: "2026-09-29", nav_type: "FINAL_NAV", include_unmapped: true, sources: ["apex", "cibc"], row_count: rows.length, rows, warnings: [] };
+  return { short_name: short, start_date: "2026-08-14", end_date: "2026-09-29", nav_type: "FINAL_NAV", include_unmapped: true, sources: ["apex", "cibc"], row_count: rows.length, rows, warnings: [] };
+}
+
+/* ------------------------------------------------------------------ nav-timeseries daily history per class */
+
+/**
+ * Daily rows of each class with a series, from the fund's NAV start (dataplatform: SEST 2021-10-05 re-seed — earlier
+ * rows under the reused code are another strategy, included here to prove they are ignored —, SEB 2023-07-05,
+ * Multistrat 2023-06-12; class F of Monthly Income launched 2024-03-01). Their compounded months equal the synthetic
+ * series above, so the website's chain reproduces the analytics history and monthly-net-returns.
+ */
+export const NAV_HISTORY: { fundserv: string; short: string; monthly: Series; navStart: string; nav0: number; dist?: (m: string) => number; priorFrom?: string; seed: number }[] = [
+  { fundserv: "LDM001", short: "SEST", monthly: sest, navStart: "2021-10-05", nav0: 10, dist: () => 0.0415, priorFrom: "2021-06-01", seed: 101 },
+  { fundserv: "LDM081", short: "SEST", monthly: sestF, navStart: "2024-03-01", nav0: 10, dist: () => 0.04, seed: 102 },
+  { fundserv: "LDM201", short: "SEB", monthly: sebF, navStart: "2023-07-05", nav0: 10, dist: (m) => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? 0.072 : 0), seed: 103 },
+  { fundserv: "LDM202", short: "SEB", monthly: seb, navStart: "2023-07-05", nav0: 10, dist: (m) => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? 0.07 : 0), seed: 104 },
+  { fundserv: "LDM301", short: "Multistrat", monthly: multi, navStart: "2023-06-12", nav0: 10, dist: (m) => (m.slice(5, 7) === "12" ? 0.25 : 0), seed: 105 },
+];
+
+function navHistoryPayload(h: (typeof NAV_HISTORY)[number]): string {
+  const rows = synthClassRows({ fundserv: h.fundserv, monthly: h.monthly, navStart: h.navStart, end: "2026-09-28", nav0: h.nav0, dist: h.dist, priorFrom: h.priorFrom, seed: h.seed })
+    .map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
+  // one row per line: the file stays readable and diffs stay small
+  return `{"short_name": "${h.short}", "fundserv": "${h.fundserv}", "nav_type": "FINAL_NAV", "include_unmapped": false, "row_count": ${rows.length}, "warnings": [], "rows": [\n${rows.map((r) => JSON.stringify(r)).join(",\n")}\n]}\n`;
 }
 
 const APEX_ACCOUNTS: Record<string, string> = { SEST: "SYN-APX-01", SEB: "SYN-APX-02", Multistrat: "SYN-APX-03" };
@@ -308,25 +340,29 @@ const aum = {
  * on the last 3 weekdays of each month. `split`: rows before that date are published under `oldName`
  * (a rename with the same index_id: the history must be joined).
  */
-function ftseRows(short: string, indexName: string, s: Series, split?: { date: string; oldName: string }): { current: unknown[]; old: unknown[] } {
+function ftseRows(short: string, indexName: string, s: Series, opts: { from?: string; old?: { name: string; indexName: string; until: string; rebase: number } } = {}): { current: unknown[]; old: unknown[] } {
   const current: unknown[] = [];
   const old: unknown[] = [];
   let level = 1000;
-  const push = (d: string, v: number): void => {
-    const name = split && d < split.date ? split.oldName : short;
-    const into = name === short ? current : old;
-    const base = { date: d, short_name: name, index_name: indexName, index_content: "synthetic", term: null, industry_sector: null, industry_group: null, price_index: Math.round(v * 0.62 * 1000) / 1000, average_yield: 3.9, modified_duration: short === "univ" ? 7.1 : 2.7 };
+  const rows = (into: unknown[], name: string, label: string, d: string, v: number): void => {
+    const base = { date: d, short_name: name, index_name: label, index_content: "synthetic", term: null, industry_sector: null, industry_group: null, price_index: Math.round(v * 0.62 * 1000) / 1000, average_yield: 3.9, modified_duration: short === "univ" ? 7.1 : 2.7 };
     into.push({ ...base, rating: null, total_return: Math.round(v * 1e6) / 1e6 });
     into.push({ ...base, rating: "All", term: "Short", total_return: Math.round(v * 1.01 * 1e6) / 1e6 });
     into.push({ ...base, rating: "AAA", total_return: Math.round(v * 0.97 * 1e6) / 1e6 });
   };
+  const push = (d: string, v: number): void => {
+    if (!opts.from || d >= opts.from) rows(current, short, indexName, d, v);
+    // the earlier naming generation: levels re-based by FTSE (never comparable with the current ones), same returns
+    if (opts.old && d <= opts.old.until) rows(old, opts.old.name, opts.old.indexName, d, v * opts.old.rebase);
+  };
+  // months published every weekday (flat until the last 3 days): the generation switch, so the two names overlap
+  const daily = new Set(["2024-11", "2024-12"]);
   for (const d of businessDays("2018-12-01", "2018-12-31").slice(-3)) push(d, level);
   for (const m of months("2019-01-31", LAST_MONTH)) {
     const before = level;
     level *= 1 + s[m];
     const days = businessDays(`${m.slice(0, 7)}-01`, m);
-    // the month of a rename is published every weekday (flat until the last 3 days), so the seam is continuous
-    if (split && split.date.slice(0, 7) === m.slice(0, 7)) for (const d of days.slice(0, -3)) push(d, before);
+    if (daily.has(m.slice(0, 7))) for (const d of days.slice(0, -3)) push(d, before);
     for (const d of days.slice(-3)) push(d, level);
   }
   // a few September days (open month: never a monthly return)
@@ -615,10 +651,15 @@ function gmvBlock(scale = 1): unknown {
 }
 
 /* ------------------------------------------------------------------ write */
+/**
+ * Like the live data (2026-10): short_corp exists only from the 2024-12 naming generation (no earlier name), the universe
+ * has its earlier generation "univ_overall" (re-based levels, a few overlapping days); a sibling of another family.
+ */
 export const FTSE_SHORT_NAMES = [
   { short_name: "short_corp", index_id: 1101, index_name: "FTSE Canada Short Term Corporate Bond Index" },
+  { short_name: "short_overall", index_id: 1102, index_name: "FTSE Canada Short Term Overall Bond Index" },
   { short_name: "univ", index_id: 2001, index_name: "FTSE Canada Universe Bond Index" },
-  { short_name: "ftse_tmx_canada_univ", index_id: 2001, index_name: "FTSE TMX Canada Universe Bond Index" },
+  { short_name: "univ_overall", index_id: 2001, index_name: "FTSE Canada Universe Overall Bond Index" },
   { short_name: "univ_corp", index_id: 2002, index_name: "FTSE Canada Universe Corporate Bond Index" },
 ];
 
@@ -627,26 +668,30 @@ export function generate(dir = HERE): void {
   const fs = path.join(dir, "factsheets");
   mkdirSync(dp, { recursive: true });
   mkdirSync(fs, { recursive: true });
-  for (const f of ["ftse_short_overall.json"]) rmSync(path.join(dp, f), { force: true });
+  for (const f of ["ftse_short_overall.json", "mnr_SEB_STRATEGY_full.json", "ftse_ftse_tmx_canada_univ.json"]) rmSync(path.join(dp, f), { force: true });
   const w = (p: string, v: unknown): void => writeFileSync(p, JSON.stringify(v, null, 1) + "\n");
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
   w(path.join(dp, "mnr_Multistrat.json"), mnr("Multistrat", multi, "2019-01-31"));
-  w(path.join(dp, "mnr_SEB_STRATEGY_full.json"), mnrFull("SEB", "STRATEGY", "F", "LDM201", sebF, "2019-02-28"));
+  for (const h of NAV_HISTORY) writeFileSync(path.join(dp, `nav_history_${h.fundserv}.json`), navHistoryPayload(h));
   for (const s of ["SEST", "SEB", "Multistrat"]) w(path.join(dp, `nav_${s}.json`), navPayload(s));
   w(path.join(dp, "apex_funds.json"), apexFunds);
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);
   w(path.join(dp, "aum.json"), aum);
   w(path.join(dp, "ftse_short_names.json"), FTSE_SHORT_NAMES);
-  w(path.join(dp, "ftse_short_corp.json"), ftseRows("short_corp", "FTSE Canada Short Term Corporate Bond Index (synthetic)", ftseShortCorp).current);
-  const univ = ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", ftseUniv, { date: "2024-12-05", oldName: "ftse_tmx_canada_univ" });
+  w(path.join(dp, "ftse_short_corp.json"), ftseRows("short_corp", "FTSE Canada Short Term Corporate Bond Index (synthetic)", ftseShortCorp, { from: "2024-12-02" }).current);
+  const univ = ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", ftseUniv, { from: "2024-11-25", old: { name: "univ_overall", indexName: "FTSE Canada Universe Overall Bond Index (synthetic)", until: "2024-12-06", rebase: 0.87 } });
   w(path.join(dp, "ftse_univ.json"), univ.current);
-  w(path.join(dp, "ftse_ftse_tmx_canada_univ.json"), univ.old);
+  w(path.join(dp, "ftse_univ_overall.json"), univ.old);
   w(path.join(dir, "analytics_fund_returns.json"), analyticsPayload());
+  // one instrument per line
+  const inst = instrumentsPayload();
+  writeFileSync(path.join(dp, "instruments.json"), `{"details": [\n${inst.details.map((x) => JSON.stringify(x)).join(",\n")}\n], "universe": [\n${inst.universe.map((x) => JSON.stringify(x)).join(",\n")}\n]}\n`);
   for (const short of ["SEST", "SEB", "Multistrat"] as const) {
     w(path.join(dp, `portfolio_${short}.json`), portfolioPayload(short, BOOKS[short].latest));
     w(path.join(dp, `portfolio_${short}_${BOOKS[short].monthEnd.asOf}.json`), portfolioPayload(short, BOOKS[short].monthEnd));
     w(path.join(dp, `distributions_${short}.json`), distributionsPayload(short));
+    for (const d of ["2026-09-28", "2026-08-31"]) w(path.join(dp, `holdings_${short}_${d}.json`), holdingsPayload(short, d));
   }
   for (const end of ["2026-07-31", LAST_MONTH]) {
     END = end;

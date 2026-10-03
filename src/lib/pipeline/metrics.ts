@@ -300,6 +300,74 @@ export function ftseGroupingSummary(rows: FtseRow[]): string {
   return `${rows.length} rows; ${last}: ${day.length} rows, ${withTr} with total_return; ${["rating", "term", "industry_sector", "industry_group", "index_content"].map(vals).join(" ")}`;
 }
 
+/**
+ * Name family of an FTSE index (to find its earlier naming generations among /short-names): the published name without
+ * the publisher prefixes ("FTSE TMX Canada", "FTSE Canada", "DEX"), "Bond Index", "Overall" and "Term".
+ * "FTSE Canada Universe Overall Bond Index" and "FTSE Canada Universe Bond Index" → "univ"; "FTSE TMX Canada Short Term
+ * Corporate Bond Index" → "short corp"; "FTSE Canada Short Term Overall Bond Index" → "short" (another index).
+ */
+export function ftseFamily(name: string | null | undefined): string {
+  let t = ` ${(name ?? "").toLowerCase().replace(/\(synthetic\)/g, " ")} `;
+  t = t.replace(/[^a-z0-9]+/g, " ");
+  t = t.replace(/ (ftse|tmx|canada|dex|pc|scotia|capital|markets|bond|bonds|index|overall|term)(?= )/g, " ");
+  t = t.replace(/ corporate(?= )/g, " corp").replace(/ universe(?= )/g, " univ");
+  return t.replace(/\s+/g, " ").trim();
+}
+
+export interface FtseCandidate { name: string; levels: Record<string, number>; why: string }
+export interface FtseJoin {
+  levels: Record<string, number>;
+  /** earlier names linked in front, with the link day and the number of common daily returns that matched */
+  used: { name: string; link: string; from: string; checked: number; why: string }[];
+  skipped: string[];
+}
+/** a link needs this many equal daily returns on common days; "equal" within dailyTol (levels published to 4+ decimals) */
+export const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6 };
+
+/**
+ * Joins earlier naming generations of an FTSE index in front of its current series. FTSE re-bases total-return levels
+ * across a naming generation (factsheet-generator ftse_index_engine: "levels are not continuous across it"), so a level
+ * is never compared with another name's: a candidate is linked only when it has a level on the current series' first
+ * day AND its daily returns equal the current ones on at least `minCommonReturns` consecutive common days; its earlier
+ * days are then chain-linked (rescaled at that first day). Without such an overlap nothing is joined (the index figures
+ * needing those months are not shown). Repeats for older generations.
+ */
+export function joinFtseHistory(current: Record<string, number>, candidates: FtseCandidate[], cfg = FTSE_JOIN): FtseJoin {
+  let cur = { ...current };
+  const used: FtseJoin["used"] = [];
+  const skipped: string[] = [];
+  const pending = [...candidates];
+  const bp = (x: number): string => `${(x * 10_000).toFixed(3)} bp`;
+  while (pending.length) {
+    const first = Object.keys(cur).sort()[0];
+    if (!first) break;
+    let best: { c: FtseCandidate; earliest: string; checked: number } | null = null;
+    for (const c of [...pending]) {
+      const days = Object.keys(c.levels).sort();
+      const drop = (why: string): void => { skipped.push(`${c.name} (${why})`); pending.splice(pending.indexOf(c), 1); };
+      if (!days.length || days[0] >= first) { drop(days.length ? `starts ${days[0]}, not before ${first}` : "no level"); continue; }
+      if (!(first in c.levels)) { drop(`no level on ${first}, the first day of the current series: no overlap to verify a link`); continue; }
+      const common = days.filter((d) => d in cur);
+      if (common.length < cfg.minCommonReturns + 1) { drop(`${common.length} common day(s): at least ${cfg.minCommonReturns + 1} needed to compare daily returns`); continue; }
+      let worst = 0;
+      for (let i = 1; i < common.length; i++) {
+        const a = common[i - 1], b = common[i];
+        worst = Math.max(worst, Math.abs(cur[b] / cur[a] - c.levels[b] / c.levels[a]));
+      }
+      if (!(worst <= cfg.dailyTol)) { drop(`daily returns differ on common days (up to ${bp(worst)}): another index`); continue; }
+      if (!best || days[0] < best.earliest) best = { c, earliest: days[0], checked: common.length - 1 };
+    }
+    if (!best) break;
+    pending.splice(pending.indexOf(best.c), 1);
+    const k = cur[first] / best.c.levels[first];
+    const before: Record<string, number> = {};
+    for (const d of Object.keys(best.c.levels).sort()) if (d < first) before[d] = best.c.levels[d] * k;
+    cur = Object.fromEntries(Object.entries({ ...before, ...cur }).sort(([a], [b]) => (a < b ? -1 : 1)));
+    used.push({ name: best.c.name, link: first, from: best.earliest, checked: best.checked, why: best.c.why });
+  }
+  return { levels: cur, used, skipped };
+}
+
 const isWeekday = (t: number): boolean => { const w = new Date(t).getUTCDay(); return w !== 0 && w !== 6; };
 
 /** last weekday (Mon-Fri) of the month of `ym`, and the weekday `back` weekdays before it */

@@ -138,7 +138,10 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
  */
 export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
   const issues: Issue[] = [];
-  const headline = (f.defaultClass ?? FUNDS.find((x) => x.key === f.key)?.headlineClass ?? "").toUpperCase();
+  // the headline class is the one of the fund's own series (the track record); without a class code (older data), the
+  // default class
+  const own = f.performance?.classCode ? Object.values(f.performanceByClass ?? {}).find((k) => k.performance.classCode === f.performance!.classCode)?.fundserv : undefined;
+  const headline = (own ?? f.defaultClass ?? FUNDS.find((x) => x.key === f.key)?.headlineClass ?? "").toUpperCase();
   if (f.performanceByClass) {
     for (const [code, k] of Object.entries(f.performanceByClass)) {
       const problems = performanceProblems(k.performance, "compounded", true);

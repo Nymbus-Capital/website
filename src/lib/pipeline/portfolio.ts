@@ -1,11 +1,12 @@
 /**
- * Daily portfolio block (FundData.portfolio) from the dataplatform fund-portfolio book. Pure.
+ * Daily portfolio block (FundData.portfolio) from the fund's daily book (computed by the website from the dataplatform
+ * Apex holdings and instrument master: fund-portfolio.ts). Pure.
  *
  *  - selectPortfolio: is the daily book usable (coverage thresholds, freshness)? If so, map it; otherwise the
  *    Portfolio tab keeps the month-end factsheet figures and an issue says why.
  *  - crossCheckPortfolio: at a month-end where both exist, compare the book with the factsheet of that month.
  *
- * The data platform computes every figure; this module only selects, reorders and relabels. Thresholds and
+ * fund-portfolio.ts computes every figure; this module only selects, reorders and relabels. Thresholds and
  * tolerances: config.ts PORTFOLIO.
  */
 import type { Bucket, Characteristic, Issue, PortfolioBreakdownKey, PortfolioData, PortfolioHolding, PortfolioMetric, PortfolioMetricId, WeightBucket } from "../data/types.ts";
@@ -147,7 +148,7 @@ export function selectPortfolio(res: SourceResult<FundPortfolio> | undefined, o:
   if (hidden.length) issues.push({ key: `${key}.characteristics`, level: "info", message: `not shown (coverage below ${pct(PORTFOLIO.minMetricCoverage, 0)} or unusable): ${hidden.join(", ")}` });
   if (book.warnings.length) issues.push({ key, level: "info", message: `dataplatform: ${book.warnings.slice(0, 5).join("; ")}` });
   const m = book.method;
-  const provenance = `dataplatform /api/apex/fund-portfolio ${o.short} (FINAL_NAV book ${book.as_of}; priced ${pct(priced)}, resolved ${pct(resolved)} of the bond weight${m.weights ? `; weights: ${m.weights}` : ""}${m.duration ? `; duration: ${m.duration}` : ""})`;
+  const provenance = `${m.source ?? "dataplatform /api/apex/fund-portfolio"}: ${o.short} FINAL_NAV book ${book.as_of}; priced ${pct(priced)}, resolved ${pct(resolved)} of the bond weight${m.weights ? `; weights: ${m.weights}` : ""}${m.duration ? `; duration: ${m.duration}` : ""}`;
   return { portfolio, issues, provenance, absent: false };
 }
 

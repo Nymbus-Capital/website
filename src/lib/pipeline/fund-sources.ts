@@ -2,33 +2,46 @@
  * Where each fund's data comes from (dataplatform short names, FTSE index keys, analytics series, factsheet
  * keys). Internal: pipeline / server only, never imported by a client component (tests/unit/site/client-imports.test.ts).
  * Dependency-free (plain TS) for Node type stripping.
+ *
+ * Gabriel 2026-10-02: every figure is computed in the website from endpoints that exist on the dataplatform's main
+ * branch. The class series are compounded here from the daily `/api/performance/nav-timeseries` rows of each class
+ * (daily-chain.ts); no dataplatform change (PR #621, #626, #631) is needed.
  */
 import type { FundKey } from "../data/types.ts";
 
-/** dataplatform monthly-net-returns `class_code`: "STRATEGY" = the fund's F / FP class, "STRATEGY_H" = SEB's H class */
-export type ClassCode = "STRATEGY" | "STRATEGY_H";
+/**
+ * Class code of a monthly series. "STRATEGY" / "STRATEGY_H" are the dataplatform monthly-net-returns names ("STRATEGY"
+ * = the fund's F / FP class, "STRATEGY_H" = SEB's H class); a class the dataplatform has no aggregate for is named by
+ * its FundServ code (e.g. "LDM081", Monthly Income class F).
+ */
+export type ClassCode = "STRATEGY" | "STRATEGY_H" | `LDM${string}`;
+
+export interface FeeBand { minDiff: number; maxDiff: number; maxFromMedian: number }
 
 export interface FundSources {
   /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
   dataplatform: "SEST" | "SEB" | "Multistrat" | null;
-  /**
-   * FTSE index-summary short_name, used for index months the published factsheet does not cover yet
-   * (the factsheet's own index tables are the primary source of every index figure). null: no benchmark
-   */
+  /** FTSE index-summary short_name of the benchmark (every index figure is computed from its levels). null: no benchmark */
   ftseIndex: string | null;
-  /** series name in the analytics repo fund_returns.json (official monthly history before the Apex cutover) */
+  /**
+   * Earlier FTSE short_names to try for the benchmark's history before its current name (checked by equal daily returns
+   * on common days before being chain-linked, metrics.ts joinFtseHistory); names sharing the index_id or the published
+   * name are tried too. Optional.
+   */
+  ftseAliases?: string[];
+  /** series name in the analytics repo fund_returns.json: the strategy track record before the class's own NAV history */
   analytics: string | null;
   /**
-   * Class of the monthly track record when no full-history class is confirmed: the class of the analytics series,
-   * of the dataplatform default (Apex) months and of every publication made before classes were tracked.
+   * Class of the monthly track record (the headline series): the class of the analytics series and of the dataplatform
+   * monthly-net-returns default; every publication made before classes were tracked is of this class.
    */
   trackRecordClass: ClassCode | null;
   /**
-   * Class asked from monthly-net-returns with `history=full` (Gabriel 2026-10-01: SEB shown as Class F). Used for
-   * every month, with no analytics month, only when the response confirms that class from the track-record start;
-   * otherwise the trackRecordClass sources are used. null: no preferred class.
+   * First day of the fund's own NAV history at the dataplatform (nav-timeseries): earlier rows under the same fund code
+   * belong to another strategy (SEST is a reused code) or are placeholders. A class's computed series starts at its first
+   * complete month on or after this day. null: no class series.
    */
-  preferredClass: ClassCode | null;
+  navStart: string | null;
   /**
    * Class of the fund returns each factsheet archive publishes (monthly table, trailing, statistics), by archive
    * month: the first entry whose `until` (YYYY-MM, inclusive) is not before the archive month, the last entry having
@@ -40,42 +53,59 @@ export interface FundSources {
    * (never a business label that can disagree with it); a class without a label is not shown.
    */
   classLabels: Partial<Record<ClassCode, string>>;
-  /** FundServ code of each class (dataplatform `fundserv`, fund register), checked against the payload */
+  /** FundServ code of each class (nav-timeseries `fundserv`, fund register) */
   classFundserv: Partial<Record<ClassCode, string>>;
+  /**
+   * Fee band of another class against the track-record class, month by month (class − track): total returns of two
+   * classes of one book differ by their fees only, so the difference stays in [minDiff, maxDiff] and within maxFromMedian
+   * of its median. A breach (e.g. a distribution missed by one class) drops that class.
+   */
+  classSpread: FeeBand;
   /** variants of a strategy in the factsheet archive (Global Minimum Volatility), default first; null otherwise */
   variants: { id: string; key: string }[] | null;
   /** factsheet archive: file prefix and fund key inside it */
   factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;
 }
 
+/** symmetric fee band: two classes of one book within ±30 bp a month and ±5 bp around their median difference */
+const DEFAULT_SPREAD: FeeBand = { minDiff: -0.003, maxDiff: 0.003, maxFromMedian: 0.0005 };
+
 export const FUND_SOURCES: Record<FundKey, FundSources> = {
   "monthly-income": {
     dataplatform: "SEST",
-    // Every index figure is computed from this FTSE series (dataplatform index-summary levels). The
-    // factsheet producer used the XSB ETF until 2026-04 and FTSE short_corp afterwards: its published
-    // index figures are only a cross-check. Override with FTSE_INDEX_SEST.
+    // Every index figure is computed from this FTSE series (dataplatform index-summary levels). The factsheet producer
+    // used the XSB ETF until 2026-04 and FTSE short_corp afterwards: its published index figures are only a cross-check.
+    // Override with FTSE_INDEX_SEST.
     ftseIndex: "short_corp",
     analytics: "Nymbus Monthly Income",
     trackRecordClass: "STRATEGY",
-    preferredClass: null,
+    // SEST is a reused fund code: the Monthly Income book starts at the 2021-10-05 re-seed (dataplatform USAGE_MAPPING)
+    navStart: "2021-10-05",
     factsheetClass: [{ class: "STRATEGY" }],
-    classLabels: { STRATEGY: "FP" },
-    classFundserv: { STRATEGY: "LDM001" },
+    classLabels: { STRATEGY: "FP", LDM081: "F" },
+    classFundserv: { STRATEGY: "LDM001", LDM081: "LDM081" },
+    classSpread: DEFAULT_SPREAD,
     variants: null,
     factsheet: { file: "bonds_data", key: "SEST" },
   },
   "sustainable-enhanced-bonds": {
     dataplatform: "SEB",
     ftseIndex: "univ",
+    // FTSE's summary feed named the universe "univ_overall" before its 2024-12 naming generation (factsheet-generator
+    // ftse_index_engine SUBINDEX_SPECS): tried first, joined only on equal daily returns
+    ftseAliases: ["univ_overall"],
     analytics: "Nymbus Sustainable Enhanced Bonds",
-    // analytics history and the dataplatform default track record are the H class (STRATEGY_H); the F class
-    // (STRATEGY) is used once the dataplatform serves its full history (dataplatform PR #626). The factsheet
-    // generator published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
+    // analytics history and the dataplatform default track record are the H class (STRATEGY_H). The F class (STRATEGY,
+    // LDM201) is computed from its own daily NAV chain since the fund's data start (2023-07-05); its strategy months
+    // before that exist only as stored monthly figures that no dataplatform endpoint serves. The factsheet generator
+    // published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
     trackRecordClass: "STRATEGY_H",
-    preferredClass: "STRATEGY",
+    navStart: "2023-07-05",
     factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
     classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
     classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
+    // F − H: H carries the higher fee (reference: July 2026 ≈ +11.6 bp)
+    classSpread: { minDiff: -0.0005, maxDiff: 0.003, maxFromMedian: 0.0005 },
     variants: null,
     factsheet: { file: "bonds_data", key: "QCFI-SEB" },
   },
@@ -84,10 +114,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseIndex: null,
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
     trackRecordClass: "STRATEGY",
-    preferredClass: null,
+    navStart: "2023-06-12",
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "F" },
     classFundserv: { STRATEGY: "LDM301" },
+    classSpread: DEFAULT_SPREAD,
     variants: null,
     factsheet: { file: "factsheet_data", key: "Multistrategy" },
   },
@@ -96,11 +127,13 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     ftseIndex: null,
     analytics: null,
     trackRecordClass: null,
-    preferredClass: null,
+    navStart: null,
     factsheetClass: [],
     classLabels: {},
     classFundserv: {},
-    // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each
+    classSpread: DEFAULT_SPREAD,
+    // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each. No dataplatform endpoint serves
+    // these strategy series (their live track records sit in the dataplatform's internal bbg2 mirror only)
     variants: [{ id: "6", key: "GMV_6pct" }, { id: "3", key: "GMV_3pct" }, { id: "9", key: "GMV_9pct" }],
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
   },
@@ -122,14 +155,14 @@ export function factsheetClassAt(key: FundKey, month: string): ClassCode | null 
   return null;
 }
 
-/** One class series of a net fund: its FundServ code, site label and dataplatform class code. */
+/** One class series of a net fund: its FundServ code, site label and class code. */
 export interface ClassSeriesSource {
   fundserv: string;
   display: string;
   classCode: ClassCode;
 }
 
-/** Classes of a fund that can have a monthly series (dataplatform `class_code`), from the class configuration. */
+/** Classes of a fund that can have a monthly series, from the class configuration. */
 export function classSeriesOf(key: FundKey): ClassSeriesSource[] {
   const src = FUND_SOURCES[key];
   const out: ClassSeriesSource[] = [];
@@ -139,4 +172,10 @@ export function classSeriesOf(key: FundKey): ClassSeriesSource[] {
     if (fundserv && display) out.push({ fundserv, display, classCode: code });
   }
   return out;
+}
+
+/** FundServ code of the track-record class (the headline series), or null. */
+export function trackFundserv(key: FundKey): string | null {
+  const src = FUND_SOURCES[key];
+  return src.trackRecordClass ? src.classFundserv[src.trackRecordClass] ?? null : null;
 }
