@@ -16553,7 +16553,7 @@
   {
    "key": "funds.monthly-income.portfolio",
    "level": "info",
-   "message": "dataplatform: 1 bond price(s) more than 7 days from the book date, treated as unpriced: SEC-SYN000054; 1 bond position(s) (3.5% of the denominator) without a current price: SYST13959555; 2 open futures position(s): duration and yield to maturity are those of the bond holdings only (futures exposure not included)"
+   "message": "dataplatform: 1 bond price(s) more than 7 days from the book date and not in the FTSE constituents, treated as unpriced (their latest price dates: 2026-08-14 to 2026-08-14): SEC-SYN000054; 1 bond position(s) (3.5% of the denominator) without a current price: SYST13959555; 2 open futures position(s): duration and yield to maturity are those of the bond holdings only (futures exposure not included)"
   },
   {
    "key": "funds.monthly-income.distributions",

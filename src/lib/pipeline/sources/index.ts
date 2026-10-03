@@ -4,9 +4,9 @@
 import { FUNDS } from "../../../config/funds.ts";
 import { FUND_SOURCES } from "../fund-sources.ts";
 import type { FundKey } from "../../data/types.ts";
-import type { DpShort, HoldingsBook, InstrumentRefs, NavPoint, RawPayloads, SourceResult } from "../raw.ts";
+import type { DpShort, FtseBondAnalytics, HoldingsBook, InstrumentRefs, NavPoint, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
-import { dpClient, fetchApexFunds, fetchAum, fetchFtse, fetchHoldings, fetchInstruments, fetchMonthlyNetReturns, fetchNav, fetchNavHistory, fetchUnitholderFunds } from "./dataplatform.ts";
+import { dpClient, fetchApexFunds, fetchAum, fetchFtse, fetchFtseBondAnalytics, fetchHoldings, fetchInstruments, fetchMonthlyNetReturns, fetchNav, fetchNavHistory, fetchUnitholderFunds } from "./dataplatform.ts";
 import { fetchFactsheets } from "./factsheets.ts";
 import { fetchAnalytics } from "./analytics.ts";
 import type { FetchImpl } from "./http.ts";
@@ -75,8 +75,19 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
     const securities = books.flatMap((b) => b.positions.map((p) => ({ isin: p.isin, cusip: p.cusip, figi: p.bloomberg_id })));
     instruments = await fetchInstruments(c, securities, books.map((b) => b.date).sort()[0]);
   }
+  // FTSE constituent analytics of the held securities on each book date (pricing fallback)
+  let ftseBonds: Record<string, SourceResult<FtseBondAnalytics>> | undefined;
+  if (c && books.length) {
+    ftseBonds = {};
+    for (const date of [...new Set(books.map((b) => b.date))].sort()) {
+      const held = books.filter((b) => b.date === date).flatMap((b) => b.positions);
+      const isins = [...new Set(held.map((p) => p.isin).filter((x): x is string => typeof x === "string" && !!x.trim()))];
+      const cusips = [...new Set(held.map((p) => p.cusip).filter((x): x is string => typeof x === "string" && !!x.trim()))];
+      ftseBonds[date] = await fetchFtseBondAnalytics(c, date, isins, cusips);
+    }
+  }
   // distributions: no endpoint on the dataplatform main branch (PR #621 not merged): not fetched, none shown
-  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, navHistory, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, holdings, ...(instruments ? { instruments } : {}) };
+  return { fetchedAt: opts.now.toISOString(), targetMonth: target, ftseIndex, monthlyReturns, navHistory, nav, apexFunds, unitholderFunds, aum, ftse, factsheets, analytics, holdings, ...(instruments ? { instruments } : {}), ...(ftseBonds ? { ftseBonds } : {}) };
 }
 
 /**

@@ -177,6 +177,18 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-03 (cloud agent, branch `fix/ftse-live` from `redesign/v3-keynote-live-data`; **not merged**): fixes after the
+  first live run. (1) FTSE month-ends use a Canadian bond-market calendar (Truth and Reconciliation Day, Remembrance Day:
+  the 2025-09 / 2026-09 index months came back); (2) verified one-day gap link between FTSE naming generations
+  (implied return vs yield/duration estimate, calibrated tolerance; re-based levels are rejected, so `univ_overall` is
+  linked only if FTSE kept the base); (3) broader family matching + candidate list in the source detail (no
+  `ftseAliases` for SEST: no name could be justified without the live list); (4) class F dropped for unverifiable CIBC
+  months is a non-blocking notice, one concise CIBC-mismatch warning per fund — **open**: the stored CIBC daily returns
+  disagree with analytics by several percent on some months (e.g. 2021-11), to investigate with the dataplatform team;
+  (5) pricing: the instrument master's `latest_price` (Bloomberg price tables) was not within 7 days for any bond on the
+  live run; the FTSE constituents (univ / short_corp) now price Canadian bonds as a fallback and the warnings show the
+  price dates — **open**: check the Bloomberg price loader schedule on the dataplatform.
+
 - 2026-10-03 (cloud agent, branch `fix/data-v3` from `integ/v3`; **not merged**): fixes of the independent review
   of the dataplatform-only pipeline. B1 class series cover every month from the class's first computable month (else
   dropped, warn + alert), >= 12 months; M2 bridge seam continuity + factsheet confirmation without analytics July;

@@ -13,7 +13,7 @@
  * agency ratings only), and the price is the instrument's latest one (accepted within 7 days of the book date).
  * Pure, dependency-free.
  */
-import type { FundPortfolio, HoldingsBook, HoldingsPosition, InstrumentRef, PortfolioHoldingRow, WeightRow } from "./raw.ts";
+import type { FtseBondAnalytics, FundPortfolio, HoldingsBook, HoldingsPosition, InstrumentRef, PortfolioHoldingRow, WeightRow } from "./raw.ts";
 
 export const PRICE_MAX_AGE_DAYS = 7;
 export const GREEN_UNKNOWN_LIMIT = 0.1;
@@ -45,7 +45,7 @@ export const METHOD = {
   yield: "yield to maturity (instrument latest price), same weighting and rules",
   coupon: "coupon rate (instrument master), weighted by absolute market value over bond positions",
   rating: "composite rating, else the lowest of S&P / Moody's / Fitch / DBRS; notch-scored AAA=1…D=22, weighted mean notch rounded half up",
-  prices_as_of: `instrument latest price, accepted within ${PRICE_MAX_AGE_DAYS} days of the book date (else unpriced)`,
+  prices_as_of: `instrument latest price, accepted within ${PRICE_MAX_AGE_DAYS} days of the book date; else the bond's FTSE Canada index constituent row (univ / short_corp, yield and modified duration) within the same window; else unpriced`,
 };
 
 /* ------------------------------------------------------------------ ratings (port of PR #621 _rating_notch / _notch) */
@@ -199,12 +199,15 @@ export function resolve(s: Pick<Security, "isin" | "cusip" | "bloombergId">, idx
   return { ref: null, ambiguous };
 }
 
-function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings: string[]): void {
+function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings: string[], ftse: FtseBondAnalytics | null = null): void {
   const idx = refIndex(refs);
   const ambiguous: string[] = [];
   const stale: string[] = [];
   const matured: string[] = [];
   const derivLike: string[] = [];
+  const noPrice: string[] = [];
+  const staleDates: string[] = [];
+  const fromFtse: string[] = [];
   for (const s of list) {
     const { ref, ambiguous: amb } = resolve(s, idx);
     if (amb) ambiguous.push(s.key);
@@ -238,9 +241,20 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
     const price = ref?.latest_price ?? null;
     const pd = str(price?.price_date);
     s.priced = !!pd && Math.abs(days(pd, asOf)) <= PRICE_MAX_AGE_DAYS;
-    if (pd && !s.priced && s.kind === "bond") stale.push(s.key);
-    const ytm = s.priced ? num(price?.yield_to_maturity) : null;
+    if (pd && !s.priced && s.kind === "bond") { stale.push(s.key); staleDates.push(pd.slice(0, 10)); }
+    if (!pd && s.kind === "bond") noPrice.push(s.key);
+    let ytm = s.priced ? num(price?.yield_to_maturity) : null;
     s.duration = s.priced ? num(price?.modified_duration) : null;
+    // the instrument master has no current price (or its yield / duration is empty): the bond's FTSE constituent row
+    if (s.kind === "bond" && ftse && (!s.priced || (ytm === null && s.duration === null))) {
+      const f = (s.isin ? ftse.byIsin[s.isin] : undefined) ?? (s.cusip ? ftse.byCusip[s.cusip] : undefined);
+      if (f && Math.abs(days(f.date, asOf)) <= PRICE_MAX_AGE_DAYS && (f.ytm !== null || f.dur !== null)) {
+        s.priced = true;
+        ytm = f.ytm;
+        s.duration = f.dur;
+        fromFtse.push(s.key);
+      }
+    }
     s.ytm = ytm !== null ? ytm / 100 : null;
   }
   const zero = new Set(list.filter((s) => s.mv === 0).map((s) => s.key));
@@ -251,7 +265,11 @@ function enrich(list: Security[], refs: InstrumentRef[], asOf: string, warnings:
   report(ambiguous, "position(s) with an ambiguous identifier left unresolved");
   if (derivLike.length) warnings.push(`${derivLike.length} unresolved position(s) with a quantity and no market value treated as derivatives (excluded from weights): ${sample(derivLike)}`);
   report(matured, "bond(s) held past their maturity date, left without a term");
-  report(stale, `bond price(s) more than ${PRICE_MAX_AGE_DAYS} days from the book date, treated as unpriced`);
+  const staleNotFtse = stale.filter((k) => !fromFtse.includes(k));
+  const range = staleDates.length ? ` (their latest price dates: ${[...staleDates].sort()[0]} to ${[...staleDates].sort().at(-1)})` : "";
+  report(staleNotFtse, `bond price(s) more than ${PRICE_MAX_AGE_DAYS} days from the book date and not in the FTSE constituents, treated as unpriced${range}`);
+  report(noPrice.filter((k) => !fromFtse.includes(k)), "bond(s) without any price in the instrument master nor in the FTSE constituents");
+  if (fromFtse.length) warnings.push(`${fromFtse.length} bond(s) priced from the FTSE Canada index constituents (yield, modified duration): no instrument-master price within ${PRICE_MAX_AGE_DAYS} days`);
 }
 
 /* ------------------------------------------------------------------ aggregates */
@@ -302,6 +320,8 @@ export interface ComputeOptions {
   short: string;
   /** sum of the classes' Apex closing capital on the book date (CAD), or null */
   netAssets: number | null;
+  /** FTSE constituent analytics of the held bonds (pricing fallback), or null */
+  ftse?: FtseBondAnalytics | null;
   top?: number;
 }
 
@@ -310,7 +330,7 @@ export function computeFundPortfolio(book: HoldingsBook, refs: InstrumentRef[], 
   const warnings = [...book.warnings.slice(0, 5)];
   const asOf = book.date;
   const list = securities(book.positions, warnings);
-  enrich(list, refs, asOf, warnings);
+  enrich(list, refs, asOf, warnings, o.ftse ?? null);
   const cashValues = book.cash.map((c) => num(c.closing_bal_cad));
   const cash = !book.cash.length ? null : cashValues.some((v) => v === null) ? null : (cashValues as number[]).reduce((a, b) => a + b, 0);
   const cashLines = cash === null ? 0 : (cashValues as number[]).filter((v) => v !== 0).length;

@@ -105,6 +105,7 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
     if (h?.monthEnd) add(`dataplatform apex/holdings ${s} (month-end)`, h.monthEnd);
   }
   add("dataplatform instruments (batch + bond universe)", raw.instruments);
+  for (const [d, r] of Object.entries(raw.ftseBonds ?? {})) add(`dataplatform ftse index-constituents ${d} (pricing fallback)`, r);
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) add(`dataplatform fund-portfolio ${s}`, r);
   for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) add(`dataplatform fund-portfolio ${s} (month-end)`, r);
   for (const [s, r] of Object.entries(raw.distributions ?? {})) add(`dataplatform distributions ${s}`, r);
@@ -131,6 +132,7 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
     if (h?.monthEnd) files[`holdings-month-end_${s}.json`] = h.monthEnd;
   }
   if (raw.instruments) files["instruments.json"] = raw.instruments;
+  for (const [d, r] of Object.entries(raw.ftseBonds ?? {})) files[`ftse-constituents_${d}.json`] = r;
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) files[`fund-portfolio_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) files[`fund-portfolio-month-end_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.distributions ?? {})) files[`distributions_${s}.json`] = r;

@@ -98,7 +98,9 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   duration and YTM weighted by signed market value, withheld when short bonds exceed 0.5 % of net assets and labelled
   "bond holdings only, excluding futures" when futures are open (their exposure is not in the book's values); coupon /
   maturity / issuer from the bond universe, rating = composite else the lowest agency notch; green weight withheld when
-  unknown for more than 10 % of the bonds; identifiers are tried ISIN → CUSIP → FIGI, an ambiguous one falling through
+  unknown for more than 10 % of the bonds; a bond without an instrument-master price within 7 days takes its FTSE Canada
+  constituent row (`/api/ftse/index-constituents` univ / short_corp: yield, modified duration) within the same window, and
+  the warnings name the bonds still unpriced and their price dates; identifiers are tried ISIN → CUSIP → FIGI, an ambiguous one falling through
   to the next (unresolved when none resolves); an unresolved position with a quantity and no market value is a
   contract, never a weight. The month-end book has no month-end price (latest only): its
   cross-check with the factsheet compares sectors, not duration / yield.
@@ -108,8 +110,19 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   (≤ 3 % level gap) was unsafe across FTSE's 2024-12 renaming (levels were rebased) and is gone. Universe: `univ` +
   `univ_overall` verified. Short corporate: the dataplatform's `short_corp` starts at the new generation (2024-12):
   long-term benchmark periods before it are not shown (no main endpoint has the older history). A month's closing level
-  counts only when no TSX valuation day follows the month's last level (skipped days must be weekends or TSX holidays,
-  `market-calendar.ts`); otherwise that month (and the next) has no index return (warn).
+  counts only when no Canadian bond-market business day follows the month's last level (`market-calendar.ts`
+  `caBondHolidays`: the TSX holidays plus Truth and Reconciliation Day, Sep 30 from 2021, and Remembrance Day, Nov 11,
+  both observed on Monday when on a weekend — the bond market and FTSE Canada close then, the TSX does not); otherwise that
+  month (and the next) has no index return (warn). Fund NAVs keep the TSX calendar.
+- **FTSE gap link**: an earlier name (alias, same `index_id` or same family — never a loose name match) with no overlap
+  is linked only when it ends on the bond-market business day just before the current name's first day (one daily return
+  missing), with equal bases: the implied gap return (first / last − 1) must match the estimate from the rows' own
+  analytics, carry − duration × Δyield (`average_yield` act/365, `modified_duration` of the earlier day), within
+  max(3 × p95 of the daily residuals of the current series and the earlier one's last 250 days, 2 bp), stay below 1 %,
+  levels within 3 %. The source detail and an info issue give the implied return, estimate, residual and threshold.
+  An overlap of equal daily returns always wins. Family matching is order-insensitive ("Short Term Corporate" =
+  "Corporate Short Term" = "short corp"); names containing every family word are tried by overlap only and listed in the
+  source detail (up to 10) for the admin.
 
 ### Daily portfolio: selection, cross-check, gates (`portfolio.ts`, `validate.ts`, config `PORTFOLIO`)
 
@@ -195,6 +208,9 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   (`classSpread` per fund: SEB F − H in −5 to +30 bp and ±5 bp of the median; none for Monthly Income, whose FP class may
   carry a performance fee, `classSpreadNote`) and plausibility (`performanceProblems`; `checkClassesAndVariants` repeats
   them on the published data). Revisions of already published months are reported per class entry (warn + alert).
+  A class never published that stays out only because the fund's CIBC months cannot be verified is a persistent,
+  expected limitation: warn + a non-blocking notice (`FundContext.advisories`, `RunReport.advisories`, webhook once when
+  new); a class that was published and disappears stays a blocking alert.
 - **Hold**: when only the performance fails validation (`validateSite` perf-only hold) the held performance carries every
   class and variant with it (`performanceByClass`, `defaultClass`, the default variant, the other variants from the previous
   publication, or dropped when there is none): never new classes next to an old headline, never the whole fund dropped.

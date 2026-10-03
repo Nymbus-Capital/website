@@ -9,6 +9,7 @@
  * AUM to fund totals (no investor-level field ever leaves this module), FTSE to aggregate daily levels,
  * NAV to the fields used.
  */
+import type { FtseBondAnalytics, FtseBondPoint } from "../raw.ts";
 import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, HoldingsBook, HoldingsPosition, InstrumentRef, InstrumentRefs, MonthlyNetReturnsResponse, NavHistory, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
 import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../metrics.ts";
@@ -366,6 +367,39 @@ export function fetchInstruments(c: DpClient, securities: { isin?: string | null
     }
     const data: InstrumentRefs = { refs: [...refs.values()].sort((a, b) => a.nymbus_instrument_id - b.nymbus_instrument_id), asked, matched: refs.size, universeRows: rows, universeComplete: complete };
     return { ok: true, data, detail: `${refs.size} instrument(s) matched (asked ${Object.entries(asked).map(([k, v]) => `${v} ${k}`).join(", ")}); bond universe ${rows} row(s)${complete ? "" : " (incomplete: coupon / maturity of some bonds unknown)"}` };
+  });
+}
+
+/**
+ * FTSE Canada index constituents (/api/ftse/index-constituents, univ and short_corp) of the given bonds over the week
+ * up to `date`: per ISIN (and CUSIP) the latest row on or before `date` with its yield (percent) and modified duration.
+ * Only the held bonds are kept.
+ */
+export function fetchFtseBondAnalytics(c: DpClient, date: string, isins: string[], cusips: string[]): Promise<SourceResult<FtseBondAnalytics>> {
+  const label = `ftse index-constituents ${date}`;
+  return guarded(label, async () => {
+    const start = new Date(Date.parse(`${date}T00:00:00Z`) - 6 * 86_400_000).toISOString().slice(0, 10);
+    const wantI = new Set(isins.map((x) => x.toUpperCase()));
+    const wantC = new Set(cusips.map((x) => x.toUpperCase()));
+    const byIsin: Record<string, FtseBondPoint> = {};
+    const byCusip: Record<string, FtseBondPoint> = {};
+    let rows = 0;
+    for (const index of ["univ", "short_corp"]) {
+      const { status, body } = await get(c, "/api/ftse/index-constituents", { index, start_date: start, end_date: date });
+      if (status !== 200) return fail(`${label}: ${index}: HTTP ${status}`);
+      if (!Array.isArray(body)) return fail(`${label}: ${index}: unexpected payload`);
+      for (const r of body as Record<string, unknown>[]) {
+        const d = s(r.date)?.slice(0, 10);
+        const isin = s(r.isin)?.toUpperCase() ?? null;
+        const cusip = s(r.cusip)?.toUpperCase() ?? null;
+        if (!d || d > date || (!(isin && wantI.has(isin)) && !(cusip && wantC.has(cusip)))) continue;
+        rows++;
+        const pt: FtseBondPoint = { date: d, ytm: n(r.yield), dur: n(r.modified_duration), index, cusip };
+        if (isin && (!byIsin[isin] || byIsin[isin].date < d)) byIsin[isin] = pt;
+        if (cusip && (!byCusip[cusip] || byCusip[cusip].date < d)) byCusip[cusip] = pt;
+      }
+    }
+    return { ok: true, data: { date, byIsin, byCusip, rows }, detail: `${Object.keys(byIsin).length} held bond(s) among the univ / short_corp constituents of ${start} to ${date}` };
   });
 }
 

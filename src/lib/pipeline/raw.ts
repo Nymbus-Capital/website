@@ -81,6 +81,10 @@ export interface FundRef { short_name: string; name: string; apex_account?: stri
 /** AUM reduced to fund-level totals (the only thing ever stored or published). */
 export interface AumTotals { snapshot_date: string | null; warningCount: number; totals: Record<string, number> }
 
+/** a held bond's FTSE constituent analytics: latest constituent row on or before the book date */
+export interface FtseBondPoint { date: string; ytm: number | null; dur: number | null; index: string; cusip: string | null }
+export interface FtseBondAnalytics { date: string; byIsin: Record<string, FtseBondPoint>; byCusip: Record<string, FtseBondPoint>; rows: number }
+
 export interface FtseLevels {
   levels: Record<string, number>; rowCount: number; first: string | null; last: string | null; joined?: string[];
   /** how each earlier name was linked (overlap of equal daily returns, or a verified one-day gap with its check) */
@@ -142,6 +146,11 @@ export interface RawPayloads {
   holdings?: Partial<Record<DpShort, { latest: SourceResult<HoldingsBook>; monthEnd: SourceResult<HoldingsBook> | null }>>;
   /** instrument master references of the held securities (/api/instruments/batch + bond universe pages); optional */
   instruments?: SourceResult<InstrumentRefs>;
+  /**
+   * FTSE index constituents (univ + short_corp) of the held bonds around each book date: yield and modified duration,
+   * the pricing fallback when the instrument master has no price within 7 days (by book date)
+   */
+  ftseBonds?: Record<string, SourceResult<FtseBondAnalytics>>;
   /** portfolio analytics in the PR #621 contract shape: older snapshots only (the endpoint never reached the main branch) */
   portfolio?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;
   portfolioMonthEnd?: Partial<Record<DpShort, SourceResult<FundPortfolio>>>;

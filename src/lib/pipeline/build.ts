@@ -1210,7 +1210,9 @@ export function computedBook(raw: RawPayloads, short: DpShort, which: "latest" |
     const reg = spec ? registerFund(raw, spec) : null;
     const required = reg ? reg.classes.filter((k) => k.status === "active").map((k) => k.fundserv) : null;
     const na = netAssetsOn(raw, short, res.data.date, required);
-    const book = computeFundPortfolio(res.data, inst.data.refs, { short, netAssets: na });
+    const fb = raw.ftseBonds?.[res.data.date];
+    const book = computeFundPortfolio(res.data, inst.data.refs, { short, netAssets: na, ftse: fb?.ok && fb.data ? fb.data : null });
+    if (fb && !fb.ok) book.warnings.push(`FTSE constituents unavailable as a pricing fallback (${fb.error ?? "error"})`);
     if (na === null && required && netAssetsOn(raw, short, res.data.date) !== null) book.warnings.push(`net assets of ${res.data.date} unavailable: an active register class (${required.join(", ")}) has no Apex closing capital that day`);
     if (!inst.data.universeComplete) book.warnings.push("bond universe read incompletely: coupon / maturity of some bonds unknown");
     return { ok: true, data: book };

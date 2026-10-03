@@ -129,3 +129,23 @@ test("m11: an ambiguous ISIN falls back to the CUSIP; unresolved contracts never
   assert.equal(p.totals.holdings_count, 4, "never a holding line");
   assert.ok(p.warnings.some((w) => /1 unresolved position\(s\) with a quantity and no market value treated as derivatives/.test(w)));
 });
+
+test("pricing fallback: a bond without a current master price takes its FTSE constituent yield and duration (within 7 days)", () => {
+  const noFuture: HoldingsBook = { ...book, positions: book.positions.filter((x) => x.security_type !== "Future") };
+  const stale = refs.map((r) => (r.nymbus_instrument_id === 2 ? { ...r, latest_price: { price_date: "2026-08-14", modified_duration: 9, yield_to_maturity: 9 } } : r));
+  const before = computeFundPortfolio(noFuture, stale, { short: "SEST", netAssets: 1000 });
+  assert.equal(before.coverage.priced_weight, 0.5);
+  assert.ok(before.warnings.some((w) => /1 bond price\(s\) more than 7 days from the book date and not in the FTSE constituents, treated as unpriced \(their latest price dates: 2026-08-14 to 2026-08-14\)/.test(w)), JSON.stringify(before.warnings));
+  const ftse = { date: AS_OF, rows: 1, byCusip: {}, byIsin: { SYB0000000002: { date: "2026-09-25", ytm: 4.8, dur: 5.2, index: "univ", cusip: null } } };
+  const p = computeFundPortfolio(noFuture, stale, { short: "SEST", netAssets: 1000, ftse });
+  assert.equal(p.coverage.priced_weight, 0.875, "A and B priced: 700 / 800");
+  assert.deepEqual(p.characteristics.modified_duration, { value: Math.round(((400 * 1.9 + 300 * 5.2) / 700) * 100) / 100, coverage: 0.875 });
+  assert.deepEqual(p.characteristics.yield_to_maturity, { value: Math.round(((400 * 0.045 + 300 * 0.048) / 700) * 1e4) / 1e4, coverage: 0.875 });
+  assert.ok(p.warnings.some((w) => /1 bond\(s\) priced from the FTSE Canada index constituents/.test(w)));
+  // an FTSE row older than 7 days is not used
+  const old = { ...ftse, byIsin: { SYB0000000002: { ...ftse.byIsin.SYB0000000002, date: "2026-09-10" } } };
+  assert.equal(computeFundPortfolio(noFuture, stale, { short: "SEST", netAssets: 1000, ftse: old }).coverage.priced_weight, 0.5);
+  // a bond with no master price at all is named as such
+  const none = refs.map((r) => (r.nymbus_instrument_id === 2 ? { ...r, latest_price: null } : r));
+  assert.ok(computeFundPortfolio(noFuture, none, { short: "SEST", netAssets: 1000 }).warnings.some((w) => /2 bond\(s\) without any price in the instrument master nor in the FTSE constituents: (SYNC00001, SYB0000000002|SYB0000000002, SYNC00001)/.test(w)));
+});

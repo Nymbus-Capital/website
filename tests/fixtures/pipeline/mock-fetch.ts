@@ -91,6 +91,8 @@ export function fixtureRoute(url: URL): Response | undefined {
     return new Response(JSON.stringify(rows.slice(offset, offset + limit)), { status: 200, headers: { "content-type": "application/json", "x-total-count": String(rows.length) } });
   }
   if (p === "/api/apex/funds") return json(loadFixture("dataplatform/apex_funds.json"));
+  // FTSE constituents: none of the synthetic bonds (the instrument master prices them); tests route their own
+  if (p === "/api/ftse/index-constituents") return json([]);
   if (p === "/api/unitholders/funds") return json(loadFixture("dataplatform/unitholders_funds.json"));
   if (p === "/api/unitholders/aum") return json(loadFixture("dataplatform/aum.json"));
   if (p === "/api/ftse/index-summary/short-names") return json(loadFixture("dataplatform/ftse_short_names.json"));
