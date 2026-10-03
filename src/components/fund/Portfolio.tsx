@@ -177,7 +177,7 @@ function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; 
         {m.unit === "years" ? <small className="ch-u"> {tr(T.portfolio.years, lang)}</small> : null}
         {marked ? <sup className="ch-mark" aria-hidden="true">*</sup> : null}
       </span>
-      <span className="ch-l">{tr(T.portfolio.metrics[m.id], lang)}{marked ? <span className="sr-only"> ({fmt(m.coverage, { pct: true, decimals: 0, lang })})</span> : null}</span>
+      <span className="ch-l">{tr(T.portfolio.metrics[m.id], lang)}{m.scope === "bondHoldings" ? <span className="ch-scope" data-testid={`metric-scope-${m.id}`}> ({tr(T.portfolio.bondHoldingsOnly, lang)})</span> : null}{marked ? <span className="sr-only"> ({fmt(m.coverage, { pct: true, decimals: 0, lang })})</span> : null}</span>
     </div>
   );
 }

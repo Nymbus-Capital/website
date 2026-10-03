@@ -1634,13 +1634,15 @@
       "id": "duration",
       "value": 8.16,
       "unit": "years",
-      "coverage": 1
+      "coverage": 1,
+      "scope": "bondHoldings"
      },
      {
       "id": "ytm",
       "value": 0.0432,
       "unit": "pct",
-      "coverage": 1
+      "coverage": 1,
+      "scope": "bondHoldings"
      },
      {
       "id": "rating",
@@ -3216,7 +3218,7 @@
   "funds.sustainable-enhanced-bonds.nav": "SYNTHETIC e2e fixture: dataplatform /api/performance/nav-timeseries SEB (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)",
   "funds.sustainable-enhanced-bonds.aum": "SYNTHETIC e2e fixture: dataplatform /api/unitholders/aum group_by=short_name (sum of holding_value_cad, snapshot 2026-09-28); fund total only",
   "funds.sustainable-enhanced-bonds.factsheet": "SYNTHETIC e2e fixture: factsheet archive bonds_data_2026-08.json (local folder), key QCFI-SEB: characteristics, breakdowns, top holdings, ESG metrics",
-  "funds.sustainable-enhanced-bonds.portfolio": "SYNTHETIC e2e fixture: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEB FINAL_NAV book 2026-09-28; priced 100.0%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by absolute market value over bond positions, renormalised over covered weight"
+  "funds.sustainable-enhanced-bonds.portfolio": "SYNTHETIC e2e fixture: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEB FINAL_NAV book 2026-09-28; priced 100.0%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)"
  },
  "issues": [
   {

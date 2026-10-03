@@ -137,6 +137,8 @@ export interface PortfolioMetric {
   unit: "years" | "pct" | "rating";
   /** share of the bond weight that had the input (1 = every bond); shown as a footnote below 1 */
   coverage: number;
+  /** the figure covers the bond holdings only (the fund holds futures whose exposure is not included): labelled so */
+  scope?: "bondHoldings";
 }
 
 export interface WeightBucket { label: string; weight: number; count?: number | null }

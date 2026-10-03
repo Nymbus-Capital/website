@@ -169,13 +169,13 @@ test("FTSE: only fully aggregate rows count (no sub-index fallback)", () => {
   assert.deepEqual(ftseLevels(rows), { "2026-01-30": 100, "2026-03-31": 110 });
 });
 
-test("FTSE month-end: closing level on the last weekday (or 2 weekdays before), month closed, no open-month return", () => {
+test("FTSE month-end: closing level on the last TSX valuation day (skipped days must be holidays), month closed, no open-month return", () => {
   assert.deepEqual(lastWeekdays("2026-01"), { last: "2026-01-30", earliest: "2026-01-28" });
   assert.deepEqual(lastWeekdays("2026-05"), { last: "2026-05-29", earliest: "2026-05-27" });
   const m = monthEndReturns({
     "2025-12-31": 100,
     "2026-01-15": 101, "2026-01-30": 102, // Jan 31 is a Saturday: the 30th closes January
-    "2026-02-26": 103.02, // Feb 27 missing (holiday-like): 1 weekday before the last weekday is accepted
+    "2026-02-27": 103.02, // the last valuation day of February
     "2026-03-10": 104, // March ends 21 days early: dropped, and so is April (no base)
     "2026-04-30": 105,
     "2026-05-29": 106.05,
@@ -183,6 +183,7 @@ test("FTSE month-end: closing level on the last weekday (or 2 weekdays before), 
   });
   assert.equal(m.series["2026-01-31"], 102 / 100 - 1);
   assert.equal(m.series["2026-02-28"], 103.02 / 102 - 1);
+  assert.match(m.dropped[0].reason, /no level for the TSX valuation day\(s\) .*2026-03-31 … before the month-end/);
   assert.equal(m.series["2026-03-31"], undefined);
   assert.equal(m.series["2026-04-30"], undefined);
   assert.equal(m.series["2026-05-31"], 106.05 / 105 - 1);
@@ -192,4 +193,21 @@ test("FTSE month-end: closing level on the last weekday (or 2 weekdays before), 
   close(m.series["2026-02-28"], 0.01);
   close(m.series["2026-05-31"], 0.01);
   assert.deepEqual(levelsToMonthly({ "2025-12-31": 100, "2026-02-27": 103, "2026-03-31": 104 }), {}, "a month without levels breaks the chain");
+});
+
+test("m8: a month-end skipped on a TSX holiday is accepted, a skipped business day is not", () => {
+  // Good Friday 2024-03-29: the 28th closes March 2024
+  const a = monthEndReturns({ "2024-02-29": 100, "2024-03-28": 101, "2024-04-30": 102, "2024-05-01": 103 });
+  close(a.series["2024-03-31"], 0.01);
+  close(a.series["2024-04-30"], 102 / 101 - 1);
+  assert.deepEqual(a.dropped, []);
+  // a level missing on Thursday 2026-04-30 (a business day): April is dropped, and May has no base
+  const b = monthEndReturns({ "2026-03-31": 100, "2026-04-29": 101, "2026-05-29": 102, "2026-06-01": 103 });
+  assert.equal(b.series["2026-04-30"], undefined);
+  assert.equal(b.series["2026-05-31"], undefined);
+  assert.deepEqual(b.dropped.map((d) => d.month), ["2026-04-30"]);
+  assert.match(b.dropped[0].reason, /no level for the TSX valuation day\(s\) 2026-04-30/);
+  // Boxing Day 2026 observed on Monday 28 and Christmas on Friday 25: a level on 2026-12-31 closes December
+  const c = monthEndReturns({ "2026-11-30": 100, "2026-12-31": 101, "2027-01-04": 101 });
+  close(c.series["2026-12-31"], 0.01);
 });

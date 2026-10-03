@@ -63,7 +63,8 @@ export interface NavHistory {
   warnings: string[];
 }
 
-export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; [k: string]: unknown }
+/** `aggregates`: the dataplatform's STRATEGY / STRATEGY_H rows (no FundServ code), kept for their return_source_count only */
+export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; aggregates?: { date: string; class_code: string; return_source_count: number | null }[]; [k: string]: unknown }
 
 export interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
 export interface RegisteredFund {
@@ -185,7 +186,8 @@ export type BreakdownKey = "sector" | "rating" | "term" | "country" | "asset_typ
 export const BREAKDOWN_KEYS: readonly BreakdownKey[] = ["sector", "rating", "term", "country", "asset_type"];
 
 /** one characteristic: value (number, or a rating notch), and the share of the bond weight that had an input */
-export interface PortfolioMeasure { value: number | string; coverage: number | null }
+/** `scope: "bond_holdings"`: the figure covers the bond holdings only (open futures not included) */
+export interface PortfolioMeasure { value: number | string; coverage: number | null; scope?: "bond_holdings" }
 export interface WeightRow { label: string; weight: number; count: number | null }
 export interface PortfolioHoldingRow {
   name: string; issuer: string | null; weight: number; coupon: number | null; maturity: string | null;

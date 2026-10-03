@@ -25,6 +25,7 @@
  *    `compounded=False` path): periods are sums, annualized = sum / years, growth = 1 + cumsum,
  *    drawdown = value - running peak (in units of the initial investment).
  */
+import { tradingDays } from "./market-calendar.ts";
 
 export type Series = Record<string, number>;
 export type Method = "compounded" | "arithmetic";
@@ -387,9 +388,9 @@ export interface MonthEndReturns { series: Series; dropped: { month: string; rea
 /**
  * Daily levels -> month-end to month-end returns. A month's closing level is accepted only when
  *  - the month is closed: an observation exists in a later month (never an open-month return), and
- *  - its last observation is the last weekday of the month or at most 2 weekdays before it (Canadian
- *    market holidays; the dataplatform exposes no holiday calendar).
- * A month without an accepted closing level produces no return for itself nor for the next month.
+ *  - no TSX valuation day follows its last observation in the month: every day skipped before the month-end is a
+ *    weekend or a Canadian market holiday (market-calendar.ts, the dataplatform's calendar).
+ * A month without an accepted closing level produces no return for itself nor for the next month (the caller warns).
  */
 export function monthEndReturns(levels: Record<string, number>): MonthEndReturns {
   const last: Record<string, { d: string; v: number }> = {};
@@ -403,9 +404,10 @@ export function monthEndReturns(levels: Record<string, number>): MonthEndReturns
   const closing = new Map<string, number>();
   months.forEach((ym, i) => {
     if (i === months.length - 1) return; // not closed yet (no later observation)
-    const { earliest } = lastWeekdays(ym);
-    if (last[ym].d < earliest) {
-      dropped.push({ month: toMonthEnd(ym), reason: `last level ${last[ym].d} is more than 2 weekdays before the month-end` });
+    const next = new Date(Date.parse(`${last[ym].d.slice(0, 10)}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+    const skipped = next <= toMonthEnd(ym) ? tradingDays(next, toMonthEnd(ym)) : [];
+    if (skipped.length) {
+      dropped.push({ month: toMonthEnd(ym), reason: `last level ${last[ym].d}: no level for the TSX valuation day(s) ${skipped.slice(-3).join(", ")}${skipped.length > 3 ? " …" : ""} before the month-end` });
       return;
     }
     closing.set(ym, last[ym].v);

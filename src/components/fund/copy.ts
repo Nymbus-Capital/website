@@ -232,6 +232,7 @@ export const T = {
       rating: l("Average credit rating", "Cote de crédit moyenne"),
     },
     years: l("years", "ans"),
+    bondHoldingsOnly: l("bond holdings only, excluding futures", "obligations détenues seulement, hors contrats à terme"),
     securities: l("Securities held", "Titres détenus"),
     coverage: l(
       "Computed only over the bonds for which the input is available (share of the bond holdings, by market value): {x}.",

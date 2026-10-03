@@ -174,6 +174,46 @@ test("H1/H3: with the opt-in factsheet gate a held month is published without al
   delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
+test("M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
+  // a first publication with the July archives only (performance as of 2026-07, confirmed by the July factsheets)
+  const fsDir = path.join(dir, "fs-m3");
+  await mkdir(fsDir, { recursive: true });
+  for (const f of ["bonds_data_2026-07.json", "factsheet_data_2026-07.json"]) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
+  process.env.FACTSHEET_DATA_DIR = fsDir;
+  process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH = "1";
+  const first = await run({ now: new Date("2026-09-29T14:00:00Z") });
+  delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
+  assert.equal(first.status, "published", JSON.stringify(first.issues.filter((x) => x.level === "error")));
+  const before = await readJ<SiteData>("published", "site-data.json");
+  assert.equal(before.funds["monthly-income"]!.performance!.asOf, "2026-07-31");
+  // the August month now comes from the dataplatform alone (no August factsheet, no analytics month)
+  const posted: string[] = [];
+  process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+  const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
+  const r = await run({ routes: [hook] });
+  assert.equal(r.status, "pending-review", JSON.stringify(r.issues.filter((x) => x.level === "error")));
+  assert.ok(r.reviewNeeded?.includes("monthly-income"), JSON.stringify(r.reviewNeeded));
+  assert.ok(r.publishedAt, "the rest of the site is published (auto)");
+  const live = await readJ<SiteData>("published", "site-data.json");
+  assert.equal(live.funds["monthly-income"]!.performance!.asOf, "2026-07-31", "the unconfirmed August month is not live");
+  assert.equal(live.funds["monthly-income"]!.nav!.asOf, "2026-09-28", "NAV still updated");
+  assert.ok(live.issues.some((x) => x.key === "funds.monthly-income.performance.review" && /needs review: new month\(s\) 2026-08 confirmed by no source independent of the dataplatform/.test(x.message)));
+  const stored = await getRun(r.id);
+  assert.equal(stored!.data.funds["monthly-income"]!.performance!.asOf, "2026-08-31", "the run itself holds the new month");
+  assert.equal(posted.length, 1);
+  assert.match(posted[0], /PENDING-REVIEW.*new month\(s\) of [a-z-, ]*monthly-income[a-z-, ]* confirmed by no independent source/s);
+  // an admin publishing the run approves the month
+  const approved = await publishRun(r.id, "admin@nymbus.ca");
+  assert.equal(approved.status, "published");
+  assert.equal((await readJ<SiteData>("published", "site-data.json")).funds["monthly-income"]!.performance!.asOf, "2026-08-31");
+  // review mode: unchanged (waits as always, nothing auto-published)
+  await setMode("review");
+  const rv = await run({ routes: [hook] });
+  assert.equal(rv.status, "pending-review");
+  assert.equal(rv.publishedAt, undefined);
+  delete process.env.PIPELINE_ALERT_WEBHOOK;
+});
+
 test("M5: revision of an already published month -> blocked (auto: published + alert; review: waits)", async () => {
   const first = await run();
   await setMode("review");

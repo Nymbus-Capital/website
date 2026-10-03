@@ -66,36 +66,56 @@ const history = (fundserv: string, fn: (rows: Record<string, unknown>[]) => Reco
   return json({ ...j, rows: fn(j.rows) });
 };
 
-test("class gates: a fee-band breach drops the class; a hole ends its run; a failed history leaves it out", async () => {
+test("class gates: a fee-band breach drops the class; a hole after the first computable month drops it; a failed history leaves it out (warn + alert)", async () => {
+  const alertOf = (ctx: Partial<Record<string, FundContext>>, re: RegExp): boolean => !!ctx[SEB]?.alerts.some((a) => re.test(a));
   // a missed distribution on class F in 2025-06 (its daily return lowered by 0.7 %): outside the fee band vs class H
   const missed = history("LDM201", (rows) => rows.map((r) => (r.date === "2025-06-30" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)));
   const a = await build(missed);
   assert.equal(a.data.funds[SEB]!.performanceByClass!.LDM201, undefined);
   assert.ok(a.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /outside the fee band .*2025-06/.test(i.message)));
+  assert.ok(alertOf(a.context, /class F \(LDM201\) not shown: vs class H: .*fee band/));
   assert.ok(a.data.funds[SEB]!.performance, "the headline is not affected");
-  // a missing valuation day in 2025-02: the class's series starts after it ("since" 2025-03)
+  // a missing valuation day in 2025-02: never a series restarting after the hole ("since" 2025-03) — the class is dropped
   const hole = history("LDM201", (rows) => rows.filter((r) => r.date !== "2025-02-11"));
   const b = await build(hole);
-  const f = b.data.funds[SEB]!.performanceByClass!.LDM201.performance;
-  assert.equal(f.firstMonth, "2025-03-31");
-  assert.ok(b.data.issues.some((i) => /2025-02 Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)) === false, "months before the run are not listed");
+  assert.equal(b.data.funds[SEB]!.performanceByClass!.LDM201, undefined, "no truncated run");
+  assert.ok(b.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /1 month\(s\) unusable after its first computable month 2023-08 \(own data from 2023-07-05\): 2025-02 Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
+  assert.ok(alertOf(b.context, /class F \(LDM201\) not shown: 1 month\(s\) unusable/));
   // the history endpoint failing for class F: class F not shown ("coming soon"), H unchanged
   const down: Route = (url) => (url.pathname === "/api/performance/nav-timeseries" && url.searchParams.get("fundserv") === "LDM201" ? json({ detail: "x" }, 500) : undefined);
   const c = await build(down);
   assert.deepEqual(Object.keys(c.data.funds[SEB]!.performanceByClass!), ["LDM202"]);
   assert.ok(c.data.issues.some((i) => i.key === `funds.${SEB}.performance.classes.LDM201` && /daily NAV chain unavailable \(nav-timeseries SEB LDM201 history: .*500/.test(i.message)));
+  assert.ok(alertOf(c.context, /class F \(LDM201\) not shown: daily NAV chain unavailable/));
+  // a class launched less than 12 months before the as-of: not shown (regulatory rule), info only (no alert)
+  const late = history("LDM201", (rows) => rows.filter((r) => (r.date as string) >= "2025-11-03"));
+  const d = await build(late);
+  assert.equal(d.data.funds[SEB]!.performanceByClass!.LDM201, undefined);
+  assert.ok(d.data.issues.some((i) => i.level === "info" && /class F \(LDM201\): 10 month\(s\) since 2025-11 \(< 12\): returns not shown for this class \(regulatory rule\)/.test(i.message)));
+  assert.ok(!alertOf(d.context, /LDM201/));
 });
 
-test("CIBC months of the other classes are used only when the headline verified the stored CIBC returns", async () => {
+test("Monthly Income: no fee band (FP may carry a performance fee), the class F gates still apply", async () => {
+  const { data } = await build();
+  assert.ok(data.funds["monthly-income"]!.performanceByClass!.LDM081);
+  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.monthly-income.performance.classes.LDM081" && /no fee band against class FP for this fund \(class FP may carry a performance fee/.test(i.message)));
+  assert.match(data.provenance["funds.monthly-income.performance.classes.LDM081"], /no fee band \(class FP may carry a performance fee/);
+  // a gap still drops it
+  const hole = history("LDM081", (rows) => rows.filter((r) => r.date !== "2025-05-13"));
+  const b = await build(hole);
+  assert.equal(b.data.funds["monthly-income"]!.performanceByClass!.LDM081, undefined);
+});
+
+test("CIBC months of the other classes are used only when the headline verified the stored CIBC returns: else the class is dropped", async () => {
   // the headline's stored CIBC returns no longer reproduce analytics (a price-only chain would miss the distributions)
   const priceOnly = history("LDM202", (rows) => rows.map((r) => (r.date === "2024-03-28" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)));
-  const { data } = await build(priceOnly);
+  const { data, context } = await build(priceOnly);
   const seb = data.funds[SEB]!;
   assert.ok(data.issues.some((i) => i.level === "warn" && /stored CIBC daily returns of class H \(LDM202\) do not reproduce the analytics history .* for 2024-03/.test(i.message)));
   assert.match(data.provenance[`funds.${SEB}.performance`], /analytics fund_returns\.json "Nymbus Sustainable Enhanced Bonds" \(89 month\(s\): 2019-02 to 2026-06/);
-  // class F keeps only the months that do not depend on that check: the cut-over bridge and the Apex month
-  assert.equal(seb.performanceByClass!.LDM201.performance.firstMonth, "2026-07-31");
-  assert.equal(seb.performanceByClass!.LDM201.performance.shortRecord, true);
+  // class F would start at 2023-08 but its CIBC months cannot be used: never a series "since" the bridge month
+  assert.equal(seb.performanceByClass!.LDM201, undefined);
+  assert.ok(context[SEB]!.alerts.some((a) => /class F \(LDM201\) not shown: \d+ month\(s\) unusable after its first computable month 2023-08 .*stored CIBC daily returns not verified on the headline class/.test(a)));
 });
 
 test("a class whose series is shorter than 12 months: only the periods that exist, flagged, no risk statistics", () => {
@@ -225,4 +245,12 @@ test("a failing headline class holds the performance (never dropped by the class
   const v = validateSite(old, g.context, null, NOW).data.funds[GMV]!;
   assert.equal(v.variants!["3"], undefined, "a variant older than the fund's performance is not shown");
   assert.ok(v.variants!["9"]);
+});
+
+test("a class not launched yet (no own row up to the as-of): info only, no alert", async () => {
+  const notYet = history("LDM201", (rows) => rows.filter((r) => (r.date as string) >= "2026-09-01"));
+  const { data, context } = await build(notYet);
+  assert.equal(data.funds[SEB]!.performanceByClass!.LDM201, undefined);
+  assert.ok(data.issues.some((i) => i.level === "info" && /class F \(LDM201\): no computable month up to 2026-08 \(own data from 2026-09-01\)/.test(i.message)));
+  assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)));
 });

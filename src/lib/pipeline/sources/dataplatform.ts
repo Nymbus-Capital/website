@@ -117,7 +117,11 @@ export function fetchNav(c: DpClient, short: DpShort, now: Date, lookbackDays = 
         if (typeof o.return_start_date === "string") o.return_start_date = o.return_start_date.slice(0, 10);
         return o as NavPoint;
       });
-    return { ok: true, data: { rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [] }, detail: `${rows.length} class row(s) since ${start}` };
+    // the STRATEGY / STRATEGY_H aggregate rows: how many Apex classes the dataplatform folded into them (diagnostics)
+    const aggregates = j.rows
+      .filter((r) => r && !r.fundserv && (r.class_code === "STRATEGY" || r.class_code === "STRATEGY_H"))
+      .map((r) => ({ date: String(r.date).slice(0, 10), class_code: String(r.class_code), return_source_count: typeof r.return_source_count === "number" ? r.return_source_count : null }));
+    return { ok: true, data: { rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [], aggregates }, detail: `${rows.length} class row(s) since ${start}` };
   });
 }
 

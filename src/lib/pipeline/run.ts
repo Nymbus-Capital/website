@@ -47,6 +47,11 @@ export interface RunReport {
   classChanges?: FundKey[];
   classChangesApprovedAt?: string;
   classChangesApprovedBy?: string;
+  /**
+   * funds whose new performance month(s) no independent source confirms: in auto mode the run is published with their
+   * previous performance and stays "pending-review" until an admin publishes it (the new months included)
+   */
+  reviewNeeded?: FundKey[];
 }
 
 export interface PublishedMeta { runId: string; publishedAt: string; publishedBy: string }
@@ -72,7 +77,11 @@ async function publishMode(): Promise<"auto" | "review"> {
   return (await readContent())?.pipeline?.publishMode === "auto" ? "auto" : "review";
 }
 
-/** opt-in (PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1): a new month also waits for its factsheet. Default off: the factsheet job is not a dependency */
+/**
+ * PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1: a new month waits for its factsheet in every mode. Default off: the
+ * factsheet job is not a dependency, but a new month that no independent source confirms is never published by the
+ * pipeline alone: in auto mode it waits for an admin (RunReport.reviewNeeded); review mode is unchanged.
+ */
 export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "0").trim() === "1";
 
 /** sources summary for the report */
@@ -172,10 +181,12 @@ export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[
 
 async function alert(report: RunReport, fetchImpl: typeof fetch): Promise<void> {
   const url = process.env.PIPELINE_ALERT_WEBHOOK;
-  if (!url || (report.status !== "failed" && report.status !== "blocked")) return;
+  const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
+  if (!url || (report.status !== "failed" && report.status !== "blocked" && !review)) return;
   const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
   const text = [
     `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.publishedAt ? ", other funds published" : ", nothing published"})`,
+    ...(review ? [`new month(s) of ${report.reviewNeeded!.join(", ")} confirmed by no independent source: publish the run in the admin to approve them`] : []),
     ...Object.entries(report.funds).map(([k, v]) => `${k}: ${v}`),
     ...errors,
   ].join("\n");
@@ -210,6 +221,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       report.funds = v.funds;
       report.asOf = data.asOf;
       if (v.classChanges.length) report.classChanges = v.classChanges;
+      if (v.needsReview.length) report.reviewNeeded = v.needsReview;
       const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
       report.issues = [...data.issues, ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i)];
       const updated = Object.values(v.funds).some((s) => s === "updated");
@@ -220,7 +232,8 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
         report.issues = [...report.issues, { key: "run", level: "error", message: "no fund could be updated: nothing published" }];
       } else if (opts.dryRun) report.status = "dry-run";
       else if (blocked) report.status = "blocked";
-      else report.status = mode === "auto" ? "published" : "pending-review";
+      // auto mode: what needs a human (unconfirmed new months) is kept out of the auto-published data and the run waits
+      else report.status = mode === "auto" && !v.needsReview.length ? "published" : "pending-review";
       autoPublish = autoData;
       if (!opts.dryRun && updated && mode === "auto") {
         report.publishedAt = new Date().toISOString();

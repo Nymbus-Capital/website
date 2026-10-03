@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeFundPortfolio, instrumentNotch, notchLabel, ratingNotch, refIndex } from "../../../src/lib/pipeline/fund-portfolio.ts";
+import { computeFundPortfolio, instrumentNotch, notchLabel, ratingNotch, refIndex, resolve } from "../../../src/lib/pipeline/fund-portfolio.ts";
 import type { HoldingsBook, HoldingsPosition, InstrumentRef } from "../../../src/lib/pipeline/raw.ts";
 
 const AS_OF = "2026-09-28";
@@ -38,8 +38,10 @@ test("computeFundPortfolio: weights over net assets, characteristics with covera
   assert.equal(p.as_of, AS_OF);
   assert.deepEqual(p.totals, { holdings_count: 4, bonds_count: 3, cash_weight: 0.1, derivatives_count: 1, other_weight: 0.1 });
   // bonds A (400), B (300) known, C (100) unknown: coverage 700 / 800
-  assert.deepEqual(p.characteristics.modified_duration, { value: 3.23, coverage: 0.875 }); // (400·1.9 + 300·5) / 700
-  assert.deepEqual(p.characteristics.yield_to_maturity, { value: 0.0471, coverage: 0.875 }); // (400·4.5 % + 300·5 %) / 700
+  // the book has an open future: duration and yield are those of the bond holdings only (labelled)
+  assert.deepEqual(p.characteristics.modified_duration, { value: 3.23, coverage: 0.875, scope: "bond_holdings" }); // (400·1.9 + 300·5) / 700
+  assert.deepEqual(p.characteristics.yield_to_maturity, { value: 0.0471, coverage: 0.875, scope: "bond_holdings" }); // (400·4.5 % + 300·5 %) / 700
+  assert.ok(p.warnings.some((w) => /1 open futures position\(s\): duration and yield to maturity are those of the bond holdings only/.test(w)));
   assert.deepEqual(p.characteristics.coupon, { value: 0.0443, coverage: 0.875 }); // (400·4 % + 300·5 %) / 700
   assert.deepEqual(p.characteristics.average_maturity, { value: 3.72, coverage: 0.875 }); // (400·731 + 300·2192) / 700 / 365.25
   // notches A = 6, B = lowest of BBB+ / Baa2 / BBB = 9: (400·6 + 300·9) / 700 = 7.29 → A-
@@ -63,7 +65,7 @@ test("computeFundPortfolio: stale prices are unpriced; no net assets → positio
   assert.equal(p.method.denominator, "positions_plus_cash");
   assert.equal(p.totals.cash_weight, round4(100 / 1000)); // A 400 + B 300 + C 100 + E 100 + cash 100 (the future counts 0)
   assert.equal(p.coverage.priced_weight, 0.5, "only A is priced: 400 / 800");
-  assert.deepEqual(p.characteristics.modified_duration, { value: 1.9, coverage: 0.5 });
+  assert.deepEqual(p.characteristics.modified_duration, { value: 1.9, coverage: 0.5, scope: "bond_holdings" });
   assert.ok(p.warnings.some((w) => /bond price\(s\) more than 7 days from the book date/.test(w)));
   // the same ISIN on two instruments: neither is used
   const dup = [...refs, ref({ nymbus_instrument_id: 9, isin: "SYA0000000001" })];
@@ -92,4 +94,38 @@ test("ratings: composite, else the lowest agency; DBRS, Moody's, watch and unsol
   assert.equal(instrumentNotch([]), null);
   assert.equal(notchLabel(7), "A-");
   assert.equal(notchLabel(30), "D");
+});
+
+test("M6: no open future → no scope; short bonds offset longs (signed), above 0.5 % of net assets duration and yield are withheld", () => {
+  const noFuture: HoldingsBook = { ...book, positions: book.positions.filter((x) => x.security_type !== "Future") };
+  const p = computeFundPortfolio(noFuture, refs, { short: "SEST", netAssets: 1000 });
+  assert.deepEqual(p.characteristics.modified_duration, { value: 3.23, coverage: 0.875 });
+  // a small short of bond B (−4 = 0.4 % of net assets): signed weights (400·1.9 + 296·5) / 696
+  const smallShort: HoldingsBook = { ...noFuture, positions: [...noFuture.positions, pos({ isin: "SYB0000000002", security_id: "SHORT-B", description: "Bond B short", market_value_cad: -4, quantity: -4 })] };
+  const q = computeFundPortfolio(smallShort, refs, { short: "SEST", netAssets: 1000 });
+  assert.equal(q.characteristics.modified_duration?.value, Math.round(((400 * 1.9 + 296 * 5) / 696) * 100) / 100);
+  // −10 (1 % of net assets): withheld, with a warning; the other characteristics stay
+  const bigShort: HoldingsBook = { ...noFuture, positions: [...noFuture.positions, pos({ isin: "SYB0000000002", security_id: "SHORT-B", description: "Bond B short", market_value_cad: -10, quantity: -10 })] };
+  const r = computeFundPortfolio(bigShort, refs, { short: "SEST", netAssets: 1000 });
+  assert.equal(r.characteristics.modified_duration, undefined);
+  assert.equal(r.characteristics.yield_to_maturity, undefined);
+  assert.ok(r.characteristics.average_rating);
+  assert.ok(r.warnings.some((w) => /short bond positions are 1\.00% of the denominator \(above 0\.5%\): duration and yield to maturity not shown/.test(w)));
+  // breakdown weights are signed: the short reduces bond B's rating bucket
+  assert.equal(r.breakdowns.rating!.find((x) => x.label === "BBB")!.weight, 0.29);
+});
+
+test("m11: an ambiguous ISIN falls back to the CUSIP; unresolved contracts never enter the weights", () => {
+  const a = ref({ nymbus_instrument_id: 1, isin: "SYD0000000009", cusip: "SYNC00009" });
+  const b = ref({ nymbus_instrument_id: 2, isin: "SYD0000000009", cusip: "SYNC00010" });
+  const idx = refIndex([a, b]);
+  assert.equal(resolve({ isin: "SYD0000000009", cusip: "SYNC00009", bloombergId: null }, idx).ref?.nymbus_instrument_id, 1, "the CUSIP resolves the shared ISIN");
+  assert.deepEqual(resolve({ isin: "SYD0000000009", cusip: null, bloombergId: null }, idx), { ref: null, ambiguous: true });
+  assert.deepEqual(resolve({ isin: "SYZ0000000000", cusip: null, bloombergId: null }, idx), { ref: null, ambiguous: false });
+  // an unresolved position with a quantity and no market value (a contract the master does not know): a derivative
+  const withContract: HoldingsBook = { ...book, positions: [...book.positions, pos({ bloomberg_id: "XYZ OPTION", description: "Unknown contract", security_type: "Misc", market_value_cad: 0, quantity: 3 })] };
+  const p = computeFundPortfolio(withContract, refs, { short: "SEST", netAssets: 1000 });
+  assert.equal(p.totals.derivatives_count, 2);
+  assert.equal(p.totals.holdings_count, 4, "never a holding line");
+  assert.ok(p.warnings.some((w) => /1 unresolved position\(s\) with a quantity and no market value treated as derivatives/.test(w)));
 });

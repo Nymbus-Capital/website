@@ -1369,13 +1369,15 @@
       "id": "duration",
       "value": 2.35,
       "unit": "years",
-      "coverage": 0.9637
+      "coverage": 0.9637,
+      "scope": "bondHoldings"
      },
      {
       "id": "ytm",
       "value": 0.0416,
       "unit": "pct",
-      "coverage": 0.9637
+      "coverage": 0.9637,
+      "scope": "bondHoldings"
      },
      {
       "id": "coupon",
@@ -6442,13 +6444,15 @@
       "id": "duration",
       "value": 8.16,
       "unit": "years",
-      "coverage": 1
+      "coverage": 1,
+      "scope": "bondHoldings"
      },
      {
       "id": "ytm",
       "value": 0.0432,
       "unit": "pct",
-      "coverage": 1
+      "coverage": 1,
+      "scope": "bondHoldings"
      },
      {
       "id": "rating",
@@ -16446,19 +16450,19 @@
  "provenance": {
   "funds.monthly-income.performance": "SYNTHETIC sample: monthly net returns 2019-01 to 2026-08: analytics fund_returns.json \"Nymbus Monthly Income\" (34 month(s): 2019-01 to 2021-10; local file); dataplatform /api/performance/nav-timeseries LDM001 (cibc 2021-11 to 2026-06, bridge 2026-07) daily NAV chain compounded by the website (57 month(s): 2021-11 to 2026-07); dataplatform /api/performance/monthly-net-returns SEST class_code STRATEGY ready months (1: 2026-08); every month class_code STRATEGY, shown as class FP; trailing/calendar/growth computed (compounded, annualized beyond 1 year), cross-checked with factsheet bonds_data_2026-08.json; index \"FTSE Canada Short Term Corporate Bond Index\": computed from FTSE short_corp via dataplatform /api/ftse/index-summary, aggregate total-return level, month-end to month-end; value added = fund − FTSE index; factsheet bonds_data_2026-08.json index figures used as a cross-check only (its index was the XSB/XBB ETF before 2026-05)",
   "funds.monthly-income.risk": "SYNTHETIC sample: computed from the monthly net returns (SI and 3Y windows; population st.dev. ×√12; downside dev. = st.dev. of negative months ×√12; Sharpe and Sortino without risk-free rate, as in the factsheets; max drawdown from the running peak including the initial investment, whereas the factsheet uses month-end peaks only)",
-  "funds.monthly-income.performance.classes.LDM081": "SYNTHETIC sample: monthly net returns of class F (LDM081) 2024-03 to 2026-08 compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM081 (cibc 2024-03 to 2026-06, bridge 2026-07, apex 2026-08); fee band vs class FP checked on 30 month(s)",
+  "funds.monthly-income.performance.classes.LDM081": "SYNTHETIC sample: monthly net returns of class F (LDM081) 2024-03 to 2026-08 (every month since its first computable month; own data from 2024-03-01) compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM081 (cibc 2024-03 to 2026-06, bridge 2026-07, apex 2026-08); no fee band (class FP may carry a performance fee: F − FP is not a fixed fee difference)",
   "funds.monthly-income.nav": "SYNTHETIC sample: dataplatform /api/performance/nav-timeseries SEST (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)",
   "funds.monthly-income.aum": "SYNTHETIC sample: dataplatform /api/unitholders/aum group_by=short_name (sum of holding_value_cad, snapshot 2026-09-28); fund total only",
   "funds.monthly-income.factsheet": "SYNTHETIC sample: factsheet archive bonds_data_2026-08.json (local folder), key SEST: characteristics, breakdowns, top holdings, ESG metrics",
-  "funds.monthly-income.portfolio": "SYNTHETIC sample: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEST FINAL_NAV book 2026-09-28; priced 96.4%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by absolute market value over bond positions, renormalised over covered weight",
+  "funds.monthly-income.portfolio": "SYNTHETIC sample: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEST FINAL_NAV book 2026-09-28; priced 96.4%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)",
   "funds.monthly-income.distributions": "SYNTHETIC sample: dataplatform /api/performance/distributions SEST (399 row(s) from 2019-01-01; per unit, class currency, keyed by FundServ code; SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution); live series from /api/apex/funds",
   "funds.sustainable-enhanced-bonds.performance": "SYNTHETIC sample: monthly net returns 2019-02 to 2026-08: analytics fund_returns.json \"Nymbus Sustainable Enhanced Bonds\" (54 month(s): 2019-02 to 2023-07; local file); dataplatform /api/performance/nav-timeseries LDM202 (cibc 2023-08 to 2026-06, bridge 2026-07) daily NAV chain compounded by the website (36 month(s): 2023-08 to 2026-07); dataplatform /api/performance/monthly-net-returns SEB class_code STRATEGY_H ready months (1: 2026-08); every month class_code STRATEGY_H, shown as class H; trailing/calendar/growth computed (compounded, annualized beyond 1 year), cross-checked with factsheet bonds_data_2026-08.json; index \"FTSE Canada Universe Bond Index\": computed from FTSE univ via dataplatform /api/ftse/index-summary, aggregate total-return level, month-end to month-end (history joined over univ_overall); value added = fund − FTSE index; factsheet bonds_data_2026-08.json index figures used as a cross-check only (its index was the XSB/XBB ETF before 2026-05)",
   "funds.sustainable-enhanced-bonds.risk": "SYNTHETIC sample: computed from the monthly net returns (SI and 3Y windows; population st.dev. ×√12; downside dev. = st.dev. of negative months ×√12; Sharpe and Sortino without risk-free rate, as in the factsheets; max drawdown from the running peak including the initial investment, whereas the factsheet uses month-end peaks only)",
-  "funds.sustainable-enhanced-bonds.performance.classes.LDM201": "SYNTHETIC sample: monthly net returns of class F (LDM201) 2023-08 to 2026-08 compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM201 (cibc 2023-08 to 2026-06, bridge 2026-07, apex 2026-08); fee band vs class H checked on 37 month(s)",
+  "funds.sustainable-enhanced-bonds.performance.classes.LDM201": "SYNTHETIC sample: monthly net returns of class F (LDM201) 2023-08 to 2026-08 (every month since its first computable month; own data from 2023-07-05) compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM201 (cibc 2023-08 to 2026-06, bridge 2026-07, apex 2026-08); fee band vs class H checked on 37 month(s)",
   "funds.sustainable-enhanced-bonds.nav": "SYNTHETIC sample: dataplatform /api/performance/nav-timeseries SEB (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)",
   "funds.sustainable-enhanced-bonds.aum": "SYNTHETIC sample: dataplatform /api/unitholders/aum group_by=short_name (sum of holding_value_cad, snapshot 2026-09-28); fund total only",
   "funds.sustainable-enhanced-bonds.factsheet": "SYNTHETIC sample: factsheet archive bonds_data_2026-08.json (local folder), key QCFI-SEB: characteristics, breakdowns, top holdings, ESG metrics",
-  "funds.sustainable-enhanced-bonds.portfolio": "SYNTHETIC sample: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEB FINAL_NAV book 2026-09-28; priced 100.0%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by absolute market value over bond positions, renormalised over covered weight",
+  "funds.sustainable-enhanced-bonds.portfolio": "SYNTHETIC sample: computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py): SEB FINAL_NAV book 2026-09-28; priced 100.0%, resolved 100.0% of the bond weight; weights: market_value_cad / net assets (sum of the classes' Apex closing capital), signed; duration: modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)",
   "funds.sustainable-enhanced-bonds.distributions": "SYNTHETIC sample: dataplatform /api/performance/distributions SEB (90 row(s) from 2019-01-01; per unit, class currency, keyed by FundServ code; SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution); live series from /api/apex/funds",
   "funds.multi-strategy.performance": "SYNTHETIC sample: monthly net returns 2019-01 to 2026-08: analytics fund_returns.json \"Nymbus Multistrategy (Inc. discretionary strats history)\" (54 month(s): 2019-01 to 2023-06; local file); dataplatform /api/performance/nav-timeseries LDM301 (cibc 2023-07 to 2026-06, bridge 2026-07) daily NAV chain compounded by the website (37 month(s): 2023-07 to 2026-07); dataplatform /api/performance/monthly-net-returns Multistrat class_code STRATEGY ready months (1: 2026-08); every month class_code STRATEGY, shown as class F; trailing/calendar/growth computed (compounded, annualized beyond 1 year), cross-checked with factsheet factsheet_data_2026-08.json",
   "funds.multi-strategy.risk": "SYNTHETIC sample: computed from the monthly net returns (SI and 3Y windows; population st.dev. ×√12; downside dev. = st.dev. of negative months ×√12; Sharpe and Sortino without risk-free rate, as in the factsheets; max drawdown from the running peak including the initial investment, whereas the factsheet uses month-end peaks only)",
@@ -16537,6 +16541,11 @@
    "message": "index 2026: FTSE -0.31% vs factsheet -0.40% (FTSE shown) (expected before 2026-05: the factsheet index was the ETF)"
   },
   {
+   "key": "funds.monthly-income.performance.classes.LDM081",
+   "level": "info",
+   "message": "class F (LDM081): no fee band against class FP for this fund (class FP may carry a performance fee: F − FP is not a fixed fee difference); the other gates apply"
+  },
+  {
    "key": "funds.monthly-income.nav",
    "level": "info",
    "message": "daily change not shown for F USD: return method nav_price_ratio (not distribution-aware)"
@@ -16544,7 +16553,7 @@
   {
    "key": "funds.monthly-income.portfolio",
    "level": "info",
-   "message": "dataplatform: 1 bond price(s) more than 7 days from the book date, treated as unpriced: SEC-SYN000054; 1 bond position(s) (3.5% of the denominator) without a current price: SYST13959555"
+   "message": "dataplatform: 1 bond price(s) more than 7 days from the book date, treated as unpriced: SEC-SYN000054; 1 bond position(s) (3.5% of the denominator) without a current price: SYST13959555; 2 open futures position(s): duration and yield to maturity are those of the bond holdings only (futures exposure not included)"
   },
   {
    "key": "funds.monthly-income.distributions",
@@ -16650,6 +16659,11 @@
    "key": "funds.sustainable-enhanced-bonds.portfolio.characteristics",
    "level": "info",
    "message": "not shown (coverage below 90% or unusable): coupon (coverage 86.5%), average_maturity (coverage 86.5%)"
+  },
+  {
+   "key": "funds.sustainable-enhanced-bonds.portfolio",
+   "level": "info",
+   "message": "dataplatform: 2 open futures position(s): duration and yield to maturity are those of the bond holdings only (futures exposure not included)"
   },
   {
    "key": "funds.multi-strategy.performance",
