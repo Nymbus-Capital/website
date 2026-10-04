@@ -48,7 +48,7 @@ test("core concepts (EN): three panels drawn, advancing, labelled, with captions
   await expect(page.getByTestId("overlay-caption")).toContainText("Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way.");
   await expect(page.getByTestId("futures-caption")).toContainText(/losses can exceed the margin deposited/);
   await expect(page.getByTestId("coverage-caption")).toContainText(/^Illustrative estimates/);
-  await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "150–180", "≈2,000", "≥ $200 MM"]);
+  await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "≈180", "≈2,000", "≥ $200 MM"]);
   await expect(page.getByTestId("coverage-panel")).toContainText("Illustrative estimates");
   await expect(page.getByTestId("coverage-note")).toContainText(/over the counter/);
   // concept 3 is a comparison: conventional team VS our systems

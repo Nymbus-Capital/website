@@ -23,8 +23,8 @@ export const CC = {
   meta: {
     title: l("Core concepts", "Concepts de base"),
     description: l(
-      "Protective overlays, futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
-      `Superpositions protectrices, contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
+      "Protective overlays (designed to offset part of losses), futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
+      `Superpositions protectrices (conçues pour compenser une partie des pertes), contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
     ),
   },
   hero: {
@@ -142,9 +142,9 @@ export const CC = {
       calm: l("Calm market", "Marché calme"),
       volatile: l("Volatile: larger buffer", `Volatil${NB}: dépôt plus élevé`),
       settleRow: l("Daily cash settlements (long)", "Règlements quotidiens (acheteur)"),
-      sum: l("Sum = total P&L", "Somme = gain ou perte total"),
-      realized: l("Like realizing gains and losses daily (not a tax statement)", "Comme réaliser gains et pertes chaque jour (pas un énoncé fiscal)"),
-      formula: l("futures return ≈ underlying return − overnight rate", "rendement du contrat ≈ rendement du sous-jacent − taux à un jour"),
+      sum: l("Sum = total P&L", "Somme = résultat total"),
+      realized: l("Like realizing gains and losses daily (not a tax statement)", "Comme réaliser gains et pertes chaque jour (hors fiscalité)"),
+      formula: l("futures return ≈ underlying return − overnight rate", "rendement du contrat ≈ sous-jacent − taux à un jour"),
     },
   },
 
@@ -170,7 +170,7 @@ export const CC = {
     ],
     stats: [
       { label: l("Securities per analyst per year", "Titres par analyste par an"), value: l("≈30", `≈${NB}30`) },
-      { label: l("Covered by a team of 5–6", "Suivis par une équipe de 5 ou 6"), value: l("150–180", "150–180") },
+      { label: l("Covered by a team of 6 analysts", "Suivis par une équipe de 6 analystes"), value: l("≈180", `≈${NB}180`) },
       { label: l("Bonds in the Canadian IG index", "Obligations de l’indice canadien"), value: l("≈2,000", `≈${NB}2${NB}000`) },
       { label: l("Liquidity filter (outstanding)", "Seuil de liquidité (en circulation)"), value: l("≥ $200 MM", `≥${NB}200${NB}M$`) },
     ],

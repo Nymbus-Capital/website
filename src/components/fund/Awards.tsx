@@ -1,9 +1,9 @@
 "use client";
 /**
  * Awards and rankings tab, in this order: the Morningstar overall rating, Fundata category rank and quartile per period
- * with the FundGrade (read on FundLibrary.com; Fund Library is now Fundata), then percentile rankings from RBC Investor
- * Services (pooled fund survey) and eVestment, LSEG Lipper and GMR once an admin confirmed them. Shown only for a fund
- * with a Fundata FundGrade of A or B (lib/rankings.ts). Third-party data kept in the admin content (updated manually), always shown with its source,
+ * with the FundGrade (figures read on Fundata's FundLibrary.com pages), then percentile rankings from RBC Investor
+ * Services (pooled fund survey) and eVestment, LSEG Lipper and GMR once an admin confirmed them. Shown only when any of
+ * the fund's series has a Fundata FundGrade of A or B (lib/rankings.ts). Third-party data kept in the admin content (updated manually), always shown with its source,
  * link and as-of date; the server page already removed drafts and stale entries. Provider names are plain text unless
  * the official logo file is present (no imitation artwork).
  */

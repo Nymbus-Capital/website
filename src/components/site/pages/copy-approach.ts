@@ -9,8 +9,8 @@ export const AP = {
   meta: {
     title: l("Approach", "Approche"),
     description: l(
-      "How Nymbus Capital invests: risk first, a four-step systematic process, a two-system bond process, protective overlays and multi-strategy portfolios across asset classes.",
-      "Comment Nymbus Capital investit : le risque d’abord, un processus systématique en quatre étapes, un processus obligataire à deux systèmes, des superpositions protectrices et des portefeuilles multistratégies dans plusieurs catégories d’actifs.",
+      "How Nymbus Capital invests: risk first, a four-step systematic process, a two-system bond process, protective overlays designed to offset part of losses, and multi-strategy portfolios across asset classes.",
+      "Comment Nymbus Capital investit : le risque d’abord, un processus systématique en quatre étapes, un processus obligataire à deux systèmes, des superpositions protectrices conçues pour compenser une partie des pertes, et des portefeuilles multistratégies dans plusieurs catégories d’actifs.",
     ),
   },
   hero: {

@@ -13,6 +13,8 @@ import { AP } from "../../../src/components/site/pages/copy-approach.ts";
 import { AB } from "../../../src/components/site/pages/copy-about.ts";
 import { AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
 import { HOME_COPY, FUND_COPY } from "../../../src/components/site/home/copy.ts";
+import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
+import { CC } from "../../../src/components/site/concepts/concepts-copy.ts";
 import { SU } from "../../../src/components/site/pages/copy-sustainability.ts";
 import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
@@ -91,16 +93,21 @@ test("approach: risk-first and multi-strategy sections keep low correlation as a
   assert.match(AP.risk.lead.en, /^Ultra-micro analysis, at scale/);
   assert.match(AP.risk.items[2].d.en, /^Designed to offset part of bond losses, with low correlation with bonds in down months/);
   // "protective overlay" is the name Gabriel chose (2026-10-04); it never stands without its qualifier on the page
-  for (const [name, page] of [["approach", AP], ["solutions", AUDIENCES], ["about", AB]] as const) {
+  for (const [name, page] of [["home", [HOME_COPY, OVERLAY_COPY]], ["approach", AP], ["solutions", AUDIENCES], ["about", AB]] as const) {
     const en = JSON.stringify(page), fr = en;
     if (/protective/i.test(en)) {
       assert.match(en, /designed to (have low correlation with bonds in down months and to )?offset part of (bond )?losses/, `${name}: qualifier (en)`);
       assert.match(en, /may not/, `${name}: "may not" (en)`);
     }
     if (/protectrice/i.test(fr)) {
-      assert.match(fr, /conçues? pour (avoir une faible corrélation avec les obligations lors des mois de baisse et pour )?compenser une partie des pertes/, `${name}: qualifier (fr)`);
+      assert.match(fr, /conçu(?:e|s|es)? pour (avoir une faible corrélation avec les obligations lors des mois de baisse et pour )?compenser une partie des pertes/, `${name}: qualifier (fr)`);
       assert.match(fr, /peu(t|vent) ne pas y parvenir/, `${name}: « ne pas y parvenir » (fr)`);
     }
+  }
+  // meta descriptions stand alone in search results: the qualifier is in the description itself
+  for (const [name, d] of [["approach", AP.meta.description], ["about", AB.meta.description], ["core concepts", CC.meta.description]] as const) {
+    if (/protective/i.test(d.en)) assert.match(d.en, /designed to offset part of losses/, `${name} meta (en)`);
+    if (/protectrice/i.test(d.fr)) assert.match(d.fr, /conçues pour compenser une partie des pertes/, `${name} meta (fr)`);
   }
   assert.ok(!/protective overlays? (protects?|guarantees?|eliminates?)/i.test(JSON.stringify([AP, AUDIENCES, AB])), "protection never stated as a fact");
   // "liquid alternative" approved for Multi-Strategy by Gabriel (2026-10-03), category "Alternative Multi-Strategy"

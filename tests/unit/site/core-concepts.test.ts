@@ -478,8 +478,8 @@ test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phr
 
 test("copy: the coverage figures are Gabriel's illustrative estimates and match the model", () => {
   const v = CC.coverage.stats.map((s) => s.value.en);
-  assert.deepEqual(v, ["≈30", "150–180", "≈2,000", "≥ $200 MM"]);
-  assert.deepEqual(CC.coverage.stats.map((s) => s.value.fr), ["≈ 30", "150–180", "≈ 2 000", "≥ 200 M$"]);
+  assert.deepEqual(v, ["≈30", "≈180", "≈2,000", "≥ $200 MM"]);
+  assert.deepEqual(CC.coverage.stats.map((s) => s.value.fr), ["≈ 30", "≈ 180", "≈ 2 000", "≥ 200 M$"]);
   assert.equal(CC.coverage.chip.en, "Illustrative estimates");
   assert.match(CC.coverage.caption.en, /^Illustrative estimates/);
   assert.match(CC.coverage.note.en, /over the counter/);

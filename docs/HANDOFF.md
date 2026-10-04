@@ -187,8 +187,19 @@ Not yet run against live data, not deployed.
    "Core concepts" at `/core-concepts` (old URL redirects), "protective overlays" with the qualifier, futures slowed down,
    concept 3 as a VS comparison. Compliance rows CC9–CC12 to review; independent adversarial review still to run.
 
+17. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
+   compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
+   info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
+   **WordPress**: Xavier Girard and Jean-Philippe Lejeune were removed from `src/data/team.ts` only; if the CMS is enabled
+   (`WP_BASE_URL`), remove them from the WordPress team too (WordPress wins over the static list).
+
 ## 6. Session log
 
+- 2026-10-04 (sub-agent, branch `fix/v5-minors` from `integ/v5`; not merged): review minors — meta descriptions (approach, about,
+  core concepts) carry "designed to offset part of losses"; home added to the qualifier test; concept 3 stat "Covered by a team of
+  6 analysts" ≈180 (was 5–6 / 150–180); futures canvas labels shrink to fit (`Pen.fit`) and shorter FR (« Somme = résultat total »,
+  « (hors fiscalité) », formula chip); InfoNote popup focusable (scrollable) with `--bg`; stale comments; compliance P5 rule
+  wording; handoff merge artefact (duplicate "Session log" header) fixed.
 - 2026-10-03 (sub-agent, branch `feat/core-concepts` from `redesign/v3-keynote-live-data`; not merged): Gabriel's four
   concepts-page requests. (1) Page renamed "Core concepts" / « Concepts de base » (nav key `nav.concepts`, footer, title,
   metadata, hero eyebrow); route moved to `src/app/(site)/core-concepts/` (component `CoreConcepts.tsx`), `/critical-concepts`
@@ -202,12 +213,6 @@ Not yet run against live data, not deployed.
   "180 of ≈2,000"), right = our systems (scan bar, filter legend, history sheets, "Every liquid bond, every day"); steps
   "The universe · Conventional team · Our systems · Side by side"; canvas 480–560 px desktop, 760 px phone. Word budget
   660 → 720, visible prose 130 → 140 (qualifier). Compliance CC9–CC12.
-17. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
-   compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
-   info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
-
-## 6. Session log
-
 - 2026-10-04 (sub-agent, branch `feat/site-v5` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's five requests.
   (1) **"Protective overlay(s)"** / « superposition(s) protectrice(s) » names the overlay strategy on home (strategies lead,
   engines band trio / lane / alt; Science at scale untouched), approach, solutions, about (+ qualifier note) and fund pages;

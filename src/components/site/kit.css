@@ -23,7 +23,7 @@
 .nav-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none; opacity: 0; transition: opacity .3s; }
 .nav.is-scrolled .nav-progress { opacity: 1; }
 .nav-progress > div { height: 100%; background: var(--g-brand); transform-origin: 0 50%; transform: scaleX(0); box-shadow: 0 0 10px rgba(26,115,232,.6); }
-/* seven links (Critical concepts added 2026-10-03): tighter links below 1360 px, the menu button below 1240 px */
+/* seven links (Core concepts added 2026-10-03): tighter links below 1360 px, the menu button below 1240 px */
 @media (max-width: 1360px) {
   .nav-links a { padding: 0 10px; font-size: 14px; }
   .nav-links a[aria-current="page"]::after, .nav-links a.on::after { left: 10px; right: 10px; }

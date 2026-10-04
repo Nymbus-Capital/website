@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and protective overlay strategies. Meet the team.",
-      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des développeurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition protectrice sur contrats à terme. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and protective overlay strategies, designed to offset part of losses. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des développeurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition protectrice sur contrats à terme, conçues pour compenser une partie des pertes. Rencontrez l’équipe.",
     ),
   },
   hero: {

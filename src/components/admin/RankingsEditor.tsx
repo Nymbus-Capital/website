@@ -1,6 +1,6 @@
 "use client";
 /**
- * Admin form of the third-party rankings: Fundata (formerly Fund Library) category rank / quartile, Morningstar stars, and percentile
+ * Admin form of the third-party rankings: Fundata category rank / quartile, Morningstar stars, and percentile
  * rankings from the RBC Investor Services pooled fund survey, eVestment, LSEG Lipper and GMR. Manual data entry: an entry
  * is public only once confirmed with its source URL and as-of date, and while younger than the staleness limit.
  */

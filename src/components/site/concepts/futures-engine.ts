@@ -133,8 +133,9 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       const bx = x(d) - 4;
       ctx.strokeStyle = COL.cyan; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.moveTo(bx - 3, y0); ctx.lineTo(bx, y0); ctx.lineTo(bx, y1); ctx.lineTo(bx - 3, y1); ctx.stroke();
-      P.font(600, L.narrow ? 9.5 : 10.5);
-      const sw = Math.min(P.measure(lab.sum) + 12, Math.max(0, bx - R.x - 8));
+      const sumRoom = Math.max(0, bx - R.x - 8);
+      P.fit(lab.sum, sumRoom - 12, 600, L.narrow ? 9.5 : 10.5, 8);
+      const sw = Math.min(P.measure(lab.sum) + 12, sumRoom);
       if (sw > 40) {
         const ly = Math.max(top + 8, Math.min(bottom - 8, (y0 + y1) / 2 + (Math.abs(y1 - y0) < 16 ? 14 : 0)));
         P.round(bx - 6 - sw, ly - 9, sw, 18, 9); ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.fill();
@@ -227,7 +228,7 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
     }
     // the realized note sits under the row
     ctx.globalAlpha = step === 3 || step === 1 ? 1 : 0.7;
-    P.font(500, L.narrow ? 9.5 : 10.5);
+    P.fit(lab.realized, R.w, 500, L.narrow ? 9.5 : 10.5, 8);
     P.text(lab.realized, R.x, R.y + R.h - 5, R.w, "left", COL.ink2);
     ctx.globalAlpha = 1;
   }
@@ -260,10 +261,8 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, nodeY, nodeR, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = rgba(c, 0.9); ctx.lineWidth = 1.8; ctx.stroke();
       // the label shrinks to fit inside the circle (« Acheteur », « Vendeur »)
-      const size = L.narrow ? 11.5 : 13;
-      P.font(600, size);
-      const w = P.measure(label), room = nodeR * 2 - 8;
-      if (w > room) P.font(600, Math.max(9, Math.floor(size * (room / w) * 0.9 * 10) / 10));
+      const room = nodeR * 2 - 8;
+      P.fit(label, room, 600, L.narrow ? 11.5 : 13, 7.5);
       P.text(label, x, nodeY, room + 6, "center", COL.ink);
     };
     ctx.globalAlpha = Math.max(f(0), f(1));
@@ -340,7 +339,7 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
     if (step === 3) {
       ctx.globalAlpha = Math.min(1, chipIn * 1.4);
       const fy = by + 80;
-      P.font(500, L.narrow ? 10 : 11.5);
+      P.fit(lab.formula, R.w - 26, 500, L.narrow ? 10 : 11.5, 8);
       const fw = Math.min(P.measure(lab.formula) + 26, R.w);
       P.round(R.x + (R.w - fw) / 2, fy - 13, fw, 26, 13);
       ctx.fillStyle = rgba(COL.blue, 0.08); ctx.fill();

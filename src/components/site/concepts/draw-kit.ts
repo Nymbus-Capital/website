@@ -23,6 +23,8 @@ export type Align = "left" | "center" | "right";
 
 export interface Pen {
   font(weight: 400 | 500 | 600 | 700, size: number): void;
+  /** sets the largest font size (≤ size, ≥ min, 0.5 px steps) at which `s` fits in `maxW`; returns that size */
+  fit(s: string, maxW: number, weight: 400 | 500 | 600 | 700, size: number, min?: number): number;
   measure(s: string): number;
   text(s: string, x: number, y: number, maxW: number, align?: Align, color?: string): number;
   round(x: number, y: number, w: number, h: number, r: number): void;
@@ -45,6 +47,15 @@ export function makePen(ctx: CanvasRenderingContext2D): Pen {
   };
   return {
     font(weight, size) { ctx.font = `${weight} ${size}px ${SANS}`; },
+    fit(s, maxW, weight, size, min = 8) {
+      let z = size;
+      ctx.font = `${weight} ${z}px ${SANS}`;
+      while (z > min && measure(s) > maxW) {
+        z = Math.max(min, z - 0.5);
+        ctx.font = `${weight} ${z}px ${SANS}`;
+      }
+      return z;
+    },
     measure,
     text(s, x, y, maxW, align = "left", color) {
       if (color) ctx.fillStyle = color;
