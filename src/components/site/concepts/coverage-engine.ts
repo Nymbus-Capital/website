@@ -176,9 +176,9 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       if (step === 2) {
         const G = L.right.grid;
         ctx.globalAlpha = fade * span(p, 0.08, 0.16) * (1 - span(p, 0.46, 0.54));
-        pill(P, ctx, lab.otc, G.x + G.w / 2, G.y + G.h / 2, G.w * 0.94, COL.amber);
+        pill(P, ctx, lab.otc, G.x + G.w / 2, G.y + G.h / 2, L.right.inner.w - 8, COL.amber);
         ctx.globalAlpha = fade * span(p, 0.62, 0.7);
-        pill(P, ctx, lab.memory, G.x + G.w / 2, G.y + G.h / 2, G.w * 0.94, COL.blue);
+        pill(P, ctx, lab.memory, G.x + G.w / 2, G.y + G.h / 2, L.right.inner.w - 8, COL.blue);
       }
 
       drawTeam(ctx, P, lab, step, year, fade * fL);
@@ -241,12 +241,12 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   }
 
   function pill(P: Pen, ctx: CanvasRenderingContext2D, s: string, x: number, y: number, maxW: number, color: string) {
-    P.font(600, L.narrow ? 11 : 12.5);
-    const w = Math.min(P.measure(s) + 28, maxW);
+    P.font(600, L.narrow ? 10.5 : 12.5);
+    const w = Math.min(P.measure(s) + 24, maxW);
     P.round(x - w / 2, y - 15, w, 30, 15);
     ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.fill();
     ctx.strokeStyle = rgba(color, 0.5); ctx.lineWidth = 1; ctx.stroke();
-    P.text(s, x, y, w - 20, "center", color === COL.amber ? COL.orange : COL.blueD);
+    P.text(s, x, y, w - 16, "center", color === COL.amber ? COL.orange : COL.blueD);
   }
 
   /** The longest sector name that fits `maxW` (long, short, then abbreviation; fitted as a last resort). */

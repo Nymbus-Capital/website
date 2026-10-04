@@ -306,7 +306,7 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
 
     // margin buffers, sized to a potential one-day move (they widen with volatility)
     ctx.globalAlpha = f(2);
-    const by = nodeY + nodeR + (L.narrow ? 58 : 66);
+    const by = nodeY + nodeR + (L.narrow ? 70 : 66); // narrow: room for a two-line settlement message
     P.font(600, small);
     P.text(lab.buffer, R.x, by - 16, R.w * 0.6, "left", COL.ink);
     P.font(500, L.narrow ? 9.5 : 10.5);
