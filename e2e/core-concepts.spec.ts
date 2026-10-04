@@ -51,8 +51,9 @@ test("core concepts (EN): three panels drawn, advancing, labelled, with captions
   await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "≈180", "≈2,000", "≥ $200 MM"]);
   await expect(page.getByTestId("coverage-panel")).toContainText("Illustrative estimates");
   await expect(page.getByTestId("coverage-note")).toContainText(/over the counter/);
-  // concept 3 is a comparison: conventional team VS our systems
-  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["The universe", "Conventional team", "Our systems", "Side by side"]);
+  // concept 3 compares two methods on one shared graphic: conventional team, then our systems, then both
+  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["The universe", "Conventional team", "Our systems", "Compare"]);
+  await expect(page.getByTestId("coverage-host")).toHaveAttribute("aria-label", /comparing two methods/);
   for (const sec of await page.locator("section.cc-sec").all()) await expect(sec).not.toContainText(/\buncorrelated\b/i);
   expect(errors).toEqual([]);
 });
@@ -68,6 +69,7 @@ test("core concepts (FR): French headings, steps and captions", async ({ page, b
   await expect(page.getByTestId("futures-panel").locator(".cc-steps .t")).toHaveText(["Acheteur et vendeur", "Règlement quotidien", "Dépôt de garantie", "Un seul jour à risque"]);
   await page.getByTestId("coverage-panel").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("coverage-panel")).toContainText("Estimations illustratives");
+  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["L’univers", "Équipe conventionnelle", "Nos systèmes", "Comparaison"]);
 });
 
 test("nav and footer link to core concepts; jump links reach each concept", async ({ page, isMobile }) => {
@@ -269,8 +271,8 @@ test("still frame of every step, captured for review (e2e/screenshots/concepts-*
         const panel = page.getByTestId(`${id}-panel`);
         await panel.scrollIntoViewIfNeeded();
         await expect(panel).toHaveClass(/\bon\b/);
-        // FR: the last step only at desktop / mobile; every captured step at 360 px
-        const steps = locale === "fr" && size.tag !== "360" ? [3] : size.steps;
+        // FR: the last step only at desktop / mobile (all three acts of concept 3); every captured step at 360 px
+        const steps = locale === "fr" && size.tag !== "360" ? (id === "coverage" ? [1, 2, 3] : [3]) : size.steps;
         for (const k of steps) {
           await page.getByTestId(`${id}-step-${k}`).click();
           await expect(page.getByTestId(`${id}-host`)).toHaveAttribute("data-step", String(k));

@@ -17,8 +17,8 @@ import {
   futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
-  ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
-  gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
+  ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, FOCUS_IN, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
+  focusAt, gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
 
@@ -280,44 +280,57 @@ test("coverage: a team of six analysts × ~30 securities covers 180 bonds — a 
   assert.ok(all.length / UNIVERSE < 0.1, "under one bond in ten");
 });
 
-/** coverage canvas sizes: the CSS gives 480–560 px wide, 760 px under 760 px viewports (narrow layout under 700 px) */
-const COV_SIZES: [number, number][] = [[300, 760], [320, 760], [328, 760], [360, 760], [412, 760], [500, 760], [699, 760], [700, 480], [740, 760], [900, 480], [1150, 506], [1360, 560]];
+/** coverage canvas sizes: the CSS gives 480–560 px wide, 660 px under 760 px viewports (narrow layout under 700 px) */
+const COV_SIZES: [number, number][] = [[300, 660], [320, 660], [328, 660], [360, 660], [412, 660], [500, 660], [699, 660], [700, 480], [740, 660], [900, 480], [1150, 506], [1360, 560]];
+/** Rough Poppins advance per character (em) — semibold mixed case, semibold uppercase — to check labels fit without the canvas. */
+const EM = { mixed: 0.6, upper: 0.7 };
+const fitsAt = (s: string, size: number, maxW: number, em = EM.mixed) => s.length * em * size <= maxW;
+/** greedy word wrap at a size (the engine's wrap): the lines, each fitting maxW */
+function wrapAt(s: string, size: number, maxW: number, em = EM.mixed): string[] | null {
+  const out: string[] = [];
+  for (const w of s.split(" ")) {
+    const cur = out.length ? `${out[out.length - 1]} ${w}` : w;
+    if (out.length && fitsAt(cur, size, maxW, em)) out[out.length - 1] = cur; else out.push(w);
+  }
+  return out.every((ln) => fitsAt(ln, size, maxW, em)) ? out : null;
+}
 
-test("coverage: a VS comparison — two sides (side by side, stacked under 700 px) with the VS badge between, same grid on each side", () => {
+test("coverage: one large shared graphic (Gabriel 2026-10-04) — the methods column beside it (a strip above it under 700 px), VS between the two methods", () => {
   for (const [W, H] of COV_SIZES) {
     const L = coverageLayout(W, H);
-    const { left: A, right: B, vs } = L;
-    inside(A.panel, W, H, `left ${W}`);
-    inside(B.panel, W, H, `right ${W}`);
+    const { team: A, systems: B, vs, grid: G } = L;
+    for (const [k, r] of [["team", A], ["systems", B], ["grid", G]] as const) inside(r, W, H, `${k} ${W}`);
     if (!L.narrow) {
-      assert.ok(A.panel.x + A.panel.w + 2 * vs.r + 12 <= B.panel.x, `gutter ${W}`);
-      assert.ok(vs.x - vs.r > A.panel.x + A.panel.w && vs.x + vs.r < B.panel.x, `badge in the gutter ${W}`);
-      assert.ok(vs.y > A.panel.y && vs.y < A.panel.y + A.panel.h);
-      assert.equal(A.panel.y, B.panel.y);
+      // a column: team on top, VS, systems below, all left of the graphic
+      assert.equal(A.x, B.x);
+      assert.ok(A.y + A.h + 2 * vs.r + 8 <= B.y, `VS gap ${W}`);
+      assert.ok(vs.y - vs.r > A.y + A.h && vs.y + vs.r < B.y && Math.abs(vs.x - (A.x + A.w / 2)) < 0.01, `badge between the methods ${W}`);
+      assert.ok(A.x + A.w + 20 <= G.x - 6, `column left of the graphic ${W}`);
+      // the graphic is the large one: well over half of the canvas width (the VS split gave each side under half)
+      assert.ok(L.area.w >= 0.6 * W && G.w + L.depthX >= 0.48 * W, `graphic width ${W}: ${G.w}`);
+      assert.ok(L.cell >= 7, `cell ${W}: ${L.cell}`);
     } else {
-      assert.ok(A.panel.y + A.panel.h + 2 * vs.r + 4 <= B.panel.y, `gap ${W}`);
-      assert.ok(vs.y - vs.r > A.panel.y + A.panel.h && vs.y + vs.r < B.panel.y, `badge between ${W}`);
+      // a strip: team · VS · systems side by side, above the graphic
+      assert.equal(A.y, B.y);
+      assert.ok(A.x + A.w + 2 * vs.r + 2 <= B.x, `VS gap ${W}`);
+      assert.ok(vs.x - vs.r > A.x + A.w && vs.x + vs.r < B.x && vs.y > A.y && vs.y < A.y + A.h, `badge between ${W}`);
+      assert.ok(A.y + A.h + 10 <= L.titleY - 7, `strip above the graphic ${W}`);
+      assert.ok(G.w + L.depthX >= 0.8 * W, `graphic width ${W}: ${G.w}`);
+      assert.ok(L.cell >= 5.5, `cell ${W}: ${L.cell}`);
     }
-    // the same universe, the same grid, on both sides (a fair comparison)
-    assert.equal(A.rows, B.rows);
-    assert.ok(Math.abs(A.cell - B.cell) < 1e-9 && Math.abs(A.grid.w - B.grid.w) < 1e-9 && Math.abs(A.grid.h - B.grid.h) < 1e-9);
-    for (const [k, S] of [["left", A], ["right", B]] as const) {
-      const box = (r: { x: number; y: number; w: number; h: number }) => r.x >= S.panel.x - 0.01 && r.y >= S.panel.y - 0.01 && r.x + r.w <= S.panel.x + S.panel.w + 0.01 && r.y + r.h <= S.panel.y + S.panel.h + 0.01;
-      assert.ok(S.cell >= 3, `${k} cell ${W}: ${S.cell}`);
-      assert.equal(S.cols, sectorBlocks(S.rows).width);
-      assert.ok(sectorBlocks(S.rows).cols.reduce((a, c) => a + c, 0) * S.rows >= UNIVERSE);
-      for (const [n, r] of [["crew", S.crew], ["grid", S.grid], ["result", S.result]] as const) assert.ok(box(r), `${k} ${n} outside its panel at ${W}×${H}: ${JSON.stringify(r)}`);
-      // history sheets (right side's memory step) stay inside the panel
-      assert.ok(box({ x: S.grid.x - 6, y: S.grid.y - S.depthY - 6, w: S.grid.w + S.depthX + 12, h: S.grid.h + S.depthY + 12 }), `${k} sheets ${W}`);
-      assert.ok(S.crew.y + S.crew.h <= S.grid.y - S.depthY - 6 + 0.01 && S.grid.y + S.grid.h <= S.result.y);
-      const seen = new Set<string>();
-      for (let i = 0; i < UNIVERSE; i++) {
-        const c = cellOf(i, S);
-        assert.ok(c.x > S.grid.x && c.x < S.grid.x + S.grid.w && c.y > S.grid.y && c.y < S.grid.y + S.grid.h);
-        seen.add(`${c.x.toFixed(2)},${c.y.toFixed(2)}`);
-      }
-      assert.equal(seen.size, UNIVERSE);
+    // the rows drawn in each card fit inside it
+    const R = L.narrow ? CARD_ROWS.narrow : CARD_ROWS.wide;
+    assert.ok(R.team.bottom <= A.h && R.systems.bottom <= B.h, `card rows ${W}: ${A.h}`);
+    assert.equal(A.h, B.h);
+    assert.equal(L.cols, sectorBlocks(L.rows).width);
+    assert.ok(sectorBlocks(L.rows).cols.reduce((x, c) => x + c, 0) * L.rows >= UNIVERSE);
+    const seen = new Set<string>();
+    for (let i = 0; i < UNIVERSE; i++) {
+      const c = cellOf(i, L);
+      assert.ok(c.x > G.x && c.x < G.x + G.w && c.y > G.y && c.y < G.y + G.h);
+      seen.add(`${c.x.toFixed(2)},${c.y.toFixed(2)}`);
     }
+    assert.equal(seen.size, UNIVERSE);
   }
   // gridFit picks the rows that give the largest cells
   const f = gridFit(400, 260);
@@ -325,24 +338,76 @@ test("coverage: a VS comparison — two sides (side by side, stacked under 700 p
   assert.equal(COVERAGE_STEP_MS.length, 4);
 });
 
-test("coverage: steps read as a comparison — universe, conventional team, our systems, side by side", () => {
-  assert.deepEqual(CC.coverage.steps.map((s) => s.en), ["The universe", "Conventional team", "Our systems", "Side by side"]);
-  assert.deepEqual(CC.coverage.steps.map((s) => s.fr), ["L’univers", "Équipe conventionnelle", "Nos systèmes", "Côte à côte"]);
-  assert.equal(CC.coverage.canvas.team.en, "Conventional fundamental team");
-  assert.equal(CC.coverage.canvas.systems.en, "Our systems");
-  assert.equal(CC.coverage.canvas.vs.en, "VS");
-  assert.match(CC.coverage.alt.en, /side-by-side comparison/);
-  assert.match(CC.coverage.lead.en, /^A conventional team/);
-  // no more "one team: 150–180" as a step (Gabriel: confusing)
-  for (const s of CC.coverage.steps) assert.ok(!/150|180/.test(s.en + s.fr));
-  // each side keeps its moment: the team's year runs in step 2, the scan in step 3
+test("coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (35–45 %); both in the compare step", () => {
   const starts = stepStarts(COVERAGE_STEP_MS);
+  const at = (s: number, p: number) => focusAt(s, p);
+  // act 1: conventional team full, our systems faded; act 2: the reverse; compare: both
+  for (const p of [FOCUS_IN + 0.01, 0.5, 0.99]) {
+    const [t1, s1] = at(1, p), [t2, s2] = at(2, p), [t3, s3] = at(3, p);
+    assert.equal(t1, 1); assert.ok(s1 >= 0.35 && s1 <= 0.45, `${s1}`);
+    assert.equal(s2, 1); assert.ok(t2 >= 0.35 && t2 <= 0.45, `${t2}`);
+    assert.equal(t3, 1); assert.equal(s3, 1);
+  }
+  // the change is eased, never a jump: continuous across each step boundary
+  for (let s = 1; s < 4; s++) {
+    const end = at(s - 1, 1), start = at(s, 0);
+    assert.ok(Math.abs(end[0] - start[0]) < 1e-9 && Math.abs(end[1] - start[1]) < 1e-9, `boundary ${s}`);
+  }
+  assert.ok(COVERAGE_STEP_MS[1] >= 6000 && COVERAGE_STEP_MS[2] >= 6000, "each act has time to be read");
   assert.equal(stepAt(starts[1] + 10, COVERAGE_STEP_MS).step, 1);
-  assert.equal(stepAt(starts[2] + 10, COVERAGE_STEP_MS).step, 2);
-  assert.ok(COVERAGE_STEP_MS[1] >= 6000 && COVERAGE_STEP_MS[2] >= 6000, "each side has time to be read");
+  assert.equal(stepAt(starts[3] + 10, COVERAGE_STEP_MS).step, 3);
 });
 
-test("coverage: six named sector clusters on each side — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
+test("coverage: steps read as a comparison of two methods — universe, conventional team, our systems, compare", () => {
+  assert.deepEqual(CC.coverage.steps.map((s) => s.en), ["The universe", "Conventional team", "Our systems", "Compare"]);
+  assert.deepEqual(CC.coverage.steps.map((s) => s.fr), ["L’univers", "Équipe conventionnelle", "Nos systèmes", "Comparaison"]);
+  assert.equal(CC.coverage.canvas.team.en, "Conventional fundamental team");
+  assert.equal(CC.coverage.canvas.team.fr, "Équipe fondamentale conventionnelle");
+  assert.equal(CC.coverage.canvas.systems.en, "Our systems");
+  assert.equal(CC.coverage.canvas.systems.fr, "Nos systèmes");
+  assert.equal(CC.coverage.canvas.vs.en, "VS");
+  assert.equal(CC.coverage.canvas.vs.fr, "VS");
+  assert.match(CC.coverage.canvas.teamLegend.en, /≈180$/);
+  assert.match(CC.coverage.canvas.systemsLegend.en, /every liquid bond$/);
+  assert.match(CC.coverage.alt.en, /comparing two methods/);
+  assert.match(CC.coverage.alt.fr, /compare deux méthodes/);
+  assert.match(CC.coverage.lead.en, /^A conventional team/);
+  for (const s of CC.coverage.steps) assert.ok(!/150|180/.test(s.en + s.fr));
+});
+
+test("coverage: card labels fit (EN and FR) at every width — titles, scan claim, legends", () => {
+  for (const [W, H] of COV_SIZES) {
+    const L = coverageLayout(W, H);
+    const ip = L.narrow ? 8 : 14;
+    const w = L.team.w - 2 * ip;
+    for (const k of ["en", "fr"] as const) {
+      const c = CC.coverage.canvas;
+      if (L.narrow) {
+        for (const t of [c.team[k], c.systems[k]]) {
+          const lines = wrapAt(t, 8.5, w);
+          assert.ok(lines && lines.length <= 2, `${k} title "${t}" at ${W}: ${JSON.stringify(lines)}`);
+        }
+        const sc = wrapAt(c.scanned[k], 9, w);
+        assert.ok(sc && sc.length <= 3, `${k} scanned at ${W}`);
+        assert.ok(fitsAt(c.covered[k], 8, w), `${k} covered at ${W}`);
+      } else {
+        for (const t of [c.team[k].toUpperCase(), c.systems[k].toUpperCase()]) {
+          const lines = wrapAt(t, 9, w, EM.upper);
+          assert.ok(lines && lines.length <= 2, `${k} title "${t}" at ${W}`);
+        }
+        const sc = wrapAt(c.scanned[k], 10.5, w);
+        assert.ok(sc && sc.length <= 2, `${k} scanned at ${W}`);
+        const m = wrapAt(c.memory[k], 9, w);
+        assert.ok(m && m.length <= 2, `${k} memory at ${W}`);
+      }
+      // compare legend: two items, each fits the legend row on its own line
+      const maxW = L.grid.w + L.depthX - 12;
+      for (const s of [c.teamLegend[k], c.systemsLegend[k], c.below[k], c.liquid[k]]) assert.ok(fitsAt(s, L.narrow ? 10 : 11, maxW, 0.56), `${k} legend "${s}" at ${W}`);
+    }
+  }
+});
+
+test("coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
   assert.equal(CC.coverage.sectors.length, ANALYSTS);
   assert.deepEqual(CC.coverage.sectors.map((s) => s.long.en), [
     "Financials", "Technology & communications", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
@@ -351,7 +416,6 @@ test("coverage: six named sector clusters on each side — each analyst's bonds 
     for (const k of ["long", "short", "abbr"] as const) assert.ok(s[k].en.trim() && s[k].fr.trim());
     assert.ok(s.abbr.en.length <= 6 && s.abbr.fr.length <= 8, `abbreviation too long: ${s.abbr.en} / ${s.abbr.fr}`);
   }
-  // sectors are contiguous index ranges of about 333 bonds
   assert.equal(sectorStart(0), 0);
   assert.equal(sectorStart(ANALYSTS), UNIVERSE);
   for (let i = 0; i < UNIVERSE; i++) assert.ok(i >= sectorStart(sectorOf(i)) && i < sectorStart(sectorOf(i) + 1));
@@ -360,38 +424,34 @@ test("coverage: six named sector clusters on each side — each analyst's bonds 
   const longest = Math.max(...CC.coverage.sectors.flatMap((s) => [s.abbr.en.length, s.abbr.fr.length]));
   for (const [W, H] of COV_SIZES) {
     const L = coverageLayout(W, H);
-    for (const S of [L.left, L.right]) {
-      const bands = sectorLabelBoxes(S);
-      for (let i = 0; i < UNIVERSE; i++) {
-        const c = cellOf(i, S), b = bands[sectorOf(i)];
-        assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
-      }
-      for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= S.cell * 0.8, `gap ${s} at ${W}`);
-      // sector names: below the crew row, above the grid, wide enough for the abbreviation (≈5.6 px/char at 10 px, ≈4.8 at 9 px semibold)
-      const perChar = sectorFont(S) === 10 ? 5.6 : 4.8;
-      for (const [s, b] of bands.entries()) {
-        inside(b, W, H, `sector ${s} ${W}`);
-        assert.ok(b.y >= S.crew.y + S.crew.h, `sector label under the crew row at ${W}`);
-        assert.ok(b.y + b.h <= S.grid.y, `sector label above the grid at ${W}`);
-        assert.ok(b.w + 4 >= longest * perChar, `sector ${s} cluster too narrow at ${W}: ${b.w}`);
-      }
+    const bands = sectorLabelBoxes(L);
+    for (let i = 0; i < UNIVERSE; i++) {
+      const c = cellOf(i, L), b = bands[sectorOf(i)];
+      assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
     }
-    // the left side's 180 lit bonds sit in their analysts' clusters
-    const bands = sectorLabelBoxes(L.left);
-    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L.left); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
-    // crew row: the portfolio manager then six analysts inside it, each slot wide enough for the abbreviation (9 px)
-    const C = L.left.crew;
-    const pm = pmPos(L.left);
-    assert.ok(pm.x > C.x && pm.y > C.y && pm.y < C.y + C.h);
-    for (let a = 0; a < ANALYSTS; a++) {
-      const q = analystPos(L.left, a);
-      assert.ok(q.x > pm.x + 10 && q.x < C.x + C.w && q.y > C.y && q.y + 15 + 6 < C.y + C.h - 7 + 6, `analyst ${a} at ${W}`);
+    for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= L.cell * 0.8, `gap ${s} at ${W}`);
+    const perChar = sectorFont(L) === 10 ? 5.6 : 4.8;
+    for (const [s, b] of bands.entries()) {
+      inside(b, W, H, `sector ${s} ${W}`);
+      assert.ok(b.y >= L.titleY + 7, `sector label under the title row at ${W}`);
+      assert.ok(b.y + b.h <= L.grid.y, `sector label above the grid at ${W}`);
+      assert.ok(b.w + 4 >= longest * perChar, `sector ${s} cluster too narrow at ${W}: ${b.w}`);
     }
-    assert.ok(analystSlot(L.left) - 4 >= longest * 4.8, `analyst slot ${analystSlot(L.left)} at ${W}`);
+    // the team's 180 lit bonds sit in their analysts' clusters
+    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
+    // the portfolio manager and the six analysts sit inside the team card, under its title, apart from each other
+    const T = L.team, pm = pmPos(L);
+    const inCard = (q: { x: number; y: number }, r: number) => q.x - r >= T.x && q.x + r <= T.x + T.w && q.y - r >= T.y + (L.narrow ? CARD_ROWS.narrow.team.title2 + 6 : CARD_ROWS.wide.team.title2 + 6) && q.y + r <= T.y + T.h;
+    assert.ok(inCard(pm, L.narrow ? 6.5 : 9), `pm at ${W}`);
+    const nodes = Array.from({ length: ANALYSTS }, (_, a) => analystPos(L, a));
+    nodes.forEach((q, a) => assert.ok(inCard(q, 4), `analyst ${a} at ${W}`));
+    for (let a = 0; a < ANALYSTS; a++) for (let b2 = a + 1; b2 < ANALYSTS; b2++) assert.ok(Math.hypot(nodes[a].x - nodes[b2].x, nodes[a].y - nodes[b2].y) >= (L.narrow ? 9 : 14), `analysts ${a}/${b2} at ${W}`);
+    if (L.narrow) assert.ok(nodes[0].x - 4 > pm.x + 6.5, `pm clear of the analysts at ${W}`);
+    else assert.ok(analystSlot(L) - 16 >= longest * 5.6, `analyst names at ${W}`);
   }
 });
 
-test("coverage: texts and shapes never overlap (title, side titles, crew rows, grids and history sheets, results, VS badge, watermark)", () => {
+test("coverage: texts and shapes never overlap (methods, VS badge, title row, grid and history sheets, legend, watermark)", () => {
   for (const [W, H] of COV_SIZES) {
     const boxes = Object.entries(coverageLabelBoxes(W, H));
     for (const [k, b] of boxes) inside(b, W, H, `${k} ${W}`);

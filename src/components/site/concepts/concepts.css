@@ -14,7 +14,7 @@
 @media (max-width: 760px) {
   .cc-canvas-overlay { height: 640px; }
   .cc-canvas-futures { height: 690px; }
-  .cc-canvas-coverage { height: 760px; }
+  .cc-canvas-coverage { height: 660px; }
 }
 
 /* controls: play / pause and one button per step */
