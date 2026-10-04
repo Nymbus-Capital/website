@@ -159,14 +159,14 @@ export const CC = {
     panel: l("Ultra-micro analysis · Canadian investment-grade bonds", "Analyse ultra-micro · obligations canadiennes de qualité investissement"),
     chip: l("Illustrative estimates", "Estimations illustratives"),
     alt: l(
-      "Animated illustration, a side-by-side comparison of the same 2,000 or so dots standing for the Canadian investment-grade bond index, grouped by sector: on the left, a conventional fundamental team (a portfolio manager and six sector analysts) lights about 180 of them; on the right, our systems scan every liquid bond and keep layers of history in memory.",
-      `Illustration animée, une comparaison côte à côte des mêmes quelque 2${NB}000 points qui représentent l’indice obligataire canadien de qualité investissement, groupés par secteur${NB}: à gauche, une équipe fondamentale conventionnelle (un gestionnaire et six analystes sectoriels) en allume environ 180; à droite, nos systèmes balaient chaque obligation liquide et gardent des couches d’historique en mémoire.`,
+      "Animated illustration comparing two methods on the same 2,000 or so dots standing for the Canadian investment-grade bond index, grouped by sector: first, a conventional fundamental team (a portfolio manager and six sector analysts) lights about 180 of them; then our systems scan every liquid bond and keep layers of history in memory; last, both are compared.",
+      `Illustration animée qui compare deux méthodes sur les mêmes quelque 2${NB}000 points qui représentent l’indice obligataire canadien de qualité investissement, groupés par secteur${NB}: d’abord, une équipe fondamentale conventionnelle (un gestionnaire et six analystes sectoriels) en allume environ 180; ensuite, nos systèmes balaient chaque obligation liquide et gardent des couches d’historique en mémoire; enfin, les deux sont comparées.`,
     ),
     steps: [
       l("The universe", "L’univers"),
       l("Conventional team", "Équipe conventionnelle"),
       l("Our systems", "Nos systèmes"),
-      l("Side by side", "Côte à côte"),
+      l("Compare", "Comparaison"),
     ],
     stats: [
       { label: l("Securities per analyst per year", "Titres par analyste par an"), value: l("≈30", `≈${NB}30`) },
@@ -184,7 +184,6 @@ export const CC = {
     ),
     canvas: {
       pm: l("Portfolio manager", "Gestionnaire"),
-      pmShort: l("PM", "Gest."),
       perYear: l("≈30 securities a year each", `≈${NB}30 titres par an chacun`),
       covered: l("Covered in depth", "Suivis en profondeur"),
       of: l("of ≈2,000", `sur ≈${NB}2${NB}000`),
@@ -196,7 +195,10 @@ export const CC = {
       otc: l("Over the counter: scattered, opaque data", `Hors cote${NB}: données dispersées et opaques`),
       dot: l("Each dot: one bond", `Chaque point${NB}: une obligation`),
       team: l("Conventional fundamental team", "Équipe fondamentale conventionnelle"),
+      teamShort: l("Conventional team", "Équipe conventionnelle"),
       systems: l("Our systems", "Nos systèmes"),
+      teamLegend: l("Conventional team: ≈180", `Équipe conventionnelle${NB}: ≈${NB}180`),
+      systemsLegend: l("Our systems: every liquid bond", `Nos systèmes${NB}: chaque obligation liquide`),
       scan: l("Systematic scan", "Balayage systématique"),
       vs: l("VS", "VS"),
     },

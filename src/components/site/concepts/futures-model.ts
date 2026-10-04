@@ -9,10 +9,11 @@ import { clamp, gauss, hash01 } from "./timeline.ts";
 
 /**
  * Trading days per loop of the animation, and ms per day. Slowed down 2026-10-03 (Gabriel: "we have a hard time reading
- * the text … every day"): 5 s a day, so each daily settlement message stays on screen long enough to read twice.
+ * the text … every day", 1.25 s → 5 s), then sped up a little 2026-10-04 ("a tiny bit faster … but still slower than
+ * initially"): 3.75 s a day, each daily settlement message still held long enough to read once comfortably.
  */
 export const DAYS = 14;
-export const DAY_MS = 5000;
+export const DAY_MS = 3750;
 /**
  * Each day opens with a settlement pause: for this share of the day the price holds at the last close while the cash of
  * that close moves between the two sides; the market then trades for the rest of the day.
@@ -22,6 +23,8 @@ export const SETTLE_SHARE = 0.25;
 export const RULE_IN = 0.04, RULE_OUT = 0.06;
 /** Ms a reader needs per word of the settlement message (≈ 300 words a minute: short, repeated phrases). */
 export const READ_MS_PER_WORD = 200;
+/** Comfort margin over one read of the settlement message (it must be on screen ≥ this many reading times). */
+export const READ_MARGIN = 1.5;
 export const LOOP_MS = DAYS * DAY_MS;
 /** Four focus steps over one loop: long meets short · daily settlement · margin buffer · one day at risk. */
 export const FUTURES_STEP_MS = [LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4] as const;

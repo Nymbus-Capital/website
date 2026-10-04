@@ -291,7 +291,7 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       ctx.fillStyle = rgba(color, 0.8 * Math.sin(Math.PI * k));
       ctx.beginPath(); ctx.moveTo(ax, nodeY); ctx.lineTo(ax + 9 * dir, nodeY - 5); ctx.lineTo(ax + 9 * dir, nodeY + 5); ctx.closePath(); ctx.fill();
     }
-    // the payment rule, named after the close it settles: in with the coins, held for the whole day (long enough to read twice)
+    // the payment rule, named after the close it settles: in with the coins, held for the whole day (long enough to read comfortably)
     if (prev) {
       ctx.globalAlpha = ruleAlpha(u);
       P.font(600, L.narrow ? 10.5 : 11.5);

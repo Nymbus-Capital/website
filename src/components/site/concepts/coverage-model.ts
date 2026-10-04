@@ -1,13 +1,15 @@
 /**
- * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts), drawn as a
- * comparison (Gabriel 2026-10-03: "it's a VS"): two panels side by side (stacked on narrow screens) show the same
- * ≈2,000 dots of the Canadian investment-grade index, in six sector clusters. Left, a conventional fundamental team (one
- * portfolio manager, six sector analysts — financials, technology & communications, consumer, utilities & infrastructure,
- * energy, industrials — each covering about 30 securities a year in depth) lights 180 of them; right, our systems scan
- * every liquid bond (at least $200 MM outstanding) and keep the whole history in memory; a "VS" badge sits between.
+ * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts): one large shared
+ * graphic (≈2,000 dots of the Canadian investment-grade index, in six sector clusters) shown as a two-act comparison
+ * (Gabriel 2026-10-04: the earlier bigger shared graphic, "starts with conventional then turns to Nymbus systems").
+ * Act 1, a conventional fundamental team (one portfolio manager, six sector analysts — financials, technology &
+ * communications, consumer, utilities & infrastructure, energy, industrials — each covering about 30 securities a year in
+ * depth) lights 180 of them; act 2, our systems scan every liquid bond (at least $200 MM outstanding) and keep the whole
+ * history in memory; a last beat compares both. A methods column on the left (a strip on top on narrow screens) stacks
+ * the two methods with a "VS" badge between them: the method on the graphic is highlighted, the other faded.
  * The figures are Gabriel's illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
  */
-import { hash01 } from "./timeline.ts";
+import { ease, hash01, span } from "./timeline.ts";
 
 /** About 2,000 bonds in the Canadian investment-grade index (illustrative estimate). */
 export const UNIVERSE = 2000;
@@ -20,8 +22,8 @@ export const TEAM_RANGE = [150, 180] as const;
 export const LIQUID_MIN_MM = 200;
 /** History layers drawn behind the grid for the memory step. */
 export const LAYERS = 6;
-/** Steps: the universe (both panels) · conventional team (left) · our systems: scan then memory (right) · side by side. */
-export const COVERAGE_STEP_MS = [3600, 7000, 8000, 6000] as const;
+/** Steps: the universe · act 1, conventional team · act 2, our systems (scan, then memory) · compare. */
+export const COVERAGE_STEP_MS = [3600, 7000, 8000, 6500] as const;
 
 export interface Bond {
   i: number;
@@ -95,90 +97,113 @@ export function gridFit(w: number, h: number): { rows: number; cols: number; cel
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
-/** One side of the comparison: its frame, title row, crew row (team or systems), dot grid with history room, result row. */
-export interface Side {
-  panel: Rect;
-  inner: Rect;
-  titleY: number;
-  crew: Rect;
-  grid: Rect;
-  cell: number;
-  rows: number;
-  cols: number;
-  depthX: number;
-  depthY: number;
-  result: Rect;
-}
+/**
+ * Opacity of each method in the methods column, per step: [conventional team, our systems]. The universe step shows
+ * both softly; each act highlights its method and fades the other (half strength); the compare step shows both fully.
+ */
+export const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1]];
+/** Share of a step over which the column's focus eases to that step's. */
+export const FOCUS_IN = 0.08;
 
-/** Height of the crew row: nodes, names under them, a third line (year progress / legend). */
-export const CREW_H = 46;
-
-function side(panel: Rect, narrow: boolean): Side {
-  const ip = narrow ? 8 : 12;
-  const inner: Rect = { x: panel.x + ip, y: panel.y + 8, w: panel.w - 2 * ip, h: panel.h - 16 };
-  const titleY = inner.y + 7;
-  const crew: Rect = { x: inner.x, y: inner.y + 18, w: inner.w, h: CREW_H };
-  const resultH = narrow ? 34 : 38;
-  // room right of / above the grid for the history sheets (memory step, right panel; the left grid sits identically)
-  const depthX = Math.round(Math.max(14, Math.min(56, inner.w * 0.1))), depthY = narrow ? 14 : 22;
-  const gTop = crew.y + crew.h + 8 + depthY;
-  const gH = inner.y + inner.h - resultH - 8 - gTop;
-  const fit = gridFit(inner.w - depthX, gH);
-  const gw = fit.cell * fit.cols, gh = fit.cell * fit.rows;
-  const grid: Rect = { x: inner.x + (inner.w - depthX - gw) / 2, y: gTop + (gH - gh) / 2, w: gw, h: gh };
-  const result: Rect = { x: inner.x, y: grid.y + gh + 8, w: inner.w, h: resultH };
-  return { panel, inner, titleY, crew, grid, cell: fit.cell, rows: fit.rows, cols: fit.cols, depthX, depthY, result };
+/** Opacity of [team, systems] at progress p of `step`, eased from `from` (the opacities last drawn). */
+export function focusFrom(from: readonly [number, number], step: number, p: number): [number, number] {
+  const to = FOCUS[step], k = ease(span(p, 0, FOCUS_IN));
+  return [from[0] + (to[0] - from[0]) * k, from[1] + (to[1] - from[1]) * k];
 }
 
 /**
- * Layout: a title row across the canvas (universe · each dot), then the two sides — side by side with the VS badge in the
- * gutter (wide), or stacked with the badge between them (narrow, under 700 px) — and the watermark row.
+ * A focus tracker for one scene: called once per drawn frame with (step, p); when the step changes (played through or
+ * jumped to with the step buttons, or restarted) it eases from whatever was last drawn, so the column never jumps.
+ */
+export function focusTracker(): (step: number, p: number) => [number, number] {
+  let step = -1, lastP = 0, from: readonly [number, number] = FOCUS[0], last: [number, number] = [FOCUS[0][0], FOCUS[0][1]];
+  return (s, p) => {
+    // a new step, or the same step restarted (time went back): ease from what is on screen
+    if (s !== step || p < lastP - 1e-9) { from = last; step = s; }
+    lastP = p;
+    last = focusFrom(from, s, p);
+    return last;
+  };
+}
+
+/** Rows inside a method card (offsets from its top); the engine draws on them and the tests check they fit. */
+export const CARD_ROWS = {
+  wide: {
+    team: { title: 14, title2: 28, pm: 50, analysts: [74, 90, 106], perYear: 128, bar: 138, result: 166, bottom: 184 },
+    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 128, memory2: 142, bottom: 150 },
+  },
+  narrow: {
+    team: { title: 13, title2: 26, crew: 45, result: 72, result2: 91, bottom: 100 },
+    systems: { title: 13, title2: 26, crew: 45, result: 72, result2: 87, result3a: 64, result3b: 78, result3c: 92, bottom: 100 },
+  },
+} as const;
+
+/**
+ * Layout. Wide (≥ 700 px): the methods column on the left — the conventional team's card on top, the VS badge, our
+ * systems' card below — and the large shared graphic beside it. Narrow: the same two cards side by side in a strip on
+ * top with the badge between them, the graphic below. The graphic: a title row, the sector names, room above and right
+ * of the grid for the history sheets (memory), the dot grid, a two-line legend, then the watermark row.
  */
 export function coverageLayout(W: number, H: number) {
   const narrow = W < 700;
   const pad = narrow ? 14 : 24;
   const foot = 26;
-  const titleY = narrow ? 14 : 16;
-  const top = titleY + 14;
-  const bottom = H - foot - 4;
-  let left: Rect, right: Rect, vs: { x: number; y: number; r: number };
+  let team: Rect, systems: Rect, vs: { x: number; y: number; r: number }, area: Rect, column: Rect;
   if (!narrow) {
-    const gut = 64;
-    const pw = (W - 2 * pad - gut) / 2;
-    left = { x: pad, y: top, w: pw, h: bottom - top };
-    right = { x: pad + pw + gut, y: top, w: pw, h: bottom - top };
-    vs = { x: W / 2, y: 0, r: 22 };
+    const tw = Math.round(Math.max(196, Math.min(272, W * 0.23)));
+    const top = 14, bottom = H - foot - 8;
+    column = { x: pad, y: top, w: tw, h: bottom - top };
+    const gap = 54;
+    const ch = Math.min(CARD_ROWS.wide.team.bottom + 18, column.h - gap - CARD_ROWS.wide.systems.bottom - 8);
+    // our systems' card is as tall as its rows (no empty space); the VS badge sits in the gap, the pair centred in the column
+    const sh = CARD_ROWS.wide.systems.bottom + 8;
+    const y0 = top + Math.max(0, (column.h - (ch + gap + sh)) / 2);
+    team = { x: pad, y: y0, w: tw, h: ch };
+    systems = { x: pad, y: y0 + ch + gap, w: tw, h: sh };
+    vs = { x: pad + tw / 2, y: y0 + ch + gap / 2, r: 19 };
+    area = { x: pad + tw + 32, y: 14, w: W - pad - (pad + tw + 32), h: H - foot - 14 - 6 };
   } else {
-    const gut = 40;
-    const ph = (bottom - top - gut) / 2;
-    left = { x: pad, y: top, w: W - 2 * pad, h: ph };
-    right = { x: pad, y: top + ph + gut, w: W - 2 * pad, h: ph };
-    vs = { x: W / 2, y: top + ph + gut / 2, r: 17 };
+    const gut = 38, top = 12, ch = CARD_ROWS.narrow.team.bottom + 6;
+    const cw = (W - 2 * pad - gut) / 2;
+    team = { x: pad, y: top, w: cw, h: ch };
+    systems = { x: pad + cw + gut, y: top, w: cw, h: ch };
+    vs = { x: W / 2, y: top + ch / 2, r: 15 };
+    column = { x: pad, y: top, w: W - 2 * pad, h: ch };
+    const ay = top + ch + 14;
+    area = { x: pad, y: ay, w: W - 2 * pad, h: H - foot - ay - 6 };
   }
-  const L = side(left, narrow), R = side(right, narrow);
-  if (!narrow) vs.y = L.grid.y + L.grid.h / 2;
-  return { narrow, pad, foot, titleY, left: L, right: R, vs };
+  // graphic: title row, sector-name row (inside the history room on wide screens), history room, grid, legend (two lines)
+  const titleY = area.y + 4;
+  const legendH = 32;
+  const top = narrow ? 30 : 18;
+  const depthX = narrow ? 22 : Math.round(Math.max(40, Math.min(96, area.w * 0.1))), depthY = narrow ? 10 : 30;
+  const gArea: Rect = { x: area.x, y: area.y + top, w: area.w, h: area.h - top - legendH };
+  const fit = gridFit(gArea.w - depthX, gArea.h - depthY);
+  const cell = fit.cell, rows = fit.rows, cols = fit.cols;
+  const gw = cell * cols, gh = cell * rows;
+  const grid: Rect = { x: gArea.x + (gArea.w - depthX - gw) / 2, y: gArea.y + depthY + (gArea.h - depthY - gh) / 2, w: gw, h: gh };
+  const legendY = grid.y + gh + 15;
+  return { narrow, pad, foot, column, team, systems, vs, area, grid, cell, cols, rows, depthX, depthY, titleY, legendY, legendH };
 }
 
-/** Boxes of the texts and shapes around the grids (unit-tested apart: they never overlap). */
+export type CoverageLayout = ReturnType<typeof coverageLayout>;
+
+/** Boxes of the texts and shapes of the scene (unit-tested apart: they never overlap). */
 export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {
   const L = coverageLayout(W, H);
-  const boxes: Record<string, Rect> = {
-    title: { x: L.pad, y: L.titleY - 7, w: W - 2 * L.pad, h: 14 },
-    vs: { x: L.vs.x - L.vs.r - 6, y: L.vs.y - L.vs.r - 6, w: 2 * L.vs.r + 12, h: 2 * L.vs.r + 12 },
+  return {
+    team: L.team,
+    systems: L.systems,
+    vs: { x: L.vs.x - L.vs.r - 4, y: L.vs.y - L.vs.r - 4, w: 2 * L.vs.r + 8, h: 2 * L.vs.r + 8 },
+    title: { x: L.grid.x, y: L.titleY - 7, w: L.grid.w, h: 14 },
+    // the grid and its history sheets (drawn 6 px around the grid, up to depthX right and depthY up)
+    grid: { x: L.grid.x - 6, y: L.grid.y - L.depthY - 6, w: L.grid.w + L.depthX + 12, h: L.grid.h + L.depthY + 12 },
+    legend: { x: L.grid.x, y: L.legendY - 7, w: L.grid.w + L.depthX, h: 28 },
     watermark: { x: L.pad, y: H - 20, w: Math.min(W - 2 * L.pad, 190), h: 14 },
   };
-  for (const [k, S] of [["left", L.left], ["right", L.right]] as const) {
-    boxes[`${k}Title`] = { x: S.inner.x, y: S.titleY - 7, w: S.inner.w, h: 14 };
-    boxes[`${k}Crew`] = S.crew;
-    // the grid and its history sheets (drawn 6 px around the grid, up to depthX right and depthY up)
-    boxes[`${k}Grid`] = { x: S.grid.x - 6, y: S.grid.y - S.depthY - 6, w: S.grid.w + S.depthX + 12, h: S.grid.h + S.depthY + 12 };
-    boxes[`${k}Result`] = S.result;
-  }
-  return boxes;
 }
 
-/** Cell centre of universe position i in a side's grid: column-major inside its sector's cluster. */
+/** Cell centre of universe position i: column-major inside its sector's cluster. */
 export function cellOf(i: number, g: { grid: Rect; cell: number; rows: number }): { x: number; y: number } {
   const s = sectorOf(i), j = i - sectorStart(s);
   const c = sectorBlocks(g.rows).start[s] + Math.floor(j / g.rows), r = j % g.rows;
@@ -194,13 +219,21 @@ export function sectorLabelBoxes(g: { grid: Rect; cell: number; rows: number }):
 /** Font size of the sector names above the clusters: 10 px when the narrowest cluster has room, else 9 px. */
 export const sectorFont = (g: { cell: number; rows: number }): number => (Math.min(...sectorBlocks(g.rows).cols) * g.cell >= 44 ? 10 : 9);
 
-/** Left side: the portfolio manager's node at the start of the crew row. */
-export const pmPos = (S: { crew: Rect }): { x: number; y: number } => ({ x: S.crew.x + 10, y: S.crew.y + 9 });
+/** The portfolio manager's node in the team card (wide: its own row with the title; narrow: start of the crew row). */
+export function pmPos(L: { narrow: boolean; team: Rect }): { x: number; y: number } {
+  const T = L.team;
+  return L.narrow ? { x: T.x + 16, y: T.y + CARD_ROWS.narrow.team.crew } : { x: T.x + 22, y: T.y + CARD_ROWS.wide.team.pm };
+}
 
-/** Left side: the slot width of each analyst in the crew row (after the portfolio manager). */
-export const analystSlot = (S: { crew: Rect }): number => (S.crew.w - 28) / ANALYSTS;
+/** Width of one analyst's slot: wide, a column of the 2 × 3 analyst list; narrow, a dot of the crew row. */
+export function analystSlot(L: { narrow: boolean; team: Rect }): number {
+  return L.narrow ? (L.team.w - 34) / ANALYSTS : (L.team.w - 24) / 2;
+}
 
-/** Left side: analyst a's node in the crew row; the sector name sits under it (y + 15). */
-export function analystPos(S: { crew: Rect }, a: number): { x: number; y: number } {
-  return { x: S.crew.x + 28 + analystSlot(S) * (a + 0.5), y: S.crew.y + 9 };
+/** Analyst a's node: wide, in a 2 × 3 list (dot, then the sector name to its right); narrow, a dot in the crew row. */
+export function analystPos(L: { narrow: boolean; team: Rect }, a: number): { x: number; y: number } {
+  const T = L.team;
+  if (L.narrow) return { x: T.x + 30 + analystSlot(L) * (a + 0.5), y: T.y + CARD_ROWS.narrow.team.crew };
+  const col = a % 2, row = Math.floor(a / 2);
+  return { x: T.x + 18 + col * analystSlot(L), y: T.y + CARD_ROWS.wide.team.analysts[row] };
 }
