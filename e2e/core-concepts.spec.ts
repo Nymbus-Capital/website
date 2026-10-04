@@ -51,6 +51,8 @@ test("core concepts (EN): three panels drawn, advancing, labelled, with captions
   await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "150–180", "≈2,000", "≥ $200 MM"]);
   await expect(page.getByTestId("coverage-panel")).toContainText("Illustrative estimates");
   await expect(page.getByTestId("coverage-note")).toContainText(/over the counter/);
+  // concept 3 is a comparison: conventional team VS our systems
+  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["The universe", "Conventional team", "Our systems", "Side by side"]);
   for (const sec of await page.locator("section.cc-sec").all()) await expect(sec).not.toContainText(/\buncorrelated\b/i);
   expect(errors).toEqual([]);
 });

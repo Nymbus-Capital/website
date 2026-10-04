@@ -1,9 +1,10 @@
 /**
- * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts). About 2,000
- * dots stand for the bonds of the Canadian investment-grade index, grouped in six sector clusters; a fundamental team
- * (one portfolio manager, six sector analysts — financials, technology & communications, consumer, utilities & infrastructure,
- * energy, industrials — each covering about 30 securities a year in depth) lights 180 of them; a systematic scan then
- * reviews every liquid bond (at least $200 MM outstanding) and keeps the whole history in memory.
+ * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts), drawn as a
+ * comparison (Gabriel 2026-10-03: "it's a VS"): two panels side by side (stacked on narrow screens) show the same
+ * ≈2,000 dots of the Canadian investment-grade index, in six sector clusters. Left, a conventional fundamental team (one
+ * portfolio manager, six sector analysts — financials, technology & communications, consumer, utilities & infrastructure,
+ * energy, industrials — each covering about 30 securities a year in depth) lights 180 of them; right, our systems scan
+ * every liquid bond (at least $200 MM outstanding) and keep the whole history in memory; a "VS" badge sits between.
  * The figures are Gabriel's illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
  */
 import { hash01 } from "./timeline.ts";
@@ -19,8 +20,8 @@ export const TEAM_RANGE = [150, 180] as const;
 export const LIQUID_MIN_MM = 200;
 /** History layers drawn behind the grid for the memory step. */
 export const LAYERS = 6;
-/** Steps: universe · one team · systematic scan · memory across history. */
-export const COVERAGE_STEP_MS = [3200, 6400, 4600, 5600] as const;
+/** Steps: the universe (both panels) · conventional team (left) · our systems: scan then memory (right) · side by side. */
+export const COVERAGE_STEP_MS = [3600, 7000, 8000, 6000] as const;
 
 export interface Bond {
   i: number;
@@ -81,80 +82,125 @@ export function sectorBlocks(rows: number): { start: number[]; cols: number[]; w
   return { start, cols, width: x };
 }
 
-/** Grid shape for a canvas width: wide 40 rows, narrow 50 rows; `cols` is the width in cells, sector gaps included. */
-export function gridShape(W: number): { cols: number; rows: number } {
-  const rows = W < 700 ? 50 : 40;
-  return { cols: sectorBlocks(rows).width, rows };
+/** Rows that give the largest cells for a grid area of w × h (sector gaps included in the width). */
+export function gridFit(w: number, h: number): { rows: number; cols: number; cell: number } {
+  let best = { rows: 40, cols: sectorBlocks(40).width, cell: 0 };
+  for (let rows = 16; rows <= 64; rows++) {
+    const cols = sectorBlocks(rows).width;
+    const cell = Math.min(w / cols, h / rows);
+    if (cell > best.cell + 1e-9) best = { rows, cols, cell };
+  }
+  return best;
 }
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
-/** Boxes of the texts drawn around the grid (team line or panel, grid title, legend, watermark): unit-tested apart. */
-export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {
-  const L = coverageLayout(W, H);
-  const boxes: Record<string, Rect> = {
-    title: { x: L.grid.x, y: L.titleY - 7, w: L.grid.w, h: 14 },
-    grid: { x: L.grid.x - 6, y: L.grid.y - L.depthY - 6, w: L.grid.w + L.depthX + 12, h: L.grid.h + L.depthY + 12 },
-    legend: { x: L.grid.x, y: L.legendY - 7, w: L.grid.w, h: 14 },
-    watermark: { x: L.pad, y: H - 20, w: Math.min(W - 2 * L.pad, 190), h: 14 },
-  };
-  if (L.narrow) boxes.team = { x: L.team.x, y: L.team.y, w: L.team.w, h: L.team.h };
-  return boxes;
+/** One side of the comparison: its frame, title row, crew row (team or systems), dot grid with history room, result row. */
+export interface Side {
+  panel: Rect;
+  inner: Rect;
+  titleY: number;
+  crew: Rect;
+  grid: Rect;
+  cell: number;
+  rows: number;
+  cols: number;
+  depthX: number;
+  depthY: number;
+  result: Rect;
 }
 
-/** Layout: team panel on the left (a row on top on narrow screens), the dot grid beside (below). */
+/** Height of the crew row: nodes, names under them, a third line (year progress / legend). */
+export const CREW_H = 46;
+
+function side(panel: Rect, narrow: boolean): Side {
+  const ip = narrow ? 8 : 12;
+  const inner: Rect = { x: panel.x + ip, y: panel.y + 8, w: panel.w - 2 * ip, h: panel.h - 16 };
+  const titleY = inner.y + 7;
+  const crew: Rect = { x: inner.x, y: inner.y + 18, w: inner.w, h: CREW_H };
+  const resultH = narrow ? 34 : 38;
+  // room right of / above the grid for the history sheets (memory step, right panel; the left grid sits identically)
+  const depthX = Math.round(Math.max(14, Math.min(56, inner.w * 0.1))), depthY = narrow ? 14 : 22;
+  const gTop = crew.y + crew.h + 8 + depthY;
+  const gH = inner.y + inner.h - resultH - 8 - gTop;
+  const fit = gridFit(inner.w - depthX, gH);
+  const gw = fit.cell * fit.cols, gh = fit.cell * fit.rows;
+  const grid: Rect = { x: inner.x + (inner.w - depthX - gw) / 2, y: gTop + (gH - gh) / 2, w: gw, h: gh };
+  const result: Rect = { x: inner.x, y: grid.y + gh + 8, w: inner.w, h: resultH };
+  return { panel, inner, titleY, crew, grid, cell: fit.cell, rows: fit.rows, cols: fit.cols, depthX, depthY, result };
+}
+
+/**
+ * Layout: a title row across the canvas (universe · each dot), then the two sides — side by side with the VS badge in the
+ * gutter (wide), or stacked with the badge between them (narrow, under 700 px) — and the watermark row.
+ */
 export function coverageLayout(W: number, H: number) {
   const narrow = W < 700;
   const pad = narrow ? 14 : 24;
   const foot = 26;
-  const { cols, rows } = gridShape(W);
-  let team: Rect, area: Rect;
+  const titleY = narrow ? 14 : 16;
+  const top = titleY + 14;
+  const bottom = H - foot - 4;
+  let left: Rect, right: Rect, vs: { x: number; y: number; r: number };
   if (!narrow) {
-    const tw = Math.round(Math.max(170, Math.min(250, W * 0.22)));
-    team = { x: pad, y: 18, w: tw, h: H - foot - 18 - 8 };
-    area = { x: pad + tw + 28, y: 14, w: W - pad - (pad + tw + 28), h: H - foot - 14 - 28 };
+    const gut = 64;
+    const pw = (W - 2 * pad - gut) / 2;
+    left = { x: pad, y: top, w: pw, h: bottom - top };
+    right = { x: pad + pw + gut, y: top, w: pw, h: bottom - top };
+    vs = { x: W / 2, y: 0, r: 22 };
   } else {
-    team = { x: pad, y: 12, w: W - 2 * pad, h: 92 };
-    area = { x: pad, y: 12 + 92 + 12, w: W - 2 * pad, h: H - foot - (12 + 92 + 12) - 28 };
+    const gut = 40;
+    const ph = (bottom - top - gut) / 2;
+    left = { x: pad, y: top, w: W - 2 * pad, h: ph };
+    right = { x: pad, y: top + ph + gut, w: W - 2 * pad, h: ph };
+    vs = { x: W / 2, y: top + ph + gut / 2, r: 17 };
   }
-  // the grid title row is anchored to the top of the grid area; the grid (and its history sheets) start below it
-  const titleY = area.y + 4;
-  // narrow: an extra row for the sector names above the grid (wide: they sit in the history sheets' room)
-  const top = narrow ? 30 : 18;
-  const gArea: Rect = { x: area.x, y: area.y + top, w: area.w, h: area.h - top };
-  // room to the right of (and above) the grid for the history layers of the memory step: sheets stacked in depth
-  const depthX = narrow ? 22 : 96, depthY = narrow ? 10 : 30;
-  const cell = Math.max(3, Math.min((gArea.w - depthX) / cols, (gArea.h - depthY) / rows));
-  const gw = cell * cols, gh = cell * rows;
-  const grid: Rect = { x: gArea.x + (gArea.w - depthX - gw) / 2, y: gArea.y + depthY + (gArea.h - depthY - gh) / 2, w: gw, h: gh };
-  // filter legend under the grid, never in the watermark row
-  const legendY = Math.min(grid.y + gh + 15, H - foot - 12);
-  return { narrow, pad, foot, team, area, grid, cell, cols, rows, depthX, depthY, titleY, legendY };
+  const L = side(left, narrow), R = side(right, narrow);
+  if (!narrow) vs.y = L.grid.y + L.grid.h / 2;
+  return { narrow, pad, foot, titleY, left: L, right: R, vs };
 }
 
-/** Cell centre of universe position i: column-major inside its sector's cluster. */
+/** Boxes of the texts and shapes around the grids (unit-tested apart: they never overlap). */
+export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {
+  const L = coverageLayout(W, H);
+  const boxes: Record<string, Rect> = {
+    title: { x: L.pad, y: L.titleY - 7, w: W - 2 * L.pad, h: 14 },
+    vs: { x: L.vs.x - L.vs.r - 6, y: L.vs.y - L.vs.r - 6, w: 2 * L.vs.r + 12, h: 2 * L.vs.r + 12 },
+    watermark: { x: L.pad, y: H - 20, w: Math.min(W - 2 * L.pad, 190), h: 14 },
+  };
+  for (const [k, S] of [["left", L.left], ["right", L.right]] as const) {
+    boxes[`${k}Title`] = { x: S.inner.x, y: S.titleY - 7, w: S.inner.w, h: 14 };
+    boxes[`${k}Crew`] = S.crew;
+    // the grid and its history sheets (drawn 6 px around the grid, up to depthX right and depthY up)
+    boxes[`${k}Grid`] = { x: S.grid.x - 6, y: S.grid.y - S.depthY - 6, w: S.grid.w + S.depthX + 12, h: S.grid.h + S.depthY + 12 };
+    boxes[`${k}Result`] = S.result;
+  }
+  return boxes;
+}
+
+/** Cell centre of universe position i in a side's grid: column-major inside its sector's cluster. */
 export function cellOf(i: number, g: { grid: Rect; cell: number; rows: number }): { x: number; y: number } {
   const s = sectorOf(i), j = i - sectorStart(s);
   const c = sectorBlocks(g.rows).start[s] + Math.floor(j / g.rows), r = j % g.rows;
   return { x: g.grid.x + (c + 0.5) * g.cell, y: g.grid.y + (r + 0.5) * g.cell };
 }
 
-/** Sector name boxes above each cluster (centre x, width of the cluster), on the row just above the grid. */
+/** Sector name boxes above each cluster (x and width of the cluster), on the row just above the grid. */
 export function sectorLabelBoxes(g: { grid: Rect; cell: number; rows: number }): Rect[] {
   const B = sectorBlocks(g.rows);
   return B.start.map((c, s) => ({ x: g.grid.x + c * g.cell, y: g.grid.y - 16, w: B.cols[s] * g.cell, h: 13 }));
 }
 
-/** Position of analyst a's node in the team panel (a row on narrow screens, a column on wide ones). */
-export function analystPos(L: { narrow: boolean; team: Rect }, a: number): { x: number; y: number } {
-  const T = L.team;
-  if (L.narrow) {
-    const x0 = T.x + 44, w = T.w - 44;
-    return { x: x0 + (w / ANALYSTS) * (a + 0.5), y: T.y + 40 };
-  }
-  const top = T.y + 92, gap = Math.min(30, (T.h * 0.42) / ANALYSTS);
-  return { x: T.x + 20, y: top + a * gap };
-}
+/** Font size of the sector names above the clusters: 10 px when the narrowest cluster has room, else 9 px. */
+export const sectorFont = (g: { cell: number; rows: number }): number => (Math.min(...sectorBlocks(g.rows).cols) * g.cell >= 44 ? 10 : 9);
 
-/** Narrow screens: the slot width of each analyst's short sector label under its node. */
-export const analystSlot = (L: { team: Rect }): number => (L.team.w - 44) / ANALYSTS;
+/** Left side: the portfolio manager's node at the start of the crew row. */
+export const pmPos = (S: { crew: Rect }): { x: number; y: number } => ({ x: S.crew.x + 10, y: S.crew.y + 9 });
+
+/** Left side: the slot width of each analyst in the crew row (after the portfolio manager). */
+export const analystSlot = (S: { crew: Rect }): number => (S.crew.w - 28) / ANALYSTS;
+
+/** Left side: analyst a's node in the crew row; the sector name sits under it (y + 15). */
+export function analystPos(S: { crew: Rect }, a: number): { x: number; y: number } {
+  return { x: S.crew.x + 28 + analystSlot(S) * (a + 0.5), y: S.crew.y + 9 };
+}

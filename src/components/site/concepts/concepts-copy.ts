@@ -153,20 +153,20 @@ export const CC = {
     title: l("Why machines", "Pourquoi les machines"),
     accent: l("see more", "en voient plus"),
     lead: l(
-      "One team covers a fraction of the bond universe in depth. Our systems review every liquid bond, every day.",
-      "Une équipe suit en profondeur une fraction de l’univers obligataire. Nos systèmes examinent chaque obligation liquide, chaque jour.",
+      "A conventional team covers a fraction of the bond universe in depth. Our systems review every liquid bond, every day.",
+      "Une équipe conventionnelle suit en profondeur une fraction de l’univers obligataire. Nos systèmes examinent chaque obligation liquide, chaque jour.",
     ),
     panel: l("Ultra-micro analysis · Canadian investment-grade bonds", "Analyse ultra-micro · obligations canadiennes de qualité investissement"),
     chip: l("Illustrative estimates", "Estimations illustratives"),
     alt: l(
-      "Animated illustration: about 2,000 dots stand for the Canadian investment-grade bond index, grouped by sector; six sector analysts light about 180 of them; a systematic scan then lights every liquid bond, across layers of history.",
-      `Illustration animée${NB}: environ 2${NB}000 points représentent l’indice obligataire canadien de qualité investissement, groupés par secteur; six analystes sectoriels en allument environ 180; un balayage systématique allume ensuite chaque obligation liquide, sur des couches d’historique.`,
+      "Animated illustration, a side-by-side comparison of the same 2,000 or so dots standing for the Canadian investment-grade bond index, grouped by sector: on the left, a conventional fundamental team (a portfolio manager and six sector analysts) lights about 180 of them; on the right, our systems scan every liquid bond and keep layers of history in memory.",
+      `Illustration animée, une comparaison côte à côte des mêmes quelque 2${NB}000 points qui représentent l’indice obligataire canadien de qualité investissement, groupés par secteur${NB}: à gauche, une équipe fondamentale conventionnelle (un gestionnaire et six analystes sectoriels) en allume environ 180; à droite, nos systèmes balaient chaque obligation liquide et gardent des couches d’historique en mémoire.`,
     ),
     steps: [
-      l("≈2,000 bonds", `≈${NB}2${NB}000 obligations`),
-      l("One team: 150–180", `Une équipe${NB}: 150 à 180`),
-      l("Systematic scan", "Balayage systématique"),
-      l("Full history, remembered", "Tout l’historique, en mémoire"),
+      l("The universe", "L’univers"),
+      l("Conventional team", "Équipe conventionnelle"),
+      l("Our systems", "Nos systèmes"),
+      l("Side by side", "Côte à côte"),
     ],
     stats: [
       { label: l("Securities per analyst per year", "Titres par analyste par an"), value: l("≈30", `≈${NB}30`) },
@@ -184,7 +184,7 @@ export const CC = {
     ),
     canvas: {
       pm: l("Portfolio manager", "Gestionnaire"),
-      analyst: l("One analyst per sector", "Un analyste par secteur"),
+      pmShort: l("PM", "Gest."),
       perYear: l("≈30 securities a year each", `≈${NB}30 titres par an chacun`),
       covered: l("Covered in depth", "Suivis en profondeur"),
       of: l("of ≈2,000", `sur ≈${NB}2${NB}000`),
@@ -195,8 +195,10 @@ export const CC = {
       memory: l("Every day of history, remembered", "Chaque jour d’historique, en mémoire"),
       otc: l("Over the counter: scattered, opaque data", `Hors cote${NB}: données dispersées et opaques`),
       dot: l("Each dot: one bond", `Chaque point${NB}: une obligation`),
-      team: l("A fundamental team", "Une équipe fondamentale"),
+      team: l("Conventional fundamental team", "Équipe fondamentale conventionnelle"),
       systems: l("Our systems", "Nos systèmes"),
+      scan: l("Systematic scan", "Balayage systématique"),
+      vs: l("VS", "VS"),
     },
     /** the six analysts' sectors (illustrative split; analyst a covers sector a), in three lengths for the canvas */
     sectors: [
