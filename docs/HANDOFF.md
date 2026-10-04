@@ -202,7 +202,7 @@ Not yet run against live data, not deployed.
   "180 of ≈2,000"), right = our systems (scan bar, filter legend, history sheets, "Every liquid bond, every day"); steps
   "The universe · Conventional team · Our systems · Side by side"; canvas 480–560 px desktop, 760 px phone. Word budget
   660 → 720, visible prose 130 → 140 (qualifier). Compliance CC9–CC12.
-16. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
+17. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
    compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
    info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
 
