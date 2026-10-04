@@ -228,7 +228,7 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
 - **Page**: `FundPage` holds the selected class and variant; `pickData` applies them before `stripHidden`. Class types
   (prospectus / OM) come from the registry (`FundSpec.classes[].type`) and the admin (`FundContent.classTypes`); no type, no label.
 - **Rankings** (`FundContent.rankings`, seeded in `src/lib/data/defaults.ts`, merged field-level per fund): third-party
-  Fund Library rank / quartile per period, FundGrade and an optional Morningstar rating, edited by hand in the admin with
+  Fundata (formerly Fund Library; field name `fundLibrary` kept) rank / quartile per period, FundGrade and an optional Morningstar rating, edited by hand in the admin with
   an "as at" date; shown in the *Awards and rankings* tab with the source link; `hide.rankings` removes the tab. Wordmarks
   are CSS text: official brand assets may only be dropped in with the owners' permission.
 
@@ -242,8 +242,11 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   is public only when `confirmed` and complete; drafts are admin-only.
 - **Staleness**: an entry whose as-of date is older than `SiteContent.rankingPolicy.maxAgeMonths` (admin settings, default
   6, 1–24) is hidden — same rule for every provider. "Re-confirming" = entering the source's newer as-of date. The fund
-  page (`strategies/[slug]/page.tsx`) and `/solutions` filter on the server (`publicFundRankings`,
-  `advisorRankingItems`): drafts, notes and stale figures never reach the RSC payload; the client only re-checks the shape.
+  page (`strategies/[slug]/page.tsx`) filters on the server (`publicFundRankings`): drafts, notes and stale figures never
+  reach the RSC payload; the client only re-checks the shape.
+- **Awards gate** (2026-10-04): the *Awards and rankings* tab and the overview Morningstar block exist only when a shown
+  Fundata entry has a FundGrade of **A or B** (`awardsEligible`); otherwise `gateAwards` removes the rankings from the
+  payload on the server (the CIFSC category line keeps its Fundata fallback). Tab order: Morningstar, Fundata, RBC, others.
 - **RBC survey check** (`rankings/rbc-survey.ts`, `rankings/schedule.ts`, started by `instrumentation.ts`): every 6 h the
   process runs the check when the stored one (`rankings/rbc-survey-check.json` on the volume) is older than
   `RANKINGS_CHECK_DAYS` (7). It reads the public insights listing (`https://www.rbcis.com/en/our-insights.page`, then the
@@ -264,15 +267,17 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   (`components/fund/Morningstar.tsx`), with class, as-of date, source link, methodology and © attribution
   (`rankings-copy.ts`, compliance row W3). The awards tab shows the same block.
 - **Official brand assets** (`brand-assets.ts`): slots `morningstar-logo`, `morningstar-stars-1..5`, `rbc-logo`,
-  `evestment-logo`, `lseg-lipper-logo`, `gmr-logo`, `fundlibrary-logo`. A slot is filled by a file shipped in
+  `evestment-logo`, `lseg-lipper-logo`, `gmr-logo`, `fundata-logo` (former name `fundlibrary-logo`: an upload stored under it is listed, served — also at
+  `/api/brand/fundlibrary-logo` — and replaced as `fundata-logo`; `LEGACY_BRAND_SLOTS`). Shipped: Morningstar logo and
+  5 stars, Fundata, RBC Investor Services. A slot is filled by a file shipped in
   `public/brand/third-party/<slot>.svg|png|webp` or uploaded in *Admin → Settings → third-party brand assets*
   (`POST /api/admin/upload/brand`, stored at `brand/files/<slot>.<ext>`, served by `GET /api/brand/<slot>` with its exact
   type, `nosniff`, a sandboxing CSP and an ETag; PNG / WebP / plain SVG only, scripts / handlers / external references
   refused, 512 KB). The upload wins. An empty slot renders **text** (e.g. "Morningstar Rating™: 5 stars") — never an
   imitation graphic; the dashboard and the fund editor warn "official Morningstar assets missing".
-- **AdvisorRankings** (`components/site/AdvisorRankings.tsx`): compact list per fund across providers; reads items from
-  `AdvisorRankingsProvider` (set by `/solutions/page.tsx`) or an `items` prop; renders nothing when empty. Placed in the
-  advisors section of `/solutions`.
+- **Morningstar note**: methodology and © attribution in full behind an info note (`components/fund/InfoNote.tsx`:
+  hover / keyboard focus / tap, Escape, `aria-describedby`; compliance row P3).
+- The /solutions advisor rankings list (`AdvisorRankings`) was removed on 2026-10-04: rankings live on the fund pages only.
 
 ## Conventions
 
