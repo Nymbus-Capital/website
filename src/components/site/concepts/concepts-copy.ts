@@ -197,7 +197,7 @@ export const CC = {
     /** the six analysts' sectors (illustrative split; analyst a covers sector a), in three lengths for the canvas */
     sectors: [
       { long: l("Financials", "Services financiers"), short: l("Financials", "Finance"), abbr: l("Fin.", "Fin.") },
-      { long: l("Technology & telecom", "Technologies et télécoms"), short: l("Tech & telecom", "Techno et télécoms"), abbr: l("Tech", "Techno") },
+      { long: l("Technology & telecom", "Technologies et télécoms"), short: l("Tech & telecom", "Techno et télécoms"), abbr: l("Tech", "Tech.") },
       { long: l("Consumer (discr. & staples)", "Consommation (disc. et base)"), short: l("Consumer", "Consommation"), abbr: l("Cons.", "Conso.") },
       { long: l("Utilities & infrastructure", "Services publics et infrastructures"), short: l("Utilities & infra.", "Services publics"), abbr: l("Util.", "Infra.") },
       { long: l("Energy", "Énergie"), short: l("Energy", "Énergie"), abbr: l("Energy", "Énergie") },

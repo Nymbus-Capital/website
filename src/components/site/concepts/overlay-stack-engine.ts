@@ -309,7 +309,10 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     }
     // tagline
     ctx.globalAlpha = fade * span(a3, 0.12, 0.3);
-    P.font(600, L.narrow ? 13 : 15);
+    // the tagline shrinks (rather than truncates) when the regime note leaves it a narrow column
+    let tf = L.narrow ? 13 : 15;
+    P.font(600, tf);
+    while (tf > 10.5 && P.measure(lab.tagline) > C.w) { tf -= 0.5; P.font(600, tf); }
     P.text(lab.tagline, C.x + C.w / 2, C.y + C.h - 10, C.w, "center", COL.blueD);
     ctx.globalAlpha = fade;
   }
