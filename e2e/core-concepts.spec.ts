@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * /critical-concepts: three animated panels (overlay, futures, ultra-micro analysis — test id "coverage") that render in English and French, are
+ * /core-concepts (was /critical-concepts, which redirects): three animated panels (overlay, futures, ultra-micro analysis — test id "coverage") that render in English and French, are
  * linked from the nav and the footer, draw and advance only while on screen, stop on a single still frame under
  * reduced motion (also after a live change), can be paused and stepped with the keyboard, carry their illustration
  * label, figures and captions, and fit a 360 px phone without horizontal scroll.
@@ -19,10 +19,10 @@ async function canvasInk(page: Page, id: string) {
   });
 }
 
-test("critical concepts (EN): three panels drawn, advancing, labelled, with captions and figures", async ({ page }) => {
+test("core concepts (EN): three panels drawn, advancing, labelled, with captions and figures", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/three ideas behind our funds/i);
   await expect(page.getByRole("heading", { level: 2, name: /what is an overlay\?/i })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: /how futures work/i })).toBeAttached();
@@ -55,9 +55,9 @@ test("critical concepts (EN): three panels drawn, advancing, labelled, with capt
   expect(errors).toEqual([]);
 });
 
-test("critical concepts (FR): French headings, steps and captions", async ({ page, baseURL }) => {
+test("core concepts (FR): French headings, steps and captions", async ({ page, baseURL }) => {
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/trois idées derrière nos fonds/i);
   await expect(page.getByRole("heading", { level: 2, name: /qu’est-ce qu’une superposition\?/i })).toBeAttached();
@@ -68,33 +68,42 @@ test("critical concepts (FR): French headings, steps and captions", async ({ pag
   await expect(page.getByTestId("coverage-panel")).toContainText("Estimations illustratives");
 });
 
-test("nav and footer link to critical concepts; jump links reach each concept", async ({ page, isMobile }) => {
+test("nav and footer link to core concepts; jump links reach each concept", async ({ page, isMobile }) => {
   await page.goto("/");
   if (isMobile) {
     await page.getByTestId("menu-toggle").click();
-    await expect(page.getByTestId("mobile-menu").getByRole("link", { name: "Critical concepts" })).toHaveAttribute("href", "/critical-concepts");
+    await expect(page.getByTestId("mobile-menu").getByRole("link", { name: "Core concepts" })).toHaveAttribute("href", "/core-concepts");
     await page.keyboard.press("Escape");
   } else {
-    const link = page.getByTestId("site-nav").getByRole("link", { name: "Critical concepts" });
+    const link = page.getByTestId("site-nav").getByRole("link", { name: "Core concepts" });
     await expect(link).toBeVisible();
     await link.click();
-    await expect(page).toHaveURL(/\/critical-concepts$/);
-    await expect(page.getByTestId("site-nav").getByRole("link", { name: "Critical concepts" })).toHaveAttribute("aria-current", "page");
+    await expect(page).toHaveURL(/\/core-concepts$/);
+    await expect(page.getByTestId("site-nav").getByRole("link", { name: "Core concepts" })).toHaveAttribute("aria-current", "page");
   }
-  await expect(page.getByTestId("site-footer").getByRole("link", { name: "Critical concepts" })).toHaveAttribute("href", "/critical-concepts");
-  await page.goto("/critical-concepts");
+  await expect(page.getByTestId("site-footer").getByRole("link", { name: "Core concepts" })).toHaveAttribute("href", "/core-concepts");
+  await page.goto("/core-concepts");
   await page.getByTestId("concepts-jump").getByRole("link", { name: /futures/i }).click();
   await expect(page).toHaveURL(/#futures$/);
   await expect(page.locator("section#futures")).toBeInViewport();
   // concept 3 is "Ultra-micro analysis, at scale"; the old #coverage anchor still lands on it
   await expect(page.getByTestId("concepts-jump").getByRole("link", { name: /ultra-micro analysis, at scale/i })).toHaveAttribute("href", "#ultra-micro-analysis");
-  await page.goto("/critical-concepts#coverage");
+  await page.goto("/core-concepts#coverage");
   await expect(page.locator("section#ultra-micro-analysis")).toBeInViewport();
   await expect(page.locator("section#ultra-micro-analysis")).toContainText("Ultra-micro analysis, at scale");
 });
 
-test("controls: pause / play, steps by click and arrow keys", async ({ page }) => {
+test("old URL /critical-concepts redirects permanently to /core-concepts", async ({ page, request }) => {
+  const r = await request.get("/critical-concepts", { maxRedirects: 0 });
+  expect(r.status()).toBe(308);
+  expect(r.headers()["location"]).toMatch(/\/core-concepts$/);
   await page.goto("/critical-concepts");
+  await expect(page).toHaveURL(/\/core-concepts$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/three ideas behind our funds/i);
+});
+
+test("controls: pause / play, steps by click and arrow keys", async ({ page }) => {
+  await page.goto("/core-concepts");
   const host = page.getByTestId("futures-host");
   await page.getByTestId("futures-panel").scrollIntoViewIfNeeded();
   await expect(host).toHaveAttribute("data-running", "true");
@@ -133,7 +142,7 @@ test("controls: pause / play, steps by click and arrow keys", async ({ page }) =
 });
 
 test("off screen and hidden tab: the animations pause", async ({ page }) => {
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   const host = page.getByTestId("overlay-host");
   await page.getByTestId("overlay-panel").scrollIntoViewIfNeeded();
   await expect(host).toHaveAttribute("data-running", "true");
@@ -154,7 +163,7 @@ test("off screen and hidden tab: the animations pause", async ({ page }) => {
 test("reduced motion: one still frame per panel, steps switch still frames, live change restarts", async ({ browser, baseURL }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   for (const id of IDS) {
     const panel = page.getByTestId(`${id}-panel`);
     await panel.scrollIntoViewIfNeeded();
@@ -183,7 +192,7 @@ test("reduced motion: one still frame per panel, steps switch still frames, live
 test("360 px phone: no horizontal scroll, panels inside the viewport, captions visible", async ({ browser, baseURL }) => {
   const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, baseURL, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   for (const id of IDS) {
     const panel = page.getByTestId(`${id}-panel`);
     await panel.scrollIntoViewIfNeeded();
@@ -210,7 +219,7 @@ test("desktop nav: seven links fit without overlapping the logo or the tools, in
       const ctx = await browser.newContext({ viewport: { width, height: 800 }, baseURL });
       await ctx.addCookies([{ name: "nymbus-locale", value: locale, url: baseURL! }]);
       const page = await ctx.newPage();
-      await page.goto("/critical-concepts");
+      await page.goto("/core-concepts");
       const m = await page.evaluate(() => {
         const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
         const links = Array.from(document.querySelectorAll(".nav-links > li > a")).map((a) => a.getBoundingClientRect());
@@ -227,7 +236,7 @@ test("desktop nav: seven links fit without overlapping the logo or the tools, in
   // below 1240 px the menu button takes over
   const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 }, baseURL });
   const page = await ctx.newPage();
-  await page.goto("/critical-concepts");
+  await page.goto("/core-concepts");
   await expect(page.getByTestId("menu-toggle")).toBeVisible();
   await ctx.close();
 });
@@ -253,7 +262,7 @@ test("still frame of every step, captured for review (e2e/screenshots/concepts-*
     const page = await ctx.newPage();
     for (const locale of ["en", "fr"] as const) {
       await ctx.addCookies([{ name: "nymbus-locale", value: locale, url: baseURL! }]);
-      await page.goto("/critical-concepts");
+      await page.goto("/core-concepts");
       for (const id of IDS) {
         const panel = page.getByTestId(`${id}-panel`);
         await panel.scrollIntoViewIfNeeded();

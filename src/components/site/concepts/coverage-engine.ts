@@ -1,5 +1,5 @@
 /**
- * coverage-engine.ts — canvas scene of "ultra-micro analysis, at scale" (/critical-concepts). Step 1: about 2,000 dots
+ * coverage-engine.ts — canvas scene of "ultra-micro analysis, at scale" (/core-concepts). Step 1: about 2,000 dots
  * (the Canadian investment-grade index, in six named sector clusters) appear and the issues under the $200 MM filter
  * fade to outlines. Step 2: a portfolio manager and six sector analysts light ~30 securities each in their own sector's
  * cluster and colour over a year, 180 in all (a small fraction).

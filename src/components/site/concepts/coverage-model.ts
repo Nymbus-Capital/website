@@ -1,5 +1,5 @@
 /**
- * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/critical-concepts). About 2,000
+ * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts). About 2,000
  * dots stand for the bonds of the Canadian investment-grade index, grouped in six sector clusters; a fundamental team
  * (one portfolio manager, six sector analysts — financials, technology & communications, consumer, utilities & infrastructure,
  * energy, industrials — each covering about 30 securities a year in depth) lights 180 of them; a systematic scan then

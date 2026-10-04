@@ -1,5 +1,5 @@
 /**
- * overlay-stack-engine.ts — canvas scene of "what is an overlay" (/critical-concepts). Step 1: the core portfolio
+ * overlay-stack-engine.ts — canvas scene of "what is an overlay" (/core-concepts). Step 1: the core portfolio
  * fills to 100% and stays invested. Step 2: a small deposit (≈10% wide, to scale) slides out beside it. Step 3: a beam
  * rises from the deposit and opens into a full-width futures exposure stacked on top of the core. Step 4: both blocks
  * stream particles into a chart where each generated period stacks the core and overlay contributions into the

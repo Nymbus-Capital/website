@@ -1,5 +1,5 @@
 /**
- * futures-engine.ts — canvas scene of "how futures work" (/critical-concepts). A generated index moves day by day:
+ * futures-engine.ts — canvas scene of "how futures work" (/core-concepts). A generated index moves day by day:
  * settled days lock behind the glowing "today" column, where only the current day's move is open; at every close the
  * move is paid in cash (index up: the short pays the long; down: the long pays the short), a coin stream crosses
  * between the two sides and the day's settlement drops into the row below, whose sum is the total gain or loss. Each

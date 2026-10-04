@@ -1,7 +1,7 @@
 /**
- * concepts-copy.ts — copy of /critical-concepts (overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
+ * concepts-copy.ts — copy of /core-concepts (overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
  * Few words: the animations carry the explanation. Every drawn value is generated; the coverage figures are
- * illustrative estimates (docs/compliance-review.md § Critical concepts). Low correlation is never stated as a fact;
+ * illustrative estimates (docs/compliance-review.md § Core concepts). Low correlation is never stated as a fact;
  * wherever overlays are described, the verbatim futures-exposure disclosure follows.
  */
 import { l, type L } from "../../../lib/i18n/config.ts";
@@ -21,14 +21,14 @@ export interface ConceptCopy {
 
 export const CC = {
   meta: {
-    title: l("Critical concepts", "Concepts clés"),
+    title: l("Core concepts", "Concepts de base"),
     description: l(
       "Overlays, futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
       `Superpositions, contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
     ),
   },
   hero: {
-    eyebrow: l("Critical concepts", "Concepts clés"),
+    eyebrow: l("Core concepts", "Concepts de base"),
     title: l("Three ideas", "Trois idées"),
     accent: l("behind our funds", "derrière nos fonds"),
     lead: l("Overlays, futures and ultra-micro analysis at scale, in motion.", "Superpositions, contrats à terme et analyse ultra-micro à grande échelle, en mouvement."),

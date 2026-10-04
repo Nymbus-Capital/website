@@ -11,7 +11,7 @@ import { signIn } from "./helpers";
 const ROUTES = [
   { path: "/", name: "home", en: /scientific investing/i, fr: /investissement scientifique/i },
   { path: "/strategies", name: "strategies", en: /our funds and strategies/i, fr: /nos fonds et stratégies/i },
-  { path: "/critical-concepts", name: "critical-concepts", en: /three ideas behind our funds/i, fr: /trois idées derrière nos fonds/i },
+  { path: "/core-concepts", name: "core-concepts", en: /three ideas behind our funds/i, fr: /trois idées derrière nos fonds/i },
   { path: "/approach", name: "approach", en: /at the intersection of technology, data and finance/i, fr: /à l’intersection de la technologie, des données et de la finance/i },
   { path: "/sustainability", name: "sustainability", en: /our commitments, and a sustainable bond fund/i, fr: /nos engagements, et un fonds obligataire durable/i },
   { path: "/team", name: "team", en: /scientists and market veterans/i, fr: /des scientifiques et des vétérans des marchés/i },

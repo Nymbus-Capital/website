@@ -1,5 +1,5 @@
 /**
- * /critical-concepts (2026-10-03): the pure models behind the three animations (overlay stack, futures daily
+ * /core-concepts (2026-10-03; was /critical-concepts): the pure models behind the three animations (overlay stack, futures daily
  * settlement, ultra-micro analysis at scale) are deterministic, bounded and true to the concept they teach; the layouts fit every
  * width; the copy is bilingual, short, labelled as an illustration, carries the verbatim futures-exposure disclosure
  * where overlays are described and never states low correlation or a guarantee; the page is in the nav and footer.
@@ -425,14 +425,21 @@ test("copy: very little visible prose (titles, takeaways, steps, note)", () => {
 
 /* ------------------------------------------------------------------ wiring */
 
-test("nav and footer link the page; route and labels exist in both languages", () => {
-  assert.match(read("src/components/site/links.ts"), /\{ href: "\/critical-concepts", key: "nav\.concepts" \}/);
-  assert.match(read("src/components/site/Footer.tsx"), /href="\/critical-concepts"/);
-  assert.match(read("src/lib/i18n/en.ts"), /"nav\.concepts": "Critical concepts"/);
-  assert.match(read("src/lib/i18n/fr.ts"), /"nav\.concepts": "Concepts clés"/);
-  const page = read("src/app/(site)/critical-concepts/page.tsx");
-  assert.match(page, /canonical: "\/critical-concepts"/);
+test("nav and footer link the page as \"Core concepts\"; route and labels exist in both languages; the old URL redirects", () => {
+  assert.match(read("src/components/site/links.ts"), /\{ href: "\/core-concepts", key: "nav\.concepts" \}/);
+  assert.match(read("src/components/site/Footer.tsx"), /href="\/core-concepts"/);
+  assert.match(read("src/lib/i18n/en.ts"), /"nav\.concepts": "Core concepts"/);
+  assert.match(read("src/lib/i18n/fr.ts"), /"nav\.concepts": "Concepts de base"/);
+  const page = read("src/app/(site)/core-concepts/page.tsx");
+  assert.match(page, /canonical: "\/core-concepts"/);
   assert.match(page, /generateMetadata/);
+  assert.equal(CC.meta.title.en, "Core concepts");
+  assert.equal(CC.meta.title.fr, "Concepts de base");
+  assert.equal(CC.hero.eyebrow.en, "Core concepts");
+  assert.equal(CC.hero.eyebrow.fr, "Concepts de base");
+  for (const s of leaves(CC)) assert.ok(!/critical concepts|concepts clés/i.test(s), `old name: ${s}`);
+  // /critical-concepts is a permanent redirect (next.config.ts legacy list → permanent: true)
+  assert.match(read("next.config.ts"), /\["\/critical-concepts", "\/core-concepts"\]/);
 });
 
 test("engines keep the motion contract: DPR cap, fps cap, still frames, pause off screen and in hidden tabs, test hooks", () => {

@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   /critical-concepts (src/components/site/concepts): reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
+   /core-concepts (src/components/site/concepts): reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
    .sc-stats from fx.css); canvases, controls and the hero jump links are its own. Light only.
    ===================================================================================================== */
 .cc-sec { overflow-x: clip; }

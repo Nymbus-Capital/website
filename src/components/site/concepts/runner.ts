@@ -1,5 +1,5 @@
 /**
- * runner.ts — shared canvas loop of the /critical-concepts animations, same motion contract as the home scan and
+ * runner.ts — shared canvas loop of the /core-concepts animations, same motion contract as the home scan and
  * engines panels: DPR capped at 1.5, ~30 fps cap (20 when frames run slow, lower `maxFps` on coarse pointers),
  * runs only while the canvas is on screen, the tab is visible and the visitor has not paused it; one still frame
  * per step under reduced motion / Data Saver. A scene draws a time `t` (ms, absolute clock); the runner maps it to a

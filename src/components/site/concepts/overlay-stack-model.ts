@@ -1,5 +1,5 @@
 /**
- * overlay-stack-model.ts — pure model of the "what is an overlay" animation (/critical-concepts): the core portfolio
+ * overlay-stack-model.ts — pure model of the "what is an overlay" animation (/core-concepts): the core portfolio
  * stays 100% invested, a small margin deposit (about 10% of the exposure, an illustrative estimate) supports a full
  * futures exposure stacked on top, and each generated period adds the two return streams into the combined one.
  * The overlay's generated return follows market volatility (its sensitivity to volatility, or vega): small in calm

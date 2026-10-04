@@ -1,5 +1,5 @@
 /**
- * futures-model.ts — pure model of the "how futures work" animation (/critical-concepts). A generated index price
+ * futures-model.ts — pure model of the "how futures work" animation (/core-concepts). A generated index price
  * moves day by day; every close settles the day's move in cash between the long and the short (index up: the short
  * pays the long; down: the long pays the short), so the open, unsettled P&L is never more than one day's move. The
  * margin buffer each side posts is sized to a potential one-day move and grows when volatility rises.

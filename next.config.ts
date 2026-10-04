@@ -20,6 +20,8 @@ const legacy: [string, string][] = [
   ["/solutions.html", "/solutions"],
   ["/sustainability.html", "/sustainability"],
   ["/index.html", "/"],
+  // the concepts page was /critical-concepts until 2026-10-03 (renamed "Core concepts")
+  ["/critical-concepts", "/core-concepts"],
 ];
 
 // The Content-Security-Policy is set per request by src/proxy.ts (nonce-based: no script 'unsafe-inline').

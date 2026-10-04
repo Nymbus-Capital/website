@@ -8,7 +8,7 @@ export const en = {
   "nav.home": "Home",
   "nav.strategies": "Strategies",
   "nav.approach": "Approach",
-  "nav.concepts": "Critical concepts",
+  "nav.concepts": "Core concepts",
   "nav.sustainability": "Sustainability",
   "nav.team": "Team",
   "nav.contact": "Contact",

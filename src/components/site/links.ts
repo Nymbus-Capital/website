@@ -1,11 +1,11 @@
 import { PUBLIC_FUNDS } from "@/config/funds-public";
 import type { DictKey } from "@/lib/i18n";
 
-/** Primary navigation, in the order of the previous site (Strategies · Approach · About · Solutions · Sustainability · Contact), plus Critical concepts after Approach. */
+/** Primary navigation, in the order of the previous site (Strategies · Approach · About · Solutions · Sustainability · Contact), plus Core concepts after Approach. */
 export const NAV_LINKS: { href: string; key: DictKey }[] = [
   { href: "/strategies", key: "nav.strategies" },
   { href: "/approach", key: "nav.approach" },
-  { href: "/critical-concepts", key: "nav.concepts" },
+  { href: "/core-concepts", key: "nav.concepts" },
   { href: "/team", key: "nav.about" },
   { href: "/solutions", key: "nav.solutions" },
   { href: "/sustainability", key: "nav.sustainability" },

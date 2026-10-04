@@ -5,7 +5,7 @@ export const fr: Record<DictKey, string> = {
   "nav.home": "Accueil",
   "nav.strategies": "Stratégies",
   "nav.approach": "Approche",
-  "nav.concepts": "Concepts clés",
+  "nav.concepts": "Concepts de base",
   "nav.sustainability": "Développement durable",
   "nav.team": "Équipe",
   "nav.contact": "Contact",
