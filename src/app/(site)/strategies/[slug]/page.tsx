@@ -12,7 +12,7 @@ import { documentUrl, listPublishedDocuments, toPublicDocument } from "@/lib/dat
 import { getAllFundViews, getContent, getFundView } from "@/lib/data/site";
 import type { DocumentMeta } from "@/lib/data/types";
 import { resolveBrandAssets } from "@/lib/data/brand-assets";
-import { policyMonths, publicFundRankings } from "@/lib/rankings/policy";
+import { gateAwards, policyMonths, publicFundRankings } from "@/lib/rankings/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,8 @@ export default async function StrategyPage({ params }: Params) {
   // admin notes and stale figures stay on the server)
   // admin "hide rankings": nothing at all in the payload
   const rankings = rest.hide?.rankings ? undefined : publicFundRankings(allRankings, { now: new Date(), months: policyMonths(siteContent), classes: view.spec.classes });
-  const content = rankings ? { ...rest, rankings } : rest;
+  // awards only for a Fundata FundGrade of A or B: otherwise no rankings in the payload (CIFSC category line kept)
+  const content = gateAwards(rankings ? { ...rest, rankings } : rest, view.spec.classes);
   // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client, nor any
   // block the admin hid (performance, growth, calendar, risk, NAV, portfolio blocks; the fund AUM unless explicitly
   // published): hidden data is not in the RSC payload

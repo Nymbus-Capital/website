@@ -17,6 +17,8 @@ export const RK = {
     category: l("{c} category", "catégorie {c}"),
     asOf: l("as of {date}", "au {date}"),
     source: l("Source: Morningstar", "Source : Morningstar"),
+    /** visible label of the info note holding the methodology and attribution */
+    info: l("Rating methodology and attribution", "Méthodologie de la cote et attribution"),
     attribution: l(
       "© {year} Morningstar Research Inc. All rights reserved. The information contained herein: (1) is proprietary to Morningstar and/or its content providers; (2) may not be copied or distributed; and (3) is not warranted to be accurate, complete or timely. Neither Morningstar nor its content providers are responsible for any damages or losses arising from any use of this information.",
       "© {year} Morningstar Research Inc. Tous droits réservés. Les renseignements contenus aux présentes : 1) appartiennent à Morningstar ou à ses fournisseurs de contenu; 2) ne peuvent être reproduits ni distribués; 3) ne sont assortis d’aucune garantie quant à leur exactitude, leur exhaustivité ou leur actualité. Ni Morningstar ni ses fournisseurs de contenu ne sont responsables des dommages ou des pertes découlant de l’utilisation de ces renseignements.",

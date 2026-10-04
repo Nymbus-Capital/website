@@ -15,10 +15,19 @@ import { p, readJson, removePath, withLock, writeFileAtomic, writeJson } from ".
 
 export const BRAND_SLOTS = [
   "morningstar-logo", "morningstar-stars-1", "morningstar-stars-2", "morningstar-stars-3", "morningstar-stars-4", "morningstar-stars-5",
-  "rbc-logo", "evestment-logo", "lseg-lipper-logo", "gmr-logo", "fundlibrary-logo",
+  "rbc-logo", "evestment-logo", "lseg-lipper-logo", "gmr-logo", "fundata-logo",
 ] as const;
 export type BrandSlot = (typeof BRAND_SLOTS)[number];
 export const isBrandSlot = (s: unknown): s is BrandSlot => typeof s === "string" && (BRAND_SLOTS as readonly string[]).includes(s);
+
+/**
+ * Former slot names (Fund Library is now Fundata, 2026-10-04): an upload stored under the old name keeps working — it is
+ * listed, served and replaced as the new slot; its file stays at its old path until it is replaced or removed.
+ */
+export const LEGACY_BRAND_SLOTS: Readonly<Record<string, BrandSlot>> = { "fundlibrary-logo": "fundata-logo" };
+/** The current slot for a current or former slot name (null when unknown). */
+export const toBrandSlot = (s: unknown): BrandSlot | null =>
+  isBrandSlot(s) ? s : typeof s === "string" && Object.hasOwn(LEGACY_BRAND_SLOTS, s) ? LEGACY_BRAND_SLOTS[s] : null;
 
 export const BRAND_SLOT_LABEL: Record<BrandSlot, string> = {
   "morningstar-logo": "Morningstar logo",
@@ -31,7 +40,7 @@ export const BRAND_SLOT_LABEL: Record<BrandSlot, string> = {
   "evestment-logo": "eVestment logo",
   "lseg-lipper-logo": "LSEG Lipper logo",
   "gmr-logo": "GMR logo",
-  "fundlibrary-logo": "Fund Library logo",
+  "fundata-logo": "Fundata logo (formerly Fund Library)",
 };
 
 export type BrandType = "image/svg+xml" | "image/png" | "image/webp";
@@ -177,15 +186,35 @@ export function staticBrandAssets(dir: string = path.join(process.cwd(), ...STAT
 
 /* ------------------------------------------------------------------ uploaded files (data volume) */
 
-export interface BrandMeta { slot: BrandSlot; type: BrandType; size: number; sha256: string; uploadedBy: string; uploadedAt: string }
+export interface BrandMeta {
+  slot: BrandSlot; type: BrandType; size: number; sha256: string; uploadedBy: string; uploadedAt: string;
+  /** former slot name the file was stored under (LEGACY_BRAND_SLOTS); absent for current uploads */
+  storedAs?: string;
+}
 
 const INDEX = ["brand", "index.json"];
-const fileRel = (slot: BrandSlot, type: BrandType) => ["brand", "files", `${slot}.${EXT[type]}`];
+const fileRel = (slot: string, type: BrandType) => ["brand", "files", `${slot}.${EXT[type]}`];
+const metaFile = (m: BrandMeta) => fileRel(m.storedAs ?? m.slot, m.type);
 
+/** Uploaded assets, former slot names mapped to the current slot (a current upload wins over a legacy one). */
 export async function listUploadedBrand(): Promise<BrandMeta[]> {
   const all = await readJson<BrandMeta[]>(INDEX, []);
-  return Array.isArray(all) ? all.filter((m) => isBrandSlot(m?.slot) && !!TYPE_OF_EXT[EXT[m.type] ?? ""]) : [];
+  if (!Array.isArray(all)) return [];
+  const valid = all.filter((m) => m && !!TYPE_OF_EXT[EXT[m.type] ?? ""]);
+  const current = valid.filter((m) => isBrandSlot(m.slot));
+  const legacy = valid
+    .filter((m) => !isBrandSlot(m.slot) && toBrandSlot(m.slot))
+    .map((m) => ({ ...m, slot: toBrandSlot(m.slot) as BrandSlot, storedAs: m.slot as string }))
+    .filter((m) => !current.some((c) => c.slot === m.slot));
+  return [...current, ...legacy];
 }
+
+/** An index entry as written back to disk: a legacy entry keeps its former slot name (its file's name). */
+const stored = (m: BrandMeta): BrandMeta | (Omit<BrandMeta, "slot" | "storedAs"> & { slot: string }) => {
+  if (!m.storedAs) return m;
+  const { storedAs, ...rest } = m;
+  return { ...rest, slot: storedAs };
+};
 
 export async function saveBrandAsset(slot: BrandSlot, bytes: Uint8Array, type: BrandType, by: string): Promise<BrandMeta> {
   const r = await withLock("brand", async () => {
@@ -195,8 +224,8 @@ export async function saveBrandAsset(slot: BrandSlot, bytes: Uint8Array, type: B
     // new file, then the index pointing at it, and only then the old file of another type: a reader never sees an
     // index entry without its file
     await writeFileAtomic(fileRel(slot, type), bytes);
-    await writeJson(INDEX, [...all.filter((m) => m.slot !== slot), meta]);
-    if (prev && prev.type !== type) await removePath(fileRel(slot, prev.type)).catch(() => undefined);
+    await writeJson(INDEX, [...all.filter((m) => m.slot !== slot).map(stored), meta]);
+    if (prev && (prev.storedAs || prev.type !== type)) await removePath(metaFile(prev)).catch(() => undefined);
     return meta;
   }, 60_000);
   if ("locked" in r) throw new Error("Another brand upload is in progress; try again.");
@@ -208,8 +237,8 @@ export async function deleteBrandAsset(slot: BrandSlot): Promise<BrandMeta | nul
     const all = await listUploadedBrand();
     const prev = all.find((m) => m.slot === slot) ?? null;
     if (!prev) return null;
-    await removePath(fileRel(slot, prev.type));
-    await writeJson(INDEX, all.filter((m) => m.slot !== slot));
+    await removePath(metaFile(prev));
+    await writeJson(INDEX, all.filter((m) => m.slot !== slot).map(stored));
     return prev;
   }, 60_000);
   if (r && "locked" in r) throw new Error("Another brand upload is in progress; try again.");
@@ -220,7 +249,7 @@ export async function uploadedBrandFile(slot: BrandSlot): Promise<{ meta: BrandM
   const meta = (await listUploadedBrand()).find((m) => m.slot === slot);
   if (!meta) return null;
   try {
-    const full = p(...fileRel(slot, meta.type));
+    const full = p(...metaFile(meta));
     const st = await fs.stat(full);
     return st.isFile() ? { meta, path: full, size: st.size } : null;
   } catch {

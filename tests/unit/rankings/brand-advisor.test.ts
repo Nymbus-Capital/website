@@ -1,11 +1,11 @@
 /** Official brand asset slots (validation, resolution), admin issues, new copy. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
-  brandHeaders, deleteBrandAsset, resolveBrandAssets, saveBrandAsset, staticBrandAssets, svgProblem, uploadedBrandFile, validateBrandImage,
+  BRAND_SLOTS, brandHeaders, deleteBrandAsset, toBrandSlot, resolveBrandAssets, saveBrandAsset, staticBrandAssets, svgProblem, uploadedBrandFile, validateBrandImage,
 } from "../../../src/lib/data/brand-assets.ts";
 import { MORNINGSTAR_ASSETS_MISSING, missingMorningstarAssets, rankingIssues } from "../../../src/lib/rankings/issues.ts";
 import { mergeContent } from "../../../src/lib/data/defaults.ts";
@@ -62,6 +62,40 @@ test("brand assets: shipped files in public/brand/third-party, uploads on the vo
     assert.ok(await deleteBrandAsset("rbc-logo"));
     assert.equal(await uploadedBrandFile("rbc-logo"), null);
     assert.equal(await deleteBrandAsset("rbc-logo"), null);
+  } finally {
+    if (prev === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("brand assets: Fund Library is now Fundata — an upload stored under the former slot name is listed, served, replaced and removed as fundata-logo", async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "brand-legacy-"));
+  const prev = process.env.SITE_DATA_DIR;
+  process.env.SITE_DATA_DIR = path.join(dir, "data");
+  try {
+    assert.ok(!(BRAND_SLOTS as readonly string[]).includes("fundlibrary-logo"));
+    assert.equal(toBrandSlot("fundlibrary-logo"), "fundata-logo");
+    assert.equal(toBrandSlot("fundata-logo"), "fundata-logo");
+    assert.equal(toBrandSlot("__proto__"), null);
+    assert.equal(toBrandSlot("nope"), null);
+    // an index written by the previous release: slot "fundlibrary-logo", file brand/files/fundlibrary-logo.png
+    const files = path.join(dir, "data", "brand", "files");
+    mkdirSync(files, { recursive: true });
+    writeFileSync(path.join(files, "fundlibrary-logo.png"), PNG);
+    writeFileSync(path.join(dir, "data", "brand", "index.json"), JSON.stringify([{ slot: "fundlibrary-logo", type: "image/png", size: PNG.length, sha256: "a".repeat(64), uploadedBy: "bob@nymbus.ca", uploadedAt: "2026-10-01T00:00:00.000Z" }]));
+    assert.match((await resolveBrandAssets())["fundata-logo"] ?? "", /^\/api\/brand\/fundata-logo\?v=a{12}$/);
+    const f = await uploadedBrandFile("fundata-logo");
+    assert.ok(f && f.path.endsWith(path.join("files", "fundlibrary-logo.png")));
+    // another upload keeps the legacy entry under its own name in the index
+    await saveBrandAsset("rbc-logo", PNG, "image/png", "alice@nymbus.ca");
+    assert.ok(await uploadedBrandFile("fundata-logo"));
+    // replacing it writes the new slot and removes the legacy file and entry
+    await saveBrandAsset("fundata-logo", enc("<svg/>"), "image/svg+xml", "alice@nymbus.ca");
+    assert.equal((await uploadedBrandFile("fundata-logo"))?.meta.type, "image/svg+xml");
+    assert.ok(!existsSync(path.join(files, "fundlibrary-logo.png")));
+    assert.ok(await deleteBrandAsset("fundata-logo"));
+    assert.equal(await uploadedBrandFile("fundata-logo"), null);
+    assert.ok(await uploadedBrandFile("rbc-logo"), "the other slot is untouched");
   } finally {
     if (prev === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prev;
     rmSync(dir, { recursive: true, force: true });

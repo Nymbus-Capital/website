@@ -11,7 +11,7 @@ const FL = "https://www.fundlibrary.com/MutualFunds/Detail/";
 const MS = (id: string) => ({ stars: 5 as const, classLabel: "Class F", asOf: "2026-10-01", url: `https://global.morningstar.com/en-ca/investments/funds/${id}/quote` });
 
 /**
- * Third-party category rankings read manually from the Fund Library fund pages (as at 2026-08-31). Seeds only: the admin
+ * Third-party category rankings read manually from the Fundata fund pages on FundLibrary.com (as at 2026-08-31). Seeds only: the admin
  * edits them (FundEditor) and the stored content wins. Never recomputed; the page always shows the "as at" date and the source.
  * The French category names are our translation of the source's English names (compliance to verify).
  */

@@ -38,3 +38,93 @@ test("approach: protective overlays named with the qualifier and the futures-exp
   await page.goto("/approach");
   await expect(page.locator("body")).toContainText("Pourquoi ajouter une superposition protectrice");
 });
+
+test("solutions: no third-party rankings section", async ({ page }) => {
+  await page.goto("/solutions");
+  await expect(page.getByRole("heading", { name: /third-party rankings/i })).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/percentile|FundGrade|Morningstar Rating/);
+  await expect(page.locator("body")).toContainText("Protective overlay");
+});
+
+test("fund awards: Morningstar → Fundata → RBC, official logos sized like Morningstar's, no 'Fund Library' label", async ({ page }, info) => {
+  await page.goto("/strategies/sustainable-enhanced-bonds#awards");
+  const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
+  await expect(tab).toBeVisible();
+  const order = await tab.locator('[data-testid="awards-morningstar"], [data-testid^="ranking-"], [data-testid^="tp-rbc"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+  expect(order.slice(0, 3)).toEqual(["awards-morningstar", "ranking-LDM201", "tp-rbc-pfs"]);
+  const fundata = tab.getByTestId("logo-fundata");
+  await expect(fundata).toHaveAttribute("src", "/brand/third-party/fundata-logo.png");
+  await expect(fundata).toHaveAttribute("alt", "Fundata");
+  const rbc = tab.getByTestId("logo-rbc-pfs");
+  await expect(rbc).toHaveAttribute("src", "/brand/third-party/rbc-logo.png");
+  await expect(rbc).toHaveAttribute("alt", "RBC Investor Services");
+  for (const img of [fundata, rbc]) expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
+  const fb = (await fundata.boundingBox())!;
+  expect(fb.width).toBeGreaterThanOrEqual(100);
+  expect(fb.width).toBeLessThanOrEqual(130);
+  const rb = (await rbc.boundingBox())!;
+  expect(rb.height).toBeGreaterThanOrEqual(32);
+  expect(rb.height).toBeLessThanOrEqual(40);
+  await expect(tab).not.toContainText("Fund Library");
+  await tab.getByTestId("ranking-LDM201").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${SHOTS}/v5-awards-seb-${info.project.name}.png`, fullPage: true });
+  // Monthly Income (FundGrade B): tab shown; Multi-Strategy (C) and GMV (none): no tab
+  await page.goto("/strategies/monthly-income");
+  await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]')).toHaveCount(1);
+  for (const slug of ["multi-strategy", "global-minimum-volatility"]) {
+    await page.goto(`/strategies/${slug}`);
+    await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]'), slug).toHaveCount(0);
+    await expect(page.getByTestId("overview-morningstar"), slug).toHaveCount(0);
+  }
+});
+
+test("Morningstar note: compact info button; hover / focus / tap opens the full text, Escape closes it", async ({ page, isMobile }, info) => {
+  await page.goto("/strategies/monthly-income");
+  const block = page.locator('[role="tabpanel"][data-panel="overview"]').getByTestId("overview-morningstar");
+  await block.scrollIntoViewIfNeeded();
+  const btn = block.getByTestId("overview-morningstar-rating-info-button");
+  const pop = block.getByTestId("overview-morningstar-rating-info-text");
+  await expect(btn).toHaveAccessibleName("Rating methodology and attribution");
+  await expect(btn).toHaveAccessibleDescription(/Morningstar Rating™ reflects performance as of October 1, 2026.*© 2026 Morningstar Research Inc\./s);
+  const id = await pop.getAttribute("id");
+  await expect(btn).toHaveAttribute("aria-describedby", id!);
+  await expect(btn).toHaveAttribute("aria-controls", id!);
+  await expect(pop).toBeHidden();
+  await expect(btn).toHaveAttribute("aria-expanded", "false");
+  if (isMobile) {
+    await btn.tap();
+    await expect(pop).toBeVisible();
+    await page.screenshot({ path: `${SHOTS}/v5-morningstar-note-open-${info.project.name}.png` });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await btn.tap();
+    await expect(pop).toBeHidden();
+    await btn.tap();
+    await expect(pop).toBeVisible();
+    await page.getByRole("heading", { level: 1 }).tap();
+    await expect(pop).toBeHidden();
+  } else {
+    await btn.hover();
+    await expect(pop).toBeVisible();
+    // hoverable: moving onto the note keeps it open
+    await pop.hover();
+    await expect(pop).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(pop).toBeHidden();
+    await page.mouse.move(0, 0);
+    // keyboard: focus opens, Escape closes, Enter pins
+    await btn.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(btn).toBeFocused();
+    await expect(pop).toBeVisible();
+    await expect(btn).toHaveAttribute("aria-expanded", "true");
+    await page.screenshot({ path: `${SHOTS}/v5-morningstar-note-open-${info.project.name}.png` });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(pop).toBeHidden();
+    await page.keyboard.press("Enter");
+    await expect(pop).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(pop).toBeHidden();
+  }
+});

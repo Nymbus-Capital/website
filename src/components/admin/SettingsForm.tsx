@@ -68,7 +68,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
         <label className="adm-field">
           <span>hide third-party rankings older than (months)</span>
           <input className="adm-input" type="number" min={1} max={24} step={1} value={maxAge} onChange={(e) => setMaxAge(e.target.value)} data-testid="rankings-max-age" />
-          <span className="adm-small">Morningstar, Fund Library, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.</span>
+          <span className="adm-small">Morningstar, Fundata, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.</span>
         </label>
         <div className="adm-actions">
           <span className="adm-small">v{version}</span>

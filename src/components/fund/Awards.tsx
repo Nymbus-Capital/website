@@ -1,8 +1,9 @@
 "use client";
 /**
- * Awards and rankings tab: Fund Library category rank and quartile per period, FundGrade, the Morningstar overall
- * rating, and percentile rankings from RBC Investor Services (pooled fund survey), eVestment, LSEG Lipper and GMR once
- * an admin confirmed them. Third-party data kept in the admin content (updated manually), always shown with its source,
+ * Awards and rankings tab, in this order: the Morningstar overall rating, Fundata category rank and quartile per period
+ * with the FundGrade (read on FundLibrary.com; Fund Library is now Fundata), then percentile rankings from RBC Investor
+ * Services (pooled fund survey) and eVestment, LSEG Lipper and GMR once an admin confirmed them. Shown only for a fund
+ * with a Fundata FundGrade of A or B (lib/rankings.ts). Third-party data kept in the admin content (updated manually), always shown with its source,
  * link and as-of date; the server page already removed drafts and stale entries. Provider names are plain text unless
  * the official logo file is present (no imitation artwork).
  */
@@ -27,9 +28,13 @@ function periodLabel(p: string, lang: Lang): string {
   return known ? tr(known, lang) : p;
 }
 
-/** Provider name as plain text, or its official logo when the file is present. */
+/** Provider name as plain text, or its official logo when the file is present (sized per provider in fund.css). */
 export const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
-  logo ? <img className="aw-logo" src={logo} alt={children} height={24} /> : <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
+  logo ? <img className={`aw-logo aw-logo-${kind}`} src={logo} alt={children} data-testid={`logo-${kind}`} /> : <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
+
+/** Fundata's name on the page; the figures are read on its FundLibrary.com fund pages (the source link says so). */
+export const FUNDATA = "Fundata";
+export const FUNDATA_SOURCE = "Fundata (FundLibrary.com)";
 
 const sep = (lang: Lang) => (lang === "fr" ? "\u00a0: " : ": ");
 
@@ -60,7 +65,7 @@ function ThirdPartyEntry({ e, lang, brand, fundKey }: { e: ThirdPartyRanking; la
   const launch = FUND_INCEPTION[fundKey]?.fundLaunch;
   return (
     <Block title={`${tr(meta.source, lang)}${e.edition ? ` — ${e.edition}` : ""}`} testId={`tp-${e.provider}`}
-      aside={<Wordmark kind="tp" logo={brand?.[meta.logoSlot as keyof BrandAssets]}>{meta.name}</Wordmark>}
+      aside={<Wordmark kind={e.provider} logo={brand?.[meta.logoSlot as keyof BrandAssets]}>{meta.name}</Wordmark>}
       lead={<><span data-testid="tp-scope">{scopeLabel(e, lang)}</span>{code} · {tr(RK.tp.category, lang)}{sep(lang)}<strong>{tr(e.category, lang)}</strong> · {tr(RK.tp.periodEnd, lang)} {dateLabel(e.asOf, lang, true)}</>}>
       {e.basis ? <p className="fine aw-basis" data-testid="tp-basis">{tr(RK.tp.basis, lang).replace("{b}", tr(e.basis, lang))}</p> : null}
       {e.trackSince ? (
@@ -98,7 +103,7 @@ function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Lang; brand?: 
   const code = e.fundserv ? ` (${e.fundserv})` : "";
   return (
     <Block title={`${tr(T.awards.series, lang)} ${e.classLabel.replace(CLASS_WORD, "")}${code}`} testId={`ranking-${e.fundserv ?? e.classLabel}`}
-      aside={<Wordmark kind="fl" logo={brand?.["fundlibrary-logo"]}>Fund Library</Wordmark>}
+      aside={<Wordmark kind="fundata" logo={brand?.["fundata-logo"]}>{FUNDATA}</Wordmark>}
       lead={<>{tr(T.awards.category, lang)}{lang === "fr" ? " " : ""}: <strong>{tr(e.category, lang)}</strong> · {tr(T.awards.asAt, lang)} {dateLabel(e.asOf, lang, true)}</>}>
       {e.fundGrade ? (
         <div className="aw-grade" data-testid="fundgrade">
@@ -123,7 +128,7 @@ function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Lang; brand?: 
           </table>
         </div>
       ) : null}
-      <SourceLink url={e.url} name="Fund Library" lang={lang} />
+      <SourceLink url={e.url} name={FUNDATA_SOURCE} lang={lang} />
     </Block>
   );
 }
@@ -140,8 +145,8 @@ export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; cont
           <MorningstarRatingBlock m={ms} brand={brand} lang={lang} variant="full" />
         </Block>
       ) : null}
-      {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} fundKey={spec.key} />)}
       {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} brand={brand} />)}
+      {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} fundKey={spec.key} />)}
       {r.thirdParty.length ? <p className="fine aw-note" data-testid="tp-note">{tr(RK.tp.note, lang)}</p> : null}
       <p className="fine aw-note" data-testid="awards-note">{tr(T.awards.note, lang)}</p>
     </div>

@@ -551,11 +551,22 @@ html:not(.js) .ft-bar { display: none; }
 .aw-basis { margin: 0 0 10px; }
 /* provider names are neutral text (no imitation of third-party branding); official logos only as delivered files */
 .aw-logo { display: block; height: 24px; width: auto; max-width: 160px; object-fit: contain; }
+/* official provider logos, sized like the Morningstar logo (~124 px wide); RBC's stacked mark is sized by its height */
+.aw-logo-fundata { height: auto; width: 124px; max-width: 124px; }
+.aw-logo-rbc-pfs { height: 38px; width: auto; max-width: 100px; }
 .ms-block { display: grid; gap: 6px; }
 .ms-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .ms-logo { display: block; height: 26px; width: auto; max-width: 124px; object-fit: contain; }
 .ms-stars { display: block; height: 19px; width: auto; max-width: 100px; object-fit: contain; }
 .ms-text { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
 .ms-detail { margin: 0; color: var(--ink2); }
-.ms-source, .ms-legal { margin: 0; max-width: 78ch; }
-.ms-overview .ms-legal { font-size: 11px; line-height: 1.5; }
+.ms-source { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 0; max-width: 78ch; }
+/* info note (InfoNote.tsx): compact "i" button, the full text in a toggletip under the source line */
+.inote { display: inline-flex; }
+.inote-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 2px 8px 2px 4px; margin: 0; border: 0; border-radius: 99px; background: none; font: inherit; font-size: 12.5px; color: var(--ink2); cursor: pointer; }
+.inote-btn svg { width: 16px; height: 16px; flex: none; color: var(--fund-ink, var(--ink2)); }
+.inote-btn:hover .inote-label, .inote[data-open] .inote-label { text-decoration: underline; text-underline-offset: 3px; }
+.inote-btn:focus-visible { outline: 2px solid var(--fund, #1a73e8); outline-offset: 2px; }
+.inote-pop { position: absolute; z-index: 20; left: 0; top: calc(100% + 6px); width: min(440px, calc(100vw - 48px)); max-height: min(60vh, 420px); overflow: auto; padding: 12px 14px; border-radius: 12px; background: #fff; color: var(--ink2); font-size: 12px; line-height: 1.55; box-shadow: 0 10px 30px rgba(15, 30, 60, .16), inset 0 0 0 1px var(--line); }
+.inote-pop[hidden] { display: none; }
+.ms-legal { display: block; }

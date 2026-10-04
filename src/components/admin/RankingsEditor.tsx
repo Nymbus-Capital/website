@@ -1,6 +1,6 @@
 "use client";
 /**
- * Admin form of the third-party rankings: Fund Library category rank / quartile, Morningstar stars, and percentile
+ * Admin form of the third-party rankings: Fundata (formerly Fund Library) category rank / quartile, Morningstar stars, and percentile
  * rankings from the RBC Investor Services pooled fund survey, eVestment, LSEG Lipper and GMR. Manual data entry: an entry
  * is public only once confirmed with its source URL and as-of date, and while younger than the staleness limit.
  */
@@ -37,7 +37,7 @@ export function RankingsEditor({ value, onChange, months = DEFAULT_MAX_AGE_MONTH
     <fieldset className="adm-fieldset" data-testid="rankings-editor">
       <legend>awards and rankings</legend>
       <div className="adm-alert warn">
-        Updated manually. These figures are third-party data copied from the source page (Fund Library, Morningstar): they are never refreshed by the
+        Updated manually. These figures are third-party data copied from the source page (Fundata on FundLibrary.com, Morningstar): they are never refreshed by the
         pipeline. Update them, and their “as at” date, each time the source changes; remove an entry that is out of date. Only add a rating you have
         confirmed on the source page. Every entry is hidden once its “as at” date is older than {months} months (site settings). Brand logos and
         rating images are shown only from the owners’ official files (Settings → third-party brand assets); otherwise the page shows text.
@@ -46,7 +46,7 @@ export function RankingsEditor({ value, onChange, months = DEFAULT_MAX_AGE_MONTH
       <ThirdPartyEditor list={value.thirdParty ?? []} months={months} onChange={(thirdParty) => onChange({ ...value, thirdParty })} />
 
       {lib.map((e, i) => (
-        <div key={i} className="adm-field" role="group" aria-label={`Fund Library ranking ${i + 1}`}>
+        <div key={i} className="adm-field" role="group" aria-label={`Fundata ranking ${i + 1}`}>
           <div className="row">
             <label className="adm-field"><span>class (as the source names it)</span><input className="adm-input" value={e.classLabel} maxLength={40} placeholder="Class F" onChange={(ev) => setEntry(i, { classLabel: ev.target.value })} /></label>
             <label className="adm-field"><span>Fundserv</span><input className="adm-input" value={e.fundserv ?? ""} maxLength={12} placeholder="LDM201" onChange={(ev) => setEntry(i, { fundserv: ev.target.value })} /></label>
@@ -91,7 +91,7 @@ export function RankingsEditor({ value, onChange, months = DEFAULT_MAX_AGE_MONTH
         </div>
       ))}
       <div className="adm-actions">
-        <button type="button" className="adm-btn ghost" onClick={() => setLib([...lib, structuredClone(EMPTY_RANKING)])}>add a Fund Library ranking</button>
+        <button type="button" className="adm-btn ghost" onClick={() => setLib([...lib, structuredClone(EMPTY_RANKING)])}>add a Fundata ranking</button>
       </div>
 
       <div className="adm-field" role="group" aria-label="Morningstar rating">
