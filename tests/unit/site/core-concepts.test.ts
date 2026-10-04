@@ -367,7 +367,8 @@ test("copy: the overlay caption ends with the verbatim futures-exposure disclosu
   assert.ok(CC.overlay.caption.fr.endsWith(OVERLAY_EXPOSURE.fr));
   assert.equal(OVERLAY_EXPOSURE.en, "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
   assert.match(CC.overlay.caption.en, /generated values, not actual positions or results/);
-  assert.match(CC.overlay.caption.en, /Overlays can lose money/);
+  assert.match(CC.overlay.caption.en, /Protective overlays are designed to offset part of losses; they may not do so and can lose money\./);
+  assert.match(CC.overlay.caption.fr, /Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir/);
   assert.match(CC.overlay.caption.en, /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./);
   assert.match(CC.overlay.caption.fr, /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
   assert.match(CC.overlay.canvas.volNote.en, /historically tended to/);
@@ -389,6 +390,22 @@ test("copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no p
     // percentages only for the overlay's illustrative allocation (100%, ≈10%)
     for (const m of s.matchAll(/(\d+(?:[.,]\d+)?)\s?%/g)) assert.ok(["100", "10"].includes(m[1]), `unexpected percentage in: ${s}`);
   }
+});
+
+test("copy: concept 1 is \"protective overlays\" (Gabriel 2026-10-03), always with the qualifier next to the name", () => {
+  assert.equal(CC.overlay.eyebrow.en, "Concept 1 · Protective overlays");
+  assert.equal(CC.overlay.eyebrow.fr, "Concept 1 · Superpositions protectrices");
+  assert.equal(`${CC.overlay.title.en} ${CC.overlay.accent.en}`, "What is a protective overlay?");
+  assert.equal(`${CC.overlay.title.fr} ${CC.overlay.accent.fr}`, "Qu’est-ce qu’une superposition protectrice?");
+  // the lead under the heading and the caption under the panel both carry "designed to offset part of … losses; may not"
+  assert.match(CC.overlay.lead.en, /designed to offset part of bond losses; they may not do so\.$/);
+  assert.match(CC.overlay.lead.fr, /conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir\.$/);
+  for (const k of ["en", "fr"] as const) {
+    assert.match(CC.overlay.caption[k], /(designed to offset part of losses; they may not|conçues pour compenser une partie des pertes; elles peuvent ne pas)/);
+    assert.match(CC.overlay.alt[k], /(designed to offset part of losses \(it may not\)|conçue pour compenser une partie des pertes \(elle peut ne pas y parvenir\))/);
+  }
+  // "protective" never stands as a promise: no "protects", "protection" or "protège" on the page
+  for (const s of leaves(CC)) assert.ok(!/\bprotects?\b|\bprotection\b|protège/i.test(s), `promise wording: ${s}`);
 });
 
 test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phrase), heading \"Why machines see more\"", () => {
@@ -419,7 +436,8 @@ test("copy: very little visible prose (titles, takeaways, steps, note)", () => {
       assert.ok(words(c.copy.lead[lang]) <= 22, `${c.id} lead (${lang})`);
       for (const s of c.copy.steps) assert.ok(words(s[lang]) <= 5, `${c.id} step (${lang}): ${s[lang]}`);
     }
-    assert.ok(n <= (lang === "en" ? 130 : 160), `${lang}: ${n} words`);
+    // +10 (2026-10-03): the protective-overlay qualifier in the concept 1 lead
+    assert.ok(n <= (lang === "en" ? 140 : 170), `${lang}: ${n} words`);
   }
 });
 

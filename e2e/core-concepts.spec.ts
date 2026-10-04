@@ -24,7 +24,7 @@ test("core concepts (EN): three panels drawn, advancing, labelled, with captions
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/core-concepts");
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/three ideas behind our funds/i);
-  await expect(page.getByRole("heading", { level: 2, name: /what is an overlay\?/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: /what is a protective overlay\?/i })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: /how futures work/i })).toBeAttached();
   await expect(page.getByRole("heading", { level: 2, name: /why machines see more/i })).toBeAttached();
   for (const id of IDS) {
@@ -60,7 +60,7 @@ test("core concepts (FR): French headings, steps and captions", async ({ page, b
   await page.goto("/core-concepts");
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/trois idées derrière nos fonds/i);
-  await expect(page.getByRole("heading", { level: 2, name: /qu’est-ce qu’une superposition\?/i })).toBeAttached();
+  await expect(page.getByRole("heading", { level: 2, name: /qu’est-ce qu’une superposition protectrice\?/i })).toBeAttached();
   await expect(page.getByTestId("overlay-caption")).toContainText(/exposition additionnelle au moyen de contrats à terme/);
   await expect(page.getByTestId("futures-caption")).toContainText(/les pertes peuvent dépasser le dépôt/);
   await expect(page.getByTestId("futures-panel").locator(".cc-steps .t")).toHaveText(["Acheteur et vendeur", "Règlement quotidien", "Dépôt de garantie", "Un seul jour à risque"]);

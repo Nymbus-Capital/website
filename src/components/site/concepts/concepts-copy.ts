@@ -1,5 +1,5 @@
 /**
- * concepts-copy.ts — copy of /core-concepts (overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
+ * concepts-copy.ts — copy of /core-concepts (protective overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
  * Few words: the animations carry the explanation. Every drawn value is generated; the coverage figures are
  * illustrative estimates (docs/compliance-review.md § Core concepts). Low correlation is never stated as a fact;
  * wherever overlays are described, the verbatim futures-exposure disclosure follows.
@@ -23,15 +23,15 @@ export const CC = {
   meta: {
     title: l("Core concepts", "Concepts de base"),
     description: l(
-      "Overlays, futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
-      `Superpositions, contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
+      "Protective overlays, futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
+      `Superpositions protectrices, contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
     ),
   },
   hero: {
     eyebrow: l("Core concepts", "Concepts de base"),
     title: l("Three ideas", "Trois idées"),
     accent: l("behind our funds", "derrière nos fonds"),
-    lead: l("Overlays, futures and ultra-micro analysis at scale, in motion.", "Superpositions, contrats à terme et analyse ultra-micro à grande échelle, en mouvement."),
+    lead: l("Protective overlays, futures and ultra-micro analysis at scale, in motion.", "Superpositions protectrices, contrats à terme et analyse ultra-micro à grande échelle, en mouvement."),
   },
   jump: l("Concepts on this page", "Concepts de cette page"),
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
@@ -43,15 +43,19 @@ export const CC = {
   },
 
   overlay: {
-    eyebrow: l("Concept 1 · Overlays", "Concept 1 · Superpositions"),
+    eyebrow: l("Concept 1 · Protective overlays", "Concept 1 · Superpositions protectrices"),
     title: l("What is", "Qu’est-ce qu’une"),
-    accent: l("an overlay?", "superposition?"),
-    lead: l("Keep the core invested. A small deposit adds a second strategy on top.", "La base reste investie. Un petit dépôt ajoute une deuxième stratégie par-dessus."),
-    panel: l("Overlay · same capital, two sources of return", "Superposition · même capital, deux sources de rendement"),
+    accent: l("a protective overlay?", "superposition protectrice?"),
+    // the qualifier sits right under the name (heading), as everywhere on the site
+    lead: l(
+      "Futures on top of a fully invested core, designed to offset part of bond losses; they may not do so.",
+      "Des contrats à terme par-dessus une base investie, conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir.",
+    ),
+    panel: l("Protective overlay · same capital, two sources of return", "Superposition protectrice · même capital, deux sources de rendement"),
     chip: l("Illustration", "Illustration"),
     alt: l(
-      "Animated illustration: a core portfolio stays fully invested; a small deposit supports a futures overlay stacked on top; both return streams add up in the combined portfolio. Generated overlay returns are larger in volatile periods.",
-      `Illustration animée${NB}: un portefeuille de base reste entièrement investi; un petit dépôt soutient une superposition de contrats à terme par-dessus; les deux sources de rendement s’additionnent dans le portefeuille combiné. Les rendements générés de la superposition sont plus élevés en période volatile.`,
+      "Animated illustration: a core portfolio stays fully invested; a small deposit supports a protective futures overlay stacked on top, designed to offset part of losses (it may not); both return streams add up in the combined portfolio. Generated overlay returns are larger in volatile periods.",
+      `Illustration animée${NB}: un portefeuille de base reste entièrement investi; un petit dépôt soutient une superposition protectrice de contrats à terme par-dessus, conçue pour compenser une partie des pertes (elle peut ne pas y parvenir); les deux sources de rendement s’additionnent dans le portefeuille combiné. Les rendements générés de la superposition sont plus élevés en période volatile.`,
     ),
     steps: [
       l("Core: 100% invested", `Base${NB}: 100${NB}% investie`),
@@ -66,8 +70,8 @@ export const CC = {
       { label: l("Sources of return", "Sources de rendement"), value: l("2", "2") },
     ],
     caption: l(
-      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way. ${OVERLAY_EXPOSURE.en}`,
-      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. Illustration de la sensibilité de la stratégie de superposition à la volatilité (vega); elle pourrait ne pas se comporter ainsi. ${OVERLAY_EXPOSURE.fr}`,
+      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Protective overlays are designed to offset part of losses; they may not do so and can lose money. Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way. ${OVERLAY_EXPOSURE.en}`,
+      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir et subir des pertes. Illustration de la sensibilité de la stratégie de superposition à la volatilité (vega); elle pourrait ne pas se comporter ainsi. ${OVERLAY_EXPOSURE.fr}`,
     ),
     canvas: {
       core: l("Core portfolio", "Portefeuille de base"),
