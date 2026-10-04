@@ -1,4 +1,4 @@
-/** Official brand asset slots (validation, resolution), advisor rankings items, admin issues, new copy. */
+/** Official brand asset slots (validation, resolution), admin issues, new copy. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -7,11 +7,9 @@ import path from "node:path";
 import {
   brandHeaders, deleteBrandAsset, resolveBrandAssets, saveBrandAsset, staticBrandAssets, svgProblem, uploadedBrandFile, validateBrandImage,
 } from "../../../src/lib/data/brand-assets.ts";
-import { advisorRankingItems } from "../../../src/lib/rankings/advisor.ts";
 import { MORNINGSTAR_ASSETS_MISSING, missingMorningstarAssets, rankingIssues } from "../../../src/lib/rankings/issues.ts";
-import { mergeContent, SEEDED_RANKINGS } from "../../../src/lib/data/defaults.ts";
+import { mergeContent } from "../../../src/lib/data/defaults.ts";
 import { RK } from "../../../src/components/fund/rankings-copy.ts";
-import type { FundContent, ThirdPartyRanking } from "../../../src/lib/data/types.ts";
 
 const NOW = new Date("2026-10-02T12:00:00Z");
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
@@ -68,30 +66,6 @@ test("brand assets: shipped files in public/brand/third-party, uploads on the vo
     if (prev === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
   }
-});
-
-const tp = (over: Partial<ThirdPartyRanking> = {}): ThirdPartyRanking => ({
-  provider: "evestment", classLabel: "Strategy composite", category: { en: "Canadian Fixed Income", fr: "Revenu fixe canadien" }, asOf: "2026-06-30",
-  rows: [{ period: "1Y", percentile: 2 }, { period: "3Y", percentile: null, rank: 3, of: 120 }], url: "https://www.evestment.example/x", confirmed: true, ...over,
-});
-
-test("advisorRankingItems: Morningstar, third-party and Fund Library entries with source, link and date; drafts, stale and hidden excluded", () => {
-  const mi: FundContent = { rankings: { ...SEEDED_RANKINGS["monthly-income"]!, thirdParty: [tp(), tp({ provider: "gmr", confirmed: false }), tp({ provider: "lipper", asOf: "2025-01-31" })] } };
-  const items = advisorRankingItems([
-    { key: "monthly-income", name: { en: "Monthly Income", fr: "Revenu mensuel" }, classes: [{ fundserv: "LDM001" }], content: mi },
-    { key: "multi-strategy", name: { en: "Multi", fr: "Multi" }, classes: [{ fundserv: "LDM301" }], content: { ...mergeContent(null).funds["multi-strategy"]!, hide: { rankings: true } } },
-  ], { now: NOW, months: 6, brand: { "morningstar-logo": "/brand/third-party/morningstar-logo.svg" } });
-  assert.deepEqual(items.map((i) => i.kind), ["morningstar", "evestment", "fundlibrary"]);
-  for (const i of items) {
-    assert.match(i.url, /^https:\/\//, `${i.kind}: link`);
-    assert.match(i.asOf, /^\d{4}-\d{2}-\d{2}$/, `${i.kind}: date`);
-    assert.ok(i.provider && i.source.en && i.source.fr, `${i.kind}: source name`);
-  }
-  assert.equal(items[0].logo, "/brand/third-party/morningstar-logo.svg");
-  assert.equal(items[1].logo, undefined, "no official eVestment file: text wordmark");
-  assert.equal(items[0].stars, 5);
-  assert.deepEqual(items[1].figures[1], { period: "3Y", percentile: null, rank: 3, of: 120 });
-  assert.deepEqual(advisorRankingItems([], { now: NOW, months: 6 }), []);
 });
 
 test("admin issues: Morningstar assets missing, drafts, stale entries; network state only adds issues", () => {

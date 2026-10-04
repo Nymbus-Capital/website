@@ -1,6 +1,6 @@
 /**
- * Copy of the third-party ratings and rankings (Morningstar block, RBC / eVestment / LSEG Lipper / GMR entries, the
- * advisor rankings list). EN / FR; placeholders in braces. Morningstar's attribution follows the wording Morningstar
+ * Copy of the third-party ratings and rankings (Morningstar block, RBC / eVestment / LSEG Lipper / GMR entries; the
+ * /solutions advisor list was removed on 2026-10-04). EN / FR; placeholders in braces. Morningstar's attribution follows the wording Morningstar
  * usually requires next to a rating — to be verified (docs/compliance-review.md § Awards v2).
  */
 const l = (en: string, fr: string) => ({ en, fr });
@@ -56,26 +56,5 @@ export const RK = {
       "Les rangs centiles comparent les rendements de la stratégie ou de la série du fonds (selon ce qu’indique chaque classement) à ceux des autres fonds du même groupe de pairs pour chaque période (1er\u00a0centile = premier 1\u00a0%). Ils sont reproduits de la source indiquée, à la date indiquée, sur la base de cette source (le sondage de RBC Services aux investisseurs utilise des rendements avant déduction des frais de gestion); les groupes de pairs et les méthodologies varient d’un fournisseur à l’autre. Les rendements passés ne prédisent pas les résultats futurs.",
     ),
   },
-  adv: {
-    eyebrow: l("Independent rankings", "Classements indépendants"),
-    title: l("Third-party rankings", "Classements de tiers"),
-    lead: l("Category rankings and ratings, each with its source and date.", "Classements et cotes par catégorie, chacun avec sa source et sa date."),
-    asAt: l("As at", "Au"),
-    source: l("Source", "Source"),
-    rating: l("{n}-star overall rating", "Cote globale de {n} étoiles"),
-    quartile: l("Q{q}", "Q{q}"),
-    newTab: l("opens in a new tab", "nouvel onglet"),
-    perf: l("Standard performance of the fund", "Rendements standard du fonds"),
-    overall: l("overall", "globale"),
-    rankOf: l("rank {rank} of {of}", "rang {rank} sur {of}"),
-    note: l(
-      "Rankings and ratings are provided by the third parties named, reproduced as at the dates shown and not updated daily; each applies to the series or strategy and the category shown, on the source’s basis. Past performance does not predict future results, and rankings and ratings are not guarantees. See each source for its methodology.",
-      "Les classements et les cotes sont fournis par les tiers indiqués, reproduits aux dates indiquées et non mis à jour quotidiennement; chacun vise la série ou la stratégie et la catégorie indiquées, sur la base de la source. Les rendements passés ne prédisent pas les résultats futurs, et les classements et les cotes ne sont pas des garanties. Consultez chaque source pour sa méthodologie.",
-    ),
-    periods: {
-      "1M": l("1 mo", "1 mois"), "3M": l("3 mo", "3 mois"), "6M": l("6 mo", "6 mois"), YTD: l("YTD", "Cumul annuel"),
-      "1Y": l("1 yr", "1 an"), "2Y": l("2 yrs", "2 ans"), "3Y": l("3 yrs", "3 ans"), "4Y": l("4 yrs", "4 ans"),
-      "5Y": l("5 yrs", "5 ans"), "10Y": l("10 yrs", "10 ans"),
-    },
-  },
+  newTab: l("opens in a new tab", "nouvel onglet"),
 };

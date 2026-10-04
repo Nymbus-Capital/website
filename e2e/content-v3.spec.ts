@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * Content v3 (2026-10-02): approach risk-first and multi-strategy sections, the team credentials band and
- * self-hosted portraits, solutions use cases (the advisors rankings slot renders nothing), the ESG scope of
+ * self-hosted portraits, solutions use cases (no rankings on /solutions), the ESG scope of
  * /sustainability, and Global Minimum Volatility figures named by their downside-volatility variant.
  */
 
@@ -75,13 +75,11 @@ test("solutions: three illustrative use cases, overlay disclosures, no ranking c
   }
   await expect(page.getByTestId("use-case-institutional")).toContainText("The overlay adds futures exposure on top of the underlying portfolio");
   await expect(page.getByTestId("use-case-family")).toContainText(/collateral/);
-  // rankings appear only through the sourced AdvisorRankings list (awards-v2), never in the use-case copy itself
+  // no ranking anywhere on /solutions (the "Third-party rankings" section was removed on 2026-10-04)
   await expect(page.getByTestId("use-case-advisor").locator(".sl-case-steps")).not.toContainText(/percentile|quartile|eVestment|Lipper/i);
-  await expect(page.getByTestId("advisor-rankings")).toHaveCount(1);
-  // in its own "Third-party rankings" section after the advisors card, never inside the illustrative use case
-  await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
-  await expect(page.locator("#advisor-rankings").getByTestId("advisor-rankings")).toHaveCount(1);
-  await expect(page.locator("#advisor-rankings h2")).toHaveText("Third-party rankings");
+  await expect(page.getByTestId("advisor-rankings")).toHaveCount(0);
+  await expect(page.locator("#advisor-rankings")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Third-party rankings" })).toHaveCount(0);
 });
 
 test("GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant", async ({ page }) => {

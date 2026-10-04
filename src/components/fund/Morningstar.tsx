@@ -46,7 +46,7 @@ export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testI
       <p className="fine ms-source">
         {m.url ? (
           <a className="link" href={m.url} target="_blank" rel="noopener noreferrer" data-testid="morningstar-source">
-            {tr(RK.ms.source, lang)}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({tr(RK.adv.newTab, lang)})</span>
+            {tr(RK.ms.source, lang)}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({tr(RK.newTab, lang)})</span>
           </a>
         ) : tr(RK.ms.source, lang)}
       </p>

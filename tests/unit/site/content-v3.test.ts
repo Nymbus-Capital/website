@@ -1,7 +1,7 @@
 /**
  * Content v3 (2026-10-02): team data from the nymbus-decks team list (photos self-hosted, credentials as text),
  * credential counters computed from the data, approach risk-first and multi-strategy sections, solutions use cases
- * with their disclosures, the advisors rankings slot, and Global Minimum Volatility figures always named by variant.
+ * with their disclosures (no rankings on /solutions since 2026-10-04), and Global Minimum Volatility figures always named by variant.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -129,14 +129,13 @@ test("solutions: three illustrative use cases; overlay ones carry the futures-ex
   assert.ok(!/guarantee/i.test(text.replace(/not guaranteed/gi, "")));
 });
 
-test("solutions: the real AdvisorRankings renders exactly once, in its own section after the advisors card (not in a use case)", () => {
-  assert.ok(!existsSync(join(ROOT, "src/components/site/pages/AdvisorRankings.tsx")), "the content-v3 placeholder is gone");
+test("solutions: no third-party rankings section (removed 2026-10-04, Gabriel); the AdvisorRankings component is gone", () => {
+  for (const p of ["src/components/site/pages/AdvisorRankings.tsx", "src/components/site/AdvisorRankings.tsx", "src/components/site/advisor-rankings.css", "src/lib/rankings/advisor.ts"]) {
+    assert.ok(!existsSync(join(ROOT, p)), `${p} deleted`);
+  }
   const sol = readFileSync(join(ROOT, "src/components/site/pages/Solutions.tsx"), "utf8");
-  assert.match(sol, /import \{ AdvisorRankings, useAdvisorRankingItems \} from "\.\.\/AdvisorRankings";/);
-  assert.equal(sol.match(/<AdvisorRankings\b/g)?.length, 1);
-  const uc = sol.slice(sol.indexOf("function UseCase"), sol.indexOf("function RankingsSection"));
-  assert.ok(!/<AdvisorRankings/.test(uc), "never inside the illustrative use case");
-  assert.match(sol, /a\.key === "advisor" \? <RankingsSection/);
+  const page = readFileSync(join(ROOT, "src/app/(site)/solutions/page.tsx"), "utf8");
+  assert.ok(!/AdvisorRankings|RankingsSection|advisor-rankings|rankings/i.test(sol + page), "no ranking on /solutions");
 });
 
 /* ------------------------------------------------------------------ Global Minimum Volatility: name the variant */

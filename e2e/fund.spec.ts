@@ -534,26 +534,6 @@ test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1s
   await expect(rbc.getByTestId("tp-basis")).toContainText("avant déduction des frais de gestion");
 });
 
-test("solutions: the advisors section lists the confirmed, fresh rankings with source link and date", async ({ page }) => {
-  await page.goto("/solutions#advisor");
-  const list = page.getByTestId("advisor-rankings");
-  await expect(list).toBeVisible();
-  await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-morningstar")).toContainText("Morningstar Rating™: 5 stars");
-  await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-fundlibrary")).toContainText("August 31, 2026");
-  for (const a of await list.locator("li a").all()) await expect(a).toHaveAttribute("href", /^https:\/\//);
-  await expect(page.getByTestId("use-case-advisor").getByTestId("advisor-rankings")).toHaveCount(0);
-  const rbcItem = list.getByTestId("advisor-rankings-monthly-income").getByTestId("advisor-item-rbc-pfs");
-  await expect(rbcItem).toContainText("4th percentile");
-  await expect(rbcItem.getByTestId("advisor-scope")).toContainText("Strategy track record since January 2019");
-  await expect(rbcItem).toContainText("4 years to June 30, 2023");
-  await expect(rbcItem.getByTestId("advisor-basis")).toContainText("gross of management fees");
-  await expect(rbcItem).toContainText("June 30, 2026");
-  await expect(list.getByTestId("advisor-ms-attribution")).toContainText("Morningstar");
-  await expect(list.getByTestId("advisor-perf-sustainable-enhanced-bonds")).toHaveAttribute("href", "/strategies/sustainable-enhanced-bonds#performance");
-  await expect(list.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-morningstar")).toContainText("Series F");
-  for (const src of await list.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src")))) expect(src).toMatch(/^\/brand\/third-party\/morningstar-/);
-});
-
 test("calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll", async ({ page }) => {
   await page.goto("/strategies/global-minimum-volatility#performance");
   const chart = page.getByTestId("calendar");
