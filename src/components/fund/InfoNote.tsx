@@ -92,8 +92,8 @@ export function InfoNote({ label, children, testId = "info-note" }: { label: str
         <Info aria-hidden="true" />
         <span className="inote-label">{label}</span>
       </button>
-      {/* focusable so a keyboard user can scroll it when the text is taller than the note (max-height) */}
-      <span id={id} role="note" aria-label={label} tabIndex={0} className="inote-pop" hidden={!open} data-testid={`${testId}-text`}>
+      {/* focusable so a keyboard user can scroll it (max-height); no aria-label: its text is the button's description */}
+      <span id={id} role="note" tabIndex={0} className="inote-pop" hidden={!open} data-testid={`${testId}-text`}>
         {children}
       </span>
     </span>
