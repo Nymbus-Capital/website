@@ -3,13 +3,14 @@
  * Morningstar Rating™ block (overview and awards tabs). The official Morningstar logo and star-rating image are shown
  * only when the official files are present (public/brand/third-party/ or uploaded in the admin, see
  * src/lib/data/brand-assets.ts); otherwise the rating is plain text — never an imitation graphic. Always with the class,
- * the as-of date, the source link and Morningstar's attribution / methodology text.
+ * the as-of date, the source link and Morningstar's attribution / methodology text (in full, behind an info note).
  */
 import { ExternalLink } from "lucide-react";
 import type { MorningstarRating } from "@/lib/data/types";
 import type { BrandAssets } from "@/lib/data/brand-assets";
 import { tr } from "./copy";
 import { RK } from "./rankings-copy";
+import { InfoNote } from "./InfoNote";
 import { dateLabel, type Lang } from "./lib/format.ts";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
@@ -43,16 +44,19 @@ export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testI
         <p className={`ms-text ${stars ? "sr-only" : ""}`} data-testid="morningstar-text" data-stars={m.stars}>{text}</p>
       </div>
       <p className="ms-detail" data-testid="morningstar-class">{detail}</p>
-      <p className="fine ms-source">
+      <div className="fine ms-source">
         {m.url ? (
           <a className="link" href={m.url} target="_blank" rel="noopener noreferrer" data-testid="morningstar-source">
-            {tr(RK.ms.source, lang)}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({tr(RK.adv.newTab, lang)})</span>
+            {tr(RK.ms.source, lang)}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({tr(RK.newTab, lang)})</span>
           </a>
         ) : tr(RK.ms.source, lang)}
-      </p>
-      <p className="fine ms-legal" data-testid="morningstar-attribution">
-        {tr(RK.ms.methodology, lang).replace("{date}", date)} {tr(RK.ms.attribution, lang).replace("{year}", year)}
-      </p>
+        {/* methodology and © attribution in full, behind a compact info note (compliance to confirm, docs/compliance-review.md W10) */}
+        <InfoNote label={tr(RK.ms.info, lang)} testId={`${testId}-info`}>
+          <span className="ms-legal" data-testid="morningstar-attribution">
+            {tr(RK.ms.methodology, lang).replace("{date}", date)} {tr(RK.ms.attribution, lang).replace("{year}", year)}
+          </span>
+        </InfoNote>
+      </div>
     </section>
   );
 }

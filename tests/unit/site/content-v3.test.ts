@@ -1,7 +1,7 @@
 /**
  * Content v3 (2026-10-02): team data from the nymbus-decks team list (photos self-hosted, credentials as text),
  * credential counters computed from the data, approach risk-first and multi-strategy sections, solutions use cases
- * with their disclosures, the advisors rankings slot, and Global Minimum Volatility figures always named by variant.
+ * with their disclosures (no rankings on /solutions since 2026-10-04), and Global Minimum Volatility figures always named by variant.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -56,14 +56,16 @@ test("team: credential counts are computed from the data, never typed", () => {
   assert.equal(countHolding([], /x/), 0);
 });
 
-test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 7 CFA or CIM; live decks team 2026-10-03)", () => {
+test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 6 CFA or CIM; 2026-10-04)", () => {
   // pinned so a data change is a visible, reviewed change of the public figures
+  // 2026-10-04 (Gabriel): Xavier Girard and Jean-Philippe Lejeune removed (-1 CFA, -1 M.Sc., -15 years)
   assert.equal(countPhD(team), 2);
   assert.equal(countEngineering(team), 3);
-  assert.equal(countCharter(team), 7);
-  assert.equal(countGraduate(team), 10);
-  assert.equal(combinedExperience(team)!.years, 293);
-  assert.equal(team.length, 20);
+  assert.equal(countCharter(team), 6);
+  assert.equal(countGraduate(team), 9);
+  assert.equal(combinedExperience(team)!.years, 278);
+  assert.equal(team.length, 18);
+  for (const gone of ["Xavier Girard", "Jean-Philippe Lejeune"]) assert.ok(!team.some((m) => m.name === gone), `${gone} removed`);
 });
 
 test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French", () => {
@@ -76,8 +78,8 @@ test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged,
 });
 
 test("team: wording gives the futures overlays room next to fixed income (about intro, overlay lead's bio)", () => {
-  assert.match(AB.intro.points[0].en, /systematic fixed income and futures overlays/);
-  assert.match(AB.intro.points[0].fr, /revenu fixe systématique et superpositions/);
+  assert.match(AB.intro.points[0].en, /systematic fixed income and protective overlays/);
+  assert.match(AB.intro.points[0].fr, /revenu fixe systématique et superpositions protectrices/);
   const mpb = team.find((m) => m.name === "Mathieu Poulin-Brière")!;
   assert.match(mpb.bio, /overlay strategies on listed futures/);
   for (const m of team) if (m.educationFr) assert.equal(m.educationFr.length, m.education?.length, `${m.name}: education EN/FR lengths differ`);
@@ -88,7 +90,19 @@ test("team: wording gives the futures overlays room next to fixed income (about 
 test("approach: risk-first and multi-strategy sections keep low correlation as an objective, with the overlay disclosure", () => {
   assert.match(AP.risk.lead.en, /^Ultra-micro analysis, at scale/);
   assert.match(AP.risk.items[2].d.en, /^Designed to offset part of bond losses, with low correlation with bonds in down months/);
-  assert.ok(!/protective|protectri/i.test(JSON.stringify([AP, AUDIENCES])), "no 'protective' overlay as a fact");
+  // "protective overlay" is the name Gabriel chose (2026-10-04); it never stands without its qualifier on the page
+  for (const [name, page] of [["approach", AP], ["solutions", AUDIENCES], ["about", AB]] as const) {
+    const en = JSON.stringify(page), fr = en;
+    if (/protective/i.test(en)) {
+      assert.match(en, /designed to (have low correlation with bonds in down months and to )?offset part of (bond )?losses/, `${name}: qualifier (en)`);
+      assert.match(en, /may not/, `${name}: "may not" (en)`);
+    }
+    if (/protectrice/i.test(fr)) {
+      assert.match(fr, /conçues? pour (avoir une faible corrélation avec les obligations lors des mois de baisse et pour )?compenser une partie des pertes/, `${name}: qualifier (fr)`);
+      assert.match(fr, /peu(t|vent) ne pas y parvenir/, `${name}: « ne pas y parvenir » (fr)`);
+    }
+  }
+  assert.ok(!/protective overlays? (protects?|guarantees?|eliminates?)/i.test(JSON.stringify([AP, AUDIENCES, AB])), "protection never stated as a fact");
   // "liquid alternative" approved for Multi-Strategy by Gabriel (2026-10-03), category "Alternative Multi-Strategy"
   assert.match(AP.multi.offers[1].d.en, /Alternative Multi-Strategy/);
   assert.match(AP.multi.offers[1].d.fr, /Multistratégies alternatives/);
@@ -115,14 +129,13 @@ test("solutions: three illustrative use cases; overlay ones carry the futures-ex
   assert.ok(!/guarantee/i.test(text.replace(/not guaranteed/gi, "")));
 });
 
-test("solutions: the real AdvisorRankings renders exactly once, in its own section after the advisors card (not in a use case)", () => {
-  assert.ok(!existsSync(join(ROOT, "src/components/site/pages/AdvisorRankings.tsx")), "the content-v3 placeholder is gone");
+test("solutions: no third-party rankings section (removed 2026-10-04, Gabriel); the AdvisorRankings component is gone", () => {
+  for (const p of ["src/components/site/pages/AdvisorRankings.tsx", "src/components/site/AdvisorRankings.tsx", "src/components/site/advisor-rankings.css", "src/lib/rankings/advisor.ts"]) {
+    assert.ok(!existsSync(join(ROOT, p)), `${p} deleted`);
+  }
   const sol = readFileSync(join(ROOT, "src/components/site/pages/Solutions.tsx"), "utf8");
-  assert.match(sol, /import \{ AdvisorRankings, useAdvisorRankingItems \} from "\.\.\/AdvisorRankings";/);
-  assert.equal(sol.match(/<AdvisorRankings\b/g)?.length, 1);
-  const uc = sol.slice(sol.indexOf("function UseCase"), sol.indexOf("function RankingsSection"));
-  assert.ok(!/<AdvisorRankings/.test(uc), "never inside the illustrative use case");
-  assert.match(sol, /a\.key === "advisor" \? <RankingsSection/);
+  const page = readFileSync(join(ROOT, "src/app/(site)/solutions/page.tsx"), "utf8");
+  assert.ok(!/AdvisorRankings|RankingsSection|advisor-rankings|rankings/i.test(sol + page), "no ranking on /solutions");
 });
 
 /* ------------------------------------------------------------------ Global Minimum Volatility: name the variant */

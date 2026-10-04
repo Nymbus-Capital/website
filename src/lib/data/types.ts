@@ -348,7 +348,7 @@ export interface RankingRow {
   quartile: 1 | 2 | 3 | 4 | null;
 }
 
-/** Category ranking of one series as published by Fund Library. */
+/** Category ranking of one series as published by Fundata on FundLibrary.com (field name kept: stored admin content). */
 export interface FundLibraryRanking {
   /** class the ranking is for, as the source names it ("Class F") */
   classLabel: string;
@@ -356,7 +356,7 @@ export interface FundLibraryRanking {
   category: L10n;
   /** "as at" date of the ranking (YYYY-MM-DD) */
   asOf: string;
-  /** FundGrade letter, when the source gives one */
+  /** Fundata FundGrade letter, when the source gives one (the awards are shown only with A or B: AWARD_GRADES) */
   fundGrade?: string;
   rows: RankingRow[];
   /** page the figures were read from (attribution link) */
@@ -375,7 +375,7 @@ export interface MorningstarRating {
   url?: string;
 }
 
-/** Third-party providers of percentile / category rankings entered by hand in the admin (besides Fund Library and Morningstar). */
+/** Third-party providers of percentile / category rankings entered by hand in the admin (besides Fundata and Morningstar). */
 export const THIRD_PARTY_PROVIDERS = ["rbc-pfs", "evestment", "lipper", "gmr"] as const;
 export type ThirdPartyProvider = (typeof THIRD_PARTY_PROVIDERS)[number];
 
@@ -470,7 +470,7 @@ export interface FundContent {
   rspEligible?: "yes" | "no";
   liquidity?: L10n;
   cifscCategory?: L10n;
-  /** third-party rankings and ratings (Fund Library category rank / quartile, Morningstar); updated manually */
+  /** third-party rankings and ratings (Fundata category rank / quartile, Morningstar); updated manually */
   rankings?: FundRankings;
   /** footnotes shown under performance, EN/FR */
   performanceNote?: L10n;

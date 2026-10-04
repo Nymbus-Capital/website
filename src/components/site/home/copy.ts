@@ -32,8 +32,8 @@ export const HOME_COPY = {
     title: l("Our funds and", "Nos fonds et"),
     accent: l("strategies", "stratégies"),
     lead: l(
-      "Two bond funds, a multi-strategy fund, a futures overlay.",
-      "Deux fonds obligataires, un fonds multistratégies, une stratégie de superposition.",
+      "Two bond funds, a multi-strategy fund, a protective overlay.",
+      "Deux fonds obligataires, un fonds multistratégies, une superposition protectrice.",
     ),
     all: l("View all strategies", "Voir toutes les stratégies"),
   },

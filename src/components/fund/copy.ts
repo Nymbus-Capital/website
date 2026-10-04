@@ -239,8 +239,8 @@ export const T = {
       "Calculé seulement sur les obligations pour lesquelles la donnée est disponible (part des obligations détenues, en valeur de marché)\u00a0: {x}.",
     ),
     weightsNote: l(
-      "Weights as a percentage of net assets, cash included. Futures used for the overlay are excluded.",
-      "Pondérations en pourcentage de l’actif net, liquidités comprises. Les contrats à terme de la stratégie de superposition sont exclus.",
+      "Weights as a percentage of net assets, cash included. Futures used for the protective overlay are excluded.",
+      "Pondérations en pourcentage de l’actif net, liquidités comprises. Les contrats à terme de la superposition protectrice sont exclus.",
     ),
     dailyBreakdowns: {
       assetType: l("Asset types", "Types d’actifs"),
@@ -379,7 +379,7 @@ export const T = {
     title: l("Interested in the fund?", "Le fonds vous intéresse?"),
     titleStrategy: l("Interested in the strategy?", "La stratégie vous intéresse?"),
     text: l("Our team can walk you through the fund, its series and how to invest.", "Notre équipe peut vous présenter le fonds, ses séries et la façon d’investir."),
-    textStrategy: l("Our team can explain how the overlay works and how it could fit your portfolio.", "Notre équipe peut vous expliquer le fonctionnement de la stratégie et sa place dans votre portefeuille."),
+    textStrategy: l("Our team can explain how the protective overlay works and how it could fit your portfolio.", "Notre équipe peut vous expliquer le fonctionnement de la stratégie et sa place dans votre portefeuille."),
     contact: l("Contact our team", "Communiquer avec notre équipe"),
     all: l("All strategies", "Toutes les stratégies"),
   },
@@ -435,7 +435,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       l("Selected by our two-system process", "Sélectionnées par notre processus à deux systèmes"),
       l("Credit risk and relative value, bond by bond", "Risque de crédit et valeur relative, obligation par obligation"),
     ],
-    note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, OVERLAY_EXPOSURE),
+    note: join(l("The protective overlay is", "La superposition protectrice est"), LOW_CORR, OVERLAY_EXPOSURE),
     feature: {
       eyebrow: l("Monthly Income Fund", "Fonds Revenu Mensuel"),
       title: l("Built for monthly income", "Conçu pour un revenu mensuel"),
@@ -444,7 +444,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
         { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST) },
         { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Low rate sensitivity. Current duration: Portfolio tab.", "Faible sensibilité aux taux. Durée actuelle : onglet Portefeuille.") },
         { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Credit risk weighed against yield, issuer by issuer.", "Risque de crédit contre rendement, émetteur par émetteur.") },
-        { icon: "shield", title: l("Futures overlay", "Stratégie de superposition"), text: join(l("An overlay", "Une stratégie de superposition"), LOW_CORR, OVERLAY_EXPOSURE) },
+        { icon: "shield", title: l("Protective overlay", "Superposition protectrice"), text: join(l("A protective overlay", "Une superposition protectrice"), LOW_CORR, OVERLAY_EXPOSURE) },
       ],
     },
   },
@@ -458,7 +458,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       l("Built with our quantitative models", "Construit à l’aide de nos modèles quantitatifs"),
       l("ESG data weighed with credit quality and valuation", "Données ESG prises en compte avec la qualité du crédit et l’évaluation"),
     ],
-    note: join(l("The futures overlay is", "La stratégie de superposition est"), LOW_CORR, OVERLAY_EXPOSURE),
+    note: join(l("The protective overlay is", "La superposition protectrice est"), LOW_CORR, OVERLAY_EXPOSURE),
     feature: {
       eyebrow: l("Sustainable Enhanced Bonds Fund", "Fonds Obligations Durables Bonifiées"),
       title: l("Sustainability, integrated", "La durabilité, intégrée"),
@@ -496,8 +496,8 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
   },
   "global-minimum-volatility": {
     summary: l(
-      "A managed-futures overlay for family offices and institutions, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
-      "Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
+      "A protective overlay of managed futures for family offices and institutions, offered through separately managed accounts. It is designed to add a source of return with low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+      "Une superposition protectrice de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts. Elle est conçue pour ajouter une source de rendement faiblement corrélée aux obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.",
     ),
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
@@ -507,7 +507,7 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     note: OVERLAY_EXPOSURE,
     feature: {
       eyebrow: l("Global Minimum Volatility", "Global Minimum Volatility"),
-      title: l("How the overlay works", "Le fonctionnement de la stratégie"),
+      title: l("How the protective overlay works", "Le fonctionnement de la superposition protectrice"),
       lead: l("Futures on top of the portfolio you already own.", "Des contrats à terme ajoutés au portefeuille que vous détenez déjà."),
       cards: [
         { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most capital stays in your portfolio.", "L’essentiel du capital reste dans votre portefeuille.") },

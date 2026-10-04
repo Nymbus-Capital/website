@@ -487,7 +487,7 @@ test.describe("admin flows", () => {
     await expect(page.getByTestId("tp-evestment")).toHaveCount(0);
     await expect(page.getByTestId("tp-rbc-pfs")).toBeVisible();
 
-    // fresh (end of the last quarter): shown on the awards tab and in the advisors list, with source link and date
+    // fresh (end of the last quarter): shown on the awards tab, with source link and date
     const now = new Date();
     const qEnd = new Date(Date.UTC(now.getUTCFullYear(), Math.floor(now.getUTCMonth() / 3) * 3, 0)).toISOString().slice(0, 10);
     await page.goto(`/admin/funds/${fund}`);
@@ -500,8 +500,6 @@ test.describe("admin flows", () => {
     await expect(entry).toBeVisible();
     await expect(entry.getByTestId("tp-row-1M")).toContainText("3rd percentile");
     await expect(entry.getByRole("link", { name: /eVestment/ })).toHaveAttribute("href", "https://www.evestment.example/e2e-ranking");
-    await page.goto("/solutions#advisor");
-    await expect(page.getByTestId("advisor-rankings-sustainable-enhanced-bonds").getByTestId("advisor-item-evestment")).toContainText("3rd percentile");
 
     // a confirmed entry without its source URL is refused by the API
     const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;

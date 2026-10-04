@@ -48,7 +48,7 @@ export function BrandAssetsManager({ rows }: { rows: BrandRow[] }) {
       {dialog}
       <h2 id="brand-title" className="adm-h2">third-party brand assets</h2>
       <div className="adm-alert warn">
-        Official files only (Morningstar, RBC Investor Services, eVestment, LSEG Lipper, GMR, Fund Library), used with the owner’s permission and
+        Official files only (Morningstar, RBC Investor Services, eVestment, LSEG Lipper, GMR, Fundata), used with the owner’s permission and
         as delivered — never a redrawn or look-alike image. PNG, WebP or a plain SVG (no scripts or external references), 512 KB max. Files can
         also be shipped with the build in <code>public/brand/third-party/&lt;slot&gt;.svg</code> (or .png); an upload here wins.
       </div>

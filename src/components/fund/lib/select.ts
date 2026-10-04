@@ -9,7 +9,8 @@ type Data = Omit<FundData, "sourceName">;
 export interface SpecLike {
   headlineClass: string | null;
   classes?: { fundserv: string; display: string; type?: "prospectus" | "om" }[];
-  variants?: { id: string; label: { en: string; fr: string } }[];
+  /** display order; `default` marks the variant selected when the data names none */
+  variants?: { id: string; label: { en: string; fr: string }; default?: true }[];
 }
 
 export interface ClassOption {
@@ -132,6 +133,8 @@ export interface ClassCtx {
 export function initialSelection(data: Data | null, spec: SpecLike, content: FundContent | null | undefined): Selection {
   const opts = classOptions(data, spec, content);
   const code = spec.classes?.length ? defaultClassCode(data, spec, content) ?? opts[0]?.fundserv ?? null : null;
-  const variant = spec.variants?.length ? (data?.defaultVariant && spec.variants.some((x) => x.id === data.defaultVariant) ? data.defaultVariant : spec.variants[0].id) : null;
+  const variant = spec.variants?.length
+    ? (data?.defaultVariant && spec.variants.some((x) => x.id === data.defaultVariant) ? data.defaultVariant : (spec.variants.find((x) => x.default) ?? spec.variants[0]).id)
+    : null;
   return { classCode: code && opts.some((o) => up(o.fundserv) === up(code)) ? opts.find((o) => up(o.fundserv) === up(code))!.fundserv : opts[0]?.fundserv ?? null, variant };
 }

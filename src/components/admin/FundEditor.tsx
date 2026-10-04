@@ -195,7 +195,7 @@ export function FundEditor({
           </label>
         </div>
         <L10nInput label="liquidity (redemptions)" hint="shown only when filled" value={form.liquidity} onChange={(v) => set("liquidity", v)} max={200} />
-        <L10nInput label="CIFSC category" hint="shown only when filled; empty = the Fund Library category of the ranking, if any" value={form.cifscCategory} onChange={(v) => set("cifscCategory", v)} max={120} />
+        <L10nInput label="CIFSC category" hint="shown only when filled; empty = the Fundata category of the ranking, if any" value={form.cifscCategory} onChange={(v) => set("cifscCategory", v)} max={120} />
         <label className="adm-field">
           <span>managers <em>one per line</em></span>
           <textarea value={form.managers} rows={3} onChange={(e) => set("managers", e.target.value)} />

@@ -5,7 +5,7 @@
  */
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
-import { brandHeaders, isBrandSlot, uploadedBrandFile } from "@/lib/data/brand-assets";
+import { brandHeaders, toBrandSlot, uploadedBrandFile } from "@/lib/data/brand-assets";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +15,9 @@ const notFound = () =>
   new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
 
 async function serve(request: Request, ctx: Ctx, head: boolean): Promise<Response> {
-  const { slot } = await ctx.params;
-  if (!isBrandSlot(slot)) return notFound();
+  // a former slot name (fundlibrary-logo → fundata-logo) still serves the asset
+  const slot = toBrandSlot((await ctx.params).slot);
+  if (!slot) return notFound();
   const f = await uploadedBrandFile(slot).catch(() => null);
   if (!f) return notFound();
   const base = brandHeaders(f.meta.type, f.meta.sha256);

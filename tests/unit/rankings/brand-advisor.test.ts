@@ -1,17 +1,15 @@
-/** Official brand asset slots (validation, resolution), advisor rankings items, admin issues, new copy. */
+/** Official brand asset slots (validation, resolution), admin issues, new copy. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
-  brandHeaders, deleteBrandAsset, resolveBrandAssets, saveBrandAsset, staticBrandAssets, svgProblem, uploadedBrandFile, validateBrandImage,
+  BRAND_SLOTS, brandHeaders, deleteBrandAsset, toBrandSlot, resolveBrandAssets, saveBrandAsset, staticBrandAssets, svgProblem, uploadedBrandFile, validateBrandImage,
 } from "../../../src/lib/data/brand-assets.ts";
-import { advisorRankingItems } from "../../../src/lib/rankings/advisor.ts";
 import { MORNINGSTAR_ASSETS_MISSING, missingMorningstarAssets, rankingIssues } from "../../../src/lib/rankings/issues.ts";
-import { mergeContent, SEEDED_RANKINGS } from "../../../src/lib/data/defaults.ts";
+import { mergeContent } from "../../../src/lib/data/defaults.ts";
 import { RK } from "../../../src/components/fund/rankings-copy.ts";
-import type { FundContent, ThirdPartyRanking } from "../../../src/lib/data/types.ts";
 
 const NOW = new Date("2026-10-02T12:00:00Z");
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
@@ -70,28 +68,38 @@ test("brand assets: shipped files in public/brand/third-party, uploads on the vo
   }
 });
 
-const tp = (over: Partial<ThirdPartyRanking> = {}): ThirdPartyRanking => ({
-  provider: "evestment", classLabel: "Strategy composite", category: { en: "Canadian Fixed Income", fr: "Revenu fixe canadien" }, asOf: "2026-06-30",
-  rows: [{ period: "1Y", percentile: 2 }, { period: "3Y", percentile: null, rank: 3, of: 120 }], url: "https://www.evestment.example/x", confirmed: true, ...over,
-});
-
-test("advisorRankingItems: Morningstar, third-party and Fund Library entries with source, link and date; drafts, stale and hidden excluded", () => {
-  const mi: FundContent = { rankings: { ...SEEDED_RANKINGS["monthly-income"]!, thirdParty: [tp(), tp({ provider: "gmr", confirmed: false }), tp({ provider: "lipper", asOf: "2025-01-31" })] } };
-  const items = advisorRankingItems([
-    { key: "monthly-income", name: { en: "Monthly Income", fr: "Revenu mensuel" }, classes: [{ fundserv: "LDM001" }], content: mi },
-    { key: "multi-strategy", name: { en: "Multi", fr: "Multi" }, classes: [{ fundserv: "LDM301" }], content: { ...mergeContent(null).funds["multi-strategy"]!, hide: { rankings: true } } },
-  ], { now: NOW, months: 6, brand: { "morningstar-logo": "/brand/third-party/morningstar-logo.svg" } });
-  assert.deepEqual(items.map((i) => i.kind), ["morningstar", "evestment", "fundlibrary"]);
-  for (const i of items) {
-    assert.match(i.url, /^https:\/\//, `${i.kind}: link`);
-    assert.match(i.asOf, /^\d{4}-\d{2}-\d{2}$/, `${i.kind}: date`);
-    assert.ok(i.provider && i.source.en && i.source.fr, `${i.kind}: source name`);
+test("brand assets: Fund Library is now Fundata — an upload stored under the former slot name is listed, served, replaced and removed as fundata-logo", async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "brand-legacy-"));
+  const prev = process.env.SITE_DATA_DIR;
+  process.env.SITE_DATA_DIR = path.join(dir, "data");
+  try {
+    assert.ok(!(BRAND_SLOTS as readonly string[]).includes("fundlibrary-logo"));
+    assert.equal(toBrandSlot("fundlibrary-logo"), "fundata-logo");
+    assert.equal(toBrandSlot("fundata-logo"), "fundata-logo");
+    assert.equal(toBrandSlot("__proto__"), null);
+    assert.equal(toBrandSlot("nope"), null);
+    // an index written by the previous release: slot "fundlibrary-logo", file brand/files/fundlibrary-logo.png
+    const files = path.join(dir, "data", "brand", "files");
+    mkdirSync(files, { recursive: true });
+    writeFileSync(path.join(files, "fundlibrary-logo.png"), PNG);
+    writeFileSync(path.join(dir, "data", "brand", "index.json"), JSON.stringify([{ slot: "fundlibrary-logo", type: "image/png", size: PNG.length, sha256: "a".repeat(64), uploadedBy: "bob@nymbus.ca", uploadedAt: "2026-10-01T00:00:00.000Z" }]));
+    assert.match((await resolveBrandAssets())["fundata-logo"] ?? "", /^\/api\/brand\/fundata-logo\?v=a{12}$/);
+    const f = await uploadedBrandFile("fundata-logo");
+    assert.ok(f && f.path.endsWith(path.join("files", "fundlibrary-logo.png")));
+    // another upload keeps the legacy entry under its own name in the index
+    await saveBrandAsset("rbc-logo", PNG, "image/png", "alice@nymbus.ca");
+    assert.ok(await uploadedBrandFile("fundata-logo"));
+    // replacing it writes the new slot and removes the legacy file and entry
+    await saveBrandAsset("fundata-logo", enc("<svg/>"), "image/svg+xml", "alice@nymbus.ca");
+    assert.equal((await uploadedBrandFile("fundata-logo"))?.meta.type, "image/svg+xml");
+    assert.ok(!existsSync(path.join(files, "fundlibrary-logo.png")));
+    assert.ok(await deleteBrandAsset("fundata-logo"));
+    assert.equal(await uploadedBrandFile("fundata-logo"), null);
+    assert.ok(await uploadedBrandFile("rbc-logo"), "the other slot is untouched");
+  } finally {
+    if (prev === undefined) delete process.env.SITE_DATA_DIR; else process.env.SITE_DATA_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
   }
-  assert.equal(items[0].logo, "/brand/third-party/morningstar-logo.svg");
-  assert.equal(items[1].logo, undefined, "no official eVestment file: text wordmark");
-  assert.equal(items[0].stars, 5);
-  assert.deepEqual(items[1].figures[1], { period: "3Y", percentile: null, rank: 3, of: 120 });
-  assert.deepEqual(advisorRankingItems([], { now: NOW, months: 6 }), []);
 });
 
 test("admin issues: Morningstar assets missing, drafts, stale entries; network state only adds issues", () => {

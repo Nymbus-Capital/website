@@ -20,8 +20,8 @@ export const OVERLAY_COPY = {
   illustration: l("Illustration", "Illustration"),
   /** accessible name of the animated figure */
   alt: l(
-    "Animated illustration: four strategy lanes and a futures overlay move independently while a generated bond line dips.",
-    "Illustration animée : quatre stratégies et une superposition évoluent indépendamment pendant qu’une ligne obligataire générée baisse.",
+    "Animated illustration: four strategy lanes and a protective overlay move independently while a generated bond line dips.",
+    "Illustration animée : quatre stratégies et une superposition protectrice évoluent indépendamment pendant qu’une ligne obligataire générée baisse.",
   ),
   /** drawn on the canvas itself, so no screenshot of the panel can lose it */
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
@@ -47,7 +47,7 @@ export const OVERLAY_COPY = {
     lit: l("Simulated independent moves", "Mouvements autonomes simulés"),
   },
   trio: [
-    { title: l("Overlay", "Superposition"), text: l("Futures designed to offset part of bond losses.", "Des contrats à terme conçus pour compenser une partie des pertes obligataires.") },
+    { title: l("Protective overlay", "Superposition protectrice"), text: l("Futures designed to offset part of bond losses. They may not.", "Des contrats à terme conçus pour compenser une partie des pertes obligataires. Ils peuvent ne pas y parvenir.") },
     { title: l("Distinct engines", "Moteurs distincts"), text: l("Each engine seeks a different source of return.", "Chaque moteur cherche une source de rendement différente.") },
     { title: l("Down months first", "Les mois de baisse d’abord"), text: l("Diversification is judged when markets fall.", "La diversification se juge quand les marchés baissent.") },
   ] as { title: L; text: L }[],

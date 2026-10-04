@@ -202,6 +202,30 @@ Not yet run against live data, not deployed.
   "180 of ≈2,000"), right = our systems (scan bar, filter legend, history sheets, "Every liquid bond, every day"); steps
   "The universe · Conventional team · Our systems · Side by side"; canvas 480–560 px desktop, 760 px phone. Word budget
   660 → 720, visible prose 130 → 140 (qualifier). Compliance CC9–CC12.
+16. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
+   compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
+   info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
+
+## 6. Session log
+
+- 2026-10-04 (sub-agent, branch `feat/site-v5` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's five requests.
+  (1) **"Protective overlay(s)"** / « superposition(s) protectrice(s) » names the overlay strategy on home (strategies lead,
+  engines band trio / lane / alt; Science at scale untouched), approach, solutions, about (+ qualifier note) and fund pages;
+  qualifier "designed to offset part of losses; may not" kept next to it, futures-exposure disclosure verbatim; the
+  content-v3 test that forbade "protective" now requires the qualifier instead. (2) About: people section before the values;
+  Xavier Girard and Jean-Philippe Lejeune removed (portraits deleted; no fund-page manager seed named them); counts 18 people /
+  2 PhD / 3 eng-CS / 6 CFA-CIM / 9 graduate / 278+ years. (3) /solutions "Third-party rankings" removed with
+  `AdvisorRankings`, its CSS, `lib/rankings/advisor.ts` and their tests (`RK.adv` reduced to `RK.newTab`). (4) Awards:
+  order Morningstar → Fundata → RBC → others; "Fund Library" → **Fundata** (source link "Fundata (FundLibrary.com)", admin
+  labels); brand slot `fundlibrary-logo` → `fundata-logo` with legacy uploads still listed / served / replaced
+  (`LEGACY_BRAND_SLOTS`, `toBrandSlot`); official logos `public/brand/third-party/fundata-logo.png` and `rbc-logo.png`
+  (fetched from the providers' sites by the coordinator, Nymbus' permission per Gabriel) at ~124 px / ~38 px high;
+  Morningstar methodology + attribution behind `InfoNote` (hover / focus / tap, Escape, aria-describedby); **awards gate**:
+  tab + overview Morningstar block only with a shown Fundata FundGrade A or B (`awardsEligible`; server `gateAwards` strips
+  the rankings, CIFSC line kept) — Multi-Strategy (C) has no tab. (5) GMV variants in the order 3 %, 6 %, 9 % with an
+  explicit `default` flag (6 %) in `config/funds.ts`; pipeline order (default first) unchanged. Tests: unit (gate, order,
+  legacy slot, shipped logos, variant order / default), e2e `e2e/site-v5.spec.ts` (+ fund / content-v3 / admin specs
+  updated). Compliance rows P1–P8 (P3: hidden Morningstar disclosure to confirm). Not done: independent adversarial review.
 
 - 2026-10-03 (sub-agent, branch `feat/concepts-v5` from `redesign/v3-keynote-live-data`; not merged): Gabriel's three
   /critical-concepts requests. (1) Overlay: the generated model is volatility-driven (`isVolatile`, `periodAt` in

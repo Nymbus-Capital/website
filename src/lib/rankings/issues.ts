@@ -47,8 +47,8 @@ export function rankingIssues(
     }
     (r.fundLibrary ?? []).forEach((e, i) => {
       const st = fundLibraryStatus(e, opts.now, opts.months, classes);
-      if (st === "stale") out.push({ level: "warn", key: `rankings.${key}.fundlibrary.${i}.stale`, message: `${key}: Fund Library ranking ${e.fundserv ?? e.classLabel} as at ${e.asOf} is older than ${opts.months} months — hidden.` });
-      if (st === "incomplete") out.push({ level: "warn", key: `rankings.${key}.fundlibrary.${i}.incomplete`, message: `${key}: Fund Library ranking ${e.fundserv ?? e.classLabel} not shown (needs figures, an as-of date and an https source link).` });
+      if (st === "stale") out.push({ level: "warn", key: `rankings.${key}.fundlibrary.${i}.stale`, message: `${key}: Fundata ranking ${e.fundserv ?? e.classLabel} as at ${e.asOf} is older than ${opts.months} months — hidden.` });
+      if (st === "incomplete") out.push({ level: "warn", key: `rankings.${key}.fundlibrary.${i}.incomplete`, message: `${key}: Fundata ranking ${e.fundserv ?? e.classLabel} not shown (needs figures, an as-of date and an https source link).` });
     });
     (r.thirdParty ?? []).forEach((e, i) => {
       const name = PROVIDER_META[e.provider]?.name ?? e.provider;

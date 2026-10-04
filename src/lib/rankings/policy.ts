@@ -110,7 +110,7 @@ export function validMorningstar(m: MorningstarRating | null | undefined): m is 
   return !!m && Number.isInteger(m.stars) && m.stars >= 1 && m.stars <= 5 && isIsoDate(m.asOf) && !!m.classLabel?.trim() && isHttpsUrl(m.url);
 }
 
-/** A Fund Library entry is shown only with figures, an as-of date and its source link. */
+/** A Fundata entry is shown only with figures, an as-of date and its source link. */
 const validFundLibrary = (e: FundLibraryRanking): boolean => (e.rows.length > 0 || !!e.fundGrade) && isIsoDate(e.asOf) && isHttpsUrl(e.url);
 
 export function morningstarStatus(m: MorningstarRating, now: Date, months: number): EntryStatus {
@@ -156,6 +156,34 @@ export function publicRankings(
       };
     });
   return { fundLibrary, morningstar, thirdParty };
+}
+
+/* ------------------------------------------------------------------ awards gate (Gabriel, 2026-10-04) */
+
+/** Fundata FundGrade letters for which a fund shows its awards and rankings at all. */
+export const AWARD_GRADES: readonly string[] = ["A", "B"];
+
+/**
+ * A fund shows its "Awards and rankings" tab and the overview rating block only when one of its shown Fundata entries
+ * has a FundGrade of A or B. Morningstar, RBC or other rankings alone do not qualify.
+ */
+export const awardsEligible = (fundLibrary: readonly Pick<FundLibraryRanking, "fundGrade">[]): boolean =>
+  fundLibrary.some((e) => typeof e.fundGrade === "string" && AWARD_GRADES.includes(e.fundGrade.trim().toUpperCase()));
+
+/**
+ * Server side: a fund that does not qualify receives no rankings at all (nothing in the page payload). The CIFSC category
+ * line of the facts table, which used to fall back to the Fundata category, keeps that fallback through `cifscCategory`.
+ */
+export function gateAwards<T extends { rankings?: FundRankings; cifscCategory?: L10n }>(content: T, classes?: { fundserv: string }[]): T {
+  if (!content.rankings) return content;
+  const shown = publicRankings(content.rankings, { now: null, classes }).fundLibrary;
+  if (awardsEligible(shown)) return content;
+  const { rankings: _r, ...rest } = content;
+  void _r;
+  const own = content.cifscCategory;
+  const cats = [...new Map(shown.filter((e) => e.category?.en || e.category?.fr).map((e) => [`${e.category.en}|${e.category.fr}`, e.category])).values()];
+  const cifsc = own && (own.en || own.fr) ? own : cats.length === 1 ? cats[0] : undefined;
+  return { ...rest, ...(cifsc ? { cifscCategory: cifsc } : {}) } as unknown as T;
 }
 
 /** The fund rankings object a public page receives (empty → undefined). */
