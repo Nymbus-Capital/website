@@ -13,8 +13,8 @@ import {
   CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
 import {
-  DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, futuresLayout, futuresLoop, intraday, marginFor,
-  settledThrough, sigmaOf, unsettled,
+  DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, READ_MS_PER_WORD, RULE_FULL_MS, SETTLE_SHARE, futuresLayout,
+  futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
   ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
@@ -202,6 +202,31 @@ test("futures: only one day is ever unsettled, and the margin buffer covers it a
   assert.ok(sigmaOf(HIGH_VOL_FROM) > sigmaOf(0) && sigmaOf(HIGH_VOL_TO) > sigmaOf(DAYS - 1));
   const days = futuresLoop(0);
   assert.ok(days[HIGH_VOL_FROM].margin > days[0].margin * 2);
+});
+
+test("futures: slow enough to read (Gabriel 2026-10-03) — ≥ 3 s a day (5 s), a settlement pause, each message held long enough to read twice", () => {
+  assert.ok(DAY_MS >= 3000, `${DAY_MS} ms a day`);
+  // the settlement pause: the price holds at the last close for ≥ 1 s while the cash moves, then trades smoothly to the close
+  assert.ok(SETTLE_SHARE * DAY_MS >= 1000);
+  assert.equal(marketU(0), 0);
+  assert.equal(marketU(SETTLE_SHARE), 0);
+  assert.equal(marketU(1), 1);
+  for (let u = 0; u < 1; u += 0.01) assert.ok(marketU(u + 0.01) >= marketU(u) && marketU(u + 0.01) - marketU(u) <= 0.01 / (1 - SETTLE_SHARE) + 1e-9, "monotone, no jump");
+  // the settlement message: fades in fast, fully shown for most of the day, gone just before the next close
+  assert.equal(ruleAlpha(0), 0);
+  assert.equal(ruleAlpha(1), 0);
+  assert.equal(ruleAlpha(0.5), 1);
+  let full = 0;
+  for (let u = 0; u <= 1; u += 0.001) if (ruleAlpha(u) >= 1) full += 0.001 * DAY_MS;
+  assert.ok(Math.abs(full - RULE_FULL_MS) < 30, `${full} vs ${RULE_FULL_MS}`);
+  // long enough to read the longest message (EN or FR) twice at ≈ 300 words a minute
+  const words = (x: string) => x.trim().split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
+  for (const k of ["en", "fr"] as const) {
+    const longest = Math.max(...[CC.futures.canvas.upPays[k], CC.futures.canvas.downPays[k]].map((r) => words(`${CC.futures.canvas.closeDay[k].replace("{n}", "12")} ${r}`)));
+    assert.ok(RULE_FULL_MS >= 2 * longest * READ_MS_PER_WORD, `${k}: ${longest} words, ${RULE_FULL_MS} ms`);
+  }
+  // still frame of step 2 (5.22 days) catches the cash in flight: inside the settlement pause
+  assert.ok(0.22 < SETTLE_SHARE);
 });
 
 test("futures: four focus steps over one loop; layouts fit", () => {
