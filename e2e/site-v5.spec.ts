@@ -94,6 +94,7 @@ test("Morningstar note: compact info button; hover / focus / tap opens the full 
   if (isMobile) {
     await btn.tap();
     await expect(pop).toBeVisible();
+    await pop.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${SHOTS}/v5-morningstar-note-open-${info.project.name}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await btn.tap();
@@ -136,7 +137,9 @@ test("Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected
   await expect(sel.getByTestId("variant-6")).toHaveAttribute("aria-checked", "true");
   await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
   await expect(page.getByTestId("disclosure-variant")).toHaveText("6% downside volatility");
-  await page.screenshot({ path: `${SHOTS}/v5-gmv-${info.project.name}.png` });
+  await sel.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1200);
+  await sel.screenshot({ path: `${SHOTS}/v5-gmv-${info.project.name}.png` });
   await page.goto("/strategies");
   await expect(page.locator("body")).toContainText("6% downside volatility");
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
