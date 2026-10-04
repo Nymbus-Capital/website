@@ -10,8 +10,8 @@ export const AB = {
   meta: {
     title: l("About us", "À propos"),
     description: l(
-      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and futures overlay strategies. Meet the team.",
-      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des développeurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition sur contrats à terme. Rencontrez l’équipe.",
+      "Nymbus Capital, Montreal portfolio manager founded in 2013: scientists, engineers and market veterans building systematic fixed income and protective overlay strategies. Meet the team.",
+      "Nymbus Capital, gestionnaire de portefeuille montréalais fondé en 2013 : des scientifiques, des développeurs et des vétérans des marchés qui bâtissent des stratégies systématiques de revenu fixe et de superposition protectrice sur contrats à terme. Rencontrez l’équipe.",
     ),
   },
   hero: {
@@ -19,8 +19,8 @@ export const AB = {
     title: l("Scientists", "Des scientifiques"),
     accent: l("and market veterans", "et des vétérans des marchés"),
     lead: l(
-      "Systematic fixed income and futures overlays, from Montreal, since 2013.",
-      "Revenu fixe systématique et superpositions, à Montréal, depuis 2013.",
+      "Systematic fixed income and protective overlays, from Montreal, since 2013.",
+      "Revenu fixe systématique et superpositions protectrices, à Montréal, depuis 2013.",
     ),
     cta1: l("Meet the team", "Rencontrer l’équipe"),
     cta2: l("Contact us", "Nous joindre"),
@@ -54,10 +54,15 @@ export const AB = {
       "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
     ),
     points: [
-      l("Two specialties: systematic fixed income and futures overlays", "Deux spécialités : revenu fixe systématique et superpositions"),
+      l("Two specialties: systematic fixed income and protective overlays", "Deux spécialités : revenu fixe systématique et superpositions protectrices"),
       l("Bonds analyzed one by one; futures traded systematically", "Des obligations analysées une à une; des contrats à terme négociés systématiquement"),
       l("Scientists, engineers and market veterans, side by side", "Scientifiques, développeurs et vétérans des marchés, côte à côte"),
     ] as L[],
+    /** qualifier of the "protective" name (compliance: kept wherever the overlay is named) */
+    overlayNote: l(
+      "Protective overlays are designed to offset part of losses; they may not do so and can lose money.",
+      "Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir et peuvent subir des pertes.",
+    ),
     office: l("Montreal office", "Bureau de Montréal"),
     address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
     directions: l("Directions", "Itinéraire"),

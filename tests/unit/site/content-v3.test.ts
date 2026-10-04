@@ -76,8 +76,8 @@ test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged,
 });
 
 test("team: wording gives the futures overlays room next to fixed income (about intro, overlay lead's bio)", () => {
-  assert.match(AB.intro.points[0].en, /systematic fixed income and futures overlays/);
-  assert.match(AB.intro.points[0].fr, /revenu fixe systématique et superpositions/);
+  assert.match(AB.intro.points[0].en, /systematic fixed income and protective overlays/);
+  assert.match(AB.intro.points[0].fr, /revenu fixe systématique et superpositions protectrices/);
   const mpb = team.find((m) => m.name === "Mathieu Poulin-Brière")!;
   assert.match(mpb.bio, /overlay strategies on listed futures/);
   for (const m of team) if (m.educationFr) assert.equal(m.educationFr.length, m.education?.length, `${m.name}: education EN/FR lengths differ`);
@@ -88,7 +88,19 @@ test("team: wording gives the futures overlays room next to fixed income (about 
 test("approach: risk-first and multi-strategy sections keep low correlation as an objective, with the overlay disclosure", () => {
   assert.match(AP.risk.lead.en, /^Ultra-micro analysis, at scale/);
   assert.match(AP.risk.items[2].d.en, /^Designed to offset part of bond losses, with low correlation with bonds in down months/);
-  assert.ok(!/protective|protectri/i.test(JSON.stringify([AP, AUDIENCES])), "no 'protective' overlay as a fact");
+  // "protective overlay" is the name Gabriel chose (2026-10-04); it never stands without its qualifier on the page
+  for (const [name, page] of [["approach", AP], ["solutions", AUDIENCES], ["about", AB]] as const) {
+    const en = JSON.stringify(page), fr = en;
+    if (/protective/i.test(en)) {
+      assert.match(en, /designed to (have low correlation with bonds in down months and to )?offset part of (bond )?losses/, `${name}: qualifier (en)`);
+      assert.match(en, /may not/, `${name}: "may not" (en)`);
+    }
+    if (/protectrice/i.test(fr)) {
+      assert.match(fr, /conçues? pour (avoir une faible corrélation avec les obligations lors des mois de baisse et pour )?compenser une partie des pertes/, `${name}: qualifier (fr)`);
+      assert.match(fr, /peu(t|vent) ne pas y parvenir/, `${name}: « ne pas y parvenir » (fr)`);
+    }
+  }
+  assert.ok(!/protective overlays? (protects?|guarantees?|eliminates?)/i.test(JSON.stringify([AP, AUDIENCES, AB])), "protection never stated as a fact");
   // "liquid alternative" approved for Multi-Strategy by Gabriel (2026-10-03), category "Alternative Multi-Strategy"
   assert.match(AP.multi.offers[1].d.en, /Alternative Multi-Strategy/);
   assert.match(AP.multi.offers[1].d.fr, /Multistratégies alternatives/);

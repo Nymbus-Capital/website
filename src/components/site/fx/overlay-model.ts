@@ -22,7 +22,7 @@ export const ENGINES: Engine[] = [
   { key: "directional", label: l("Directional", "Directionnelle"), color: "#1a73e8", blend: true },
   { key: "meanrev", label: l("Mean reversion", "Retour à la moyenne"), color: "#6d5bd0", blend: true },
   { key: "hedging", label: l("Hedging", "Couverture"), color: "#00a3e0", blend: true },
-  { key: "overlay", label: l("Futures overlay", "Superposition"), color: "#0f9d8a", blend: false },
+  { key: "overlay", label: l("Protective overlay", "Superposition protectrice"), color: "#0f9d8a", blend: false },
 ];
 export const BOND = { key: "bond", label: l("Bonds", "Obligations"), color: "#5f6368" };
 

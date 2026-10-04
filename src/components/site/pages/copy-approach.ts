@@ -9,8 +9,8 @@ export const AP = {
   meta: {
     title: l("Approach", "Approche"),
     description: l(
-      "How Nymbus Capital invests: risk first, a four-step systematic process, a two-system bond process, futures overlays and multi-strategy portfolios across asset classes.",
-      "Comment Nymbus Capital investit : le risque d’abord, un processus systématique en quatre étapes, un processus obligataire à deux systèmes, des stratégies de superposition et des portefeuilles multistratégies dans plusieurs catégories d’actifs.",
+      "How Nymbus Capital invests: risk first, a four-step systematic process, a two-system bond process, protective overlays and multi-strategy portfolios across asset classes.",
+      "Comment Nymbus Capital investit : le risque d’abord, un processus systématique en quatre étapes, un processus obligataire à deux systèmes, des superpositions protectrices et des portefeuilles multistratégies dans plusieurs catégories d’actifs.",
     ),
   },
   hero: {
@@ -35,7 +35,7 @@ export const AP = {
     items: [
       { t: l("Ultra-micro analysis", "Analyse ultra-micro"), d: l("Each bond on its own, across entire universes.", "Chaque obligation, dans des univers entiers.") },
       { t: l("Systematic scans", "Balayages systématiques"), d: l("Seeking the most attractive assets for their risk.", "À la recherche des actifs les plus attrayants compte tenu de leur risque.") },
-      { t: l("Futures overlays", "Superpositions de contrats à terme"), d: l("Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).", "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).") },
+      { t: l("Protective overlays", "Superpositions protectrices"), d: l("Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).", "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).") },
     ],
     viz: l("Illustration: a bond universe, scanned bond by bond", "Illustration : un univers obligataire, balayé obligation par obligation"),
     illus: l("Illustration only", "Illustration seulement"),
@@ -129,8 +129,8 @@ export const AP = {
     ],
   },
   overlay: {
-    eyebrow: l("Futures overlay", "Stratégie de superposition"),
-    title: l("Why add a futures overlay", "Pourquoi ajouter une stratégie de superposition"),
+    eyebrow: l("Protective overlay", "Superposition protectrice"),
+    title: l("Why add a protective overlay", "Pourquoi ajouter une superposition protectrice"),
     accent: l("to a bond portfolio?", "à un portefeuille obligataire?"),
     lead: l(
       "Bonds tend to struggle when volatility rises.",
@@ -141,10 +141,10 @@ export const AP = {
     common: l("The common thread", "Le point commun"),
     vol: l("Elevated volatility", "Une volatilité élevée"),
     solution: l("Our response", "Notre réponse"),
-    solT: l("A managed futures overlay", "Une superposition de contrats à terme gérés"),
+    solT: l("A protective overlay of managed futures", "Une superposition protectrice de contrats à terme gérés"),
     solD: l(
-      "Our overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
-      "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
+      "Our protective overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
+      "Notre superposition protectrice est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
     ),
     stackT: l("Most of the capital stays invested", "La majeure partie du capital reste investie"),
     stackD: l(
@@ -152,9 +152,9 @@ export const AP = {
       "Les contrats à terme s’ajoutent aux obligations, avec un dépôt de garantie d’environ 5 à 10 % de leur exposition.** La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",
     ),
     before: l("Bond portfolio", "Portefeuille obligataire"),
-    after: l("With the overlay", "Avec la superposition"),
+    after: l("With the protective overlay", "Avec la superposition protectrice"),
     bonds: l("Bonds", "Obligations"),
-    overlay: l("Futures overlay", "Superposition"),
+    overlay: l("Protective overlay", "Superposition protectrice"),
     foot1: l(
       "* Source: Nymbus Capital Inc. Statements reflect historical observations of the Nymbus bond funds’ underlying strategies for conceptual visualization purposes and should not be construed as an exact representation of past contributions or future expectations.",
       "* Source : Nymbus Capital Inc. Les déclarations présentées reflètent des observations historiques des stratégies sous-jacentes aux fonds obligataires Nymbus à des fins de visualisation conceptuelle et ne doivent pas être interprétées comme une représentation exacte des rendements passés ou des prévisions futures.",
@@ -165,7 +165,7 @@ export const AP = {
     ),
   },
   multi: {
-    eyebrow: l("Multi-strategy and overlays", "Multistratégie et superpositions"),
+    eyebrow: l("Multi-strategy and protective overlays", "Multistratégie et superpositions protectrices"),
     title: l("Several strategies,", "Plusieurs stratégies,"),
     accent: l("across asset classes", "dans plusieurs catégories d’actifs"),
     lead: l(
@@ -174,17 +174,17 @@ export const AP = {
     ),
     strategies: [l("Low volatility", "Faible volatilité"), l("Directional", "Directionnelle"), l("Mean reversion", "Retour à la moyenne"), l("Hedging", "Couverture")],
     assets: [l("Rates", "Taux"), l("Credit", "Crédit"), l("Equity indices", "Indices boursiers"), l("Currencies", "Devises"), l("Commodities", "Matières premières")],
-    overlay: l("Futures overlay · designed to offset part of bond losses", "Superposition de contrats à terme · conçue pour compenser une partie des pertes obligataires"),
+    overlay: l("Protective overlay · designed to offset part of bond losses", "Superposition protectrice · conçue pour compenser une partie des pertes obligataires"),
     strategiesK: l("Strategies", "Stratégies"),
     assetsK: l("Asset classes", "Catégories d’actifs"),
     offersT: l("Three ways to access it", "Trois façons d’y accéder"),
     offers: [
-      { t: l("Bond funds with an overlay", "Fonds obligataires avec superposition"), d: l("Both use the futures overlay.", "Les deux utilisent la superposition."), links: [
+      { t: l("Bond funds with a protective overlay", "Fonds obligataires avec superposition protectrice"), d: l("Both use the protective overlay.", "Les deux utilisent la superposition protectrice."), links: [
         { href: "/strategies/monthly-income", label: l("Monthly Income", "Revenu Mensuel") },
         { href: "/strategies/sustainable-enhanced-bonds", label: l("Sustainable Enhanced Bonds", "Obligations Durables Bonifiées") },
       ] },
       { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("A liquid alternative, Alternative Multi-Strategy category.", "Une solution alternative liquide, catégorie Multistratégies alternatives."), links: [{ href: "/strategies/multi-strategy" }] },
-      { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The overlay alone, on top of your portfolio.", "La superposition seule, ajoutée à votre portefeuille."), links: [{ href: "/strategies/global-minimum-volatility" }] },
+      { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The protective overlay alone, on top of your portfolio.", "La superposition protectrice seule, ajoutée à votre portefeuille."), links: [{ href: "/strategies/global-minimum-volatility" }] },
     ],
     note: l(
       "Illustration only: allocations change and not every strategy trades every asset class. Low correlation is an objective, not a guarantee. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",

@@ -84,7 +84,7 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     vehicles: [
       { name: l("Segregated mandate", "Mandat distinct"), text: l("Managed for you alone, under your guidelines.", "Géré pour vous seul, selon vos lignes directrices.") },
-      { name: l("Futures overlay", "Stratégie de superposition"), text: l("Managed futures on top of your bonds; most of the capital stays invested in the bonds. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Des contrats à terme gérés ajoutés à vos obligations; la majeure partie du capital reste investie dans les obligations. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
+      { name: l("Protective overlay", "Superposition protectrice"), text: l("Managed futures over your bonds, designed to offset part of bond losses (they may not); most capital stays in the bonds. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Des contrats à terme gérés ajoutés à vos obligations, conçus pour compenser une partie des pertes obligataires (ils peuvent ne pas y parvenir); l’essentiel du capital reste dans les obligations. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
       { name: l("Funds", "Fonds"), text: l("The strategies, through our funds.", "Les stratégies, par l’entremise de nos fonds.") },
     ],
     funds: ["sustainable-enhanced-bonds", "monthly-income", "global-minimum-volatility", "multi-strategy"],
@@ -92,7 +92,7 @@ export const AUDIENCES: AudienceCopy[] = [
       title: l("Pension plan: liability matching, plus a second objective", "Régime de retraite : appariement du passif, et un second objectif"),
       steps: [
         l("Liability-matching bonds, actively managed to seek added value", "Des obligations appariées au passif, gérées activement pour chercher une valeur ajoutée"),
-        l("A futures overlay, designed to offset part of bond losses, with an objective of returns above inflation over a full rate cycle", "Une superposition de contrats à terme, conçue pour compenser une partie des pertes obligataires, avec un objectif de rendement supérieur à l’inflation sur un cycle complet de taux"),
+        l("A protective overlay, designed to offset part of bond losses, with an objective of returns above inflation over a full rate cycle", "Une superposition protectrice, conçue pour compenser une partie des pertes obligataires, avec un objectif de rendement supérieur à l’inflation sur un cycle complet de taux"),
         l("Most of the capital stays in the bonds", "La majeure partie du capital reste dans les obligations"),
       ],
       note: join(MAY_NOT, OVERLAY_ADDS),
@@ -114,14 +114,14 @@ export const AUDIENCES: AudienceCopy[] = [
     ],
     vehicles: [
       { name: l("Funds", "Fonds"), text: l("Our funds, with daily NAVs.", "Nos fonds, avec des valeurs liquidatives quotidiennes.") },
-      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility futures overlay. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la stratégie de superposition Global Minimum Volatility. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
+      { name: l("Managed accounts", "Comptes gérés"), text: l("A strategy run in an account in your name, such as the Global Minimum Volatility protective overlay. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.", "Une stratégie gérée dans un compte à votre nom, comme la superposition protectrice Global Minimum Volatility. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.") },
     ],
     funds: ["global-minimum-volatility", "multi-strategy", "monthly-income", "sustainable-enhanced-bonds"],
     useCase: {
       title: l("Family office: capital efficiency", "Bureau de gestion familiale : l’efficacité du capital"),
       steps: [
         l("Existing positions serve as collateral for the futures", "Des positions existantes servent de garantie pour les contrats à terme"),
-        l("Overlay sized to a downside-volatility target", "Superposition calibrée selon une cible de volatilité à la baisse"),
+        l("Protective overlay sized to a downside-volatility target", "Superposition protectrice calibrée selon une cible de volatilité à la baisse"),
         l("The existing portfolio stays invested", "Le portefeuille existant demeure investi"),
       ],
       note: join(

@@ -74,8 +74,8 @@ test("concise copy: overlay and distribution disclosures survive the cut, word f
   assert.ok(FUND_TEXTS["monthly-income"].feature.cards.find((c) => c.icon === "calendar")!.text.en.includes(DIST));
   // approach page: the overlay caveat, the overlay exposure disclosure and both footnotes
   assert.deepEqual(AP.overlay.solD, {
-    en: "Our overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
-    fr: "Notre stratégie de superposition est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
+    en: "Our protective overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.*",
+    fr: "Notre superposition protectrice est conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et pour compenser une partie des pertes obligataires lorsque la volatilité augmente; elle peut ne pas y parvenir et peut subir des pertes.*",
   });
   assert.ok(AP.overlay.stackD.en.includes(OVERLAY_ADDS));
   assert.match(AP.overlay.foot1.en, /^\* Source: Nymbus Capital Inc\. Statements reflect historical observations/);
@@ -97,8 +97,8 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
   }
   assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.endsWith("elle peut ne pas y parvenir et peut subir des pertes."));
   // GMV audience (Gabriel 2026-10-01): primarily family offices, also institutions
-  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.en.startsWith("A managed-futures overlay for family offices and institutions, offered through separately managed accounts."));
-  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.startsWith("Une stratégie de superposition de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts."));
+  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.en.startsWith("A protective overlay of managed futures for family offices and institutions, offered through separately managed accounts."));
+  assert.ok(FUND_TEXTS["global-minimum-volatility"].summary.fr.startsWith("Une superposition protectrice de contrats à terme gérés pour les bureaux de gestion familiale et les institutions, offerte en comptes gérés distincts."));
   const family = AUDIENCES.find((a) => a.key === "family")!;
   assert.equal(family.funds[0], "global-minimum-volatility");
   const managed = family.vehicles.find((v) => v.name.en === "Managed accounts")!.text;
@@ -123,10 +123,10 @@ test("concise copy: the same disclosures in French, and the other condensed bloc
     fr: "La couverture cherche à limiter les pertes en conditions défavorables; elle n’élimine pas le risque de perte.",
   });
   // solutions: the futures-overlay vehicle keeps the overlay exposure disclosure
-  const overlay = AUDIENCES.find((a) => a.key === "institutional")!.vehicles.find((v) => v.name.en === "Futures overlay")!.text;
+  const overlay = AUDIENCES.find((a) => a.key === "institutional")!.vehicles.find((v) => v.name.en === "Protective overlay")!.text;
   assert.ok(overlay.en.endsWith(OVERLAY_ADDS));
   assert.ok(overlay.fr.endsWith(OVERLAY_ADDS_FR));
-  assert.ok(overlay.en.includes("most of the capital stays invested in the bonds"));
+  assert.ok(overlay.en.includes("designed to offset part of bond losses (they may not); most capital stays in the bonds"));
   // sustainability: ESG scope (fr) and the principles exception
   assert.ok(SU.hero.lead.fr.endsWith("ils ne visent pas sa stratégie de superposition, qui porte sur des contrats à terme cotés plutôt que sur des titres d’émetteurs individuels."));
   assert.ok(SU.exclusions.lead.fr.endsWith("Ils ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds."));
