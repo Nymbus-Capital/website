@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { cycleMs, stepAt, stepStarts } from "../../../src/components/site/concepts/timeline.ts";
 import {
-  CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
+  CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
 import {
   DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, futuresLayout, futuresLoop, intraday, marginFor,
@@ -69,25 +69,59 @@ test("overlay: periods are deterministic, bounded, and combined = core + overlay
   assert.ok(diff > 95);
 });
 
-test("overlay: driven by volatility (vega) — small in calm periods, clearly positive in volatile ones and in the worst core drawdowns", () => {
+test("overlay: driven by volatility (vega) — small in calm periods, larger in volatile ones (up or down moves), never a promise", () => {
   const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
   const all = Array.from({ length: 4000 }, (_, n) => periodAt(n, 0));
   const vol = all.filter((p) => p.volatile), calm = all.filter((p) => !p.volatile);
-  assert.ok(mean(vol.map((p) => p.overlay)) > 3 * mean(calm.map((p) => p.overlay)), "volatile mean > calm mean");
-  assert.ok(mean(vol.map((p) => p.overlay)) > 0.3);
-  for (const p of vol) assert.ok(p.overlay > 0, `volatile period ${p.n}: ${p.overlay}`);
+  assert.ok(mean(vol.map((p) => p.overlay)) > 3 * mean(calm.map((p) => p.overlay)), "volatile mean > 3 × calm mean");
   for (const p of calm) assert.ok(Math.abs(p.overlay) < 0.6, `calm overlay stays small: ${p.overlay}`);
-  // volatile periods carry the large moves, both ways, and the sharp drawdowns
-  assert.ok(mean(vol.map((p) => Math.abs(p.core))) > 2 * mean(calm.map((p) => Math.abs(p.core))));
-  assert.ok(vol.some((p) => p.core > 0.3) && vol.some((p) => p.core < -0.6));
-  // every chart window (one per loop seed) shows calm and volatile periods, the worst core drawdowns with a positive
-  // overlay, and at least one small losing overlay period in a calm stretch
+  // volatile periods can lose too (roughly one in five or six)
+  const volLoss = vol.filter((p) => p.overlay < 0).length / vol.length;
+  assert.ok(volLoss > 0.1 && volLoss < 0.3, `volatile losing share ${volLoss}`);
+  // the volatile core is symmetric with a larger spread: big up and big down moves both tend to pay
+  assert.ok(Math.abs(mean(vol.map((p) => p.core))) < 0.08 && Math.abs(mean(calm.map((p) => p.core))) < 0.05);
+  assert.ok(mean(vol.map((p) => Math.abs(p.core))) > 2.5 * mean(calm.map((p) => Math.abs(p.core))));
+  const bigUp = vol.filter((p) => p.core > 0.6), bigDn = vol.filter((p) => p.core < -0.6);
+  assert.ok(bigUp.length > 50 && bigDn.length > 50);
+  assert.ok(mean(bigUp.map((p) => p.overlay)) > 0.4 && mean(bigDn.map((p) => p.overlay)) > 0.4);
+  // default seed: the largest core drawdown comes with a positive overlay
+  const w0 = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, 0));
+  const worst = [...w0].sort((a, b) => a.core - b.core)[0];
+  assert.ok(worst.volatile && worst.overlay > 0, `default seed worst drawdown: ${JSON.stringify(worst)}`);
+  // every chart window shows both regimes and a losing calm period; across the 16 loop seeds a volatile period loses too
+  let volLosers = 0;
   for (let seed = 0; seed < 16; seed++) {
     const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
     assert.ok(w.some((p) => p.volatile) && w.some((p) => !p.volatile), `seed ${seed}`);
-    const worst = [...w].sort((a, b) => a.core - b.core).slice(0, 2);
-    for (const p of worst) assert.ok(p.overlay > 0 && p.volatile, `seed ${seed}: worst drawdown period ${p.n} overlay ${p.overlay}`);
     assert.ok(w.some((p) => p.overlay < 0 && !p.volatile), `seed ${seed}: no losing calm period`);
+    volLosers += w.filter((p) => p.volatile && p.overlay < 0).length;
+    for (const p of w) assert.equal(p.combined, p.core + p.overlay);
+  }
+  assert.ok(volLosers >= 1, "at least one losing volatile period across the 16 loops");
+});
+
+test("overlay chart: the scale uses the window's tallest stack; the loss note points at the largest loss and covers no bar", () => {
+  for (const [Cw, barsH, narrow] of [[332, 170, true], [384, 190, true], [800, 340, false]] as [number, number, boolean][]) {
+    for (let seed = 0; seed < 16; seed++) {
+      const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
+      const top = 40, bottom = top + barsH, mid = (top + bottom) / 2, half = barsH / 2;
+      const scale = chartScale(w, half);
+      const tallest = Math.max(...w.map((p) => Math.max(stackOf(p).up, stackOf(p).dn)));
+      assert.ok(tallest * scale <= half && tallest * scale > half * 0.8, `scale fills the height (${seed})`);
+      const li = largestLoss(w);
+      assert.ok(li >= 0 && w.every((p) => p.overlay >= w[li].overlay));
+      const bw = Cw / (CHART_PERIODS + 1), bwid = Math.max(3, bw * 0.56);
+      for (const textW of [26 * 5.6, 31 * 5.6]) { // "Overlay losses add up too" / « Les pertes s’additionnent aussi »
+        const s = lossNoteSpot(w, li, { x0: 0, bw, w: bwid, mid, top, bottom, scale, textW: Math.min(textW, Cw * 0.55) });
+        assert.ok(s.box.y >= top && s.box.y + s.box.h <= bottom, `note inside the bars area (${seed}, ${narrow})`);
+        w.forEach((p, k) => {
+          const cx = bw * (k + 0.5), st = stackOf(p);
+          const bar = { x: cx - bwid / 2, y: mid - st.up * scale, w: bwid, h: (st.up + st.dn) * scale };
+          const hit = s.box.x < bar.x + bar.w && bar.x < s.box.x + s.box.w && s.box.y < bar.y + bar.h && bar.y < s.box.y + s.box.h;
+          assert.ok(!hit, `loss note covers bar ${k} (seed ${seed}, width ${Cw})`);
+        });
+      }
+    }
   }
 });
 
@@ -247,7 +281,7 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
 test("coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
   assert.equal(CC.coverage.sectors.length, ANALYSTS);
   assert.deepEqual(CC.coverage.sectors.map((s) => s.long.en), [
-    "Financials", "Technology & telecom", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
+    "Financials", "Technology & communications", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
   ]);
   for (const s of CC.coverage.sectors) {
     for (const k of ["long", "short", "abbr"] as const) assert.ok(s[k].en.trim() && s[k].fr.trim());
@@ -334,8 +368,8 @@ test("copy: the overlay caption ends with the verbatim futures-exposure disclosu
   assert.equal(OVERLAY_EXPOSURE.en, "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
   assert.match(CC.overlay.caption.en, /generated values, not actual positions or results/);
   assert.match(CC.overlay.caption.en, /Overlays can lose money/);
-  assert.match(CC.overlay.caption.en, /Illustration of the overlay’s sensitivity to volatility \(vega\); it may not behave this way\./);
-  assert.match(CC.overlay.caption.fr, /sensibilité de la superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
+  assert.match(CC.overlay.caption.en, /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./);
+  assert.match(CC.overlay.caption.fr, /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
   assert.match(CC.overlay.canvas.volNote.en, /historically tended to/);
   assert.match(CC.overlay.canvas.loss.en, /^Overlay losses add up too$/);
   assert.match(CC.futures.caption.en, /losses can exceed the margin deposited/);

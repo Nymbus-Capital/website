@@ -22,7 +22,7 @@ export interface CoverageLabels {
 }
 
 const STARTS = stepStarts(COVERAGE_STEP_MS);
-/** One colour per sector (and its analyst): financials, technology & telecom, consumer, utilities & infrastructure, energy, industrials. */
+/** One colour per sector (and its analyst): financials, technology & communications, consumer, utilities & infrastructure, energy, industrials. */
 export const ANALYST_COLORS = ["#1a73e8", "#00a3e0", "#6d5bd0", "#0f9d8a", "#e37400", "#c5221f"];
 
 export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => CoverageLabels }): Runner {
@@ -175,7 +175,8 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       ctx.globalAlpha = fade * appear * (1 - mem) * (step === 1 ? 1 : 0.75);
       P.font(600, L.narrow ? 9 : 10);
       bands.forEach((bx, s) => {
-        const name = fitName(P, lab.sectors[s], bx.w + 4);
+        // narrow: the same abbreviations as under the analysts; wide: the name the cluster fits (short first)
+        const name = L.narrow ? lab.sectors[s].abbr : fitName(P, { ...lab.sectors[s], long: lab.sectors[s].short }, bx.w + 4);
         P.text(name, bx.x + bx.w / 2, bx.y + bx.h / 2, bx.w + 4, "center", ANALYST_COLORS[s]);
       });
       ctx.globalAlpha = fade;

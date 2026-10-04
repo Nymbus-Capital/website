@@ -7,7 +7,9 @@
  * volatile periods, where the generated overlay does better. Lazily imported; drawn by runner.ts.
  */
 import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
-import { CHART_PERIODS, OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, overlayStackLayout, periodAt, stackBlocks, type Period } from "./overlay-stack-model.ts";
+import {
+  CHART_PERIODS, OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, overlayStackLayout, periodAt, stackBlocks, type Period,
+} from "./overlay-stack-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 
@@ -213,7 +215,8 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     const n = Math.floor((a3 * OVERLAY_STEP_MS[3]) / PERIOD_MS);
     const cap = CHART_PERIODS;
     const bw = C.w / (cap + 1);
-    const scale = half / (MAX_CONTRIB * 1.05);
+    const win = Array.from({ length: cap }, (_, i) => period(i, loop));
+    const scale = chartScale(win, half);
     const last = Math.min(n, cap - 1);
     const growOf = (i: number) => (i === n ? easeOut(((a3 * OVERLAY_STEP_MS[3]) % PERIOD_MS) / PERIOD_MS) : 1);
     // volatile periods: shaded columns behind the bars, and the regime strip (calm / volatile runs) under them
@@ -233,9 +236,12 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       ctx.globalAlpha = fade * growOf(i);
       P.round(x0, sy, x1 - x0, stripH, 7);
       ctx.fillStyle = v ? rgba(COL.violet, 0.2) : rgba(COL.slate, 0.16); ctx.fill();
+      // the tag at a smaller size when the run is short; never truncated (the shading carries it otherwise)
       const tag = v ? lab.volatile : lab.calm;
-      P.font(500, L.narrow ? 9 : 9.5);
-      if (P.measure(tag) <= x1 - x0 - 8) P.text(tag, (x0 + x1) / 2, sy + stripH / 2, x1 - x0 - 8, "center", v ? COL.violet : COL.mute);
+      for (const fs of L.narrow ? [9, 8] : [9.5, 8.5]) {
+        P.font(500, fs);
+        if (P.measure(tag) <= x1 - x0 - 6) { P.text(tag, (x0 + x1) / 2, sy + stripH / 2, x1 - x0 - 6, "center", v ? COL.violet : COL.mute); break; }
+      }
       i = j + 1;
     }
     ctx.globalAlpha = fade;
@@ -247,7 +253,6 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       ctx.globalAlpha = fade;
     }
     const pts: { x: number; y: number }[] = [];
-    let firstLoss = -1;
     for (let i = 0; i <= last; i++) {
       const pd = period(i, loop);
       const grow = growOf(i);
@@ -262,7 +267,6 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         P.round(x - w / 2, y0, w, h, 2); ctx.fill();
         if (v >= 0) up += h; else dn += h;
       }
-      if (pd.overlay < 0 && firstLoss < 0 && grow >= 1) firstLoss = i;
       pts.push({ x, y: mid - pd.combined * scale * grow });
     }
     // combined path + dots
@@ -297,15 +301,17 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       }
     }
     // honest note: an overlay period can lose, and the loss adds to the core's
-    if (firstLoss >= 0) {
-      const x = C.x + bw * (firstLoss + 0.5);
-      const pd = period(firstLoss, loop);
-      const y = mid + (Math.max(0, -pd.core) + -pd.overlay) * scale + 10;
-      ctx.strokeStyle = rgba(COL.orange, 0.7); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, Math.min(bottom - 4, y + 16)); ctx.stroke();
+    // pointed at the largest overlay loss on screen, placed clear of the bars around it
+    const shown = win.slice(0, n >= cap ? cap : n);
+    const li = largestLoss(shown);
+    if (li >= 0) {
       P.font(500, L.narrow ? 10 : 10.5);
-      const right = x > C.x + C.w / 2;
-      P.text(lab.loss, x + (right ? -4 : 4), Math.min(bottom - 4, y + 16) + 2, C.w * 0.55, right ? "right" : "left", COL.orange);
+      const textW = Math.min(P.measure(lab.loss), C.w * 0.55);
+      const spot = lossNoteSpot(win, li, { x0: C.x, bw, w: Math.max(3, bw * 0.56), mid, top, bottom, scale, textW });
+      const x = C.x + bw * (li + 0.5);
+      ctx.strokeStyle = rgba(COL.orange, 0.7); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, spot.line[0]); ctx.lineTo(x, spot.line[1]); ctx.stroke();
+      P.text(lab.loss, spot.x, spot.y, textW, spot.align, COL.orange);
     }
     // tagline
     ctx.globalAlpha = fade * span(a3, 0.12, 0.3);

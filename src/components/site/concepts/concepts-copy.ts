@@ -66,8 +66,8 @@ export const CC = {
       { label: l("Sources of return", "Sources de rendement"), value: l("2", "2") },
     ],
     caption: l(
-      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. Illustration of the overlay’s sensitivity to volatility (vega); it may not behave this way. ${OVERLAY_EXPOSURE.en}`,
-      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. Illustration de la sensibilité de la superposition à la volatilité (vega); elle pourrait ne pas se comporter ainsi. ${OVERLAY_EXPOSURE.fr}`,
+      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way. ${OVERLAY_EXPOSURE.en}`,
+      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. Illustration de la sensibilité de la stratégie de superposition à la volatilité (vega); elle pourrait ne pas se comporter ainsi. ${OVERLAY_EXPOSURE.fr}`,
     ),
     canvas: {
       core: l("Core portfolio", "Portefeuille de base"),
@@ -87,7 +87,7 @@ export const CC = {
       tagline: l("Same capital base. Two sources of return.", "Même capital. Deux sources de rendement."),
       loss: l("Overlay losses add up too", "Les pertes s’additionnent aussi"),
       calm: l("Calm", "Calme"),
-      volatile: l("Volatile", "Volatil"),
+      volatile: l("Volatile", "Agité"),
       volNote: l("More volatility → overlay has historically tended to do better", "Plus de volatilité → la superposition a historiquement eu tendance à mieux se comporter"),
     },
   },
@@ -197,7 +197,7 @@ export const CC = {
     /** the six analysts' sectors (illustrative split; analyst a covers sector a), in three lengths for the canvas */
     sectors: [
       { long: l("Financials", "Services financiers"), short: l("Financials", "Finance"), abbr: l("Fin.", "Fin.") },
-      { long: l("Technology & telecom", "Technologies et télécoms"), short: l("Tech & telecom", "Techno et télécoms"), abbr: l("Tech", "Tech.") },
+      { long: l("Technology & communications", "Technologies et communications"), short: l("Tech & comms", "Techno et comm."), abbr: l("Tech", "Tech.") },
       { long: l("Consumer (discr. & staples)", "Consommation (disc. et base)"), short: l("Consumer", "Consommation"), abbr: l("Cons.", "Conso.") },
       { long: l("Utilities & infrastructure", "Services publics et infrastructures"), short: l("Utilities & infra.", "Services publics"), abbr: l("Util.", "Infra.") },
       { long: l("Energy", "Énergie"), short: l("Energy", "Énergie"), abbr: l("Energy", "Énergie") },

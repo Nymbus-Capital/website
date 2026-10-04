@@ -200,6 +200,11 @@ Not yet run against live data, not deployed.
   grande échelle » (heading "Why machines see more" kept); section anchor `#ultra-micro-analysis`, alias `#coverage`
   kept; internal id / test ids stay `coverage`. Unit tests: vega (volatile mean > calm mean, worst drawdowns positive,
   a losing calm period per seed), sector clusters and label fit at 300–1360 px; word budget for the page 580 → 660.
+  Review fixes (same branch): volatile overlay without floor (0.15 + 0.55·|core| + 0.45·noise, loses ≈1 in 6), volatile core
+  symmetric with a wider spread; chart scale from the window's tallest stack (`chartScale`); loss note on the largest
+  visible loss, placed clear of the bars (`lossNoteSpot`, unit-tested at 332–800 px); pill tags shrink instead of
+  truncating; FR « Agité »; caption "overlay strategy's sensitivity"; "Technology & communications"; narrow screens use the
+  same abbreviations above the clusters and under the analysts.
 - 2026-10-03 (sub-agent, branch `fix/concepts-v4` from `integ/v4`; not merged): fixes after the independent review of
   /critical-concepts. Overlay: one "Same capital base" bracket over core + deposit with the collateral sub-label;
   placeholder chart in steps 1–3 (desktop); no particles in still frames. Futures: clearing-house node between long and

@@ -45,7 +45,7 @@ test("critical concepts (EN): three panels drawn, advancing, labelled, with capt
   }
   await expect(page.getByTestId("overlay-caption")).toContainText(EXPOSURE);
   await expect(page.getByTestId("overlay-caption")).toContainText(/generated values, not actual positions or results/);
-  await expect(page.getByTestId("overlay-caption")).toContainText("Illustration of the overlay’s sensitivity to volatility (vega); it may not behave this way.");
+  await expect(page.getByTestId("overlay-caption")).toContainText("Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way.");
   await expect(page.getByTestId("futures-caption")).toContainText(/losses can exceed the margin deposited/);
   await expect(page.getByTestId("coverage-caption")).toContainText(/^Illustrative estimates/);
   await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "150–180", "≈2,000", "≥ $200 MM"]);
