@@ -130,7 +130,7 @@ export function focusTracker(): (step: number, p: number) => [number, number] {
 export const CARD_ROWS = {
   wide: {
     team: { title: 14, title2: 28, pm: 50, analysts: [74, 90, 106], perYear: 128, bar: 138, result: 166, bottom: 184 },
-    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 132, memory2: 147, bottom: 158 },
+    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 128, memory2: 142, bottom: 150 },
   },
   narrow: {
     team: { title: 13, title2: 26, crew: 45, result: 72, result2: 91, bottom: 100 },

@@ -230,7 +230,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       card(ctx, L.team, fT, fade, step === 1 || step === 3);
       card(ctx, L.systems, fS, fade, step === 2 || step === 3);
       drawTeam(ctx, P, lab, step, year, fT * fade);
-      drawSystems(ctx, P, lab, step, scan, mem, fS * fade);
+      drawSystems(ctx, P, lab, step, p, scan, mem, fS * fade);
       drawVs(ctx, P, lab, step, p, t, fade);
       ctx.globalAlpha = 1;
       P.watermark(lab.watermark, W, H, L.pad);
@@ -403,7 +403,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   }
 
   /** Method 2 card: our systems — the systematic scan, every liquid bond every day, every day of history remembered. */
-  function drawSystems(ctx: CanvasRenderingContext2D, Pn: Pen, lab: CoverageLabels, step: number, scan: number, mem: number, alpha: number) {
+  function drawSystems(ctx: CanvasRenderingContext2D, Pn: Pen, lab: CoverageLabels, step: number, p: number, scan: number, mem: number, alpha: number) {
     const S = L.systems;
     const ip = L.narrow ? 8 : 14;
     const x = S.x + ip, w = S.w - 2 * ip;
@@ -441,8 +441,8 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
     ctx.globalAlpha = alpha * Math.max(0.45, Math.min(1, scan * 1.5));
     const sc = wrap(Pn, lab.scanned, w, 600, 15, 10.5);
     sc.forEach((ln, k) => figure(ctx, Pn, ln, x, S.y + (k ? R.scanned2 : R.scanned), 0, w));
-    // in act 2 the pill on the graphic says it: the card line waits for the compare step (shown softly before)
-    ctx.globalAlpha = alpha * (step === 2 ? 0 : step === 3 ? Math.max(0.45, mem) : 0.45);
+    // in act 2 the line gives way when the pill on the graphic says it; full again in the compare step
+    ctx.globalAlpha = alpha * (step === 2 ? 0.45 * (1 - span(p, 0.56, 0.62)) : step === 3 ? Math.max(0.45, mem) : 0.45);
     const my = sc.length > 1 ? S.y + R.memory : S.y + R.scanned2 + 4;
     wrap(Pn, lab.memory, w, 500, 10.5).forEach((ln, k) => Pn.text(ln, x, my + 15 * k, w, "left", step >= 2 ? COL.ink2 : COL.mute));
   }
