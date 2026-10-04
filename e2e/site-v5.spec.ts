@@ -50,8 +50,8 @@ test("fund awards: Morningstar → Fundata → RBC, official logos sized like Mo
   await page.goto("/strategies/sustainable-enhanced-bonds#awards");
   const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
   await expect(tab).toBeVisible();
-  const order = await tab.locator('[data-testid="awards-morningstar"], [data-testid^="ranking-"], [data-testid^="tp-rbc"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
-  expect(order.slice(0, 3)).toEqual(["awards-morningstar", "ranking-LDM201", "tp-rbc-pfs"]);
+  const order = await tab.locator('[data-testid="awards-morningstar"], [data-testid="ranking-LDM201"], [data-testid="tp-rbc-pfs"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+  expect(order).toEqual(["awards-morningstar", "ranking-LDM201", "tp-rbc-pfs"]);
   const fundata = tab.getByTestId("logo-fundata");
   await expect(fundata).toHaveAttribute("src", "/brand/third-party/fundata-logo.png");
   await expect(fundata).toHaveAttribute("alt", "Fundata");
