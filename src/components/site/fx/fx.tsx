@@ -9,6 +9,7 @@
  *   <AnalysisScan/> the home "analysis scan" panel (large table of rows scanned by a light, with counters)
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { recoverFromChunkError } from "./chunk-recover";
 import { Cpu, FlaskConical, Landmark } from "lucide-react";
 import { onScrollFrame, reducedMotion, Reveal, useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
@@ -49,7 +50,7 @@ export function DataField({ className, strength = 1 }: { className?: string; str
         if (dead) return;
         engine = m.createDataField(c, { still: reduced || saveData(), strength, ...(coarsePointer() ? { maxFps: 15 } : {}) });
         setOn(true);
-      }).catch(() => {});
+      }).catch((e) => recoverFromChunkError(e, "animation"));
     };
     // lazy: nothing is loaded or drawn until the hero is (nearly) on screen
     if (typeof IntersectionObserver === "undefined") { boot(); return () => { dead = true; engine?.destroy(); }; }
@@ -182,7 +183,7 @@ export function AnalysisScan() {
           onReady: () => setReady(true),
         });
         scan.current = engine;
-      }).catch(() => {});
+      }).catch((e) => recoverFromChunkError(e, "animation"));
     };
     if (typeof IntersectionObserver === "undefined") { boot(); return () => { dead = true; engine?.destroy(); }; }
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "300px" });

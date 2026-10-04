@@ -6,6 +6,7 @@
  * motion (live), Data Saver → still, coarse pointer → 15 fps, test hooks data-frames / data-running.
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { recoverFromChunkError } from "./chunk-recover";
 import { Layers, Shuffle, TrendingDown } from "lucide-react";
 import { reducedMotion, Reveal } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
@@ -64,7 +65,7 @@ export function OverlayEngines() {
           onReady: () => setReady(true),
         });
         viz.current = engine;
-      }).catch(() => {});
+      }).catch((e) => recoverFromChunkError(e, "engines band"));
     };
     if (typeof IntersectionObserver === "undefined") { boot(); return () => { dead = true; engine?.destroy(); }; }
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "300px" });

@@ -7,6 +7,7 @@
  * Data Saver, 15 fps on coarse pointers; test hooks data-frames / data-running / data-step on the canvas host.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { recoverFromChunkError } from "../fx/chunk-recover";
 import { Pause, Play } from "lucide-react";
 import { reducedMotion } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
@@ -88,7 +89,7 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
         engine = r;
         runner.current = r;
         if (!playingRef.current) r.setPlaying(false);
-      }).catch(() => {});
+      }).catch((e) => recoverFromChunkError(e, "concept " + id));
     };
     if (typeof IntersectionObserver === "undefined") { boot(); return () => { dead = true; engine?.destroy(); runner.current = null; }; }
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "300px" });

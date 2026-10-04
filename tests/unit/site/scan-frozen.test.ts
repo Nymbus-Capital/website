@@ -45,5 +45,5 @@ test("science at scale: its home section is unchanged and the new band comes rig
   assert.match(home.slice(at + scan.length), /^\s*<Section[^>]*labelledBy="ov-t"/);
 });
 
-const ANALYSIS_SCAN_SHA = "95df32852d8fc275100828da22e952f3a6566fcdac8f1ba67c7ce21e07125b04";
+const ANALYSIS_SCAN_SHA = "0e20c3d971f60cf7ebab230253086414e4842bf3c9143ec22bccb64148c49f17"; // 2026-10-04: start-failure logging + stale-chunk reload only, no visual change
 const SCAN_CSS_SHA = "2b1ab17f6367eae6d6da42f84c342680f3763b2ccb67051eef6a14fefe190f5c";
