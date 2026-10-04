@@ -16,12 +16,16 @@ export interface FundClassSpec {
   type?: "prospectus" | "om";
 }
 
-/** a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown */
-export interface VariantSpec { id: string; label: L10n; name: L10n }
+/**
+ * a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown;
+ * `default` marks the variant selected when nothing else is (the list itself is in display order)
+ */
+export interface VariantSpec { id: string; label: L10n; name: L10n; default?: true }
 
 /** Global Minimum Volatility variants are named by their target downside volatility, everywhere a figure is shown. */
-const gmvVariant = (pct: number): VariantSpec => ({
+const gmvVariant = (pct: number, isDefault = false): VariantSpec => ({
   id: String(pct),
+  ...(isDefault ? { default: true as const } : {}),
   label: { en: `${pct}%`, fr: `${pct}\u00a0%` },
   name: { en: `${pct}% downside volatility`, fr: `volatilité à la baisse de ${pct}\u00a0%` },
 });
@@ -48,7 +52,10 @@ export interface FundSpec {
   headlineClass: string | null;
   /** classes known to the site, the default (F) first; the selector adds the other live classes from the NAV data */
   classes: FundClassSpec[];
-  /** variants of a strategy offered with their own figures (Global Minimum Volatility: target downside volatility, %); the default first is "6" */
+  /**
+   * variants of a strategy offered with their own figures (Global Minimum Volatility: target downside volatility, %), in
+   * display order (3 %, 6 %, 9 %: Gabriel, 2026-10-04); the one flagged `default` (6 %) is selected unless another is
+   */
   variants?: VariantSpec[];
   defaults: {
     riskRating: "low" | "low-medium" | "medium" | "medium-high" | "high";
@@ -137,8 +144,8 @@ export const FUNDS: FundSpec[] = [
     headlineClass: null,
     classes: [],
     variants: [
-      gmvVariant(6),
       gmvVariant(3),
+      gmvVariant(6, true),
       gmvVariant(9),
     ],
     defaults: {
@@ -152,10 +159,16 @@ export const FUNDS: FundSpec[] = [
   },
 ];
 
-/** The variant whose figures are shown (the selected one, else the published default, else the first); null without variants. */
+/** The default variant (flagged `default`, else the first); null without variants. */
+export function defaultVariant<V extends { default?: true }>(spec: { variants?: V[] }): V | null {
+  if (!spec.variants?.length) return null;
+  return spec.variants.find((v) => v.default) ?? spec.variants[0];
+}
+
+/** The variant whose figures are shown (the selected one, else the default); null without variants. */
 export function shownVariant(spec: Pick<FundSpec, "variants">, id: string | null | undefined): VariantSpec | null {
   if (!spec.variants?.length) return null;
-  return spec.variants.find((v) => v.id === id) ?? spec.variants[0];
+  return spec.variants.find((v) => v.id === id) ?? defaultVariant(spec);
 }
 
 export const FUND_KEYS = FUNDS.map((f) => f.key);

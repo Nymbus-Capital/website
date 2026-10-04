@@ -66,7 +66,10 @@ export interface FundSources {
   classSpread: FeeBand | null;
   /** why a fund has no fee band (shown in the class's issues and provenance) */
   classSpreadNote?: string;
-  /** variants of a strategy in the factsheet archive (Global Minimum Volatility), default first; null otherwise */
+  /**
+   * variants of a strategy in the factsheet archive (Global Minimum Volatility), default first (its data is the fund's
+   * own); null otherwise. Pipeline order only: pages show the variants in src/config/funds.ts order (3 %, 6 %, 9 %)
+   */
   variants: { id: string; key: string }[] | null;
   /** factsheet archive: file prefix and fund key inside it */
   factsheet: { file: "bonds_data" | "factsheet_data"; key: string } | null;

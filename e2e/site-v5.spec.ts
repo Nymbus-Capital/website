@@ -128,3 +128,19 @@ test("Morningstar note: compact info button; hover / focus / tap opens the full 
     await expect(pop).toBeHidden();
   }
 });
+
+test("Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected on every page", async ({ page, baseURL }, info) => {
+  await page.goto("/strategies/global-minimum-volatility");
+  const sel = page.getByTestId("variant-selector");
+  await expect(sel.locator('[role="radio"]')).toHaveText([/3%/, /6%/, /9%/]);
+  await expect(sel.getByTestId("variant-6")).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
+  await expect(page.getByTestId("disclosure-variant")).toHaveText("6% downside volatility");
+  await page.screenshot({ path: `${SHOTS}/v5-gmv-${info.project.name}.png` });
+  await page.goto("/strategies");
+  await expect(page.locator("body")).toContainText("6% downside volatility");
+  await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
+  await page.goto("/strategies/global-minimum-volatility");
+  await expect(page.getByTestId("variant-selector").locator('[role="radio"]')).toHaveText([/3\s%/, /6\s%/, /9\s%/]);
+  await expect(page.getByTestId("variant-selector").getByTestId("variant-6")).toHaveAttribute("aria-checked", "true");
+});
