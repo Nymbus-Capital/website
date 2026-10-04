@@ -326,9 +326,10 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
     return out.length > maxLines ? [...out.slice(0, maxLines - 1), out.slice(maxLines - 1).join(" ")] : out;
   }
 
-  /** A method title at y1 (and y2 when it needs two lines). */
+  /** A method title at y1 (and y2 when it needs two lines; wide, long titles always take two for air between the words). */
   function title(Pn: Pen, s: string, x: number, y1: number, y2: number, maxW: number, color: string, size: number) {
-    wrap(Pn, s, maxW, 600, size, L.narrow ? 8.5 : 9).forEach((ln, k) => Pn.text(ln, x, k ? y2 : y1, maxW, "left", color));
+    const lines = wrap(Pn, s, L.narrow ? maxW : maxW * 0.78, 600, size, L.narrow ? 8.5 : 9);
+    lines.forEach((ln, k) => Pn.text(ln, x, k ? y2 : y1, maxW, "left", color));
   }
 
   /** A gradient figure (counter or claim) at x, y; returns its width. */

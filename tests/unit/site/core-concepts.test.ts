@@ -280,8 +280,8 @@ test("coverage: a team of six analysts × ~30 securities covers 180 bonds — a 
   assert.ok(all.length / UNIVERSE < 0.1, "under one bond in ten");
 });
 
-/** coverage canvas sizes: the CSS gives 480–560 px wide, 660 px under 760 px viewports (narrow layout under 700 px) */
-const COV_SIZES: [number, number][] = [[300, 660], [320, 660], [328, 660], [360, 660], [412, 660], [500, 660], [699, 660], [700, 480], [740, 660], [900, 480], [1150, 506], [1360, 560]];
+/** coverage canvas sizes: the CSS gives 480–560 px wide, 620 px under 760 px viewports (narrow layout under 700 px) */
+const COV_SIZES: [number, number][] = [[300, 620], [320, 620], [328, 620], [360, 620], [412, 620], [500, 620], [699, 620], [700, 480], [740, 620], [900, 480], [1150, 506], [1360, 560]];
 /** Rough Poppins advance per character (em) — semibold mixed case, semibold uppercase — to check labels fit without the canvas. */
 const EM = { mixed: 0.6, upper: 0.7 };
 const fitsAt = (s: string, size: number, maxW: number, em = EM.mixed) => s.length * em * size <= maxW;
@@ -392,7 +392,7 @@ test("coverage: card labels fit (EN and FR) at every width — titles, scan clai
         assert.ok(fitsAt(c.covered[k], 8, w), `${k} covered at ${W}`);
       } else {
         for (const t of [c.team[k].toUpperCase(), c.systems[k].toUpperCase()]) {
-          const lines = wrapAt(t, 9, w, EM.upper);
+          const lines = wrapAt(t, 9, w * 0.78, EM.upper);
           assert.ok(lines && lines.length <= 2, `${k} title "${t}" at ${W}`);
         }
         const sc = wrapAt(c.scanned[k], 10.5, w);

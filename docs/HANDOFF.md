@@ -187,13 +187,28 @@ Not yet run against live data, not deployed.
    "Core concepts" at `/core-concepts` (old URL redirects), "protective overlays" with the qualifier, futures slowed down,
    concept 3 as a VS comparison. Compliance rows CC9–CC12 to review; independent adversarial review still to run.
 
-17. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
+17. **Concepts v6** (branch `feat/concepts-v6`, from `redesign/v3-keynote-live-data`, **not merged**): futures 3.75 s a day;
+   concept 3 back to one large shared graphic as a two-act comparison (methods column with VS, active method highlighted).
+   Compliance rows CC13–CC14 to review; independent adversarial review still to run.
+
+18. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
    compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
    info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
    **WordPress**: Xavier Girard and Jean-Philippe Lejeune were removed from `src/data/team.ts` only; if the CMS is enabled
    (`WP_BASE_URL`), remove them from the WordPress team too (WordPress wins over the static list).
 
 ## 6. Session log
+
+- 2026-10-04 (sub-agent, branch `feat/concepts-v6` from `redesign/v3-keynote-live-data`; not merged): Gabriel's two requests.
+  (1) Futures "a tiny bit faster, still slower than initially": `DAY_MS` 5000 → 3750, `SETTLE_SHARE` 0.25 kept, new
+  `READ_MARGIN` 1.5 (message held ≥ 1.5 reading times; test 3.5–4 s a day). (2) Concept 3 "the first design when the area was
+  bigger": `coverageLayout` again returns one `grid` (the pre-VS v5 graphic: sector clusters, history room, legend) plus a
+  methods column — `team` card, `vs` badge, `systems` card (left column ≥ 700 px; strip on top below) — with `CARD_ROWS`
+  for the rows inside each card and `focusAt(step, p)` (`FOCUS`: universe 0.6/0.6, act 1 1/0.4, act 2 0.4/1, compare 1/1,
+  eased over `FOCUS_IN`). Act 2 fades the team's colours, compare outlines the team's 180 (sector-colour rings) over the
+  systems' coverage and swaps the filter legend for "Conventional team: ≈180 · Our systems: every liquid bond"; the wide
+  title row names the method on the graphic. Steps "The universe · Conventional team · Our systems · Compare"; canvas
+  480–560 px desktop, 620 px phone. e2e captures all three FR acts of concept 3 on desktop. Compliance CC13–CC14.
 
 - 2026-10-04 (sub-agent, branch `fix/v5-minors` from `integ/v5`; not merged): review minors — meta descriptions (approach, about,
   core concepts) carry "designed to offset part of losses"; home added to the qualifier test; concept 3 stat "Covered by a team of
