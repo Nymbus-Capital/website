@@ -1,5 +1,5 @@
 /**
- * futures-model.ts — pure model of the "how futures work" animation (/critical-concepts). A generated index price
+ * futures-model.ts — pure model of the "how futures work" animation (/core-concepts). A generated index price
  * moves day by day; every close settles the day's move in cash between the long and the short (index up: the short
  * pays the long; down: the long pays the short), so the open, unsettled P&L is never more than one day's move. The
  * margin buffer each side posts is sized to a potential one-day move and grows when volatility rises.
@@ -7,9 +7,21 @@
  */
 import { clamp, gauss, hash01 } from "./timeline.ts";
 
-/** Trading days per loop of the animation, and ms per day. */
+/**
+ * Trading days per loop of the animation, and ms per day. Slowed down 2026-10-03 (Gabriel: "we have a hard time reading
+ * the text … every day"): 5 s a day, so each daily settlement message stays on screen long enough to read twice.
+ */
 export const DAYS = 14;
-export const DAY_MS = 1250;
+export const DAY_MS = 5000;
+/**
+ * Each day opens with a settlement pause: for this share of the day the price holds at the last close while the cash of
+ * that close moves between the two sides; the market then trades for the rest of the day.
+ */
+export const SETTLE_SHARE = 0.25;
+/** Fade-in / fade-out shares of the day for the settlement message (it is fully shown in between). */
+export const RULE_IN = 0.04, RULE_OUT = 0.06;
+/** Ms a reader needs per word of the settlement message (≈ 300 words a minute: short, repeated phrases). */
+export const READ_MS_PER_WORD = 200;
 export const LOOP_MS = DAYS * DAY_MS;
 /** Four focus steps over one loop: long meets short · daily settlement · margin buffer · one day at risk. */
 export const FUTURES_STEP_MS = [LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4] as const;
@@ -82,6 +94,15 @@ export function intraday(day: Day, u: number, seed = 0): number {
   const w = Math.sin(Math.PI * x) * (Math.sin(x * 9 + day.d * 1.7 + seed) * 0.5 + Math.sin(x * 23 + day.d) * 0.22) * day.sigma * 0.6;
   return day.open + day.move * shape + w;
 }
+
+/** Fraction of the trading session at fraction u of the day: 0 during the settlement pause, then 0 → 1 to the close. */
+export const marketU = (u: number): number => clamp((u - SETTLE_SHARE) / (1 - SETTLE_SHARE));
+
+/** Opacity of the day's settlement message at fraction u of the day: in quickly after the close, held, out before the next. */
+export const ruleAlpha = (u: number): number => clamp(Math.min(u / RULE_IN, (1 - u) / RULE_OUT));
+
+/** Ms the settlement message is fully shown each day. */
+export const RULE_FULL_MS = DAY_MS * (1 - RULE_IN - RULE_OUT);
 
 /** Unsettled P&L of the long at fraction u of day d (only today's move is ever open). */
 export const unsettled = (day: Day, u: number, seed = 0): number => intraday(day, u, seed) - day.open;

@@ -1,5 +1,5 @@
 /**
- * timeline.ts — pure timing helpers shared by the /critical-concepts animations: a cycle split into steps, easing,
+ * timeline.ts — pure timing helpers shared by the /core-concepts animations: a cycle split into steps, easing,
  * clamping, and a seeded hash. Dependency-free (unit tested).
  */
 

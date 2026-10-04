@@ -1,5 +1,5 @@
 /**
- * /critical-concepts (2026-10-03): the pure models behind the three animations (overlay stack, futures daily
+ * /core-concepts (2026-10-03; was /critical-concepts): the pure models behind the three animations (overlay stack, futures daily
  * settlement, ultra-micro analysis at scale) are deterministic, bounded and true to the concept they teach; the layouts fit every
  * width; the copy is bilingual, short, labelled as an illustration, carries the verbatim futures-exposure disclosure
  * where overlays are described and never states low correlation or a guarantee; the page is in the nav and footer.
@@ -13,12 +13,12 @@ import {
   CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
 import {
-  DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, futuresLayout, futuresLoop, intraday, marginFor,
-  settledThrough, sigmaOf, unsettled,
+  DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, READ_MS_PER_WORD, RULE_FULL_MS, SETTLE_SHARE, futuresLayout,
+  futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
   ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
-  gridShape, sectorBlocks, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
+  gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
 
@@ -204,6 +204,31 @@ test("futures: only one day is ever unsettled, and the margin buffer covers it a
   assert.ok(days[HIGH_VOL_FROM].margin > days[0].margin * 2);
 });
 
+test("futures: slow enough to read (Gabriel 2026-10-03) — ≥ 3 s a day (5 s), a settlement pause, each message held long enough to read twice", () => {
+  assert.ok(DAY_MS >= 3000, `${DAY_MS} ms a day`);
+  // the settlement pause: the price holds at the last close for ≥ 1 s while the cash moves, then trades smoothly to the close
+  assert.ok(SETTLE_SHARE * DAY_MS >= 1000);
+  assert.equal(marketU(0), 0);
+  assert.equal(marketU(SETTLE_SHARE), 0);
+  assert.equal(marketU(1), 1);
+  for (let u = 0; u < 1; u += 0.01) assert.ok(marketU(u + 0.01) >= marketU(u) && marketU(u + 0.01) - marketU(u) <= 0.01 / (1 - SETTLE_SHARE) + 1e-9, "monotone, no jump");
+  // the settlement message: fades in fast, fully shown for most of the day, gone just before the next close
+  assert.equal(ruleAlpha(0), 0);
+  assert.equal(ruleAlpha(1), 0);
+  assert.equal(ruleAlpha(0.5), 1);
+  let full = 0;
+  for (let u = 0; u <= 1; u += 0.001) if (ruleAlpha(u) >= 1) full += 0.001 * DAY_MS;
+  assert.ok(Math.abs(full - RULE_FULL_MS) < 30, `${full} vs ${RULE_FULL_MS}`);
+  // long enough to read the longest message (EN or FR) twice at ≈ 300 words a minute
+  const words = (x: string) => x.trim().split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
+  for (const k of ["en", "fr"] as const) {
+    const longest = Math.max(...[CC.futures.canvas.upPays[k], CC.futures.canvas.downPays[k]].map((r) => words(`${CC.futures.canvas.closeDay[k].replace("{n}", "12")} ${r}`)));
+    assert.ok(RULE_FULL_MS >= 2 * longest * READ_MS_PER_WORD, `${k}: ${longest} words, ${RULE_FULL_MS} ms`);
+  }
+  // still frame of step 2 (5.22 days) catches the cash in flight: inside the settlement pause
+  assert.ok(0.22 < SETTLE_SHARE);
+});
+
 test("futures: four focus steps over one loop; layouts fit", () => {
   assert.equal(LOOP_MS, DAYS * DAY_MS);
   assert.equal(cycleMs(FUTURES_STEP_MS), LOOP_MS);
@@ -253,32 +278,69 @@ test("coverage: a team of six analysts × ~30 securities covers 180 bonds — a 
   assert.ok(all.length / UNIVERSE < 0.1, "under one bond in ten");
 });
 
-test("coverage: the grid has exactly one cell per bond and fits the canvas at every width", () => {
-  for (const [W, H0] of SIZES) {
-    const H = W < 700 ? 560 : H0;
-    const { cols, rows } = gridShape(W);
-    const B = sectorBlocks(rows);
-    assert.equal(cols, B.width);
-    assert.ok(B.cols.reduce((a, c) => a + c, 0) * rows >= UNIVERSE);
+/** coverage canvas sizes: the CSS gives 480–560 px wide, 760 px under 760 px viewports (narrow layout under 700 px) */
+const COV_SIZES: [number, number][] = [[300, 760], [320, 760], [328, 760], [360, 760], [412, 760], [500, 760], [699, 760], [700, 480], [740, 760], [900, 480], [1150, 506], [1360, 560]];
+
+test("coverage: a VS comparison — two sides (side by side, stacked under 700 px) with the VS badge between, same grid on each side", () => {
+  for (const [W, H] of COV_SIZES) {
     const L = coverageLayout(W, H);
-    inside(L.grid, W, H, `grid ${W}`);
-    inside(L.team, W, H, `team ${W}`);
-    assert.ok(L.cell >= 3, `cell ${W}: ${L.cell}`);
-    // history layers (memory step) stay on the canvas
-    assert.ok(L.grid.y - L.depthY - 6 >= L.titleY + 7 && L.grid.x + L.grid.w + L.depthX + 6 <= W, `depth ${W}`);
-    const seen = new Set<string>();
-    for (let i = 0; i < UNIVERSE; i++) {
-      const c = cellOf(i, L);
-      assert.ok(c.x > L.grid.x && c.x < L.grid.x + L.grid.w && c.y > L.grid.y && c.y < L.grid.y + L.grid.h);
-      seen.add(`${c.x.toFixed(2)},${c.y.toFixed(2)}`);
+    const { left: A, right: B, vs } = L;
+    inside(A.panel, W, H, `left ${W}`);
+    inside(B.panel, W, H, `right ${W}`);
+    if (!L.narrow) {
+      assert.ok(A.panel.x + A.panel.w + 2 * vs.r + 12 <= B.panel.x, `gutter ${W}`);
+      assert.ok(vs.x - vs.r > A.panel.x + A.panel.w && vs.x + vs.r < B.panel.x, `badge in the gutter ${W}`);
+      assert.ok(vs.y > A.panel.y && vs.y < A.panel.y + A.panel.h);
+      assert.equal(A.panel.y, B.panel.y);
+    } else {
+      assert.ok(A.panel.y + A.panel.h + 2 * vs.r + 4 <= B.panel.y, `gap ${W}`);
+      assert.ok(vs.y - vs.r > A.panel.y + A.panel.h && vs.y + vs.r < B.panel.y, `badge between ${W}`);
     }
-    assert.equal(seen.size, UNIVERSE);
-    if (!L.narrow) assert.ok(L.team.x + L.team.w <= L.grid.x); else assert.ok(L.team.y + L.team.h <= L.grid.y);
+    // the same universe, the same grid, on both sides (a fair comparison)
+    assert.equal(A.rows, B.rows);
+    assert.ok(Math.abs(A.cell - B.cell) < 1e-9 && Math.abs(A.grid.w - B.grid.w) < 1e-9 && Math.abs(A.grid.h - B.grid.h) < 1e-9);
+    for (const [k, S] of [["left", A], ["right", B]] as const) {
+      const box = (r: { x: number; y: number; w: number; h: number }) => r.x >= S.panel.x - 0.01 && r.y >= S.panel.y - 0.01 && r.x + r.w <= S.panel.x + S.panel.w + 0.01 && r.y + r.h <= S.panel.y + S.panel.h + 0.01;
+      assert.ok(S.cell >= 3, `${k} cell ${W}: ${S.cell}`);
+      assert.equal(S.cols, sectorBlocks(S.rows).width);
+      assert.ok(sectorBlocks(S.rows).cols.reduce((a, c) => a + c, 0) * S.rows >= UNIVERSE);
+      for (const [n, r] of [["crew", S.crew], ["grid", S.grid], ["result", S.result]] as const) assert.ok(box(r), `${k} ${n} outside its panel at ${W}×${H}: ${JSON.stringify(r)}`);
+      // history sheets (right side's memory step) stay inside the panel
+      assert.ok(box({ x: S.grid.x - 6, y: S.grid.y - S.depthY - 6, w: S.grid.w + S.depthX + 12, h: S.grid.h + S.depthY + 12 }), `${k} sheets ${W}`);
+      assert.ok(S.crew.y + S.crew.h <= S.grid.y - S.depthY - 6 + 0.01 && S.grid.y + S.grid.h <= S.result.y);
+      const seen = new Set<string>();
+      for (let i = 0; i < UNIVERSE; i++) {
+        const c = cellOf(i, S);
+        assert.ok(c.x > S.grid.x && c.x < S.grid.x + S.grid.w && c.y > S.grid.y && c.y < S.grid.y + S.grid.h);
+        seen.add(`${c.x.toFixed(2)},${c.y.toFixed(2)}`);
+      }
+      assert.equal(seen.size, UNIVERSE);
+    }
   }
+  // gridFit picks the rows that give the largest cells
+  const f = gridFit(400, 260);
+  for (let rows = 16; rows <= 64; rows++) assert.ok(Math.min(400 / sectorBlocks(rows).width, 260 / rows) <= f.cell + 1e-9);
   assert.equal(COVERAGE_STEP_MS.length, 4);
 });
 
-test("coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
+test("coverage: steps read as a comparison — universe, conventional team, our systems, side by side", () => {
+  assert.deepEqual(CC.coverage.steps.map((s) => s.en), ["The universe", "Conventional team", "Our systems", "Side by side"]);
+  assert.deepEqual(CC.coverage.steps.map((s) => s.fr), ["L’univers", "Équipe conventionnelle", "Nos systèmes", "Côte à côte"]);
+  assert.equal(CC.coverage.canvas.team.en, "Conventional fundamental team");
+  assert.equal(CC.coverage.canvas.systems.en, "Our systems");
+  assert.equal(CC.coverage.canvas.vs.en, "VS");
+  assert.match(CC.coverage.alt.en, /side-by-side comparison/);
+  assert.match(CC.coverage.lead.en, /^A conventional team/);
+  // no more "one team: 150–180" as a step (Gabriel: confusing)
+  for (const s of CC.coverage.steps) assert.ok(!/150|180/.test(s.en + s.fr));
+  // each side keeps its moment: the team's year runs in step 2, the scan in step 3
+  const starts = stepStarts(COVERAGE_STEP_MS);
+  assert.equal(stepAt(starts[1] + 10, COVERAGE_STEP_MS).step, 1);
+  assert.equal(stepAt(starts[2] + 10, COVERAGE_STEP_MS).step, 2);
+  assert.ok(COVERAGE_STEP_MS[1] >= 6000 && COVERAGE_STEP_MS[2] >= 6000, "each side has time to be read");
+});
+
+test("coverage: six named sector clusters on each side — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
   assert.equal(CC.coverage.sectors.length, ANALYSTS);
   assert.deepEqual(CC.coverage.sectors.map((s) => s.long.en), [
     "Financials", "Technology & communications", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
@@ -293,43 +355,42 @@ test("coverage: six named sector clusters — each analyst's bonds sit in their 
   for (let i = 0; i < UNIVERSE; i++) assert.ok(i >= sectorStart(sectorOf(i)) && i < sectorStart(sectorOf(i) + 1));
   const u = universe(0);
   const team = teamCoverage(u);
-  for (const [W, H0] of [...SIZES, [320, 560], [360, 560], [412, 560]] as [number, number][]) {
-    const H = W < 700 ? 560 : H0;
+  const longest = Math.max(...CC.coverage.sectors.flatMap((s) => [s.abbr.en.length, s.abbr.fr.length]));
+  for (const [W, H] of COV_SIZES) {
     const L = coverageLayout(W, H);
-    const bands = sectorLabelBoxes(L);
-    // clusters are separated: every dot of a sector lies inside its band, bands never touch
-    for (let i = 0; i < UNIVERSE; i++) {
-      const c = cellOf(i, L), b = bands[sectorOf(i)];
-      assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
+    for (const S of [L.left, L.right]) {
+      const bands = sectorLabelBoxes(S);
+      for (let i = 0; i < UNIVERSE; i++) {
+        const c = cellOf(i, S), b = bands[sectorOf(i)];
+        assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
+      }
+      for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= S.cell * 0.8, `gap ${s} at ${W}`);
+      // sector names: below the crew row, above the grid, wide enough for the abbreviation (≈5.6 px/char at 10 px, ≈4.8 at 9 px semibold)
+      const perChar = sectorFont(S) === 10 ? 5.6 : 4.8;
+      for (const [s, b] of bands.entries()) {
+        inside(b, W, H, `sector ${s} ${W}`);
+        assert.ok(b.y >= S.crew.y + S.crew.h, `sector label under the crew row at ${W}`);
+        assert.ok(b.y + b.h <= S.grid.y, `sector label above the grid at ${W}`);
+        assert.ok(b.w + 4 >= longest * perChar, `sector ${s} cluster too narrow at ${W}: ${b.w}`);
+      }
     }
-    for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= L.cell * 0.8, `gap ${s} at ${W}`);
-    // each analyst's 30 lit bonds are in their own cluster
-    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
-    // sector names: between the grid title and the grid, on the canvas, wide enough for the abbreviation (≈5.6 px/char at 10 px, ≈4.8 at 9 px semibold)
-    const title = coverageLabelBoxes(W, H).title;
-    for (const [s, b] of bands.entries()) {
-      inside(b, W, H, `sector ${s} ${W}`);
-      assert.ok(b.y >= title.y + title.h, `sector label under the title at ${W}`);
-      assert.ok(b.y + b.h <= L.grid.y, `sector label above the grid at ${W}`);
-      const abbr = Math.max(CC.coverage.sectors[s].abbr.en.length, CC.coverage.sectors[s].abbr.fr.length);
-      assert.ok(b.w + 4 >= abbr * 5.6, `sector ${s} cluster too narrow for "${CC.coverage.sectors[s].abbr.fr}" at ${W}: ${b.w}`);
-    }
-    // team panel: analysts inside it; on narrow screens, one slot per analyst wide enough for the abbreviation
+    // the left side's 180 lit bonds sit in their analysts' clusters
+    const bands = sectorLabelBoxes(L.left);
+    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L.left); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
+    // crew row: the portfolio manager then six analysts inside it, each slot wide enough for the abbreviation (9 px)
+    const C = L.left.crew;
+    const pm = pmPos(L.left);
+    assert.ok(pm.x > C.x && pm.y > C.y && pm.y < C.y + C.h);
     for (let a = 0; a < ANALYSTS; a++) {
-      const q = analystPos(L, a);
-      assert.ok(q.x > L.team.x && q.x < L.team.x + L.team.w && q.y > L.team.y && q.y < L.team.y + L.team.h, `analyst ${a} at ${W}`);
+      const q = analystPos(L.left, a);
+      assert.ok(q.x > pm.x + 10 && q.x < C.x + C.w && q.y > C.y && q.y + 15 + 6 < C.y + C.h - 7 + 6, `analyst ${a} at ${W}`);
     }
-    if (L.narrow) {
-      const longest = Math.max(...CC.coverage.sectors.flatMap((s) => [s.abbr.en.length, s.abbr.fr.length]));
-      assert.ok(analystSlot(L) - 2 >= longest * 4.8, `analyst slot ${analystSlot(L)} at ${W}`);
-      assert.ok(analystPos(L, 0).y + 17 + 7 < L.team.y + 80 - 7, "abbreviations clear the counter line");
-    }
+    assert.ok(analystSlot(L.left) - 4 >= longest * 4.8, `analyst slot ${analystSlot(L.left)} at ${W}`);
   }
 });
 
-test("coverage: texts around the grid never overlap (team row, title, grid and history sheets, legend, watermark)", () => {
-  for (const [W, H0] of [...SIZES, [320, 560], [360, 560], [412, 560]] as [number, number][]) {
-    const H = W < 700 ? 560 : H0;
+test("coverage: texts and shapes never overlap (title, side titles, crew rows, grids and history sheets, results, VS badge, watermark)", () => {
+  for (const [W, H] of COV_SIZES) {
     const boxes = Object.entries(coverageLabelBoxes(W, H));
     for (const [k, b] of boxes) inside(b, W, H, `${k} ${W}`);
     for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
@@ -367,7 +428,8 @@ test("copy: the overlay caption ends with the verbatim futures-exposure disclosu
   assert.ok(CC.overlay.caption.fr.endsWith(OVERLAY_EXPOSURE.fr));
   assert.equal(OVERLAY_EXPOSURE.en, "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
   assert.match(CC.overlay.caption.en, /generated values, not actual positions or results/);
-  assert.match(CC.overlay.caption.en, /Overlays can lose money/);
+  assert.match(CC.overlay.caption.en, /Protective overlays are designed to offset part of losses; they may not do so and can lose money\./);
+  assert.match(CC.overlay.caption.fr, /Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir/);
   assert.match(CC.overlay.caption.en, /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./);
   assert.match(CC.overlay.caption.fr, /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
   assert.match(CC.overlay.canvas.volNote.en, /historically tended to/);
@@ -389,6 +451,22 @@ test("copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no p
     // percentages only for the overlay's illustrative allocation (100%, ≈10%)
     for (const m of s.matchAll(/(\d+(?:[.,]\d+)?)\s?%/g)) assert.ok(["100", "10"].includes(m[1]), `unexpected percentage in: ${s}`);
   }
+});
+
+test("copy: concept 1 is \"protective overlays\" (Gabriel 2026-10-03), always with the qualifier next to the name", () => {
+  assert.equal(CC.overlay.eyebrow.en, "Concept 1 · Protective overlays");
+  assert.equal(CC.overlay.eyebrow.fr, "Concept 1 · Superpositions protectrices");
+  assert.equal(`${CC.overlay.title.en} ${CC.overlay.accent.en}`, "What is a protective overlay?");
+  assert.equal(`${CC.overlay.title.fr} ${CC.overlay.accent.fr}`, "Qu’est-ce qu’une superposition protectrice?");
+  // the lead under the heading and the caption under the panel both carry "designed to offset part of … losses; may not"
+  assert.match(CC.overlay.lead.en, /designed to offset part of bond losses; they may not do so\.$/);
+  assert.match(CC.overlay.lead.fr, /conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir\.$/);
+  for (const k of ["en", "fr"] as const) {
+    assert.match(CC.overlay.caption[k], /(designed to offset part of losses; they may not|conçues pour compenser une partie des pertes; elles peuvent ne pas)/);
+    assert.match(CC.overlay.alt[k], /(designed to offset part of losses \(it may not\)|conçue pour compenser une partie des pertes \(elle peut ne pas y parvenir\))/);
+  }
+  // "protective" never stands as a promise: no "protects", "protection" or "protège" on the page
+  for (const s of leaves(CC)) assert.ok(!/\bprotects?\b|\bprotection\b|protège/i.test(s), `promise wording: ${s}`);
 });
 
 test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phrase), heading \"Why machines see more\"", () => {
@@ -419,20 +497,28 @@ test("copy: very little visible prose (titles, takeaways, steps, note)", () => {
       assert.ok(words(c.copy.lead[lang]) <= 22, `${c.id} lead (${lang})`);
       for (const s of c.copy.steps) assert.ok(words(s[lang]) <= 5, `${c.id} step (${lang}): ${s[lang]}`);
     }
-    assert.ok(n <= (lang === "en" ? 130 : 160), `${lang}: ${n} words`);
+    // +10 (2026-10-03): the protective-overlay qualifier in the concept 1 lead
+    assert.ok(n <= (lang === "en" ? 140 : 170), `${lang}: ${n} words`);
   }
 });
 
 /* ------------------------------------------------------------------ wiring */
 
-test("nav and footer link the page; route and labels exist in both languages", () => {
-  assert.match(read("src/components/site/links.ts"), /\{ href: "\/critical-concepts", key: "nav\.concepts" \}/);
-  assert.match(read("src/components/site/Footer.tsx"), /href="\/critical-concepts"/);
-  assert.match(read("src/lib/i18n/en.ts"), /"nav\.concepts": "Critical concepts"/);
-  assert.match(read("src/lib/i18n/fr.ts"), /"nav\.concepts": "Concepts clés"/);
-  const page = read("src/app/(site)/critical-concepts/page.tsx");
-  assert.match(page, /canonical: "\/critical-concepts"/);
+test("nav and footer link the page as \"Core concepts\"; route and labels exist in both languages; the old URL redirects", () => {
+  assert.match(read("src/components/site/links.ts"), /\{ href: "\/core-concepts", key: "nav\.concepts" \}/);
+  assert.match(read("src/components/site/Footer.tsx"), /href="\/core-concepts"/);
+  assert.match(read("src/lib/i18n/en.ts"), /"nav\.concepts": "Core concepts"/);
+  assert.match(read("src/lib/i18n/fr.ts"), /"nav\.concepts": "Concepts de base"/);
+  const page = read("src/app/(site)/core-concepts/page.tsx");
+  assert.match(page, /canonical: "\/core-concepts"/);
   assert.match(page, /generateMetadata/);
+  assert.equal(CC.meta.title.en, "Core concepts");
+  assert.equal(CC.meta.title.fr, "Concepts de base");
+  assert.equal(CC.hero.eyebrow.en, "Core concepts");
+  assert.equal(CC.hero.eyebrow.fr, "Concepts de base");
+  for (const s of leaves(CC)) assert.ok(!/critical concepts|concepts clés/i.test(s), `old name: ${s}`);
+  // /critical-concepts is a permanent redirect (next.config.ts legacy list → permanent: true)
+  assert.match(read("next.config.ts"), /\["\/critical-concepts", "\/core-concepts"\]/);
 });
 
 test("engines keep the motion contract: DPR cap, fps cap, still frames, pause off screen and in hidden tabs, test hooks", () => {

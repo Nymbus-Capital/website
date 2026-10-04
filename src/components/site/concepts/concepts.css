@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   /critical-concepts (src/components/site/concepts): reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
+   /core-concepts (src/components/site/concepts): reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
    .sc-stats from fx.css); canvases, controls and the hero jump links are its own. Light only.
    ===================================================================================================== */
 .cc-sec { overflow-x: clip; }
@@ -10,11 +10,11 @@
 .cc-panel.on .cc-canvas { opacity: 1; }
 .cc-canvas-overlay { height: clamp(420px, 40vw, 500px); }
 .cc-canvas-futures { height: clamp(420px, 38vw, 470px); }
-.cc-canvas-coverage { height: clamp(460px, 42vw, 520px); }
+.cc-canvas-coverage { height: clamp(480px, 44vw, 560px); }
 @media (max-width: 760px) {
   .cc-canvas-overlay { height: 640px; }
   .cc-canvas-futures { height: 690px; }
-  .cc-canvas-coverage { height: 560px; }
+  .cc-canvas-coverage { height: 760px; }
 }
 
 /* controls: play / pause and one button per step */

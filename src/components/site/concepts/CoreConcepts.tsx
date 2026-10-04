@@ -1,6 +1,6 @@
 "use client";
 /**
- * /critical-concepts: three ideas behind the funds, each told by one large animation with very little text —
+ * /core-concepts: three ideas behind the funds, each told by one large animation with very little text —
  * what an overlay is, how futures settle daily, and why systematic analysis covers more of the bond universe.
  */
 import { PageHero, Section, SectionHead } from "../kit";
@@ -9,7 +9,7 @@ import { CC, CONCEPTS } from "./concepts-copy";
 import { ConceptPanel } from "./ConceptPanel";
 import "./concepts.css";
 
-export function CriticalConcepts() {
+export function CoreConcepts() {
   const { pick } = useTranslation();
   return (
     <>

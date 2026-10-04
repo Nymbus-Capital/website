@@ -42,10 +42,13 @@ const BUDGET: [string, unknown, number][] = [
   ["solutions", [SOL_COPY, AUDIENCES], 520],
   ["strategies", STRAT_COPY, 120],
   ["fund pages (FUND_TEXTS)", FUND_TEXTS, 680],
-  // /critical-concepts (2026-10-03): everything counted, canvas labels, alt texts and the overlay disclosure included
+  // /core-concepts (was /critical-concepts, 2026-10-03): everything counted, canvas labels, alt texts and the overlay disclosure included
   // concepts v5 (2026-10-03, Gabriel): + overlay volatility (vega) strip, note and caption sentence; + six sector names
   // in three canvas lengths (long / short / abbreviation, about 30 words); concept 3 renamed "Ultra-micro analysis, at scale"
-  ["critical concepts", CC, 660],
+  // core concepts (2026-10-03, Gabriel): "protective overlays" carry the "designed to offset part of losses; may not" qualifier
+  // in the lead, alt text and caption (compliance) — about +25 words; concept 3 drawn as a "VS" comparison (side labels,
+  // longer alt text) — about +20
+  ["core concepts", CC, 720],
 ];
 
 test("word budget: every page stays within its English ceiling, French within 25% more", () => {

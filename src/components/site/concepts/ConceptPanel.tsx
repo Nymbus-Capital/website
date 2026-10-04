@@ -1,6 +1,6 @@
 "use client";
 /**
- * ConceptPanel.tsx — one animated panel of /critical-concepts (overlay, futures, ultra-micro analysis — id "coverage"): the scan-panel chrome,
+ * ConceptPanel.tsx — one animated panel of /core-concepts (overlay, futures, ultra-micro analysis — id "coverage"): the scan-panel chrome,
  * a lazily created canvas engine, keyboard-accessible controls (play / pause, one button per step, arrow keys), the
  * figures strip and a visible caption. Step buttons use a roving tabindex (one tab stop; arrows, Home, End move it). Same contract as the home panels: nothing loads until the panel is near the
  * viewport, the loop pauses off screen / in a hidden tab, one still frame per step under reduced motion (live) or

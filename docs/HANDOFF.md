@@ -183,7 +183,25 @@ Not yet run against live data, not deployed.
    analysts and sector clusters, concept 3 renamed "Ultra-micro analysis, at scale" (anchor `#ultra-micro-analysis`,
    alias `#coverage`). Compliance rows CC6–CC8 to review.
 
+16. **Core concepts** (branch `feat/core-concepts`, from `redesign/v3-keynote-live-data`, **not merged**): rename to
+   "Core concepts" at `/core-concepts` (old URL redirects), "protective overlays" with the qualifier, futures slowed down,
+   concept 3 as a VS comparison. Compliance rows CC9–CC12 to review; independent adversarial review still to run.
+
 ## 6. Session log
+
+- 2026-10-03 (sub-agent, branch `feat/core-concepts` from `redesign/v3-keynote-live-data`; not merged): Gabriel's four
+  concepts-page requests. (1) Page renamed "Core concepts" / « Concepts de base » (nav key `nav.concepts`, footer, title,
+  metadata, hero eyebrow); route moved to `src/app/(site)/core-concepts/` (component `CoreConcepts.tsx`), `/critical-concepts`
+  → `/core-concepts` permanent redirect in `next.config.ts` (legacy list); tests renamed `tests/unit/site/core-concepts.test.ts`,
+  `e2e/core-concepts.spec.ts` (+ redirect test, 308). (2) Concept 1 "protective overlays" / « superpositions protectrices »
+  ("What is a protective overlay?"), lead and caption carry "designed to offset part of (bond) losses; they may not do so".
+  (3) Futures 4× slower: `DAY_MS` 1250 → 5000, `SETTLE_SHARE` 0.25 (price holds at the close while coins move,
+  `marketU`), daily rule held the whole day (`ruleAlpha`, ≈ 4.5 s), unit-tested against two reads at ≈ 300 wpm.
+  (4) Concept 3 as a comparison: `coverageLayout` returns `left` / `right` sides (side by side ≥ 700 px, stacked below,
+  `gridFit` picks the rows) and a `vs` badge; left = conventional team (PM + six sector analysts in a crew row, year bar,
+  "180 of ≈2,000"), right = our systems (scan bar, filter legend, history sheets, "Every liquid bond, every day"); steps
+  "The universe · Conventional team · Our systems · Side by side"; canvas 480–560 px desktop, 760 px phone. Word budget
+  660 → 720, visible prose 130 → 140 (qualifier). Compliance CC9–CC12.
 
 - 2026-10-03 (sub-agent, branch `feat/concepts-v5` from `redesign/v3-keynote-live-data`; not merged): Gabriel's three
   /critical-concepts requests. (1) Overlay: the generated model is volatility-driven (`isVolatile`, `periodAt` in

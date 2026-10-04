@@ -1,5 +1,5 @@
 /**
- * futures-engine.ts — canvas scene of "how futures work" (/critical-concepts). A generated index moves day by day:
+ * futures-engine.ts — canvas scene of "how futures work" (/core-concepts). A generated index moves day by day:
  * settled days lock behind the glowing "today" column, where only the current day's move is open; at every close the
  * move is paid in cash (index up: the short pays the long; down: the long pays the short), a coin stream crosses
  * between the two sides and the day's settlement drops into the row below, whose sum is the total gain or loss. Each
@@ -8,7 +8,7 @@
  */
 import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
 import {
-  DAYS, DAY_MS, FUTURES_STEP_MS, LOOP_MS, futuresLayout, futuresLoop, intraday, marginFor, settledThrough, sigmaOf, type Day,
+  DAYS, DAY_MS, FUTURES_STEP_MS, LOOP_MS, SETTLE_SHARE, futuresLayout, futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, type Day,
 } from "./futures-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { clamp, ease, span, stepAt } from "./timeline.ts";
@@ -22,8 +22,8 @@ export interface FuturesLabels {
 /** Still-frame clock of the first three steps (days into the loop): positions, a settlement in flight, the volatile episode. */
 const STILL_DAYS = [2.6, 5.22, 9.55];
 const UP = COL.blue, DOWN = COL.orange;
-/** Share of a day during which the previous close's cash moves between the sides. */
-const FLOW = 0.5;
+/** Share of a day during which the previous close's cash moves between the sides: the settlement pause. */
+const FLOW = SETTLE_SHARE;
 
 export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => FuturesLabels }): Runner {
   let L = futuresLayout(1, 1);
@@ -118,8 +118,10 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
     for (let k = 0; k < d; k++) pts.push([x(k + 1), y(days[k].close)]);
     const steps = 18;
     const todayPts: [number, number][] = [];
+    // the price holds at the last close during the settlement pause, then trades to the close
+    const mu = marketU(u);
     for (let s = 0; s <= steps; s++) {
-      const uu = (u * s) / steps;
+      const uu = (mu * s) / steps;
       todayPts.push([x(d) + cw * uu, y(intraday(today, uu))]);
     }
     // the sum of the settlements so far is the price change since the first open: a bracket on the settled boundary
@@ -289,20 +291,22 @@ export function createFutures(canvas: HTMLCanvasElement, opts: RunnerOptions & {
       const ax = winL ? x0 : x1, dir = winL ? 1 : -1;
       ctx.fillStyle = rgba(color, 0.8 * Math.sin(Math.PI * k));
       ctx.beginPath(); ctx.moveTo(ax, nodeY); ctx.lineTo(ax + 9 * dir, nodeY - 5); ctx.lineTo(ax + 9 * dir, nodeY + 5); ctx.closePath(); ctx.fill();
-      // the payment rule, only while the coins flow, named after the close it settles
-      ctx.globalAlpha = Math.max(0.7, Math.sin(Math.PI * k)) * Math.min(1, k * 8, (1 - k) * 8);
-      P.font(600, L.narrow ? 10 : 11);
+    }
+    // the payment rule, named after the close it settles: in with the coins, held for the whole day (long enough to read twice)
+    if (prev) {
+      ctx.globalAlpha = ruleAlpha(u);
+      P.font(600, L.narrow ? 10.5 : 11.5);
       const rule = `${lab.closeDay.replace("{n}", String(d))} ${upDay ? lab.upPays : lab.downPays}`;
       const two = P.measure(rule) > R.w ? splitLabel(rule) : null;
       const ry = nodeY + nodeR + 14;
-      if (two) { P.text(two[0], cx, ry, R.w, "center", color); P.text(two[1], cx, ry + 14, R.w, "center", color); }
+      if (two) { P.text(two[0], cx, ry, R.w, "center", color); P.text(two[1], cx, ry + 15, R.w, "center", color); }
       else P.text(rule, cx, ry, R.w, "center", color);
     }
     ctx.globalAlpha = 1;
 
     // margin buffers, sized to a potential one-day move (they widen with volatility)
     ctx.globalAlpha = f(2);
-    const by = nodeY + nodeR + (L.narrow ? 58 : 66);
+    const by = nodeY + nodeR + (L.narrow ? 70 : 66); // narrow: room for a two-line settlement message
     P.font(600, small);
     P.text(lab.buffer, R.x, by - 16, R.w * 0.6, "left", COL.ink);
     P.font(500, L.narrow ? 9.5 : 10.5);
