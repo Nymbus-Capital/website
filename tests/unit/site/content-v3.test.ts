@@ -56,14 +56,16 @@ test("team: credential counts are computed from the data, never typed", () => {
   assert.equal(countHolding([], /x/), 0);
 });
 
-test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 7 CFA or CIM; live decks team 2026-10-03)", () => {
+test("team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 6 CFA or CIM; 2026-10-04)", () => {
   // pinned so a data change is a visible, reviewed change of the public figures
+  // 2026-10-04 (Gabriel): Xavier Girard and Jean-Philippe Lejeune removed (-1 CFA, -1 M.Sc., -15 years)
   assert.equal(countPhD(team), 2);
   assert.equal(countEngineering(team), 3);
-  assert.equal(countCharter(team), 7);
-  assert.equal(countGraduate(team), 10);
-  assert.equal(combinedExperience(team)!.years, 293);
-  assert.equal(team.length, 20);
+  assert.equal(countCharter(team), 6);
+  assert.equal(countGraduate(team), 9);
+  assert.equal(combinedExperience(team)!.years, 278);
+  assert.equal(team.length, 18);
+  for (const gone of ["Xavier Girard", "Jean-Philippe Lejeune"]) assert.ok(!team.some((m) => m.name === gone), `${gone} removed`);
 });
 
 test("team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French", () => {

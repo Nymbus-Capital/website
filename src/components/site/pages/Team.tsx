@@ -1,9 +1,9 @@
 "use client";
 /**
- * /team ("About" in the navigation): the firm (who we are, Montreal office, values, verifiable milestones),
- * then the people (src/data/team.ts; photos hotlinked from www.nymbus.ca, initials when missing), filterable
- * by department (a person can belong to several), each opening a bio dialog (native <dialog>: focus trap,
- * Escape, backdrop click), and a join-us / contact band.
+ * /team ("About" in the navigation): credentials, the firm (who we are, Montreal office), then the people
+ * (src/data/team.ts, self-hosted portraits, initials when missing), filterable by department (a person can belong
+ * to several), each opening a bio dialog (native <dialog>: focus trap, Escape, backdrop click), verifiable
+ * milestones, the values (after the people since 2026-10-04, Gabriel's request), and a join-us / contact band.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Award, BookOpen, Cpu, GraduationCap, Handshake, Hourglass, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";
@@ -213,21 +213,6 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
         </div>
       </Section>
 
-      <Section tone="tint" labelledBy="ab-val-t">
-        <SectionHead eyebrow={pick(AB.values.eyebrow)} title={pick(AB.values.title)} accent={pick(AB.values.accent)} id="ab-val-t" center />
-        <CardGrid cols={3} className="ab-values">
-          {AB.values.items.map((v, i) => {
-            const Icon = valueIcons[i];
-            return <FeatureCard key={i} icon={<Icon />} title={pick(v.t)} className="ring"><p>{pick(v.d)}</p></FeatureCard>;
-          })}
-        </CardGrid>
-      </Section>
-
-      <Section labelledBy="ab-ms-t">
-        <SectionHead eyebrow={pick(AB.milestones.eyebrow)} title={pick(AB.milestones.title)} accent={pick(AB.milestones.accent)} id="ab-ms-t" />
-        <Milestones />
-      </Section>
-
       <Section tone="tint" id="people" labelledBy="ab-people-t" glow="bl">
         <SectionHead eyebrow={pick(P.eyebrow)} title={pick(P.title)} accent={pick(P.accent)} lead={pick(P.lead)} id="ab-people-t" />
         <div className="ab-filter" role="group" aria-label={pick(P.filter)}>
@@ -255,6 +240,21 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
             </li>
           ))}
         </Reveal>
+      </Section>
+
+      <Section labelledBy="ab-ms-t">
+        <SectionHead eyebrow={pick(AB.milestones.eyebrow)} title={pick(AB.milestones.title)} accent={pick(AB.milestones.accent)} id="ab-ms-t" />
+        <Milestones />
+      </Section>
+
+      <Section tone="tint" labelledBy="ab-val-t">
+        <SectionHead eyebrow={pick(AB.values.eyebrow)} title={pick(AB.values.title)} accent={pick(AB.values.accent)} id="ab-val-t" center />
+        <CardGrid cols={3} className="ab-values">
+          {AB.values.items.map((v, i) => {
+            const Icon = valueIcons[i];
+            return <FeatureCard key={i} icon={<Icon />} title={pick(v.t)} className="ring"><p>{pick(v.d)}</p></FeatureCard>;
+          })}
+        </CardGrid>
       </Section>
 
       <CtaBand title={pick(AB.join.title)} accent={pick(AB.join.accent)} text={pick(AB.join.text)}>

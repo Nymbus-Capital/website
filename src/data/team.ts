@@ -2,10 +2,9 @@
  * Static team list (fallback when WordPress has no team). The 14 people of the nymbus-decks team list
  * (data/seed/team.json, the source of decks.nymbus.ca) take their titles, years of experience, education, designations,
  * LinkedIn and portraits from it (2026-10-02), updated 2026-10-03 from the live decks.nymbus.ca team (/api/team): newer
- * portraits for Jennifer Pinkerton, Danira Csano, Jean-Philippe Lejeune, Gabriel Cefaloni, Fraser Coburn and Lyes Hammadi,
- * live titles, and two new people (Léana D’Imperio, Philippe Rivet). Xavier Girard is not in that list but appears on the governance slide of
- * the v3 keynote GMV deck (decks/nymbus-capital-global-minimum-volatility-6): his portrait and years of experience come
- * from that slide (2026-10-03); his other fields are the previous site's. Guy Liébart, Jason Laliberte and Luca Ieraci
+ * portraits for Jennifer Pinkerton, Danira Csano, Gabriel Cefaloni, Fraser Coburn and Lyes Hammadi, live titles, and
+ * two new people (Léana D’Imperio, Philippe Rivet). Two people left the list on 2026-10-04 (Gabriel's request).
+ * Guy Liébart, Jason Laliberte and Luca Ieraci
  * are in neither: previous site's data, no `yearsExperience`. Credential counts are computed from this file only
  * (src/components/site/pages/lib/people.ts).
  */
@@ -225,27 +224,6 @@ export const team: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/jessica-sm/",
   },
   {
-    name: "Jean-Philippe Lejeune",
-    title: "Quant Developer & Trader",
-    titleFr: "Développeur quantitatif et négociateur",
-    department: "Quantitative Research",
-    additionalDepartments: ["Investment Team"],
-    bio: "Oversees trading operations, model development and risk management, for bonds and listed futures. 11 years of experience, including PSP Investments and CDPQ.",
-    bioFr: "Supervise les opérations de négociation, le développement de modèles et la gestion des risques, pour les obligations et les contrats à terme cotés. 11 ans d’expérience, notamment chez PSP Investissements et à la CDPQ.",
-    summary: "CFA charterholder bridging quantitative models with live trading execution",
-    summaryFr: "Titulaire de la charte CFA reliant les modèles quantitatifs à l’exécution du négoce en direct",
-    education: ["M.Sc. Finance"],
-    educationFr: ["M. Sc., finance"],
-    designations: ["CFA", "M.Sc. Finance"],
-    previousRoles: ["Investment Analytics, PSP Investments", "Performance Analyst, CDPQ", "Risk Analyst — Hedge Funds"],
-    previousRolesFr: ["Analytiques d’investissement, PSP Investissements", "Analyste de performance, CDPQ", "Analyste de risque — Fonds spéculatifs"],
-    yearsExperience: 11,
-    initials: "JPL",
-    color: "#1a73e8",
-    photo: "/team/jean-philippe-lejeune.webp",
-    linkedin: "https://www.linkedin.com/in/jeanphilippel/",
-  },
-  {
     name: "Olivier Cyr-Choinière",
     title: "Quantitative Analyst",
     titleFr: "Analyste quantitatif",
@@ -350,25 +328,6 @@ export const team: TeamMember[] = [
     summaryFr: "Construit l’infrastructure technologique alimentant les stratégies d’investissement systématiques",
     initials: "LI",
     color: "#00a3e0",
-  },
-  {
-    name: "Xavier Girard",
-    title: "Senior Associate, Client Relations — Advisor Channel",
-    titleFr: "Conseiller principal, relations clients — Relations conseillers de placements",
-    department: "Operations",
-    bio: "Senior Associate in Client Relations, focused on the advisor channel. Previously at Mackenzie Investments and Sun Life.",
-    bioFr: "Conseiller principal, relations clients, spécialisé auprès des conseillers. Auparavant chez Placements Mackenzie et Sun Life.",
-    summary: "Advisor channel specialist bridging operations and investor communication",
-    summaryFr: "Spécialiste du canal des conseillers reliant les opérations et la communication aux investisseurs",
-    education: ["B.Com Finance, Concordia University"],
-    educationFr: ["B.A.A., finance, Université Concordia"],
-    previousRoles: ["Director, Business Development — Mackenzie Investments", "Collective Savings Representative — Sun Life"],
-    previousRolesFr: ["Directeur, développement des affaires — Mackenzie Investments", "Représentant d’épargne collective — Sun Life"],
-    yearJoined: 2024,
-    yearsExperience: 4,
-    initials: "XG",
-    color: "#0b57d0",
-    photo: "/team/xavier-girard.webp",
   },
   {
     name: "Léana D’Imperio",
