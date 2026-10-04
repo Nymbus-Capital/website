@@ -99,24 +99,38 @@ export interface Rect { x: number; y: number; w: number; h: number }
 
 /**
  * Opacity of each method in the methods column, per step: [conventional team, our systems]. The universe step shows
- * both softly; each act highlights its method and fades the other; the compare step shows both at full strength.
+ * both softly; each act highlights its method and fades the other (half strength); the compare step shows both fully.
  */
-export const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.4], [0.4, 1], [1, 1]];
-/** Share of a step over which the column's focus moves from the previous step's to this one's. */
+export const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1]];
+/** Share of a step over which the column's focus eases to that step's. */
 export const FOCUS_IN = 0.08;
 
-/** Opacity of [team, systems] at progress p of `step` (eased from the previous step's focus). */
-export function focusAt(step: number, p: number): [number, number] {
-  const to = FOCUS[step], from = FOCUS[step === 0 ? 0 : step - 1];
-  const k = ease(span(p, 0, FOCUS_IN));
+/** Opacity of [team, systems] at progress p of `step`, eased from `from` (the opacities last drawn). */
+export function focusFrom(from: readonly [number, number], step: number, p: number): [number, number] {
+  const to = FOCUS[step], k = ease(span(p, 0, FOCUS_IN));
   return [from[0] + (to[0] - from[0]) * k, from[1] + (to[1] - from[1]) * k];
+}
+
+/**
+ * A focus tracker for one scene: called once per drawn frame with (step, p); when the step changes (played through or
+ * jumped to with the step buttons, or restarted) it eases from whatever was last drawn, so the column never jumps.
+ */
+export function focusTracker(): (step: number, p: number) => [number, number] {
+  let step = -1, lastP = 0, from: readonly [number, number] = FOCUS[0], last: [number, number] = [FOCUS[0][0], FOCUS[0][1]];
+  return (s, p) => {
+    // a new step, or the same step restarted (time went back): ease from what is on screen
+    if (s !== step || p < lastP - 1e-9) { from = last; step = s; }
+    lastP = p;
+    last = focusFrom(from, s, p);
+    return last;
+  };
 }
 
 /** Rows inside a method card (offsets from its top); the engine draws on them and the tests check they fit. */
 export const CARD_ROWS = {
   wide: {
     team: { title: 14, title2: 28, pm: 50, analysts: [74, 90, 106], perYear: 128, bar: 138, result: 166, bottom: 184 },
-    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 132, memory2: 147, bottom: 156 },
+    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 132, memory2: 147, bottom: 158 },
   },
   narrow: {
     team: { title: 13, title2: 26, crew: 45, result: 72, result2: 91, bottom: 100 },
@@ -140,11 +154,12 @@ export function coverageLayout(W: number, H: number) {
     const top = 14, bottom = H - foot - 8;
     column = { x: pad, y: top, w: tw, h: bottom - top };
     const gap = 54;
-    const ch = Math.min(CARD_ROWS.wide.team.bottom + 18, (column.h - gap) / 2);
-    // the two cards keep the same height; the VS badge sits in the gap between them, the pair centred in the column
-    const y0 = top + Math.max(0, (column.h - (2 * ch + gap)) / 2);
+    const ch = Math.min(CARD_ROWS.wide.team.bottom + 18, column.h - gap - CARD_ROWS.wide.systems.bottom - 8);
+    // our systems' card is as tall as its rows (no empty space); the VS badge sits in the gap, the pair centred in the column
+    const sh = CARD_ROWS.wide.systems.bottom + 8;
+    const y0 = top + Math.max(0, (column.h - (ch + gap + sh)) / 2);
     team = { x: pad, y: y0, w: tw, h: ch };
-    systems = { x: pad, y: y0 + ch + gap, w: tw, h: ch };
+    systems = { x: pad, y: y0 + ch + gap, w: tw, h: sh };
     vs = { x: pad + tw / 2, y: y0 + ch + gap / 2, r: 19 };
     area = { x: pad + tw + 32, y: 14, w: W - pad - (pad + tw + 32), h: H - foot - 14 - 6 };
   } else {

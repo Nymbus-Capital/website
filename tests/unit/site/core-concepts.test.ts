@@ -18,7 +18,7 @@ import {
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
   ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, FOCUS_IN, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
-  focusAt, gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
+  focusFrom, focusTracker, gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
 
@@ -321,7 +321,7 @@ test("coverage: one large shared graphic (Gabriel 2026-10-04) — the methods co
     // the rows drawn in each card fit inside it
     const R = L.narrow ? CARD_ROWS.narrow : CARD_ROWS.wide;
     assert.ok(R.team.bottom <= A.h && R.systems.bottom <= B.h, `card rows ${W}: ${A.h}`);
-    assert.equal(A.h, B.h);
+    assert.ok(B.h <= A.h && B.h - R.systems.bottom <= 12, `our systems' card without empty space ${W}: ${B.h}`);
     assert.equal(L.cols, sectorBlocks(L.rows).width);
     assert.ok(sectorBlocks(L.rows).cols.reduce((x, c) => x + c, 0) * L.rows >= UNIVERSE);
     const seen = new Set<string>();
@@ -338,24 +338,45 @@ test("coverage: one large shared graphic (Gabriel 2026-10-04) — the methods co
   assert.equal(COVERAGE_STEP_MS.length, 4);
 });
 
-test("coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (35–45 %); both in the compare step", () => {
+test("coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (≈ 50 %); both in the compare step", () => {
   const starts = stepStarts(COVERAGE_STEP_MS);
-  const at = (s: number, p: number) => focusAt(s, p);
-  // act 1: conventional team full, our systems faded; act 2: the reverse; compare: both
-  for (const p of [FOCUS_IN + 0.01, 0.5, 0.99]) {
-    const [t1, s1] = at(1, p), [t2, s2] = at(2, p), [t3, s3] = at(3, p);
-    assert.equal(t1, 1); assert.ok(s1 >= 0.35 && s1 <= 0.45, `${s1}`);
-    assert.equal(s2, 1); assert.ok(t2 >= 0.35 && t2 <= 0.45, `${t2}`);
-    assert.equal(t3, 1); assert.equal(s3, 1);
+  // at rest in each step (after the ease), whatever came before
+  for (const from of [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1], [0.73, 0.81]] as const) {
+    for (const p of [FOCUS_IN + 0.001, 0.5, 0.99]) {
+      const [t1, s1] = focusFrom(from, 1, p), [t2, s2] = focusFrom(from, 2, p), [t3, s3] = focusFrom(from, 3, p);
+      assert.equal(t1, 1); assert.ok(s1 >= 0.45 && s1 <= 0.55, `${s1}`);
+      assert.equal(s2, 1); assert.ok(t2 >= 0.45 && t2 <= 0.55, `${t2}`);
+      assert.equal(t3, 1); assert.equal(s3, 1);
+    }
   }
-  // the change is eased, never a jump: continuous across each step boundary
-  for (let s = 1; s < 4; s++) {
-    const end = at(s - 1, 1), start = at(s, 0);
-    assert.ok(Math.abs(end[0] - start[0]) < 1e-9 && Math.abs(end[1] - start[1]) < 1e-9, `boundary ${s}`);
-  }
+  // the tracker eases from what was last drawn — played through or jumped to mid-transition — never a jump
+  const frame = 1000 / 30;
+  const sim = (jumps: Map<number, number>) => {
+    const f = focusTracker();
+    let t = 0, prev: [number, number] | null = null, maxStep = 0;
+    for (let n = 0; n < (cycleMs(COVERAGE_STEP_MS) * 1.2) / frame; n++) {
+      t = jumps.get(n) ?? t + frame;
+      const { step, p } = stepAt(t, COVERAGE_STEP_MS);
+      const cur = f(step, p);
+      if (prev) maxStep = Math.max(maxStep, Math.abs(cur[0] - prev[0]), Math.abs(cur[1] - prev[1]));
+      prev = cur;
+    }
+    return maxStep;
+  };
+  // the largest ease (0.5 of opacity over FOCUS_IN of the shortest step) moves at most ≈ 0.5 × 1.5 / frames-in-the-ease per frame
+  const easeFrames = (FOCUS_IN * Math.min(...COVERAGE_STEP_MS)) / frame;
+  const bound = (0.6 * 1.5) / easeFrames + 1e-9;
+  assert.ok(sim(new Map()) <= bound, "played through");
+  // jumps: into act 2 during act 1's ease, then to compare mid-ease, then back to the universe
+  const j = new Map([[3, starts[1] + 5], [110 + 4, starts[2] + 5], [116, starts[3]], [200, 0]]);
+  j.set(4, starts[2] + 2);
+  assert.ok(sim(j) <= bound, `jumps: ${sim(j)} > ${bound}`);
+  // first frame after a jump equals the last frame drawn before it
+  const f = focusTracker();
+  f(1, 0); const mid = f(1, FOCUS_IN / 2);
+  assert.deepEqual(f(3, 0), mid);
+  assert.ok(mid[1] > 0.5 && mid[1] < 0.6, "caught mid-transition");
   assert.ok(COVERAGE_STEP_MS[1] >= 6000 && COVERAGE_STEP_MS[2] >= 6000, "each act has time to be read");
-  assert.equal(stepAt(starts[1] + 10, COVERAGE_STEP_MS).step, 1);
-  assert.equal(stepAt(starts[3] + 10, COVERAGE_STEP_MS).step, 3);
 });
 
 test("coverage: steps read as a comparison of two methods — universe, conventional team, our systems, compare", () => {

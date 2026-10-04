@@ -209,6 +209,11 @@ Not yet run against live data, not deployed.
   systems' coverage and swaps the filter legend for "Conventional team: ≈180 · Our systems: every liquid bond"; the wide
   title row names the method on the graphic. Steps "The universe · Conventional team · Our systems · Compare"; canvas
   480–560 px desktop, 620 px phone. e2e captures all three FR acts of concept 3 on desktop. Compliance CC13–CC14.
+  Review polish: faded method 0.5 (`FOCUS`); `focusTracker()` eases from the last drawn state on step jumps or restarts
+  (per-frame continuity unit-tested); sector names kept over the history sheets in steps 3–4 (white backing) as the key to
+  the compare rings — on phones the cluster abbreviations do this (the strip's analyst slots, ≈ 19 px, are too narrow for
+  names); "Our systems" card shrunk to its rows; the card's "Every day of history, remembered" waits for the compare step
+  (act 2 shows it as the pill only).
 
 - 2026-10-04 (sub-agent, branch `fix/v5-minors` from `integ/v5`; not merged): review minors — meta descriptions (approach, about,
   core concepts) carry "designed to offset part of losses"; home added to the qualifier test; concept 3 stat "Covered by a team of

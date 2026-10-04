@@ -10,7 +10,7 @@
  */
 import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
 import {
-  ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, LAYERS, PER_ANALYST, UNIVERSE, analystPos, analystSlot, cellOf, coverageLayout, focusAt, pmPos,
+  ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, LAYERS, PER_ANALYST, UNIVERSE, analystPos, analystSlot, cellOf, coverageLayout, focusTracker, pmPos,
   sectorFont, sectorLabelBoxes, teamCoverage, universe, type Bond, type Rect,
 } from "./coverage-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
@@ -38,6 +38,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   let bands: Rect[] = [];
   let layer: HTMLCanvasElement | null = null;
   let pen: Pen | null = null;
+  const focus = focusTracker();
 
   function prerender() {
     pos = bonds.map((b) => cellOf(b.i, L));
@@ -84,7 +85,7 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       const scan = step > 2 ? 1 : step < 2 ? 0 : span(p, 0.08, 0.5);
       const mem = step > 2 ? 1 : step < 2 ? 0 : ease(span(p, 0.55, 0.8));
       const fade = step === 3 ? 1 - span(p, 0.96, 1) : 1;
-      const [fT, fS] = focusAt(step, p);
+      const [fT, fS] = focus(step, p);
       const G = L.grid;
       const r = Math.max(0.8, L.cell * 0.26);
       const scanX = G.x + G.w * scan;
@@ -186,11 +187,20 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       }
 
       /* ---------- sector names above their clusters (they give way to the history sheets) */
-      ctx.globalAlpha = fade * appear * (1 - mem) * (step === 1 ? 1 : 0.75);
+      // kept over the history sheets (on a white backing) in acts 2 and compare: the key to the team's coloured rings
+      ctx.globalAlpha = fade * appear * (step === 1 || step === 3 ? 1 : 0.75);
       if (ctx.globalAlpha > 0.01) {
         P.font(600, sectorFont(L));
+        const a0 = ctx.globalAlpha;
         bands.forEach((bx, s) => {
           const name = L.narrow ? lab.sectors[s].abbr : fitName(P, { ...lab.sectors[s], long: lab.sectors[s].short }, bx.w + 4);
+          if (mem > 0) {
+            const w = Math.min(P.measure(name), bx.w + 4) + 8;
+            ctx.globalAlpha = a0 * mem;
+            P.round(bx.x + bx.w / 2 - w / 2, bx.y, w, bx.h, bx.h / 2);
+            ctx.fillStyle = "rgba(255,255,255,.96)"; ctx.fill();
+            ctx.globalAlpha = a0;
+          }
           P.text(name, bx.x + bx.w / 2, bx.y + bx.h / 2, bx.w + 4, "center", ANALYST_COLORS[s]);
         });
       }
@@ -431,7 +441,8 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
     ctx.globalAlpha = alpha * Math.max(0.45, Math.min(1, scan * 1.5));
     const sc = wrap(Pn, lab.scanned, w, 600, 15, 10.5);
     sc.forEach((ln, k) => figure(ctx, Pn, ln, x, S.y + (k ? R.scanned2 : R.scanned), 0, w));
-    ctx.globalAlpha = alpha * Math.max(0.45, mem);
+    // in act 2 the pill on the graphic says it: the card line waits for the compare step (shown softly before)
+    ctx.globalAlpha = alpha * (step === 2 ? 0 : step === 3 ? Math.max(0.45, mem) : 0.45);
     const my = sc.length > 1 ? S.y + R.memory : S.y + R.scanned2 + 4;
     wrap(Pn, lab.memory, w, 500, 10.5).forEach((ln, k) => Pn.text(ln, x, my + 15 * k, w, "left", step >= 2 ? COL.ink2 : COL.mute));
   }
