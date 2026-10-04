@@ -2,9 +2,10 @@
  * overlay-stack-model.ts — pure model of the "what is an overlay" animation (/critical-concepts): the core portfolio
  * stays 100% invested, a small margin deposit (about 10% of the exposure, an illustrative estimate) supports a full
  * futures exposure stacked on top, and each generated period adds the two return streams into the combined one.
- * Every value is generated, symmetric around zero (no drift), so nothing reads as a result. Dependency-free.
+ * The overlay's generated return follows market volatility (its sensitivity to volatility, or vega): small in calm
+ * periods, clearly positive in volatile ones. Every value is generated; the core has no drift. Dependency-free.
  */
-import { clamp, gauss } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "./timeline.ts";
 
 /** Steps: core invested · deposit · overlay stacked on top · two return streams. */
 export const OVERLAY_STEP_MS = [2800, 2800, 3200, 7600] as const;
@@ -16,14 +17,40 @@ export const EXPOSURE_SHARE = 1;
 export const MAX_CONTRIB = 2.4;
 /** ms per generated period in the return chart. */
 export const PERIOD_MS = 460;
+/** Periods drawn in the return chart (one generated "market path" per loop). */
+export const CHART_PERIODS = 16;
 
-export interface Period { n: number; core: number; overlay: number; combined: number }
+export interface Period {
+  n: number; core: number; overlay: number; combined: number;
+  /** generated market regime of the period: volatile (large moves either way) or calm */
+  volatile: boolean;
+}
 
-/** Period `n` of the stream for `seed`: deterministic, bounded, combined = core + overlay exactly. */
+/**
+ * Volatile stretches of chart window `w` (CHART_PERIODS periods) for `seed`: a longer episode in the first half and a
+ * short one in the second, placed by the seed, so every chart shows calm and volatile periods side by side.
+ */
+export function isVolatile(n: number, seed = 0): boolean {
+  const w = Math.floor(n / CHART_PERIODS), k = n - w * CHART_PERIODS;
+  const a = 3 + Math.floor(hash01(w, 61, seed) * 4); // 3..6, four periods
+  const b = 11 + Math.floor(hash01(w, 62, seed) * 3); // 11..13, two periods
+  return (k >= a && k < a + 4) || (k >= b && k < b + 2);
+}
+
+/**
+ * Period `n` of the stream for `seed`: deterministic, bounded, combined = core + overlay exactly. The overlay is
+ * driven by market volatility (its vega): in calm periods it is small (slightly positive or flat, sometimes slightly
+ * negative); in volatile periods — large moves either way, sharp core drawdowns most of all — it is clearly positive.
+ * The core drifts slightly up in calm periods and down in volatile ones, so it has no drift overall.
+ */
 export function periodAt(n: number, seed = 0): Period {
-  const core = clamp(gauss(n, 1, seed) * 0.55, -MAX_CONTRIB / 2, MAX_CONTRIB / 2);
-  const overlay = clamp(gauss(n, 2, seed) * 0.75, -MAX_CONTRIB / 2, MAX_CONTRIB / 2);
-  return { n, core, overlay, combined: core + overlay };
+  const volatile = isVolatile(n, seed);
+  const g = gauss(n, 1, seed);
+  const lim = MAX_CONTRIB / 2;
+  const core = clamp(volatile ? g * 0.6 - 0.32 : g * 0.22 + 0.19, -lim, lim);
+  const noise = gauss(n, 2, seed);
+  const overlay = clamp(volatile ? Math.max(0.06, 0.22 + 0.62 * Math.abs(core) + 0.08 * noise) : 0.05 + 0.13 * noise, -lim, lim);
+  return { n, core, overlay, combined: core + overlay, volatile };
 }
 
 export interface Rect { x: number; y: number; w: number; h: number }

@@ -43,7 +43,9 @@ const BUDGET: [string, unknown, number][] = [
   ["strategies", STRAT_COPY, 120],
   ["fund pages (FUND_TEXTS)", FUND_TEXTS, 680],
   // /critical-concepts (2026-10-03): everything counted, canvas labels, alt texts and the overlay disclosure included
-  ["critical concepts", CC, 580],
+  // concepts v5 (2026-10-03, Gabriel): + overlay volatility (vega) strip, note and caption sentence; + six sector names
+  // in three canvas lengths (long / short / abbreviation, about 30 words); concept 3 renamed "Ultra-micro analysis, at scale"
+  ["critical concepts", CC, 660],
 ];
 
 test("word budget: every page stays within its English ceiling, French within 25% more", () => {

@@ -1,5 +1,5 @@
 /**
- * concepts-copy.ts — copy of /critical-concepts (overlays, futures, coverage at scale), EN + FR (Québec typography).
+ * concepts-copy.ts — copy of /critical-concepts (overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
  * Few words: the animations carry the explanation. Every drawn value is generated; the coverage figures are
  * illustrative estimates (docs/compliance-review.md § Critical concepts). Low correlation is never stated as a fact;
  * wherever overlays are described, the verbatim futures-exposure disclosure follows.
@@ -23,15 +23,15 @@ export const CC = {
   meta: {
     title: l("Critical concepts", "Concepts clés"),
     description: l(
-      "Overlays, futures and coverage at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
-      `Superpositions, contrats à terme et suivi à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
+      "Overlays, futures and ultra-micro analysis at scale: three ideas behind Nymbus Capital’s funds, in simple animations.",
+      `Superpositions, contrats à terme et analyse ultra-micro à grande échelle${NB}: trois idées derrière les fonds de Nymbus Capital, en animations simples.`,
     ),
   },
   hero: {
     eyebrow: l("Critical concepts", "Concepts clés"),
     title: l("Three ideas", "Trois idées"),
     accent: l("behind our funds", "derrière nos fonds"),
-    lead: l("Overlays, futures and coverage at scale, in motion.", "Superpositions, contrats à terme et suivi à grande échelle, en mouvement."),
+    lead: l("Overlays, futures and ultra-micro analysis at scale, in motion.", "Superpositions, contrats à terme et analyse ultra-micro à grande échelle, en mouvement."),
   },
   jump: l("Concepts on this page", "Concepts de cette page"),
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
@@ -50,8 +50,8 @@ export const CC = {
     panel: l("Overlay · same capital, two sources of return", "Superposition · même capital, deux sources de rendement"),
     chip: l("Illustration", "Illustration"),
     alt: l(
-      "Animated illustration: a core portfolio stays fully invested; a small deposit supports a futures overlay stacked on top; both return streams add up in the combined portfolio.",
-      `Illustration animée${NB}: un portefeuille de base reste entièrement investi; un petit dépôt soutient une superposition de contrats à terme par-dessus; les deux sources de rendement s’additionnent dans le portefeuille combiné.`,
+      "Animated illustration: a core portfolio stays fully invested; a small deposit supports a futures overlay stacked on top; both return streams add up in the combined portfolio. Generated overlay returns are larger in volatile periods.",
+      `Illustration animée${NB}: un portefeuille de base reste entièrement investi; un petit dépôt soutient une superposition de contrats à terme par-dessus; les deux sources de rendement s’additionnent dans le portefeuille combiné. Les rendements générés de la superposition sont plus élevés en période volatile.`,
     ),
     steps: [
       l("Core: 100% invested", `Base${NB}: 100${NB}% investie`),
@@ -66,8 +66,8 @@ export const CC = {
       { label: l("Sources of return", "Sources de rendement"), value: l("2", "2") },
     ],
     caption: l(
-      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. ${OVERLAY_EXPOSURE.en}`,
-      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. ${OVERLAY_EXPOSURE.fr}`,
+      `Simplified illustration with generated values, not actual positions or results. Percentages are illustrative estimates; margin requirements vary. Overlays can lose money. Illustration of the overlay’s sensitivity to volatility (vega); it may not behave this way. ${OVERLAY_EXPOSURE.en}`,
+      `Illustration simplifiée, valeurs générées${NB}: ni positions ni résultats réels. Pourcentages estimatifs; les dépôts exigés varient. Les superpositions peuvent subir des pertes. Illustration de la sensibilité de la superposition à la volatilité (vega); elle pourrait ne pas se comporter ainsi. ${OVERLAY_EXPOSURE.fr}`,
     ),
     canvas: {
       core: l("Core portfolio", "Portefeuille de base"),
@@ -86,6 +86,9 @@ export const CC = {
       combined: l("Combined", "Combiné"),
       tagline: l("Same capital base. Two sources of return.", "Même capital. Deux sources de rendement."),
       loss: l("Overlay losses add up too", "Les pertes s’additionnent aussi"),
+      calm: l("Calm", "Calme"),
+      volatile: l("Volatile", "Volatil"),
+      volNote: l("More volatility → overlay has historically tended to do better", "Plus de volatilité → la superposition a historiquement eu tendance à mieux se comporter"),
     },
   },
 
@@ -142,18 +145,18 @@ export const CC = {
   },
 
   coverage: {
-    eyebrow: l("Concept 3 · Coverage at scale", "Concept 3 · Le suivi à grande échelle"),
+    eyebrow: l("Concept 3 · Ultra-micro analysis, at scale", "Concept 3 · Analyse ultra-micro, à grande échelle"),
     title: l("Why machines", "Pourquoi les machines"),
     accent: l("see more", "en voient plus"),
     lead: l(
       "One team covers a fraction of the bond universe in depth. Our systems review every liquid bond, every day.",
       "Une équipe suit en profondeur une fraction de l’univers obligataire. Nos systèmes examinent chaque obligation liquide, chaque jour.",
     ),
-    panel: l("Coverage · Canadian investment-grade bonds", "Suivi · obligations canadiennes de qualité investissement"),
+    panel: l("Ultra-micro analysis · Canadian investment-grade bonds", "Analyse ultra-micro · obligations canadiennes de qualité investissement"),
     chip: l("Illustrative estimates", "Estimations illustratives"),
     alt: l(
-      "Animated illustration: about 2,000 dots stand for the Canadian investment-grade bond index; a team of six analysts lights about 180 of them; a systematic scan then lights every liquid bond, across layers of history.",
-      `Illustration animée${NB}: environ 2${NB}000 points représentent l’indice obligataire canadien de qualité investissement; une équipe de six analystes en allume environ 180; un balayage systématique allume ensuite chaque obligation liquide, sur des couches d’historique.`,
+      "Animated illustration: about 2,000 dots stand for the Canadian investment-grade bond index, grouped by sector; six sector analysts light about 180 of them; a systematic scan then lights every liquid bond, across layers of history.",
+      `Illustration animée${NB}: environ 2${NB}000 points représentent l’indice obligataire canadien de qualité investissement, groupés par secteur; six analystes sectoriels en allument environ 180; un balayage systématique allume ensuite chaque obligation liquide, sur des couches d’historique.`,
     ),
     steps: [
       l("≈2,000 bonds", `≈${NB}2${NB}000 obligations`),
@@ -177,7 +180,7 @@ export const CC = {
     ),
     canvas: {
       pm: l("Portfolio manager", "Gestionnaire"),
-      analyst: l("Analyst", "Analyste"),
+      analyst: l("One analyst per sector", "Un analyste par secteur"),
       perYear: l("≈30 securities a year each", `≈${NB}30 titres par an chacun`),
       covered: l("Covered in depth", "Suivis en profondeur"),
       of: l("of ≈2,000", `sur ≈${NB}2${NB}000`),
@@ -191,12 +194,24 @@ export const CC = {
       team: l("A fundamental team", "Une équipe fondamentale"),
       systems: l("Our systems", "Nos systèmes"),
     },
+    /** the six analysts' sectors (illustrative split; analyst a covers sector a), in three lengths for the canvas */
+    sectors: [
+      { long: l("Financials", "Services financiers"), short: l("Financials", "Finance"), abbr: l("Fin.", "Fin.") },
+      { long: l("Technology & telecom", "Technologies et télécoms"), short: l("Tech & telecom", "Techno et télécoms"), abbr: l("Tech", "Techno") },
+      { long: l("Consumer (discr. & staples)", "Consommation (disc. et base)"), short: l("Consumer", "Consommation"), abbr: l("Cons.", "Conso.") },
+      { long: l("Utilities & infrastructure", "Services publics et infrastructures"), short: l("Utilities & infra.", "Services publics"), abbr: l("Util.", "Infra.") },
+      { long: l("Energy", "Énergie"), short: l("Energy", "Énergie"), abbr: l("Energy", "Énergie") },
+      { long: l("Industrials", "Produits industriels"), short: l("Industrials", "Industrie"), abbr: l("Ind.", "Ind.") },
+    ],
   },
 };
 
-/** The three concepts in page order (anchor id, copy). */
-export const CONCEPTS: { id: "overlay" | "futures" | "coverage"; copy: ConceptCopy }[] = [
-  { id: "overlay", copy: CC.overlay },
-  { id: "futures", copy: CC.futures },
-  { id: "coverage", copy: CC.coverage },
+/**
+ * The three concepts in page order: internal id (test ids, engines), page anchor, and the old anchors kept as aliases
+ * (concept 3 was "Coverage at scale", #coverage, until 2026-10-03).
+ */
+export const CONCEPTS: { id: "overlay" | "futures" | "coverage"; anchor: string; aliases: string[]; copy: ConceptCopy }[] = [
+  { id: "overlay", anchor: "overlay", aliases: [], copy: CC.overlay },
+  { id: "futures", anchor: "futures", aliases: [], copy: CC.futures },
+  { id: "coverage", anchor: "ultra-micro-analysis", aliases: ["coverage"], copy: CC.coverage },
 ];

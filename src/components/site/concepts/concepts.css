@@ -59,3 +59,5 @@
 @media (prefers-reduced-motion: reduce) {
   .cc-canvas, .cc-steps button, .cc-steps .n, .cc-play, .cc-jump a { transition: none; }
 }
+/* old anchors kept as aliases (e.g. #coverage → ultra-micro analysis): an empty marker at the top of the section */
+.cc-alias { display: block; height: 0; overflow: hidden; }

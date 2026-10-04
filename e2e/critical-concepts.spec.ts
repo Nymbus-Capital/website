@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * /critical-concepts: three animated panels (overlay, futures, coverage) that render in English and French, are
+ * /critical-concepts: three animated panels (overlay, futures, ultra-micro analysis — test id "coverage") that render in English and French, are
  * linked from the nav and the footer, draw and advance only while on screen, stop on a single still frame under
  * reduced motion (also after a live change), can be paused and stepped with the keyboard, carry their illustration
  * label, figures and captions, and fit a 360 px phone without horizontal scroll.
@@ -45,6 +45,7 @@ test("critical concepts (EN): three panels drawn, advancing, labelled, with capt
   }
   await expect(page.getByTestId("overlay-caption")).toContainText(EXPOSURE);
   await expect(page.getByTestId("overlay-caption")).toContainText(/generated values, not actual positions or results/);
+  await expect(page.getByTestId("overlay-caption")).toContainText("Illustration of the overlay’s sensitivity to volatility (vega); it may not behave this way.");
   await expect(page.getByTestId("futures-caption")).toContainText(/losses can exceed the margin deposited/);
   await expect(page.getByTestId("coverage-caption")).toContainText(/^Illustrative estimates/);
   await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "150–180", "≈2,000", "≥ $200 MM"]);
@@ -85,6 +86,11 @@ test("nav and footer link to critical concepts; jump links reach each concept", 
   await page.getByTestId("concepts-jump").getByRole("link", { name: /futures/i }).click();
   await expect(page).toHaveURL(/#futures$/);
   await expect(page.locator("section#futures")).toBeInViewport();
+  // concept 3 is "Ultra-micro analysis, at scale"; the old #coverage anchor still lands on it
+  await expect(page.getByTestId("concepts-jump").getByRole("link", { name: /ultra-micro analysis, at scale/i })).toHaveAttribute("href", "#ultra-micro-analysis");
+  await page.goto("/critical-concepts#coverage");
+  await expect(page.locator("section#ultra-micro-analysis")).toBeInViewport();
+  await expect(page.locator("section#ultra-micro-analysis")).toContainText("Ultra-micro analysis, at scale");
 });
 
 test("controls: pause / play, steps by click and arrow keys", async ({ page }) => {

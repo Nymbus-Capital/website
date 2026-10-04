@@ -179,9 +179,27 @@ Not yet run against live data, not deployed.
    `/critical-concepts` built and CI-tested. To do: independent adversarial review (design / a11y / compliance), compliance
    rows CC1–CC4, Gabriel to confirm the $200 MM liquidity filter (the explainer deck says 175 M$) and the "≈10%" deposit.
    Still frames of every step: `e2e/screenshots/concepts-*` on the `ci/run-*` branches.
+   **v5 (branch `feat/concepts-v5`, not merged)**: overlay driven by volatility (vega) with a calm/volatile strip, sector
+   analysts and sector clusters, concept 3 renamed "Ultra-micro analysis, at scale" (anchor `#ultra-micro-analysis`,
+   alias `#coverage`). Compliance rows CC6–CC8 to review.
 
 ## 6. Session log
 
+- 2026-10-03 (sub-agent, branch `feat/concepts-v5` from `redesign/v3-keynote-live-data`; not merged): Gabriel's three
+  /critical-concepts requests. (1) Overlay: the generated model is volatility-driven (`isVolatile`, `periodAt` in
+  `overlay-stack-model.ts`): each 16-period chart has a 4-period and a 2-period volatile stretch; calm periods give a small
+  overlay (slightly positive, sometimes slightly negative), volatile periods (large moves either way, sharp core drawdowns)
+  a clearly positive one; the core drifts up in calm and down in volatile periods (no drift overall). Chart: violet shaded
+  columns behind volatile periods, a Calm / Volatile regime strip under the bars, note "More volatility → overlay has
+  historically tended to do better"; "Overlay losses add up too" still points at a losing calm period; caption sentence
+  "Illustration of the overlay's sensitivity to volatility (vega); it may not behave this way." (2) Coverage: six named
+  sector analysts (Financials, Technology & telecom, Consumer (discr. & staples), Utilities & infrastructure, Energy,
+  Industrials; long / short / abbreviated names picked to fit), dots grouped in six sector clusters with faint sector
+  names above them (hidden in the memory step), each analyst's 30 bonds in their cluster's colour; narrow screens show
+  abbreviations under the analyst nodes. (3) Concept 3 renamed "Ultra-micro analysis, at scale" / « Analyse ultra-micro, à
+  grande échelle » (heading "Why machines see more" kept); section anchor `#ultra-micro-analysis`, alias `#coverage`
+  kept; internal id / test ids stay `coverage`. Unit tests: vega (volatile mean > calm mean, worst drawdowns positive,
+  a losing calm period per seed), sector clusters and label fit at 300–1360 px; word budget for the page 580 → 660.
 - 2026-10-03 (sub-agent, branch `fix/concepts-v4` from `integ/v4`; not merged): fixes after the independent review of
   /critical-concepts. Overlay: one "Same capital base" bracket over core + deposit with the collateral sub-label;
   placeholder chart in steps 1–3 (desktop); no particles in still frames. Futures: clearing-house node between long and
