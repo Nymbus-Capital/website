@@ -2,9 +2,10 @@
  * overlay-stack-model.ts — pure model of the "what is an overlay" animation (/critical-concepts): the core portfolio
  * stays 100% invested, a small margin deposit (about 10% of the exposure, an illustrative estimate) supports a full
  * futures exposure stacked on top, and each generated period adds the two return streams into the combined one.
- * Every value is generated, symmetric around zero (no drift), so nothing reads as a result. Dependency-free.
+ * The overlay's generated return follows market volatility (its sensitivity to volatility, or vega): small in calm
+ * periods, clearly positive in volatile ones. Every value is generated; the core has no drift. Dependency-free.
  */
-import { clamp, gauss } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "./timeline.ts";
 
 /** Steps: core invested · deposit · overlay stacked on top · two return streams. */
 export const OVERLAY_STEP_MS = [2800, 2800, 3200, 7600] as const;
@@ -16,14 +17,87 @@ export const EXPOSURE_SHARE = 1;
 export const MAX_CONTRIB = 2.4;
 /** ms per generated period in the return chart. */
 export const PERIOD_MS = 460;
+/** Periods drawn in the return chart (one generated "market path" per loop). */
+export const CHART_PERIODS = 16;
 
-export interface Period { n: number; core: number; overlay: number; combined: number }
+export interface Period {
+  n: number; core: number; overlay: number; combined: number;
+  /** generated market regime of the period: volatile (large moves either way) or calm */
+  volatile: boolean;
+}
 
-/** Period `n` of the stream for `seed`: deterministic, bounded, combined = core + overlay exactly. */
+/**
+ * Volatile stretches of chart window `w` (CHART_PERIODS periods) for `seed`: a longer episode in the first half and a
+ * short one in the second, placed by the seed, so every chart shows calm and volatile periods side by side.
+ */
+export function isVolatile(n: number, seed = 0): boolean {
+  const w = Math.floor(n / CHART_PERIODS), k = n - w * CHART_PERIODS;
+  const a = 3 + Math.floor(hash01(w, 61, seed) * 4); // 3..6, four periods
+  const b = 11 + Math.floor(hash01(w, 62, seed) * 3); // 11..13, two periods
+  return (k >= a && k < a + 4) || (k >= b && k < b + 2);
+}
+
+/**
+ * Period `n` of the stream for `seed`: deterministic, bounded, combined = core + overlay exactly. The overlay is
+ * driven by market volatility (its vega): in calm periods it is small (slightly positive or flat, sometimes slightly
+ * negative); in volatile periods — large moves up or down — it tends to be larger and positive, yet can still lose.
+ * The core has no drift in either regime; volatile periods simply have a larger spread.
+ */
 export function periodAt(n: number, seed = 0): Period {
-  const core = clamp(gauss(n, 1, seed) * 0.55, -MAX_CONTRIB / 2, MAX_CONTRIB / 2);
-  const overlay = clamp(gauss(n, 2, seed) * 0.75, -MAX_CONTRIB / 2, MAX_CONTRIB / 2);
-  return { n, core, overlay, combined: core + overlay };
+  const volatile = isVolatile(n, seed);
+  const g = gauss(n, 1, seed);
+  const lim = MAX_CONTRIB / 2;
+  const core = clamp(volatile ? g * 0.85 : g * 0.22, -lim, lim);
+  const noise = gauss(n, 2, seed);
+  const overlay = clamp(volatile ? 0.15 + 0.55 * Math.abs(core) + 0.45 * noise : 0.05 + 0.13 * noise, -lim, lim);
+  return { n, core, overlay, combined: core + overlay, volatile };
+}
+
+/** Bar heights of a period in units: the positive stack (up) and the negative stack (down). */
+export const stackOf = (p: Period): { up: number; dn: number } =>
+  ({ up: Math.max(0, p.core) + Math.max(0, p.overlay), dn: Math.max(0, -p.core) + Math.max(0, -p.overlay) });
+
+/** Pixels per unit for a chart window: its tallest stack fills `half` with 15% headroom (constant while bars grow). */
+export function chartScale(ps: Period[], half: number): number {
+  let m = 0.5;
+  for (const p of ps) { const s = stackOf(p); m = Math.max(m, s.up, s.dn); }
+  return half / (m * 1.15);
+}
+
+/** Index of the largest overlay loss among `ps` (-1 when none loses). */
+export function largestLoss(ps: Period[]): number {
+  let k = -1;
+  ps.forEach((p, i) => { if (p.overlay < 0 && (k < 0 || p.overlay < ps[k].overlay)) k = i; });
+  return k;
+}
+
+/**
+ * Where the "losses add up too" note goes for the losing bar `i`: its text box (beside the pointer, towards the
+ * chart's centre) sits under the deepest negative stack it spans, or above the tallest positive one when that does
+ * not fit, so it never covers a bar. `line` is the pointer, from the bar to the text.
+ */
+export function lossNoteSpot(
+  ps: Period[], i: number,
+  g: { x0: number; bw: number; w: number; mid: number; top: number; bottom: number; scale: number; textW: number },
+): { x: number; y: number; align: "left" | "right"; box: Rect; line: [number, number] } {
+  const x = g.x0 + g.bw * (i + 0.5);
+  const right = i >= ps.length / 2;
+  const tx0 = right ? x - 4 - g.textW : x + 4, tx1 = tx0 + g.textW;
+  let up = 0, dn = 0;
+  ps.forEach((p, k) => {
+    const cx = g.x0 + g.bw * (k + 0.5);
+    if (cx + g.w / 2 < tx0 - 2 && k !== i) return;
+    if (cx - g.w / 2 > tx1 + 2 && k !== i) return;
+    const s = stackOf(p);
+    up = Math.max(up, s.up * g.scale); dn = Math.max(dn, s.dn * g.scale);
+  });
+  const own = stackOf(ps[i]);
+  let y = g.mid + dn + 14, line: [number, number] = [g.mid + own.dn * g.scale + 3, y - 6];
+  if (y + 7 > g.bottom - 2) {
+    y = Math.max(g.top + 7, g.mid - up - 14);
+    line = [g.mid - own.up * g.scale - 3, y + 6];
+  }
+  return { x: right ? x - 4 : x + 4, y, align: right ? "right" : "left", box: { x: tx0, y: y - 7, w: g.textW, h: 14 }, line };
 }
 
 export interface Rect { x: number; y: number; w: number; h: number }

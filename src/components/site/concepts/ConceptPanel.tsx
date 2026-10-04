@@ -1,6 +1,6 @@
 "use client";
 /**
- * ConceptPanel.tsx — one animated panel of /critical-concepts (overlay, futures, coverage): the scan-panel chrome,
+ * ConceptPanel.tsx — one animated panel of /critical-concepts (overlay, futures, ultra-micro analysis — id "coverage"): the scan-panel chrome,
  * a lazily created canvas engine, keyboard-accessible controls (play / pause, one button per step, arrow keys), the
  * figures strip and a visible caption. Step buttons use a roving tabindex (one tab stop; arrows, Home, End move it). Same contract as the home panels: nothing loads until the panel is near the
  * viewport, the loop pauses off screen / in a hidden tab, one still frame per step under reduced motion (live) or
@@ -45,7 +45,13 @@ async function createEngine(id: ConceptId, canvas: HTMLCanvasElement, o: { still
     return m.createFutures(canvas, { ...base, labels: () => ({ ...pickAll(CC.futures.canvas, o.lang()), watermark: mark() }) });
   }
   const m = await import("./coverage-engine");
-  return m.createCoverage(canvas, { ...base, labels: () => ({ ...pickAll(CC.coverage.canvas, o.lang()), watermark: mark() }) });
+  return m.createCoverage(canvas, {
+    ...base,
+    labels: () => {
+      const k = o.lang();
+      return { ...pickAll(CC.coverage.canvas, k), watermark: mark(), sectors: CC.coverage.sectors.map((s) => pickAll(s, k)) };
+    },
+  });
 }
 
 export function ConceptPanel({ id }: { id: ConceptId }) {

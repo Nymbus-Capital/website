@@ -3,16 +3,20 @@
  * fills to 100% and stays invested. Step 2: a small deposit (≈10% wide, to scale) slides out beside it. Step 3: a beam
  * rises from the deposit and opens into a full-width futures exposure stacked on top of the core. Step 4: both blocks
  * stream particles into a chart where each generated period stacks the core and overlay contributions into the
- * combined one (overlay losses add up too). Lazily imported; drawn by runner.ts.
+ * combined one (overlay losses add up too); a regime strip under the bars and shaded columns behind them mark the
+ * volatile periods, where the generated overlay does better. Lazily imported; drawn by runner.ts.
  */
 import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
-import { OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, overlayStackLayout, periodAt, stackBlocks, type Period } from "./overlay-stack-model.ts";
+import {
+  CHART_PERIODS, OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, overlayStackLayout, periodAt, stackBlocks, type Period,
+} from "./overlay-stack-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 
 export interface OverlayStackLabels {
   core: string; coreSub: string; deposit: string; depositSub: string; overlay: string; overlaySub: string;
-  bracket: string; bracketSub: string; coreRet: string; ovRet: string; combined: string; tagline: string; loss: string; watermark: string;
+  bracket: string; bracketSub: string; coreRet: string; ovRet: string; combined: string; tagline: string; loss: string;
+  calm: string; volatile: string; volNote: string; watermark: string;
 }
 
 const STARTS = stepStarts(OVERLAY_STEP_MS);
@@ -173,7 +177,11 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
     const small = L.narrow ? 10.5 : 11.5;
     const legendH = L.narrow ? 38 : 26;
     const taglineH = 26;
-    const top = C.y + legendH, bottom = C.y + C.h - taglineH;
+    // volatility regime strip + its note, between the bars and the tagline
+    P.font(500, L.narrow ? 10 : 11);
+    const noteLines = P.measure(lab.volNote) > C.w ? splitLabel(lab.volNote) ?? [lab.volNote] : [lab.volNote];
+    const stripH = 14, stripBlock = 8 + stripH + 6 + noteLines.length * 14;
+    const top = C.y + legendH, bottom = C.y + C.h - taglineH - stripBlock;
     const mid = (top + bottom) / 2, half = (bottom - top) / 2;
     const show = step === 3 ? 1 : 0.7;
     // legend
@@ -205,14 +213,49 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       return;
     }
     const n = Math.floor((a3 * OVERLAY_STEP_MS[3]) / PERIOD_MS);
-    const cap = 16;
+    const cap = CHART_PERIODS;
     const bw = C.w / (cap + 1);
-    const scale = half / (MAX_CONTRIB * 1.05);
+    const win = Array.from({ length: cap }, (_, i) => period(i, loop));
+    const scale = chartScale(win, half);
+    const last = Math.min(n, cap - 1);
+    const growOf = (i: number) => (i === n ? easeOut(((a3 * OVERLAY_STEP_MS[3]) % PERIOD_MS) / PERIOD_MS) : 1);
+    // volatile periods: shaded columns behind the bars, and the regime strip (calm / volatile runs) under them
+    const sy = bottom + 8;
+    let firstVol = -1;
+    for (let i = 0; i <= last; i++) {
+      if (!period(i, loop).volatile) continue;
+      if (firstVol < 0) firstVol = i;
+      ctx.fillStyle = rgba(COL.violet, 0.075 * growOf(i));
+      ctx.fillRect(C.x + bw * i, top - 2, bw, sy - top + 2);
+    }
+    for (let i = 0; i <= last;) {
+      const v = period(i, loop).volatile;
+      let j = i;
+      while (j + 1 <= last && period(j + 1, loop).volatile === v) j++;
+      const x0 = C.x + bw * i + 2, x1 = Math.max(x0 + 4, C.x + bw * (j + growOf(j)) - 2);
+      ctx.globalAlpha = fade * growOf(i);
+      P.round(x0, sy, x1 - x0, stripH, 7);
+      ctx.fillStyle = v ? rgba(COL.violet, 0.2) : rgba(COL.slate, 0.16); ctx.fill();
+      // the tag at a smaller size when the run is short; never truncated (the shading carries it otherwise)
+      const tag = v ? lab.volatile : lab.calm;
+      for (const fs of L.narrow ? [9, 8] : [9.5, 8.5]) {
+        P.font(500, fs);
+        if (P.measure(tag) <= x1 - x0 - 6) { P.text(tag, (x0 + x1) / 2, sy + stripH / 2, x1 - x0 - 6, "center", v ? COL.violet : COL.mute); break; }
+      }
+      i = j + 1;
+    }
+    ctx.globalAlpha = fade;
+    // the note tied to the strip, once the first volatile period has arrived
+    if (firstVol >= 0) {
+      ctx.globalAlpha = fade * growOf(firstVol);
+      P.font(500, L.narrow ? 10 : 11);
+      noteLines.forEach((s, k) => P.text(s, C.x + C.w / 2, sy + stripH + 12 + k * 14, C.w, "center", COL.violet));
+      ctx.globalAlpha = fade;
+    }
     const pts: { x: number; y: number }[] = [];
-    let firstLoss = -1;
-    for (let i = 0; i <= Math.min(n, cap - 1); i++) {
+    for (let i = 0; i <= last; i++) {
       const pd = period(i, loop);
-      const grow = i === n ? easeOut(((a3 * OVERLAY_STEP_MS[3]) % PERIOD_MS) / PERIOD_MS) : 1;
+      const grow = growOf(i);
       const x = C.x + bw * (i + 0.5);
       const w = Math.max(3, bw * 0.56);
       // positives stack up from zero, negatives stack down
@@ -224,7 +267,6 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
         P.round(x - w / 2, y0, w, h, 2); ctx.fill();
         if (v >= 0) up += h; else dn += h;
       }
-      if (pd.overlay < 0 && firstLoss < 0 && grow >= 1) firstLoss = i;
       pts.push({ x, y: mid - pd.combined * scale * grow });
     }
     // combined path + dots
@@ -259,19 +301,24 @@ export function createOverlayStack(canvas: HTMLCanvasElement, opts: RunnerOption
       }
     }
     // honest note: an overlay period can lose, and the loss adds to the core's
-    if (firstLoss >= 0) {
-      const x = C.x + bw * (firstLoss + 0.5);
-      const pd = period(firstLoss, loop);
-      const y = mid + (Math.max(0, -pd.core) + -pd.overlay) * scale + 10;
-      ctx.strokeStyle = rgba(COL.orange, 0.7); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, Math.min(bottom - 4, y + 16)); ctx.stroke();
+    // pointed at the largest overlay loss on screen, placed clear of the bars around it
+    const shown = win.slice(0, n >= cap ? cap : n);
+    const li = largestLoss(shown);
+    if (li >= 0) {
       P.font(500, L.narrow ? 10 : 10.5);
-      const right = x > C.x + C.w / 2;
-      P.text(lab.loss, x + (right ? -4 : 4), Math.min(bottom - 4, y + 16) + 2, C.w * 0.55, right ? "right" : "left", COL.orange);
+      const textW = Math.min(P.measure(lab.loss), C.w * 0.55);
+      const spot = lossNoteSpot(win, li, { x0: C.x, bw, w: Math.max(3, bw * 0.56), mid, top, bottom, scale, textW });
+      const x = C.x + bw * (li + 0.5);
+      ctx.strokeStyle = rgba(COL.orange, 0.7); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, spot.line[0]); ctx.lineTo(x, spot.line[1]); ctx.stroke();
+      P.text(lab.loss, spot.x, spot.y, textW, spot.align, COL.orange);
     }
     // tagline
     ctx.globalAlpha = fade * span(a3, 0.12, 0.3);
-    P.font(600, L.narrow ? 13 : 15);
+    // the tagline shrinks (rather than truncates) when the regime note leaves it a narrow column
+    let tf = L.narrow ? 13 : 15;
+    P.font(600, tf);
+    while (tf > 10.5 && P.measure(lab.tagline) > C.w) { tf -= 0.5; P.font(600, tf); }
     P.text(lab.tagline, C.x + C.w / 2, C.y + C.h - 10, C.w, "center", COL.blueD);
     ctx.globalAlpha = fade;
   }

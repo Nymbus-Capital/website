@@ -1,13 +1,15 @@
 /**
- * coverage-engine.ts — canvas scene of "coverage at scale" (/critical-concepts). Step 1: about 2,000 dots (the
- * Canadian investment-grade index) appear and the issues under the $200 MM filter fade to outlines. Step 2: a
- * portfolio manager and six analysts light their ~30 securities each over a year, 180 in all (a small fraction).
+ * coverage-engine.ts — canvas scene of "ultra-micro analysis, at scale" (/critical-concepts). Step 1: about 2,000 dots
+ * (the Canadian investment-grade index, in six named sector clusters) appear and the issues under the $200 MM filter
+ * fade to outlines. Step 2: a portfolio manager and six sector analysts light ~30 securities each in their own sector's
+ * cluster and colour over a year, 180 in all (a small fraction).
  * Step 3: a scan sweeps the grid and lights every liquid bond. Step 4: layers of history stack up behind the grid and a
  * light runs through them (every day remembered). Dots are drawn in batched paths; history layers are pre-rendered.
  */
 import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
 import {
-  ANALYSTS, COVERAGE_STEP_MS, LAYERS, PER_ANALYST, UNIVERSE, cellOf, coverageLayout, teamCoverage, universe, type Bond,
+  ANALYSTS, COVERAGE_STEP_MS, LAYERS, PER_ANALYST, UNIVERSE, analystPos as slotOf, analystSlot, cellOf, coverageLayout, sectorLabelBoxes,
+  teamCoverage, universe, type Bond, type Rect,
 } from "./coverage-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
@@ -15,9 +17,12 @@ import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 export interface CoverageLabels {
   pm: string; analyst: string; perYear: string; covered: string; of: string; universe: string; liquid: string; below: string;
   scanned: string; memory: string; otc: string; dot: string; team: string; systems: string; watermark: string;
+  /** sector names in three lengths (analyst a covers sector a), longest first */
+  sectors: { long: string; short: string; abbr: string }[];
 }
 
 const STARTS = stepStarts(COVERAGE_STEP_MS);
+/** One colour per sector (and its analyst): financials, technology & communications, consumer, utilities & infrastructure, energy, industrials. */
 export const ANALYST_COLORS = ["#1a73e8", "#00a3e0", "#6d5bd0", "#0f9d8a", "#e37400", "#c5221f"];
 
 export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => CoverageLabels }): Runner {
@@ -27,13 +32,13 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   team.forEach((list, a) => list.forEach((i, k) => owner.set(i, { a, k })));
   let L = coverageLayout(1, 1);
   let pos: { x: number; y: number }[] = [];
-  let colOf: number[] = [];
+  let bands: Rect[] = [];
   let layer: HTMLCanvasElement | null = null;
   let pen: Pen | null = null;
 
   function prerender() {
     pos = bonds.map((b) => cellOf(b.i, L));
-    colOf = bonds.map((b) => Math.floor(b.i / L.rows));
+    bands = sectorLabelBoxes(L);
     // one history layer: the lit grid, pre-rendered once per size
     if (typeof document === "undefined") return;
     const dpr = Math.min(1.5, window.devicePixelRatio || 1);
@@ -166,6 +171,16 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
         }
       }
 
+      /* ---------- sector names above their clusters (they give way to the history sheets in the memory step) */
+      ctx.globalAlpha = fade * appear * (1 - mem) * (step === 1 ? 1 : 0.75);
+      P.font(600, L.narrow ? 9 : 10);
+      bands.forEach((bx, s) => {
+        // narrow: the same abbreviations as under the analysts; wide: the name the cluster fits (short first)
+        const name = L.narrow ? lab.sectors[s].abbr : fitName(P, { ...lab.sectors[s], long: lab.sectors[s].short }, bx.w + 4);
+        P.text(name, bx.x + bx.w / 2, bx.y + bx.h / 2, bx.w + 4, "center", ANALYST_COLORS[s]);
+      });
+      ctx.globalAlpha = fade;
+
       /* ---------- labels around the grid */
       const small = L.narrow ? 10 : 11;
       P.font(600, small);
@@ -212,14 +227,12 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
   }
 
   /** Position of analyst a's node in the team panel. */
-  function analystPos(a: number) {
-    const T = L.team;
-    if (L.narrow) {
-      const x0 = T.x + 64, w = T.w - 64;
-      return { x: x0 + (w / ANALYSTS) * (a + 0.5), y: T.y + 46 };
-    }
-    const top = T.y + 92, gap = Math.min(30, (T.h * 0.42) / ANALYSTS);
-    return { x: T.x + 20, y: top + a * gap };
+  const analystPos = (a: number) => slotOf(L, a);
+
+  /** The longest sector name that fits `maxW` (long, short, then abbreviation; fitted as a last resort). */
+  function fitName(P: Pen, n: { long: string; short: string; abbr: string }, maxW: number): string {
+    for (const s of [n.long, n.short]) if (P.measure(s) <= maxW) return s;
+    return n.abbr;
   }
 
   function drawTeam(ctx: CanvasRenderingContext2D, P: Pen, lab: CoverageLabels, step: number, year: number, scan: number, fade: number) {
@@ -228,14 +241,17 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
     const teamA = step === 1 ? 1 : 0.7;
     ctx.globalAlpha = fade * teamA;
     // portfolio manager
-    const pm = L.narrow ? { x: T.x + 22, y: T.y + 46 } : { x: T.x + 20, y: T.y + 46 };
+    const pm = L.narrow ? { x: T.x + 22, y: T.y + 40 } : { x: T.x + 20, y: T.y + 46 };
     P.font(600, L.narrow ? 10 : 11);
     P.text(lab.team.toUpperCase(), T.x, T.y + 8, T.w, "left", COL.mute);
     ctx.fillStyle = "#fff"; ctx.strokeStyle = COL.ink2; ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.arc(pm.x, pm.y, L.narrow ? 11 : 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = COL.ink2; ctx.beginPath(); ctx.arc(pm.x, pm.y - 2.5, 3.6, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(pm.x, pm.y + 7, 6, Math.PI, 0); ctx.fill();
-    if (!L.narrow) { P.font(600, small); P.text(lab.pm, pm.x + 22, pm.y, T.w - 44, "left", COL.ink); }
+    if (!L.narrow) {
+      P.font(600, small); P.text(lab.pm, pm.x + 22, pm.y, T.w - 44, "left", COL.ink);
+      P.font(500, L.narrow ? 9.5 : 10.5); P.text(lab.analyst, pm.x + 22, pm.y + 24, T.w - 44, "left", COL.mute);
+    }
     for (let a = 0; a < ANALYSTS; a++) {
       const q = analystPos(a);
       ctx.strokeStyle = rgba(COL.mute, 0.35); ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
@@ -245,9 +261,15 @@ export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & 
       P.glowDot(q.x, q.y, L.narrow ? 4.5 : 5, ANALYST_COLORS[a], step === 1 ? 0.8 : 0.3);
       if (!L.narrow) {
         P.font(500, small);
-        P.text(`${lab.analyst} ${a + 1}`, q.x + 14, q.y, T.w * 0.55, "left", COL.ink2);
+        const maxW = T.w - 14 - 20 - 30;
+        P.text(fitName(P, lab.sectors[a], maxW), q.x + 14, q.y, maxW, "left", COL.ink2);
         P.font(600, small);
-        P.text(`${done}`, T.x + T.w - 4, q.y, 40, "right", ANALYST_COLORS[a]);
+        P.text(`${done}`, T.x + T.w - 4, q.y, 30, "right", ANALYST_COLORS[a]);
+      } else {
+        // narrow: the sector's short name under each node
+        P.font(600, 9);
+        const slot = analystSlot(L) - 2;
+        P.text(lab.sectors[a].abbr, q.x, q.y + 17, slot, "center", ANALYST_COLORS[a]);
       }
     }
     if (!L.narrow) {

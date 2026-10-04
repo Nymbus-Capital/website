@@ -1,6 +1,6 @@
 /**
  * /critical-concepts (2026-10-03): the pure models behind the three animations (overlay stack, futures daily
- * settlement, coverage at scale) are deterministic, bounded and true to the concept they teach; the layouts fit every
+ * settlement, ultra-micro analysis at scale) are deterministic, bounded and true to the concept they teach; the layouts fit every
  * width; the copy is bilingual, short, labelled as an illustration, carries the verbatim futures-exposure disclosure
  * where overlays are described and never states low correlation or a guarantee; the page is in the nav and footer.
  */
@@ -10,15 +10,15 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { cycleMs, stepAt, stepStarts } from "../../../src/components/site/concepts/timeline.ts";
 import {
-  DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
+  CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
 import {
   DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, futuresLayout, futuresLoop, intraday, marginFor,
   settledThrough, sigmaOf, unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
-  ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, cellOf, coverageLabelBoxes, coverageLayout, gridShape, sectorOf, teamCoverage,
-  universe,
+  ANALYSTS, COVERAGE_STEP_MS, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
+  gridShape, sectorBlocks, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
 
@@ -51,22 +51,78 @@ test("timeline: steps cover the cycle in order and wrap around", () => {
 /* ------------------------------------------------------------------ overlay stack */
 
 test("overlay: periods are deterministic, bounded, and combined = core + overlay exactly", () => {
-  let neg = 0, pos = 0, sum = 0;
+  let neg = 0, core = 0;
   for (let n = 0; n < 3000; n++) {
     const p = periodAt(n, 3);
     assert.deepEqual(p, periodAt(n, 3));
     assert.ok(Math.abs(p.core) <= MAX_CONTRIB / 2 && Math.abs(p.overlay) <= MAX_CONTRIB / 2);
     assert.ok(Math.abs(p.combined) <= MAX_CONTRIB);
     assert.equal(p.combined, p.core + p.overlay);
-    if (p.overlay < 0) neg++; else pos++;
-    sum += p.combined;
+    if (p.overlay < 0) neg++;
+    core += p.core;
   }
-  // overlay periods lose too (the chart shows losses adding up), and nothing drifts into a "result"
-  assert.ok(neg > 1000 && pos > 1000, `${neg} / ${pos}`);
-  assert.ok(Math.abs(sum / 3000) < 0.05, `${sum / 3000}`);
+  // overlay periods lose too (the chart shows losses adding up); the core has no drift
+  assert.ok(neg > 300, `${neg}`);
+  assert.ok(Math.abs(core / 3000) < 0.05, `${core / 3000}`);
   let diff = 0;
   for (let n = 0; n < 100; n++) if (periodAt(n, 1).overlay !== periodAt(n, 2).overlay) diff++;
   assert.ok(diff > 95);
+});
+
+test("overlay: driven by volatility (vega) — small in calm periods, larger in volatile ones (up or down moves), never a promise", () => {
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const all = Array.from({ length: 4000 }, (_, n) => periodAt(n, 0));
+  const vol = all.filter((p) => p.volatile), calm = all.filter((p) => !p.volatile);
+  assert.ok(mean(vol.map((p) => p.overlay)) > 3 * mean(calm.map((p) => p.overlay)), "volatile mean > 3 × calm mean");
+  for (const p of calm) assert.ok(Math.abs(p.overlay) < 0.6, `calm overlay stays small: ${p.overlay}`);
+  // volatile periods can lose too (roughly one in five or six)
+  const volLoss = vol.filter((p) => p.overlay < 0).length / vol.length;
+  assert.ok(volLoss > 0.1 && volLoss < 0.3, `volatile losing share ${volLoss}`);
+  // the volatile core is symmetric with a larger spread: big up and big down moves both tend to pay
+  assert.ok(Math.abs(mean(vol.map((p) => p.core))) < 0.08 && Math.abs(mean(calm.map((p) => p.core))) < 0.05);
+  assert.ok(mean(vol.map((p) => Math.abs(p.core))) > 2.5 * mean(calm.map((p) => Math.abs(p.core))));
+  const bigUp = vol.filter((p) => p.core > 0.6), bigDn = vol.filter((p) => p.core < -0.6);
+  assert.ok(bigUp.length > 50 && bigDn.length > 50);
+  assert.ok(mean(bigUp.map((p) => p.overlay)) > 0.4 && mean(bigDn.map((p) => p.overlay)) > 0.4);
+  // default seed: the largest core drawdown comes with a positive overlay
+  const w0 = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, 0));
+  const worst = [...w0].sort((a, b) => a.core - b.core)[0];
+  assert.ok(worst.volatile && worst.overlay > 0, `default seed worst drawdown: ${JSON.stringify(worst)}`);
+  // every chart window shows both regimes and a losing calm period; across the 16 loop seeds a volatile period loses too
+  let volLosers = 0;
+  for (let seed = 0; seed < 16; seed++) {
+    const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
+    assert.ok(w.some((p) => p.volatile) && w.some((p) => !p.volatile), `seed ${seed}`);
+    assert.ok(w.some((p) => p.overlay < 0 && !p.volatile), `seed ${seed}: no losing calm period`);
+    volLosers += w.filter((p) => p.volatile && p.overlay < 0).length;
+    for (const p of w) assert.equal(p.combined, p.core + p.overlay);
+  }
+  assert.ok(volLosers >= 1, "at least one losing volatile period across the 16 loops");
+});
+
+test("overlay chart: the scale uses the window's tallest stack; the loss note points at the largest loss and covers no bar", () => {
+  for (const [Cw, barsH, narrow] of [[332, 170, true], [384, 190, true], [800, 340, false]] as [number, number, boolean][]) {
+    for (let seed = 0; seed < 16; seed++) {
+      const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
+      const top = 40, bottom = top + barsH, mid = (top + bottom) / 2, half = barsH / 2;
+      const scale = chartScale(w, half);
+      const tallest = Math.max(...w.map((p) => Math.max(stackOf(p).up, stackOf(p).dn)));
+      assert.ok(tallest * scale <= half && tallest * scale > half * 0.8, `scale fills the height (${seed})`);
+      const li = largestLoss(w);
+      assert.ok(li >= 0 && w.every((p) => p.overlay >= w[li].overlay));
+      const bw = Cw / (CHART_PERIODS + 1), bwid = Math.max(3, bw * 0.56);
+      for (const textW of [26 * 5.6, 31 * 5.6]) { // "Overlay losses add up too" / « Les pertes s’additionnent aussi »
+        const s = lossNoteSpot(w, li, { x0: 0, bw, w: bwid, mid, top, bottom, scale, textW: Math.min(textW, Cw * 0.55) });
+        assert.ok(s.box.y >= top && s.box.y + s.box.h <= bottom, `note inside the bars area (${seed}, ${narrow})`);
+        w.forEach((p, k) => {
+          const cx = bw * (k + 0.5), st = stackOf(p);
+          const bar = { x: cx - bwid / 2, y: mid - st.up * scale, w: bwid, h: (st.up + st.dn) * scale };
+          const hit = s.box.x < bar.x + bar.w && bar.x < s.box.x + s.box.w && s.box.y < bar.y + bar.h && bar.y < s.box.y + s.box.h;
+          assert.ok(!hit, `loss note covers bar ${k} (seed ${seed}, width ${Cw})`);
+        });
+      }
+    }
+  }
 });
 
 test("overlay: the deposit is drawn to scale (about 10% of the full exposure) and the overlay spans the whole core", () => {
@@ -201,7 +257,9 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
   for (const [W, H0] of SIZES) {
     const H = W < 700 ? 560 : H0;
     const { cols, rows } = gridShape(W);
-    assert.equal(cols * rows, UNIVERSE);
+    const B = sectorBlocks(rows);
+    assert.equal(cols, B.width);
+    assert.ok(B.cols.reduce((a, c) => a + c, 0) * rows >= UNIVERSE);
     const L = coverageLayout(W, H);
     inside(L.grid, W, H, `grid ${W}`);
     inside(L.team, W, H, `team ${W}`);
@@ -218,6 +276,55 @@ test("coverage: the grid has exactly one cell per bond and fits the canvas at ev
     if (!L.narrow) assert.ok(L.team.x + L.team.w <= L.grid.x); else assert.ok(L.team.y + L.team.h <= L.grid.y);
   }
   assert.equal(COVERAGE_STEP_MS.length, 4);
+});
+
+test("coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
+  assert.equal(CC.coverage.sectors.length, ANALYSTS);
+  assert.deepEqual(CC.coverage.sectors.map((s) => s.long.en), [
+    "Financials", "Technology & communications", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
+  ]);
+  for (const s of CC.coverage.sectors) {
+    for (const k of ["long", "short", "abbr"] as const) assert.ok(s[k].en.trim() && s[k].fr.trim());
+    assert.ok(s.abbr.en.length <= 6 && s.abbr.fr.length <= 8, `abbreviation too long: ${s.abbr.en} / ${s.abbr.fr}`);
+  }
+  // sectors are contiguous index ranges of about 333 bonds
+  assert.equal(sectorStart(0), 0);
+  assert.equal(sectorStart(ANALYSTS), UNIVERSE);
+  for (let i = 0; i < UNIVERSE; i++) assert.ok(i >= sectorStart(sectorOf(i)) && i < sectorStart(sectorOf(i) + 1));
+  const u = universe(0);
+  const team = teamCoverage(u);
+  for (const [W, H0] of [...SIZES, [320, 560], [360, 560], [412, 560]] as [number, number][]) {
+    const H = W < 700 ? 560 : H0;
+    const L = coverageLayout(W, H);
+    const bands = sectorLabelBoxes(L);
+    // clusters are separated: every dot of a sector lies inside its band, bands never touch
+    for (let i = 0; i < UNIVERSE; i++) {
+      const c = cellOf(i, L), b = bands[sectorOf(i)];
+      assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
+    }
+    for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= L.cell * 0.8, `gap ${s} at ${W}`);
+    // each analyst's 30 lit bonds are in their own cluster
+    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
+    // sector names: between the grid title and the grid, on the canvas, wide enough for the abbreviation (≈5.6 px/char at 10 px, ≈4.8 at 9 px semibold)
+    const title = coverageLabelBoxes(W, H).title;
+    for (const [s, b] of bands.entries()) {
+      inside(b, W, H, `sector ${s} ${W}`);
+      assert.ok(b.y >= title.y + title.h, `sector label under the title at ${W}`);
+      assert.ok(b.y + b.h <= L.grid.y, `sector label above the grid at ${W}`);
+      const abbr = Math.max(CC.coverage.sectors[s].abbr.en.length, CC.coverage.sectors[s].abbr.fr.length);
+      assert.ok(b.w + 4 >= abbr * 5.6, `sector ${s} cluster too narrow for "${CC.coverage.sectors[s].abbr.fr}" at ${W}: ${b.w}`);
+    }
+    // team panel: analysts inside it; on narrow screens, one slot per analyst wide enough for the abbreviation
+    for (let a = 0; a < ANALYSTS; a++) {
+      const q = analystPos(L, a);
+      assert.ok(q.x > L.team.x && q.x < L.team.x + L.team.w && q.y > L.team.y && q.y < L.team.y + L.team.h, `analyst ${a} at ${W}`);
+    }
+    if (L.narrow) {
+      const longest = Math.max(...CC.coverage.sectors.flatMap((s) => [s.abbr.en.length, s.abbr.fr.length]));
+      assert.ok(analystSlot(L) - 2 >= longest * 4.8, `analyst slot ${analystSlot(L)} at ${W}`);
+      assert.ok(analystPos(L, 0).y + 17 + 7 < L.team.y + 80 - 7, "abbreviations clear the counter line");
+    }
+  }
 });
 
 test("coverage: texts around the grid never overlap (team row, title, grid and history sheets, legend, watermark)", () => {
@@ -248,6 +355,8 @@ test("copy: every string exists in English and French; three concepts with four 
   assert.ok(pairs.length > 80);
   for (const [en, fr] of pairs) assert.ok(en.trim() && fr.trim(), `missing translation: ${en} / ${fr}`);
   assert.deepEqual(CONCEPTS.map((c) => c.id), ["overlay", "futures", "coverage"]);
+  assert.deepEqual(CONCEPTS.map((c) => c.anchor), ["overlay", "futures", "ultra-micro-analysis"]);
+  assert.deepEqual(CONCEPTS.find((c) => c.id === "coverage")!.aliases, ["coverage"], "the old #coverage anchor still lands on the concept");
   for (const c of CONCEPTS) { assert.equal(c.copy.steps.length, 4); assert.ok(c.copy.alt.en.startsWith("Animated illustration")); }
   assert.equal(CC.watermark.en, "ILLUSTRATION · generated values");
   assert.equal(CC.watermark.fr, "ILLUSTRATION · valeurs générées");
@@ -259,6 +368,10 @@ test("copy: the overlay caption ends with the verbatim futures-exposure disclosu
   assert.equal(OVERLAY_EXPOSURE.en, "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
   assert.match(CC.overlay.caption.en, /generated values, not actual positions or results/);
   assert.match(CC.overlay.caption.en, /Overlays can lose money/);
+  assert.match(CC.overlay.caption.en, /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./);
+  assert.match(CC.overlay.caption.fr, /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
+  assert.match(CC.overlay.canvas.volNote.en, /historically tended to/);
+  assert.match(CC.overlay.canvas.loss.en, /^Overlay losses add up too$/);
   assert.match(CC.futures.caption.en, /losses can exceed the margin deposited/);
   assert.match(CC.futures.caption.fr, /les pertes peuvent dépasser le dépôt/);
   assert.match(CC.futures.canvas.realized.en, /not a tax statement/);
@@ -276,6 +389,13 @@ test("copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no p
     // percentages only for the overlay's illustrative allocation (100%, ≈10%)
     for (const m of s.matchAll(/(\d+(?:[.,]\d+)?)\s?%/g)) assert.ok(["100", "10"].includes(m[1]), `unexpected percentage in: ${s}`);
   }
+});
+
+test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phrase), heading \"Why machines see more\"", () => {
+  assert.equal(CC.coverage.eyebrow.en, "Concept 3 · Ultra-micro analysis, at scale");
+  assert.equal(CC.coverage.eyebrow.fr, "Concept 3 · Analyse ultra-micro, à grande échelle");
+  assert.equal(`${CC.coverage.title.en} ${CC.coverage.accent.en}`, "Why machines see more");
+  for (const s of leaves(CC)) assert.ok(!/coverage at scale|suivi à grande échelle/i.test(s), `old name: ${s}`);
 });
 
 test("copy: the coverage figures are Gabriel's illustrative estimates and match the model", () => {
