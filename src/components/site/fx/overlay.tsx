@@ -1,17 +1,18 @@
 "use client";
 /**
  * overlay.tsx — the home "diversifying engines" panel (multi-strategy, futures overlay): a canvas illustration of
- * generic engines moving on their own in generated down months, with a concept down-month correlation heatmap.
+ * generated traditional markets (equities, bonds) falling together in down months while our strategies move on their
+ * own, with a concept down-month correlation heatmap. No counters (removed at Gabriel's request, 2026-10-04).
  * Same contract as the analysis scan: lazy engine, paused off-screen / hidden tab, one still frame under reduced
  * motion (live), Data Saver → still, coarse pointer → 15 fps, test hooks data-frames / data-running.
  */
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { recoverFromChunkError } from "./chunk-recover";
 import { Layers, Shuffle, TrendingDown } from "lucide-react";
 import { reducedMotion, Reveal } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { OVERLAY_COPY as C } from "./overlay-copy";
-import { BOND, ENGINES } from "./overlay-model";
+import { ENGINES, MARKETS } from "./overlay-model";
 import type { OverlayLabels } from "./overlay-engine";
 import "./fx.css";
 import "./overlay.css";
@@ -30,9 +31,6 @@ const coarsePointer = (): boolean => window.matchMedia("(pointer: coarse)").matc
 export function OverlayEngines() {
   const { locale, pick } = useTranslation();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const months = useRef<HTMLElement>(null);
-  const down = useRef<HTMLElement>(null);
-  const litEl = useRef<HTMLElement>(null);
   const lang = useRef(locale);
   const viz = useRef<{ redraw(): void } | null>(null);
   const [ready, setReady] = useState(false);
@@ -47,9 +45,10 @@ export function OverlayEngines() {
       const k = lang.current === "fr" ? "fr" : "en";
       const cv = C.canvas;
       return {
-        bond: cv.bond[k], combined: cv.combined[k], down: cv.down[k], lit: cv.lit[k], heat: cv.heat[k],
-        opposite: cv.opposite[k], low: cv.low[k], together: cv.together[k],
-        engines: ENGINES.map((e) => e.label[k]), bondShort: BOND.label[k],
+        markets: MARKETS.map((m) => m.label[k]), marketsShort: MARKETS.map((m) => m.short[k]),
+        combined: cv.combined[k], trad: cv.trad[k], strategies: cv.strategies[k],
+        down: cv.down[k], lit: cv.lit[k], heat: cv.heat[k], opposite: cv.opposite[k], low: cv.low[k], together: cv.together[k],
+        engines: ENGINES.map((e) => e.label[k]),
       };
     };
     const boot = () => {
@@ -61,7 +60,6 @@ export function OverlayEngines() {
           watermark: () => (lang.current === "fr" ? C.watermark.fr : C.watermark.en),
           lang: () => lang.current,
           labels,
-          counters: { months: months.current, down: down.current, lit: litEl.current },
           onReady: () => setReady(true),
         });
         viz.current = engine;
@@ -73,9 +71,6 @@ export function OverlayEngines() {
     return () => { dead = true; io.disconnect(); engine?.destroy(); viz.current = null; };
   }, [reduced]);
   useEffect(() => { viz.current?.redraw(); }, [locale]);
-  const stat = (label: string, node: ReactNode) => (
-    <div className="sc-stat"><dt>{label}</dt><dd className="tabnum">{node}</dd></div>
-  );
   const icons = [Layers, Shuffle, TrendingDown];
   return (
     <>
@@ -86,16 +81,9 @@ export function OverlayEngines() {
             <span className="sc-title">{pick(C.panel)}</span>
             <span className="sc-chip">{pick(C.illustration)}</span>
           </div>
-          {/* only the drawing is an image: the counters below stay readable as a list */}
           <div className="sc-body" data-testid="overlay-host" role="img" aria-label={pick(C.alt)}>
             <canvas ref={canvas} className="ov-canvas" aria-hidden="true" data-testid="overlay-canvas" />
           </div>
-          <dl className="sc-stats">
-            {stat(pick(C.counters.months), <b ref={months} data-testid="ov-count-months">0</b>)}
-            {stat(pick(C.counters.down), <b ref={down} data-testid="ov-count-down">0</b>)}
-            {stat(pick(C.counters.engines), <b data-testid="ov-count-engines">{ENGINES.length}</b>)}
-            {stat(pick(C.counters.lit), <b ref={litEl} data-testid="ov-count-lit">0</b>)}
-          </dl>
         </div>
         <figcaption className="fine sc-cap" data-testid="overlay-caption">{pick(C.caption)}</figcaption>
       </figure>

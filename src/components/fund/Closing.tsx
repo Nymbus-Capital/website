@@ -1,7 +1,7 @@
 "use client";
 /**
- * Below the tabs: the fund's own section (text only), the disclosures (regulatory texts of
- * src/content/disclaimers.ts), the call to action and the strip linking the other funds.
+ * Below the tabs: the fund's own section (text only), the call to action, the strip linking the other funds and,
+ * last on the page, the disclosures (regulatory texts of src/content/disclaimers.ts).
  */
 import Link from "next/link";
 import type { CSSProperties } from "react";

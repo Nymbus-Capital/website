@@ -1,6 +1,6 @@
 /**
  * scan-copy.ts — copy of the home "science at scale" band (the analysis scan illustration), EN + FR.
- * The figures next to the scan are counters of the animation itself, labelled as an illustration.
+ * Labelled as an illustration; the simulated counters under the panel were removed at Gabriel's request (2026-10-04).
  */
 import { l, type L } from "../../../lib/i18n/config.ts";
 
@@ -19,15 +19,9 @@ export const SCAN_COPY = {
   /** drawn on the canvas itself, so no screenshot of the panel can lose it */
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
   caption: l(
-    "Generic labels and generated values: not actual securities, signals or results. The counters count what this animation scans.",
-    "Libellés génériques et valeurs générées\u00a0: pas de titres, de signaux ni de résultats réels. Les compteurs comptent ce que cette animation analyse.",
+    "Generic labels and generated values: not actual securities, signals or results.",
+    "Libellés génériques et valeurs générées\u00a0: pas de titres, de signaux ni de résultats réels.",
   ),
-  counters: {
-    datapoints: l("Simulated data points scanned", "Simulé\u00a0: données analysées"),
-    securities: l("Simulated securities screened", "Simulé\u00a0: titres examinés"),
-    factors: l("Simulated factors per security", "Simulé\u00a0: facteurs par titre"),
-    signals: l("Simulated signals flagged", "Simulé\u00a0: signaux repérés"),
-  },
   trio: [
     { title: l("Scientists", "Scientifiques"), text: l("Hypotheses, tested on data.", "Des hypothèses, testées sur les données.") },
     { title: l("Engineers", "Développeurs"), text: l("Pipelines that run every day.", "Des chaînes de traitement qui roulent chaque jour.") },

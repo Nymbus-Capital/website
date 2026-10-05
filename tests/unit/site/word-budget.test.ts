@@ -34,7 +34,8 @@ function words(x: unknown, lang: "en" | "fr"): number {
 const BUDGET: [string, unknown, number][] = [
   ["home", [HOME_COPY, SCAN_COPY], 285],
   // the "diversifying engines" band (2026-10-02) has its own ceiling: home above stays as it was
-  ["home engines band", OVERLAY_COPY, 160],
+  // 2026-10-05 review: + "generated" on the market group header, and a fuller accessible name (heatmap, "designed to")
+  ["home engines band", OVERLAY_COPY, 180],
   // + the protective-overlay qualifier (2026-10-04, compliance: the name never stands alone)
   ["about", AB, 285],
   ["approach", AP, 690],

@@ -1,11 +1,13 @@
 /**
  * overlay-model.ts — pure model of the home "diversifying engines" illustration: an endless, seeded stream of
- * generated months. A bond-market reference has calm months and stress episodes (clusters of down months). Five
- * lanes, labelled with the Multi-Strategy Fund's four strategy names plus a futures overlay, are drawn mostly
- * independently of it; hedging and the overlay are built to react when stress rises. Every series has zero drift
- * (no lane, blend or reference trends up or down over time), so nothing reads as performance. From that stream:
- * smoothed paths, down-month correlation, highlighted independent moves.
- * Everything is generated: no real strategy, position, return or correlation. Dependency-free (unit tested).
+ * generated months. Two traditional-market references — equities and bonds — have calm months and stress episodes
+ * (clusters of down months); in a clear down month for equities (DOWN_CUT), bonds tend to fall with them, less
+ * deeply (traditional markets moving together). Five lanes, labelled with the Multi-Strategy Fund's four strategy
+ * names plus a futures overlay, are drawn independently of each other (low down-month correlation); hedging and the
+ * overlay react when stress rises (moderately negative down-month correlation with equities and bonds), the others
+ * barely move with the markets. Every series has zero drift (nothing trends up or down over time), so
+ * nothing reads as performance. From that stream: smoothed paths, down-month correlation, highlighted independent moves.
+ * Everything is generated: no real market, strategy, position, return or correlation. Dependency-free (unit tested).
  */
 import { gauss, hash01 } from "./scan-model.ts";
 
@@ -24,21 +26,25 @@ export const ENGINES: Engine[] = [
   { key: "hedging", label: l("Hedging", "Couverture"), color: "#00a3e0", blend: true },
   { key: "overlay", label: l("Protective overlay", "Superposition protectrice"), color: "#0f9d8a", blend: false },
 ];
-export const BOND = { key: "bond", label: l("Bonds", "Obligations"), color: "#5f6368" };
+/** The traditional markets (generated references), drawn above the strategies: equities first, then bonds. */
+export const EQUITY = { key: "equity", label: l("Equity markets", "Marchés boursiers"), short: l("Equities", "Actions"), color: "#3c4043" };
+export const BOND = { key: "bond", label: l("Bond markets", "Marchés obligataires"), short: l("Bonds", "Obligations"), color: "#80868b" };
+export const MARKETS = [EQUITY, BOND];
 
 /** All monthly values are clamped to ±MAX_MOVE (generated units, not percentages). */
 export const MAX_MOVE = 4;
 /** Memory of the smoothed paths: level(n) = Σ PHI^k · move(n − k), k < DEPTH. */
 export const PHI = 0.82;
 export const DEPTH = 28;
-/** Months in the down-month correlation window. */
-export const CORR_WINDOW = 120;
+/** Months in the down-month correlation window (≈ 95 clear down months: long enough for a steady picture). */
+export const CORR_WINDOW = 360;
 
 export interface Month {
   n: number;
+  equity: number;
   bond: number;
   engines: number[];
-  /** the bond reference fell this month */
+  /** a clear equity down month (equities fell by more than DOWN_CUT): the months the illustration is about */
   down: boolean;
   /** part of a stress episode (sharper falls, volatility up) */
   stress: boolean;
@@ -56,32 +62,50 @@ export function isStress(n: number, seed = 0): boolean {
   return at >= start && at < start + len;
 }
 
-const BETA = [0.05, 0.03, -0.04, 0, 0];
-const SIGMA = [0.4, 0.9, 0.7, 0.55, 0.5];
-/** Share of stress months and mean |bond move| in them (block design above): the drift corrections use them. */
+/** Mean |gauss| (Irwin–Hall, 4 terms): used by the zero-drift corrections. */
+const ABS_G = 0.79;
+/** Share of stress months (block design above) and P(stress month right after a stress month). */
 const P_STRESS = (0.36 * 2.5) / 9;
-const STRESS_ABS = 0.9 + 0.8 * 0.79;
-/** P(stress month right after a stress month) */
 const P_STRESS_RUN = (0.36 * 1.5) / 9;
-const REACT = [0, 0, 0, 0.55, 0.45];
-const RUN = [0, 0.35, 0, 0, 0];
+/** Equities: stress months fall by EQ_FALL + EQ_FALL_SD·|g|; calm months drift up just enough to balance them. */
+const EQ_FALL = 1.5, EQ_FALL_SD = 1.0, EQ_SD = 0.9;
+const STRESS_ABS = EQ_FALL + EQ_FALL_SD * ABS_G;
+const EQ_CALM = (P_STRESS * STRESS_ABS) / (1 - P_STRESS);
+/** Bonds: a share of the equity move plus their own noise (zero drift because equities have none). */
+const BOND_BETA = 0.42, BOND_SD = 0.32;
+
+/**
+ * A down month is a clear fall in equities: below −0.5σ of the monthly equity move (σ ≈ 1.16 generated units; every
+ * stress month qualifies). Small negative months are not shaded. The heatmap's down-month correlation, the bands and
+ * the highlights all use this same definition (Month.down).
+ */
+export const DOWN_CUT = -0.58;
+
+const BETA = [0.02, 0.015, -0.02, 0, 0];
+const SIGMA = [0.4, 0.9, 0.7, 0.55, 0.5];
+/**
+ * hedging and the overlay react when stress rises (designed to offset part of the falls): a moderate negative
+ * down-month correlation with equities and bonds, while staying low against the other strategies
+ */
+const REACT = [0, 0, 0, 0.2, 0.2];
+const RUN = [0, 0.3, 0, 0, 0];
 /** zero drift: what a lane gains in stress months is taken back evenly, so no lane trends over time */
 const DRIFT = REACT.map((r, i) => -(r * STRESS_ABS * P_STRESS + RUN[i] * P_STRESS_RUN));
-/** calm-month drift of the reference that balances its stress months (zero drift overall) */
-const BOND_CALM = (P_STRESS * STRESS_ABS) / (1 - P_STRESS);
 
 /** Month `n` (any integer) of the stream for `seed`: deterministic, bounded. */
 export function monthAt(n: number, seed = 0): Month {
   const stress = isStress(n, seed);
-  // calm months drift up slightly, stress months fall: the reference has no trend over the long run
-  const bond = clamp(stress ? -0.9 - Math.abs(gauss(n, 21, seed)) * 0.8 : BOND_CALM + gauss(n, 22, seed) * 0.55);
+  // calm months drift up slightly, stress months fall sharply: equities have no trend over the long run
+  const equity = clamp(stress ? -EQ_FALL - Math.abs(gauss(n, 21, seed)) * EQ_FALL_SD : EQ_CALM + gauss(n, 21, seed) * EQ_SD);
+  // bonds move with equities (traditional markets together in down months), less deeply
+  const bond = clamp(BOND_BETA * equity + BOND_SD * gauss(n, 22, seed));
   const engines = ENGINES.map((_, i) => {
-    let v = DRIFT[i] + BETA[i] * bond + SIGMA[i] * gauss(n, 30 + i, seed);
-    if (stress) v += REACT[i] * Math.abs(bond); // hedging and the overlay: built to react when stress rises
+    let v = DRIFT[i] + BETA[i] * equity + SIGMA[i] * gauss(n, 30 + i, seed);
+    if (stress) v += REACT[i] * Math.abs(equity); // hedging and the overlay: built to react when stress rises
     if (stress && isStress(n - 1, seed)) v += RUN[i]; // directional: a persistent fall becomes a trend
     return clamp(v);
   });
-  return { n, bond, engines, down: bond < 0, stress };
+  return { n, equity, bond, engines, down: equity < DOWN_CUT, stress };
 }
 
 /** Small cache in front of monthAt (the renderer asks for the same months every frame). */
@@ -99,11 +123,11 @@ export function monthCache(seed = 0, size = 512) {
 }
 
 /** Smoothed path of a series at month n: an exponentially weighted sum of its recent moves (bounded, stateless). */
-export function level(get: (n: number) => Month, n: number, series: number /* -1 bond, 0..4 engines, 5 combined */): number {
+export function level(get: (n: number) => Month, n: number, series: number /* -2 equity, -1 bond, 0..4 engines, 5 combined */): number {
   let s = 0, w = 1;
   for (let k = 0; k < DEPTH; k++) {
     const m = get(n - k);
-    const v = series < 0 ? m.bond : series >= ENGINES.length ? combinedMove(m) : m.engines[series];
+    const v = series === -2 ? m.equity : series < 0 ? m.bond : series >= ENGINES.length ? combinedMove(m) : m.engines[series];
     s += w * v;
     w *= PHI;
   }
@@ -119,7 +143,7 @@ export function combinedMove(m: Month): number {
   return BLEND.reduce((a, i) => a + m.engines[i], 0) / BLEND.length;
 }
 
-/** An engine is highlighted in a down month when it moves the other way (up): an independent move. */
+/** An engine is highlighted in a (clear) down month when it moves the other way (up): an independent move. */
 export function lit(m: Month, i: number): boolean {
   return m.down && m.engines[i] > 0;
 }
@@ -136,17 +160,21 @@ function pearson(a: number[], b: number[]): number {
   return Math.max(-1, Math.min(1, sab / Math.sqrt(saa * sbb)));
 }
 
+/** Rows / columns of the correlation matrix before the engines: equities, bonds. */
+export const NM = MARKETS.length;
+
 /**
- * Down-month correlation matrix over the CORR_WINDOW months ending at `end`: only the months where the bond
- * reference fell count (downside correlation). Order: bonds, then the engines. Symmetric, unit diagonal.
+ * Down-month correlation matrix over the CORR_WINDOW months ending at `end`: only the clear equity down months
+ * (Month.down, equity < DOWN_CUT) count (downside correlation). Order: equities, bonds, then the engines. Symmetric, unit diagonal.
  */
 export function downsideCorrelation(get: (n: number) => Month, end: number, window = CORR_WINDOW): number[][] {
-  const cols: number[][] = Array.from({ length: ENGINES.length + 1 }, () => []);
+  const cols: number[][] = Array.from({ length: ENGINES.length + NM }, () => []);
   for (let n = end - window + 1; n <= end; n++) {
     const m = get(n);
     if (!m.down) continue;
-    cols[0].push(m.bond);
-    m.engines.forEach((v, i) => cols[i + 1].push(v));
+    cols[0].push(m.equity);
+    cols[1].push(m.bond);
+    m.engines.forEach((v, i) => cols[i + NM].push(v));
   }
   const k = cols.length;
   const out = Array.from({ length: k }, () => new Array<number>(k).fill(0));
@@ -157,48 +185,57 @@ export function downsideCorrelation(get: (n: number) => Month, end: number, wind
   return out;
 }
 
-/** Counters of the illustration over months [from, to): what the animation itself has generated. */
-export interface OverlayCounters { months: number; down: number; litMoves: number }
+/** Height of the blended line's row, in strategy rows. */
+export const COMBINED_ROWS = 1.4;
 
-export function countersBetween(get: (n: number) => Month, from: number, to: number): OverlayCounters {
-  let months = 0, down = 0, litMoves = 0;
-  for (let n = from; n < to; n++) {
-    const m = get(n);
-    months++;
-    if (m.down) { down++; for (let i = 0; i < ENGINES.length; i++) if (lit(m, i)) litMoves++; }
-  }
-  return { months, down, litMoves };
-}
-
-/** Months per counter cycle: the counters restart so the figures stay small and obviously the animation's own. */
-export const COUNTER_CYCLE = 120;
-
-/** Layout of the canvas for a width: side heatmap on wide screens, stacked under the chart on narrow ones. */
+/**
+ * Layout of the canvas for a width: two groups on the left — traditional markets (equities, bonds) above our
+ * strategies (five lanes and the blended line), each under a header row — and the heatmap at the side on wide
+ * screens, stacked under the chart on narrow ones.
+ */
 export function overlayLayout(W: number, H: number) {
   const narrow = W < 700;
   const pad = narrow ? 12 : 20;
   const foot = narrow ? 58 : 26; // watermark row (narrow: two legend lines above it)
+  const head = narrow ? 18 : 22; // group header row
+  const gap = narrow ? 10 : 14; // between the two groups
   const labW = Math.round(Math.max(64, Math.min(132, W * (narrow ? 0.3 : 0.11))));
   if (!narrow) {
     const hmW = Math.round(Math.min(340, W * 0.3));
     const chartR = W - pad - hmW - 48;
-    const top = 16, bandH = Math.round((H - top - foot) * 0.44);
+    const top = 12, avail = H - top - foot - 6;
+    const tradH = Math.round((avail - gap) * 0.3);
     return {
-      narrow, pad, labW, foot, x0: pad + labW, x1: chartR,
-      band: { y: top, h: bandH },
-      lanes: { y: top + bandH + 14, h: H - foot - (top + bandH + 14) - 6 },
+      narrow, pad, labW, foot, head, x0: pad + labW, x1: chartR,
+      trad: { y: top, h: tradH },
+      lanes: { y: top + tradH + gap, h: avail - tradH - gap },
       heat: { x: W - pad - hmW, y: top, w: hmW, h: H - top - foot - 6 },
     };
   }
-  const top = 12;
+  const top = 10;
   const avail = H - top - foot;
-  const bandH = Math.round(avail * 0.27), lanesH = Math.round(avail * 0.33);
-  const heatY = top + bandH + 10 + lanesH + 14;
+  const tradH = Math.round(avail * 0.2), lanesH = Math.round(avail * 0.37);
+  const heatY = top + tradH + gap + lanesH + 14;
   return {
-    narrow, pad, labW, foot, x0: pad + labW, x1: W - pad - 10,
-    band: { y: top, h: bandH },
-    lanes: { y: top + bandH + 10, h: lanesH },
+    narrow, pad, labW, foot, head, x0: pad + labW, x1: W - pad - 10,
+    trad: { y: top, h: tradH },
+    lanes: { y: top + tradH + gap, h: lanesH },
     heat: { x: pad, y: heatY, w: W - 2 * pad, h: H - foot - heatY - 4 },
+  };
+}
+
+export type OverlayLayout = ReturnType<typeof overlayLayout>;
+export interface Row { y: number; h: number }
+
+/** Centre line and height of every row: equities and bonds, the five engines, then the blended line. */
+export function laneRows(L: OverlayLayout): { markets: Row[]; engines: Row[]; combined: Row } {
+  const t = (L.trad.h - L.head) / MARKETS.length;
+  const u = (L.lanes.h - L.head) / (ENGINES.length + COMBINED_ROWS);
+  const y0 = L.lanes.y + L.head;
+  return {
+    markets: MARKETS.map((_, i) => ({ y: L.trad.y + L.head + t * i + t / 2, h: t })),
+    engines: ENGINES.map((_, i) => ({ y: y0 + u * i + u / 2, h: u })),
+    combined: { y: y0 + u * ENGINES.length + (u * COMBINED_ROWS) / 2, h: u * COMBINED_ROWS },
   };
 }
 

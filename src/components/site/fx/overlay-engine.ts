@@ -1,34 +1,37 @@
 /**
  * overlay-engine.ts — canvas renderer of the home "diversifying engines" illustration. Time flows right to left
- * into a glowing "now" line: a generated bond reference dips through stress episodes (down months shaded), five
- * generic engine lanes move on their own, an engine that moves up in a down month lights up and leaves a mark,
- * particles stream from every engine into the combined path, and a down-month correlation heatmap (concept) eases
- * towards the values of the generated window. Framework-free; lazily imported.
+ * into a glowing "now" line. Two groups of lanes: "traditional markets" (generated equities, then bonds, on one
+ * shared scale, dipping together through stress episodes; down months for equities shaded) above "our strategies"
+ * (five lanes that move on their own and the blended line of the four). An engine that moves up in a down month
+ * lights up and leaves a mark, particles stream from every engine into the blended line, and a down-month
+ * correlation heatmap (concept; equities, bonds and the engines) eases towards the values of the generated window.
+ * Framework-free; lazily imported.
  *
  *  - ~30 fps cap (20 when frames run slow, `maxFps` lower on coarse pointers), DPR capped at 1.5; gradients are
  *    created on resize only; month values and smoothed paths are memoised.
  *  - Every label is measured and fitted to its width; the font is awaited (document.fonts) and the canvas redrawn.
- *  - "ILLUSTRATION · generated values" is drawn on the canvas itself; the counters restart every COUNTER_CYCLE months.
+ *  - "ILLUSTRATION · generated values" is drawn on the canvas itself.
  *  - Runs only while the canvas is on screen and the tab is visible; one still frame under reduced motion.
  *  - `data-frames` / `data-running` on the host let tests observe it.
  */
-import { fitText, groupDigits, type Lang } from "./scan-model.ts";
+import { fitText, type Lang } from "./scan-model.ts";
 import {
-  BOND, COUNTER_CYCLE, DEPTH, ENGINES, PHI, combinedMove, countersBetween, downsideCorrelation, heatColor, lit, monthCache,
+  DEPTH, ENGINES, MARKETS, NM, PHI, combinedMove, downsideCorrelation, heatColor, laneRows, lit, monthCache,
   monthWidth, overlayLayout, type Month,
 } from "./overlay-model.ts";
 
 export interface OverlayLabels {
-  bond: string; combined: string; down: string; lit: string; heat: string; opposite: string; low: string; together: string;
-  engines: string[]; bondShort: string;
+  /** lane labels of the traditional markets (equities, bonds) and their short names in the heatmap */
+  markets: string[]; marketsShort: string[];
+  combined: string; trad: string; strategies: string;
+  down: string; lit: string; heat: string; opposite: string; low: string; together: string;
+  engines: string[];
 }
 
 export interface OverlayOptions {
   still?: boolean;
   lang: () => Lang;
   labels: () => OverlayLabels;
-  /** elements that receive the live counters (textContent) */
-  counters?: { months?: HTMLElement | null; down?: HTMLElement | null; lit?: HTMLElement | null };
   onReady?: () => void;
   /** frame-rate ceiling (default 30; 15 on coarse pointers) */
   maxFps?: number;
@@ -42,10 +45,13 @@ export interface Overlay { destroy(): void; redraw(): void }
 const SANS = `"Poppins", ui-sans-serif, system-ui, sans-serif`;
 const INK2 = "#444746", MUTE = "#5f6368", BLUE = "#1a73e8", CYAN = "#00a3e0", ORANGE = "#c2410c";
 /** first month shown: enough history behind it for the paths and the correlation window */
-const START = 240;
+const START = 300;
 /** ms per generated month */
 const MONTH_MS = 640;
 const NE = ENGINES.length;
+/** index of the blended line in a levels() row: [equity, bond, engines…, combined] */
+const CB = NM + NE;
+const STRAT = "#0b57d0";
 
 /** a label cut into two balanced lines at a space (null when it has no space) */
 function splitLabel(s: string): [string, string] | null {
@@ -79,28 +85,27 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
   let clock = 0, last = 0, frames = 0, slow = 0, minGap = 1000 / Math.max(5, Math.min(60, opts.maxFps ?? 30));
   let dead = false;
   let widths = new Map<string, number>();
+  let R = laneRows(L);
   let combG: CanvasGradient | null = null, areaG: CanvasGradient | null = null, cursorG: CanvasGradient | null = null, fadeL: CanvasGradient | null = null;
-  // eased scales and heatmap
-  let bandMid = NaN;
-  let bandScale = 0, laneScale = new Array<number>(NE).fill(0);
+  const marketFills = MARKETS.map((m) => rgba(m.color, 0.07));
+  // eased scales (markets share one) and heatmap
+  let tradScale = 0, combScale = 0, laneScale = new Array<number>(NE).fill(0);
   let heat: number[][] | null = null, heatTarget: number[][] | null = null, heatFor = -1;
-  let countFor = -1;
-  const counts = { months: 0, down: 0, litMoves: 0 };
-  let lastCounterWrite = 0;
 
-  // smoothed paths, memoised per month: [bond, engines…, combined]
+  // smoothed paths, memoised per month: [equity, bond, engines…, combined]
   let lv = new Map<number, number[]>();
   function levels(n: number): number[] {
     let v = lv.get(n);
     if (v) return v;
     if (lv.size > 900) lv = new Map();
-    v = new Array<number>(NE + 2).fill(0);
+    v = new Array<number>(CB + 1).fill(0);
     let w = 1;
     for (let k = 0; k < DEPTH; k++) {
       const m = get(n - k);
-      v[0] += w * m.bond;
-      for (let i = 0; i < NE; i++) v[i + 1] += w * m.engines[i];
-      v[NE + 1] += w * combinedMove(m);
+      v[0] += w * m.equity;
+      v[1] += w * m.bond;
+      for (let i = 0; i < NE; i++) v[i + NM] += w * m.engines[i];
+      v[CB] += w * combinedMove(m);
       w *= PHI;
     }
     lv.set(n, v);
@@ -113,13 +118,15 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     W = Math.max(1, r.width); H = Math.max(1, r.height);
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     L = overlayLayout(W, H);
+    R = laneRows(L);
     mw = monthWidth(L.x1 - L.x0);
     widths = new Map();
     combG = ctx!.createLinearGradient(L.x0, 0, L.x1, 0);
     combG.addColorStop(0, "#0b57d0"); combG.addColorStop(0.6, BLUE); combG.addColorStop(1, CYAN);
-    areaG = ctx!.createLinearGradient(0, L.band.y, 0, L.band.y + L.band.h);
-    areaG.addColorStop(0, "rgba(26,115,232,.16)"); areaG.addColorStop(1, "rgba(0,163,224,0)");
-    cursorG = ctx!.createLinearGradient(0, L.band.y, 0, L.lanes.y + L.lanes.h);
+    const cr = R.combined;
+    areaG = ctx!.createLinearGradient(0, cr.y - cr.h / 2, 0, cr.y + cr.h / 2);
+    areaG.addColorStop(0, "rgba(26,115,232,.18)"); areaG.addColorStop(0.5, "rgba(26,115,232,.06)"); areaG.addColorStop(1, "rgba(0,163,224,.16)");
+    cursorG = ctx!.createLinearGradient(0, L.trad.y + L.head, 0, L.lanes.y + L.lanes.h);
     cursorG.addColorStop(0, "rgba(0,163,224,.15)"); cursorG.addColorStop(0.25, "rgba(26,115,232,.95)");
     cursorG.addColorStop(0.8, "rgba(0,163,224,1)"); cursorG.addColorStop(1, "rgba(0,163,224,.1)");
     // left edge fade: months scroll out softly under the lane labels
@@ -154,19 +161,20 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     const fl = Math.floor(t), frac = t - fl;
     const cur = fl + 1; // month being revealed at the "now" line
     const first = Math.floor(t - (L.x1 - L.x0) / mw) - 1;
-    const chartTop = L.band.y, chartBot = L.lanes.y + L.lanes.h;
-    const small = L.narrow ? 10 : 11;
+    const chartTop = L.trad.y + L.head, chartBot = L.lanes.y + L.lanes.h;
 
     ctx!.save();
     ctx!.beginPath(); ctx!.rect(L.x0, 0, L.x1 - L.x0 + 1, H); ctx!.clip();
-    // ---- down-month bands (behind everything)
+    // ---- clear equity down months (Month.down: equity < DOWN_CUT, ≈ −0.5σ; stress months darker): bands behind everything
     for (let m = first; m <= cur; m++) {
       const mo = get(m);
       if (!mo.down) continue;
       const xa = Math.max(L.x0, xAt(m - 1, t)), xb = m === cur ? L.x1 : xAt(m, t);
       if (xb <= xa) continue;
       ctx!.fillStyle = mo.stress ? "rgba(194,65,12,.11)" : "rgba(194,65,12,.05)";
-      ctx!.fillRect(xa, chartTop, xb - xa, chartBot - chartTop);
+      // one band per group: the strategies header row stays clear
+      ctx!.fillRect(xa, chartTop, xb - xa, L.trad.y + L.trad.h - chartTop);
+      ctx!.fillRect(xa, L.lanes.y + L.head, xb - xa, chartBot - L.lanes.y - L.head);
     }
 
     // ---- values at the visible months (+ the interpolated head at the cursor)
@@ -176,46 +184,43 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     const head = a.map((v, i) => v + (b[i] - v) * frac);
     pts.push({ x: L.x1, v: head });
 
-    // ---- band: bond reference and combined engines on one scale
-    const legendH = L.narrow ? 34 : 20;
-    const by0 = chartTop + legendH, bh = L.band.h - legendH - 4, bmid = by0 + bh / 2;
-    // the band is centred on the visible range (eased), so both paths use its whole height
-    let lo = Infinity, hi = -Infinity;
-    for (const p of pts) { lo = Math.min(lo, p.v[0], p.v[NE + 1]); hi = Math.max(hi, p.v[0], p.v[NE + 1]); }
-    const target = Math.max(2, ((hi - lo) / 2) * 1.12), centre = (hi + lo) / 2;
-    bandScale = bandScale ? bandScale + (target - bandScale) * easing : target;
-    bandMid = Number.isFinite(bandMid) ? bandMid + (centre - bandMid) * easing : centre;
-    const by = (v: number) => bmid - ((v - bandMid) / bandScale) * (bh / 2);
-    const base = by0 + bh;
-    // combined: soft area, gradient stroke
-    ctx!.beginPath();
-    pts.forEach((p, i) => (i ? ctx!.lineTo(p.x, by(p.v[NE + 1])) : ctx!.moveTo(p.x, by(p.v[NE + 1]))));
-    ctx!.lineTo(L.x1, base); ctx!.lineTo(pts[0].x, base); ctx!.closePath();
-    ctx!.fillStyle = areaG!; ctx!.fill();
-    ctx!.beginPath();
-    pts.forEach((p, i) => (i ? ctx!.lineTo(p.x, by(p.v[0])) : ctx!.moveTo(p.x, by(p.v[0]))));
-    ctx!.strokeStyle = "rgba(95,99,104,.85)"; ctx!.lineWidth = 1.5; ctx!.lineJoin = "round"; ctx!.stroke();
-    ctx!.beginPath();
-    pts.forEach((p, i) => (i ? ctx!.lineTo(p.x, by(p.v[NE + 1])) : ctx!.moveTo(p.x, by(p.v[NE + 1]))));
-    ctx!.strokeStyle = combG!; ctx!.lineWidth = 2.6; ctx!.stroke();
-
-    // ---- lanes
-    const lh = L.lanes.h / NE;
-    for (let i = 0; i < NE; i++) {
-      const yc = L.lanes.y + lh * i + lh / 2;
-      let lt = 1.5;
-      for (const p of pts) lt = Math.max(lt, Math.abs(p.v[i + 1]) * 1.1);
-      laneScale[i] = laneScale[i] ? laneScale[i] + (lt - laneScale[i]) * easing : lt;
-      const amp = lh * 0.4;
-      const ly2 = (v: number) => yc - (v / laneScale[i]) * amp;
-      ctx!.fillStyle = "rgba(95,99,104,.14)";
-      ctx!.fillRect(L.x0, Math.round(yc), L.x1 - L.x0, 1);
+    const path = (k: number, y: (v: number) => number) => {
       ctx!.beginPath();
-      pts.forEach((p, k) => (k ? ctx!.lineTo(p.x, ly2(p.v[i + 1])) : ctx!.moveTo(p.x, ly2(p.v[i + 1]))));
+      pts.forEach((p, i) => (i ? ctx!.lineTo(p.x, y(p.v[k])) : ctx!.moveTo(p.x, y(p.v[k]))));
+    };
+    const area = (k: number, y: (v: number) => number, yc: number, fill: string | CanvasGradient) => {
+      path(k, y);
       ctx!.lineTo(L.x1, yc); ctx!.lineTo(pts[0].x, yc); ctx!.closePath();
-      ctx!.fillStyle = fills[i]; ctx!.fill();
-      ctx!.beginPath();
-      pts.forEach((p, k) => (k ? ctx!.lineTo(p.x, ly2(p.v[i + 1])) : ctx!.moveTo(p.x, ly2(p.v[i + 1]))));
+      ctx!.fillStyle = fill; ctx!.fill();
+    };
+    const baseline = (yc: number) => { ctx!.fillStyle = "rgba(95,99,104,.14)"; ctx!.fillRect(L.x0, Math.round(yc), L.x1 - L.x0, 1); };
+
+    // ---- traditional markets: equities and bonds on one shared scale (equities swing wider)
+    let ts = 1.5;
+    for (const p of pts) for (let k = 0; k < NM; k++) ts = Math.max(ts, Math.abs(p.v[k]) * 1.1);
+    tradScale = tradScale ? tradScale + (ts - tradScale) * easing : ts;
+    const mY = R.markets.map((r) => (v: number) => r.y - (v / tradScale) * r.h * 0.44);
+    for (let k = 0; k < NM; k++) {
+      const r = R.markets[k];
+      baseline(r.y);
+      area(k, mY[k], r.y, marketFills[k]);
+      path(k, mY[k]);
+      ctx!.strokeStyle = rgba(MARKETS[k].color, k ? 0.85 : 0.9); ctx!.lineWidth = k ? 1.6 : 1.9; ctx!.lineJoin = "round"; ctx!.stroke();
+    }
+
+    // ---- our strategies: one lane per engine (own scale)
+    const eY: ((v: number) => number)[] = [];
+    for (let i = 0; i < NE; i++) {
+      const { y: yc, h: lh } = R.engines[i];
+      let lt = 1.5;
+      for (const p of pts) lt = Math.max(lt, Math.abs(p.v[i + NM]) * 1.1);
+      laneScale[i] = laneScale[i] ? laneScale[i] + (lt - laneScale[i]) * easing : lt;
+      const sc = laneScale[i];
+      const ly2 = (v: number) => yc - (v / sc) * lh * 0.4;
+      eY.push(ly2);
+      baseline(yc);
+      area(i + NM, ly2, yc, fills[i]);
+      path(i + NM, ly2);
       ctx!.strokeStyle = ENGINES[i].color; ctx!.lineWidth = 1.6; ctx!.stroke();
       // marks left by engines that moved on their own in a down month
       for (let m = Math.max(first, fl - 80); m <= fl; m++) {
@@ -235,38 +240,53 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
         ctx!.beginPath(); ctx!.arc(x, yc, 2.6, 0, Math.PI * 2); ctx!.fill();
       }
     }
+    // ---- the four strategies combined: soft area, gradient stroke
+    const cr = R.combined;
+    let cs = 1.5;
+    for (const p of pts) cs = Math.max(cs, Math.abs(p.v[CB]) * 1.1);
+    combScale = combScale ? combScale + (cs - combScale) * easing : cs;
+    const cY = (v: number) => cr.y - (v / combScale) * cr.h * 0.4;
+    baseline(cr.y);
+    area(CB, cY, cr.y, areaG!);
+    path(CB, cY);
+    ctx!.strokeStyle = combG!; ctx!.lineWidth = 2.6; ctx!.stroke();
     // fade the oldest months under the labels
     ctx!.fillStyle = fadeL!;
-    ctx!.fillRect(L.x0, chartTop + legendH, 36, chartBot - chartTop - legendH);
+    ctx!.fillRect(L.x0, chartTop, 36, chartBot - chartTop);
     ctx!.restore();
-    for (let i = 0; i < NE; i++) {
-      const yc = L.lanes.y + lh * i + lh / 2;
-      ctx!.fillStyle = ENGINES[i].color;
+
+    // ---- group headers: a small caps title and a hairline across the chart
+    const groupHead = (s: string, y: number, color: string, line: string) => {
+      ctx!.font = `600 ${L.narrow ? 10 : 10.5}px ${SANS}`;
+      ctx!.textBaseline = "middle"; ctx!.textAlign = "left"; ctx!.fillStyle = color;
+      const label = fitText(s.toUpperCase(), L.x1 - L.pad - 40, measure);
+      ctx!.fillText(label, L.pad, y);
+      const x = L.pad + measure(label) + 10;
+      if (x < L.x1 - 20) { ctx!.fillStyle = line; ctx!.fillRect(x, Math.round(y), L.x1 - x, 1); }
+    };
+    groupHead(lab.trad, L.trad.y + L.head / 2, MUTE, "rgba(95,99,104,.22)");
+    groupHead(lab.strategies, L.lanes.y + L.head / 2, STRAT, "rgba(26,115,232,.25)");
+
+    // ---- lane labels
+    const laneLabel = (name: string, yc: number, color: string, ink: string, weight = 500) => {
+      ctx!.fillStyle = color;
       ctx!.beginPath(); ctx!.arc(L.pad + 4, yc, 3.5, 0, Math.PI * 2); ctx!.fill();
-      ctx!.font = `500 ${L.narrow ? 10.5 : 12.5}px ${SANS}`;
-      ctx!.fillStyle = INK2; ctx!.textAlign = "left";
-      const name = lab.engines[i] ?? ENGINES[i].label.en, maxW = L.labW - 18;
+      ctx!.font = `${weight} ${L.narrow ? 10.5 : 12.5}px ${SANS}`;
+      ctx!.fillStyle = ink; ctx!.textAlign = "left"; ctx!.textBaseline = "middle";
+      const maxW = L.labW - 18;
       const two = measure(name) > maxW ? splitLabel(name) : null;
       if (two) { text(two[0], L.pad + 13, yc - 6.5, maxW); text(two[1], L.pad + 13, yc + 6.5, maxW); }
       else text(name, L.pad + 13, yc, maxW);
-    }
-    // legend of the band (two rows on narrow screens)
-    ctx!.font = `500 ${small}px ${SANS}`;
-    ctx!.textBaseline = "middle"; ctx!.textAlign = "left";
-    const ly = chartTop + 8;
-    const cw = L.x1 - L.x0;
-    const lx0 = L.narrow ? L.pad : L.x0, colW = L.narrow ? W - 2 * L.pad - 22 : cw / 2 - 26;
-    const lx1 = L.narrow ? L.pad : L.x0 + cw / 2, ly1 = L.narrow ? ly + 15 : ly;
-    ctx!.fillStyle = "rgba(95,99,104,.85)"; ctx!.fillRect(lx0, ly - 1, 14, 2);
-    ctx!.fillStyle = MUTE; text(lab.bond, lx0 + 20, ly, colW);
-    ctx!.fillStyle = BLUE; ctx!.fillRect(lx1, ly1 - 1.5, 14, 3);
-    ctx!.fillStyle = INK2; text(lab.combined, lx1 + 20, ly1, colW);
+    };
+    for (let k = 0; k < NM; k++) laneLabel(lab.markets[k] ?? MARKETS[k].label.en, R.markets[k].y, MARKETS[k].color, k ? MUTE : INK2);
+    for (let i = 0; i < NE; i++) laneLabel(lab.engines[i] ?? ENGINES[i].label.en, R.engines[i].y, ENGINES[i].color, INK2);
+    laneLabel(lab.combined, cr.y, BLUE, "#1f1f1f", 600);
 
-    // ---- particles: every engine streams into the combined head
-    const cy = by(head[NE + 1]);
+    // ---- particles: every engine streams into the blended line's head
+    const cy = cY(head[CB]);
     const bulge = Math.min(40, (L.narrow ? W - L.x1 - 4 : L.heat.x - L.x1 - 8));
     for (let i = 0; i < NE; i++) {
-      const sy = L.lanes.y + lh * i + lh / 2 - (head[i + 1] / (laneScale[i] || 1)) * lh * 0.4;
+      const sy = eY[i](head[i + NM]);
       for (let k = 0; k < 5; k++) {
         const u = ((clock / 1500) + k / 5 + i * 0.137) % 1;
         const cx = L.x1 + bulge * (0.6 + 0.4 * Math.sin(i + k));
@@ -282,17 +302,17 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     ctx!.globalAlpha = 0.14; ctx!.fillRect(L.x1 - 6, chartTop, 12, chartBot - chartTop);
     ctx!.globalAlpha = 0.3; ctx!.fillRect(L.x1 - 3, chartTop, 6, chartBot - chartTop);
     ctx!.globalAlpha = 1; ctx!.fillRect(L.x1 - 1, chartTop, 2, chartBot - chartTop);
-    // heads: bond, combined and each engine (lit when it moves up in a down month)
+    // heads: equities, bonds, each engine (lit when it moves up in a down month) and the blended line
     const curM = get(cur);
     const dot = (x: number, y: number, r: number, fill: string, ring: string) => {
       ctx!.fillStyle = fill; ctx!.beginPath(); ctx!.arc(x, y, r, 0, Math.PI * 2); ctx!.fill();
       ctx!.strokeStyle = ring; ctx!.lineWidth = 1.5; ctx!.stroke();
     };
-    dot(L.x1, by(head[0]), 3, "#fff", curM.down ? ORANGE : MUTE);
-    dot(L.x1, cy, 4, "#fff", BLUE);
+    dot(L.x1, mY[0](head[0]), 3.5, "#fff", curM.down ? ORANGE : MARKETS[0].color);
+    dot(L.x1, mY[1](head[1]), 3, "#fff", curM.down && curM.bond < 0 ? ORANGE : MARKETS[1].color);
     const glow = Math.max(0, Math.min(1, (frac - 0.3) / 0.25));
     for (let i = 0; i < NE; i++) {
-      const y = L.lanes.y + lh * i + lh / 2 - (head[i + 1] / (laneScale[i] || 1)) * lh * 0.4;
+      const y = eY[i](head[i + NM]);
       if (lit(curM, i) && glow > 0) {
         const pulse = 1 + 0.25 * Math.sin(clock / 120 + i);
         for (let h = 0; h < 3; h++) {
@@ -304,6 +324,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
         dot(L.x1, y, 3, "#fff", curM.down ? "rgba(95,99,104,.6)" : ENGINES[i].color);
       }
     }
+    dot(L.x1, cy, 4, "#fff", BLUE);
 
     drawHeat(lab, fl, easing);
     drawFoot(lab);
@@ -315,7 +336,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     if (!heat || easing >= 1) heat = tgt.map((r) => r.slice());
     else for (let i = 0; i < tgt.length; i++) for (let j = 0; j < tgt.length; j++) heat[i][j] += (tgt[i][j] - heat[i][j]) * easing * 0.6;
     const hx = L.heat.x, hy = L.heat.y, hw = L.heat.w, hh = L.heat.h;
-    const n = NE + 1;
+    const n = NM + NE;
     const titleH = 22, dotsH = 16, legH = 34;
     ctx!.textBaseline = "middle";
     ctx!.font = `600 ${L.narrow ? 10 : 10.5}px ${SANS}`;
@@ -323,7 +344,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     const title = lab.heat.toUpperCase();
     if (L.narrow) text(title, hx + hw / 2, hy + 8, hw); else text(title, hx, hy + 8, hw);
     ctx!.font = `500 ${L.narrow ? 10.5 : 11.5}px ${SANS}`;
-    const names = [lab.bondShort, ...lab.engines];
+    const names = [...lab.marketsShort, ...lab.engines];
     let rowLab = 0;
     for (const s of names) rowLab = Math.max(rowLab, measure(s));
     rowLab = Math.min(rowLab + 12, hw * 0.42);
@@ -331,14 +352,14 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     const cell = grid / n;
     const gx = L.narrow ? hx + (hw - (rowLab + grid)) / 2 + rowLab : hx + rowLab;
     const gy = hy + titleH + dotsH + Math.max(0, (hh - titleH - dotsH - legH - grid) / 2);
-    const colors = [BOND.color, ...ENGINES.map((e) => e.color)];
+    const colors = [...MARKETS.map((m) => m.color), ...ENGINES.map((e) => e.color)];
     for (let j = 0; j < n; j++) {
       ctx!.fillStyle = colors[j];
       ctx!.beginPath(); ctx!.arc(gx + cell * j + cell / 2, gy - 8, 3.2, 0, Math.PI * 2); ctx!.fill();
     }
     ctx!.textAlign = "right";
     for (let i = 0; i < n; i++) {
-      ctx!.fillStyle = i === 0 ? MUTE : INK2;
+      ctx!.fillStyle = i < NM ? MUTE : INK2;
       text(names[i], gx - 8, gy + cell * i + cell / 2, rowLab - 10);
       for (let j = 0; j < n; j++) {
         const x = gx + cell * j + 1.5, y = gy + cell * i + 1.5, s = cell - 3;
@@ -350,6 +371,10 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
         }
       }
     }
+    // traditional markets | our strategies: a hairline between the two groups of rows and columns
+    ctx!.fillStyle = "rgba(95,99,104,.45)";
+    ctx!.fillRect(gx + cell * NM - 0.5, gy - 2, 1, grid + 4);
+    ctx!.fillRect(gx - 2, gy + cell * NM - 0.5, grid + 4, 1);
     // legend: opposite · low · together
     const lgY = gy + grid + 14, lgW = Math.min(hw, Math.max(grid, 200));
     const lgX = Math.max(hx, Math.min(hx + hw - lgW, gx + (grid - lgW) / 2));
@@ -384,7 +409,8 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     ctx!.textAlign = "left";
     ctx!.fillStyle = "rgba(194,65,12,.22)"; ctx!.fillRect(lx, legendY - 5, 10, 10);
     ctx!.fillStyle = MUTE;
-    const downW = Math.min(measure(lab.down), (maxX - lx) * 0.35);
+    // narrow: the down-month key has its own line (the highlighted key wraps below it), so it gets the full width
+    const downW = Math.min(measure(lab.down), L.narrow ? maxX - lx - 15 : (maxX - lx) * 0.35);
     text(lab.down, lx + 15, legendY, downW);
     // narrow: the "highlighted" key gets its own line
     const lx2 = L.narrow ? L.pad - 1 : lx + 15 + downW + 16, litY = L.narrow ? H - 30 : legendY;
@@ -400,37 +426,16 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     }
   }
 
-  function updateCounters(t: number, force = false) {
-    const fl = Math.floor(t);
-    if (fl === countFor && !force) return;
-    countFor = fl;
-    const cycleStart = START + Math.floor((fl - START) / COUNTER_CYCLE) * COUNTER_CYCLE;
-    const c = countersBetween(get, cycleStart, fl + 1);
-    counts.months = c.months; counts.down = c.down; counts.litMoves = c.litMoves;
-    const now = performance.now();
-    if (!force && now - lastCounterWrite < 120) return;
-    lastCounterWrite = now;
-    writeCounters();
-  }
-  function writeCounters() {
-    const lang = opts.lang();
-    const c = opts.counters;
-    if (c?.months) c.months.textContent = groupDigits(counts.months, lang);
-    if (c?.down) c.down.textContent = groupDigits(counts.down, lang);
-    if (c?.lit) c.lit.textContent = groupDigits(counts.litMoves, lang);
-  }
-
   const timeNow = () => START + clock / MONTH_MS;
 
   function frame() {
     const t = timeNow();
     draw(t, 0.08);
-    updateCounters(t);
     frames++;
     host.setAttribute("data-frames", String(frames));
   }
 
-  /** reduced motion: one frame, frozen on a down month where engines light up, counters matching it */
+  /** reduced motion: one frame, frozen on a down month where engines light up */
   function stillFrame() {
     resize();
     let m = START + 30;
@@ -441,10 +446,8 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
       if (mo.down && n >= 2 && n <= 4) break;
     }
     clock = (m - 1 + 0.85 - START) * MONTH_MS;
-    bandScale = 0; bandMid = NaN; laneScale = laneScale.map(() => 0); heat = null;
+    tradScale = 0; combScale = 0; laneScale = laneScale.map(() => 0); heat = null;
     draw(timeNow(), 1);
-    countFor = -1;
-    updateCounters(timeNow(), true);
     host.setAttribute("data-frames", "1");
     host.setAttribute("data-running", "false");
   }
@@ -490,7 +493,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
   document.addEventListener("visibilitychange", onVis);
   if (!opts.still) { frame(); opts.onReady?.(); }
 
-  const redraw = () => { if (dead) return; widths = new Map(); if (opts.still) stillFrame(); else if (!running) frame(); else writeCounters(); };
+  const redraw = () => { if (dead) return; widths = new Map(); if (opts.still) stillFrame(); else if (!running) frame(); };
   try {
     const fonts = document.fonts;
     if (fonts?.load) void Promise.all(["500", "600"].map((w) => fonts.load(`${w} 12px Poppins`))).then(redraw, () => undefined);

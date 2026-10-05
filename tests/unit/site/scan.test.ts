@@ -129,11 +129,10 @@ test("fitText: whole when it fits, else the longest prefix with an ellipsis that
   for (let w = 0; w < 160; w += 3) assert.ok(m(fitText("Matériaux et ressources", w, m)) <= Math.max(w, 0));
 });
 
-test("the illustration says so on the canvas and in every counter label (EN and FR)", () => {
+test("the illustration says so on the canvas; no simulated counters, no copy about them (EN and FR)", () => {
   assert.equal(SCAN_COPY.watermark.en, "ILLUSTRATION · generated values");
   assert.equal(SCAN_COPY.watermark.fr, "ILLUSTRATION · valeurs générées");
-  for (const v of Object.values(SCAN_COPY.counters)) {
-    assert.match(v.en, /^Simulated /);
-    assert.match(v.fr, /^Simulé/);
-  }
+  // Gabriel 2026-10-04: the simulated counters under the panel confused investors; removed
+  assert.equal("counters" in SCAN_COPY, false);
+  assert.doesNotMatch(JSON.stringify(SCAN_COPY), /counter|compteur|Simulated|Simulé/i);
 });
