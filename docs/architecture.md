@@ -208,53 +208,68 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   `CLASS_CHECKS.historyFrom` (2019-01-01; a register class unknown to the configuration is read after the register).
   `FundData.classInfo` (by FundServ) gives each class its inception and why it shows no returns (`young`, `currency`,
   `unavailable`); `FundData.performanceByClass` holds the classes that show returns.
-- **Inception** = first NAV-per-unit date of the class's CURRENT continuous run: a gap of more than
-  `CLASS_CHECKS.relaunchGapDays` (10) calendar days ends a run (earlier rows are a previous life: closed and relaunched class,
-  reused fund code); `FUND_SOURCES.classFloor` (Monthly Income: 2021-10-05) cuts a run reaching back before the fund's own
-  book; a run starting within 10 days of the first day read has an unknown inception (class unavailable). The inception
-  day's own return is never used (it may be relative to the old life): the first month is a partial month from the
-  inception NAV per unit (`Performance.partialFirstMonth`, `inception`).
+- **Inception** = first NAV-per-unit date of the class's CURRENT run: a gap of more than `CLASS_CHECKS.relaunchGapDays` (10)
+  calendar days ends a run only when a relaunch is corroborated — the NAV per unit jumps by more than `relaunchNavJump` (5 %)
+  across the gap, restarts at a launch price (10.00), or the gap exceeds `relaunchLongGapDays` (180) — and earlier rows are
+  then a previous life (warn issue: check against the register); an uncorroborated gap is a coverage gap inside the run (warn;
+  the months it touches lack valuation days and are withheld). `FUND_SOURCES.classFloor` cuts a run reaching back before the
+  fund's own book; a run starting within 10 days of the first day read has an unknown inception (class unavailable). The
+  inception day's own return is never used (it may be relative to the old life): the first month is a partial month from
+  the inception NAV per unit (`Performance.partialFirstMonth`, `inception`).
 - **Months** (each class's own rows): CIBC months compound the stored `legacy_stored` returns, the cut-over month uses the
-  NAV bridge (a class launched in that month before the switch has no month), Apex months the `apex_distribution_aware`
+  NAV bridge, which must equal the class's own compounded daily returns within the bridge tolerance (else a distribution or
+  adjustment inside the month: withheld; a class launched in that month before the switch has no month), Apex months the `apex_distribution_aware`
   chain (continuous `return_start_date`); every valuation day after the inception present once, CAD. A non-CAD class (F USD:
   `nav_price_ratio` only in the Apex era, and the fund distributes) shows no figure, with a sentence saying why.
 - **Source defects withhold months** (never repaired, never filled from another class; reasons in the issues; months
   withheld for every class are also a non-blocking notice — `FundContext.advisories`, webhook once per list — to report to
   the dataplatform team), config `CLASS_CHECKS`:
   - bad valuation print: two consecutive daily returns of opposite sign, both ≥ 2 %, combined ≤ 0.5 × the smaller → both
-    months, every class of the fund;
-  - cross-class consistency of a COMPLETE month (coordinator's live calibration 2026-10-05): each class's expected return is
-    a_c + b_c × m_t, m_t = the fund's median of the classes with a complete month; a_c, b_c are fitted per class over the
-    months where ≥ 3 classes are complete (OLS with one trimming pass dropping residuals beyond `residualMax`; b clipped to
-    [0.6, 1.4], a to ±0.30 % a month; a = 0, b = 1 with fewer than 12 such months). A class without a performance fee
-    legitimately beats the others by 15–25 % of a strong month: its fit expects it. A residual |r − (a + b·m)| above
-    `residualMax` (0.40 %) is a breach. Then:
+    months, every class of the fund. Checked over every row fetched (to the run day), so a print on the newest month's last
+    day reversed on the next valuation day is seen; the newest month of a class waits ("—") until one later valuation day
+    exists;
+  - cross-class consistency of a COMPLETE month, on the published monthly values: each class's expected return is
+    a_c + b_c × m_t, m_t = the fund's median of the classes with a complete month; a_c, b_c are fitted per class by
+    Theil–Sen (median of pairwise slopes; intercept = median of r − b·m) over the months where ≥ 3 classes are complete,
+    LEAVING OUT the month under test (an error in the fund's strongest month cannot bend its own expectation); b clipped to
+    [0.6, 1.4], a to ±0.30 % a month; a = 0, b = 1 with fewer than 12 such months. A class without a performance fee
+    legitimately beats the others by a share of a strong month: its fit expects it. A residual |r − (a + b·m)| above
+    `residualMax` (0.40 %) is a breach. A class without a fit (fewer than 12 months) is only ever withheld itself. For the
+    fitted classes:
     - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
       distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
-      is withheld for EVERY class: which side is right cannot be told (live SEB 2024-12: on the distribution day the
-      majority of classes was the wrong side);
+      is withheld for EVERY class: which side is right cannot be told (on a distribution day the majority of classes
+      can be the wrong side);
     - otherwise exactly one class breaches and the ≥ 2 other complete classes are consistent (all residuals within the
       tolerance) → that class's month only;
     - otherwise (two or more breaching, or only two complete classes) → every class.
     Partial inception months are outside the median and the fit: each is compared with the other classes compounded over
-    its own days (band max(`crossAbs` 0.50 %, `crossRel` 0.25 × |median|)) and withheld alone when it deviates; a month with
+    its own days (band max(`crossAbs` 0.50 %, `crossRel` 0.25 × |median|)) and withheld alone when it deviates (every class
+    when the month holds an adjustment day); a month with
     no other class to compare is listed in the provenance (unchecked). There is no daily cross-class check.
-    Note: Monthly Income distributes every month, so every month holds an adjustment day there: any breach of a Monthly
-    Income class withholds that month for every class of the fund (SEB: quarterly, Multi-Strategy: December only);
+    Note: in a fund distributing every month, every month holds an adjustment day: any fitted breach then withholds the
+    month for every class;
   - missing / duplicate days, another return method, invalid returns.
   The headline (track record) keeps its own logic and checks (analytics history, CIBC verification within 0.2 bp, Apex
-  months = `monthly-net-returns`): that verification is not a gate for the other classes any more (the strategy track record
+  months = `monthly-net-returns`). The class results are computed first (`computeClassRun`, to the run's target month): a
+  month withheld for every class that the track record takes from its OWN daily NAV chain is the same data and leaves it —
+  replaced by the official analytics / monthly-net-returns figure when one exists, else withheld (a newest month is held, a
+  month in the middle interrupts the track record as any missing month does); a month the track record takes from the
+  official track record is a different source and stays, with a warning listing it. That verification is not a gate for the
+  other classes any more (the strategy track record
   differs from the class NAV chains before mid-2025: a different series), nor is the old fee band against the track-record
   class (`classSpread`, kept in the configuration, unused).
 - **Per-figure withholding** (`classes.ts`): a figure is shown only when every month of its window is usable — fixed
   periods (1 month … 10 years) and the year to date from complete months only (never the partial first month; YTD needs the
-  year's January and a class started before the year), since inception only when every month from the inception month is
+  year's January, complete), since inception only when every month from the inception month is
   usable (compounded from the inception NAV; annualized from one year on, over calendar days when the first month is
   partial, else over months — "periods of less than one year are not annualized"); calendar years with a withheld month
   are null; risk statistics over complete months (since inception only when every complete month is usable, 3 years only
-  when its 36 months are); the growth series starts at the inception, or at the month-end after the last withheld month
-  (`growthFrom`, labelled on the page); no index figure is set against a partial first month. The page shows a withheld
-  figure as "—" (trailing table, calendar table, heat map) with a one-line note.
+  when its 36 months are; labelled "From <first complete month>" when the first month is partial); the growth series starts at
+  the inception day (first point dated the inception), or at the month-end after the last withheld month (`growthFrom`,
+  labelled on the page); no index figure is set against a partial first month (marked in the heat map). The page shows a
+  withheld figure as "—" (header badges, trailing table, calendar table, heat map) with a one-line note. The track record
+  (headline) shows no series inception next to its figures; its since-inception row reads "Since track-record start (<month>)".
 - **Regulatory minimum**: a class with less than `MIN_CLASS_HISTORY_MONTHS` (12, `config/funds.ts`, compliance may change it)
   months since its inception (same day 12 months later) shows no performance figure, only "Series X launched on <date>.
   Performance will be shown once the series has 12 months of history." (`ClassInfo.status` `young`).
