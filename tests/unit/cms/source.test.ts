@@ -29,7 +29,7 @@ function harness(handler: () => Response | Promise<Response>) {
   const src = createCmsSource(cfg, { fetchImpl: async () => { calls++; return mode.fn(); }, now: () => t, log: (m) => logs.push(m) });
   return { src, mode, logs, calls: () => calls, advance: (ms: number) => { t += ms; } };
 }
-const tick = () => new Promise((r) => setTimeout(r, 20));
+const tick = () => new Promise((r) => setTimeout(r, 50));
 
 beforeEach(() => { rmSync(path.join(dir, "cms"), { recursive: true, force: true }); });
 
@@ -57,8 +57,10 @@ test("within the TTL nothing is refetched; after it the stale copy is served whi
   assert.equal(b, c);
   assert.equal(h.calls(), 2, "three concurrent stale requests share one refresh");
   release(ok(JSON.stringify({ ...JSON.parse(fixture), news: JSON.parse(fixture).news.slice(1) })));
-  await tick();
+  // the refresh validates and writes the volume asynchronously: wait for it (a fixed 20 ms flaked on a loaded build host)
+  for (let i = 0; i < 100 && (await h.src.get())!.doc.news.length !== 3; i++) await tick();
   assert.equal((await h.src.get())!.doc.news.length, 3, "the refreshed document replaces the stale one");
+  for (let i = 0; i < 100 && !existsSync(path.join(dir, ...LAST_GOOD_PREV)); i++) await tick();
   assert.equal(JSON.parse(readFileSync(path.join(dir, ...LAST_GOOD_PREV), "utf8")).news.length, 4, "the replaced copy is kept as last-good.prev.json");
 });
 
@@ -85,7 +87,7 @@ test("WordPress down on a cold start: the last good copy on the volume is used a
   down.advance(61_000);
   down.mode.fn = () => ok();
   await down.src.get();
-  await tick();
+  for (let i = 0; i < 100 && (await down.src.get())!.origin !== "live"; i++) await tick();
   assert.equal((await down.src.get())!.origin, "live");
 });
 
