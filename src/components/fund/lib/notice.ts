@@ -19,3 +19,9 @@ export function noFiguresText(ctx: { returnsSoon?: boolean; notice?: ClassNotice
   const sel = ctx?.options?.find((o) => o.fundserv === ctx.selected) ?? null;
   return ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(fallback, lang);
 }
+
+/** Long label of a trailing period; a class entry's since-inception row names its inception: "Since inception (Oct 5, 2021)". */
+export function periodLong(period: keyof typeof T.perf.periodsLong, perf: { inception?: string } | null | undefined, lang: Lang): string {
+  const base = tr(T.perf.periodsLong[period], lang);
+  return period === "SI" && perf?.inception ? `${base} (${dateLabel(perf.inception, lang)})` : base;
+}

@@ -17,7 +17,7 @@ import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
 import { classInfoOf, classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
-import { noFiguresText } from "./lib/notice.ts";
+import { noFiguresText, periodLong } from "./lib/notice.ts";
 import { ClassTypeBadge } from "./ClassBadge";
 import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
 import type { BrandAssets } from "@/lib/data/brand-assets";
@@ -74,7 +74,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
-                        <td><span className="fx-long">{tr(T.perf.periodsLong[r.period], lang)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
+                        <td><span className="fx-long">{periodLong(r.period, perf, lang)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
                         <td className={r.fund != null && r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
                         {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                         {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}

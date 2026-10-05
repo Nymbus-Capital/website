@@ -14,7 +14,7 @@ import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
 import type { ClassCtx } from "./lib/select.ts";
-import { noticeText } from "./lib/notice.ts";
+import { noticeText, periodLong } from "./lib/notice.ts";
 import { T, tr } from "./copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
@@ -238,9 +238,9 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
               <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
                 {badges.map((b) => (
                   <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
-                    <span className="fr-p" title={tr(T.perf.periodsLong[b.period], lang)}>
+                    <span className="fr-p" title={periodLong(b.period, perf, lang)}>
                       <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
-                      <span className="sr-only">{tr(T.perf.periodsLong[b.period], lang)}</span>
+                      <span className="sr-only">{periodLong(b.period, perf, lang)}</span>
                       {b.annualized ? <sup aria-hidden="true">*</sup> : null}
                     </span>
                     <CountUp value={b.value} pct sign decimals={2} lang={lang} className={`fr-v ${b.value < 0 ? "neg" : "pos"}`} />

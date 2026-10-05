@@ -18,7 +18,7 @@ import { Ring } from "./charts/Breakdowns";
 import { dateLabel, fmt, type Lang, colon } from "./lib/format.ts";
 import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
 import { ClassTypeBadge } from "./ClassBadge";
-import { noFiguresText } from "./lib/notice.ts";
+import { noFiguresText, periodLong } from "./lib/notice.ts";
 import type { ClassCtx } from "./lib/select.ts";
 
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
@@ -106,7 +106,7 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
   const cats: BarCategory[] = rows.map((r) => ({
-    key: r.period, label: tr(T.perf.periods[r.period], lang), long: tr(T.perf.periodsLong[r.period], lang) + (r.annualized ? "*" : ""),
+    key: r.period, label: tr(T.perf.periods[r.period], lang), long: periodLong(r.period, perf, lang) + (r.annualized ? "*" : ""),
     fund: r.fund, index: r.index, va: r.va,
   }));
   return (
@@ -124,7 +124,7 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
             <tbody>
               {rows.map((r) => (
                 <tr key={r.period}>
-                  <td>{tr(T.perf.periodsLong[r.period], lang)}{r.annualized ? "*" : ""}</td>
+                  <td>{periodLong(r.period, perf, lang)}{r.annualized ? "*" : ""}</td>
                   <td>{P(r.fund, lang)}</td>
                   {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                   {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}

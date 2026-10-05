@@ -355,6 +355,7 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   await expect(rows.filter({ hasText: "1 year" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
   await expect(rows.filter({ hasText: "3 years" }).locator("td").nth(1)).toHaveText("—");
   await expect(rows.filter({ hasText: "Since inception" }).locator("td").nth(1)).toHaveText("—");
+  await expect(rows.filter({ hasText: "Since inception" }).locator("td").first()).toContainText("Since inception (Oct 5, 2021)");
   await expect(page.getByTestId("overview-withheld-note")).toContainText("figure not shown because a month in its period could not be verified");
   await expect(strip.getByTestId("badge-1Y")).toBeVisible();
   await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
