@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { footerDisclaimers } from "@/content/disclaimers";
+import { Disclosure } from "./Disclosure";
 import { Logo } from "./Logo";
 import { CONTACT, FUND_LINKS } from "./links";
 
@@ -60,7 +61,10 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDiscla
 
         {/* regulatory boilerplate: src/content/disclaimers.ts (compliance review); firm text overridable in the admin */}
         <div className="footer-disc" id="disclaimers" data-testid="footer-disclaimers">
-          {footerDisclaimers(firmDisclaimer, hiddenFunds).map((d, i) => <p key={i}>{pick(d)}</p>)}
+          {/* collapsed to its first lines with a fade; the full text stays in the DOM, "#disclaimers" opens it */}
+          <Disclosure anchors={["disclaimers"]} className="footer-disc-body" testId="footer-disclosure">
+            {footerDisclaimers(firmDisclaimer, hiddenFunds).map((d, i) => <p key={i}>{pick(d)}</p>)}
+          </Disclosure>
         </div>
         <div className="footer-bottom">
           <span>© {year} {t("footer.rights")}</span>

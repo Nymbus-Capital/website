@@ -76,7 +76,8 @@ html.menu-open { overflow: hidden; }
 .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .footer-col a, .footer-col span { font-size: 14.5px; color: var(--ink2); display: inline-flex; align-items: center; gap: 8px; transition: color .2s; }
 .footer-col i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.footer-disc { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--line2); display: grid; gap: 10px; }
+.footer-disc { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--line2); }
+.footer-disc-body { display: grid; gap: 10px; }
 .footer-disc p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--mute); max-width: 1100px; }
 .footer-bottom { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); }
 .footer-bottom nav { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -180,3 +181,34 @@ html.menu-open { overflow: hidden; }
 .hbars-v { font-size: 14.5px; font-weight: 500; color: var(--ink); }
 .hbars .bar > i { transition: transform 1s var(--ease); }
 .js .hbars:not([data-shown]) .bar > i { transform: scaleX(0); }
+
+/* ---------------------------------------------------------------- collapsible disclosures (Disclosure.tsx)
+   Full text always in the DOM; only clipped. The collapsed style needs `.js` (set in <head> before first paint):
+   without JavaScript, and in print, every box is open with no fade and no arrow. Short notes: data-disc="plain". */
+.disc[data-disc="plain"] { display: contents; }
+.disc:not([data-disc="plain"]) { --disc-max: 7.6rem; --disc-fade: 3.6rem; position: relative; margin: 0 0 18px;
+  padding: 16px clamp(16px, 2.4vw, 22px) 22px; border: 1px solid var(--line); border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent); }
+.disc-clip { position: relative; overflow: hidden; transition: max-height .42s var(--ease, cubic-bezier(.2,.7,.2,1)); }
+.disc-inner > :last-child { margin-bottom: 0; }
+.js .disc:is([data-disc="collapsed"], [data-disc="fits"]) > .disc-clip { max-height: var(--disc-max); }
+.js .disc[data-disc="collapsed"] > .disc-clip { cursor: pointer;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--disc-fade)), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--disc-fade)), transparent); }
+.disc-toggle { display: none; }
+.js .disc-toggle { position: absolute; left: 50%; bottom: -15px; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px;
+  margin-left: -15px; padding: 0; border-radius: 50%; border: 1px solid var(--line2); background: var(--bg); color: var(--blue-d);
+  box-shadow: var(--shadow-1); cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+.js .disc-toggle:hover { border-color: var(--blue); box-shadow: var(--glow); }
+.js .disc-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 50%; }
+.disc-toggle svg { width: 17px; height: 17px; transition: transform .25s; }
+.disc-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.js .disc-toggle[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .disc-clip, .disc-toggle svg { transition: none; } }
+@media print {
+  .js .disc > .disc-clip { max-height: none !important; overflow: visible; -webkit-mask-image: none; mask-image: none; cursor: auto; }
+  .disc-toggle, .js .disc-toggle { display: none !important; }
+  .disc:not([data-disc="plain"]) { border: 0; padding: 0; background: none; }
+}
+/* blocks whose notes were a grid with a gap keep it inside the box */
+:is(.pg-foot, .xs-notes, .sl-case-notes) .disc:not([data-disc="plain"]) .disc-inner { display: grid; gap: 8px; }

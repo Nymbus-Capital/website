@@ -14,6 +14,7 @@ import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, 
 import { AP } from "./copy-approach";
 import { Portrait } from "./Portrait";
 import { countCharter, countPhD, membersOf } from "./lib/people";
+import { Disclosure } from "../Disclosure";
 import "./pages.css";
 
 /* ------------------------------------------------------------------ pipeline art (one per step) */
@@ -311,8 +312,10 @@ export function Approach({ members: team = staticTeam }: { members?: TeamMember[
         <RiskFlow />
         <OverlayStack />
         <div className="pg-foot">
-          <p className="fine">{pick(AP.overlay.foot1)}</p>
-          <p className="fine">{pick(AP.overlay.foot2)}</p>
+          <Disclosure testId="approach-overlay-notes">
+            <p className="fine">{pick(AP.overlay.foot1)}</p>
+            <p className="fine">{pick(AP.overlay.foot2)}</p>
+          </Disclosure>
         </div>
       </Section>
 
