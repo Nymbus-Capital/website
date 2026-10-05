@@ -15051,10 +15051,6 @@
         "r": 0.021467029999999943
        },
        {
-        "month": "2025-05-31",
-        "r": 0.03100919999999996
-       },
-       {
         "month": "2025-06-30",
         "r": 0.014313019999999899
        },
@@ -15108,7 +15104,7 @@
        },
        {
         "month": "2026-07-31",
-        "r": 0.0066321699960743
+        "r": 0.006632170004387872
        },
        {
         "month": "2026-08-31",
@@ -15118,14 +15114,14 @@
       "trailing": {
        "fund": {
         "1M": 0.0001380300000000112,
-        "3M": 0.029910199095243284,
-        "YTD": 0.04683989706939706,
-        "1Y": 0.0838719169592026,
+        "3M": 0.029910199103748925,
+        "YTD": 0.04683989707804259,
+        "1Y": 0.0838719169681541,
         "2Y": null,
         "3Y": null,
         "5Y": null,
         "10Y": null,
-        "SI": 0.08217338087034509
+        "SI": null
        }
       },
       "calendar": [
@@ -15136,114 +15132,78 @@
        },
        {
         "year": 2025,
-        "fund": 0.15045756633961638
+        "fund": null
        },
        {
         "year": 2026,
-        "fund": 0.04683989706939706,
+        "fund": 0.04683989707804259,
         "partial": true
        }
       ],
       "growth": [
        {
-        "date": "2024-08-31",
+        "date": "2025-05-31",
         "fund": 10000
        },
        {
-        "date": "2024-09-30",
-        "fund": 9644.995157897001
-       },
-       {
-        "date": "2024-10-31",
-        "fund": 9509.029564706176
-       },
-       {
-        "date": "2024-11-30",
-        "fund": 9760.092763781582
-       },
-       {
-        "date": "2024-12-31",
-        "fund": 9717.642801920358
-       },
-       {
-        "date": "2025-01-31",
-        "fund": 10069.041122810608
-       },
-       {
-        "date": "2025-02-28",
-        "fund": 9907.076468043339
-       },
-       {
-        "date": "2025-03-31",
-        "fund": 10063.04069982757
-       },
-       {
-        "date": "2025-04-30",
-        "fund": 10279.06429642199
-       },
-       {
-        "date": "2025-05-31",
-        "fund": 10597.809857002598
-       },
-       {
         "date": "2025-06-30",
-        "fund": 10749.496521442072
+        "fund": 10143.1302
        },
        {
         "date": "2025-07-31",
-        "fund": 10778.588313857914
+        "fund": 10170.580958985467
        },
        {
         "date": "2025-08-31",
-        "fund": 10797.76417696945
+        "fund": 10188.675134452169
        },
        {
         "date": "2025-09-30",
-        "fund": 11323.985115810923
+        "fund": 10685.212575623345
        },
        {
         "date": "2025-10-31",
-        "fund": 11534.511248176435
+        "fund": 10883.8631791029
        },
        {
         "date": "2025-11-30",
-        "fund": 11398.98350929306
+        "fund": 10755.980398875601
        },
        {
         "date": "2025-12-31",
-        "fund": 11179.735688454988
+        "fund": 10549.100087003237
        },
        {
         "date": "2026-01-31",
-        "fund": 11298.958737581168
+        "fund": 10661.597905642057
        },
        {
         "date": "2026-02-28",
-        "fund": 11275.601869047603
+        "fund": 10639.558570299452
        },
        {
         "date": "2026-03-31",
-        "fund": 11274.371137103595
+        "fund": 10638.397262481505
        },
        {
         "date": "2026-04-30",
-        "fund": 11503.910794319765
+        "fund": 10854.988860475214
        },
        {
         "date": "2026-05-31",
-        "fund": 11363.508554091899
+        "fund": 10722.506543730216
        },
        {
         "date": "2026-06-30",
-        "fund": 11624.681298404528
+        "fund": 10968.946843977781
        },
        {
         "date": "2026-07-31",
-        "fund": 11701.778160925733
+        "fund": 11041.694764216134
        },
        {
         "date": "2026-08-31",
-        "fund": 11703.393357365287
+        "fund": 11043.21884934444
        }
       ],
       "classCode": "LDM300",
@@ -15251,20 +15211,12 @@
       "returnClassLabel": "Series A",
       "inception": "2024-09-03",
       "partialFirstMonth": true,
-      "growthFrom": "2024-09-03"
+      "withheldMonths": [
+       "2025-05-31"
+      ],
+      "growthFrom": "2025-05-31"
      },
-     "risk": {
-      "window": "SI",
-      "annReturn": 0.10619373336391047,
-      "annVol": 0.061069591687664744,
-      "downsideDev": 0.022573013449524247,
-      "sharpe": 1.7388970587363566,
-      "sortino": 4.704455326772005,
-      "maxDrawdown": -0.030757745351155164,
-      "positiveMonths": 0.6521739130434783,
-      "bestMonth": 0.04873425000000009,
-      "worstMonth": -0.019233979999999984
-     },
+     "risk": null,
      "risk3Y": null
     },
     "LDM303": {
@@ -21342,7 +21294,7 @@
   "funds.sustainable-enhanced-bonds.distributions": "SYNTHETIC sample: dataplatform /api/performance/distributions SEB (180 row(s) from 2019-01-01; per unit, class currency, keyed by FundServ code; SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution); live series from /api/apex/funds",
   "funds.multi-strategy.performance": "SYNTHETIC sample: monthly net returns 2019-01 to 2026-08: analytics fund_returns.json \"Nymbus Multistrategy (Inc. discretionary strats history)\" (54 month(s): 2019-01 to 2023-06; local file); dataplatform /api/performance/nav-timeseries LDM301 (cibc 2023-07 to 2026-06, bridge 2026-07) daily NAV chain compounded by the website (37 month(s): 2023-07 to 2026-07); dataplatform /api/performance/monthly-net-returns Multistrat class_code STRATEGY ready months (1: 2026-08); every month class_code STRATEGY, shown as class F; trailing/calendar/growth computed (compounded, annualized beyond 1 year), cross-checked with factsheet factsheet_data_2026-08.json",
   "funds.multi-strategy.risk": "SYNTHETIC sample: computed from the monthly net returns (SI and 3Y windows; population st.dev. ×√12; downside dev. = st.dev. of negative months ×√12; Sharpe and Sortino without risk-free rate, as in the factsheets; max drawdown from the running peak including the initial investment, whereas the factsheet uses month-end peaks only)",
-  "funds.multi-strategy.performance.classes.LDM300": "SYNTHETIC sample: monthly net returns of class A (LDM300) from its inception 2024-09-03 (first price of its current run; first month partial, from the inception NAV per unit) to 2026-08, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM300 (cibc 2024-09 to 2026-06, bridge 2026-07, apex 2026-08); 24 month(s) shown; checks: coverage and method, bad valuation prints and cross-class consistency",
+  "funds.multi-strategy.performance.classes.LDM300": "SYNTHETIC sample: monthly net returns of class A (LDM300) from its inception 2024-09-03 (first price of its current run; first month partial, from the inception NAV per unit) to 2026-08, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM300 (cibc 2024-09 to 2025-04, 2025-06 to 2026-06, bridge 2026-07, apex 2026-08); 23 month(s) shown, 1 withheld (2025-05); checks: coverage and method, bad valuation prints and cross-class consistency",
   "funds.multi-strategy.performance.classes.LDM303": "SYNTHETIC sample: monthly net returns of class I (LDM303) from its inception 2023-06-12 (first price of its current run; first month partial, from the inception NAV per unit) to 2026-08, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM303 (cibc 2023-06 to 2026-06, bridge 2026-07, apex 2026-08); 39 month(s) shown; checks: coverage and method, bad valuation prints and cross-class consistency",
   "funds.multi-strategy.performance.classes.LDM304": "SYNTHETIC sample: monthly net returns of class J (LDM304) from its inception 2023-06-19 (first price of its current run; first month partial, from the inception NAV per unit) to 2026-08, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=LDM304 (cibc 2023-06 to 2026-06, bridge 2026-07, apex 2026-08); 39 month(s) shown; checks: coverage and method, bad valuation prints and cross-class consistency",
   "funds.multi-strategy.nav": "SYNTHETIC sample: dataplatform /api/performance/nav-timeseries Multistrat (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)",
@@ -21422,7 +21374,7 @@
   {
    "key": "funds.monthly-income.performance.classes",
    "level": "warn",
-   "message": "month(s) withheld for every class of the fund (source defects to report to the dataplatform): 2022-03 bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%); 2023-09 classes disagree: LDM031 1.03% vs median 0.11% of 3 classes with a complete month (tolerance 0.50%; LDM001 0.10%, LDM031 1.03%, LDM061 0.11%): which one is right cannot be told"
+   "message": "month(s) withheld for every class of the fund (source defects to report to the dataplatform): 2022-03 bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%); 2023-09 classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM031 1.03% (expected 0.13%); median 0.11% of 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM011",
@@ -21442,7 +21394,7 @@
   {
    "key": "funds.monthly-income.performance.classes.LDM031.monthly.2023-09-30",
    "level": "warn",
-   "message": "class I (LDM031): 2023-09 withheld (\"—\"): classes disagree: LDM031 1.03% vs median 0.11% of 3 classes with a complete month (tolerance 0.50%; LDM001 0.10%, LDM031 1.03%, LDM061 0.11%): which one is right cannot be told"
+   "message": "class I (LDM031): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM031 1.03% (expected 0.13%); median 0.11% of 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM031",
@@ -21457,7 +21409,7 @@
   {
    "key": "funds.monthly-income.performance.classes.LDM061.monthly.2023-09-30",
    "level": "warn",
-   "message": "class J (LDM061): 2023-09 withheld (\"—\"): classes disagree: LDM031 1.03% vs median 0.11% of 3 classes with a complete month (tolerance 0.50%; LDM001 0.10%, LDM031 1.03%, LDM061 0.11%): which one is right cannot be told"
+   "message": "class J (LDM061): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM031 1.03% (expected 0.13%); median 0.11% of 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM061",
@@ -21598,6 +21550,16 @@
    "key": "funds.multi-strategy.performance",
    "level": "info",
    "message": "stored CIBC daily returns of class F (LDM301) reproduce the analytics history on 36 month(s) (largest difference 0.005 bp): 2023-07 to 2026-06 taken from the dataplatform daily NAV chain"
+  },
+  {
+   "key": "funds.multi-strategy.performance.classes.LDM300.monthly.2025-05-31",
+   "level": "warn",
+   "message": "class A (LDM300): 2025-05 withheld (\"—\"): deviates from the fund's other classes, which agree with each other: LDM300 6.10% (expected 3.12%); median 3.22% of 4 classes with a complete month, residual tolerance 0.40%"
+  },
+  {
+   "key": "funds.multi-strategy.performance.classes.LDM300",
+   "level": "warn",
+   "message": "class A (LDM300): 1 month(s) withheld (2025-05); figures over them withheld (2Y, 3Y, 5Y, 10Y, SI, risk since inception, risk 3 years); growth from 2025-05-31"
   },
   {
    "key": "funds.multi-strategy.performance.classes.LDM305",

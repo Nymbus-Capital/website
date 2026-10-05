@@ -43,10 +43,11 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table),
   // the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown), and the
   // short_corp history that starts with its 2024-12 naming generation (like the live data: no earlier name to join)
-  // + the synthetic source defects of Monthly Income (a bad valuation print in every class, a drifting month of class I):
-  // months withheld for every class
+  // + the synthetic source defects: Monthly Income (a bad valuation print in every class, a drifting month of class I in a
+  // month with distributions: withheld for every class) and Multi-Strategy class A off alone in 2025-05 (that class only)
   const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio" || k === "funds.monthly-income.performance.index" || k === "funds.monthly-income.trailing.index"
-    || /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k);
+    || /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k)
+    || /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-05-31)?$/.test(k);
   assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;

@@ -205,8 +205,13 @@ Not yet run against live data, not deployed.
    changes); read the `funds.<fund>.performance.classes*` issues (inceptions, withheld months and why) and the non-blocking notice
    "month(s) withheld for every class of the fund", then press **"approve class change & publish"** once (one approval publishes
    every class of every fund of that run; later runs are not gated again until a new series appears, e.g. a series reaching its
-   12 months). Expected per Gabriel's DP checks: the bad month-end print of 2021-11 / 2021-12 (every Monthly Income class) and the
-   2024-12 annual distribution (classes of SEB and Monthly Income disagreeing) withheld; expected inceptions roughly MI FP/J 2021-10,
+   12 months). Expected withheld months (coordinator's read-only run of the rules on live DP data, 2026-10-05): Monthly Income
+   2021-11 / 2021-12 every class (bad month-end print), 2024-12 every class (distribution / performance-fee month), 2025-07 class A
+   only per the coordinator — **but Monthly Income distributes monthly, so every month holds an adjustment day and the code will
+   withhold 2025-07 for every class: check this on the first run** (if the stored CIBC returns match the NAV ratio on
+   distribution days, A only); SEB 2024-12 every class (distribution day, the majority of classes on the wrong side);
+   Multi-Strategy 2024-12 every class (distribution month), 2025-12 every class if a December distribution day is detected
+   (else A only), 2026-02 class A only, 2026-06 nothing (class I's fee-free spread is expected by its fit); expected inceptions roughly MI FP/J 2021-10,
    I 2023-02, A 2025-05, F USD 2025-12, F 2026-06; SEB H/F/J 2023-07, I 2023-10, A 2026-06; Multi F/I/J 2023-06, A 2024-08 — tune
    `CLASS_CHECKS` (`src/lib/pipeline/config.ts`) only with evidence; (b) **report to the dataplatform team**: the bad CIBC
    month-end prints, the inconsistent distribution adjustment of 2024-12-31 between classes, and ask for a **distributions
@@ -215,6 +220,13 @@ Not yet run against live data, not deployed.
    sub-agent sessions: run one before merging.
 
 ## 6. Session log
+
+- 2026-10-05 (sub-agent, later): cross-class rule refined after the coordinator ran the rules on live data (flat band withheld
+  every Multi-Strategy class in 2026-02 for one broken class A and in 2026-06 for class I's legitimate fee-free spread). Now: per
+  class fit r ≈ a + b × median (OLS + one trimming pass, b ∈ [0.6, 1.4], |a| ≤ 0.30 %, fallback a=0 b=1 under 12 months), breach
+  = residual > 0.40 % (`residualMax`); a breach in a month with a distribution / price-adjustment day (return vs NAV ratio > 0.10 %,
+  `adjustmentMin`) → every class; else a lone breaching class with ≥ 2 consistent others → that class only; else every class.
+  Spike rule and partial-month handling unchanged. Fixture: Multi-Strategy class A off alone in 2025-05 (withheld alone).
 
 - 2026-10-05 (sub-agent, branch `feat/all-classes`; not merged): review of the 2026-10-04 work against the brief. Cross-class rule
   aligned with the brief: over the classes with a COMPLETE month (partial first months outside the median) ANY class beyond

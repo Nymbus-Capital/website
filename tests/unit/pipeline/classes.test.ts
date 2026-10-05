@@ -87,7 +87,7 @@ test("every active class from its own daily chain since its inception: shown, yo
   assert.ok(data.issues.some((i) => i.level === "info" && /class A \(LDM021\): inception 2026-03-02, less than 12 months before 2026-08: no performance figure \(regulatory minimum\)/.test(i.message)));
 });
 
-test("source defects in the fixtures: a bad valuation print and a class drifting from the others withhold the month for every class", async () => {
+test("source defects in the fixtures: a bad valuation print and a drift in a distribution month withhold every class; a lone outlier only itself", async () => {
   const { data } = await build();
   const mi = data.funds[MI]!;
   // the print of 2022-03-15/16 in every Monthly Income class (March 2022: only FP and J were priced then) and class I
@@ -98,8 +98,14 @@ test("source defects in the fixtures: a bad valuation print and a class drifting
   assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund["2Y"] != null, "2 years do not");
   assert.equal(mi.performanceByClass!.LDM061.performance.growthFrom, "2023-09-30");
   assert.deepEqual(mi.performanceByClass!.LDM031.performance.withheldMonths, ["2023-09-30"], "the drifting class and every other class");
+  assert.match(data.issues.find((i) => i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30`)!.message, /distribution \/ price-adjustment day/, "Monthly Income distributes: the majority cannot be trusted");
+  // Multi-Strategy class A off alone in 2025-05 (no distribution that month, F / I / J agree): A withheld alone
+  const ms = data.funds["multi-strategy"]!.performanceByClass!;
+  assert.deepEqual(ms.LDM300.performance.withheldMonths, ["2025-05-31"]);
+  for (const f of ["LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
+  assert.ok(ms.LDM300.performance.trailing.fund["1Y"] != null, "the 1-year window (2025-09 to 2026-08) is clean");
   for (const [k, f] of [[MI, "LDM081"], [SEB, "LDM201"], [SEB, "LDM203"], [SEB, "LDM204"]] as const) assert.equal(data.funds[k]!.performanceByClass![f].performance.withheldMonths, undefined, f);
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree: LDM031 /.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree in a month with a distribution \/ price-adjustment day .*: LDM031 /.test(i.message)));
   assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30` && /withheld \("—"\): classes disagree/.test(i.message)), "one admin issue per class and month");
   // the headline (track record) keeps its own logic
   assert.equal(mi.performance!.withheldMonths, undefined);

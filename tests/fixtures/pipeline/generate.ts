@@ -105,7 +105,8 @@ const sebFP = plus(seb, 0.0015);
 const multi: Series = {};
 const multiAll = multi;
 for (const m of months("2019-01-31", LAST_MONTH)) multi[m] = r8(0.0055 + 0.019 * g());
-const multiA = plus(multi, -0.0008);
+/** class A of Multi-Strategy is off by +3 % in 2025-05 alone (a broken class in a month without a distribution, synthetic) */
+const multiA = plus(multi, -0.0008, { "2025-05-31": 0.03 });
 const multiI = plus(multi, 0.0004);
 const multiJ = plus(multi, 0.0003);
 const multiFP = plus(multi, 0.0002);

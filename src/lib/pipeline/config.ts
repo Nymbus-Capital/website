@@ -96,12 +96,22 @@ export const CLASS_CHECKS = {
   spikeMin: 0.02,
   spikeRevert: 0.5,
   /**
-   * cross-class consistency of a month (Gabriel / DP checks 2026-10: an inconsistent annual distribution adjustment spreads
-   * classes of one book by 70–140 bp in a month): over the classes with a COMPLETE month (partial first months excluded
-   * from the median), any class farther than max(crossAbs, crossRel × |median|) from the median withholds that month for
-   * EVERY class of the fund — which one is right cannot be told. Performance-fee classes legitimately drift by up to
-   * ≈ 0.5–0.6 % in strong months: the 0.50 % floor plus the 25 % relative band keep them in.
+   * cross-class consistency of a COMPLETE month. Each class's expected return is a + b × (fund median of the month), a and b
+   * fitted per class over the months where ≥ 3 classes are complete (OLS, one trimming pass; b clipped to
+   * [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month; a = 0, b = 1 with fewer than fitMinMonths months): a class
+   * without a performance fee legitimately beats the others by 15–25 % of a strong month. A residual beyond residualMax is
+   * a breach. A breach in a month holding a distribution / price-adjustment day (a class's stored return differing from its
+   * NAV ratio − 1 by more than adjustmentMin) withholds the month for EVERY class (live SEB 2024-12: the majority was the
+   * wrong side); otherwise one breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else
+   * withholds every class.
    */
+  residualMax: 0.004,
+  adjustmentMin: 0.001,
+  fitMinMonths: 12,
+  fitSlopeMin: 0.6,
+  fitSlopeMax: 1.4,
+  fitInterceptMax: 0.003,
+  /** a partial inception month (outside the fit) against the other classes over its own days: max(crossAbs, crossRel × |median|) */
   crossAbs: 0.005,
   crossRel: 0.25,
 } as const;

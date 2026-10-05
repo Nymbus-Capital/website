@@ -223,14 +223,24 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   the dataplatform team), config `CLASS_CHECKS`:
   - bad valuation print: two consecutive daily returns of opposite sign, both ≥ 2 %, combined ≤ 0.5 × the smaller → both
     months, every class of the fund;
-  - cross-class consistency of a month: over the classes with a COMPLETE month (a partial inception month is not in the
-    median), any class farther than max(0.50 %, 0.25 × |median|) (`crossAbs`, `crossRel`) from the median → that month,
-    every class of the fund: classes of one book cannot disagree that much (an inconsistent December distribution
-    adjustment spreads them by 70–140 bp) and which one is right cannot be told. Performance-fee classes drift by up to
-    ≈ 0.5–0.6 % a month in strong months: the band keeps them in. A partial inception month is compared with the other
-    classes compounded over its own days and withheld alone when it deviates; a month with no other class to compare is
-    listed in the provenance (unchecked). There is no daily cross-class check (a one-day mismatch that the month's other
-    days offset leaves the monthly return consistent);
+  - cross-class consistency of a COMPLETE month (coordinator's live calibration 2026-10-05): each class's expected return is
+    a_c + b_c × m_t, m_t = the fund's median of the classes with a complete month; a_c, b_c are fitted per class over the
+    months where ≥ 3 classes are complete (OLS with one trimming pass dropping residuals beyond `residualMax`; b clipped to
+    [0.6, 1.4], a to ±0.30 % a month; a = 0, b = 1 with fewer than 12 such months). A class without a performance fee
+    legitimately beats the others by 15–25 % of a strong month: its fit expects it. A residual |r − (a + b·m)| above
+    `residualMax` (0.40 %) is a breach. Then:
+    - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
+      distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
+      is withheld for EVERY class: which side is right cannot be told (live SEB 2024-12: on the distribution day the
+      majority of classes was the wrong side);
+    - otherwise exactly one class breaches and the ≥ 2 other complete classes are consistent (all residuals within the
+      tolerance) → that class's month only;
+    - otherwise (two or more breaching, or only two complete classes) → every class.
+    Partial inception months are outside the median and the fit: each is compared with the other classes compounded over
+    its own days (band max(`crossAbs` 0.50 %, `crossRel` 0.25 × |median|)) and withheld alone when it deviates; a month with
+    no other class to compare is listed in the provenance (unchecked). There is no daily cross-class check.
+    Note: Monthly Income distributes every month, so every month holds an adjustment day there: any breach of a Monthly
+    Income class withholds that month for every class of the fund (SEB: quarterly, Multi-Strategy: December only);
   - missing / duplicate days, another return method, invalid returns.
   The headline (track record) keeps its own logic and checks (analytics history, CIBC verification within 0.2 bp, Apex
   months = `monthly-net-returns`): that verification is not a gate for the other classes any more (the strategy track record
