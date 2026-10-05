@@ -437,3 +437,17 @@ test("class histories are fetched one at a time (twenty in parallel ran the data
   assert.equal(peak, 1, "never two class histories at once");
   assert.ok(Object.keys(raw.navHistory ?? {}).length >= 5);
 });
+
+test("class histories: after 3 failures in a row the rest are not requested (a failing dataplatform cannot hold the run)", async () => {
+  const base = mockFetch().fetch;
+  let histories = 0;
+  const fetchImpl: typeof base = async (input, init) => {
+    const url = String(input);
+    if (url.includes("/api/performance/nav-timeseries") && url.includes("fundserv=")) { histories++; return new Response("down", { status: 400 }); }
+    return base(input, init);
+  };
+  const raw = await fetchAll({ fetchImpl, now: NOW, env: fixtureEnv() });
+  assert.equal(histories, 3);
+  const skipped = Object.values(raw.navHistory ?? {}).filter((r) => !r.ok && /not fetched/.test(r.error ?? ""));
+  assert.ok(skipped.length >= 2, String(skipped.length));
+});

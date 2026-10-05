@@ -89,9 +89,18 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
     }
   }
   if (c) {
+    // sequential on purpose (5xx are already retried with backoff by the HTTP client); a dataplatform that keeps failing
+    // or hangs must not hold the run lock for hours: stop after 3 failures in a row or 15 minutes, the rest unavailable
+    const deadline = Date.now() + 15 * 60_000;
+    let failures = 0;
     for (const j of classJobs) {
-      // sequential on purpose (5xx are already retried with backoff by the HTTP client)
-      navHistory[j.fundserv] = await fetchNavHistory(c, j.s, j.fundserv, CLASS_CHECKS.historyFrom, today);
+      if (failures >= 3 || Date.now() > deadline) {
+        navHistory[j.fundserv] = { ok: false, data: null, error: `nav-timeseries ${j.s} ${j.fundserv} history: not fetched (${failures >= 3 ? "3 class histories failed in a row" : "15-minute budget for class histories spent"})` };
+        continue;
+      }
+      const r = await fetchNavHistory(c, j.s, j.fundserv, CLASS_CHECKS.historyFrom, today);
+      failures = r.ok ? 0 : failures + 1;
+      navHistory[j.fundserv] = r;
     }
   }
   // the instrument master of every security held (one pass for all funds and both book dates)
