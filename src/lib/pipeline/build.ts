@@ -566,30 +566,30 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
       if (used.length) chainSource = `${fsv} (${chainNote(used, ch.months)})`;
     }
   }
-  // source defects found by the class checks (class-returns.ts: a bad valuation print, classes of the fund disagreeing),
-  // months withheld for every class of the fund. A month the track record takes from its OWN daily NAV chain is the same
-  // data: it is withheld here too (never filled from the factsheet; a month in the middle interrupts the track record, as
-  // any missing month does) unless the official track record has its own figure for it, used instead. A month taken from
-  // the official track record (analytics history / monthly-net-returns /
-  // factsheet) is a different source and stays — listed in a warning so the admin knows the class series lack it.
+  // source defects found by the class checks (class-returns.ts: a bad valuation print or classes disagreeing — months
+  // withheld for every class —, and this class's own cross-class failures and newest-month hold). A month the track record
+  // takes from its own daily NAV chain, or from monthly-net-returns (the same Apex NAVs: equal to the chain by construction,
+  // not an independent source), is the same data: it is replaced by the analytics history's official figure when that has
+  // the month (labelled "official figure", not an independent check), else withheld — never filled from the factsheet; a
+  // newest month is then held, a month in the middle interrupts the track record as any missing month does. A month taken
+  // from the analytics history (the official track record) or a factsheet stays, listed in a warning.
   if (defects?.size) {
     const kept: string[] = [];
     for (const [m, why] of [...defects].sort(([a], [b]) => (a < b ? -1 : 1))) {
       if (!(m in s)) continue;
-      if (origin[m] === "navchain") {
-        // the official track record's own figure for the month replaces the chain's, when it has one
-        const official = mnrReady.has(m) ? { r: mnrReady.get(m)!, o: "dataplatform" as const } : m in analyticsMonths ? { r: analyticsMonths[m], o: "analytics" as const } : null;
-        if (official) {
-          set(m, official.r, official.o);
-          kept.push(`${ym(m)} (${official.o}, instead of the daily NAV chain)`);
+      if (origin[m] === "navchain" || origin[m] === "dataplatform") {
+        const from = origin[m] === "navchain" ? "its own daily NAV chain" : "monthly-net-returns (the same Apex NAVs as the class chain)";
+        if (m in analyticsMonths) {
+          set(m, analyticsMonths[m], "analytics");
+          kept.push(`${ym(m)} (official figure of the analytics history, instead of ${from})`);
         } else {
-          c.warn(key, `${ym(m)}: withheld from the track record (taken from its own daily NAV chain, withheld for every class of the fund: ${why})`);
+          c.warn(key, `${ym(m)}: withheld from the track record (taken from ${from}, which failed the class checks: ${why})`);
           delete s[m];
           withheld.add(m);
         }
-      } else kept.push(`${ym(m)} (${origin[m]})`);
+      } else kept.push(`${ym(m)} (${origin[m]}: official figure)`);
     }
-    if (kept.length) c.warn(key, `month(s) withheld for every class of the fund kept in the track record, which takes them from another source than the class NAV chains: ${kept.join(", ")}`);
+    if (kept.length) c.warn(key, `month(s) failing the class checks kept in the track record with an official figure (not an independent check of the class NAV data): ${kept.join(", ")}`);
   }
   const sourceMonths: Series = Object.fromEntries(Object.entries(s).filter(([m]) => klass[m] === code && origin[m] !== "factsheet"));
   const fs = finishSeries(raw, spec, c, base, { s, origin, klass, classCode: code, dp, fill: true, chainSource, analyticsName: name, mandatoryTable: true, withheld });
@@ -1487,7 +1487,11 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
   // every class's own chain first: its fund-wide defect months also apply to the track record's own-NAV months
   const classRun = short ? computeClassRun(raw, spec) : null;
   if (short) {
-    pb = buildNetPerformance(raw, spec, prev, c, base, opts, classRun ? new Map(classRun.res.fundMonths.map((x) => [x.month, x.reason])) : undefined);
+    // defects of the track record: months withheld for every class + the track class's own check failures (buildClasses
+    // skips the headline class, so they would otherwise be lost)
+    const track = trackFundserv(spec.key);
+    const defects = classRun ? new Map([...(track ? classRun.res.classChecks[track] ?? [] : []), ...classRun.res.fundMonths].map((x) => [x.month, x.reason])) : undefined;
+    pb = buildNetPerformance(raw, spec, prev, c, base, opts, defects);
   } else if (src.factsheet) {
     if (!raw.factsheets.ok) c.error(`${base}.performance`, `factsheet archives unavailable (${raw.factsheets.error ?? "not fetched"})`);
     else pb = buildFactsheetPerformance(raw, spec, prev?.performance, c, base);

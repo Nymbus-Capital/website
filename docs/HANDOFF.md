@@ -215,6 +215,14 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-05 (sub-agent, last): second verifier's fixes. Cross-class reference is now leave-CLASS-out (median of the other
+  fitted classes, each mapped through its own fit; young classes never in it): the class carrying an injected error is the one
+  withheld, never a correct fee-free class (verifier's panels as tests). Track record: monthly-net-returns months are the same
+  Apex NAVs as the chain, so defect months there are replaced by the analytics official figure or withheld (newest month held);
+  the track class's own lone failures and newest-month hold feed it too (test: a reversed print on the newest month's last day,
+  monthly-net-returns matching, no factsheet → not published). Relaunch by reset-to-10 needs a gap > 30 days. Funds new to a live
+  site are gated; two-class funds documented as a limit (err toward withholding).
+
 - 2026-10-05 (sub-agent, latest): fixes of the independent review. B1 leave-one-out Theil–Sen fit (an error in the fund's
   strongest month no longer bends its own expectation). M1 bad-print check over every row fetched; the newest month waits for one
   later valuation day. M2 months withheld for every class leave the track record where it took them from its own NAV chain (the

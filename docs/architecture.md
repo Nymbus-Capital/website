@@ -210,7 +210,8 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   `unavailable`); `FundData.performanceByClass` holds the classes that show returns.
 - **Inception** = first NAV-per-unit date of the class's CURRENT run: a gap of more than `CLASS_CHECKS.relaunchGapDays` (10)
   calendar days ends a run only when a relaunch is corroborated — the NAV per unit jumps by more than `relaunchNavJump` (5 %)
-  across the gap, restarts at a launch price (10.00), or the gap exceeds `relaunchLongGapDays` (180) — and earlier rows are
+  across the gap, restarts at a launch price (10.00) after a gap of more than `relaunchResetMinGapDays` (30), or the gap
+  exceeds `relaunchLongGapDays` (180) — and earlier rows are
   then a previous life (warn issue: check against the register); an uncorroborated gap is a coverage gap inside the run (warn;
   the months it touches lack valuation days and are withheld). `FUND_SOURCES.classFloor` cuts a run reaching back before the
   fund's own book; a run starting within 10 days of the first day read has an unknown inception (class unavailable). The
@@ -228,14 +229,15 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     months, every class of the fund. Checked over every row fetched (to the run day), so a print on the newest month's last
     day reversed on the next valuation day is seen; the newest month of a class waits ("—") until one later valuation day
     exists;
-  - cross-class consistency of a COMPLETE month, on the published monthly values: each class's expected return is
-    a_c + b_c × m_t, m_t = the fund's median of the classes with a complete month; a_c, b_c are fitted per class by
-    Theil–Sen (median of pairwise slopes; intercept = median of r − b·m) over the months where ≥ 3 classes are complete,
-    LEAVING OUT the month under test (an error in the fund's strongest month cannot bend its own expectation); b clipped to
-    [0.6, 1.4], a to ±0.30 % a month; a = 0, b = 1 with fewer than 12 such months. A class without a performance fee
-    legitimately beats the others by a share of a strong month: its fit expects it. A residual |r − (a + b·m)| above
-    `residualMax` (0.40 %) is a breach. A class without a fit (fewer than 12 months) is only ever withheld itself. For the
-    fitted classes:
+  - cross-class consistency of a COMPLETE month, on the published monthly values. Each class c is compared with a
+    LEAVE-CLASS-OUT reference m₋c = median over the OTHER fitted complete classes d of (r_d − a_d) / b_d (each mapped back
+    to the fund's common return through its own fit), so an error in c never moves its own reference and a correct class
+    with a different slope (e.g. without a performance fee) is never made the outlier by another class's error. a_c, b_c
+    are fitted by Theil–Sen (median of pairwise slopes; intercept = median of r − b·m) on that reference over the months
+    where c and ≥ 2 other fitted classes are complete, LEAVING OUT the month under test; the fits and references are
+    iterated a few rounds from a = 0, b = 1; b clipped to [0.6, 1.4], a to ±0.30 % a month. A class is fitted when it has
+    12 such months (`fitMinMonths`); young classes never enter another class's reference and are only ever withheld
+    themselves. Residual = r_c − (a_c + b_c · m₋c); above `residualMax` (0.40 %) it is a breach. For the fitted classes:
     - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
       distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
       is withheld for EVERY class: which side is right cannot be told (on a distribution day the majority of classes
@@ -248,14 +250,20 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     when the month holds an adjustment day); a month with
     no other class to compare is listed in the provenance (unchecked). There is no daily cross-class check.
     Note: in a fund distributing every month, every month holds an adjustment day: any fitted breach then withholds the
-    month for every class;
+    month for every class. Limit: with only two classes (or no class with 12 months next to two others) no fit is
+    possible; each class is then compared with the other's plain value and a disagreement withholds both — it errs toward
+    withholding. None of the three funds is in that case today. With three fitted classes the reference is the mean of
+    two, so a large error in one class can also push the others past the tolerance: the month then goes to every class
+    (conservative);
   - missing / duplicate days, another return method, invalid returns.
   The headline (track record) keeps its own logic and checks (analytics history, CIBC verification within 0.2 bp, Apex
-  months = `monthly-net-returns`). The class results are computed first (`computeClassRun`, to the run's target month): a
-  month withheld for every class that the track record takes from its OWN daily NAV chain is the same data and leaves it —
-  replaced by the official analytics / monthly-net-returns figure when one exists, else withheld (a newest month is held, a
-  month in the middle interrupts the track record as any missing month does); a month the track record takes from the
-  official track record is a different source and stays, with a warning listing it. That verification is not a gate for the
+  months = `monthly-net-returns`). The class results are computed first (`computeClassRun`, to the run's target month);
+  the track record's defects are the months withheld for every class plus the track class's own check failures (lone
+  cross-class outlier, newest month waiting). A defect month the track record takes from its OWN daily NAV chain, or from
+  `monthly-net-returns` (computed from the same Apex NAVs: equal to the chain by construction, not an independent source),
+  is replaced by the analytics history's official figure when that has the month (labelled "official figure", not an
+  independent check), else withheld (a newest month is held, a month in the middle interrupts the track record as any
+  missing month does). A defect month already taken from the analytics history or a factsheet stays, with a warning. That verification is not a gate for the
   other classes any more (the strategy track record
   differs from the class NAV chains before mid-2025: a different series), nor is the old fee band against the track-record
   class (`classSpread`, kept in the configuration, unused).
@@ -277,8 +285,10 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   order) that has; the page (`openingClass`) prefers the admin's headline class when it has returns, then the data's
   default, then the first class offered with returns — a page never opens on an empty performance block while another
   series has data. The home cards still read the headline class (`defaultClassCode`), unchanged.
-- **Approval**: a class entry changing class, the default class changing, and classes published for the first time next
-  to a published performance (e.g. a class reaching its 12 months, or every register class at once) go through the
+- **Approval**: a class entry changing class, the default class changing, and classes published for the first time —
+  also when the previous publication had no performance, and every series of a fund new to a live site (its page then goes
+  live without performance until approved); the very first publication of the whole site has nothing to compare with and is
+  not gated (run it in review mode) — e.g. a class reaching its 12 months, or every register class at once, go through the
   class-change gate: auto mode keeps the fund at its previous publication until an admin publishes the run — one approval
   publishes every class of every fund of the run. Revisions of published months (a month newly withheld counts) are
   reported per class entry (warn + alert); a class that was published and disappears is a blocking alert.

@@ -46,6 +46,7 @@ export interface ClassCheckConfig {
   fitInterceptMax: number;
   relaunchNavJump: number;
   relaunchLongGapDays: number;
+  relaunchResetMinGapDays: number;
 }
 
 export interface ClassInput {
@@ -89,6 +90,8 @@ export interface FundClassesResult {
   fundMonths: { month: string; reason: string }[];
   /** class-months that could not be cross-checked (no other class over the same days) */
   unchecked: { fundserv: string; month: string }[];
+  /** class-months withheld for that class alone by a check (cross-class outlier, newest month waiting), with the reason */
+  classChecks: Record<string, { month: string; reason: string }[]>;
 }
 
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -114,12 +117,13 @@ export function normalizeRows(rows: DailyRow[]): DailyRow[] {
 /**
  * Inception of a class: the first NAV-per-unit date of its current run (rows up to `end`). A gap of more than `gapDays`
  * ends a run only when a relaunch is corroborated: the NAV per unit jumps across the gap by more than `navJump`, restarts at
- * a launch price (10.00), or the gap is longer than `longGapDays` (the class was closed). An uncorroborated gap is a
+ * a launch price (10.00) after a gap of more than `resetMinGapDays`, or the gap is longer than `longGapDays` (the class was
+ * closed). An uncorroborated gap is a
  * coverage gap inside the run (`gaps`: its months lack valuation days and are withheld). `floor` cuts a run reaching back
  * before it. `requestedFrom`: the first day asked from the source — a run starting within `gapDays` of it (and not cut by
  * the floor) may have begun earlier: inception unknown.
  */
-export function currentRun(rows: DailyRow[], opts: { gapDays: number; end?: string; floor?: string | null; requestedFrom?: string | null; navJump?: number; longGapDays?: number }): { inception: string | null; previousRunEnd: string | null; why: string | null; gaps: { from: string; to: string }[] } {
+export function currentRun(rows: DailyRow[], opts: { gapDays: number; end?: string; floor?: string | null; requestedFrom?: string | null; navJump?: number; longGapDays?: number; resetMinGapDays?: number }): { inception: string | null; previousRunEnd: string | null; why: string | null; gaps: { from: string; to: string }[] } {
   const nav = new Map<string, number>();
   for (const r of normalizeRows(rows)) if (finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0 && (!opts.end || r.date <= opts.end) && !nav.has(r.date)) nav.set(r.date, r.nav_per_share_cad as number);
   const dates = [...nav.keys()];
@@ -129,7 +133,8 @@ export function currentRun(rows: DailyRow[], opts: { gapDays: number; end?: stri
   const long = opts.longGapDays ?? 180;
   const relaunch = (before: string, after: string): boolean => {
     const x = nav.get(before)!, y = nav.get(after)!;
-    return dayDiff(before, after) > long || Math.abs(y / x - 1) > jump || Math.abs(y - 10) <= 0.01;
+    // a unit value near 10.00 alone proves nothing (a bond class can trade there): a reset needs a real closure too
+    return dayDiff(before, after) > long || Math.abs(y / x - 1) > jump || (Math.abs(y - 10) <= 0.01 && dayDiff(before, after) > (opts.resetMinGapDays ?? 30));
   };
   let i = dates.length - 1;
   while (i > 0) {
@@ -316,24 +321,40 @@ export function crossClassFailures(
       byMonth.set(cm.month, list);
     }
   }
-  // complete months: published values and the fund median
+  // complete months: published values
   const full = new Map<string, { fsv: string; v: number }[]>();
-  const med = new Map<string, number>();
-  for (const [month, list] of byMonth) {
-    const xs = list.filter((x) => !x.partial).map((x) => ({ fsv: x.fsv, v: x.r }));
-    full.set(month, xs);
-    if (xs.length) med.set(month, median(xs.map((x) => x.v)));
+  for (const [month, list] of byMonth) full.set(month, list.filter((x) => !x.partial).map((x) => ({ fsv: x.fsv, v: x.r })));
+  const val = (fsv: string, month: string): number | null => full.get(month)?.find((x) => x.fsv === fsv)?.v ?? null;
+  // a class can be fitted when it has fitMinMonths complete months next to at least 2 other complete classes; only fitted
+  // classes enter another class's reference (a young class never moves it)
+  const fsvs = Object.keys(months);
+  const fittable = new Set(fsvs.filter((c) => [...full.values()].filter((xs) => xs.length >= 3 && xs.some((x) => x.fsv === c)).length >= cfg.fitMinMonths));
+  let fits: Record<string, ClassFit> = Object.fromEntries(fsvs.map((c) => [c, { a: 0, b: 1, n: 0, fallback: !fittable.has(c) }]));
+  // leave-CLASS-out reference of class c in a month: median over the OTHER fitted complete classes d of (r_d − a_d) / b_d —
+  // each mapped back to the fund's common return through its own fit — so an error in c never moves its own reference
+  const refOf = (c: string, month: string, fs: Record<string, ClassFit>): { m: number; n: number } | null => {
+    const xs = (full.get(month) ?? []).filter((x) => x.fsv !== c && fittable.has(x.fsv)).map((x) => (x.v - fs[x.fsv].a) / fs[x.fsv].b);
+    return xs.length ? { m: median(xs), n: xs.length } : null;
+  };
+  const pointsOf = (c: string, fs: Record<string, ClassFit>): { month: string; m: number; r: number }[] => {
+    const out: { month: string; m: number; r: number }[] = [];
+    for (const month of full.keys()) {
+      const v = val(c, month);
+      const ref = v === null ? null : refOf(c, month, fs);
+      if (v !== null && ref && ref.n >= 2) out.push({ month, m: ref.m, r: v });
+    }
+    return out;
+  };
+  // the fits and the references depend on each other: a few rounds from a = 0, b = 1
+  let points: Record<string, { month: string; m: number; r: number }[]> = {};
+  for (let round = 0; round < 4; round++) {
+    points = Object.fromEntries(fsvs.map((c) => [c, fittable.has(c) ? pointsOf(c, fits) : []]));
+    fits = Object.fromEntries(fsvs.map((c) => [c, fittable.has(c) ? fitClass(points[c], cfg) : { a: 0, b: 1, n: 0, fallback: true }]));
   }
-  // each class's points: the months where at least 3 classes are complete
-  const points: Record<string, { month: string; m: number; r: number }[]> = {};
-  for (const fsv of Object.keys(months)) {
-    points[fsv] = [];
-    for (const [month, xs] of full) if (xs.length >= 3) { const x = xs.find((y) => y.fsv === fsv); if (x) points[fsv].push({ month, m: med.get(month)!, r: x.v }); }
-  }
-  const fits: Record<string, ClassFit> = Object.fromEntries(Object.keys(months).map((fsv) => [fsv, fitClass(points[fsv], cfg)]));
-  const looFit = (fsv: string, month: string): ClassFit => {
-    const ps = points[fsv];
-    return ps.some((p) => p.month === month) ? fitClass(ps.filter((p) => p.month !== month), cfg) : fits[fsv];
+  const looFit = (c: string, month: string): ClassFit => {
+    if (!fittable.has(c)) return { a: 0, b: 1, n: 0, fallback: true };
+    const ps = points[c];
+    return ps.some((p) => p.month === month) ? fitClass(ps.filter((p) => p.month !== month), cfg) : fits[c];
   };
   for (const month of [...byMonth.keys()].sort()) {
     const list = byMonth.get(month)!;
@@ -342,14 +363,20 @@ export function crossClassFailures(
     let all: string | null = null;
     const alone: { fsv: string; why: string }[] = [];
     if (xs.length >= 2) {
-      const m = med.get(month)!;
-      const res = xs.map((x) => { const f = looFit(x.fsv, month); return { ...x, f, e: x.v - (f.a + f.b * m) }; });
+      const res = xs.map((x) => {
+        const f = looFit(x.fsv, month);
+        // no fitted class to compare with (e.g. a fund with two classes): the other classes' plain median, no fit — such a
+        // class is only ever withheld itself, so a disagreement withholds both sides
+        const ref = refOf(x.fsv, month, fits) ?? { m: median(xs.filter((y) => y.fsv !== x.fsv).map((y) => y.v)), n: 0 };
+        const fb = f.fallback || ref.n === 0;
+        return { ...x, f: fb ? { ...f, fallback: true } : f, m: ref.m, e: x.v - (fb && ref.n === 0 ? ref.m : f.a + f.b * ref.m) };
+      });
       const out = res.filter((x) => Math.abs(x.e) > cfg.residualMax + 1e-12);
-      const desc = (ys: typeof out): string => `${ys.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)}${x.f.fallback ? `, ${x.f.n} month(s) of history: no fit` : ""})`).join(", ")}; median ${pct(m)} of ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
-      // a class with too short a history for a fit is withheld alone, never the fund
+      const desc = (ys: typeof out): string => `${ys.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)} from the other classes' reference ${pct(x.m)}${x.f.fallback ? ", no fitted spread" : ""})`).join(", ")}; ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
+      // a class without a fit is withheld alone, never the fund
       const short = out.filter((x) => x.f.fallback);
       const fitted = out.filter((x) => !x.f.fallback);
-      for (const x of short) alone.push({ fsv: x.fsv, why: `deviates from the fund's other classes (short history, no fitted spread): ${desc([x])}` });
+      for (const x of short) alone.push({ fsv: x.fsv, why: `deviates from the fund's other classes (no fitted spread): ${desc([x])}` });
       if (fitted.length) {
         const others = res.filter((x) => !out.includes(x));
         if (adj) all = `classes disagree in a month with a distribution / price-adjustment day (${adj}): ${desc(fitted)}; which class is right cannot be told`;
@@ -395,7 +422,7 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
     const base: ClassResult = { fundserv: k.fundserv, display: k.display, currency: k.currency, inception: null, status: "unavailable", why: null, previousRunEnd: null, months: [] };
     if (!k.rows) { classes.push({ ...base, why: `daily history unavailable (${k.error ?? "not fetched"})` }); continue; }
     const rows = normalizeRows(k.rows);
-    const run = currentRun(rows, { gapDays: cfg.relaunchGapDays, floor: opts.floor, requestedFrom: opts.requestedFrom, navJump: cfg.relaunchNavJump, longGapDays: cfg.relaunchLongGapDays });
+    const run = currentRun(rows, { gapDays: cfg.relaunchGapDays, floor: opts.floor, requestedFrom: opts.requestedFrom, navJump: cfg.relaunchNavJump, longGapDays: cfg.relaunchLongGapDays, resetMinGapDays: cfg.relaunchResetMinGapDays });
     const currency = k.currency ?? rows.find((r) => r.date >= (run.inception ?? ""))?.currency ?? null;
     const res: ClassResult = { ...base, currency, inception: run.inception, previousRunEnd: run.previousRunEnd, why: run.why, gaps: run.gaps };
     if (!run.inception) { classes.push(res); continue; }
@@ -434,7 +461,13 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
       return { month: m.month, r: reason ? null : m.r, partial: m.partial, source: m.source, reason };
     });
   }
-  return { classes, fundMonths, unchecked: cross.unchecked };
+  const classChecks: Record<string, { month: string; reason: string }[]> = {};
+  for (const fsv of Object.keys(raw)) {
+    const list = [...(cross.fails.get(fsv) ?? [])].filter(([m]) => !fundWhy.has(m)).map(([month, reason]) => ({ month, reason }));
+    if (newestUnchecked.has(fsv) && !fundWhy.has(endMonth)) list.push({ month: endMonth, reason: "newest month held: no valuation day after its last day yet to rule out a reversed month-end print" });
+    if (list.length) classChecks[fsv] = list;
+  }
+  return { classes, fundMonths, unchecked: cross.unchecked, classChecks };
 }
 
 /** Whether `asOf` (a month-end) is at least `months` months after `inception` (same day, clamped to the month's end). */

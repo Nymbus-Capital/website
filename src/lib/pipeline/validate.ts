@@ -472,7 +472,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const fromClass = prev?.performance ? perfClassCode(key, prev.performance) : null;
     const toClass = f.performance?.classCode ?? null;
     // the same gate on every class entry (the page's default class included) and on the default class itself
-    const entryChanges = classEntryChanges(key, prev, f);
+    const entryChanges = classEntryChanges(key, prev, f, !!prevLive);
     const headChange = !!(fromClass && toClass && fromClass !== toClass);
     const classChange: Issue | null = !blocking.length && (headChange || entryChanges.length)
       ? { key: `${base}.performance.class`, level: "error", message: `performance class change ${[headChange ? `from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass})` : null, ...entryChanges].filter(Boolean).join("; ")}: every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
@@ -541,7 +541,17 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       funds[key] = allCarried && prev ? "kept-previous" : "updated";
       if (classChange) {
         extraIssues.push(classChange);
-        held[key] = carry();
+        // a fund published for the first time next to a live site: its page goes live without any performance until approved
+        held[key] = prev ? carry() : (() => {
+          const c = structuredClone(f);
+          c.performance = null;
+          c.risk = null;
+          delete c.risk3Y;
+          delete c.performanceByClass;
+          delete c.defaultClass;
+          delete c.classInfo;
+          return c;
+        })();
       } else if (ctx?.unconfirmed?.length && f.performance && ctx.parts.performance !== "carried") review.push(key);
     }
     const alerts = [...(ctx?.alerts ?? [])];
@@ -563,6 +573,11 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     for (const key of classChanges) {
       const base = `funds.${key}`;
       autoData.funds[key] = held[key];
+      if (!prevLive?.funds[key]) {
+        // a fund new to the site: its own non-performance provenance stays
+        for (const k of Object.keys(autoData.provenance)) if (k === `${base}.performance` || k.startsWith(`${base}.performance.`) || k === `${base}.risk`) delete autoData.provenance[k];
+        continue;
+      }
       for (const k of Object.keys(autoData.provenance)) if (k === base || k.startsWith(`${base}.`)) delete autoData.provenance[k];
       for (const [k, v] of Object.entries(prevLive!.provenance)) if (k === base || k.startsWith(`${base}.`)) autoData.provenance[k] = v.startsWith("carried over") ? v : `carried over from the publication of ${prevLive!.generatedAt} (${v})`;
     }
@@ -611,8 +626,14 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
  * appearing next to a published performance: e.g. a class reaching its 12 months, or every register class at once) and the
  * page's default class. One approval of the run publishes all of them together.
  */
-export function classEntryChanges(key: FundKey, prev: FundData | undefined, f: FundData): string[] {
-  if (!prev) return [];
+export function classEntryChanges(key: FundKey, prev: FundData | undefined, f: FundData, liveSite = true): string[] {
+  if (!prev) {
+    // a fund new to a live site: every series is published for the first time (the headline included). The very first
+    // publication of the whole site (no live site) has nothing to compare with: run it in review mode (docs/architecture.md)
+    if (!liveSite) return [];
+    const all = Object.values(f.performanceByClass ?? {}).map((e) => `${e.display} (${e.fundserv})`);
+    return all.length ? [`${all.length} class${all.length > 1 ? "es" : ""} published for the first time (fund new to the site): ${all.join(", ")}`] : [];
+  }
   const out: string[] = [];
   const code = (p: { classCode?: string; returnClass?: string } | null | undefined): string | null => p?.classCode ?? p?.returnClass ?? null;
   const added: string[] = [];

@@ -105,7 +105,7 @@ test("source defects in the fixtures: a bad valuation print and a drift in a dis
   for (const f of ["LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
   assert.ok(ms.LDM300.performance.trailing.fund["1Y"] != null, "the 1-year window (2025-09 to 2026-08) is clean");
   for (const [k, f] of [[MI, "LDM081"], [SEB, "LDM201"], [SEB, "LDM203"], [SEB, "LDM204"]] as const) assert.equal(data.funds[k]!.performanceByClass![f].performance.withheldMonths, undefined, f);
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree in a month with a distribution \/ price-adjustment day .*: LDM031 /.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree in a month with a distribution \/ price-adjustment day .*LDM031 1\.03%/.test(i.message)));
   assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30` && /withheld \("—"\): classes disagree/.test(i.message)), "one admin issue per class and month");
   // the headline (track record) keeps its own logic
   assert.equal(mi.performance!.withheldMonths, undefined);
@@ -333,13 +333,13 @@ test("M2: a month withheld for every class applies to the track record where it 
   // fixtures: Monthly Income 2022-03 and 2023-09 are withheld for every class; the track record's CIBC months come from its
   // verified daily chain, so those two months take the analytics history's own figure instead (warned)
   const { data } = await build();
-  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && i.level === "warn" && /kept in the track record, which takes them from another source than the class NAV chains: 2022-03 \(analytics, instead of the daily NAV chain\), 2023-09 \(analytics/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && i.level === "warn" && /kept in the track record with an official figure \(not an independent check of the class NAV data\): 2022-03 \(official figure of the analytics history, instead of its own daily NAV chain\), 2023-09 \(official figure/.test(i.message)));
   // an Apex-era month taken from the chain (monthly-net-returns down) with a bad print in every class: no official figure,
   // the month is withheld from the track record too (here the newest month: the track record stops before it)
   const print = (fsv: string): Route => history(fsv, (rows) => rows.map((r) => (r.date === "2026-08-13" ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 } : r.date === "2026-08-14" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 } : r)));
   const mnrDown: Route = (url) => (url.pathname === "/api/performance/monthly-net-returns" && url.searchParams.get("short_name") === "SEST" ? json({ detail: "x" }, 500) : undefined);
   const b = await build(mnrDown, ...["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map(print));
-  assert.ok(b.data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from its own daily NAV chain, withheld for every class of the fund: bad valuation print/.test(i.message)), JSON.stringify(b.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+  assert.ok(b.data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from its own daily NAV chain, which failed the class checks: bad valuation print/.test(i.message)), JSON.stringify(b.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
   assert.equal(b.data.funds[MI]!.performance!.asOf, "2026-07-31");
 });
 
@@ -364,4 +364,53 @@ test("YTD of a class whose first complete month is January (priced since the pre
   const f = data.funds[MI]!.performanceByClass!.LDM081.performance;
   assert.equal(f.growth[0].date, f.inception, "a partial first month: the growth series starts at the inception day");
   assert.deepEqual(performanceProblems(f, "compounded", true), []);
+});
+
+test("headline: a print on the newest month's last day reversed on the next valuation day in every class is never published, even with monthly-net-returns matching", async () => {
+  const { mkdtemp, readFile, writeFile, rm } = await import("node:fs/promises");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const { FIXTURE_FACTSHEETS_DIR } = await import("../../fixtures/pipeline/mock-fetch.ts");
+  // no factsheet for the newest month (August): only the July archives
+  const fsDir = await mkdtemp(path.join(os.tmpdir(), "fs-print-"));
+  for (const f of ["bonds_data_2026-07.json", "factsheet_data_2026-07.json"]) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
+  const shift = (r: Record<string, unknown>): Record<string, unknown> => (r.date === "2026-08-31" ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 } : r.date === "2026-09-01" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 } : r);
+  const prints = ["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map((f) => history(f, (rows) => rows.map(shift)));
+  // monthly-net-returns serves the same (wrong) August as the chain: the two dataplatform views agree
+  const aug = (loadFixture("dataplatform/nav_history_LDM001.json") as { rows: Record<string, unknown>[] }).rows
+    .filter((r) => String(r.date).startsWith("2026-08") && r.source === "apex").map(shift)
+    .reduce((p, r) => p * (1 + (r.net_daily_return as number)), 1) - 1;
+  const mnr: Route = (url) => {
+    if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
+    const j = loadFixture("dataplatform/mnr_SEST.json") as { rows: Record<string, unknown>[] };
+    return json({ ...j, rows: j.rows.map((r) => (r.month === "2026-08-31" ? { ...r, net_return: aug } : r)) });
+  };
+  try {
+    const raw = await fetchAll({ fetchImpl: mockFetch(mnr, ...prints).fetch, now: NOW, env: fixtureEnv({ FACTSHEET_DATA_DIR: fsDir }) });
+    const { data } = buildSiteData(raw, null, NOW);
+    assert.ok(!data.issues.some((i) => /2026-08: daily NAV chain .* vs monthly-net-returns/.test(i.message)), "the two views agree");
+    assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from monthly-net-returns \(the same Apex NAVs as the class chain\), which failed the class checks: bad valuation print: LDM\d+ 2026-08-31 /.test(i.message)), JSON.stringify(data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+    assert.equal(data.funds[MI]!.performance!.asOf, "2026-07-31", "the headline holds the newest month");
+  } finally {
+    await rm(fsDir, { recursive: true, force: true });
+  }
+});
+
+test("headline: the track class's own newest-month hold reaches the track record (its months come from the same NAVs)", async () => {
+  const cut = history("LDM001", (rows) => rows.filter((r) => String(r.date) <= "2026-08-31"));
+  const { data } = await build(cut);
+  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record .*newest month held/.test(i.message)), JSON.stringify(data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+  assert.equal(data.funds[MI]!.performance!.asOf, "2026-07-31");
+});
+
+test("a fund new to a live site: every series gated (its page goes live without performance until approved); the very first site publication is not gated", async () => {
+  const { data, validated, context } = await build();
+  const prev = structuredClone({ ...validated, mode: "live" as const });
+  delete prev.funds[SEB];
+  const v = validateSite(structuredClone(data), context, prev, NOW);
+  assert.ok(v.classChanges.includes(SEB));
+  assert.ok(v.data.issues.some((i) => i.key === `funds.${SEB}.performance.class` && /classes published for the first time \(fund new to the site\)/.test(i.message)));
+  assert.equal(v.autoData.funds[SEB]!.performance, null);
+  assert.ok(v.autoData.funds[SEB]!.nav, "the rest of the page goes live");
+  assert.ok(!validateSite(structuredClone(data), context, null, NOW).classChanges.length);
 });

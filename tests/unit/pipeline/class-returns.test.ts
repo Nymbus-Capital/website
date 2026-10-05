@@ -31,7 +31,13 @@ test("inception = first price of the current run: a gap of more than 10 days end
   // a 3-week hole with the NAV carrying on: a coverage gap inside the run, never a relaunch
   const hole = rows([...tradingDays("2023-01-03", "2023-02-03"), ...tradingDays("2023-02-27", "2023-05-31")]);
   assert.deepEqual(currentRun(hole, { gapDays: 10 }), { inception: "2023-01-03", previousRunEnd: null, why: null, gaps: [{ from: "2023-02-03", to: "2023-02-27" }] });
-  // the same hole with the NAV per unit restarting at 10.00 (or jumping by more than 5 %): a relaunch
+  // a bond class trading near 10.00 with the same 3-week hole: still a coverage gap (a reset needs more than 30 days)
+  const near10 = hole.map((r) => ({ ...r, nav_per_share_cad: 10 + ((r.nav_per_share_cad as number) - 10) * 0.01 }));
+  assert.equal(currentRun(near10, { gapDays: 10, resetMinGapDays: 30 }).inception, "2023-01-03");
+  // a 6-week closure restarting at 10.00: a relaunch
+  const closed = rows([...tradingDays("2023-01-03", "2023-02-03"), ...tradingDays("2023-03-20", "2023-05-31")], () => 0.001, 10).map((r) => (r.date >= "2023-03-20" ? { ...r, nav_per_share_cad: 10 * (1 + 0.0001) } : r));
+  assert.equal(currentRun(closed, { gapDays: 10, resetMinGapDays: 30 }).inception, "2023-03-20");
+  // the same hole with the NAV per unit jumping by more than 5 %: a relaunch
   const reset = hole.map((r) => (r.date >= "2023-02-27" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.08 } : r));
   assert.equal(currentRun(reset, { gapDays: 10 }).inception, "2023-02-27");
   // a long weekend (4 days) is not a gap
@@ -142,7 +148,7 @@ test("cross-class: a single outlier with no adjustment day → that class only; 
   const ry = crossClassFailures(young.months, young.daily, CLASS_CHECKS);
   assert.equal(ry.fundMonths.size, 0);
   assert.deepEqual([...ry.fails.keys()].sort(), ["F", "H"]);
-  assert.match(ry.fails.get("H")!.get("2025-03-31")!, /short history, no fitted spread/);
+  assert.match(ry.fails.get("H")!.get("2025-03-31")!, /\(no fitted spread\)/);
   // within the residual tolerance (0.40 %): nothing
   const ok = panel({ F: { "2025-03-31": 0.01 }, H: { "2025-03-31": 0.0135 }, J: { "2025-03-31": 0.0101 } });
   assert.equal(crossClassFailures(ok.months, ok.daily, CLASS_CHECKS).fundMonths.size, 0);
@@ -167,7 +173,7 @@ test("B1: an error in the fund's strongest month cannot bend its own fit (leave-
   const p = panel({ F: mk((b) => b), J: mk((b) => b + 0.0001), I: mk((b) => b - 0.0001), X: mk((b, d) => b - 0.0005 + (d === strong ? 0.01 : 0)) });
   const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
   assert.deepEqual([...out.fails.keys()], ["X"]);
-  assert.match(out.fails.get("X")!.get(strong)!, /X 3\.45% \(expected 2\.4[56]%\)/);
+  assert.match(out.fails.get("X")!.get(strong)!, /X 3\.45% \(expected 2\.4[56]% from the other classes' reference/);
   assert.equal(out.fundMonths.size, 0);
   // the full-sample fit itself stays near the true spread (robust estimator)
   assert.ok(Math.abs(out.fits.X.b - 1) < 0.05 && Math.abs(out.fits.X.a + 0.0005) < 0.0002, JSON.stringify(out.fits.X));
@@ -301,4 +307,45 @@ test("M3: the cut-over month's NAV bridge must equal the class's compounded dail
   const m = monthsFromInception(bad, "2025-01-02", "2026-08-31").find((x) => x.month === "2026-07-31")!;
   assert.equal(m.r, null);
   assert.match(m.issue!, /NAV bridge .* vs compounded daily returns/);
+});
+
+test("leave-class-out reference: the class with the injected error is the one withheld, never the correct fee-free class", () => {
+  // F, A, J track the fund with their fees (slope 1); I is fee-free (slope 1.2): a reference that includes the class
+  // under test would make I look like the outlier when another class is wrong
+  const n = 24;
+  const path = MONTHS.slice(0, n).map((_, i) => fundPath(i));
+  const strongest = MONTHS[path.indexOf(Math.max(...path))];
+  const weakest = MONTHS[path.indexOf(Math.min(...path))];
+  const calm = MONTHS[path.map((x, i) => [Math.abs(x - 0.01), i]).sort((a, b) => a[0] - b[0])[0][1]];
+  const cls: Record<string, (m: number) => number> = { F: (m) => m - 0.0002, A: (m) => m - 0.0009, J: (m) => m - 0.0001, I: (m) => 1.2 * m + 0.0001 };
+  const run = (names: string[], bad: string, month: string, err: number) => {
+    const p = panel(Object.fromEntries(names.map((c) => [c, Object.fromEntries(MONTHS.slice(0, n).map((d, i) => [d, cls[c](path[i]) + (c === bad && d === month ? err : 0)]))])));
+    return crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+  };
+  const cases: [string[], string, string, number, string][] = [
+    [["F", "A", "I"], "F", weakest, -0.006, "F −0.6 % in the weakest month (3 classes)"],
+    [["F", "A", "I", "J"], "F", strongest, 0.008, "F +0.8 % in the strongest month"],
+    [["F", "A", "I", "J"], "J", strongest, 0.008, "J +0.8 % in the strongest month"],
+    [["F", "A", "I", "J"], "F", strongest, 0.006, "F +0.6 % in the strongest month"],
+    [["F", "A", "I", "J"], "A", strongest, 0.006, "A +0.6 % in the strongest month"],
+    [["F", "A", "I", "J"], "J", strongest, 0.006, "J +0.6 % in the strongest month"],
+    [["F", "A", "I", "J"], "F", calm, -0.006, "F −0.6 % in a calm month"],
+    [["F", "A", "I", "J"], "A", calm, -0.006, "A −0.6 % in a calm month"],
+  ];
+  for (const [names, bad, month, err, label] of cases) {
+    const out = run(names, bad, month, err);
+    assert.equal(out.fundMonths.size, 0, label);
+    assert.deepEqual([...out.fails.keys()], [bad], `${label}: ${JSON.stringify([...out.fails].map(([k, v]) => [k, [...v.keys()]]))}`);
+    assert.deepEqual([...out.fails.get(bad)!.keys()], [month], label);
+  }
+  // no error: nothing withheld (the fee-free class's spread is expected)
+  assert.equal(run(["F", "A", "I", "J"], "F", calm, 0).fails.size, 0);
+  // a young class (no fit) with an error is withheld alone and never moves the others' reference
+  const p = panel({
+    ...Object.fromEntries(["F", "A", "I", "J"].map((c) => [c, Object.fromEntries(MONTHS.slice(0, n).map((d, i) => [d, cls[c](path[i])]))])),
+    Y: { [strongest]: cls.F(path[MONTHS.indexOf(strongest)]) + 0.02 },
+  });
+  const y = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+  assert.equal(y.fundMonths.size, 0);
+  assert.deepEqual([...y.fails.keys()], ["Y"]);
 });

@@ -88,11 +88,13 @@ export const CLASS_CHECKS = {
   /**
    * a gap of more than this many calendar days without a NAV per unit ends a run (earlier rows: a previous life of the code)
    * only when a relaunch is corroborated — the NAV per unit jumps by more than relaunchNavJump across the gap, restarts at a
-   * launch price (10.00), or the gap is longer than relaunchLongGapDays; otherwise it is a coverage gap (months withheld)
+   * launch price (10.00) after a gap of more than relaunchResetMinGapDays, or the gap is longer than relaunchLongGapDays;
+   * otherwise it is a coverage gap (months withheld)
    */
   relaunchGapDays: 10,
   relaunchNavJump: 0.05,
   relaunchLongGapDays: 180,
+  relaunchResetMinGapDays: 30,
   /** history requested from the dataplatform for every class (a run starting within relaunchGapDays of it has an unknown inception) */
   historyFrom: "2019-01-01",
   /**
