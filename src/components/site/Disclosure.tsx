@@ -13,7 +13,7 @@
  *    on load, on hashchange and on a same-page link click;
  *  - short blocks (< DISCLOSURE_MIN_CHARS) render as before: no box, no fade, no arrow (`display: contents`).
  */
-import { useCallback, useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { DISCLOSURE_MIN_CHARS, discState, hashId, hashOpens, isCollapsible, textLength, toggleLabel, type Lang } from "./disclosure-logic";
@@ -38,6 +38,7 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
   const clipRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const expandedRef = useRef(false);
+  const pendingShift = useRef(0);
   const uid = useId();
   const bodyId = `disc-${uid.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const state = discState(collapsible, expanded, overflows);
@@ -77,6 +78,12 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
       });
     }
   }, []);
+
+  useLayoutEffect(() => {
+    if (!expanded || !pendingShift.current) return;
+    window.scrollBy({ top: pendingShift.current, behavior: "instant" as ScrollBehavior });
+    pendingShift.current = 0;
+  }, [expanded]);
 
   // does the text overflow the collapsed height? (wide screens: no fade / arrow when it fits; never changes a height)
   useEffect(() => {
@@ -133,9 +140,10 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
     const shift = clip.scrollTop;
     clip.scrollTop = 0;
     if (expandedRef.current) return;
+    // what was shown at the top of the clip is `shift` px lower once open: scroll by that after the render (layout
+    // effect below), so the find match stays where the reader sees it
+    pendingShift.current = shift;
     setOpen(true, false);
-    // what was shown at the top of the clip is now `shift` px lower: keep it (the find match) where the reader sees it
-    window.scrollBy({ top: shift, behavior: "instant" as ScrollBehavior });
   };
   const onFocus = () => { if (!expandedRef.current) setOpen(true, false); };
   // the collapsed box is clickable as a whole (mouse); links inside keep working, a text selection is left alone
