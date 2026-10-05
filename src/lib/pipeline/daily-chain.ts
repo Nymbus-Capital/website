@@ -70,19 +70,23 @@ const monthRows = (rows: DailyRow[], ym: string): DailyRow[] => rows.filter((r) 
 /**
  * CIBC holiday filler: the former administrator wrote a row on some market holidays (Labour Day, Thanksgiving, Christmas,
  * Family Day…) with the NAV per unit carried over and no return. Such a row is not a valuation day: dropped when the date
- * is not a trading day, its return is empty or zero, and its NAV per unit equals the previous row's (or is empty). A
- * holiday row that moves the NAV or carries a return stays (and is judged like any other row).
+ * is not a trading day, its return is empty or zero, its NAV per unit is present and equals the previous row's, and no
+ * other row shares the date. A holiday row that moves the NAV, carries a return or has no NAV stays (judged like any row).
  */
 export function dropHolidayFiller<T extends DailyRow>(rows: T[]): T[] {
   const sorted = [...rows].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const perDay = new Map<string, number>();
+  for (const r of sorted) perDay.set(r.date.slice(0, 10), (perDay.get(r.date.slice(0, 10)) ?? 0) + 1);
   const out: T[] = [];
   let prevNav: number | null = null;
   for (const r of sorted) {
     const d = r.date.slice(0, 10);
     const nav = finite(r.nav_per_share_cad) ? (r.nav_per_share_cad as number) : null;
     const noReturn = r.net_daily_return === null || r.net_daily_return === undefined || r.net_daily_return === 0;
-    const sameNav = nav === null || (prevNav !== null && Math.abs(nav / prevNav - 1) < 1e-9);
-    if (r.source !== "apex" && !isTradingDay(d) && noReturn && sameNav) continue;
+    // the NAV must be shown carried over (non-empty, equal to the previous one); a second row on the same day is a
+    // conflict for the duplicate check, never resolved here
+    const carried = nav !== null && prevNav !== null && Math.abs(nav / prevNav - 1) < 1e-9;
+    if (r.source !== "apex" && !isTradingDay(d) && noReturn && carried && perDay.get(d) === 1) continue;
     out.push(r);
     if (nav !== null) prevNav = nav;
   }
@@ -225,13 +229,14 @@ export function classMonths(rows: DailyRow[], opts: ChainOptions): ChainMonth[] 
     .filter((r) => typeof r.date === "string")
     .map((r) => ({ ...r, date: r.date.slice(0, 10) }))
     .filter((r) => r.date >= opts.navStart && r.date <= opts.endMonth);
+  const ownRows = dropHolidayFiller(own);
   const out: ChainMonth[] = [];
-  const start = classStart(own, opts.navStart);
+  const start = classStart(ownRows, opts.navStart);
   if (!start) return out;
   for (let m = firstComputableMonth(start); m <= opts.endMonth; m = addMonths(m, 1)) {
-    if (m < bridge) out.push(cibcMonth(own, m, start));
-    else if (m === bridge) out.push(bridgeMonth(own, m, cutover));
-    else out.push(apexMonth(own, m));
+    if (m < bridge) out.push(cibcMonth(ownRows, m, start));
+    else if (m === bridge) out.push(bridgeMonth(ownRows, m, cutover));
+    else out.push(apexMonth(ownRows, m));
   }
   return out;
 }

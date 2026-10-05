@@ -390,4 +390,14 @@ test("CIBC holiday filler rows (NAV carried over, no return, market holiday) are
   const moved = [...base, { ...filler, nav_per_share_cad: (base[0].nav_per_share_cad as number) * 1.01 }];
   assert.equal(dropHolidayFiller(moved).some((r) => r.date === "2024-09-02"), true);
   assert.equal(cibcMonth(moved, "2024-09-30", "2024-01-01").r, null);
+  // a filler next to a second row on the same holiday: both stay, the duplicate check withholds the month
+  const dup = [...rows, { ...filler, nav_per_share_cad: 10.1, net_daily_return: 0.01 }];
+  assert.equal(dropHolidayFiller(dup).filter((r) => r.date === "2024-09-02").length, 2);
+  assert.equal(cibcMonth(dup, "2024-09-30", "2024-01-01").r, null);
+  // no NAV on the holiday row: nothing shows it was carried over, it stays (and withholds the month)
+  const noNav = [...base, { ...filler, nav_per_share_cad: null }];
+  assert.equal(dropHolidayFiller(noNav).some((r) => r.date === "2024-09-02"), true);
+  assert.equal(cibcMonth(noNav, "2024-09-30", "2024-01-01").r, null);
+  // an Apex row on a holiday is never dropped
+  assert.equal(dropHolidayFiller([...base, { ...filler, source: "apex" }]).some((r) => r.date === "2024-09-02"), true);
 });
