@@ -414,3 +414,26 @@ test("a fund new to a live site: every series gated (its page goes live without 
   assert.ok(v.autoData.funds[SEB]!.nav, "the rest of the page goes live");
   assert.ok(!validateSite(structuredClone(data), context, null, NOW).classChanges.length);
 });
+
+test("class histories are fetched one at a time (twenty in parallel ran the dataplatform out of memory)", async () => {
+  const base = mockFetch().fetch;
+  let inFlight = 0, peak = 0, histories = 0;
+  const fetchImpl: typeof base = async (input, init) => {
+    const url = String(input);
+    const isHistory = url.includes("/api/performance/nav-timeseries") && url.includes("fundserv=");
+    if (!isHistory) return base(input, init);
+    histories++;
+    inFlight++;
+    peak = Math.max(peak, inFlight);
+    try {
+      await new Promise((r) => setTimeout(r, 5));
+      return await base(input, init);
+    } finally {
+      inFlight--;
+    }
+  };
+  const raw = await fetchAll({ fetchImpl, now: NOW, env: fixtureEnv() });
+  assert.ok(histories >= 5, `class histories fetched: ${histories}`);
+  assert.equal(peak, 1, "never two class histories at once");
+  assert.ok(Object.keys(raw.navHistory ?? {}).length >= 5);
+});

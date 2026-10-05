@@ -40,6 +40,9 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
 
   const today = opts.now.toISOString().slice(0, 10);
   const jobs: Promise<unknown>[] = [];
+  // class histories are heavy for the dataplatform (each one loads its NAV history table): fetched ONE AT A TIME after
+  // the other calls — about twenty in parallel ran the dataplatform out of memory (HTTP 503 while it restarted)
+  const classJobs: { s: DpShort; fundserv: string }[] = [];
   for (const s of shorts) {
     const fs = FUND_SOURCES[keyOf[s]];
     // main-branch contract: short_name + dates only (the answer names its class: checked by the build)
@@ -48,7 +51,8 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
     // each class's inception and compounds the months); the register's other active classes follow below
     if (fs.navStart) {
       for (const k of classSeriesOf(keyOf[s])) {
-        jobs.push((c ? fetchNavHistory(c, s, k.fundserv, CLASS_CHECKS.historyFrom, today) : Promise.resolve(noDp())).then((r) => { navHistory[k.fundserv] = r as never; }));
+        if (c) classJobs.push({ s, fundserv: k.fundserv });
+        else navHistory[k.fundserv] = noDp() as never;
       }
     }
     // NAV of the last weeks (NAV card, the book dates and the net assets), then the Apex book(s) of those days
@@ -72,7 +76,6 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
   // active classes of the fund register that the configuration does not know yet: their history too
   if (c && apexFunds.ok && apexFunds.data) {
-    const extra: Promise<unknown>[] = [];
     for (const s of shorts) {
       const key = keyOf[s];
       if (!FUND_SOURCES[key].navStart) continue;
@@ -80,11 +83,16 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
       const live = apexFunds.data.filter((f) => f.status !== "wound_down");
       const reg = (acct ? live.find((f) => f.apex_account === acct) : undefined) ?? live.find((f) => f.key === PIPELINE_FUNDS[key].apexKey);
       for (const k of classSeriesOf(key, reg?.classes ?? null)) {
-        if (navHistory[k.fundserv]) continue;
-        extra.push(fetchNavHistory(c, s, k.fundserv, CLASS_CHECKS.historyFrom, today).then((r) => { navHistory[k.fundserv] = r; }));
+        if (classJobs.some((j) => j.fundserv === k.fundserv)) continue;
+        classJobs.push({ s, fundserv: k.fundserv });
       }
     }
-    await Promise.all(extra);
+  }
+  if (c) {
+    for (const j of classJobs) {
+      // sequential on purpose (5xx are already retried with backoff by the HTTP client)
+      navHistory[j.fundserv] = await fetchNavHistory(c, j.s, j.fundserv, CLASS_CHECKS.historyFrom, today);
+    }
   }
   // the instrument master of every security held (one pass for all funds and both book dates)
   const books = Object.values(holdings).flatMap((h) => [h?.latest, h?.monthEnd]).filter((b): b is SourceResult<HoldingsBook> => !!b?.ok && !!b.data).map((b) => b.data!);
