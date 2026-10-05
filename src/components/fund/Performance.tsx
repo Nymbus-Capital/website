@@ -11,7 +11,6 @@ import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./t
 import { T, tr } from "./copy";
 import { FL } from "./labels";
 import { Block } from "./Block";
-import { Disclosure } from "@/components/site/Disclosure";
 import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
 import { GrowthChart } from "./charts/GrowthChart";
 import { Heatmap } from "./charts/Heatmap";
@@ -229,10 +228,8 @@ function NotesBlock({ spec, content, perf, lang }: { spec: FundSpec; content: Fu
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   return (
     <Block title={tr(T.perf.notes, lang)} card={false} className="fp-notes" testId="perf-notes">
-      <Disclosure lang={lang} testId="perf-notes-text">
-        {note ? <p className="fxb-text sm">{tr(note, lang)}</p> : null}
-        <p className="fxb-text sm">{tr(gross ? T.disclosure.gross : T.disclosure.net, lang)}</p>
-      </Disclosure>
+      {note ? <p className="fxb-text sm">{tr(note, lang)}</p> : null}
+      <p className="fxb-text sm">{tr(gross ? T.disclosure.gross : T.disclosure.net, lang)}</p>
     </Block>
   );
 }

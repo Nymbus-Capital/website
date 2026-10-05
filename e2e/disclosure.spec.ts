@@ -46,6 +46,13 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   expect(mask).toContain("gradient");
   await expect(clip(b)).not.toHaveAttribute("aria-hidden", /.*/);
   await expect(page.getByTestId("firm-disclaimer")).toContainText(FIRM_END);
+  // the performance qualifiers stay outside the box, plain and fully visible
+  for (const q of ["perf-note", "perf-class"]) {
+    const el = page.getByTestId(q);
+    await expect(el).toBeVisible();
+    expect(await el.evaluate((n) => !!n.closest(".disc"))).toBe(false);
+  }
+  expect(await page.locator(".fxd-sample").evaluate((n) => !!n.closest(".disc"))).toBe(false);
   await expect(page.getByTestId("ftse-notice")).toBeAttached();
   // the opening sentence is inside the visible part
   const firstTop = await b.locator(".disc-inner > p").first().evaluate((p) => p.getBoundingClientRect().top - p.closest(".disc-clip")!.getBoundingClientRect().top);
@@ -115,6 +122,48 @@ test("#disclosure opens the box: on load, on hashchange and from a same-page lin
   await page.goto("/#disclaimers");
   await ready(page);
   await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
+});
+
+test("soft navigation: a client-side URL change to /#disclaimers opens the footer box that stays mounted", async ({ page }) => {
+  // no Next <Link> on the site points at these anchors today; Next syncs native pushState into its router
+  // (usePathname changes), which is what a <Link href="/#disclaimers"> does while the footer stays mounted
+  await page.goto("/strategies");
+  await ready(page);
+  await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "collapsed");
+  await page.evaluate(() => history.pushState(null, "", "/#disclaimers"));
+  await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
+  // closed by the reader, a same-page link to the anchor (the hash already in the URL) opens it again
+  await page.getByTestId("footer-disclosure-toggle").click();
+  await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "collapsed");
+  await page.evaluate(() => { const a = document.createElement("a"); a.href = "#disclaimers"; a.id = "e2e-foot"; a.textContent = "legal"; document.body.prepend(a); });
+  await page.locator("#e2e-foot").click();
+  await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
+});
+
+test("a link inside a collapsed box navigates", async ({ page }) => {
+  // no disclosure text carries a link today: one is added at the top of the box for the test
+  await page.goto(FUND);
+  await ready(page);
+  await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
+  await box(page).locator(".disc-inner").evaluate((inner) => {
+    const p = document.createElement("p"); const a = document.createElement("a");
+    a.href = "/strategies"; a.id = "e2e-inner"; a.textContent = "All strategies"; p.append(a); inner.prepend(p);
+  });
+  await page.locator("#e2e-inner").click();
+  await expect(page).toHaveURL(/\/strategies$/);
+});
+
+test("360 px: no horizontal overflow with the boxes", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  for (const url of [FUND, "/strategies"]) {
+    await page.goto(url);
+    await ready(page);
+    const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, w: window.innerWidth }));
+    expect(o.sw).toBeLessThanOrEqual(o.w);
+    const r = await box(page, url === FUND ? "fund-disclosure" : "footer-disclosure").evaluate((b) => { const x = b.getBoundingClientRect(); return { l: x.left, r: x.right }; });
+    expect(r.l).toBeGreaterThanOrEqual(0);
+    expect(r.r).toBeLessThanOrEqual(360);
+  }
 });
 
 test("find-in-page / focus: scrolling the clipped text into view opens the box", async ({ page }) => {

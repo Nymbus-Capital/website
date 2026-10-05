@@ -11,12 +11,18 @@
 export type Lang = "en" | "fr";
 
 /**
- * Below this many characters a block is a short note: rendered as before, no box, no fade, no arrow. About four lines of
- * the disclosures' small type in the fund-page column on a phone, two to three on a desktop.
+ * Below this many characters (of the ENGLISH text, so both languages behave the same) a block is a short note: rendered
+ * as before, no box, no fade, no arrow. The blocks that use the box today are far above it (fund boilerplate ≥ 1,200,
+ * footer ≈ 3,500), so none can fit the collapsed height even on the widest screen (≈ 7 lines × ≈ 170 characters):
+ * the "fits" state is a fallback only (tests/unit/site/disclosure.test.ts).
  */
-export const DISCLOSURE_MIN_CHARS = 420;
+export const DISCLOSURE_MIN_CHARS = 600;
 
-/** Visible text length of a React node tree (strings and numbers; elements through their children). */
+/**
+ * Visible text length of a React node tree (strings and numbers; elements through their children). Each string is
+ * whitespace-collapsed and trimmed on its own, so separators between elements are not counted: an estimate, used
+ * only for the collapse decision, never for layout.
+ */
 export function textLength(node: unknown): number {
   if (node == null || typeof node === "boolean") return 0;
   if (typeof node === "string") return node.replace(/\s+/g, " ").trim().length;
@@ -27,6 +33,11 @@ export function textLength(node: unknown): number {
     return props ? textLength(props.children) : 0;
   }
   return 0;
+}
+
+/** Total length of a block's English texts (falsy entries = paragraphs not shown). */
+export function enLength(texts: readonly (string | null | undefined | false)[]): number {
+  return texts.reduce((n: number, t) => n + (t ? textLength(t) : 0), 0);
 }
 
 /** True when a block is a "wall of text" that gets the collapsed box. */

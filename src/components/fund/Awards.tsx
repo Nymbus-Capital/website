@@ -15,7 +15,6 @@ import type { PublicFundSpec as FundSpec } from "./types";
 import { T, tr } from "./copy";
 import { RK } from "./rankings-copy";
 import { Block } from "./Block";
-import { Disclosure } from "@/components/site/Disclosure";
 import { MorningstarRatingBlock } from "./Morningstar";
 import { dateLabel, monthLabel, type Lang } from "./lib/format.ts";
 import { FUND_INCEPTION } from "@/content/disclaimers";
@@ -148,10 +147,8 @@ export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; cont
       ) : null}
       {r.fundLibrary.map((e) => <Entry key={`${e.fundserv ?? ""}-${e.classLabel}`} e={e} lang={lang} brand={brand} />)}
       {r.thirdParty.map((e, i) => <ThirdPartyEntry key={`${e.provider}-${i}`} e={e} lang={lang} brand={brand} fundKey={spec.key} />)}
-      <Disclosure lang={lang} testId="awards-notes">
-        {r.thirdParty.length ? <p className="fine aw-note" data-testid="tp-note">{tr(RK.tp.note, lang)}</p> : null}
-        <p className="fine aw-note" data-testid="awards-note">{tr(T.awards.note, lang)}</p>
-      </Disclosure>
+      {r.thirdParty.length ? <p className="fine aw-note" data-testid="tp-note">{tr(RK.tp.note, lang)}</p> : null}
+      <p className="fine aw-note" data-testid="awards-note">{tr(T.awards.note, lang)}</p>
     </div>
   );
 }

@@ -204,11 +204,12 @@ html.menu-open { overflow: hidden; }
 .disc-toggle svg { width: 17px; height: 17px; transition: transform .25s; }
 .disc-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
 .js .disc-toggle[hidden] { display: none; }
+/* fallback when the text fits the collapsed height (no block today, see DISCLOSURE_MIN_CHARS): drawn plain — no border,
+   no background, no fade, no arrow; the padding stays so nothing moves when the measurement lands */
+.js .disc[data-disc="fits"] { border-color: transparent; background: none; }
 @media (prefers-reduced-motion: reduce) { .disc-clip, .disc-toggle svg { transition: none; } }
 @media print {
   .js .disc > .disc-clip { max-height: none !important; overflow: visible; -webkit-mask-image: none !important; mask-image: none !important; cursor: auto; }
   .disc-toggle, .js .disc-toggle { display: none !important; }
   .disc:not([data-disc="plain"]) { border: 0; padding: 0; background: none; }
 }
-/* blocks whose notes were a grid with a gap keep it inside the box */
-:is(.pg-foot, .xs-notes, .sl-case-notes) .disc:not([data-disc="plain"]) .disc-inner { display: grid; gap: 8px; }

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import {
-  DISCLOSURE_MIN_CHARS, discState, hashId, hashOpens, isCollapsible, textLength, toggleLabel,
+  DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel,
 } from "../../../src/components/site/disclosure-logic.ts";
 import { DISC, footerDisclaimers } from "../../../src/content/disclaimers.ts";
 
@@ -20,15 +20,23 @@ test("textLength: strings, numbers and nested elements; nothing for booleans / n
   assert.equal(textLength({ type: "br", props: {} }), 0);
 });
 
-test("collapse threshold: the fund / footer walls collapse, a one-line note does not", () => {
+test("collapse threshold on the English text: the fund boilerplate / footer collapse, the qualifiers never would", () => {
+  assert.equal(DISCLOSURE_MIN_CHARS, 600);
   assert.equal(isCollapsible(DISCLOSURE_MIN_CHARS), true);
   assert.equal(isCollapsible(DISCLOSURE_MIN_CHARS - 1), false);
-  const footer = footerDisclaimers().map((t) => el(t.en));
-  assert.ok(isCollapsible(textLength(footer)));
-  assert.ok(isCollapsible(textLength([el(DISC.returnsNet.en), el(DISC.firm.en)])));
-  // the short gross / net summary shown under the home and strategies tiles stays a plain note
+  assert.equal(enLength(["abc", null, false, undefined, " de "]), 5);
+  // footer: far above the threshold
+  assert.ok(enLength(footerDisclaimers().map((t) => t.en)) > 3000);
+  // fund boilerplate, smallest case (GMV: a strategy without benchmark → firm text + provenance line): over the threshold,
+  // and too tall for the 9 rem (144 px) collapsed height even in the widest column — paragraphs ≤ 920 px at 13.5 px
+  // (≤ ≈ 135 characters a line, 23.6 px a line, 12 px apart) + the provenance row (20 + 16 px rule + one 21 px line) —
+  // so no marginal "fits" box exists today
+  assert.ok(enLength([DISC.firm.en, DISC.provenance.en]) >= DISCLOSURE_MIN_CHARS);
+  const est = Math.ceil(enLength([DISC.firm.en]) / 135) * 23.6 + 12 + 20 + 16 + 21;
+  assert.ok(est > 144 + 20, `estimated ${est} px`);
+  assert.ok(enLength([DISC.fundStandard.en, DISC.benchmark.en, DISC.firm.en, DISC.ftse.en, DISC.provenance.en]) > 2000);
+  // the gross / net summary shown under the tiles stays a plain note
   assert.equal(isCollapsible(textLength(el(`${DISC.summaryNet.en} ${DISC.summaryGross.en}`))), false);
-  assert.equal(isCollapsible(textLength(el(DISC.basisGross.en))), false);
 });
 
 test("state: plain / collapsed / fits / expanded", () => {
@@ -56,23 +64,23 @@ test("hash: only the box's own anchors open it", () => {
   assert.equal(hashOpens(null, ["disclosure"]), false);
 });
 
-test("every disclosure wall of the site goes through <Disclosure>", () => {
-  const uses: [string, RegExp][] = [
-    ["components/fund/Closing.tsx", /<Disclosure lang=\{lang\} anchors=\{\["disclosure"\]\}/],
-    ["components/site/Footer.tsx", /<Disclosure anchors=\{\["disclaimers"\]\}/],
-    ["components/fund/Performance.tsx", /<Disclosure lang=\{lang\} testId="perf-notes-text">/],
-    ["components/fund/Awards.tsx", /<Disclosure lang=\{lang\} testId="awards-notes">/],
-    ["components/site/pages/StrategiesIndex.tsx", /<Disclosure testId="strategies-notes">/],
-    ["components/site/pages/Solutions.tsx", /<Disclosure testId="solutions-notes">/],
-    ["components/site/pages/Approach.tsx", /<Disclosure testId="approach-overlay-notes">/],
-  ];
-  for (const [f, re] of uses) assert.match(read(f), re, f);
-  // the regulatory texts are rendered inside the box (fund page and footer)
+test("only the boilerplate is collapsed: performance qualifiers stay outside the box", () => {
   const closing = read("components/fund/Closing.tsx");
-  assert.ok(closing.indexOf("<Disclosure") < closing.indexOf('data-testid="firm-disclaimer"'));
-  assert.ok(closing.indexOf('data-testid="provenance"') < closing.indexOf("</Disclosure>"));
+  const open = closing.indexOf("<Disclosure");
+  assert.match(closing, /<Disclosure lang=\{lang\} anchors=\{\["disclosure"\]\} testId="fund-disclosure"\n\s+en=\{\[/);
+  for (const q of ['className="fxd-sample"', 'data-testid="perf-note"', 'data-testid="perf-class"', "T.disclosure.gross, lang) : tr(T.disclosure.net"]) {
+    assert.ok(closing.indexOf(q) > 0 && closing.indexOf(q) < open, `${q} before the box`);
+  }
+  for (const b of ["T.disclosure.standard, lang", 'data-testid="firm-disclaimer"', 'data-testid="ftse-notice"', 'data-testid="provenance"']) {
+    assert.ok(closing.indexOf(b) > open && closing.indexOf(b) < closing.indexOf("</Disclosure>"), `${b} inside the box`);
+  }
   const footer = read("components/site/Footer.tsx");
-  assert.ok(footer.indexOf("<Disclosure") < footer.indexOf("footerDisclaimers(") && footer.indexOf("footerDisclaimers(") < footer.indexOf("</Disclosure>"));
+  assert.match(footer, /<Disclosure anchors=\{\["disclaimers"\]\} className="footer-disc-body" testId="footer-disclosure" en=\{texts\.map/);
+  // qualifiers next to figures are never wrapped (performance notes, rankings notes, tile / table summaries)
+  for (const f of ["components/fund/Performance.tsx", "components/fund/Awards.tsx", "components/site/pages/StrategiesIndex.tsx",
+    "components/site/pages/Solutions.tsx", "components/site/home/Sections.tsx"]) {
+    assert.doesNotMatch(read(f), /<Disclosure/, f);
+  }
 });
 
 test("CSS contract: clipped not hidden, collapsed only with JS, open in print", () => {
@@ -80,6 +88,7 @@ test("CSS contract: clipped not hidden, collapsed only with JS, open in print", 
   const block = css.slice(css.indexOf("collapsible disclosures"));
   // the text is clipped (max-height + overflow), never display:none / visibility:hidden
   assert.doesNotMatch(block.replace(/\.disc-toggle[^{]*\{[^}]*\}/g, "").replace(/\.disc\[data-disc="plain"\] \{[^}]*\}/, ""), /display:\s*none|visibility:\s*hidden/);
+  assert.match(block, /\.js \.disc\[data-disc="fits"\] \{ border-color: transparent; background: none; \}/);
   assert.match(block, /\.js \.disc:is\(\[data-disc="collapsed"\], \[data-disc="fits"\]\) > \.disc-clip \{ max-height: var\(--disc-max\); \}/);
   assert.match(block, /@media print \{[\s\S]*max-height: none !important[\s\S]*\.disc-toggle, \.js \.disc-toggle \{ display: none !important; \}/);
   assert.match(block, /@media \(prefers-reduced-motion: reduce\) \{ \.disc-clip, \.disc-toggle svg \{ transition: none; \} \}/);

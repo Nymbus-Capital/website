@@ -14,6 +14,7 @@ import { CONTACT, FUND_LINKS } from "./links";
 export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[] }) {
   const { t, pick } = useTranslation();
   const year = new Date().getFullYear();
+  const texts = footerDisclaimers(firmDisclaimer, hiddenFunds);
   return (
     <footer className="footer" data-testid="site-footer">
       <div className="container">
@@ -62,8 +63,8 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDiscla
         {/* regulatory boilerplate: src/content/disclaimers.ts (compliance review); firm text overridable in the admin */}
         <div className="footer-disc" id="disclaimers" data-testid="footer-disclaimers">
           {/* collapsed to its first lines with a fade; the full text stays in the DOM, "#disclaimers" opens it */}
-          <Disclosure anchors={["disclaimers"]} className="footer-disc-body" testId="footer-disclosure">
-            {footerDisclaimers(firmDisclaimer, hiddenFunds).map((d, i) => <p key={i}>{pick(d)}</p>)}
+          <Disclosure anchors={["disclaimers"]} className="footer-disc-body" testId="footer-disclosure" en={texts.map((d) => d.en || d.fr)}>
+            {texts.map((d, i) => <p key={i}>{pick(d)}</p>)}
           </Disclosure>
         </div>
         <div className="footer-bottom">

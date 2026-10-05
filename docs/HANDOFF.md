@@ -237,6 +237,13 @@ Not yet run against live data, not deployed.
   e2e `e2e/disclosure.spec.ts` (desktop + mobile; screenshots `disc-fund-collapsed|fund-expanded|footer-collapsed-<project>.png`).
   Compliance rows D1–D3 (**D1: regulator / compliance to confirm the prominence of collapsed disclosures**). Not done:
   independent adversarial review (could not be spawned from the sub-agent).
+  **Independent review fixes (same day)**: fund page — the sample notice, performance note, series / basis line and returns
+  paragraph stay outside the box (only the boilerplate after them collapses); Performance notes, awards notes, /strategies,
+  /solutions and /approach notes unwrapped again (qualifiers / short); collapse decided on the **English** length (`en` prop,
+  threshold 600) so both languages match; no box can fit today (unit-tested estimate), "fits" is a plain-looking fallback
+  (no border / fade / arrow, padding kept: no shift); any same-page link to the anchor, popstate and pathname changes (Next
+  soft navigation) open the box; find-in-page limitation (match in the faded strip) documented in D2. e2e: soft navigation,
+  link inside a box, 360 px overflow.
 
 - 2026-10-05 (sub-agent, `feat/disclosures-engines`, independent review fixes; **not merged**): FR legend
   « Mois de baisse des actions » no longer ellipsised on phones (narrow: full width for the down-month key);

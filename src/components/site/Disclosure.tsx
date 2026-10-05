@@ -15,11 +15,17 @@
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
-import { DISCLOSURE_MIN_CHARS, discState, hashId, hashOpens, isCollapsible, textLength, toggleLabel, type Lang } from "./disclosure-logic";
+import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel, type Lang } from "./disclosure-logic";
 
-export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE_MIN_CHARS, className, testId }: {
+export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLOSURE_MIN_CHARS, className, testId }: {
   children: ReactNode;
+  /**
+   * the block's ENGLISH texts: the collapse decision is taken on them so both languages behave the same (French runs
+   * ≈ 20 % longer). Without it, the rendered children are measured.
+   */
+  en?: readonly (string | null | undefined | false)[];
   /** language of the toggle's label (defaults to the site language) */
   lang?: Lang;
   /** ids of enclosing anchors whose URL hash opens the box (e.g. ["disclosure"]) */
@@ -31,7 +37,8 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
 }) {
   const { locale } = useTranslation();
   const lg: Lang = lang ?? (locale === "fr" ? "fr" : "en");
-  const collapsible = isCollapsible(textLength(children), minChars);
+  const collapsible = isCollapsible(en ? enLength(en) : textLength(children), minChars);
+  const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(true); // server default: collapsed with the fade (the common case)
   const boxRef = useRef<HTMLDivElement>(null);
@@ -118,22 +125,34 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
     };
     open(window.location.hash);
     const onHash = () => open(window.location.hash);
-    // a link to the hash already in the URL fires no hashchange
+    // any same-page link whose hash targets the box opens it, whatever the URL holds: a link to the hash already in the
+    // URL fires no hashchange, and a Next <Link> updates the URL with pushState (no hashchange either)
     const onClick = (e: globalThis.MouseEvent) => {
       const a = (e.target as Element | null)?.closest?.("a[href*='#']") as HTMLAnchorElement | null;
-      if (a && a.pathname === window.location.pathname && a.hash && a.hash === window.location.hash) open(a.hash);
+      if (a && a.hash && a.pathname === window.location.pathname) open(a.hash);
     };
     window.addEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onHash);
     document.addEventListener("click", onClick);
-    return () => { window.removeEventListener("hashchange", onHash); document.removeEventListener("click", onClick); };
+    // soft navigation to another page whose URL carries the hash (e.g. a <Link href="/#disclaimers"> while the footer
+    // stays mounted): this effect re-runs on the pathname change; the router may write the URL a frame later
+    const raf = requestAnimationFrame(() => open(window.location.hash));
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("popstate", onHash);
+      document.removeEventListener("click", onClick);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collapsible, anchors.join(" "), setOpen]);
+  }, [collapsible, anchors.join(" "), setOpen, pathname]);
 
   if (!collapsible) {
     return <div className="disc" data-disc="plain" data-testid={testId}>{className ? <div className={className}>{children}</div> : children}</div>;
   }
 
-  // find-in-page / focus / scrollIntoView scroll the clipped part into view: open instead of scrolling inside the box
+  // find-in-page / focus / scrollIntoView scroll the clipped part into view: open instead of scrolling inside the box.
+  // Limitation: a find match inside the faded strip (the last ≈ 3 rem, still on screen though faint) needs no scroll, so
+  // the browser highlights it there without opening the box (docs/compliance-review.md D2).
   const onScroll = () => {
     const clip = clipRef.current;
     if (!clip || clip.scrollTop === 0) return;

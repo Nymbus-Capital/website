@@ -15,7 +15,6 @@ import { STRAT_COPY as S } from "./strategies-copy";
 import { FundTile, RiskScale, SampleTag, fundStyle } from "../home/FundTile";
 import { cell, dayText, filterFunds, monthText, navText, type Filter } from "../home/figures";
 import { HL } from "../home/labels";
-import { Disclosure } from "../Disclosure";
 import "../home/home.css";
 
 const FILTERS: Filter[] = ["all", "fixed-income", "alternatives"];
@@ -119,12 +118,10 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
           </div>
         </Reveal>
         <div className="xs-notes">
-          <Disclosure testId="strategies-notes">
-            {data.sample ? <p className="fine xs-sample"><SampleTag /> {pick(F.sampleLong)}</p> : null}
-            {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
-            {missing ? <p className="fine">{pick(S.dashNote)}</p> : null}
-            {anyFig ? <p className="fine">{pick(S.siNote)}</p> : null}
-          </Disclosure>
+          {data.sample ? <p className="fine xs-sample"><SampleTag /> {pick(F.sampleLong)}</p> : null}
+          {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
+          {missing ? <p className="fine">{pick(S.dashNote)}</p> : null}
+          {anyFig ? <p className="fine">{pick(S.siNote)}</p> : null}
         </div>
       </Section>
 

@@ -17,7 +17,6 @@ import { SampleTag, fundStyle } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
-import { Disclosure } from "../Disclosure";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
@@ -77,10 +76,8 @@ function UseCase({ a }: { a: AudienceCopy }) {
         })}
       </Reveal>
       <div className="sl-case-notes">
-        <Disclosure testId={`solution-notes-${a.key}`}>
-          {a.useCase.note ? <p className="fine">{pick(a.useCase.note)}</p> : null}
-          <p className="fine">{pick(S.useCaseNote)}</p>
-        </Disclosure>
+        {a.useCase.note ? <p className="fine">{pick(a.useCase.note)}</p> : null}
+        <p className="fine">{pick(S.useCaseNote)}</p>
       </div>
     </Reveal>
   );
@@ -161,10 +158,8 @@ export function Solutions({ data }: { data: HomeData }) {
       ))}
 
       <Section tight className="sl-notes">
-        <Disclosure testId="solutions-notes">
-          <p className="fine">{pick(S.minNote)}</p>
-          {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
-        </Disclosure>
+        <p className="fine">{pick(S.minNote)}</p>
+        {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
       </Section>
 
       <CtaBand title={pick(S.ctaTitle)} accent={pick(S.ctaAccent)} text={pick(S.ctaText)}>
