@@ -224,7 +224,7 @@ Not yet run against live data, not deployed.
   that this box can be expanded". New `src/components/site/Disclosure.tsx` (+ pure `disclosure-logic.ts`, unit-tested in
   `tests/unit/site/disclosure.test.ts`; CSS at the end of `kit.css`): blocks of ≥ 420 characters (`DISCLOSURE_MIN_CHARS`, decided
   on the server from the text, so the collapsed box is the SSR default and nothing moves on hydration) are clipped to
-  `--disc-max` (7.6 rem) with a mask fade and a static chevron button (`aria-expanded` / `aria-controls`, "Show full text" /
+  `--disc-max` (9 rem) with a mask fade and a static chevron button (`aria-expanded` / `aria-controls`, "Show full text" /
   « Afficher le texte complet », "Show less" / « Réduire ») centred on the bottom edge; click / Enter / Space / click on the box
   open it (max-height animation, none under reduced motion). If the text fits the collapsed height (wide screens) the box shows
   no fade and no arrow (`data-disc="fits"`, no height change); shorter blocks render as before (`data-disc="plain"`,

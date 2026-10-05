@@ -12,6 +12,8 @@ const FIRM_END = "only where they may lawfully be sold";
 
 const box = (page: Page, id = "fund-disclosure") => page.getByTestId(id);
 const clip = (b: Locator) => b.locator(".disc-clip");
+/** hydrated: the site shell's effect runs after every child effect (the box's hash listener is attached) */
+const ready = (page: Page) => page.waitForFunction(() => (window as unknown as { __nyReady?: boolean }).__nyReady === true);
 const heights = (b: Locator) => clip(b).evaluate((c) => ({ shown: c.getBoundingClientRect().height, full: c.firstElementChild!.getBoundingClientRect().height }));
 
 async function snap(page: Page, b: Locator, name: string, project: string) {
@@ -33,6 +35,7 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   expect(html).toContain(FIRM_END);
 
   await page.goto(FUND);
+  await ready(page);
   const b = box(page);
   await expect(b).toHaveAttribute("data-disc", "collapsed");
   const h = await heights(b);
@@ -78,6 +81,7 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
 
 test("fund page: keyboard (Enter / Space) opens and closes the disclosures", async ({ page }) => {
   await page.goto(FUND);
+  await ready(page);
   const b = box(page);
   const t = page.getByTestId("fund-disclosure-toggle");
   await t.focus();
@@ -90,10 +94,12 @@ test("fund page: keyboard (Enter / Space) opens and closes the disclosures", asy
 
 test("#disclosure opens the box: on load, on hashchange and from a same-page link", async ({ page }) => {
   await page.goto(`${FUND}#disclosure`);
+  await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "expanded");
   await expect(page.locator("#disclosure")).toBeInViewport();
 
   await page.goto(FUND);
+  await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
   await page.evaluate(() => { location.hash = "disclosure"; });
   await expect(box(page)).toHaveAttribute("data-disc", "expanded");
@@ -107,11 +113,13 @@ test("#disclosure opens the box: on load, on hashchange and from a same-page lin
 
   // the footer's own anchor
   await page.goto("/#disclaimers");
+  await ready(page);
   await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
 });
 
 test("find-in-page / focus: scrolling the clipped text into view opens the box", async ({ page }) => {
   await page.goto(FUND);
+  await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
   // what the browser does for a find-in-page match in the clipped part
   await page.getByTestId("ftse-notice").evaluate((el) => el.scrollIntoView({ block: "center" }));
@@ -121,6 +129,7 @@ test("find-in-page / focus: scrolling the clipped text into view opens the box",
 
 test("print shows every disclosure in full, with no fade and no arrow", async ({ page }) => {
   await page.goto(FUND);
+  await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
   await page.emulateMedia({ media: "print" });
   for (const id of ["fund-disclosure", "footer-disclosure"]) {
@@ -135,6 +144,7 @@ test("print shows every disclosure in full, with no fade and no arrow", async ({
 
 test("short notes are not wrapped: no box, no fade, no arrow", async ({ page }) => {
   await page.goto("/");
+  await ready(page);
   const note = page.locator(".hm-note").first();
   await expect(note).toBeAttached();
   expect(await note.evaluate((n) => !!n.closest('.disc:not([data-disc="plain"])'))).toBe(false);
@@ -144,12 +154,14 @@ test("short notes are not wrapped: no box, no fade, no arrow", async ({ page }) 
 
 test("another page (strategies) and French labels", async ({ page, baseURL }, info) => {
   await page.goto("/strategies");
+  await ready(page);
   const f = box(page, "footer-disclosure");
   await expect(f).toHaveAttribute("data-disc", "collapsed");
   await snap(page, f, "footer-collapsed", info.project.name);
 
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto(FUND);
+  await ready(page);
   const t = page.getByTestId("fund-disclosure-toggle");
   await expect(t).toHaveAccessibleName("Afficher le texte complet");
   await t.click();

@@ -130,8 +130,12 @@ export function Disclosure({ children, lang, anchors = [], minChars = DISCLOSURE
   const onScroll = () => {
     const clip = clipRef.current;
     if (!clip || clip.scrollTop === 0) return;
+    const shift = clip.scrollTop;
     clip.scrollTop = 0;
-    if (!expandedRef.current) setOpen(true, false);
+    if (expandedRef.current) return;
+    setOpen(true, false);
+    // what was shown at the top of the clip is now `shift` px lower: keep it (the find match) where the reader sees it
+    window.scrollBy({ top: shift, behavior: "instant" as ScrollBehavior });
   };
   const onFocus = () => { if (!expandedRef.current) setOpen(true, false); };
   // the collapsed box is clickable as a whole (mouse); links inside keep working, a text selection is left alone

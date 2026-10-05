@@ -186,7 +186,7 @@ html.menu-open { overflow: hidden; }
    Full text always in the DOM; only clipped. The collapsed style needs `.js` (set in <head> before first paint):
    without JavaScript, and in print, every box is open with no fade and no arrow. Short notes: data-disc="plain". */
 .disc[data-disc="plain"] { display: contents; }
-.disc:not([data-disc="plain"]) { --disc-max: 7.6rem; --disc-fade: 3.6rem; position: relative; margin: 0 0 18px;
+.disc:not([data-disc="plain"]) { --disc-max: 9rem; --disc-fade: 3.2rem; position: relative; margin: 0 0 18px;
   padding: 16px clamp(16px, 2.4vw, 22px) 22px; border: 1px solid var(--line); border-radius: 16px;
   background: color-mix(in srgb, var(--bg) 82%, transparent); }
 .disc-clip { position: relative; overflow: hidden; transition: max-height .42s var(--ease, cubic-bezier(.2,.7,.2,1)); }
@@ -206,7 +206,7 @@ html.menu-open { overflow: hidden; }
 .js .disc-toggle[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .disc-clip, .disc-toggle svg { transition: none; } }
 @media print {
-  .js .disc > .disc-clip { max-height: none !important; overflow: visible; -webkit-mask-image: none; mask-image: none; cursor: auto; }
+  .js .disc > .disc-clip { max-height: none !important; overflow: visible; -webkit-mask-image: none !important; mask-image: none !important; cursor: auto; }
   .disc-toggle, .js .disc-toggle { display: none !important; }
   .disc:not([data-disc="plain"]) { border: 0; padding: 0; background: none; }
 }
