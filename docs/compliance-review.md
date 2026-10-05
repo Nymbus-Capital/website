@@ -346,7 +346,8 @@ Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on
 - [ ] **Scanning analysis panel** (`src/components/site/fx/scan-copy.ts`, `AnalysisScan`): a canvas animation. It is
   labelled "Illustration only" in EN and FR, uses generic sector labels and generated values (no issuer names, no
   performance, no real holdings), and its counters ("data points", "securities", "signals") count only what the
-  animation itself scans. **New numeric claims to confirm: none about the firm.** The panel title says "Scientists and
+  animation itself scans (**2026-10-04: counters removed at Gabriel's request**, with the caption sentence about them).
+  **New numeric claims to confirm: none about the firm.** The panel title says "Scientists and
   engineers, solving the hard problems in finance" (Gabriel's words). Decision needed: keep or soften any wording that
   could read as "we analyse billions of data points" (the counters run into the millions/billions of illustrative cells).
 - [ ] **Key figures card**: AUM, number of strategies, team size and number of PhDs come from firm content and
@@ -371,14 +372,25 @@ within the multi-strategy. New band right after science at scale (which is uncha
   ("Diversifying engines · down months", no "Multi-strategy"). Values are generated (no weights, no positions); every
   series has **zero drift** (unit test), so neither the blend nor the bond line trends up or down. No axis values, no
   percentages, no dates. "ILLUSTRATION · generated values" is drawn on the canvas; the chip says "Illustration"; the
-  caption says "Our funds’ strategy names; generated values, not actual positions or results." Counters: "Simulated
-  months / down months / engines / independent moves" (FR « Mois simulés », « Mois de baisse simulés », « Moteurs
-  simulés », « Mouvements autonomes simulés »); highlighted lanes: "Highlighted: moves independently" (FR « En
-  surbrillance : évolue indépendamment »). Only the drawing has `role="img"`; the counters are a readable list.
+  caption says "Our funds’ strategy names; generated values, not actual positions or results." Highlighted lanes:
+  "Highlighted: moves independently" (FR « En surbrillance : évolue indépendamment »).
+  **Revised 2026-10-04 (`feat/disclosures-engines`, Gabriel)**: a generated **equity** line is added above the bond line;
+  both are grouped as "Traditional markets" (FR « Marchés traditionnels »; lane labels "Equity markets" / "Bond markets",
+  heatmap "Equities" / "Bonds") above "Our strategies" (FR « Nos stratégies »); down months are now months where the
+  generated equities fall ("Equity down month" / « Mois de baisse des actions »). The counters strip ("Simulated months
+  / …") is **removed** (Gabriel: confusing for investors); the canvas label "Four strategies combined" no longer carries
+  "(generated)" — the canvas watermark, the chip and the caption carry it, and the caption adds "Market lines are not an
+  index." (FR « Les lignes de marché ne sont pas un indice. »). Alt text: "generated equities and bonds fall together while
+  four strategies and a protective overlay move independently".
 - [ ] **Correlation framed as a design objective, around down months** (downside correlation, Gabriel's standing view):
-  lead "Strategies designed to have low correlation in down months."; heatmap titled "Down-month correlation · concept",
-  computed on the generated down months only, colour scale "Opposite · Low · Together" with no numbers; caption "Low
-  down-month correlation is a design objective, not a guarantee." "Uncorrelated" is never used (unit test).
+  lead "Strategies designed to have low correlation in down months. With traditional markets and each other." (FR « Des
+  stratégies conçues pour une faible corrélation en mois de baisse. Avec les marchés traditionnels et entre elles. »,
+  revised 2026-10-04); heatmap titled "Down-month correlation · concept", computed on the generated down months only
+  (equities, bonds and the five lanes since 2026-10-04: the generated equities and bonds move together, each strategy
+  shows low correlation with both and with the others), colour scale "Opposite · Low · Together" with no numbers;
+  caption "Low down-month correlation is a design objective, not a guarantee." "Uncorrelated" is never used (unit test).
+  Point to confirm: the picture contrasts traditional markets with our strategies; it is generic and generated, but it
+  visually suggests that our strategies behave differently from stocks and bonds in down months.
 - [ ] **Overlay claim**: pillar "Overlay — Futures designed to offset part of bond losses." (FR « Des contrats à terme
   conçus pour compenser une partie des pertes obligataires. »), consistent with the fund-page wording ("designed … to
   offset part of bond losses when volatility rises; it may not do so and can lose money"). Caption adds "Overlays and

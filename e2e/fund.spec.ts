@@ -112,8 +112,9 @@ for (const f of FUNDS) {
     await settle(page);
     await shot(page, f.slug, info.project.name);
     // the bottom of the page (other strategies, disclosures, footer) for design review
-    await page.locator("#disclosure").scrollIntoViewIfNeeded();
-    await page.evaluate(() => window.scrollBy(0, -320));
+    // the end of the disclosures and the top of the footer
+    await page.evaluate(() => { const f = document.querySelector("footer")!; window.scrollTo(0, f.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.6); });
+    await page.waitForTimeout(300);
     await page.screenshot({ path: `e2e/screenshots/fund-${f.slug}-bottom-${info.project.name}.png` });
 
     // performance tab: charts mount once shown

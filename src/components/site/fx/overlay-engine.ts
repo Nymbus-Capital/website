@@ -172,7 +172,9 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
       const xa = Math.max(L.x0, xAt(m - 1, t)), xb = m === cur ? L.x1 : xAt(m, t);
       if (xb <= xa) continue;
       ctx!.fillStyle = mo.stress ? "rgba(194,65,12,.11)" : "rgba(194,65,12,.05)";
-      ctx!.fillRect(xa, chartTop, xb - xa, chartBot - chartTop);
+      // one band per group: the strategies header row stays clear
+      ctx!.fillRect(xa, chartTop, xb - xa, L.trad.y + L.trad.h - chartTop);
+      ctx!.fillRect(xa, L.lanes.y + L.head, xb - xa, chartBot - L.lanes.y - L.head);
     }
 
     // ---- values at the visible months (+ the interpolated head at the cursor)

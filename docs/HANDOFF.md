@@ -90,6 +90,10 @@ Not yet run against live data, not deployed.
   figures are computed in the website backend from those endpoints (`docs/architecture.md` § Sources). **Benchmarks:
   FTSE for the bond funds.** **Every Global Minimum Volatility figure names its downside volatility variant**; the
   record of about 10 %/yr is the **6 % downside volatility** variant.
+- 2026-10-04: **fund-page disclosures last** (below the call to action and the other strategies, just above the footer).
+  **No simulated counters on the home animations** (Science at scale, engines band): remove rather than replace, no
+  invented "real metrics". **Engines band = traditional markets (equities above bonds, moving together in down months)
+  vs our strategies (low down-month correlation with both and with each other).**
 
 ## 5. Open items (claim before starting)
 
@@ -199,6 +203,22 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-04 (sub-agent, branch `feat/disclosures-engines` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's two
+  requests. (1) **Fund pages**: the disclosures block (`#disclosure`, text unchanged) is now the last block of every fund /
+  strategy page — after the call to action and the other strategies, immediately above the site footer (`FundPage.tsx`);
+  `e2e/fund.spec.ts` asserts the order on each page and saves `fund-<slug>-bottom-<project>.png`. (2) **Home engines band**:
+  a generated **equity** line above the bond line, grouped under "Traditional markets" / « Marchés traditionnels », with
+  "Our strategies" / « Nos stratégies » below (four strategies, the protective overlay, then the blended line, which moved
+  from the top band to the bottom of the strategies group). Down months now key off equities ("Equity down month"; equities
+  fall deeper than bonds; bonds fall in ≈80 % of them). Down-month correlation: equities–bonds ≈ 0.7; every strategy vs
+  equities, bonds and each other |ρ| < 0.25 over the long run (hedging / overlay mildly negative, ≈ −0.15), unit-tested on
+  three seeds (`tests/unit/site/overlay.test.ts`); heatmap 7×7 with a hairline between the two groups, window 240 months
+  (steadier picture). Counters strip removed from the engines band **and** from Science at scale (its four "Simulated …"
+  counters and the caption sentence about them; fingerprint hashes updated with the reason, nothing else changed). Canvas a
+  little taller instead (desktop clamp 460–600 px, phone 760 px). Lead "Strategies designed to have low correlation in down
+  months. With traditional markets and each other."; caption adds "Market lines are not an index." Compliance rows updated
+  (`docs/compliance-review.md`, engines band). Not done: independent adversarial review (the sub-agent had no way to spawn
+  reviewers).
 - 2026-10-04 (sub-agent, branch `feat/concepts-v6` from `redesign/v3-keynote-live-data`; not merged): Gabriel's two requests.
   (1) Futures "a tiny bit faster, still slower than initially": `DAY_MS` 5000 → 3750, `SETTLE_SHARE` 0.25 kept, new
   `READ_MARGIN` 1.5 (message held ≥ 1.5 reading times; test 3.5–4 s a day). (2) Concept 3 "the first design when the area was
