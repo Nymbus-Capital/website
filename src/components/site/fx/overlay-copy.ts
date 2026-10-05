@@ -1,7 +1,8 @@
 /**
- * overlay-copy.ts — copy of the home "diversifying engines" band (Multi-Strategy Fund strategies, futures overlay),
- * EN + FR. Everything drawn is generated; low correlation in down months is stated as a design objective, never as a
- * fact; the overlay's futures-exposure disclosure is the one used on /approach and /solutions.
+ * overlay-copy.ts — copy of the home "diversifying engines" band (traditional markets vs the Multi-Strategy Fund
+ * strategies and the futures overlay), EN + FR. Everything drawn is generated; low correlation in down months is
+ * stated as a design objective, never as a fact; the overlay's futures-exposure disclosure is the one used on
+ * /approach and /solutions. No counters (removed at Gabriel's request, 2026-10-04).
  */
 import { l, type L } from "../../../lib/i18n/config.ts";
 
@@ -15,21 +16,25 @@ export const OVERLAY_COPY = {
   eyebrow: l("Diversifying engines", "Moteurs de diversification"),
   title: l("Several engines,", "Plusieurs moteurs,"),
   accent: l("designed for down months", "conçus pour les mois de baisse"),
-  lead: l("Strategies designed to have low correlation in down months.", "Des stratégies conçues pour une faible corrélation en mois de baisse."),
+  lead: l(
+    "Strategies designed to have low correlation in down months. With traditional markets and each other.",
+    "Des stratégies conçues pour une faible corrélation en mois de baisse. Avec les marchés traditionnels et entre elles.",
+  ),
   panel: l("Diversifying engines · down months", "Moteurs de diversification · mois de baisse"),
   illustration: l("Illustration", "Illustration"),
   /** accessible name of the animated figure */
   alt: l(
-    "Animated illustration: four strategy lanes and a protective overlay move independently while a generated bond line dips.",
-    "Illustration animée : quatre stratégies et une superposition protectrice évoluent indépendamment pendant qu’une ligne obligataire générée baisse.",
+    "Animated illustration: generated equities and bonds fall together while four strategies and a protective overlay move independently.",
+    "Illustration animée : des actions et des obligations générées baissent ensemble; quatre stratégies et une superposition protectrice évoluent indépendamment.",
   ),
   /** drawn on the canvas itself, so no screenshot of the panel can lose it */
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
   /** labels drawn on the canvas */
   canvas: {
-    bond: l("Bond market (generated)", "Marché obligataire (généré)"),
-    combined: l("Four strategies combined (generated)", "Quatre stratégies combinées (générées)"),
-    down: l("Down month", "Mois de baisse"),
+    trad: l("Traditional markets", "Marchés traditionnels"),
+    strategies: l("Our strategies", "Nos stratégies"),
+    combined: l("Four strategies combined", "Quatre stratégies combinées"),
+    down: l("Equity down month", "Mois de baisse des actions"),
     lit: l("Highlighted: moves independently", "En surbrillance : évolue indépendamment"),
     heat: l("Down-month correlation · concept", "Corrélation en mois de baisse · concept"),
     opposite: l("Opposite", "Inverse"),
@@ -37,15 +42,9 @@ export const OVERLAY_COPY = {
     together: l("Together", "Même sens"),
   },
   caption: l(
-    `Our funds’ strategy names; generated values, not actual positions or results. Low down-month correlation is a design objective, not a guarantee. Overlays and strategies can lose money. ${OVERLAY_EXPOSURE.en}`,
-    `Stratégies de nos fonds; valeurs générées, ni positions ni résultats réels. Faible corrélation en mois de baisse : un objectif, pas une garantie. Les superpositions et les stratégies peuvent subir des pertes. ${OVERLAY_EXPOSURE.fr}`,
+    `Our funds’ strategy names; generated values, not actual positions or results. Market lines are not an index. Low down-month correlation is a design objective, not a guarantee. Overlays and strategies can lose money. ${OVERLAY_EXPOSURE.en}`,
+    `Stratégies de nos fonds; valeurs générées, ni positions ni résultats réels. Les lignes de marché ne sont pas un indice. Faible corrélation en mois de baisse : un objectif, pas une garantie. Les superpositions et les stratégies peuvent subir des pertes. ${OVERLAY_EXPOSURE.fr}`,
   ),
-  counters: {
-    months: l("Simulated months", "Mois simulés"),
-    down: l("Simulated down months", "Mois de baisse simulés"),
-    engines: l("Simulated engines", "Moteurs simulés"),
-    lit: l("Simulated independent moves", "Mouvements autonomes simulés"),
-  },
   trio: [
     { title: l("Protective overlay", "Superposition protectrice"), text: l("Futures designed to offset part of bond losses. They may not.", "Des contrats à terme conçus pour compenser une partie des pertes obligataires. Ils peuvent ne pas y parvenir.") },
     { title: l("Distinct engines", "Moteurs distincts"), text: l("Each engine seeks a different source of return.", "Chaque moteur cherche une source de rendement différente.") },
