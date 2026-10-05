@@ -46,8 +46,7 @@ export interface ClassSeriesShape {
 
 /**
  * Trailing returns of a class (fund side). Fixed periods and YTD from complete months only (a window containing a withheld
- * month, or reaching into the partial first month, is null); YTD only when the year's January is usable and the class
- * started before the year; since inception only when EVERY month from the first one is usable — compounded from the
+ * month, or reaching into the partial first month, is null); YTD only when the year's January is usable and complete; since inception only when EVERY month from the first one is usable — compounded from the
  * inception NAV, annualized from one year on (over calendar days, 365 a year, when the first month is partial, else over months).
  */
 export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
@@ -60,7 +59,8 @@ export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
   const year = c.asOf.slice(0, 4);
   const jan = `${year}-01-31`;
   const ytd = window(full, c.asOf, undefined, `${year}-01-01`);
-  out.YTD = ytd && jan in full && c.firstMonth < jan ? compound(ytd) : null;
+  // a class priced since before the year's first valuation day (its first complete month may be January itself)
+  out.YTD = ytd && jan in full && (c.firstMonth < jan || (c.firstMonth === jan && !c.partialFirst)) ? compound(ytd) : null;
   const si = window(c.all, c.asOf, undefined, c.firstMonth);
   if (si && c.firstMonth in c.all && monthsBetween(c.firstMonth, c.asOf) === si.length) {
     const total = compound(si);
@@ -114,7 +114,8 @@ export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
     issues.push({ key, level: "warn", message: `${label}: ${res.why ?? "no usable daily history"}; returns not shown for this class ("coming soon")` });
     return { entry: null, info, issues };
   }
-  if (res.previousRunEnd) issues.push({ key, level: "info", message: `${label}: relaunched — earlier NAVs up to ${res.previousRunEnd} belong to a previous life of the code; inception ${res.inception}` });
+  if (res.previousRunEnd) issues.push({ key, level: "warn", message: `${label}: relaunch detected (gap after ${res.previousRunEnd}, corroborated by the NAV per unit or the gap length) — earlier NAVs treated as a previous life of the code; inception ${res.inception}: check against the register` });
+  for (const g of res.gaps ?? []) issues.push({ key, level: "warn", message: `${label}: no NAV per unit from ${g.from} to ${g.to} and no relaunch corroborated: a coverage gap, the months it touches are withheld` });
   if (!hasMinHistory(res.inception, asOf, inp.minMonths)) {
     issues.push({ key, level: "info", message: `${label}: inception ${res.inception}, less than ${inp.minMonths} months before ${ym(asOf)}: no performance figure (regulatory minimum)` });
     return { entry: null, info: { ...info, status: "young", minMonths: inp.minMonths }, issues };
@@ -184,6 +185,8 @@ export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
     const fromInception = gStart === firstMonth;
     growthFrom = fromInception ? res.inception : addMonths(gStart, -1);
     const withIndex = !!idx && !(fromInception && partialFirst);
+    // from the inception, the first point is the inception day itself (the series starts at that day's NAV per unit)
+    if (fromInception && partialFirst && pts.length) pts[0] = { ...pts[0], date: res.inception };
     let acc: number | null = 1;
     growth = pts.map((pt, i) => {
       if (!withIndex) return { date: pt.date, fund: pt.value };
@@ -261,7 +264,7 @@ export function performanceProblems(p: Performance, method: "compounded" | "arit
   }
   if (p.growth.length && ms.length) {
     // the growth series starts at its first point (the month-end before its first month)
-    const first = addMonths(p.growth[0].date, 1);
+    const first = shape && p.partialFirstMonth && p.growth[0].date === p.inception ? p.firstMonth : addMonths(p.growth[0].date, 1);
     const rs = p.monthly.filter((m) => m.month >= first).map((m) => m.r);
     const expectedMonths = monthsBetween(first, p.asOf);
     if (shape && rs.length !== expectedMonths) out.push(`growth series from ${first} crosses a withheld month`);

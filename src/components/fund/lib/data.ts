@@ -425,13 +425,15 @@ export function riskWindows(risk: unknown): RiskStats[] {
 /** Periods shown as return badges under the header (6M is not published by the pipeline). */
 export const BADGE_PERIODS: Period[] = ["1M", "3M", "YTD", "1Y", "3Y", "5Y", "10Y", "SI"];
 
-export interface Badge { period: Period; value: number; annualized: boolean }
+/** `value` null: the period is withheld (a month of its window could not be verified), shown "—" */
+export interface Badge { period: Period; value: number | null; annualized: boolean }
 
 /** Return badges: published fund returns only, in display order; none when the admin hid performance. */
-export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string } | null | undefined, hidden = false): Badge[] {
+export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined, hidden = false): Badge[] {
   if (!perf || hidden) return [];
-  return BADGE_PERIODS.filter((p) => isNum(perf.trailing.fund[p])).map((p) => ({
-    period: p, value: perf.trailing.fund[p] as number, annualized: isAnnualized(p, perf.firstMonth, perf.asOf),
+  const held = new Set(withheldPeriods(perf));
+  return BADGE_PERIODS.filter((p) => isNum(perf.trailing.fund[p]) || held.has(p)).map((p) => ({
+    period: p, value: isNum(perf.trailing.fund[p]) ? (perf.trailing.fund[p] as number) : null, annualized: isAnnualized(p, perf.firstMonth, perf.asOf),
   }));
 }
 
@@ -450,7 +452,7 @@ export function withheldPeriods(perf: { trailing: { fund: PeriodMap }; firstMont
   return PERIOD_ORDER.filter((p) => {
     if (isNum(perf.trailing.fund[p])) return false;
     if (p === "SI") return true;
-    if (p === "YTD") return perf.firstMonth! < `${perf.asOf!.slice(0, 4)}-01-01`;
+    if (p === "YTD") return perf.firstMonth! < `${perf.asOf!.slice(0, 4)}-01-01` || (perf.firstMonth!.slice(0, 7) === `${perf.asOf!.slice(0, 4)}-01` && !perf.partialFirstMonth);
     const n = PERIOD_MONTHS[p];
     return n !== undefined && n <= full;
   });

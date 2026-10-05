@@ -82,7 +82,7 @@ test("every active class from its own daily chain since its inception: shown, yo
     assert.deepEqual(Object.keys(ms.performanceByClass!).sort(), ["LDM300", "LDM301", "LDM303", "LDM304"]);
     assert.equal(ms.classInfo!.LDM305.status, "young");
   }
-  assert.ok(data.issues.some((i) => i.level === "info" && /class I \(LDM031\): relaunched — earlier NAVs up to 2022-06-30 belong to a previous life/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "warn" && /class I \(LDM031\): relaunch detected \(gap after 2022-06-30, corroborated/.test(i.message)));
   assert.ok(data.issues.some((i) => i.level === "info" && /class F USD \(LDM011\): USD series: no distribution-aware total returns/.test(i.message)));
   assert.ok(data.issues.some((i) => i.level === "info" && /class A \(LDM021\): inception 2026-03-02, less than 12 months before 2026-08: no performance figure \(regulatory minimum\)/.test(i.message)));
 });
@@ -327,4 +327,41 @@ test("a class not launched yet (no own row up to the as-of): info only, no alert
   assert.equal(data.funds[SEB]!.classInfo!.LDM201.inception, "2026-09-01");
   assert.ok(data.issues.some((i) => i.level === "info" && /class F \(LDM201\): inception 2026-09-01, less than 12 months before 2026-08/.test(i.message)));
   assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)));
+});
+
+test("M2: a month withheld for every class applies to the track record where it comes from its own NAV chain; an official figure stays", async () => {
+  // fixtures: Monthly Income 2022-03 and 2023-09 are withheld for every class; the track record's CIBC months come from its
+  // verified daily chain, so those two months take the analytics history's own figure instead (warned)
+  const { data } = await build();
+  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && i.level === "warn" && /kept in the track record, which takes them from another source than the class NAV chains: 2022-03 \(analytics, instead of the daily NAV chain\), 2023-09 \(analytics/.test(i.message)));
+  // an Apex-era month taken from the chain (monthly-net-returns down) with a bad print in every class: no official figure,
+  // the month is withheld from the track record too (here the newest month: the track record stops before it)
+  const print = (fsv: string): Route => history(fsv, (rows) => rows.map((r) => (r.date === "2026-08-13" ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 } : r.date === "2026-08-14" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 } : r)));
+  const mnrDown: Route = (url) => (url.pathname === "/api/performance/monthly-net-returns" && url.searchParams.get("short_name") === "SEST" ? json({ detail: "x" }, 500) : undefined);
+  const b = await build(mnrDown, ...["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map(print));
+  assert.ok(b.data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from its own daily NAV chain, withheld for every class of the fund: bad valuation print/.test(i.message)), JSON.stringify(b.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+  assert.equal(b.data.funds[MI]!.performance!.asOf, "2026-07-31");
+});
+
+test("new classes are gated even when the previous publication had no performance", async () => {
+  const { classEntryChanges } = await import("../../../src/lib/pipeline/validate.ts");
+  const { data } = await build();
+  const f = data.funds[SEB]!;
+  const prev = { ...f, performance: null, risk: null, performanceByClass: undefined, defaultClass: undefined };
+  const out = classEntryChanges(SEB, prev, f);
+  assert.ok(out.some((x) => /classes published for the first time: .*I \(LDM203\)/.test(x)), JSON.stringify(out));
+  assert.ok(!out.some((x) => /H \(LDM202\)/.test(x)), "the headline itself is not a new class");
+});
+
+test("YTD of a class whose first complete month is January (priced since the previous December's last day); growth starts at the inception day", async () => {
+  const all: Record<string, number> = {};
+  for (let m = "2025-01-31"; m <= "2026-08-31"; m = addMonths(m, 1)) all[m] = 0.003;
+  const t = classFundTrailing({ all, asOf: "2025-08-31", firstMonth: "2025-01-31", inception: "2024-12-31", partialFirst: false });
+  assert.ok(t.YTD != null && Math.abs(t.YTD - (1.003 ** 8 - 1)) < 1e-12);
+  // the same January but partial (launched mid-January): no YTD
+  assert.equal(classFundTrailing({ all, asOf: "2025-08-31", firstMonth: "2025-01-31", inception: "2025-01-15", partialFirst: true }).YTD, null);
+  const { data } = await build();
+  const f = data.funds[MI]!.performanceByClass!.LDM081.performance;
+  assert.equal(f.growth[0].date, f.inception, "a partial first month: the growth series starts at the inception day");
+  assert.deepEqual(performanceProblems(f, "compounded", true), []);
 });

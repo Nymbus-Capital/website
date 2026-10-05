@@ -3586,7 +3586,7 @@
       ],
       "growth": [
        {
-        "date": "2023-10-31",
+        "date": "2023-11-06",
         "fund": 10000
        },
        {
@@ -4117,7 +4117,7 @@
       ],
       "growth": [
        {
-        "date": "2023-07-31",
+        "date": "2023-08-01",
         "fund": 10000
        },
        {
@@ -4312,6 +4312,22 @@
      "inception": null,
      "status": "unavailable"
     },
+    "LDM205": {
+     "fundserv": "LDM205",
+     "display": "A",
+     "currency": "CAD",
+     "inception": "2026-04-01",
+     "status": "young",
+     "minMonths": 12
+    },
+    "LDM206": {
+     "fundserv": "LDM206",
+     "display": "FP",
+     "currency": "CAD",
+     "inception": "2026-07-27",
+     "status": "young",
+     "minMonths": 12
+    },
     "LDM202": {
      "fundserv": "LDM202",
      "display": "H",
@@ -4332,22 +4348,6 @@
      "currency": "CAD",
      "inception": "2023-08-01",
      "status": "shown"
-    },
-    "LDM205": {
-     "fundserv": "LDM205",
-     "display": "A",
-     "currency": "CAD",
-     "inception": "2026-04-01",
-     "status": "young",
-     "minMonths": 12
-    },
-    "LDM206": {
-     "fundserv": "LDM206",
-     "display": "FP",
-     "currency": "CAD",
-     "inception": "2026-07-27",
-     "status": "young",
-     "minMonths": 12
     }
    }
   }

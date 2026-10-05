@@ -22,9 +22,11 @@ export interface HeatmapProps {
   caption: string;
   /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */
   withheld?: Set<string>;
+  /** a partial first month (YYYY-MM) of a series: its cell is marked, with `label` as its title */
+  partial?: { month: string; label: string } | null;
 }
 
-export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption, withheld }: HeatmapProps) {
+export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption, withheld, partial = null }: HeatmapProps) {
   const held = useMemo(() => new Set([...(withheld ?? [])].map((m) => m.slice(0, 7))), [withheld]);
   const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
@@ -68,10 +70,12 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption,
                     }
                     if (r == null) return <td key={m}><div className="c none" aria-hidden="true" /></td>;
                     const txt = fmt(r, { pct: true, decimals: 1, lang });
+                    const isPartial = !!partial && partial.month === `${row.year}-${String(m + 1).padStart(2, "0")}`;
                     return (
-                      <td key={m}>
-                        <div className={`c ${c.tone}${c.strong ? " strong" : ""}`} style={{ "--a": c.alpha } as CSSProperties} tabIndex={0} data-cell={ri + m}
-                          aria-label={`${monthName(m + 1, lang)} ${row.year}: ${fmt(r, { pct: true, decimals: 2, lang })}`}
+                      <td key={m} data-testid={isPartial ? "heat-partial" : undefined}>
+                        <div className={`c ${c.tone}${c.strong ? " strong" : ""}${isPartial ? " hm-partial" : ""}`} style={{ "--a": c.alpha } as CSSProperties} tabIndex={0} data-cell={ri + m}
+                          title={isPartial ? partial!.label : undefined}
+                          aria-label={`${monthName(m + 1, lang)} ${row.year}: ${fmt(r, { pct: true, decimals: 2, lang })}${isPartial ? ` (${partial!.label})` : ""}`}
                           onPointerEnter={(e) => show(e.currentTarget, row.year, m, r)} onFocus={(e) => show(e.currentTarget, row.year, m, r)} onBlur={() => setTip(null)}>
                           <span className="v" aria-hidden="true">{txt.replace(/ ?%/, "")}</span>
                         </div>

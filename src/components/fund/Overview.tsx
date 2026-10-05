@@ -74,7 +74,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
-                        <td><span className="fx-long">{periodLong(r.period, perf, lang)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
+                        <td><span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
                         <td className={r.fund != null && r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
                         {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                         {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}
@@ -190,7 +190,7 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
               <th scope="col">{tr(T.facts.series, lang)}</th><th scope="col">{tr(T.facts.fundserv, lang)}</th>
               {showType ? <th scope="col">{tr(T.classes.type, lang)}</th> : null}
               <th scope="col">{tr(T.facts.currency, lang)}</th>
-              {showInception ? <th scope="col">{tr(T.classes.inception, lang)}</th> : null}
+              {showInception ? <th scope="col">{tr(T.classes.launch, lang)}</th> : null}
               <th scope="col">{tr(T.facts.nav, lang)}</th><th scope="col">{tr(T.facts.change, lang)}</th><th scope="col">{tr(T.facts.date, lang)}</th>
             </tr>
           </thead>
@@ -205,7 +205,7 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
                   <td data-label={tr(T.facts.fundserv, lang)}><code>{c.fundserv}</code></td>
                   {showType ? <td data-label={tr(T.classes.type, lang)} data-testid={`class-type-cell-${c.fundserv}`}>{type === "none" ? <span aria-hidden="true">—</span> : <ClassTypeBadge type={type} lang={lang} testId={`class-type-${c.fundserv}`} />}</td> : null}
                   <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
-                  {showInception ? <td data-label={tr(T.classes.inception, lang)} data-testid={`class-inception-${c.fundserv}`}>{inception(c.fundserv) ? dateLabel(inception(c.fundserv), lang) : "—"}</td> : null}
+                  {showInception ? <td data-label={tr(T.classes.launch, lang)} data-testid={`class-inception-${c.fundserv}`}>{inception(c.fundserv) ? dateLabel(inception(c.fundserv), lang) : "—"}</td> : null}
                   <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : "—"}</td>
                   <td data-label={tr(T.facts.change, lang)} className={dir === "up" ? "pos" : dir === "down" ? "neg" : undefined}>
                     {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : "—"}

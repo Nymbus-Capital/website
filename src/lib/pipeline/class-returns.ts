@@ -4,11 +4,11 @@
  * dataplatform … You can find the inception date of each class also by looking at the first date when there are prices
  * for that class"). Pure, dependency-free (Node type stripping).
  *
- *  - Inception: the first NAV-per-unit date of the class's CURRENT continuous run. A gap of more than
- *    `relaunchGapDays` calendar days without a NAV per unit ends a run: earlier rows are a previous life of the code (a
- *    closed and relaunched class, a reused fund code). The fund's `floor` (first day of its own book) cuts a run reaching
- *    back before it. The first row after a gap may carry a return relative to the old life: the inception day's own
- *    return is never used — the first (partial) month runs from the inception NAV per unit.
+ *  - Inception: the first NAV-per-unit date of the class's CURRENT run. A gap of more than `relaunchGapDays` calendar days
+ *    without a NAV per unit ends a run when a relaunch is corroborated (NAV jump or reset, or a very long gap): earlier rows
+ *    are a previous life of the code; an uncorroborated gap is a coverage gap (its months withheld). The fund's `floor`
+ *    (first day of its own book) cuts a run reaching back before it. The first row after a gap may carry a return relative
+ *    to the old life: the inception day's own return is never used — the first (partial) month runs from the inception NAV.
  *  - Months: CIBC months compound the stored daily net returns (`legacy_stored`), Apex months the distribution-aware
  *    returns (`apex_distribution_aware`, continuous `return_start_date` chain), the cut-over month uses the NAV bridge
  *    (daily-chain.ts) — every valuation day of the month (after the inception day) present once, CAD, else the month is
@@ -16,17 +16,19 @@
  *  - Known source defects withhold months (never repaired, never filled from another class):
  *    a. bad valuation print: two consecutive daily returns of opposite sign, both ≥ `spikeMin`, combined ≤ `spikeRevert` ×
  *       the smaller → both months, every class of the fund;
- *    b. cross-class consistency of a complete month: each class's expected return is a_c + b_c × m (m = the fund's median of
- *       complete months; a_c, b_c fitted per class over the months where ≥ 3 classes are complete — a fee spread that
- *       scales with the month, e.g. a class without a performance fee, is expected); a residual beyond `residualMax` is a
- *       breach. A breach in a month that holds a distribution / price-adjustment day in any class (stored return ≠ NAV
- *       ratio − 1 by more than `adjustmentMin`) → the month for EVERY class (the majority may be the wrong side); else a
- *       single breaching class whose ≥ 2 other complete classes are consistent → that class only; else every class.
- *       A partial inception month (outside the median and the fit) is compared with the other classes over its own days
- *       (band max(`crossAbs`, `crossRel` × |median|)) and withheld alone when it deviates;
+ *    b. cross-class consistency of a complete month (published values): each class's expected return is a_c + b_c × m
+ *       (m = the fund's median of complete months; a_c, b_c by Theil–Sen over the months where ≥ 3 classes are complete,
+ *       leaving the month under test out); a residual beyond `residualMax` is a breach. A breach of a fitted class in a month
+ *       holding a distribution / price-adjustment day in any class (stored return ≠ NAV ratio − 1 by more than
+ *       `adjustmentMin`) → the month for EVERY class (the majority may be the wrong side); else a single breaching class
+ *       whose ≥ 2 other complete classes are consistent → that class only; else every class. A class too young for a fit is
+ *       withheld alone. A partial inception month (outside the median and the fit) is compared with the other classes over
+ *       its own days (band max(`crossAbs`, `crossRel` × |median|)): withheld alone, or every class in an adjustment month;
+ *    The newest month waits for one valuation day after its last day (a reversed month-end print), and the cut-over month's
+ *    NAV bridge must equal the class's compounded daily returns;
  *    c. missing / duplicate days, invalid returns, another return method (above).
  */
-import { apexMonth, bridgeMonth, cibcMonth, CUTOVER, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
+import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
 
@@ -42,6 +44,8 @@ export interface ClassCheckConfig {
   fitSlopeMin: number;
   fitSlopeMax: number;
   fitInterceptMax: number;
+  relaunchNavJump: number;
+  relaunchLongGapDays: number;
 }
 
 export interface ClassInput {
@@ -72,8 +76,10 @@ export interface ClassResult {
   /** "ok": months computed (some may be withheld); "currency": non-CAD, no month; "unavailable": no history / inception */
   status: "ok" | "currency" | "unavailable";
   why: string | null;
-  /** last day of an earlier run of the code (the class was relaunched), for the admin */
+  /** last day of an earlier run of the code (the class was relaunched, corroborated), for the admin */
   previousRunEnd: string | null;
+  /** coverage gaps (> relaunchGapDays without a NAV, no relaunch corroborated) inside the current run */
+  gaps?: { from: string; to: string }[];
   months: ClassMonthResult[];
 }
 
@@ -106,26 +112,45 @@ export function normalizeRows(rows: DailyRow[]): DailyRow[] {
 }
 
 /**
- * Inception of a class: the first NAV-per-unit date of its current continuous run (rows up to `end`). `floor` cuts a run
- * reaching back before it. `requestedFrom`: the first day asked from the source — a run starting within `gapDays` of it
- * (and not cut by the floor) may have begun earlier: inception unknown.
+ * Inception of a class: the first NAV-per-unit date of its current run (rows up to `end`). A gap of more than `gapDays`
+ * ends a run only when a relaunch is corroborated: the NAV per unit jumps across the gap by more than `navJump`, restarts at
+ * a launch price (10.00), or the gap is longer than `longGapDays` (the class was closed). An uncorroborated gap is a
+ * coverage gap inside the run (`gaps`: its months lack valuation days and are withheld). `floor` cuts a run reaching back
+ * before it. `requestedFrom`: the first day asked from the source — a run starting within `gapDays` of it (and not cut by
+ * the floor) may have begun earlier: inception unknown.
  */
-export function currentRun(rows: DailyRow[], opts: { gapDays: number; end?: string; floor?: string | null; requestedFrom?: string | null }): { inception: string | null; previousRunEnd: string | null; why: string | null } {
-  const dates = [...new Set(normalizeRows(rows).filter((r) => finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0 && (!opts.end || r.date <= opts.end)).map((r) => r.date))];
-  if (!dates.length) return { inception: null, previousRunEnd: null, why: "no NAV per unit" };
+export function currentRun(rows: DailyRow[], opts: { gapDays: number; end?: string; floor?: string | null; requestedFrom?: string | null; navJump?: number; longGapDays?: number }): { inception: string | null; previousRunEnd: string | null; why: string | null; gaps: { from: string; to: string }[] } {
+  const nav = new Map<string, number>();
+  for (const r of normalizeRows(rows)) if (finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0 && (!opts.end || r.date <= opts.end) && !nav.has(r.date)) nav.set(r.date, r.nav_per_share_cad as number);
+  const dates = [...nav.keys()];
+  const gaps: { from: string; to: string }[] = [];
+  if (!dates.length) return { inception: null, previousRunEnd: null, why: "no NAV per unit", gaps };
+  const jump = opts.navJump ?? 0.05;
+  const long = opts.longGapDays ?? 180;
+  const relaunch = (before: string, after: string): boolean => {
+    const x = nav.get(before)!, y = nav.get(after)!;
+    return dayDiff(before, after) > long || Math.abs(y / x - 1) > jump || Math.abs(y - 10) <= 0.01;
+  };
   let i = dates.length - 1;
-  while (i > 0 && dayDiff(dates[i - 1], dates[i]) <= opts.gapDays) i--;
+  while (i > 0) {
+    if (dayDiff(dates[i - 1], dates[i]) > opts.gapDays) {
+      if (relaunch(dates[i - 1], dates[i])) break;
+      gaps.unshift({ from: dates[i - 1], to: dates[i] });
+    }
+    i--;
+  }
   const previousRunEnd = i > 0 ? dates[i - 1] : null;
-  let start = dates[i];
+  const start = dates[i];
+  const inRun = (g: { from: string }): boolean => g.from >= start;
   if (opts.floor && start < opts.floor) {
     const next = dates.find((d) => d >= opts.floor!);
-    if (!next) return { inception: null, previousRunEnd, why: `no NAV per unit on or after the fund's first day ${opts.floor}` };
-    return { inception: next, previousRunEnd, why: null };
+    if (!next) return { inception: null, previousRunEnd, why: `no NAV per unit on or after the fund's first day ${opts.floor}`, gaps: [] };
+    return { inception: next, previousRunEnd, why: null, gaps: gaps.filter((g) => g.from >= next) };
   }
   if (i === 0 && opts.requestedFrom && dayDiff(opts.requestedFrom, start) <= opts.gapDays) {
-    return { inception: null, previousRunEnd, why: `the history read starts at ${opts.requestedFrom} and the class is priced from its first day: inception before it unknown` };
+    return { inception: null, previousRunEnd, why: `the history read starts at ${opts.requestedFrom} and the class is priced from its first day: inception before it unknown`, gaps: gaps.filter(inRun) };
   }
-  return { inception: start, previousRunEnd, why: null };
+  return { inception: start, previousRunEnd, why: null, gaps: gaps.filter(inRun) };
 }
 
 /** A partial month (the inception month): the days after the inception day, compounded from the inception NAV per unit. */
@@ -167,7 +192,19 @@ export function monthsFromInception(rows: DailyRow[], inception: string, endMont
     else if (m === bridge) {
       if (inception > cutover) cm = partialMonth(own, m, days, inception, "apex");
       else if (partial) cm = { month: m, status: "unavailable", r: null, source: "bridge", issue: "launched in the cut-over month before the switch to Apex: no consistent chain" };
-      else cm = bridgeMonth(own, m, cutover);
+      else {
+        cm = bridgeMonth(own, m, cutover);
+        if (cm.status === "ready" && cm.r !== null) {
+          // the NAV-ratio bridge is a price return: it must equal the class's own compounded daily returns (no distribution
+          // or adjustment inside the month), else the month is not a total return
+          const byDay = new Map<string, number>();
+          for (const r of own) if (ym(r.date) === ym(m) && validReturn(r.net_daily_return) && (r.net_return_method === "legacy_stored" || r.net_return_method === "apex_distribution_aware")) byDay.set(r.date, r.net_daily_return as number);
+          const miss = all.filter((d) => !byDay.has(d));
+          const comp = miss.length ? null : prod(all.map((d) => byDay.get(d)!)) - 1;
+          if (comp === null) cm = { ...cm, status: "unavailable", r: null, issue: `cut-over month: daily returns missing to confirm the NAV bridge (${miss.slice(0, 3).join(", ")})` };
+          else if (Math.abs((1 + cm.r) / (1 + comp) - 1) > BRIDGE_TOLERANCE) cm = { ...cm, status: "unavailable", r: null, issue: `cut-over month: NAV bridge ${pct(cm.r)} vs compounded daily returns ${pct(comp)} (beyond the bridge tolerance: a distribution or adjustment inside the month)` };
+        }
+      }
     } else cm = partial ? partialMonth(own, m, days, inception, "apex") : apexMonth(own, m);
     out.push({ ...cm, partial, days });
   }
@@ -225,40 +262,36 @@ export function adjustmentDays(rows: DailyRow[], inception: string, min: number,
 
 export interface ClassFit { a: number; b: number; n: number; fallback: boolean }
 
-function ols(pts: { m: number; r: number }[]): { a: number; b: number } {
-  const n = pts.length;
-  const mx = pts.reduce((s, p) => s + p.m, 0) / n;
-  const my = pts.reduce((s, p) => s + p.r, 0) / n;
-  const sxx = pts.reduce((s, p) => s + (p.m - mx) ** 2, 0);
-  const b = sxx > 0 ? pts.reduce((s, p) => s + (p.m - mx) * (p.r - my), 0) / sxx : 1;
-  return { a: my - b * mx, b };
-}
+type FitCfg = Pick<ClassCheckConfig, "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">;
 
-/** a_c, b_c of r ≈ a + b·m: OLS, one trimming pass (residuals beyond residualMax), b and a clipped; fallback a=0, b=1 */
-export function fitClass(pts: { m: number; r: number }[], cfg: Pick<ClassCheckConfig, "residualMax" | "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">): ClassFit {
+/**
+ * a, b of r ≈ a + b·m by Theil–Sen (median of the pairwise slopes, intercept = median of r − b·m): robust to the outlier
+ * months it is meant to find. b clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax; fewer than fitMinMonths
+ * points → a = 0, b = 1 (`fallback`).
+ */
+export function fitClass(pts: { m: number; r: number }[], cfg: FitCfg): ClassFit {
   if (pts.length < cfg.fitMinMonths) return { a: 0, b: 1, n: pts.length, fallback: true };
+  const slopes: number[] = [];
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const dm = pts[j].m - pts[i].m;
+    if (Math.abs(dm) > 1e-9) slopes.push((pts[j].r - pts[i].r) / dm);
+  }
   const clip = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
-  const fit = (ps: { m: number; r: number }[]): { a: number; b: number } => {
-    const f = ols(ps);
-    const b = clip(f.b, cfg.fitSlopeMin, cfg.fitSlopeMax);
-    // with the slope clipped, the intercept is re-estimated for it
-    const a = clip(ps.reduce((s, p) => s + (p.r - b * p.m), 0) / ps.length, -cfg.fitInterceptMax, cfg.fitInterceptMax);
-    return { a, b };
-  };
-  let f = fit(pts);
-  const kept = pts.filter((p) => Math.abs(p.r - (f.a + f.b * p.m)) <= cfg.residualMax);
-  if (kept.length >= cfg.fitMinMonths && kept.length < pts.length) f = fit(kept);
-  return { ...f, n: pts.length, fallback: false };
+  const b = clip(slopes.length ? median(slopes) : 1, cfg.fitSlopeMin, cfg.fitSlopeMax);
+  const a = clip(median(pts.map((p) => p.r - b * p.m)), -cfg.fitInterceptMax, cfg.fitInterceptMax);
+  return { a, b, n: pts.length, fallback: false };
 }
 
 /**
- * (b) cross-class consistency of each month (see the module comment). `adjustments`: month → a distribution /
- * price-adjustment day of any class of the fund. Returns the months withheld for every class (`fundMonths`), the
- * class-months withheld alone (`fails`), the class-months with nobody to compare (`unchecked`) and each class's fit.
+ * (b) cross-class consistency of each month (see the module comment), on the PUBLISHED monthly values. Each class-month
+ * is tested against a fit made WITHOUT that month (leave-one-out: an error in the fund's strongest month cannot bend its
+ * own expectation). `adjustments`: month → a distribution / price-adjustment day of any class of the fund. Returns the
+ * months withheld for every class (`fundMonths`), the class-months withheld alone (`fails`), the class-months with nobody
+ * to compare (`unchecked`) and each class's full-sample fit (for the provenance).
  */
 export function crossClassFailures(
   months: Record<string, { month: string; r: number | null; days: string[]; partial?: boolean }[]>, daily: Record<string, Map<string, number>>,
-  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax" | "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">,
+  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax"> & FitCfg,
   adjustments: Map<string, string> = new Map(),
 ): { fundMonths: Map<string, string>; fails: Map<string, Map<string, string>>; unchecked: { fundserv: string; month: string }[]; fits: Record<string, ClassFit> } {
   const fundMonths = new Map<string, string>();
@@ -283,39 +316,49 @@ export function crossClassFailures(
       byMonth.set(cm.month, list);
     }
   }
-  // complete months: values and the fund median
+  // complete months: published values and the fund median
   const full = new Map<string, { fsv: string; v: number }[]>();
   const med = new Map<string, number>();
   for (const [month, list] of byMonth) {
-    const xs = list.filter((x) => !x.partial).map((x) => ({ fsv: x.fsv, v: over(x.fsv, x.days) ?? x.r }));
+    const xs = list.filter((x) => !x.partial).map((x) => ({ fsv: x.fsv, v: x.r }));
     full.set(month, xs);
     if (xs.length) med.set(month, median(xs.map((x) => x.v)));
   }
-  // each class's expected spread to the median, over the months where at least 3 classes are complete
-  const fits: Record<string, ClassFit> = {};
+  // each class's points: the months where at least 3 classes are complete
+  const points: Record<string, { month: string; m: number; r: number }[]> = {};
   for (const fsv of Object.keys(months)) {
-    const pts: { m: number; r: number }[] = [];
-    for (const [month, xs] of full) if (xs.length >= 3) { const x = xs.find((y) => y.fsv === fsv); if (x) pts.push({ m: med.get(month)!, r: x.v }); }
-    fits[fsv] = fitClass(pts, cfg);
+    points[fsv] = [];
+    for (const [month, xs] of full) if (xs.length >= 3) { const x = xs.find((y) => y.fsv === fsv); if (x) points[fsv].push({ month, m: med.get(month)!, r: x.v }); }
   }
+  const fits: Record<string, ClassFit> = Object.fromEntries(Object.keys(months).map((fsv) => [fsv, fitClass(points[fsv], cfg)]));
+  const looFit = (fsv: string, month: string): ClassFit => {
+    const ps = points[fsv];
+    return ps.some((p) => p.month === month) ? fitClass(ps.filter((p) => p.month !== month), cfg) : fits[fsv];
+  };
   for (const month of [...byMonth.keys()].sort()) {
     const list = byMonth.get(month)!;
     const xs = full.get(month)!;
+    const adj = adjustments.get(month);
+    let all: string | null = null;
+    const alone: { fsv: string; why: string }[] = [];
     if (xs.length >= 2) {
       const m = med.get(month)!;
-      const res = xs.map((x) => ({ ...x, e: x.v - (fits[x.fsv].a + fits[x.fsv].b * m) }));
+      const res = xs.map((x) => { const f = looFit(x.fsv, month); return { ...x, f, e: x.v - (f.a + f.b * m) }; });
       const out = res.filter((x) => Math.abs(x.e) > cfg.residualMax + 1e-12);
-      if (out.length) {
-        const desc = `${out.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)})`).join(", ")}; median ${pct(m)} of ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
-        const adj = adjustments.get(month);
-        if (adj) fundMonths.set(month, `classes disagree in a month with a distribution / price-adjustment day (${adj}): ${desc}; which class is right cannot be told`);
-        else if (out.length === 1 && xs.length - 1 >= 2) fail(out[0].fsv, month, `deviates from the fund's other classes, which agree with each other: ${desc}`);
-        else fundMonths.set(month, `classes disagree with no consistent majority: ${desc}; which class is right cannot be told`);
+      const desc = (ys: typeof out): string => `${ys.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)}${x.f.fallback ? `, ${x.f.n} month(s) of history: no fit` : ""})`).join(", ")}; median ${pct(m)} of ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
+      // a class with too short a history for a fit is withheld alone, never the fund
+      const short = out.filter((x) => x.f.fallback);
+      const fitted = out.filter((x) => !x.f.fallback);
+      for (const x of short) alone.push({ fsv: x.fsv, why: `deviates from the fund's other classes (short history, no fitted spread): ${desc([x])}` });
+      if (fitted.length) {
+        const others = res.filter((x) => !out.includes(x));
+        if (adj) all = `classes disagree in a month with a distribution / price-adjustment day (${adj}): ${desc(fitted)}; which class is right cannot be told`;
+        else if (fitted.length === 1 && others.length >= 2) alone.push({ fsv: fitted[0].fsv, why: `deviates from the fund's other classes, which agree with each other: ${desc(fitted)}` });
+        else all = `classes disagree with no consistent majority: ${desc(fitted)}; which class is right cannot be told`;
       }
     } else if (xs.length === 1) unchecked.push({ fundserv: xs[0].fsv, month });
     for (const x of list.filter((y) => y.partial)) {
-      const own = over(x.fsv, x.days) ?? x.r;
-      const vals = [{ fsv: x.fsv, v: own }];
+      const vals = [{ fsv: x.fsv, v: x.r }];
       for (const p of Object.keys(daily)) {
         if (p === x.fsv) continue;
         const v = over(p, x.days);
@@ -324,8 +367,14 @@ export function crossClassFailures(
       if (vals.length < 2) { unchecked.push({ fundserv: x.fsv, month }); continue; }
       const md = median(vals.map((y) => y.v));
       const thr = Math.max(cfg.crossAbs, cfg.crossRel * Math.abs(md));
-      if (Math.abs(own - md) > thr + 1e-12) fail(x.fsv, month, `first (partial) month deviates from the fund's other classes over the same days: ${pct(own)} vs median ${pct(md)} of ${vals.length} classes (tolerance ${pct(thr)})`);
+      if (Math.abs(x.r - md) <= thr + 1e-12) continue;
+      const why = `first (partial) month deviates from the fund's other classes over the same days: ${pct(x.r)} vs median ${pct(md)} of ${vals.length} classes (tolerance ${pct(thr)})`;
+      // in a month with a distribution / adjustment day, which side is right cannot be told: every class
+      if (adj && !all) all = `${x.fsv} ${why}, in a month with a distribution / price-adjustment day (${adj}): which class is right cannot be told`;
+      else alone.push({ fsv: x.fsv, why });
     }
+    if (all) fundMonths.set(month, all);
+    else for (const x of alone) fail(x.fsv, month, x.why);
   }
   return { fundMonths, fails, unchecked, fits };
 }
@@ -340,13 +389,15 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
   const raw: Record<string, (ChainMonth & { partial: boolean; days: string[] })[]> = {};
   const daily: Record<string, Map<string, number>> = {};
   const adjustments = new Map<string, string>();
+  const spikeDaily: Record<string, Map<string, number>> = {};
+  const newestUnchecked = new Set<string>();
   for (const k of inputs) {
     const base: ClassResult = { fundserv: k.fundserv, display: k.display, currency: k.currency, inception: null, status: "unavailable", why: null, previousRunEnd: null, months: [] };
     if (!k.rows) { classes.push({ ...base, why: `daily history unavailable (${k.error ?? "not fetched"})` }); continue; }
     const rows = normalizeRows(k.rows);
-    const run = currentRun(rows, { gapDays: cfg.relaunchGapDays, floor: opts.floor, requestedFrom: opts.requestedFrom });
+    const run = currentRun(rows, { gapDays: cfg.relaunchGapDays, floor: opts.floor, requestedFrom: opts.requestedFrom, navJump: cfg.relaunchNavJump, longGapDays: cfg.relaunchLongGapDays });
     const currency = k.currency ?? rows.find((r) => r.date >= (run.inception ?? ""))?.currency ?? null;
-    const res: ClassResult = { ...base, currency, inception: run.inception, previousRunEnd: run.previousRunEnd, why: run.why };
+    const res: ClassResult = { ...base, currency, inception: run.inception, previousRunEnd: run.previousRunEnd, why: run.why, gaps: run.gaps };
     if (!run.inception) { classes.push(res); continue; }
     if (currency && currency !== "CAD") {
       classes.push({ ...res, status: "currency", why: `${currency} series: no distribution-aware total returns in the source` });
@@ -354,13 +405,19 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
     }
     raw[k.fundserv] = monthsFromInception(rows, run.inception, endMonth, opts.cutover);
     daily[k.fundserv] = dailyReturns(rows, run.inception, endMonth);
+    // the bad-print check reads every row fetched (to today): a print on the newest month's last day reversed on the next
+    // valuation day must be seen; the newest month waits for that next day
+    spikeDaily[k.fundserv] = dailyReturns(rows, run.inception);
+    const lastDay = tradingDays(`${ym(endMonth)}-01`, endMonth).at(-1);
+    if (lastDay && !spikeDaily[k.fundserv].size) newestUnchecked.add(k.fundserv);
+    else if (lastDay && ![...spikeDaily[k.fundserv].keys()].some((d) => d > lastDay)) newestUnchecked.add(k.fundserv);
     for (const [d, why] of adjustmentDays(rows, run.inception, cfg.adjustmentMin, endMonth)) {
       const m = toMonthEnd(d);
       if (!adjustments.has(m)) adjustments.set(m, `${k.fundserv} ${d} ${why}`);
     }
     classes.push({ ...res, status: "ok" });
   }
-  const spikes = spikeMonths(daily, cfg);
+  const spikes = new Map([...spikeMonths(spikeDaily, cfg)].filter(([m]) => m <= endMonth));
   // the cross-class comparison runs on months that passed the per-class checks and the bad-print check only
   const candidates: Record<string, { month: string; r: number | null; days: string[]; partial: boolean }[]> = {};
   for (const [fsv, ms] of Object.entries(raw)) candidates[fsv] = ms.map((m) => ({ month: m.month, r: m.status === "ready" && !spikes.has(m.month) ? m.r : null, days: m.days, partial: m.partial }));
@@ -372,7 +429,8 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
     if (!ms) continue;
     c.months = ms.map((m) => {
       const reason = m.status !== "ready" || m.r === null ? m.issue ?? m.status
-        : fundWhy.get(m.month) ?? cross.fails.get(c.fundserv)?.get(m.month) ?? null;
+        : fundWhy.get(m.month) ?? cross.fails.get(c.fundserv)?.get(m.month)
+          ?? (m.month === endMonth && newestUnchecked.has(c.fundserv) ? "newest month held: no valuation day after its last day yet to rule out a reversed month-end print" : null);
       return { month: m.month, r: reason ? null : m.r, partial: m.partial, source: m.source, reason };
     });
   }

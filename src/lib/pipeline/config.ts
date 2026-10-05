@@ -85,8 +85,14 @@ export const TOL = {
 export const CLASS_CHECKS = {
   /** regulatory minimum: a class with less than this many months since inception shows no performance figure (compliance) */
   minHistoryMonths: MIN_CLASS_HISTORY_MONTHS,
-  /** a gap of more than this many calendar days without a NAV per unit ends a run: earlier rows are a previous life of the code */
+  /**
+   * a gap of more than this many calendar days without a NAV per unit ends a run (earlier rows: a previous life of the code)
+   * only when a relaunch is corroborated — the NAV per unit jumps by more than relaunchNavJump across the gap, restarts at a
+   * launch price (10.00), or the gap is longer than relaunchLongGapDays; otherwise it is a coverage gap (months withheld)
+   */
   relaunchGapDays: 10,
+  relaunchNavJump: 0.05,
+  relaunchLongGapDays: 180,
   /** history requested from the dataplatform for every class (a run starting within relaunchGapDays of it has an unknown inception) */
   historyFrom: "2019-01-01",
   /**
@@ -96,14 +102,15 @@ export const CLASS_CHECKS = {
   spikeMin: 0.02,
   spikeRevert: 0.5,
   /**
-   * cross-class consistency of a COMPLETE month. Each class's expected return is a + b × (fund median of the month), a and b
-   * fitted per class over the months where ≥ 3 classes are complete (OLS, one trimming pass; b clipped to
-   * [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month; a = 0, b = 1 with fewer than fitMinMonths months): a class
-   * without a performance fee legitimately beats the others by 15–25 % of a strong month. A residual beyond residualMax is
-   * a breach. A breach in a month holding a distribution / price-adjustment day (a class's stored return differing from its
-   * NAV ratio − 1 by more than adjustmentMin) withholds the month for EVERY class (live SEB 2024-12: the majority was the
-   * wrong side); otherwise one breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else
-   * withholds every class.
+   * cross-class consistency of a COMPLETE month, on the published monthly values. Each class's expected return is
+   * a + b × (fund median of the month), a and b fitted per class by Theil–Sen over the months where ≥ 3 classes are
+   * complete, LEAVING OUT the month under test (b clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month;
+   * a = 0, b = 1 with fewer than fitMinMonths months): a class without a performance fee legitimately beats the others by a
+   * share of a strong month. A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a
+   * distribution / price-adjustment day (a class's stored return differing from its NAV ratio − 1 by more than
+   * adjustmentMin) withholds the month for EVERY class (the majority of classes can be the wrong side); otherwise one
+   * breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else withholds every class. A class
+   * with too short a history for a fit is only ever withheld itself.
    */
   residualMax: 0.004,
   adjustmentMin: 0.001,

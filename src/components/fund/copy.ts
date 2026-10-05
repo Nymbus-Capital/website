@@ -75,6 +75,10 @@ export const T = {
     since: l("Since series inception ({date}): only the periods this series has completed are shown.", "Depuis la création de la série ({date})\u00a0: seules les périodes complétées par la série sont présentées."),
     siShort: l("Since series inception", "Depuis la création de la série"),
     inception: l("Series inception", "Création de la série"),
+    launch: l("Series launch", "Lancement de la série"),
+    siTrack: l("Since track-record start ({month})", "Depuis le début de l’historique ({month})"),
+    riskFrom: l("From {month}", "Depuis {month}"),
+    partialMonth: l("Partial month: from the series inception on {date}", "Mois partiel : depuis la création de la série, le {date}"),
     young: l(
       "Series {x} launched on {date}. Performance will be shown once the series has {n} months of history.",
       "La série {x} a été lancée le {date}. Les rendements seront présentés lorsque la série aura {n}\u00a0mois d’historique.",

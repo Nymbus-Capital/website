@@ -358,7 +358,9 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   await expect(rows.filter({ hasText: "Since inception" }).locator("td").first()).toContainText("Since inception (Oct 5, 2021)");
   await expect(page.getByTestId("overview-withheld-note")).toContainText("figure not shown because a month in its period could not be verified");
   await expect(strip.getByTestId("badge-1Y")).toBeVisible();
-  await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
+  // a withheld period keeps its badge with a dash (AC3)
+  await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toContainText("—");
+  await expect(strip.getByTestId("strip-withheld-note")).toBeVisible();
   await openTab(page, "performance");
   await expect(page.getByTestId("perf-inception")).toContainText("Series inception: October 5, 2021");
   await expect(page.getByTestId("perf-withheld-note")).toBeVisible();
@@ -371,6 +373,17 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   await card.getByTestId("series-LDM081").click();
   await expect(rows.filter({ hasText: "Since inception" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
   await expect(page.getByTestId("overview-withheld-note")).toHaveCount(0);
+  // its first month is partial (from Mar 1, 2024): marked in the heat map; risk statistics from its first complete month
+  await openTab(page, "performance");
+  await page.getByTestId("heatmap").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("heat-partial")).toHaveCount(1);
+  await page.getByTestId("risk").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("risk-window")).toHaveText("From Apr 2024");
+  await openTab(page, "overview");
+  // the track-record series (FP): its since-inception figure names the track-record start, never a series inception
+  await card.getByTestId("series-LDM001").click();
+  await expect(card.getByTestId("nav-inception")).toHaveCount(0);
+  await expect(rows.filter({ hasText: "Since track-record start" }).locator("td").first()).toContainText("Since track-record start (Jan 2019)");
   // class A: launched less than 12 months ago
   await card.getByTestId("series-LDM021").click();
   await expect(strip.getByTestId("figures-soon")).toHaveText("Series A launched on March 2, 2026. Performance will be shown once the series has 12 months of history.");

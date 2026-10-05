@@ -10,6 +10,7 @@ import {
 } from "../../../src/lib/pipeline/class-returns.ts";
 import { CLASS_CHECKS } from "../../../src/lib/pipeline/config.ts";
 import { tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
+import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
 
 /** CIBC-era rows of one class: a NAV path from `navs` days with the given daily returns (default 0.1 %) */
 function rows(days: string[], r: (d: string, i: number) => number = () => 0.001, nav0 = 10, currency = "CAD"): DailyRow[] {
@@ -25,13 +26,20 @@ test("inception = first price of the current run: a gap of more than 10 days end
   const old = tradingDays("2022-01-04", "2022-06-30");
   const now = tradingDays("2023-02-06", "2023-05-31");
   const rs = rows([...old, ...now]);
-  assert.deepEqual(currentRun(rs, { gapDays: 10 }), { inception: "2023-02-06", previousRunEnd: "2022-06-30", why: null });
+  // a gap of 7 months: the class was closed (corroborated relaunch)
+  assert.deepEqual(currentRun(rs, { gapDays: 10 }), { inception: "2023-02-06", previousRunEnd: "2022-06-30", why: null, gaps: [] });
+  // a 3-week hole with the NAV carrying on: a coverage gap inside the run, never a relaunch
+  const hole = rows([...tradingDays("2023-01-03", "2023-02-03"), ...tradingDays("2023-02-27", "2023-05-31")]);
+  assert.deepEqual(currentRun(hole, { gapDays: 10 }), { inception: "2023-01-03", previousRunEnd: null, why: null, gaps: [{ from: "2023-02-03", to: "2023-02-27" }] });
+  // the same hole with the NAV per unit restarting at 10.00 (or jumping by more than 5 %): a relaunch
+  const reset = hole.map((r) => (r.date >= "2023-02-27" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.08 } : r));
+  assert.equal(currentRun(reset, { gapDays: 10 }).inception, "2023-02-27");
   // a long weekend (4 days) is not a gap
   const cont = rows(tradingDays("2023-03-01", "2023-05-31"));
   assert.equal(currentRun(cont, { gapDays: 10 }).inception, "2023-03-01");
   // a reused code priced without a gap: the fund's first day cuts the run there
   const reused = rows(tradingDays("2021-06-01", "2021-12-31"));
-  assert.deepEqual(currentRun(reused, { gapDays: 10, floor: "2021-10-05" }), { inception: "2021-10-05", previousRunEnd: null, why: null });
+  assert.deepEqual(currentRun(reused, { gapDays: 10, floor: "2021-10-05" }), { inception: "2021-10-05", previousRunEnd: null, why: null, gaps: [] });
   // priced from the first day read: the inception may be earlier, unknown
   const fromStart = rows(tradingDays("2019-01-02", "2019-06-28"));
   assert.equal(currentRun(fromStart, { gapDays: 10, requestedFrom: "2019-01-01" }).inception, null);
@@ -124,20 +132,45 @@ test("cross-class: a single outlier with no adjustment day → that class only; 
   const r3 = crossClassFailures(two.months, two.daily, CLASS_CHECKS);
   assert.deepEqual([...r3.fundMonths.keys()], [bad]);
   assert.match(r3.fundMonths.get(bad)!, /no consistent majority/);
-  // only two complete classes and one breaches: nobody to side with → both
-  const pair = panel({ F: { "2025-03-31": 0.01 }, H: { "2025-03-31": 0.02 } });
-  assert.deepEqual([...crossClassFailures(pair.months, pair.daily, CLASS_CHECKS).fundMonths.keys()], ["2025-03-31"]);
+  // a fund with two classes only: no month has the 3 classes a fit needs, so each class is judged alone against the
+  // median of two (their mean): both deviate, both are withheld — nobody to side with
+  const pairS = (dlt: number) => Object.fromEntries(MONTHS.map((d, i) => [d, fundPath(i) + (d === bad ? dlt : 0)]));
+  const pair = panel({ F: pairS(0), H: pairS(0.012) });
+  assert.deepEqual([...crossClassFailures(pair.months, pair.daily, CLASS_CHECKS).fails.keys()].sort(), ["F", "H"]);
+  // classes too young for a fit (< 12 months) are only ever withheld themselves, never the fund
+  const young = panel({ F: { "2025-03-31": 0.01 }, H: { "2025-03-31": 0.02 } });
+  const ry = crossClassFailures(young.months, young.daily, CLASS_CHECKS);
+  assert.equal(ry.fundMonths.size, 0);
+  assert.deepEqual([...ry.fails.keys()].sort(), ["F", "H"]);
+  assert.match(ry.fails.get("H")!.get("2025-03-31")!, /short history, no fitted spread/);
   // within the residual tolerance (0.40 %): nothing
   const ok = panel({ F: { "2025-03-31": 0.01 }, H: { "2025-03-31": 0.0135 }, J: { "2025-03-31": 0.0101 } });
   assert.equal(crossClassFailures(ok.months, ok.daily, CLASS_CHECKS).fundMonths.size, 0);
 });
 
 test("cross-class: a December distribution-day error where the majority is wrong is withheld for every class (adjustment day)", () => {
-  const dec = "2024-12-31";
-  const p = panel({ F: { [dec]: -0.0257 }, H: { [dec]: -0.025 }, J: { [dec]: -0.0284 }, I: { [dec]: -0.0114 } });
+  const dec = MONTHS[11];
+  const series = (shift: number, err: number) => Object.fromEntries(MONTHS.map((d, i) => [d, fundPath(i) + shift + (d === dec ? err : 0)]));
+  // three classes book the distribution day wrongly (−1.4 %), the fourth does not
+  const p = panel({ F: series(-0.0002, -0.014), H: series(0, -0.014), J: series(-0.0001, -0.0145), I: series(0.0001, 0) });
   const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS, new Map([[dec, "F 2024-12-31 return -1.28% vs NAV ratio -2.10%"]]));
   assert.deepEqual([...out.fundMonths.keys()], [dec]);
   assert.equal(out.fails.size, 0, "never only the minority class");
+});
+
+test("B1: an error in the fund's strongest month cannot bend its own fit (leave-one-out, Theil–Sen)", () => {
+  // 14 ordinary months + one +2.5 % month; class X runs 0.05 % below the others and books +1.00 % too much that month only
+  const ms = MONTHS.slice(0, 15);
+  const strong = ms[14];
+  const base = (i: number): number => (ms[i] === strong ? 0.025 : 0.002 + 0.004 * Math.sin(i * 1.3));
+  const mk = (f: (b: number, d: string) => number) => Object.fromEntries(ms.map((d, i) => [d, f(base(i), d)]));
+  const p = panel({ F: mk((b) => b), J: mk((b) => b + 0.0001), I: mk((b) => b - 0.0001), X: mk((b, d) => b - 0.0005 + (d === strong ? 0.01 : 0)) });
+  const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+  assert.deepEqual([...out.fails.keys()], ["X"]);
+  assert.match(out.fails.get("X")!.get(strong)!, /X 3\.45% \(expected 2\.4[56]%\)/);
+  assert.equal(out.fundMonths.size, 0);
+  // the full-sample fit itself stays near the true spread (robust estimator)
+  assert.ok(Math.abs(out.fits.X.b - 1) < 0.05 && Math.abs(out.fits.X.a + 0.0005) < 0.0002, JSON.stringify(out.fits.X));
 });
 
 test("adjustment days: stored return vs NAV ratio beyond 0.10 % (a distribution), not otherwise", () => {
@@ -168,7 +201,7 @@ test("cross-class: partial months stay outside the median and the fit; compared 
 });
 
 test("computeFundClasses: one class off in a month without an adjustment day → that class only; with a distribution day → every class", () => {
-  const days = tradingDays("2024-01-02", "2024-06-28");
+  const days = tradingDays("2023-01-03", "2024-06-28");
   const inputs = (distOnA: boolean) => [
     // A pays a distribution on 2024-04-22: NAV −2 %, distribution-aware return unchanged (when distOnA)
     { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, () => 0.0005).map((r, i, all) => {
@@ -181,7 +214,7 @@ test("computeFundClasses: one class off in a month without an adjustment day →
     // C books a 1.2 % adjustment on one April day that the others do not have
     { fundserv: "C", display: "C", currency: "CAD", rows: rows(days, (x) => (x === "2024-04-15" ? 0.0125 : 0.0005)) },
   ];
-  const opts = { endMonth: "2024-06-30", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" };
+  const opts = { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" };
   const alone = computeFundClasses(inputs(false), opts);
   assert.deepEqual(alone.fundMonths, []);
   for (const c of alone.classes) {
@@ -206,7 +239,7 @@ test("computeFundClasses: non-CAD class without figures; withheld months keep th
     { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, (d) => base(d) - 0.00001) },
     { fundserv: "U", display: "U USD", currency: "USD", rows: rows(days, base, 10, "USD") },
     { fundserv: "X", display: "X", currency: "CAD", rows: null, error: "HTTP 500" },
-  ], { endMonth: "2024-06-30", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" });
+  ], { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" });
   const by = Object.fromEntries(res.classes.map((c) => [c.fundserv, c]));
   assert.equal(by.U.status, "currency");
   assert.equal(by.X.status, "unavailable");
@@ -226,4 +259,46 @@ test("12-month minimum: counted from the inception day (same day 12 months later
   assert.equal(hasMinHistory("2026-06-03", "2026-09-30", 12), false);
   assert.equal(minHistoryDate("2024-02-29", 12), "2025-02-28");
   assert.equal(minHistoryDate("2025-08-31", 6), "2026-02-28");
+});
+
+test("M1: a print on the newest month's last day reversed on the next valuation day is caught; without a next day the newest month waits", () => {
+  const days = tradingDays("2023-01-03", "2024-06-07");
+  const spike = (d: string): number => (d === "2024-05-31" ? 0.03 : d === "2024-06-03" ? -0.0295 : 0.0005);
+  const opts = { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" };
+  const res = computeFundClasses([
+    { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, spike) },
+    { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, (d) => spike(d) - 0.00001) },
+  ], opts);
+  assert.deepEqual(res.fundMonths.map((x) => x.month), ["2024-05-31"]);
+  assert.match(res.fundMonths[0].reason, /bad valuation print: A 2024-05-31 3\.00% then 2024-06-03 -2\.95%/);
+  // rows end on the newest month's last day: that month is held for every class until a later valuation day is checked
+  const upTo = tradingDays("2023-01-03", "2024-05-31");
+  const held = computeFundClasses([
+    { fundserv: "A", display: "A", currency: "CAD", rows: rows(upTo) },
+    { fundserv: "B", display: "B", currency: "CAD", rows: rows(upTo, () => 0.00099) },
+  ], opts);
+  for (const c of held.classes) {
+    const may = c.months.find((m) => m.month === "2024-05-31")!;
+    assert.equal(may.r, null);
+    assert.match(may.reason!, /newest month held: no valuation day after its last day/);
+    assert.ok(c.months.filter((m) => m.month < "2024-05-31").every((m) => m.r !== null));
+  }
+});
+
+test("M3: the cut-over month's NAV bridge must equal the class's compounded daily returns", async () => {
+  const { synthClassRows } = await import("../../fixtures/pipeline/nav-history.ts");
+  const monthly: Record<string, number> = {};
+  for (let m = "2025-01-31"; m <= "2026-08-31"; m = addMonths(m, 1)) monthly[m] = 0.004;
+  const good = synthClassRows({ fundserv: "LDM990", monthly, navStart: "2025-01-02", end: "2026-09-28", nav0: 10, seed: 7 });
+  const ok = monthsFromInception(good, "2025-01-02", "2026-08-31");
+  const jul = ok.find((m) => m.month === "2026-07-31")!;
+  assert.equal(jul.source, "bridge");
+  assert.ok(jul.r !== null && Math.abs(jul.r - 0.004) < 1e-6, String(jul.r));
+  // every CIBC NAV per unit 1 % higher (a unit-value change the stored returns do not carry) and no seam link on the first
+  // Apex day: the NAV bridge says ≈ −1 %, the daily returns +0.4 % → the month is withheld
+  const firstApex = good.find((r) => r.source === "apex")!.date;
+  const bad = good.map((r) => (r.source === "cibc" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.01 } : r.date === firstApex ? { ...r, return_start_date: null } : r));
+  const m = monthsFromInception(bad, "2025-01-02", "2026-08-31").find((x) => x.month === "2026-07-31")!;
+  assert.equal(m.r, null);
+  assert.match(m.issue!, /NAV bridge .* vs compounded daily returns/);
 });

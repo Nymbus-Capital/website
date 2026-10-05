@@ -161,7 +161,8 @@ export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
       delete f.performanceByClass;
       delete f.defaultClass;
     } else if (f.defaultClass && !f.performanceByClass[f.defaultClass]) {
-      // the page never opens on a class whose returns were just dropped
+      // the page never opens on a class whose returns were just dropped; same order as build.ts (classInfo is written in
+      // register order), the registry's headline class first
       const spec = FUNDS.find((x) => x.key === f.key);
       const order = [...Object.keys(f.classInfo ?? {}), ...(spec?.classes.map((c) => c.fundserv) ?? [])];
       const next = pickDefaultClass(spec?.headlineClass, order, f.performanceByClass);
@@ -621,7 +622,8 @@ export function classEntryChanges(key: FundKey, prev: FundData | undefined, f: F
     const b = code(entry.performance);
     if (old && a && b && a !== b) out.push(`class entry ${fsv} from ${classLabel(key, a) ?? a} (${a}) to ${classLabel(key, b) ?? b} (${b})`);
     // a new series next to a published performance (the headline's own entry of a pre-class publication is not new)
-    if (!old && prev.performance && !(entry.performance === f.performance || code(entry.performance) === code(prev.performance))) added.push(`${entry.display} (${fsv})`);
+    // (also when the previous publication had no performance at all: a series is never published unseen)
+    if (!old && !(entry.performance === f.performance || (prev.performance && code(entry.performance) === code(prev.performance)))) added.push(`${entry.display} (${fsv})`);
   }
   if (added.length) out.push(`${added.length} class${added.length > 1 ? "es" : ""} published for the first time: ${added.join(", ")}`);
   if (prev.defaultClass && f.defaultClass && prev.defaultClass !== f.defaultClass && prev.performanceByClass?.[prev.defaultClass]) out.push(`default class from ${prev.defaultClass} to ${f.defaultClass}`);

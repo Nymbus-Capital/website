@@ -213,6 +213,8 @@ function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; cont
 export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
   const perf = data?.performance ?? null;
   const badges = returnBadges(perf, !!content.hide?.performance);
+  // a fund with series: the track record's since-inception figure names its start, not a series inception
+  const track = !!spec.classes?.length;
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const basis = tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang);
@@ -238,16 +240,19 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
               <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
                 {badges.map((b) => (
                   <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
-                    <span className="fr-p" title={periodLong(b.period, perf, lang)}>
+                    <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
                       <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
-                      <span className="sr-only">{periodLong(b.period, perf, lang)}</span>
+                      <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
                       {b.annualized ? <sup aria-hidden="true">*</sup> : null}
                     </span>
-                    <CountUp value={b.value} pct sign decimals={2} lang={lang} className={`fr-v ${b.value < 0 ? "neg" : "pos"}`} />
+                    {b.value == null
+                      ? <span className="fr-v" title={tr(T.classes.withheld, lang)}><span aria-hidden="true">—</span><span className="sr-only">{tr(T.classes.withheld, lang)}</span></span>
+                      : <CountUp value={b.value} pct sign decimals={2} lang={lang} className={`fr-v ${b.value < 0 ? "neg" : "pos"}`} />}
                   </div>
                 ))}
               </Reveal>
               {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+              {badges.some((b) => b.value == null) ? <p className="fr-note" data-testid="strip-withheld-note">{tr(T.classes.withheld, lang)}</p> : null}
               {perf?.shortRecord && perf.firstMonth ? <p className="fr-note" data-testid="since-class-inception">{tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}</p> : null}
             </>
           ) : (

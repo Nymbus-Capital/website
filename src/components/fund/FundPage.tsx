@@ -44,7 +44,8 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     returnsSoon: picked.returnsSoon,
     shortRecord: picked.shortRecord,
     notice: picked.notice ?? null,
-    inception: classInfoOf(published, sel.classCode)?.inception ?? null,
+    // the series' own inception next to its figures only when they start there (never next to the track record)
+    inception: picked.data?.performance ? picked.data.performance.inception ?? null : classInfoOf(published, sel.classCode)?.inception ?? null,
   };
   const props = { spec, content, data, lang, ctx };
   const hasAwards = !!rankingsToShow(content, spec.classes);
