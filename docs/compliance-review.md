@@ -343,13 +343,14 @@ Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on
   figure needs a footnote (firm-level AUM, not fund NAV).
 - [ ] **Home: no daily NAV, no "as of" widget.** The fund cards on the home page show returns only. Fund pages keep their
   NAV and disclosures unchanged.
-- [ ] **Scanning analysis panel** (`src/components/site/fx/scan-copy.ts`, `AnalysisScan`): a canvas animation. It is
+- [x] **Scanning analysis panel** (`src/components/site/fx/scan-copy.ts`, `AnalysisScan`): a canvas animation. It is
   labelled "Illustration only" in EN and FR, uses generic sector labels and generated values (no issuer names, no
   performance, no real holdings), and its counters ("data points", "securities", "signals") count only what the
   animation itself scans (**2026-10-04: counters removed at Gabriel's request**, with the caption sentence about them).
   **New numeric claims to confirm: none about the firm.** The panel title says "Scientists and
-  engineers, solving the hard problems in finance" (Gabriel's words). Decision needed: keep or soften any wording that
-  could read as "we analyse billions of data points" (the counters run into the millions/billions of illustrative cells).
+  engineers, solving the hard problems in finance" (Gabriel's words). ~~Decision needed: keep or soften any wording that
+  could read as "we analyse billions of data points".~~ **Closed 2026-10-04**: the counters and the caption sentence about
+  them are removed, so the panel no longer shows any count.
 - [ ] **Key figures card**: AUM, number of strategies, team size and number of PhDs come from firm content and
   `src/data/team.ts`; nothing hard-coded.
 - [ ] **Copy cut again** (Home, Approach, Team/About, Sustainability, Solutions, Contact; legal excluded). Verbatim
@@ -382,12 +383,20 @@ within the multi-strategy. New band right after science at scale (which is uncha
   "(generated)" — the canvas watermark, the chip and the caption carry it, and the caption adds "Market lines are not an
   index." (FR « Les lignes de marché ne sont pas un indice. »). Alt text: "generated equities and bonds fall together while
   four strategies and a protective overlay move independently".
+  **Revised 2026-10-05 (review)**: the market group header reads "Traditional markets · generated" (FR « Marchés
+  traditionnels · générés »), so a crop of the top of the canvas never reads as real market data. Down months are now
+  **clear** equity falls (below about −0.5σ of the generated monthly move; small negative months are not shaded); the
+  heatmap uses the same months. Alt text: "Animated illustration, generated values: equities and bonds fall together in
+  down months; four strategies and a protective overlay, designed to have low down-month correlation, are drawn moving
+  independently. A heatmap shows the concept." (FR equivalent).
 - [ ] **Correlation framed as a design objective, around down months** (downside correlation, Gabriel's standing view):
-  lead "Strategies designed to have low correlation in down months. With traditional markets and each other." (FR « Des
-  stratégies conçues pour une faible corrélation en mois de baisse. Avec les marchés traditionnels et entre elles. »,
-  revised 2026-10-04); heatmap titled "Down-month correlation · concept", computed on the generated down months only
-  (equities, bonds and the five lanes since 2026-10-04: the generated equities and bonds move together, each strategy
-  shows low correlation with both and with the others), colour scale "Opposite · Low · Together" with no numbers;
+  lead "Strategies designed to have low correlation in down months, with traditional markets and with each other." (FR
+  « Des stratégies conçues pour une faible corrélation en mois de baisse, avec les marchés traditionnels et entre elles. »,
+  revised 2026-10-05); heatmap titled "Down-month correlation · concept", computed on the generated down months only
+  (equities, bonds and the five lanes since 2026-10-04: the generated equities and bonds move together, the strategies
+  show low correlation with each other; low volatility, directional and mean reversion barely move with the markets,
+  while hedging and the overlay react to stress — moderately negative down-month correlation with equities and bonds,
+  drawn as "Opposite" — in line with "designed to offset part of bond losses"), colour scale "Opposite · Low · Together" with no numbers;
   caption "Low down-month correlation is a design objective, not a guarantee." "Uncorrelated" is never used (unit test).
   Point to confirm: the picture contrasts traditional markets with our strategies; it is generic and generated, but it
   visually suggests that our strategies behave differently from stocks and bonds in down months.

@@ -9,6 +9,11 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 const frames = (page: Page) => page.getByTestId("overlay-host").evaluate((el) => Number(el.getAttribute("data-frames") ?? "0"));
 const norm = (s: string | null) => (s ?? "").replace(/\s+/g, " ").trim();
+/** phones: the panel is taller than the viewport; make the whole figure fit so screenshots keep its footer */
+async function tallViewport(page: Page) {
+  const v = page.viewportSize()!;
+  if (v.height < 1500) await page.setViewportSize({ width: v.width, height: 1500 });
+}
 
 async function canvasInk(page: Page) {
   return page.getByTestId("overlay-canvas").evaluate((c: HTMLCanvasElement) => {
@@ -38,6 +43,7 @@ test("engines band: drawn, advancing, labelled as an illustration, paused off sc
   await expect(panel.locator("dl")).toHaveCount(0);
   await expect(panel).not.toContainText(/simulated/i);
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /equities and bonds fall together/);
+  await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /designed to have low down-month correlation, are drawn moving independently\. A heatmap shows the concept/);
   await expect(page.getByTestId("overlay-caption")).toContainText(/design objective, not a guarantee/);
   await expect(page.getByTestId("overlay-caption")).toContainText("Market lines are not an index.");
   // never stated as a fact
@@ -62,7 +68,7 @@ test("engines band: paused while the tab is hidden", async ({ page }) => {
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("data-running", "false");
 });
 
-test("engines band (FR): French labels and caption", async ({ page, baseURL }) => {
+test("engines band (FR): French labels and caption", async ({ page, baseURL }, info) => {
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto("/");
   const panel = page.getByTestId("overlay-panel");
@@ -72,6 +78,14 @@ test("engines band (FR): French labels and caption", async ({ page, baseURL }) =
   await expect(page.getByTestId("overlay-caption")).toContainText(/exposition additionnelle au moyen de contrats à terme/);
   await expect(panel.locator("dl")).toHaveCount(0);
   await expect(panel).not.toContainText(/simulés/i);
+  await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /carte de chaleur/);
+  // design review: the French canvas labels (legend "Mois de baisse des actions", « Marchés traditionnels · générés »)
+  mkdirSync("e2e/screenshots", { recursive: true });
+  await tallViewport(page);
+  await panel.scrollIntoViewIfNeeded();
+  await expect.poll(() => frames(page)).toBeGreaterThan(5);
+  await page.waitForTimeout(1500);
+  await page.getByTestId("overlay-figure").screenshot({ path: `e2e/screenshots/engines-fr-${info.project.name}.png` });
 });
 
 test("reduced motion: the engines band is one still frame, and follows a live change of the preference", async ({ browser, baseURL }, info) => {
@@ -86,6 +100,9 @@ test("reduced motion: the engines band is one still frame, and follows a live ch
   expect(await frames(page)).toBe(1);
   expect(await canvasInk(page)).toBeGreaterThan(300);
   mkdirSync("e2e/screenshots", { recursive: true });
+  await tallViewport(page);
+  await panel.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
   await panel.screenshot({ path: `e2e/screenshots/engines-still-${info.project.name}.png` });
   // the visitor turns reduced motion off: the animation starts
   await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -142,6 +159,7 @@ test("science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-
 test("engines band: screenshots at several animation moments", async ({ page }, info) => {
   mkdirSync("e2e/screenshots", { recursive: true });
   await page.goto("/");
+  await tallViewport(page);
   const panel = page.getByTestId("overlay-panel");
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toHaveClass(/\bon\b/);

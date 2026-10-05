@@ -1,6 +1,6 @@
 /**
  * Home "diversifying engines" illustration: the generated stream is deterministic per seed and bounded, down
- * months (equities fall) and stress episodes behave as designed, traditional markets move together in down months
+ * months (clear equity falls, below DOWN_CUT) and stress episodes behave as designed, traditional markets move together in down months
  * while every strategy keeps a low down-month correlation with equities, bonds and the other strategies (design
  * objective of the picture), correlation is computed on down months only, the layout fits every width, and the copy
  * is bilingual, short, labelled as an illustration and never states low correlation as a fact.
@@ -8,7 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  CORR_WINDOW, ENGINES, LEVEL_BOUND, MARKETS, MAX_MOVE, NM, combinedMove, downsideCorrelation,
+  CORR_WINDOW, DOWN_CUT, ENGINES, LEVEL_BOUND, MARKETS, MAX_MOVE, NM, combinedMove, downsideCorrelation,
   heatColor, isStress, laneRows, level, lit, monthAt, monthCache, monthWidth, overlayLayout,
 } from "../../../src/components/site/fx/overlay-model.ts";
 import { OVERLAY_COPY, OVERLAY_EXPOSURE } from "../../../src/components/site/fx/overlay-copy.ts";
@@ -31,7 +31,7 @@ test("every generated value is bounded; smoothed paths stay within their bound",
       const m = g(n);
       assert.equal(m.engines.length, ENGINES.length);
       for (const v of [m.equity, m.bond, ...m.engines]) assert.ok(Number.isFinite(v) && Math.abs(v) <= MAX_MOVE);
-      assert.equal(m.down, m.equity < 0, "down months key off equities");
+      assert.equal(m.down, m.equity < DOWN_CUT, "down months: a clear fall in equities");
       if (m.stress) assert.ok(m.down, "a stress month is a down month");
       for (let s = -2; s <= ENGINES.length; s++) assert.ok(Math.abs(level(g, n, s)) <= LEVEL_BOUND + 1e-9);
     }
@@ -49,13 +49,23 @@ test("stress episodes are short clusters; down months are a minority; equities f
     sumEq += m.equity; sumBd += m.bond;
   }
   assert.ok(stress / N > 0.05 && stress / N < 0.16, `${stress / N}`);
-  assert.ok(down / N > 0.3 && down / N < 0.55, `${down / N}`);
+  // only clear equity falls are down months (about a quarter of months; tiny negatives are not shaded)
+  assert.ok(down / N > 0.2 && down / N < 0.35, `${down / N}`);
   assert.ok(maxRun <= 3);
   assert.ok(Math.abs(sumEq / N) < 0.12 && Math.abs(sumBd / N) < 0.12, `${sumEq / N} ${sumBd / N}`);
   // in down months equities fall clearly deeper than bonds; bonds fall in most of them
   assert.ok(eqDown / down < 1.8 * (bdDown / down), `equity ${eqDown / down} vs bond ${bdDown / down}`);
   assert.ok(bdFalls / down > 0.7, `bonds fall in ${bdFalls / down} of down months`);
   assert.ok(eqStress / stress < -1.5, `stress months: equities ${eqStress / stress}`);
+});
+
+test("down months are clear equity falls: DOWN_CUT is about −0.5σ of the monthly equity move", () => {
+  const g = monthCache(0, 40000);
+  let s = 0, s2 = 0;
+  const N = 30000;
+  for (let n = 0; n < N; n++) { const e = g(n).equity; s += e; s2 += e * e; }
+  const sd = Math.sqrt(s2 / N - (s / N) ** 2);
+  assert.ok(DOWN_CUT / sd < -0.45 && DOWN_CUT / sd > -0.55, `${DOWN_CUT / sd}`);
 });
 
 test("down-month correlation: symmetric, unit diagonal, in [-1, 1]; order equities, bonds, engines", () => {
@@ -72,29 +82,55 @@ test("down-month correlation: symmetric, unit diagonal, in [-1, 1]; order equiti
   assert.equal(NM, 2);
 });
 
-/** |ρ| ceiling for every strategy against equities, bonds and the other strategies (design objective of the picture). */
+/** |ρ| ceiling between strategies, and between the non-reacting strategies and the markets (design objective). */
 const LOW = 0.25;
+/** engine indexes (after NM) that react to stress: hedging and the protective overlay */
+const REACTING = [3, 4];
+/** pairs held to the LOW ceiling: strategy–strategy, and low volatility / directional / mean reversion vs markets */
+const lowPair = (i: number, j: number) => j >= NM || !REACTING.includes(i - NM);
 
-test("traditional markets move together in down months; every strategy has low correlation with them and each other", () => {
+test("traditional markets move together in down months; strategies have low correlation with each other", () => {
   for (const seed of [0, 1, 7]) {
     const g = monthCache(seed, 20000);
-    // long-run down-month correlation (≈ 5,000 down months): the design itself
+    // long-run down-month correlation (≈ 3,000 clear down months): the design itself
     const full = downsideCorrelation(g, 12000, 12000);
     assert.ok(full[0][1] > 0.6, `seed ${seed}: equity–bond ${full[0][1]}`);
     for (let i = NM; i < full.length; i++) for (let j = 0; j < i; j++) {
-      assert.ok(Math.abs(full[i][j]) < LOW, `seed ${seed}: |ρ(${i}, ${j})| = ${Math.abs(full[i][j])}`);
+      if (lowPair(i, j)) assert.ok(Math.abs(full[i][j]) < LOW, `seed ${seed}: |ρ(${i}, ${j})| = ${Math.abs(full[i][j])}`);
     }
     // what the heatmap shows (rolling CORR_WINDOW): equity–bond always clearly positive, strategies low on average
     let eb = 0, ebMin = 1, sumAbs = 0, cnt = 0, w = 0;
     for (let end = 300; end < 6000; end += 11) {
       const c = downsideCorrelation(g, end);
       eb += c[0][1]; ebMin = Math.min(ebMin, c[0][1]); w++;
-      for (let i = NM; i < c.length; i++) for (let j = 0; j < i; j++) { sumAbs += Math.abs(c[i][j]); cnt++; }
+      for (let i = NM; i < c.length; i++) for (let j = 0; j < i; j++) if (lowPair(i, j)) { sumAbs += Math.abs(c[i][j]); cnt++; }
     }
     assert.ok(eb / w > 0.6, `seed ${seed}: mean equity–bond ${eb / w}`);
-    assert.ok(ebMin > 0.35, `seed ${seed}: min equity–bond ${ebMin}`);
+    assert.ok(ebMin > 0.45, `seed ${seed}: min equity–bond ${ebMin}`);
     assert.ok(sumAbs / cnt < 0.12, `seed ${seed}: mean |strategy ρ| ${sumAbs / cnt}`);
   }
+});
+
+test("hedging and the protective overlay: designed to offset part of the falls (negative down-month ρ vs equities and bonds)", () => {
+  for (const seed of [0, 1, 7]) {
+    const full = downsideCorrelation(monthCache(seed, 20000), 12000, 12000);
+    for (const e of REACTING) for (const mk of [0, 1]) {
+      const r = full[NM + e][mk];
+      assert.ok(r < -0.15 && r > -0.5, `seed ${seed}: ${ENGINES[e].key} vs ${MARKETS[mk].key} ${r}`);
+    }
+    // still low against the other strategies (and each other)
+    for (const e of REACTING) for (let j = NM; j < full.length; j++) if (j !== NM + e) assert.ok(Math.abs(full[NM + e][j]) < LOW);
+  }
+});
+
+test("the heatmap as shown (production seed 0, months 300–1500): no window shows a strong strategy correlation", () => {
+  const g = monthCache(0, 4096);
+  let max = 0;
+  for (let end = 300; end <= 1500; end++) {
+    const c = downsideCorrelation(g, end);
+    for (let i = NM; i < c.length; i++) for (let j = 0; j < i; j++) if (lowPair(i, j)) max = Math.max(max, Math.abs(c[i][j]));
+  }
+  assert.ok(max < 0.4, `max |ρ| ${max}`);
 });
 
 test("down-month correlation only uses down months", () => {
@@ -121,7 +157,8 @@ test("lit engines: a strategy moving up in a down month for equities", () => {
 
 test("layout fits every width: two groups, rows and heatmap inside the canvas, never overlapping", () => {
   // phone heights: 760 (CSS under 760 px); desktop: clamp(460, 46vw, 600)
-  for (const [W, H] of [[300, 760], [336, 760], [600, 760], [700, 460], [1024, 471], [1400, 600]]) {
+  // 700–760: the wide layout (narrow is W < 700) with the phone CSS height (max-width: 760px)
+  for (const [W, H] of [[300, 760], [336, 760], [600, 760], [699, 760], [700, 460], [720, 760], [760, 760], [1024, 471], [1400, 600]]) {
     const L = overlayLayout(W, H);
     assert.ok(L.x0 > L.pad && L.x1 > L.x0 + 100 && L.x1 <= W - L.pad, `${W}`);
     assert.ok(L.trad.y >= 0 && L.lanes.y > L.trad.y + L.trad.h && L.lanes.y + L.lanes.h <= H - L.foot, `${W}`);
@@ -163,6 +200,7 @@ test("copy: EN and FR, short lines, labelled as an illustration, low correlation
   for (const [p, v] of all) {
     assert.ok(v.en.trim() && v.fr.trim(), p);
     if (p.endsWith(".alt")) continue; // accessible name, not shown
+    if (p.endsWith(".lead")) { for (const lang of ["en", "fr"] as const) assert.ok(words(v[lang]) <= 18, `${p} (${lang})`); continue; } // one sentence
     // every visible sentence is 12 words or fewer
     // every visible sentence is 12 words or fewer (the verbatim regulatory disclosure excepted)
     for (const lang of ["en", "fr"] as const) for (const s of v[lang].split(/(?<=\.)\s+/)) if (s !== OVERLAY_EXPOSURE[lang]) assert.ok(words(s) <= 12, `${p} (${lang}): ${s}`);
@@ -172,7 +210,14 @@ test("copy: EN and FR, short lines, labelled as an illustration, low correlation
   // Gabriel 2026-10-04: the simulated counters confused investors; removed (no copy refers to them)
   assert.equal("counters" in OVERLAY_COPY, false);
   assert.doesNotMatch(all.map(([, v]) => `${v.en} ${v.fr}`).join(" "), /Simulated|simulés|counter|compteur/i);
-  assert.equal(OVERLAY_COPY.canvas.trad.en, "Traditional markets");
+  // "generated" on the market group header itself: a crop of the top of the canvas never reads as real market data
+  assert.match(OVERLAY_COPY.canvas.trad.en, /^Traditional markets · generated$/);
+  assert.match(OVERLAY_COPY.canvas.trad.fr, /^Marchés traditionnels · générés$/);
+  assert.match(OVERLAY_COPY.alt.en, /designed to have low down-month correlation/);
+  assert.match(OVERLAY_COPY.alt.en, /drawn moving independently/);
+  assert.match(OVERLAY_COPY.alt.en, /heatmap/);
+  assert.match(OVERLAY_COPY.alt.fr, /conçues pour une faible corrélation/);
+  assert.match(OVERLAY_COPY.alt.fr, /carte de chaleur/);
   assert.equal(OVERLAY_COPY.canvas.strategies.en, "Our strategies");
   assert.match(OVERLAY_COPY.caption.en, /Market lines are not an index/);
   assert.match(OVERLAY_COPY.canvas.lit.en, /^Highlighted: moves independently$/);
@@ -192,8 +237,10 @@ test("copy: EN and FR, short lines, labelled as an illustration, low correlation
   // never stated as a fact
   const text = all.map(([, v]) => `${v.en} ${v.fr}`).join(" ");
   assert.doesNotMatch(text, /\buncorrelated\b|non corrél|décorrél|\bguaranteed\b|\bprotects?\b|\bprotège/i);
-  assert.match(OVERLAY_COPY.lead.en, /designed to have low correlation in down months\. With traditional markets and each other\./);
-  assert.match(OVERLAY_COPY.lead.fr, /conçues/);
+  // the lead: one sentence; key phrases only
+  for (const k of ["designed to have low correlation in down months", "traditional markets", "each other"]) assert.ok(OVERLAY_COPY.lead.en.includes(k), k);
+  for (const k of ["conçues pour une faible corrélation en mois de baisse", "marchés traditionnels", "entre elles"]) assert.ok(OVERLAY_COPY.lead.fr.includes(k), k);
+  for (const lang of ["en", "fr"] as const) assert.equal(OVERLAY_COPY.lead[lang].split(/(?<=\.)\s+/).length, 1, lang);
   assert.match(OVERLAY_COPY.canvas.heat.en, /concept/i);
 });
 

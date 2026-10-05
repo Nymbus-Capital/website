@@ -1,10 +1,11 @@
 /**
  * overlay-model.ts — pure model of the home "diversifying engines" illustration: an endless, seeded stream of
  * generated months. Two traditional-market references — equities and bonds — have calm months and stress episodes
- * (clusters of down months); in a down month for equities, bonds tend to fall with them, less deeply (traditional
- * markets moving together). Five lanes, labelled with the Multi-Strategy Fund's four strategy names plus a futures
- * overlay, are drawn mostly independently of both and of each other (low down-month correlation); hedging and the
- * overlay react mildly when stress rises. Every series has zero drift (nothing trends up or down over time), so
+ * (clusters of down months); in a clear down month for equities (DOWN_CUT), bonds tend to fall with them, less
+ * deeply (traditional markets moving together). Five lanes, labelled with the Multi-Strategy Fund's four strategy
+ * names plus a futures overlay, are drawn independently of each other (low down-month correlation); hedging and the
+ * overlay react when stress rises (moderately negative down-month correlation with equities and bonds), the others
+ * barely move with the markets. Every series has zero drift (nothing trends up or down over time), so
  * nothing reads as performance. From that stream: smoothed paths, down-month correlation, highlighted independent moves.
  * Everything is generated: no real market, strategy, position, return or correlation. Dependency-free (unit tested).
  */
@@ -35,15 +36,15 @@ export const MAX_MOVE = 4;
 /** Memory of the smoothed paths: level(n) = Σ PHI^k · move(n − k), k < DEPTH. */
 export const PHI = 0.82;
 export const DEPTH = 28;
-/** Months in the down-month correlation window (≈ 110 down months: long enough for a steady picture). */
-export const CORR_WINDOW = 240;
+/** Months in the down-month correlation window (≈ 95 clear down months: long enough for a steady picture). */
+export const CORR_WINDOW = 360;
 
 export interface Month {
   n: number;
   equity: number;
   bond: number;
   engines: number[];
-  /** equities fell this month (the down months the illustration is about) */
+  /** a clear equity down month (equities fell by more than DOWN_CUT): the months the illustration is about */
   down: boolean;
   /** part of a stress episode (sharper falls, volatility up) */
   stress: boolean;
@@ -73,10 +74,20 @@ const EQ_CALM = (P_STRESS * STRESS_ABS) / (1 - P_STRESS);
 /** Bonds: a share of the equity move plus their own noise (zero drift because equities have none). */
 const BOND_BETA = 0.42, BOND_SD = 0.32;
 
+/**
+ * A down month is a clear fall in equities: below −0.5σ of the monthly equity move (σ ≈ 1.16 generated units; every
+ * stress month qualifies). Small negative months are not shaded. The heatmap's down-month correlation, the bands and
+ * the highlights all use this same definition (Month.down).
+ */
+export const DOWN_CUT = -0.58;
+
 const BETA = [0.02, 0.015, -0.02, 0, 0];
 const SIGMA = [0.4, 0.9, 0.7, 0.55, 0.5];
-/** hedging and the overlay react mildly when stress rises (kept small: low down-month correlation stays the point) */
-const REACT = [0, 0, 0, 0.12, 0.1];
+/**
+ * hedging and the overlay react when stress rises (designed to offset part of the falls): a moderate negative
+ * down-month correlation with equities and bonds, while staying low against the other strategies
+ */
+const REACT = [0, 0, 0, 0.2, 0.2];
 const RUN = [0, 0.3, 0, 0, 0];
 /** zero drift: what a lane gains in stress months is taken back evenly, so no lane trends over time */
 const DRIFT = REACT.map((r, i) => -(r * STRESS_ABS * P_STRESS + RUN[i] * P_STRESS_RUN));
@@ -94,7 +105,7 @@ export function monthAt(n: number, seed = 0): Month {
     if (stress && isStress(n - 1, seed)) v += RUN[i]; // directional: a persistent fall becomes a trend
     return clamp(v);
   });
-  return { n, equity, bond, engines, down: equity < 0, stress };
+  return { n, equity, bond, engines, down: equity < DOWN_CUT, stress };
 }
 
 /** Small cache in front of monthAt (the renderer asks for the same months every frame). */
@@ -132,7 +143,7 @@ export function combinedMove(m: Month): number {
   return BLEND.reduce((a, i) => a + m.engines[i], 0) / BLEND.length;
 }
 
-/** An engine is highlighted in a down month when it moves the other way (up): an independent move. */
+/** An engine is highlighted in a (clear) down month when it moves the other way (up): an independent move. */
 export function lit(m: Month, i: number): boolean {
   return m.down && m.engines[i] > 0;
 }
@@ -153,8 +164,8 @@ function pearson(a: number[], b: number[]): number {
 export const NM = MARKETS.length;
 
 /**
- * Down-month correlation matrix over the CORR_WINDOW months ending at `end`: only the months where equities fell
- * count (downside correlation). Order: equities, bonds, then the engines. Symmetric, unit diagonal.
+ * Down-month correlation matrix over the CORR_WINDOW months ending at `end`: only the clear equity down months
+ * (Month.down, equity < DOWN_CUT) count (downside correlation). Order: equities, bonds, then the engines. Symmetric, unit diagonal.
  */
 export function downsideCorrelation(get: (n: number) => Month, end: number, window = CORR_WINDOW): number[][] {
   const cols: number[][] = Array.from({ length: ENGINES.length + NM }, () => []);

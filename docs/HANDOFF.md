@@ -203,6 +203,18 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-05 (sub-agent, `feat/disclosures-engines`, independent review fixes; **not merged**): FR legend
+  « Mois de baisse des actions » no longer ellipsised on phones (narrow: full width for the down-month key);
+  "generated" back on the canvas, on the market group header ("Traditional markets · generated" / « Marchés
+  traditionnels · générés »); lead one sentence ("…in down months, with traditional markets and with each other.");
+  **down months = clear equity falls** (`DOWN_CUT` ≈ −0.5σ of the monthly equity move, ≈ 26 % of months; bands, highlights and
+  the heatmap all use `Month.down`), heatmap window 240 → 360 months (≈ 95 down months); hedging / overlay `REACT` 0.12/0.10 →
+  0.2/0.2 (down-month ρ vs equities ≈ −0.36, vs bonds ≈ −0.25, still |ρ| < 0.25 vs every other strategy; tested); per-window
+  ceiling for the heatmap as shown (seed 0, months 300–1500, max |ρ| < 0.4); accessible name mentions the heatmap and says
+  "designed to … drawn moving independently"; layout test covers 699–760 px; e2e: FR figure screenshot
+  (`engines-fr-<project>.png`) and tall viewport so phone screenshots keep the footer. Note: the counters code in
+  `scan-engine.ts` (`opts.counters`, `counters()`) is now **dead but kept on purpose** — Science at scale is
+  fingerprint-frozen (`tests/unit/site/scan-frozen.test.ts`); remove it only together with a hash update and its reason.
 - 2026-10-04 (sub-agent, branch `feat/disclosures-engines` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's two
   requests. (1) **Fund pages**: the disclosures block (`#disclosure`, text unchanged) is now the last block of every fund /
   strategy page — after the call to action and the other strategies, immediately above the site footer (`FundPage.tsx`);

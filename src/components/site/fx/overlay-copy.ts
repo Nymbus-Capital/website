@@ -17,21 +17,22 @@ export const OVERLAY_COPY = {
   title: l("Several engines,", "Plusieurs moteurs,"),
   accent: l("designed for down months", "conçus pour les mois de baisse"),
   lead: l(
-    "Strategies designed to have low correlation in down months. With traditional markets and each other.",
-    "Des stratégies conçues pour une faible corrélation en mois de baisse. Avec les marchés traditionnels et entre elles.",
+    "Strategies designed to have low correlation in down months, with traditional markets and with each other.",
+    "Des stratégies conçues pour une faible corrélation en mois de baisse, avec les marchés traditionnels et entre elles.",
   ),
   panel: l("Diversifying engines · down months", "Moteurs de diversification · mois de baisse"),
   illustration: l("Illustration", "Illustration"),
   /** accessible name of the animated figure */
   alt: l(
-    "Animated illustration: generated equities and bonds fall together while four strategies and a protective overlay move independently.",
-    "Illustration animée : des actions et des obligations générées baissent ensemble; quatre stratégies et une superposition protectrice évoluent indépendamment.",
+    "Animated illustration, generated values: equities and bonds fall together in down months; four strategies and a protective overlay, designed to have low down-month correlation, are drawn moving independently. A heatmap shows the concept.",
+    "Illustration animée, valeurs générées : actions et obligations baissent ensemble en mois de baisse; quatre stratégies et une superposition protectrice, conçues pour une faible corrélation en mois de baisse, sont illustrées évoluant indépendamment. Une carte de chaleur illustre le concept.",
   ),
   /** drawn on the canvas itself, so no screenshot of the panel can lose it */
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
   /** labels drawn on the canvas */
   canvas: {
-    trad: l("Traditional markets", "Marchés traditionnels"),
+    /** "generated" on the canvas itself: a crop of the market lanes must never read as real market data */
+    trad: l("Traditional markets · generated", "Marchés traditionnels · générés"),
     strategies: l("Our strategies", "Nos stratégies"),
     combined: l("Four strategies combined", "Quatre stratégies combinées"),
     down: l("Equity down month", "Mois de baisse des actions"),

@@ -165,7 +165,7 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
 
     ctx!.save();
     ctx!.beginPath(); ctx!.rect(L.x0, 0, L.x1 - L.x0 + 1, H); ctx!.clip();
-    // ---- down months for equities: bands behind everything, across both groups
+    // ---- clear equity down months (Month.down: equity < DOWN_CUT, ≈ −0.5σ; stress months darker): bands behind everything
     for (let m = first; m <= cur; m++) {
       const mo = get(m);
       if (!mo.down) continue;
@@ -409,7 +409,8 @@ export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): 
     ctx!.textAlign = "left";
     ctx!.fillStyle = "rgba(194,65,12,.22)"; ctx!.fillRect(lx, legendY - 5, 10, 10);
     ctx!.fillStyle = MUTE;
-    const downW = Math.min(measure(lab.down), (maxX - lx) * 0.35);
+    // narrow: the down-month key has its own line (the highlighted key wraps below it), so it gets the full width
+    const downW = Math.min(measure(lab.down), L.narrow ? maxX - lx - 15 : (maxX - lx) * 0.35);
     text(lab.down, lx + 15, legendY, downW);
     // narrow: the "highlighted" key gets its own line
     const lx2 = L.narrow ? L.pad - 1 : lx + 15 + downW + 16, litY = L.narrow ? H - 30 : legendY;
