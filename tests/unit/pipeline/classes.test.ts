@@ -90,18 +90,20 @@ test("every active class from its own daily chain since its inception: shown, yo
 test("source defects in the fixtures: a bad valuation print (every class), a daily jump of one class (every class), a drifting class month (that class)", async () => {
   const { data } = await build();
   const mi = data.funds[MI]!;
-  // the print of 2022-03-15/16 in every Monthly Income class: March 2022 withheld for J (I and F started later)
-  assert.deepEqual(mi.performanceByClass!.LDM061.performance.withheldMonths, ["2022-03-31"]);
-  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund.SI, null, "since inception crosses the withheld month");
-  assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund["3Y"] != null, "3 years do not");
-  // class I drifting by +0.9 % in 2025-03 while the other classes agree: withheld for I only
-  assert.deepEqual(mi.performanceByClass!.LDM031.performance.withheldMonths, ["2025-03-31"]);
-  assert.equal(mi.performanceByClass!.LDM081.performance.withheldMonths, undefined);
-  // SEB class I's one-day jump on 2024-12-16: the classes disagree that day, December 2024 withheld for every class
-  for (const fsv of ["LDM201", "LDM203", "LDM204"]) assert.deepEqual(data.funds[SEB]!.performanceByClass![fsv].performance.withheldMonths, ["2024-12-31"], fsv);
-  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes` && /source defects to report to the dataplatform\): 2024-12 classes disagree on 2024-12-16/.test(i.message)));
+  // the print of 2022-03-15/16 in every Monthly Income class (March 2022: only J was priced then) and class I's one-day jump
+  // of 2023-09-15 (the classes disagree that day: September 2023 withheld for every class)
+  assert.deepEqual(mi.performanceByClass!.LDM061.performance.withheldMonths, ["2022-03-31", "2023-09-30"]);
+  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund.SI, null, "since inception crosses a withheld month");
+  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund["3Y"], null, "so do 3 years");
+  assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund["2Y"] != null, "2 years do not");
+  assert.equal(mi.performanceByClass!.LDM061.performance.growthFrom, "2023-09-30");
+  // class I drifting by +0.9 % in 2025-03 while the other classes agree: withheld for I only (both bond funds)
+  assert.deepEqual(mi.performanceByClass!.LDM031.performance.withheldMonths, ["2023-09-30", "2025-03-31"]);
+  assert.deepEqual(data.funds[SEB]!.performanceByClass!.LDM203.performance.withheldMonths, ["2025-03-31"]);
+  for (const [k, f] of [[MI, "LDM081"], [SEB, "LDM201"], [SEB, "LDM204"]] as const) assert.equal(data.funds[k]!.performanceByClass![f].performance.withheldMonths, undefined, f);
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree on 2023-09-15/.test(i.message)));
   // the headline (track record) keeps its own logic
-  assert.equal(data.funds[SEB]!.performance!.withheldMonths, undefined);
+  assert.equal(mi.performance!.withheldMonths, undefined);
 });
 
 test("a failed history leaves the class out (\"coming soon\"); a class published before that disappears is a blocking alert; a hole withholds one month only", async () => {
@@ -117,7 +119,7 @@ test("a failed history leaves the class out (\"coming soon\"); a class published
   // a missing valuation day in 2025-02: that month withheld, never a series restarting after the hole
   const hole = await build(history("LDM201", (rows) => rows.filter((r) => r.date !== "2025-02-11")));
   const f = hole.data.funds[SEB]!.performanceByClass!.LDM201.performance;
-  assert.deepEqual(f.withheldMonths, ["2024-12-31", "2025-02-28"]);
+  assert.deepEqual(f.withheldMonths, ["2025-02-28"]);
   assert.equal(f.firstMonth, "2023-07-31", "still since its inception");
   assert.ok(hole.data.issues.some((i) => i.key === `funds.${SEB}.performance.classes.LDM201.monthly.2025-02-28` && /Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
 });

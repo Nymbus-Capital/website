@@ -10,9 +10,9 @@ import { mkdirSync, readFileSync } from "node:fs";
 // series: radio buttons of the class selector (registry classes + classes with a NAV); dist: series with distributions;
 // returns: the default class (F) has its own return series (compounded by the website from the dataplatform daily NAV chain)
 const FUNDS = [
-  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 4, dist: 4, daily: true, green: false, returns: true },
-  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 4, dist: 3, daily: true, green: true, returns: true },
-  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 3, dist: 3, daily: false, green: false, returns: true },
+  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 6, dist: 6, daily: true, green: false, returns: true },
+  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 6, dist: 6, daily: true, green: true, returns: true },
+  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 5, dist: 5, daily: false, green: false, returns: true },
   // managed accounts, not a fund: gross figures, no NAV / FundServ series, no distributions
   { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0, dist: 0, daily: false, green: false, returns: true },
 ];
@@ -316,7 +316,7 @@ test("French: labels, names and number formatting", async ({ page }) => {
 
 /* ------------------------------------------------------------------ classes, variants, awards, calendar labels */
 
-test("class selector: returns follow the class; F is the default; a class without its own series says coming soon", async ({ page }) => {
+test("class selector: returns follow the class; F is the default; a young class says when it launched", async ({ page }) => {
   await page.goto("/strategies/sustainable-enhanced-bonds");
   const card = page.getByTestId("nav-card");
   const strip = page.getByTestId("return-strip");
@@ -327,12 +327,12 @@ test("class selector: returns follow the class; F is the default; a class withou
   await expect(page.getByTestId("basis")).toContainText("Series H");
   const h = await strip.getByTestId("badge-SI").locator(".fr-v").innerText();
   expect(h, "class H shows its own returns").not.toBe(f);
-  // a class that has no series of its own: no figure at all, never F's
+  // a class launched less than 12 months ago: no figure at all (regulatory minimum), never F's
   await card.getByTestId("series-LDM205").click();
-  await expect(strip.getByTestId("figures-soon")).toContainText("series A coming soon");
+  await expect(strip.getByTestId("figures-soon")).toHaveText("Series A launched on April 1, 2026. Performance will be shown once the series has 12 months of history.");
   await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
   await openTab(page, "performance");
-  await expect(page.getByTestId("perf-soon")).toContainText("series A coming soon");
+  await expect(page.getByTestId("perf-soon")).toContainText("Series A launched on April 1, 2026");
   await expect(page.getByTestId("growth")).toHaveCount(0);
   await expect(page.getByTestId("calendar")).toHaveCount(0);
   await expect(page.getByTestId("risk")).toHaveCount(0);
@@ -340,6 +340,50 @@ test("class selector: returns follow the class; F is the default; a class withou
   await card.getByTestId("series-LDM201").click();
   await expect(page.getByTestId("calendar")).toBeVisible();
   await expect(page.getByTestId("risk")).toBeVisible();
+});
+
+test("every series of a fund: figures for a series with 12 months, a dash for a withheld figure, why a series shows none (EN + FR)", async ({ page }) => {
+  await page.goto("/strategies/monthly-income");
+  const card = page.getByTestId("nav-card");
+  const strip = page.getByTestId("return-strip");
+  // class J: since its inception (Oct 5, 2021); a synthetic bad valuation print (March 2022) and a day the classes disagree
+  // (September 2023) are withheld: since inception and 3 years are shown as a dash, 1 year is a number
+  await card.getByTestId("series-LDM061").click();
+  await expect(page.getByTestId("basis")).toContainText(/Series J(?![A-Za-z])/);
+  await expect(card.getByTestId("nav-inception")).toHaveText("Oct 5, 2021");
+  const rows = page.getByTestId("overview-returns").locator("tbody tr");
+  await expect(rows.filter({ hasText: "1 year" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
+  await expect(rows.filter({ hasText: "3 years" }).locator("td").nth(1)).toHaveText("—");
+  await expect(rows.filter({ hasText: "Since inception" }).locator("td").nth(1)).toHaveText("—");
+  await expect(page.getByTestId("overview-withheld-note")).toContainText("figure not shown because a month in its period could not be verified");
+  await expect(strip.getByTestId("badge-1Y")).toBeVisible();
+  await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
+  await openTab(page, "performance");
+  await expect(page.getByTestId("perf-inception")).toContainText("Series inception: October 5, 2021");
+  await expect(page.getByTestId("perf-withheld-note")).toBeVisible();
+  await page.getByTestId("growth").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("growth-from")).toHaveText("Starts on September 30, 2023, after the last month whose return could not be verified.");
+  await page.getByTestId("heatmap").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("heat-withheld")).toHaveCount(2);
+  // class F: a series with 12 months and no withheld month: every figure it has the history for
+  await openTab(page, "overview");
+  await card.getByTestId("series-LDM081").click();
+  await expect(rows.filter({ hasText: "Since inception" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
+  await expect(page.getByTestId("overview-withheld-note")).toHaveCount(0);
+  // class A: launched less than 12 months ago
+  await card.getByTestId("series-LDM021").click();
+  await expect(strip.getByTestId("figures-soon")).toHaveText("Series A launched on March 2, 2026. Performance will be shown once the series has 12 months of history.");
+  await expect(page.getByTestId("overview-soon")).toContainText("Series A launched on March 2, 2026");
+  // the US-dollar class: no distribution-aware returns, said so
+  await card.getByTestId("series-LDM011").click();
+  await expect(strip.getByTestId("figures-soon")).toContainText("returns that account for distributions are not available for this series in USD");
+  // the series table gives every series' inception
+  await expect(page.getByTestId("class-inception-LDM031")).toHaveText("Mar 6, 2023");
+  // French
+  await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+  await page.reload();
+  await page.getByTestId("nav-card").getByTestId("series-LDM021").click();
+  await expect(page.getByTestId("return-strip").getByTestId("figures-soon")).toHaveText("La série A a été lancée le 2 mars 2026. Les rendements seront présentés lorsque la série aura 12\u00a0mois d’historique.");
 });
 
 test("class types: only classes whose type is known are labelled, with a disclosure sentence", async ({ page }) => {

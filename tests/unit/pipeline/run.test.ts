@@ -186,8 +186,7 @@ test("source defects withholding a month of every class: published (not blocked)
   const posted: string[] = [];
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
-  // on top of the synthetic jump of SEB class I (2024-12), class H's stored return of 2024-03-28 no longer matches the
-  // other classes (an inconsistent distribution adjustment)
+  // SEB class H's stored return of 2024-03-28 no longer matches the other classes (an inconsistent distribution adjustment)
   const jump: Route = (u) => {
     if (u.pathname !== "/api/performance/nav-timeseries" || u.searchParams.get("fundserv") !== "LDM202") return undefined;
     const j = loadFixture("dataplatform/nav_history_LDM202.json") as { rows: Record<string, unknown>[] };
@@ -195,7 +194,7 @@ test("source defects withholding a month of every class: published (not blocked)
   };
   const r = await run({ routes: [jump, hook] });
   assert.equal(r.status, "published", JSON.stringify(r.issues.filter((x) => x.level === "error")));
-  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /month\(s\) withheld for every class of the fund .*2024-03 classes disagree on 2024-03-28.*2024-12 classes disagree/.test(a.message)));
+  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /month\(s\) withheld for every class of the fund .*2024-03 classes disagree on 2024-03-28/.test(a.message)));
   assert.ok(r.issues.some((x) => x.level === "warn" && /attention \(not blocking\): month\(s\) withheld for every class of the fund .*2024-03/.test(x.message)));
   assert.equal(posted.length, 1);
   assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: month\(s\) withheld for every class/);

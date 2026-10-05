@@ -95,7 +95,8 @@ const plus = (s0: Series, d: number, extra: Record<string, number> = {}): Series
 const sestI = plus(sest, 0.0003, { "2025-03-31": 0.009 });
 const sestJ = plus(sest, 0.0001);
 const sestA = plus(sest, -0.0009);
-const sebI = plus(seb, 0.0016);
+/** class I of SEB drifts away from the other classes in 2025-03 (a cross-class outlier month, synthetic) */
+const sebI = plus(seb, 0.0016, { "2025-03-31": 0.009 });
 const sebJ = plus(seb, 0.0014);
 const sebA = plus(seb, -0.0004);
 const sebFP = plus(seb, 0.0015);
@@ -327,8 +328,8 @@ const quarterly = (amt: number) => (m: string): number => (["03", "06", "09", "1
 const december = (amt: number) => (m: string): number => (m.slice(5, 7) === "12" ? amt : 0);
 /** a bad valuation print in every Monthly Income class: +3 % then −2.95 % on two consecutive days (synthetic) */
 const SEST_SPIKE = { "2022-03-15": 0.03, "2022-03-16": -0.0295 };
-/** class I of SEB books a one-day jump the other classes do not have (an inconsistent distribution adjustment, synthetic) */
-const SEB_I_JUMP = { "2024-12-16": 0.013 };
+/** class I of Monthly Income books a one-day jump the other classes do not have (an inconsistent distribution adjustment, synthetic) */
+const SEST_I_JUMP = { ...SEST_SPIKE, "2023-09-15": 0.013 };
 /**
  * Every class of the three funds. Monthly Income: FP / J since the 2021-10-05 re-seed (earlier rows under the reused code
  * are another strategy), I relaunched (a previous life in 2022, then a gap), F since 2024, A launched 2026-03 (less than 12
@@ -339,12 +340,12 @@ export const NAV_HISTORY: NavHistorySpec[] = [
   { fundserv: "LDM001", short: "SEST", monthly: sest, navStart: "2021-10-05", nav0: 10, dist: () => 0.0415, priorFrom: "2021-06-01", seed: 101, shocks: SEST_SPIKE },
   { fundserv: "LDM011", short: "SEST", monthly: sestF, navStart: "2025-06-02", nav0: 10, dist: () => 0.03, seed: 106, currency: "USD", shocks: SEST_SPIKE },
   { fundserv: "LDM021", short: "SEST", monthly: sestA, navStart: "2026-03-02", nav0: 10, dist: () => 0.039, seed: 107, shocks: SEST_SPIKE },
-  { fundserv: "LDM031", short: "SEST", monthly: sestI, navStart: "2023-03-06", nav0: 10, dist: () => 0.042, priorFrom: "2022-01-04", priorTo: "2022-06-30", seed: 108, shocks: SEST_SPIKE },
+  { fundserv: "LDM031", short: "SEST", monthly: sestI, navStart: "2023-03-06", nav0: 10, dist: () => 0.042, priorFrom: "2022-01-04", priorTo: "2022-06-30", seed: 108, shocks: SEST_I_JUMP },
   { fundserv: "LDM061", short: "SEST", monthly: sestJ, navStart: "2021-10-05", nav0: 10, dist: () => 0.0418, priorFrom: "2021-06-01", seed: 109, shocks: SEST_SPIKE },
   { fundserv: "LDM081", short: "SEST", monthly: sestF, navStart: "2024-03-01", nav0: 10, dist: () => 0.04, seed: 102, shocks: SEST_SPIKE },
   { fundserv: "LDM201", short: "SEB", monthly: sebF, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.072), seed: 103 },
   { fundserv: "LDM202", short: "SEB", monthly: seb, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.07), seed: 104 },
-  { fundserv: "LDM203", short: "SEB", monthly: sebI, navStart: "2023-11-06", nav0: 10, dist: quarterly(0.073), seed: 110, shocks: SEB_I_JUMP },
+  { fundserv: "LDM203", short: "SEB", monthly: sebI, navStart: "2023-11-06", nav0: 10, dist: quarterly(0.073), seed: 110 },
   { fundserv: "LDM204", short: "SEB", monthly: sebJ, navStart: "2023-08-01", nav0: 10, dist: quarterly(0.073), seed: 111 },
   { fundserv: "LDM205", short: "SEB", monthly: sebA, navStart: "2026-04-01", nav0: 10, dist: quarterly(0.068), seed: 112 },
   { fundserv: "LDM206", short: "SEB", monthly: sebFP, navStart: "2026-07-27", nav0: 10, dist: quarterly(0.072), seed: 113 },
