@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ButtonLink, CardGrid, CtaBand, FeatureCard, Section, SectionHead } from "@/components/site/kit";
 import { Reveal } from "@/components/v3/motion";
+import { Disclosure } from "@/components/site/Disclosure";
 import { preInceptionNote } from "@/content/disclaimers";
 import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
@@ -74,6 +75,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer,
             <h2 id="fxd-title" className="h3">{tr(T.disclosure.title, lang)}</h2>
           </div>
           <div className="fxd-body">
+            {/* performance qualifiers (sample, performance note, series / basis, returns): always visible, never collapsed */}
             {sample ? <p className="fxd-sample">{tr(T.disclosure.sample, lang)}</p> : null}
             {content.performanceNote && (content.performanceNote.en || content.performanceNote.fr)
               ? <p className="fxd-note" data-testid="perf-note">{tr(content.performanceNote, lang)}</p>
@@ -84,17 +86,22 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer,
               </p>
             ) : null}
             <p>{gross ? tr(T.disclosure.gross, lang) : tr(T.disclosure.net, lang)}</p>
-            {spec.vehicle === "fund" ? <p>{tr(T.disclosure.standard, lang)}</p> : null}
-            {hasBenchmark ? <p>{tr(T.disclosure.index, lang)}</p> : null}
-            <p data-testid="firm-disclaimer">{tr(firm, lang)}</p>
-            {hasBenchmark ? <p className="fine" data-testid="ftse-notice">{tr(T.disclosure.ftse, lang)}</p> : null}
-            <p className="fxd-prov" data-testid="provenance">
-              <span className="live-dot" aria-hidden="true" />
-              <span>
-                {provenanceLine(data, lang)}
-                {asOf.length ? ` ${asOf.join(" · ")}.` : ""}
-              </span>
-            </p>
+            {/* the boilerplate that follows is collapsed to its first lines with a fade (Gabriel 2026-10-05); the full text stays
+                in the DOM, "#disclosure" opens it; sized on the English texts so both languages behave the same */}
+            <Disclosure lang={lang} anchors={["disclosure"]} testId="fund-disclosure"
+              en={[spec.vehicle === "fund" && T.disclosure.standard.en, hasBenchmark && T.disclosure.index.en, firm.en || firm.fr, hasBenchmark && T.disclosure.ftse.en, provenanceLine(data, "en")]}>
+              {spec.vehicle === "fund" ? <p>{tr(T.disclosure.standard, lang)}</p> : null}
+              {hasBenchmark ? <p>{tr(T.disclosure.index, lang)}</p> : null}
+              <p data-testid="firm-disclaimer">{tr(firm, lang)}</p>
+              {hasBenchmark ? <p className="fine" data-testid="ftse-notice">{tr(T.disclosure.ftse, lang)}</p> : null}
+              <p className="fxd-prov" data-testid="provenance">
+                <span className="live-dot" aria-hidden="true" />
+                <span>
+                  {provenanceLine(data, lang)}
+                  {asOf.length ? ` ${asOf.join(" · ")}.` : ""}
+                </span>
+              </p>
+            </Disclosure>
           </div>
         </div>
       </div>
