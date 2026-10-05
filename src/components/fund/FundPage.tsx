@@ -2,7 +2,7 @@
 /**
  * Fund detail page (/strategies/<key>): informational, light. Header band with the NAV card, return badges,
  * sticky tabs (overview, performance, portfolio, distributions, awards and rankings, documents), the fund's own section,
- * disclosures, call to action and the other funds. Receives plain JSON from the server page; every block whose data is
+ * call to action, the other funds and, last (just above the site footer), the disclosures. Receives plain JSON from the server page; every block whose data is
  * missing or hidden by the admin is omitted or says "figures coming soon".
  *
  * The selected share class (default F) drives the NAV card and every return figure of the page; a strategy with
@@ -62,9 +62,10 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
       <ReturnStrip {...props} />
       <FundTabs tabs={tabs} label={tr(isFund ? T.tabs.label : T.tabs.labelStrategy, lang)} />
       <FeatureSection spec={spec} data={data} content={content} lang={lang} />
-      <Disclosures {...props} sample={sample} firmDisclaimer={firmDisclaimer} />
       <FundCta spec={spec} lang={lang} />
       <OtherFunds current={spec.key} funds={funds} lang={lang} />
+      {/* Gabriel 2026-10-04: the disclosures are the last block, below the call to action and the other strategies */}
+      <Disclosures {...props} sample={sample} firmDisclaimer={firmDisclaimer} />
     </div>
   );
 }

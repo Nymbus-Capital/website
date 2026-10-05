@@ -92,9 +92,29 @@ for (const f of FUNDS) {
       await expect(page.getByTestId("provenance")).toContainText("portfolio data from the monthly factsheet of August 2026");
     }
     await expect(page.locator("#disclosure")).toBeVisible();
+    // Gabriel 2026-10-04: the disclosures are the last block of the page — after the call to action and the other
+    // strategies, immediately above the site footer
+    const bottom = await page.evaluate(() => {
+      const d = document.getElementById("disclosure")!;
+      const after = (el: Element | null) => !!el && !!(d.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const main = document.querySelector("main")!;
+      const visibleAfter = [...main.querySelectorAll("*")].filter((el) => after(el) && !d.contains(el) && el.getBoundingClientRect().height > 0);
+      const before = (sel: string) => { const el = document.querySelector(sel); return !!el && !!(el.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING); };
+      return {
+        afterCta: before(".cta-band"),
+        afterOthers: before('[data-testid="other-funds"]'),
+        visibleAfter: visibleAfter.map((el) => el.tagName + (el.id ? `#${el.id}` : "")),
+        footerNext: main.nextElementSibling?.tagName ?? null,
+      };
+    });
+    expect(bottom).toEqual({ afterCta: true, afterOthers: true, visibleAfter: [], footerNext: "FOOTER" });
 
     await settle(page);
     await shot(page, f.slug, info.project.name);
+    // the bottom of the page (other strategies, disclosures, footer) for design review
+    await page.locator("#disclosure").scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, -320));
+    await page.screenshot({ path: `e2e/screenshots/fund-${f.slug}-bottom-${info.project.name}.png` });
 
     // performance tab: charts mount once shown
     await openTab(page, "performance");
