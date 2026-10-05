@@ -96,20 +96,14 @@ export const CLASS_CHECKS = {
   spikeMin: 0.02,
   spikeRevert: 0.5,
   /**
-   * cross-class consistency of a month (same days for every class compared): a class deviating from the median of the
-   * fund's classes by more than max(crossAbs, crossRel × |median|) is withheld; when the deviating classes are not a strict
-   * minority (2 classes that disagree, no majority) the month is withheld for every class compared. Performance-fee classes
-   * legitimately drift by up to ≈ 0.5 % in strong months: crossAbs stays above that.
+   * cross-class consistency of a month (Gabriel / DP checks 2026-10: an inconsistent annual distribution adjustment spreads
+   * classes of one book by 70–140 bp in a month): over the classes with a COMPLETE month (partial first months excluded
+   * from the median), any class farther than max(crossAbs, crossRel × |median|) from the median withholds that month for
+   * EVERY class of the fund — which one is right cannot be told. Performance-fee classes legitimately drift by up to
+   * ≈ 0.5–0.6 % in strong months: the 0.50 % floor plus the 25 % relative band keep them in.
    */
   crossAbs: 0.005,
   crossRel: 0.25,
-  /**
-   * daily dispersion: on one valuation day the classes of one book move together (fee accruals differ by < 0.01 %); a
-   * spread (max − min) above max(dailyAbs, dailyRel × |median|) is an inconsistent distribution adjustment → the month is
-   * withheld for every class of the fund (the majority may be the wrong side: it cannot be told which class is right)
-   */
-  dailyAbs: 0.004,
-  dailyRel: 0.5,
 } as const;
 
 /** Daily NAV chain (daily-chain.ts, build.ts): CIBC months are used only after this many months agree with the analytics history. */

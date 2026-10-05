@@ -1308,8 +1308,8 @@ function comparablePrevious(prev: FundData | undefined, next: Performance): Perf
  * built and cross-checked. Every other class gets its own monthly series from its OWN daily NAV chain (nav-timeseries,
  * class-returns.ts) from its inception — the first price of its current run — to the headline's as-of, never another
  * class's numbers:
- *  - a month that fails a check (coverage, method, bad valuation print, daily dispersion between the classes, cross-class
- *    consistency) is withheld, with its reason in the issues; the figures over it are withheld (classes.ts);
+ *  - a month that fails a check (coverage, method, bad valuation print, cross-class consistency of the complete months —
+ *    the last two withhold the month for every class) is withheld, with its reason in the issues; the figures over it are withheld (classes.ts);
  *  - less than CLASS_CHECKS.minHistoryMonths months since inception: no figure (regulatory minimum), ClassInfo "young";
  *  - a non-CAD class: no figure (no distribution-aware returns), ClassInfo "currency".
  * `classInfo` describes every class (inception, why no returns); `defaultClass` is the registry's headline class when it
@@ -1388,7 +1388,7 @@ function buildClasses(
     const months = entry.performance.monthly.length;
     const withheld = entry.performance.withheldMonths ?? [];
     const unchecked = fundRes.unchecked.filter((u) => u.fundserv === k.fundserv && u.month <= asOf).map((u) => u.month);
-    c.prov[key] = `monthly net returns of ${lbl} from its inception ${r.inception} (first price of its current run; first month ${entry.performance.partialFirstMonth ? "partial, from the inception NAV per unit" : "complete"}) to ${ym(asOf)}, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=${k.fundserv} (${chainNote(entry.performance.monthly.map((m) => m.month), r.months.map((m) => ({ month: m.month, source: m.source, status: "ready", r: m.r, issue: null })))}); ${months} month(s) shown${withheld.length ? `, ${withheld.length} withheld (${monthRanges(withheld)})` : ""}; checks: coverage and method, bad valuation prints, daily dispersion and cross-class consistency${unchecked.length ? ` (${unchecked.length} month(s) without another class to compare: ${monthRanges(unchecked)})` : ""}`;
+    c.prov[key] = `monthly net returns of ${lbl} from its inception ${r.inception} (first price of its current run; first month ${entry.performance.partialFirstMonth ? "partial, from the inception NAV per unit" : "complete"}) to ${ym(asOf)}, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=${k.fundserv} (${chainNote(entry.performance.monthly.map((m) => m.month), r.months.map((m) => ({ month: m.month, source: m.source, status: "ready", r: m.r, issue: null })))}); ${months} month(s) shown${withheld.length ? `, ${withheld.length} withheld (${monthRanges(withheld)})` : ""}; checks: coverage and method, bad valuation prints and cross-class consistency${unchecked.length ? ` (${unchecked.length} month(s) without another class to compare: ${monthRanges(unchecked)})` : ""}`;
   }
   return { byClass, classInfo, defaultClass: pickDefaultClass(spec.headlineClass, order, byClass), alerts, advisories };
 }

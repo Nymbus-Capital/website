@@ -131,3 +131,11 @@ test("withheld figures keep their row ('—'); periods longer than the history d
   // without withheld months nothing changes
   assert.deepEqual(trailingRows(perf("F", 0.05)).map((r) => r.period), ["1Y", "SI"]);
 });
+
+test("since-inception label of a class entry names its inception (EN / FR); other periods and the track record unchanged", async () => {
+  const { periodLong } = await import("../../../src/components/fund/lib/notice.ts");
+  assert.equal(periodLong("SI", { inception: "2021-10-05" }, "en"), "Since inception (Oct 5, 2021)");
+  assert.match(periodLong("SI", { inception: "2021-10-05" }, "fr"), /^Depuis la création \(5 oct\.? 2021\)$/);
+  assert.equal(periodLong("SI", {}, "en"), "Since inception");
+  assert.equal(periodLong("1Y", { inception: "2021-10-05" }, "en"), "1 year");
+});

@@ -157,7 +157,6 @@ test("factsheet cross-checks run only against an archive of the same class", asy
     assert.ok(sebErrors(h.data).some((i) => /2026-08 not published: factsheet bonds_data_2026-08\.json disagrees beyond tolerance \(1Y/.test(i.message)));
     assert.equal(h.data.funds[SEB]!.performance!.asOf, "2026-07-31");
     assert.equal(h.data.funds[SEB]!.performance!.returnClass, "H");
-    // (the synthetic drifting month of class I in 2025-03 is a class issue of its own, not a factsheet comparison)
     assert.ok(!sebIssues(h.data).some((i) => /2025-03/.test(i.message) && !i.key.includes(".performance.classes.")), "class F archive never compared with class H");
     // the other funds keep their (same-class) cross-check
     assert.ok(h.context["monthly-income"]!.factsheetTrailing);

@@ -223,14 +223,14 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   the dataplatform team), config `CLASS_CHECKS`:
   - bad valuation print: two consecutive daily returns of opposite sign, both ≥ 2 %, combined ≤ 0.5 × the smaller → both
     months, every class of the fund;
-  - daily dispersion: on one valuation day the classes' returns spread by more than max(0.40 %, 0.5 × |median|) (classes of
-    one book move together; an inconsistent distribution adjustment shows here — the majority may be the wrong side, so it
-    cannot be told which class is right) → that month, every class;
-  - cross-class consistency of a month (each class against the others compounded over the same valuation days; a partial
-    inception month against the others' same days): a class farther than max(0.50 %, 0.25 × |median|) from the median is
-    withheld; when the deviating classes are not a strict minority (two classes that disagree, no majority) every class
-    compared is withheld. Performance-fee classes drift by up to ≈ 0.5 % a month in strong months: the tolerance stays above
-    it. A class-month with no other class over the same days cannot be compared (listed in the provenance);
+  - cross-class consistency of a month: over the classes with a COMPLETE month (a partial inception month is not in the
+    median), any class farther than max(0.50 %, 0.25 × |median|) (`crossAbs`, `crossRel`) from the median → that month,
+    every class of the fund: classes of one book cannot disagree that much (an inconsistent December distribution
+    adjustment spreads them by 70–140 bp) and which one is right cannot be told. Performance-fee classes drift by up to
+    ≈ 0.5–0.6 % a month in strong months: the band keeps them in. A partial inception month is compared with the other
+    classes compounded over its own days and withheld alone when it deviates; a month with no other class to compare is
+    listed in the provenance (unchecked). There is no daily cross-class check (a one-day mismatch that the month's other
+    days offset leaves the monthly return consistent);
   - missing / duplicate days, another return method, invalid returns.
   The headline (track record) keeps its own logic and checks (analytics history, CIBC verification within 0.2 bp, Apex
   months = `monthly-net-returns`): that verification is not a gate for the other classes any more (the strategy track record

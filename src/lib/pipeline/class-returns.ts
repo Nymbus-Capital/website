@@ -16,12 +16,12 @@
  *  - Known source defects withhold months (never repaired, never filled from another class):
  *    a. bad valuation print: two consecutive daily returns of opposite sign, both ≥ `spikeMin`, combined ≤ `spikeRevert` ×
  *       the smaller → both months, every class of the fund;
- *    b. daily dispersion: on one valuation day the classes' returns spread by more than max(`dailyAbs`, `dailyRel` ×
- *       |median|) (an inconsistent distribution adjustment; the majority may be the wrong side) → that month, every class;
- *    c. cross-class consistency of a month (over the same days): a class farther than max(`crossAbs`, `crossRel` ×
- *       |median|) from the median of the classes compared is withheld; when the deviating classes are not a strict
- *       minority (e.g. two classes that disagree) every class compared is withheld;
- *    d. missing / duplicate days, invalid returns, another return method (above).
+ *    b. cross-class consistency of a month: over the classes with a COMPLETE month (partial first months excluded from the
+ *       median), any class farther than max(`crossAbs`, `crossRel` × |median|) from the median → that month, every class of
+ *       the fund (classes of one book cannot disagree that much — an inconsistent distribution adjustment — and which one is
+ *       right cannot be told); a partial inception month is compared with the other classes over its own days and withheld
+ *       alone when it deviates;
+ *    c. missing / duplicate days, invalid returns, another return method (above).
  */
 import { apexMonth, bridgeMonth, cibcMonth, CUTOVER, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
 import { tradingDays } from "./market-calendar.ts";
@@ -33,8 +33,6 @@ export interface ClassCheckConfig {
   spikeRevert: number;
   crossAbs: number;
   crossRel: number;
-  dailyAbs: number;
-  dailyRel: number;
 }
 
 export interface ClassInput {
@@ -72,7 +70,7 @@ export interface ClassResult {
 
 export interface FundClassesResult {
   classes: ClassResult[];
-  /** months withheld for every class of the fund (spikes, daily dispersion), with the reason */
+  /** months withheld for every class of the fund (bad valuation prints, cross-class inconsistency), with the reason */
   fundMonths: { month: string; reason: string }[];
   /** class-months that could not be cross-checked (no other class over the same days) */
   unchecked: { fundserv: string; month: string }[];
@@ -200,32 +198,17 @@ export function spikeMonths(daily: Record<string, Map<string, number>>, cfg: Pic
   return out;
 }
 
-/** (b) daily dispersion between the classes of the fund: month → reason */
-export function dispersionMonths(daily: Record<string, Map<string, number>>, cfg: Pick<ClassCheckConfig, "dailyAbs" | "dailyRel">): Map<string, string> {
-  const out = new Map<string, string>();
-  const dates = new Set<string>();
-  for (const m of Object.values(daily)) for (const d of m.keys()) dates.add(d);
-  for (const d of [...dates].sort()) {
-    const vals = Object.entries(daily).filter(([, m]) => m.has(d)).map(([fsv, m]) => ({ fsv, v: m.get(d)! }));
-    if (vals.length < 2) continue;
-    const med = median(vals.map((x) => x.v));
-    const lo = vals.reduce((a, b) => (b.v < a.v ? b : a));
-    const hi = vals.reduce((a, b) => (b.v > a.v ? b : a));
-    const spread = hi.v - lo.v;
-    if (spread <= Math.max(cfg.dailyAbs, cfg.dailyRel * Math.abs(med)) + 1e-12) continue;
-    const m = toMonthEnd(d);
-    if (!out.has(m)) out.set(m, `classes disagree on ${d}: ${lo.fsv} ${pct(lo.v)} vs ${hi.fsv} ${pct(hi.v)} (spread ${pct(spread)}; inconsistent distribution adjustment?)`);
-  }
-  return out;
-}
-
 /**
- * (c) cross-class consistency of each computed month: fundserv → month → reason. Each class-month is compared with the
- * other classes compounded over the SAME valuation days (a partial inception month against the others' same days).
+ * (b) cross-class consistency of each month. Complete months: over every class with a usable complete month, one class
+ * farther than max(crossAbs, crossRel × |median|) from the median withholds the month for EVERY class of the fund
+ * (`fundMonths`). A partial inception month (excluded from that median) is compared with the other classes compounded over
+ * its own valuation days and withheld alone (`fails`) when it deviates. A class-month with no other class to compare is
+ * `unchecked`.
  */
 export function crossClassFailures(
-  months: Record<string, { month: string; r: number | null; days: string[] }[]>, daily: Record<string, Map<string, number>>, cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel">,
-): { fails: Map<string, Map<string, string>>; unchecked: { fundserv: string; month: string }[] } {
+  months: Record<string, { month: string; r: number | null; days: string[]; partial?: boolean }[]>, daily: Record<string, Map<string, number>>, cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel">,
+): { fundMonths: Map<string, string>; fails: Map<string, Map<string, string>>; unchecked: { fundserv: string; month: string }[] } {
+  const fundMonths = new Map<string, string>();
   const fails = new Map<string, Map<string, string>>();
   const unchecked: { fundserv: string; month: string }[] = [];
   const over = (fsv: string, days: string[]): number | null => {
@@ -233,31 +216,45 @@ export function crossClassFailures(
     if (!m || !days.every((d) => m.has(d))) return null;
     return prod(days.map((d) => m.get(d)!)) - 1;
   };
+  const byMonth = new Map<string, { fsv: string; r: number; days: string[]; partial: boolean }[]>();
   for (const [fsv, ms] of Object.entries(months)) {
     for (const cm of ms) {
       if (cm.r === null) continue;
-      const own = over(fsv, cm.days) ?? cm.r;
-      const vals = [{ fsv, v: own }];
+      const list = byMonth.get(cm.month) ?? [];
+      list.push({ fsv, r: cm.r, days: cm.days, partial: !!cm.partial });
+      byMonth.set(cm.month, list);
+    }
+  }
+  for (const month of [...byMonth.keys()].sort()) {
+    const list = byMonth.get(month)!;
+    const full = list.filter((x) => !x.partial).map((x) => ({ fsv: x.fsv, v: over(x.fsv, x.days) ?? x.r }));
+    if (full.length >= 2) {
+      const med = median(full.map((x) => x.v));
+      const thr = Math.max(cfg.crossAbs, cfg.crossRel * Math.abs(med));
+      const devs = full.filter((x) => Math.abs(x.v - med) > thr + 1e-12);
+      if (devs.length) {
+        fundMonths.set(month, `classes disagree: ${devs.map((x) => `${x.fsv} ${pct(x.v)}`).join(", ")} vs median ${pct(med)} of ${full.length} classes with a complete month (tolerance ${pct(thr)}; ${full.map((x) => `${x.fsv} ${pct(x.v)}`).join(", ")}): which one is right cannot be told`);
+      }
+    } else if (full.length === 1) unchecked.push({ fundserv: full[0].fsv, month });
+    for (const x of list.filter((y) => y.partial)) {
+      const own = over(x.fsv, x.days) ?? x.r;
+      const vals = [{ fsv: x.fsv, v: own }];
       for (const p of Object.keys(daily)) {
-        if (p === fsv) continue;
-        const v = over(p, cm.days);
+        if (p === x.fsv) continue;
+        const v = over(p, x.days);
         if (v !== null) vals.push({ fsv: p, v });
       }
-      if (vals.length < 2) { unchecked.push({ fundserv: fsv, month: cm.month }); continue; }
-      const med = median(vals.map((x) => x.v));
+      if (vals.length < 2) { unchecked.push({ fundserv: x.fsv, month }); continue; }
+      const med = median(vals.map((y) => y.v));
       const thr = Math.max(cfg.crossAbs, cfg.crossRel * Math.abs(med));
-      const devs = vals.filter((x) => Math.abs(x.v - med) > thr + 1e-12);
-      let why: string | null = null;
-      if (devs.some((x) => x.fsv === fsv)) why = `deviates from the fund's other series: ${pct(own)} vs median ${pct(med)} of ${vals.length} series (tolerance ${pct(thr)})`;
-      else if (devs.length * 2 >= vals.length) why = `the fund's series disagree with no clear majority (${vals.map((x) => `${x.fsv} ${pct(x.v)}`).join(", ")}; tolerance ${pct(thr)}): which one is right cannot be told`;
-      if (why) {
-        const f = fails.get(fsv) ?? new Map<string, string>();
-        f.set(cm.month, why);
-        fails.set(fsv, f);
+      if (Math.abs(own - med) > thr + 1e-12) {
+        const f = fails.get(x.fsv) ?? new Map<string, string>();
+        f.set(month, `first (partial) month deviates from the fund's other classes over the same days: ${pct(own)} vs median ${pct(med)} of ${vals.length} classes (tolerance ${pct(thr)})`);
+        fails.set(x.fsv, f);
       }
     }
   }
-  return { fails, unchecked };
+  return { fundMonths, fails, unchecked };
 }
 
 /**
@@ -286,13 +283,12 @@ export function computeFundClasses(inputs: ClassInput[], opts: { endMonth: strin
     classes.push({ ...res, status: "ok" });
   }
   const spikes = spikeMonths(daily, cfg);
-  const spread = dispersionMonths(daily, cfg);
-  const fundMonths = [...new Set([...spikes.keys(), ...spread.keys()])].sort().map((month) => ({ month, reason: spikes.get(month) ?? spread.get(month)! }));
-  const fundWhy = new Map(fundMonths.map((x) => [x.month, x.reason]));
-  // the cross-class comparison runs on months that passed the per-class and fund-level checks only
-  const candidates: Record<string, { month: string; r: number | null; days: string[] }[]> = {};
-  for (const [fsv, ms] of Object.entries(raw)) candidates[fsv] = ms.map((m) => ({ month: m.month, r: m.status === "ready" && !fundWhy.has(m.month) ? m.r : null, days: m.days }));
+  // the cross-class comparison runs on months that passed the per-class checks and the bad-print check only
+  const candidates: Record<string, { month: string; r: number | null; days: string[]; partial: boolean }[]> = {};
+  for (const [fsv, ms] of Object.entries(raw)) candidates[fsv] = ms.map((m) => ({ month: m.month, r: m.status === "ready" && !spikes.has(m.month) ? m.r : null, days: m.days, partial: m.partial }));
   const cross = crossClassFailures(candidates, daily, cfg);
+  const fundWhy = new Map<string, string>([...cross.fundMonths, ...spikes]);
+  const fundMonths = [...fundWhy.keys()].sort().map((month) => ({ month, reason: fundWhy.get(month)! }));
   for (const c of classes) {
     const ms = raw[c.fundserv];
     if (!ms) continue;

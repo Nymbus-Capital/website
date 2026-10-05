@@ -1,12 +1,12 @@
 /**
  * Per-class returns engine (class-returns.ts) on SYNTHETIC daily rows: inception of the current run, the partial first
- * month from the inception NAV, and the source-defect checks (bad valuation prints, daily dispersion, cross-class
+ * month from the inception NAV, and the source-defect checks (bad valuation prints, cross-class
  * consistency). No real fund data.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  computeFundClasses, crossClassFailures, currentRun, dispersionMonths, hasMinHistory, minHistoryDate, monthsFromInception, spikeMonths,
+  computeFundClasses, crossClassFailures, currentRun, hasMinHistory, minHistoryDate, monthsFromInception, spikeMonths,
 } from "../../../src/lib/pipeline/class-returns.ts";
 import { CLASS_CHECKS } from "../../../src/lib/pipeline/config.ts";
 import { tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
@@ -72,39 +72,54 @@ test("bad valuation print: opposite daily moves ≥ 2 % that cancel out flag bot
   assert.equal(spikeMonths({ X: new Map([["2022-03-14", 0.015], ["2022-03-15", -0.015]]) }, CLASS_CHECKS).size, 0, "below 2 %");
 });
 
-test("daily dispersion: classes of one book disagreeing on a day (distribution adjustment) withhold that month for the fund", () => {
-  const f = new Map([["2024-12-30", 0.001], ["2024-12-31", -0.012]]);
-  const h = new Map([["2024-12-30", 0.0011], ["2024-12-31", -0.0121]]);
-  const i = new Map([["2024-12-30", 0.001], ["2024-12-31", 0.001]]);
-  const out = dispersionMonths({ F: f, H: h, I: i }, CLASS_CHECKS);
-  assert.deepEqual([...out.keys()], ["2024-12-31"], "the majority (F, H) may be the wrong side: every class");
-  assert.match(out.get("2024-12-31")!, /classes disagree on 2024-12-31: H -1\.21% vs I 0\.10%/);
-  // fee accruals (a few hundredths of a percent) never trigger it; a large common move scales the tolerance
-  assert.equal(dispersionMonths({ F: new Map([["2024-11-01", 0.002]]), H: new Map([["2024-11-01", 0.0019]]) }, CLASS_CHECKS).size, 0);
-  assert.equal(dispersionMonths({ F: new Map([["2020-03-16", -0.04]]), H: new Map([["2020-03-16", -0.042]]) }, CLASS_CHECKS).size, 0);
-});
-
-test("cross-class consistency: an outlier class is withheld alone; two classes that disagree, or no majority, withhold every class", () => {
+test("cross-class consistency: any class beyond the band withholds the month for EVERY class; partial months are outside the median", () => {
   const days = ["2025-03-03", "2025-03-04"];
   const d = (r: number): Map<string, number> => new Map(days.map((x) => [x, r]));
-  const m = (r: number) => [{ month: "2025-03-31", r: (1 + r) ** 2 - 1, days }];
-  // 4 classes: I drifts by ≈ +0.9 % while the others agree (median ≈ 0.6 %, tolerance 0.5 %)
+  const m = (r: number, partial = false) => [{ month: "2025-03-31", r: (1 + r) ** 2 - 1, days, partial }];
+  // 4 classes: I drifts by ≈ +0.9 % while the others agree (median ≈ 0.6 %, tolerance 0.5 %): the month for the fund
   const four = crossClassFailures({ FP: m(0.003), F: m(0.0029), J: m(0.0031), I: m(0.0075) }, { FP: d(0.003), F: d(0.0029), J: d(0.0031), I: d(0.0075) }, CLASS_CHECKS);
-  assert.deepEqual([...four.fails.keys()], ["I"]);
-  assert.match(four.fails.get("I")!.get("2025-03-31")!, /deviates from the fund's other series: 1\.51% vs median 0\.61% of 4 series \(tolerance 0\.50%\)/);
-  // 2 classes beyond the tolerance: which one is wrong cannot be told → both
-  const two = crossClassFailures({ F: m(0.001), H: m(0.006) }, { F: d(0.001), H: d(0.006) }, CLASS_CHECKS);
-  assert.deepEqual([...two.fails.keys()].sort(), ["F", "H"]);
-  // 3 classes spread with no majority: every class
-  const three = crossClassFailures({ A: m(0), B: m(0.003), C: m(0.006) }, { A: d(0), B: d(0.003), C: d(0.006) }, CLASS_CHECKS);
-  assert.deepEqual([...three.fails.keys()].sort(), ["A", "B", "C"]);
-  assert.match(three.fails.get("B")!.get("2025-03-31")!, /no clear majority/);
-  // a performance-fee class drifting 0.4 % in a strong month stays within the tolerance
-  const fee = crossClassFailures({ F: m(0.01), FP: m(0.008) }, { F: d(0.01), FP: d(0.008) }, CLASS_CHECKS);
-  assert.equal(fee.fails.size, 0);
+  assert.deepEqual([...four.fundMonths.keys()], ["2025-03-31"]);
+  assert.match(four.fundMonths.get("2025-03-31")!, /classes disagree: I 1\.51% vs median 0\.61% of 4 classes with a complete month \(tolerance 0\.50%;/);
+  assert.equal(four.fails.size, 0);
+  // a December distribution-day error: one class −1.3 %, the others +0.1 % (the majority may be the wrong side): the fund
+  const dec = ["2024-12-31"];
+  const one = (r: number) => [{ month: "2024-12-31", r, days: dec }];
+  const dd = (r: number): Map<string, number> => new Map([["2024-12-31", r]]);
+  const xmas = crossClassFailures({ F: one(-0.013), H: one(-0.0129), I: one(0.001) }, { F: dd(-0.013), H: dd(-0.0129), I: dd(0.001) }, CLASS_CHECKS);
+  assert.deepEqual([...xmas.fundMonths.keys()], ["2024-12-31"]);
+  // a performance-fee class drifting 0.4 % in a strong month stays within the band; so does a 25 % relative spread on a big month
+  assert.equal(crossClassFailures({ F: m(0.01), FP: m(0.008) }, { F: d(0.01), FP: d(0.008) }, CLASS_CHECKS).fundMonths.size, 0);
+  assert.equal(crossClassFailures({ F: one(0.04), FP: one(0.034) }, { F: dd(0.04), FP: dd(0.034) }, CLASS_CHECKS).fundMonths.size, 0, "0.6 % apart, band 25 % of 3.7 %");
+  // the band boundary: 0.50 % from the median is kept, more is not
+  const edge = (gap: number) => crossClassFailures({ A: one(0), B: one(0), C: one(gap) }, { A: dd(0), B: dd(0), C: dd(gap) }, CLASS_CHECKS).fundMonths.size;
+  assert.equal(edge(0.005), 0);
+  assert.equal(edge(0.0051), 1);
+  // a partial inception month is not in the median of the complete months; compared over its own days, withheld alone
+  const late = { month: "2025-03-31", r: 0.02, days: ["2025-03-04"], partial: true };
+  const part = crossClassFailures({ F: m(0.003), J: m(0.0031), N: [late] }, { F: d(0.003), J: d(0.0031), N: new Map([["2025-03-04", 0.02]]) }, CLASS_CHECKS);
+  assert.equal(part.fundMonths.size, 0, "the complete months agree");
+  assert.deepEqual([...part.fails.keys()], ["N"]);
+  assert.match(part.fails.get("N")!.get("2025-03-31")!, /first \(partial\) month deviates/);
   // a class alone over its days cannot be compared: unchecked (recorded for the admin)
   const alone = crossClassFailures({ F: m(0.01) }, { F: d(0.01) }, CLASS_CHECKS);
   assert.deepEqual(alone.unchecked, [{ fundserv: "F", month: "2025-03-31" }]);
+});
+
+test("computeFundClasses: a cross-class breach withholds the month for every class, the others stay", () => {
+  const days = tradingDays("2024-01-02", "2024-06-28");
+  const res = computeFundClasses([
+    { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, () => 0.0005) },
+    { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, () => 0.00049) },
+    // C books a 1.2 % adjustment on one April day that the others do not have
+    { fundserv: "C", display: "C", currency: "CAD", rows: rows(days, (x) => (x === "2024-04-15" ? 0.0125 : 0.0005)) },
+  ], { endMonth: "2024-06-30", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" });
+  assert.deepEqual(res.fundMonths.map((x) => x.month), ["2024-04-30"]);
+  for (const c of res.classes) {
+    // the inception month (January, from Jan 2) is partial; April withheld; the rest shown
+    assert.equal(c.months.find((x) => x.month === "2024-04-30")!.r, null, c.fundserv);
+    assert.match(c.months.find((x) => x.month === "2024-04-30")!.reason!, /classes disagree: C/);
+    assert.ok(c.months.filter((x) => x.month !== "2024-04-30").every((x) => x.r !== null), c.fundserv);
+  }
 });
 
 test("computeFundClasses: non-CAD class without figures; withheld months keep their place with the reason", () => {

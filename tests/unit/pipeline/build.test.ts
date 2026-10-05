@@ -43,11 +43,10 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table),
   // the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown), and the
   // short_corp history that starts with its 2024-12 naming generation (like the live data: no earlier name to join)
-  // + the synthetic source defects of the other classes (a bad valuation print in every Monthly Income class, a one-day
-  // jump of Monthly Income class I, drifting months of class I in both bond funds): months withheld for those classes
+  // + the synthetic source defects of Monthly Income (a bad valuation print in every class, a drifting month of class I):
+  // months withheld for every class
   const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio" || k === "funds.monthly-income.performance.index" || k === "funds.monthly-income.trailing.index"
-    || /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k)
-    || /^funds\.sustainable-enhanced-bonds\.performance\.classes\.LDM203(\.monthly\.2025-03-31)?$/.test(k);
+    || /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k);
   assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;
@@ -146,7 +145,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(sebF.withheldMonths, undefined);
   near(sebF.trailing.fund.SI, 0.02930987039704447);
   near(sebF.trailing.fund["1Y"], -0.02622203240078491);
-  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-07 to 2026-06, bridge 2026-07, apex 2026-08\); 38 month\(s\) shown; checks: coverage and method, bad valuation prints, daily dispersion and cross-class consistency/);
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-07 to 2026-06, bridge 2026-07, apex 2026-08\); 38 month\(s\) shown; checks: coverage and method, bad valuation prints and cross-class consistency/);
   assert.equal(data.funds["sustainable-enhanced-bonds"]!.defaultClass, "LDM201");
   // the class-H factsheet is cross-checked as before (same class)
   assert.ok(context["sustainable-enhanced-bonds"]!.factsheetTrailing, "factsheet trailing cross-check kept for class H");

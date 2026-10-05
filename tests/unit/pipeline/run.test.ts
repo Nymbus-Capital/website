@@ -194,7 +194,7 @@ test("source defects withholding a month of every class: published (not blocked)
   };
   const r = await run({ routes: [jump, hook] });
   assert.equal(r.status, "published", JSON.stringify(r.issues.filter((x) => x.level === "error")));
-  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /month\(s\) withheld for every class of the fund .*2024-03 classes disagree on 2024-03-28/.test(a.message)));
+  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /month\(s\) withheld for every class of the fund .*2024-03 classes disagree: LDM202 /.test(a.message)));
   assert.ok(r.issues.some((x) => x.level === "warn" && /attention \(not blocking\): month\(s\) withheld for every class of the fund .*2024-03/.test(x.message)));
   assert.equal(posted.length, 1);
   assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: month\(s\) withheld for every class/);
