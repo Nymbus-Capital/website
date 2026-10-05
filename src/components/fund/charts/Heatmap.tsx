@@ -18,11 +18,16 @@ export interface HeatmapProps {
   /** month-end of the published performance: only its year is flagged YTD */
   asOf?: string | null;
   lang: Lang;
-  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string };
+  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string; withheld?: string };
   caption: string;
+  /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */
+  withheld?: Set<string>;
+  /** a partial first month (YYYY-MM) of a series: its cell is marked, with `label` as its title */
+  partial?: { month: string; label: string } | null;
 }
 
-export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption }: HeatmapProps) {
+export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption, withheld, partial = null }: HeatmapProps) {
+  const held = useMemo(() => new Set([...(withheld ?? [])].map((m) => m.slice(0, 7))), [withheld]);
   const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
   const [ref, near, seen] = useNear<HTMLDivElement>("200px 0px");
@@ -60,12 +65,17 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption 
                   <th className="y" scope="row">{row.year}</th>
                   {row.cells.map((r, m) => {
                     const c = heatCell(r, scale);
+                    if (r == null && held.has(`${row.year}-${String(m + 1).padStart(2, "0")}`)) {
+                      return <td key={m} data-testid="heat-withheld"><div className="c none hm-held" title={labels.withheld}><span aria-hidden="true">—</span><span className="sr-only">{labels.withheld}</span></div></td>;
+                    }
                     if (r == null) return <td key={m}><div className="c none" aria-hidden="true" /></td>;
                     const txt = fmt(r, { pct: true, decimals: 1, lang });
+                    const isPartial = !!partial && partial.month === `${row.year}-${String(m + 1).padStart(2, "0")}`;
                     return (
-                      <td key={m}>
-                        <div className={`c ${c.tone}${c.strong ? " strong" : ""}`} style={{ "--a": c.alpha } as CSSProperties} tabIndex={0} data-cell={ri + m}
-                          aria-label={`${monthName(m + 1, lang)} ${row.year}: ${fmt(r, { pct: true, decimals: 2, lang })}`}
+                      <td key={m} data-testid={isPartial ? "heat-partial" : undefined}>
+                        <div className={`c ${c.tone}${c.strong ? " strong" : ""}${isPartial ? " hm-partial" : ""}`} style={{ "--a": c.alpha } as CSSProperties} tabIndex={0} data-cell={ri + m}
+                          title={isPartial ? partial!.label : undefined}
+                          aria-label={`${monthName(m + 1, lang)} ${row.year}: ${fmt(r, { pct: true, decimals: 2, lang })}${isPartial ? ` (${partial!.label})` : ""}`}
                           onPointerEnter={(e) => show(e.currentTarget, row.year, m, r)} onFocus={(e) => show(e.currentTarget, row.year, m, r)} onBlur={() => setTip(null)}>
                           <span className="v" aria-hidden="true">{txt.replace(/ ?%/, "")}</span>
                         </div>

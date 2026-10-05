@@ -201,6 +201,22 @@ Not yet run against live data, not deployed.
    **WordPress**: Xavier Girard and Jean-Philippe Lejeune were removed from `src/data/team.ts` only; if the CMS is enabled
    (`WP_BASE_URL`), remove them from the WordPress team too (WordPress wins over the static list).
 
+19. **Every series' returns** (branch `feat/all-classes`, from `redesign/v3-keynote-live-data`, **not merged**): every active register
+   class of the three funds gets its own monthly returns from its own `nav-timeseries` chain since its inception (first price of its
+   current run); defect months withheld ("—", figures over them "—"), 12-month minimum, a USD series without figures. To do:
+   (a) **first live run** (review mode, or auto: the fund then stays at its previous publication): in *Admin → Runs* the run is
+   `pending-review` with "class changes" = every series published for the first time (and a fund's default series if it
+   changes); read the `funds.<fund>.performance.classes*` issues (inceptions, relaunches, coverage gaps, withheld months and why),
+   the `funds.<fund>.performance` warnings (months withheld for every class that the track record takes from another source, or
+   withholds from its own NAV chain) and the non-blocking notice "month(s) withheld for every class of the fund", then press
+   **"approve class change & publish"** once (one approval publishes every class of every fund of that run; later runs are not
+   gated again until a new series appears, e.g. a series reaching its 12 months). The coordinator holds the list of months the
+   live data is expected to withhold and the expected inceptions (not kept in this public repository): compare. Tune
+   `CLASS_CHECKS` (`src/lib/pipeline/config.ts`) only with evidence; (b) **report to the dataplatform team** the source defects
+   the run lists (month-end bad prints, inconsistent distribution adjustments between classes) and ask for a **distributions
+   endpoint** on main (total returns of a USD series); (c) compliance rows AC1–AC6 (`docs/compliance-review.md`), in particular
+   AC3 (some standard periods shown while others are "—"); (d) a second independent review of the 2026-10-05 fixes before merging.
+
 ## 6. Session log
 
 - 2026-10-05 (sub-agent, `feat/disclosures-engines`, independent review fixes; **not merged**): FR legend
@@ -231,6 +247,68 @@ Not yet run against live data, not deployed.
   months. With traditional markets and each other."; caption adds "Market lines are not an index." Compliance rows updated
   (`docs/compliance-review.md`, engines band). Not done: independent adversarial review (the sub-agent had no way to spawn
   reviewers).
+- 2026-10-05 (sub-agent, last): second verifier's fixes. Cross-class reference is now leave-CLASS-out (median of the other
+  fitted classes, each mapped through its own fit; young classes never in it): the class carrying an injected error is the one
+  withheld, never a correct fee-free class (verifier's panels as tests). Track record: monthly-net-returns months are the same
+  Apex NAVs as the chain, so defect months there are replaced by the analytics official figure or withheld (newest month held);
+  the track class's own lone failures and newest-month hold feed it too (test: a reversed print on the newest month's last day,
+  monthly-net-returns matching, no factsheet → not published). Relaunch by reset-to-10 needs a gap > 30 days. Funds new to a live
+  site are gated; two-class funds documented as a limit (a wrong value can pass when the two classes have different slopes — none today; would need a pairwise fit). 2026-10-05 (main session): a class with no fit next to fitted classes is withheld until it has one (verifier finding 2).
+
+- 2026-10-05 (sub-agent, latest): fixes of the independent review. B1 leave-one-out Theil–Sen fit (an error in the fund's
+  strongest month no longer bends its own expectation). M1 bad-print check over every row fetched; the newest month waits for one
+  later valuation day. M2 months withheld for every class leave the track record where it took them from its own NAV chain (the
+  official analytics / monthly-net-returns figure is used instead when one exists, else the month is withheld), warned. M3 the
+  cut-over bridge must equal the class's compounded daily returns; the cross-class check uses published values. M4 the track
+  record's SI reads "Since track-record start (<month>)" with no series inception next to it; series table "Series launch". M5
+  live-data specifics removed from the docs. Minors: relaunch only when corroborated (NAV jump > 5 %, reset to 10.00 or gap > 180
+  days; warn), else a coverage gap; classes without a fit (< 12 months) withheld alone; a partial month in an adjustment month →
+  every class; risk window "From <first complete month>"; partial month marked in the heat map; growth from the inception day;
+  withheld header badges "—"; classInfo in register order; new classes gated without a previous performance; YTD from a complete
+  January; history fallback `historyFrom`.
+
+- 2026-10-05 (sub-agent, later): cross-class rule refined after the coordinator ran the rules on live data (a flat band withheld
+  every class of a fund for one broken class, and for a fee-free class's legitimate spread in strong months). Now: per
+  class fit r ≈ a + b × median (OLS + one trimming pass — since replaced by leave-one-out Theil–Sen —, b ∈ [0.6, 1.4], |a| ≤ 0.30 %, fallback a=0 b=1 under 12 months), breach
+  = residual > 0.40 % (`residualMax`); a breach in a month with a distribution / price-adjustment day (return vs NAV ratio > 0.10 %,
+  `adjustmentMin`) → every class; else a lone breaching class with ≥ 2 consistent others → that class only; else every class.
+  Spike rule and partial-month handling unchanged. Fixture: Multi-Strategy class A off alone in 2025-05 (withheld alone).
+
+- 2026-10-05 (sub-agent, branch `feat/all-classes`; not merged): review of the 2026-10-04 work against the brief. Cross-class rule
+  aligned with the brief: over the classes with a COMPLETE month (partial first months outside the median) ANY class beyond
+  max(0.50 %, 0.25 × |median|) withholds the month for EVERY class of the fund (was: the outlier alone when a strict minority);
+  a partial inception month is compared over its own days and withheld alone. The daily-dispersion check (not in the brief) is
+  removed: a one-day mismatch offset within the month leaves the month consistent, and it risked withholding every December
+  (performance-fee crystallisation) for every class. Fixtures: Monthly Income class I drifts +0.9 % in 2023-09 (monthly), the
+  2025-03 drifts are gone (MI F, SEB F/I clean). Page: since-inception rows of a class read "Since inception (Oct 5, 2021)".
+
+- 2026-10-04 (sub-agent, branch `feat/all-classes` from `redesign/v3-keynote-live-data`; not merged): Gabriel's request "make sure
+  that all classes' returns are populated with data coming from dataplatform … for our 3 funds … inception date of each class = first
+  date when there are prices". New pure engine `src/lib/pipeline/class-returns.ts`: inception = first NAV of the class's current run
+  (gap > 10 days = previous life; `FUND_SOURCES.classFloor`; a run starting at the first day read = unknown),
+  months from the inception (partial first month from the inception NAV, the inception day's own return never used; CIBC stored /
+  bridge / Apex distribution-aware, reusing daily-chain.ts), and the defect checks of `CLASS_CHECKS` (config.ts): bad valuation print
+  (opposite daily moves ≥ 2 %, combined ≤ half the smaller → both months, every class), daily dispersion between classes
+  (> max(0.40 %, 0.5 × |median|) → month, every class: the majority may be wrong), cross-class monthly consistency over the same days
+  (> max(0.50 %, 0.25 × |median|) → that class; no strict-minority outlier → every class compared). `classes.ts` `buildClassEntry`:
+  withheld months absent from `monthly` + `withheldMonths`, fixed periods / YTD / risk from complete months only, SI only when every
+  month since inception is usable (annualized over calendar days with a partial first month), calendar years null with a withheld
+  month, growth from the month-end after the last withheld month (`growthFrom`), no index against a partial first month; 12-month
+  minimum `MIN_CLASS_HISTORY_MONTHS` (config/funds.ts) → `ClassInfo.status` "young"; non-CAD → "currency". `build.ts` `buildClasses`
+  rewritten (register active classes ∪ registry ∪ configured codes; the old "drop all classes when the headline's CIBC months are
+  unverified", "drop the class on any unusable month" and fee-band gates are gone; headline/track record unchanged); every class's
+  history fetched from 2019-01-01 (`sources/index.ts`, register classes unknown to the configuration fetched after the register);
+  `FundData.classInfo`, `defaultClass` = headline with returns else first class with returns; validation holds / carries / drops
+  `classInfo` with the classes, `classEntryChanges` gates classes published for the first time (one approval for all), defect months
+  are a non-blocking notice. Page: `openingClass` (never opens on an empty performance block), young / USD sentences (EN/FR,
+  `lib/notice.ts`), "Series inception" in the NAV card, series table and performance tab, "—" rows kept for withheld periods
+  (`withheldPeriods`), calendar "—" years, heat-map "—" cells, growth start note and "From <date>" range. `config/funds.ts` lists
+  every register class. Fixtures: every class of the three funds with shared daily paths (`noiseSeed`), synthetic defects (print
+  in Monthly Income 2022-03, a one-day jump of MI class I 2023-09, drifting class I months 2025-03), a relaunched class, a young
+  class, a USD class; `run.test.ts` now deletes its temp directories. Docs: architecture § Returns per class, compliance AC1–AC6.
+  Not done: independent adversarial review (could not be spawned here); live run.
+
+
 - 2026-10-04 (sub-agent, branch `feat/concepts-v6` from `redesign/v3-keynote-live-data`; not merged): Gabriel's two requests.
   (1) Futures "a tiny bit faster, still slower than initially": `DAY_MS` 5000 → 3750, `SETTLE_SHARE` 0.25 kept, new
   `READ_MARGIN` 1.5 (message held ≥ 1.5 reading times; test 3.5–4 s a day). (2) Concept 3 "the first design when the area was

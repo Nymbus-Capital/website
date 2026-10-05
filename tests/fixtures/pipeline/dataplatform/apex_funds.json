@@ -46,6 +46,24 @@
    },
    {
     "fundserv": "LDM031",
+    "display": "I",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "I",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM061",
+    "display": "J",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "J",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM091",
     "display": "O",
     "currency": "CAD",
     "status": "dormant",
@@ -90,6 +108,33 @@
     "apex_token": "FP",
     "nav_token": null,
     "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM202",
+    "display": "H",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "H",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM203",
+    "display": "I",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "I",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM204",
+    "display": "J",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "J",
+    "nav_token": null,
+    "tb_fund_id": null
    }
   ]
  },
@@ -126,6 +171,24 @@
     "currency": "CAD",
     "status": "active",
     "apex_token": "FP",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM303",
+    "display": "I",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "I",
+    "nav_token": null,
+    "tb_fund_id": null
+   },
+   {
+    "fundserv": "LDM304",
+    "display": "J",
+    "currency": "CAD",
+    "status": "active",
+    "apex_token": "J",
     "nav_token": null,
     "tb_fund_id": null
    }

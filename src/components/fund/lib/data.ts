@@ -147,8 +147,9 @@ export function growthRange(points: GrowthPoint[], range: Range, method: GrowthM
 
 /* ------------------------------------------------------------------ calendar */
 
-export function calendarRows(rows: CalendarRow[] | undefined | null): CalendarRow[] {
-  return (rows ?? []).filter((r) => isNum(r.fund) || isNum(r.index)).sort((a, b) => a.year - b.year);
+/** Calendar years with a figure; `keepEmpty` (a class with withheld months): every year, withheld ones shown "—". */
+export function calendarRows(rows: CalendarRow[] | undefined | null, keepEmpty = false): CalendarRow[] {
+  return (rows ?? []).filter((r) => keepEmpty || isNum(r.fund) || isNum(r.index)).sort((a, b) => a.year - b.year);
 }
 
 /** Why a calendar year is incomplete: "ytd" only for the as-of year, "launch" for an earlier partial (inception) year. */
@@ -424,25 +425,48 @@ export function riskWindows(risk: unknown): RiskStats[] {
 /** Periods shown as return badges under the header (6M is not published by the pipeline). */
 export const BADGE_PERIODS: Period[] = ["1M", "3M", "YTD", "1Y", "3Y", "5Y", "10Y", "SI"];
 
-export interface Badge { period: Period; value: number; annualized: boolean }
+/** `value` null: the period is withheld (a month of its window could not be verified), shown "—" */
+export interface Badge { period: Period; value: number | null; annualized: boolean }
 
 /** Return badges: published fund returns only, in display order; none when the admin hid performance. */
-export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string } | null | undefined, hidden = false): Badge[] {
+export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined, hidden = false): Badge[] {
   if (!perf || hidden) return [];
-  return BADGE_PERIODS.filter((p) => isNum(perf.trailing.fund[p])).map((p) => ({
-    period: p, value: perf.trailing.fund[p] as number, annualized: isAnnualized(p, perf.firstMonth, perf.asOf),
+  const held = new Set(withheldPeriods(perf));
+  return BADGE_PERIODS.filter((p) => isNum(perf.trailing.fund[p]) || held.has(p)).map((p) => ({
+    period: p, value: isNum(perf.trailing.fund[p]) ? (perf.trailing.fund[p] as number) : null, annualized: isAnnualized(p, perf.firstMonth, perf.asOf),
   }));
 }
 
-export interface TrailingRow { period: Period; fund: number; index: number | null; va: number | null; annualized: boolean }
+/** `fund` is null for a period withheld because a month of its window could not be verified (shown "—"). */
+export interface TrailingRow { period: Period; fund: number | null; index: number | null; va: number | null; annualized: boolean }
 
-/** Rows of the trailing / annualized returns table: fund, benchmark and value added per published period. */
-export function trailingRows(perf: { trailing: { fund: PeriodMap; index?: PeriodMap; va?: PeriodMap }; firstMonth?: string; asOf?: string } | null | undefined): TrailingRow[] {
+const PERIOD_MONTHS: Partial<Record<Period, number>> = { "1M": 1, "3M": 3, "1Y": 12, "2Y": 24, "3Y": 36, "5Y": 60, "10Y": 120 };
+
+/**
+ * Periods of a class entry with withheld months whose window its history covers but whose figure is withheld: they keep
+ * their row with "—" (a figure is never silently dropped). Empty for any other performance.
+ */
+export function withheldPeriods(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined): Period[] {
+  if (!perf?.withheldMonths?.length || !perf.firstMonth || !perf.asOf) return [];
+  const full = trackMonths(perf.firstMonth, perf.asOf) - (perf.partialFirstMonth ? 1 : 0);
+  return PERIOD_ORDER.filter((p) => {
+    if (isNum(perf.trailing.fund[p])) return false;
+    if (p === "SI") return true;
+    if (p === "YTD") return perf.firstMonth! < `${perf.asOf!.slice(0, 4)}-01-01` || (perf.firstMonth!.slice(0, 7) === `${perf.asOf!.slice(0, 4)}-01` && !perf.partialFirstMonth);
+    const n = PERIOD_MONTHS[p];
+    return n !== undefined && n <= full;
+  });
+}
+
+/** Rows of the trailing / annualized returns table: fund, benchmark and value added per published (or withheld) period. */
+export function trailingRows(perf: { trailing: { fund: PeriodMap; index?: PeriodMap; va?: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined): TrailingRow[] {
   if (!perf) return [];
-  return trailingPeriods(perf.trailing.fund).map((p) => {
+  const keep = new Set<Period>([...trailingPeriods(perf.trailing.fund), ...withheldPeriods(perf)]);
+  return PERIOD_ORDER.filter((p) => keep.has(p)).map((p) => {
+    const fund = perf.trailing.fund[p];
     const index = perf.trailing.index?.[p];
     const va = perf.trailing.va?.[p];
-    return { period: p, fund: perf.trailing.fund[p] as number, index: isNum(index) ? index : null, va: isNum(va) ? va : null, annualized: isAnnualized(p, perf.firstMonth, perf.asOf) };
+    return { period: p, fund: isNum(fund) ? fund : null, index: isNum(index) ? index : null, va: isNum(va) ? va : null, annualized: isAnnualized(p, perf.firstMonth, perf.asOf) };
   });
 }
 

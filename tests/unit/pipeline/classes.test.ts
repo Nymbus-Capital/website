@@ -1,21 +1,24 @@
 /**
- * Returns per class and GMV variants: pipeline build + validation against the synthetic fixtures (each class compounded
- * by the website from its own nav-timeseries daily chain), and the hold of a failing performance per class / variant.
- * A class never shows another class's numbers.
+ * Returns per class and GMV variants: pipeline build + validation against the synthetic fixtures (every active register
+ * class compounded by the website from its own nav-timeseries daily chain, from its inception), and the hold of a failing
+ * performance per class / variant. A class never shows another class's numbers; a month that fails a check is withheld.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
-import { buildClassPerformance, runEndingAt, performanceProblems } from "../../../src/lib/pipeline/classes.ts";
+import { buildClassEntry, classFundTrailing, performanceProblems, pickDefaultClass } from "../../../src/lib/pipeline/classes.ts";
 import { classSeriesOf } from "../../../src/lib/pipeline/fund-sources.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
+import type { ClassResult } from "../../../src/lib/pipeline/class-returns.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 import type { FundContext } from "../../../src/lib/pipeline/build.ts";
+import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const SEB = "sustainable-enhanced-bonds";
+const MI = "monthly-income";
 const GMV = "global-minimum-volatility";
 
 async function build(...routes: Route[]): Promise<{ data: SiteData; validated: SiteData; context: Partial<Record<string, FundContext>> }> {
@@ -24,41 +27,6 @@ async function build(...routes: Route[]): Promise<{ data: SiteData; validated: S
   return { data, validated: validateSite(data, context, null, NOW).data, context };
 }
 
-test("classes of a fund come from the class configuration (SEB F + H, Monthly Income FP + F)", () => {
-  assert.deepEqual(classSeriesOf(SEB).map((k) => k.fundserv), ["LDM201", "LDM202"]);
-  assert.deepEqual(classSeriesOf("monthly-income").map((k) => [k.fundserv, k.display, k.classCode]), [["LDM001", "FP", "STRATEGY"], ["LDM081", "F", "LDM081"]]);
-  assert.deepEqual(classSeriesOf(GMV), []);
-});
-
-test("every class from its own daily chain: SEB H headline + F next to it, Monthly Income FP headline + F since launch", async () => {
-  const { data, validated } = await build();
-  for (const d of [data, validated]) {
-    const seb = d.funds[SEB]!;
-    assert.equal(seb.performance!.returnClass, "H", "the SEB track record is class H, labelled H");
-    assert.equal(seb.defaultClass, "LDM201", "the page opens on class F");
-    const f = seb.performanceByClass!.LDM201;
-    const h = seb.performanceByClass!.LDM202;
-    assert.ok(f && h);
-    assert.deepEqual(h.performance, seb.performance, "the headline class entry is the headline itself");
-    assert.equal(f.performance.returnClass, "F");
-    assert.equal(f.performance.classCode, "STRATEGY");
-    assert.equal(f.performance.firstMonth, "2023-08-31", "first complete month of the fund's own NAV history");
-    assert.equal(f.performance.asOf, h.performance.asOf);
-    assert.notEqual(f.performance.trailing.fund.SI, h.performance.trailing.fund.SI);
-    // F − H = the synthetic +12 bp fee difference on every common month
-    const hm = new Map(h.performance.monthly.map((m) => [m.month, m.r]));
-    for (const m of f.performance.monthly) assert.ok(Math.abs(m.r - hm.get(m.month)! - 0.0012) < 1e-6, m.month);
-    const mi = d.funds["monthly-income"]!;
-    assert.equal(mi.performance!.returnClass, "FP");
-    assert.deepEqual(Object.keys(mi.performanceByClass!), ["LDM001", "LDM081"]);
-    assert.equal(mi.performanceByClass!.LDM081.performance.firstMonth, "2024-03-31");
-    assert.equal(mi.performanceByClass!.LDM081.performance.returnClassLabel, "Series F");
-    assert.equal(d.funds["multi-strategy"]!.performance!.returnClass, "F");
-    assert.deepEqual(Object.keys(d.funds["multi-strategy"]!.performanceByClass!), ["LDM301"]);
-  }
-  assert.ok(!data.issues.some((i) => i.level === "warn" && /classes/.test(i.key)), JSON.stringify(data.issues.filter((i) => /classes/.test(i.key))));
-});
-
 /** route serving one class's daily history altered by `fn` */
 const history = (fundserv: string, fn: (rows: Record<string, unknown>[]) => Record<string, unknown>[]): Route => (url) => {
   if (url.pathname !== "/api/performance/nav-timeseries" || url.searchParams.get("fundserv") !== fundserv) return undefined;
@@ -66,90 +34,188 @@ const history = (fundserv: string, fn: (rows: Record<string, unknown>[]) => Reco
   return json({ ...j, rows: fn(j.rows) });
 };
 
-test("class gates: a fee-band breach drops the class; a hole after the first computable month drops it; a failed history leaves it out (warn + alert)", async () => {
-  const alertOf = (ctx: Partial<Record<string, FundContext>>, re: RegExp): boolean => !!ctx[SEB]?.alerts.some((a) => re.test(a));
-  // a missed distribution on class F in 2025-06 (its daily return lowered by 0.7 %): outside the fee band vs class H
-  const missed = history("LDM201", (rows) => rows.map((r) => (r.date === "2025-06-30" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)));
-  const a = await build(missed);
-  assert.equal(a.data.funds[SEB]!.performanceByClass!.LDM201, undefined);
-  assert.ok(a.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /outside the fee band .*2025-06/.test(i.message)));
-  assert.ok(alertOf(a.context, /class F \(LDM201\) not shown: vs class H: .*fee band/));
-  assert.ok(a.data.funds[SEB]!.performance, "the headline is not affected");
-  // a missing valuation day in 2025-02: never a series restarting after the hole ("since" 2025-03) — the class is dropped
-  const hole = history("LDM201", (rows) => rows.filter((r) => r.date !== "2025-02-11"));
-  const b = await build(hole);
-  assert.equal(b.data.funds[SEB]!.performanceByClass!.LDM201, undefined, "no truncated run");
-  assert.ok(b.data.issues.some((i) => i.level === "warn" && i.key === `funds.${SEB}.performance.classes.LDM201` && /not every month since its first computable month 2023-08 is usable \(own data from 2023-07-05\): 1 month\(s\) unavailable: 2025-02 Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
-  assert.ok(alertOf(b.context, /class F \(LDM201\) not shown: not every month .*1 month\(s\) unavailable/), "a data hole is an anomaly: blocking alert");
-  // the history endpoint failing for class F: class F not shown ("coming soon"), H unchanged
+test("classes of a fund: configured codes, then the registry's classes, then the register's other active classes", () => {
+  assert.deepEqual(classSeriesOf(SEB).map((k) => k.fundserv), ["LDM201", "LDM202", "LDM203", "LDM204", "LDM205", "LDM206"]);
+  assert.deepEqual(classSeriesOf(MI).slice(0, 3).map((k) => [k.fundserv, k.display, k.classCode]), [["LDM001", "FP", "STRATEGY"], ["LDM081", "F", "LDM081"], ["LDM011", "F USD", "LDM011"]]);
+  // with the register: its inactive classes are left out (never the track-record class), unknown active ones are added
+  const reg = [
+    { fundserv: "LDM201", display: "F", status: "active" }, { fundserv: "LDM203", display: "I", status: "inactive" },
+    { fundserv: "LDM209", display: "Z", status: "active", currency: "CAD" },
+  ];
+  assert.deepEqual(classSeriesOf(SEB, reg).map((k) => [k.fundserv, k.classCode]), [["LDM201", "STRATEGY"], ["LDM202", "STRATEGY_H"], ["LDM209", "LDM209"]]);
+  assert.deepEqual(classSeriesOf(GMV), []);
+});
+
+test("every active class from its own daily chain since its inception: shown, young (< 12 months) or non-CAD", async () => {
+  const { data, validated } = await build();
+  for (const d of [data, validated]) {
+    const seb = d.funds[SEB]!;
+    assert.equal(seb.performance!.returnClass, "H", "the SEB track record is class H, labelled H");
+    assert.equal(seb.defaultClass, "LDM201", "the page opens on class F (it has returns)");
+    assert.deepEqual(seb.performanceByClass!.LDM202.performance, seb.performance, "the headline class entry is the headline itself");
+    assert.deepEqual(Object.keys(seb.performanceByClass!).sort(), ["LDM201", "LDM202", "LDM203", "LDM204"]);
+    assert.deepEqual(Object.fromEntries(Object.values(seb.classInfo!).map((c) => [c.fundserv, [c.status, c.inception]])), {
+      LDM201: ["shown", "2023-07-05"], LDM202: ["shown", "2023-07-05"], LDM203: ["shown", "2023-11-06"], LDM204: ["shown", "2023-08-01"],
+      LDM205: ["young", "2026-04-01"], LDM206: ["young", "2026-07-27"],
+    });
+    assert.equal(seb.classInfo!.LDM205.minMonths, 12);
+    const f = seb.performanceByClass!.LDM201.performance;
+    assert.equal(f.returnClass, "F");
+    assert.equal(f.classCode, "STRATEGY");
+    assert.equal(f.inception, "2023-07-05");
+    assert.equal(f.firstMonth, "2023-07-31", "the inception month, partial");
+    assert.equal(f.partialFirstMonth, true);
+    // F − H = the synthetic +12 bp fee difference on every complete month both publish
+    const hm = new Map(seb.performance!.monthly.map((m) => [m.month, m.r]));
+    for (const m of f.monthly) if (m.month > f.firstMonth) assert.ok(Math.abs(m.r - hm.get(m.month)! - 0.0012) < 1e-6, m.month);
+    const mi = d.funds[MI]!;
+    assert.equal(mi.performance!.returnClass, "FP");
+    assert.equal(mi.classInfo!.LDM011.status, "currency");
+    assert.equal(mi.classInfo!.LDM011.currency, "USD");
+    assert.equal(mi.classInfo!.LDM021.status, "young");
+    // class I was closed and relaunched: its inception is the first price of its current run (the 2022 rows are a previous life)
+    assert.equal(mi.classInfo!.LDM031.inception, "2023-03-06");
+    assert.equal(mi.performanceByClass!.LDM031.performance.firstMonth, "2023-03-31");
+    // class J priced since the 2021-10-05 re-seed; the earlier rows of the reused code are cut at the fund's first day
+    assert.equal(mi.classInfo!.LDM061.inception, "2021-10-05");
+    const ms = d.funds["multi-strategy"]!;
+    assert.deepEqual(Object.keys(ms.performanceByClass!).sort(), ["LDM300", "LDM301", "LDM303", "LDM304"]);
+    assert.equal(ms.classInfo!.LDM305.status, "young");
+  }
+  assert.ok(data.issues.some((i) => i.level === "warn" && /class I \(LDM031\): relaunch detected \(gap after 2022-06-30, corroborated/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "info" && /class F USD \(LDM011\): USD series: no distribution-aware total returns/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "info" && /class A \(LDM021\): inception 2026-03-02, less than 12 months before 2026-08: no performance figure \(regulatory minimum\)/.test(i.message)));
+});
+
+test("source defects in the fixtures: a bad valuation print and a drift in a distribution month withhold every class; a lone outlier only itself", async () => {
+  const { data } = await build();
+  const mi = data.funds[MI]!;
+  // the print of 2022-03-15/16 in every Monthly Income class (March 2022: only FP and J were priced then) and class I
+  // drifting +0.9 % from the other classes in 2023-09 (an inconsistent adjustment: which class is right cannot be told)
+  assert.deepEqual(mi.performanceByClass!.LDM061.performance.withheldMonths, ["2022-03-31", "2023-09-30"]);
+  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund.SI, null, "since inception crosses a withheld month");
+  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund["3Y"], null, "so do 3 years");
+  assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund["2Y"] != null, "2 years do not");
+  assert.equal(mi.performanceByClass!.LDM061.performance.growthFrom, "2023-09-30");
+  assert.deepEqual(mi.performanceByClass!.LDM031.performance.withheldMonths, ["2023-09-30"], "the drifting class and every other class");
+  assert.match(data.issues.find((i) => i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30`)!.message, /distribution \/ price-adjustment day/, "Monthly Income distributes: the majority cannot be trusted");
+  // Multi-Strategy class A off alone in 2025-05 (no distribution that month, F / I / J agree): A withheld alone
+  const ms = data.funds["multi-strategy"]!.performanceByClass!;
+  assert.deepEqual(ms.LDM300.performance.withheldMonths, ["2025-05-31"]);
+  for (const f of ["LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
+  assert.ok(ms.LDM300.performance.trailing.fund["1Y"] != null, "the 1-year window (2025-09 to 2026-08) is clean");
+  for (const [k, f] of [[MI, "LDM081"], [SEB, "LDM201"], [SEB, "LDM203"], [SEB, "LDM204"]] as const) assert.equal(data.funds[k]!.performanceByClass![f].performance.withheldMonths, undefined, f);
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes` && /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree in a month with a distribution \/ price-adjustment day .*LDM031 1\.03%/.test(i.message)));
+  assert.ok(data.issues.some((i) => i.level === "warn" && i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30` && /withheld \("—"\): classes disagree/.test(i.message)), "one admin issue per class and month");
+  // the headline (track record) keeps its own logic
+  assert.equal(mi.performance!.withheldMonths, undefined);
+});
+
+test("a failed history leaves the class out (\"coming soon\"); a class published before that disappears is a blocking alert; a hole withholds one month only", async () => {
   const down: Route = (url) => (url.pathname === "/api/performance/nav-timeseries" && url.searchParams.get("fundserv") === "LDM201" ? json({ detail: "x" }, 500) : undefined);
   const c = await build(down);
-  assert.deepEqual(Object.keys(c.data.funds[SEB]!.performanceByClass!), ["LDM202"]);
-  assert.ok(c.data.issues.some((i) => i.key === `funds.${SEB}.performance.classes.LDM201` && /daily NAV chain unavailable \(nav-timeseries SEB LDM201 history: .*500/.test(i.message)));
-  assert.ok(alertOf(c.context, /class F \(LDM201\) not shown: daily NAV chain unavailable/));
-  // a class launched less than 12 months before the as-of: not shown (regulatory rule), info only (no alert)
-  const late = history("LDM201", (rows) => rows.filter((r) => (r.date as string) >= "2025-11-03"));
-  const d = await build(late);
-  assert.equal(d.data.funds[SEB]!.performanceByClass!.LDM201, undefined);
-  assert.ok(d.data.issues.some((i) => i.level === "info" && /class F \(LDM201\): 10 month\(s\) since 2025-11 \(< 12\): returns not shown for this class \(regulatory rule\)/.test(i.message)));
-  assert.ok(!alertOf(d.context, /LDM201/));
-});
-
-test("Monthly Income: no fee band (FP may carry a performance fee), the class F gates still apply", async () => {
-  const { data } = await build();
-  assert.ok(data.funds["monthly-income"]!.performanceByClass!.LDM081);
-  assert.ok(data.issues.some((i) => i.level === "info" && i.key === "funds.monthly-income.performance.classes.LDM081" && /no fee band against class FP for this fund \(class FP may carry a performance fee/.test(i.message)));
-  assert.match(data.provenance["funds.monthly-income.performance.classes.LDM081"], /no fee band \(class FP may carry a performance fee/);
-  // a gap still drops it
-  const hole = history("LDM081", (rows) => rows.filter((r) => r.date !== "2025-05-13"));
-  const b = await build(hole);
-  assert.equal(b.data.funds["monthly-income"]!.performanceByClass!.LDM081, undefined);
-});
-
-test("CIBC months of the other classes are used only when the headline verified the stored CIBC returns: else the class is dropped", async () => {
-  // the headline's stored CIBC returns no longer reproduce analytics (a price-only chain would miss the distributions)
-  const priceOnly = history("LDM202", (rows) => rows.map((r) => (r.date === "2024-03-28" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)));
-  const { data, context } = await build(priceOnly);
-  const seb = data.funds[SEB]!;
-  assert.ok(data.issues.some((i) => i.level === "warn" && /stored CIBC daily returns of class H \(LDM202\) do not reproduce the analytics history .*largest 2024-03/.test(i.message)));
-  assert.match(data.provenance[`funds.${SEB}.performance`], /analytics fund_returns\.json "Nymbus Sustainable Enhanced Bonds" \(89 month\(s\): 2019-02 to 2026-06/);
-  // class F would start at 2023-08 but its CIBC months cannot be used: never a series "since" the bridge month
-  assert.equal(seb.performanceByClass!.LDM201, undefined);
-  // a persistent, expected limitation (the fund's CIBC months cannot be verified): a non-blocking advisory, not an alert
-  assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)), JSON.stringify(context[SEB]!.alerts));
-  assert.ok(context[SEB]!.advisories?.some((a) => a.code === "LDM201" && /class F \(LDM201\) not shown: not every month since its first computable month 2023-08 is usable .*: \d+ month\(s\) \(2023-08 to 2026-06\) stored CIBC daily returns not verified on the headline class$/.test(a.message)), JSON.stringify(context[SEB]!.advisories));
-  // one concise CIBC-mismatch warning for the fund
-  const cibcWarns = data.issues.filter((i) => /stored CIBC daily returns of class H \(LDM202\) do not reproduce/.test(i.message));
-  assert.equal(cibcWarns.length, 1);
-  assert.match(cibcWarns[0].message, /on 1 of \d+ month\(s\) \(beyond 0\.2 bp; largest 2024-03: chain .* vs analytics .*\): the fund's CIBC months are not taken from the dataplatform/);
-  // the same class published before and now gone: blocking alert (an approval item)
-  const prevBuild = await build();
-  const again = buildSiteData(await fetchAll({ fetchImpl: mockFetch(priceOnly).fetch, now: NOW, env: fixtureEnv() }), prevBuild.validated, NOW);
+  assert.equal(c.data.funds[SEB]!.performanceByClass!.LDM201, undefined);
+  assert.equal(c.data.funds[SEB]!.classInfo!.LDM201.status, "unavailable");
+  assert.ok(c.data.issues.some((i) => i.key === `funds.${SEB}.performance.classes.LDM201` && /daily history unavailable \(nav-timeseries SEB LDM201 history: .*500/.test(i.message)));
+  assert.equal(c.data.funds[SEB]!.defaultClass, "LDM202", "the page opens on a class that has returns");
+  const prev = (await build()).validated;
+  const again = buildSiteData(await fetchAll({ fetchImpl: mockFetch(down).fetch, now: NOW, env: fixtureEnv() }), { ...prev, mode: "live" }, NOW);
   assert.ok(again.context[SEB]!.alerts.some((a) => /class F \(LDM201\) not shown \(it was published before\)/.test(a)));
-  assert.ok(!again.context[SEB]!.advisories?.length);
+  // a missing valuation day in 2025-02: that month withheld, never a series restarting after the hole
+  const hole = await build(history("LDM201", (rows) => rows.filter((r) => r.date !== "2025-02-11")));
+  const f = hole.data.funds[SEB]!.performanceByClass!.LDM201.performance;
+  assert.deepEqual(f.withheldMonths, ["2025-02-28"]);
+  assert.equal(f.firstMonth, "2023-07-31", "still since its inception");
+  assert.ok(hole.data.issues.some((i) => i.key === `funds.${SEB}.performance.classes.LDM201.monthly.2025-02-28` && /Incomplete CIBC valuation-day coverage \(missing 2025-02-11\)/.test(i.message)));
 });
 
-test("a class whose series is shorter than 12 months: only the periods that exist, flagged, no risk statistics", () => {
-  const series: Record<string, number> = {};
-  for (const m of ["2026-03-31", "2026-04-30", "2026-05-31", "2026-06-30", "2026-07-31", "2026-08-31"]) series[m] = 0.004;
-  const cls = { fundserv: "LDM081", display: "F", classCode: "STRATEGY" as const };
-  const b = buildClassPerformance({ key: "k", cls, series, asOf: "2026-08-31", idx: null });
-  const e = b.entry!;
-  assert.equal(e.performance.shortRecord, true);
-  assert.equal(e.performance.firstMonth, "2026-03-31");
-  assert.equal(e.performance.monthly.length, 6);
-  assert.equal(e.performance.trailing.fund["1Y"], null);
-  assert.equal(e.performance.trailing.fund["3M"] != null, true);
-  assert.equal(e.risk, null);
-  assert.equal(e.risk3Y, null);
-  assert.ok(e.performance.calendar.every((y) => y.year === 2026 && y.partial));
+test("buildClassEntry: per-figure withholding, growth after the last withheld month, the 12-month rule, non-CAD", () => {
+  const months: ClassResult["months"] = [];
+  for (let m = "2022-04-30"; m <= "2026-08-31"; m = addMonths(m, 1)) months.push({ month: m, r: 0.004, partial: m === "2022-04-30", source: "cibc", reason: null });
+  const held = months.find((m) => m.month === "2024-05-31")!;
+  held.r = null;
+  held.reason = "synthetic";
+  const res: ClassResult = { fundserv: "LDM999", display: "Z", currency: "CAD", inception: "2022-04-20", status: "ok", why: null, previousRunEnd: null, months };
+  const cls = { fundserv: "LDM999", display: "Z", classCode: "LDM999" as const };
+  const idx = Object.fromEntries(months.map((m) => [m.month, 0.002]));
+  const b = buildClassEntry({ key: "k", cls, result: res, asOf: "2026-08-31", idx, minMonths: 12 });
+  const p = b.entry!.performance;
+  assert.equal(b.info.status, "shown");
+  assert.deepEqual(p.withheldMonths, ["2024-05-31"]);
+  assert.ok(!p.monthly.some((m) => m.month === "2024-05-31"));
+  const t = p.trailing.fund;
+  for (const k of ["1M", "3M", "YTD", "1Y", "2Y"] as const) assert.ok(t[k] != null, k);
+  assert.equal(t["3Y"], null, "3 years contain the withheld month");
+  assert.equal(t["5Y"], null, "longer than the history");
+  assert.equal(t.SI, null);
+  assert.equal(p.trailing.index!["3Y"], null);
+  assert.ok(p.trailing.index!["1Y"] != null);
+  assert.equal(p.calendar.find((y) => y.year === 2024)!.fund, null);
+  assert.ok(p.calendar.find((y) => y.year === 2025)!.fund != null);
+  assert.equal(p.calendar.find((y) => y.year === 2022)!.index, null, "no index against the partial inception year");
+  assert.equal(p.growth[0].date, "2024-05-31", "growth from the month-end after the last withheld month");
+  assert.equal(p.growthFrom, "2024-05-31");
+  assert.equal(b.entry!.risk, null, "risk since inception crosses the withheld month");
+  assert.equal(b.entry!.risk3Y, null);
+  assert.deepEqual(performanceProblems(p, "compounded", true), []);
+  // without the withheld month: since inception from the inception NAV, annualized over calendar days (partial first month)
+  held.r = 0.004; held.reason = null;
+  const ok = buildClassEntry({ key: "k", cls, result: res, asOf: "2026-08-31", idx, minMonths: 12 }).entry!;
+  const total = Math.pow(1.004, months.length) - 1;
+  const days = (Date.parse("2026-08-31") - Date.parse("2022-04-20")) / 86_400_000;
+  assert.ok(Math.abs(ok.performance.trailing.fund.SI! - (Math.pow(1 + total, 365 / days) - 1)) < 1e-12);
+  assert.equal(ok.performance.trailing.index!.SI, null, "no index since inception against a partial first month");
+  assert.equal(ok.performance.growthFrom, "2022-04-20");
+  assert.ok(ok.performance.growth.every((g) => g.index === undefined), "no index line from a partial first month");
+  assert.ok(ok.risk && ok.risk3Y);
+  assert.deepEqual(performanceProblems(ok.performance, "compounded", true), []);
+  // 12-month rule: inception 2025-09-15, as of 2026-08: 11.5 months → nothing; as of 2026-09: shown
+  const young: ClassResult = { ...res, inception: "2025-09-15", months: months.filter((m) => m.month >= "2025-09-30").map((m, i) => ({ ...m, partial: i === 0 })) };
+  const y = buildClassEntry({ key: "k", cls, result: young, asOf: "2026-08-31", idx: null, minMonths: 12 });
+  assert.equal(y.entry, null);
+  assert.deepEqual(y.info, { fundserv: "LDM999", display: "Z", currency: "CAD", inception: "2025-09-15", status: "young", minMonths: 12 });
+  const y2 = buildClassEntry({ key: "k", cls, result: { ...young, months: [...young.months, { month: "2026-09-30", r: 0.001, partial: false, source: "apex", reason: null }] }, asOf: "2026-09-30", idx: null, minMonths: 12 });
+  assert.equal(y2.info.status, "shown");
+  // a non-CAD class: no figure, the page says why
+  const usd = buildClassEntry({ key: "k", cls, result: { ...res, currency: "USD", status: "currency", why: "USD series: no distribution-aware total returns in the source", months: [] }, asOf: "2026-08-31", idx: null, minMonths: 12 });
+  assert.equal(usd.entry, null);
+  assert.equal(usd.info.status, "currency");
 });
 
-test("a class series that does not end at the as-of month is not shown, with a warning", () => {
-  const cls = { fundserv: "LDM201", display: "F", classCode: "STRATEGY" as const };
-  const b = buildClassPerformance({ key: "k", cls, series: { "2026-05-31": 0.01, "2026-06-30": 0.01 }, asOf: "2026-08-31", idx: null });
-  assert.equal(b.entry, null);
-  assert.ok(b.issues.some((i) => i.level === "warn" && /ends 2026-06/.test(i.message)));
+test("classFundTrailing: YTD needs the year's January; fixed periods never reach into the partial first month", () => {
+  const all: Record<string, number> = {};
+  for (let m = "2025-03-31"; m <= "2026-08-31"; m = addMonths(m, 1)) all[m] = 0.01;
+  const shape = { all, asOf: "2026-08-31", firstMonth: "2025-03-31", inception: "2025-03-10", partialFirst: true };
+  const t = classFundTrailing(shape);
+  assert.ok(t["1Y"] != null && t.YTD != null && t.SI != null);
+  delete all["2026-01-31"];
+  const t2 = classFundTrailing(shape);
+  assert.equal(t2.YTD, null, "January withheld: no year to date (never from February)");
+  assert.equal(t2["1Y"], null);
+  assert.ok(t2["3M"] != null);
+  // 18 months of which the first is partial: 1Y from complete months only; a 2-year window does not exist
+  const s2: Record<string, number> = {};
+  for (let m = "2025-08-31"; m <= "2026-08-31"; m = addMonths(m, 1)) s2[m] = 0.01;
+  const t3 = classFundTrailing({ all: s2, asOf: "2026-08-31", firstMonth: "2025-08-31", inception: "2025-08-20", partialFirst: true });
+  assert.ok(t3["1Y"] != null, "Sep 2025 – Aug 2026: 12 complete months");
+  assert.ok(Math.abs(t3["1Y"]! - (Math.pow(1.01, 12) - 1)) < 1e-12, "the partial August 2025 is not part of the year");
+});
+
+test("pickDefaultClass: the headline class when it has returns, else the first class in register order that has", () => {
+  assert.equal(pickDefaultClass("LDM081", ["LDM001", "LDM081"], { LDM081: 1, LDM001: 1 }), "LDM081");
+  assert.equal(pickDefaultClass("LDM081", ["LDM011", "LDM001", "LDM081"], { LDM001: 1 }), "LDM001");
+  assert.equal(pickDefaultClass("LDM081", [], {}), undefined);
+});
+
+test("a young headline class: the page opens on the first class (register order) that has returns", async () => {
+  // class F of Monthly Income launched less than 12 months before the as-of
+  const late = history("LDM081", (rows) => rows.filter((r) => (r.date as string) >= "2026-06-01"));
+  const { validated } = await build(late);
+  const mi = validated.funds[MI]!;
+  assert.equal(mi.classInfo!.LDM081.status, "young");
+  assert.equal(mi.classInfo!.LDM081.inception, "2026-06-01");
+  assert.equal(mi.performanceByClass!.LDM081, undefined);
+  assert.equal(mi.defaultClass, "LDM001", "FP, first in the register with returns");
 });
 
 test("GMV variants 3 / 6 / 9: each has its own returns; the default (6) is the fund's own data", async () => {
@@ -180,6 +246,8 @@ test("validation drops a class whose own numbers are implausible (also the defau
   bad.funds[SEB]!.performanceByClass!.LDM201.performance.monthly[3].r = 0.9;
   const v = validateSite(bad, context, null, NOW).data;
   assert.equal(v.funds[SEB]!.performanceByClass!.LDM201, undefined, "class F dropped: the page says coming soon for it");
+  assert.equal(v.funds[SEB]!.classInfo!.LDM201.status, "unavailable");
+  assert.equal(v.funds[SEB]!.defaultClass, "LDM202", "never opens on the dropped class");
   assert.ok(v.funds[SEB]!.performanceByClass!.LDM202);
   assert.ok(v.funds[SEB]!.performance);
   assert.ok(v.issues.some((i) => i.level === "warn" && /LDM201/.test(i.key)));
@@ -200,6 +268,7 @@ test("a performance held by validation holds every class, never new classes next
   assert.deepEqual(kept.performance, was.performance);
   assert.deepEqual(kept.performanceByClass, was.performanceByClass, "every class is held with the headline");
   assert.equal(kept.defaultClass, was.defaultClass);
+  assert.deepEqual(kept.classInfo, was.classInfo, "the class notices are held too");
   assert.deepEqual(kept.nav, bad.funds[SEB]!.nav, "NAV is the new one");
   assert.ok(out.results.find((r) => r.fund === SEB)!.blocking.length > 0);
 });
@@ -219,14 +288,6 @@ test("a held GMV performance holds every variant with it", async () => {
   assert.deepEqual(kept.variants!["6"].performance, previous.funds[GMV]!.performance);
   assert.deepEqual(kept.variants!["3"], previous.funds[GMV]!.variants!["3"]);
   assert.deepEqual(kept.variants!["9"], previous.funds[GMV]!.variants!["9"]);
-});
-
-test("runEndingAt: contiguous run to as-of; a hole ends the usable run; missing as-of = null", () => {
-  const s = { "2026-01-31": 0.01, "2026-02-28": 0.01, "2026-04-30": 0.01, "2026-05-31": 0.02 };
-  const r = runEndingAt(s, "2026-05-31")!;
-  assert.equal(r.first, "2026-04-30");
-  assert.deepEqual(r.before, ["2026-01-31", "2026-02-28"]);
-  assert.equal(runEndingAt(s, "2026-06-30"), null);
 });
 
 test("performanceProblems: gap, wrong end, huge month, trailing mismatch", () => {
@@ -262,6 +323,94 @@ test("a class not launched yet (no own row up to the as-of): info only, no alert
   const notYet = history("LDM201", (rows) => rows.filter((r) => (r.date as string) >= "2026-09-01"));
   const { data, context } = await build(notYet);
   assert.equal(data.funds[SEB]!.performanceByClass!.LDM201, undefined);
-  assert.ok(data.issues.some((i) => i.level === "info" && /class F \(LDM201\): no computable month up to 2026-08 \(own data from 2026-09-01\)/.test(i.message)));
+  assert.equal(data.funds[SEB]!.classInfo!.LDM201.status, "young");
+  assert.equal(data.funds[SEB]!.classInfo!.LDM201.inception, "2026-09-01");
+  assert.ok(data.issues.some((i) => i.level === "info" && /class F \(LDM201\): inception 2026-09-01, less than 12 months before 2026-08/.test(i.message)));
   assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)));
+});
+
+test("M2: a month withheld for every class applies to the track record where it comes from its own NAV chain; an official figure stays", async () => {
+  // fixtures: Monthly Income 2022-03 and 2023-09 are withheld for every class; the track record's CIBC months come from its
+  // verified daily chain, so those two months take the analytics history's own figure instead (warned)
+  const { data } = await build();
+  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && i.level === "warn" && /kept in the track record with an official figure \(not an independent check of the class NAV data\): 2022-03 \(official figure of the analytics history, instead of its own daily NAV chain\), 2023-09 \(official figure/.test(i.message)));
+  // an Apex-era month taken from the chain (monthly-net-returns down) with a bad print in every class: no official figure,
+  // the month is withheld from the track record too (here the newest month: the track record stops before it)
+  const print = (fsv: string): Route => history(fsv, (rows) => rows.map((r) => (r.date === "2026-08-13" ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 } : r.date === "2026-08-14" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 } : r)));
+  const mnrDown: Route = (url) => (url.pathname === "/api/performance/monthly-net-returns" && url.searchParams.get("short_name") === "SEST" ? json({ detail: "x" }, 500) : undefined);
+  const b = await build(mnrDown, ...["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map(print));
+  assert.ok(b.data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from its own daily NAV chain, which failed the class checks: bad valuation print/.test(i.message)), JSON.stringify(b.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+  assert.equal(b.data.funds[MI]!.performance!.asOf, "2026-07-31");
+});
+
+test("new classes are gated even when the previous publication had no performance", async () => {
+  const { classEntryChanges } = await import("../../../src/lib/pipeline/validate.ts");
+  const { data } = await build();
+  const f = data.funds[SEB]!;
+  const prev = { ...f, performance: null, risk: null, performanceByClass: undefined, defaultClass: undefined };
+  const out = classEntryChanges(SEB, prev, f);
+  assert.ok(out.some((x) => /classes published for the first time: .*I \(LDM203\)/.test(x)), JSON.stringify(out));
+  assert.ok(!out.some((x) => /H \(LDM202\)/.test(x)), "the headline itself is not a new class");
+});
+
+test("YTD of a class whose first complete month is January (priced since the previous December's last day); growth starts at the inception day", async () => {
+  const all: Record<string, number> = {};
+  for (let m = "2025-01-31"; m <= "2026-08-31"; m = addMonths(m, 1)) all[m] = 0.003;
+  const t = classFundTrailing({ all, asOf: "2025-08-31", firstMonth: "2025-01-31", inception: "2024-12-31", partialFirst: false });
+  assert.ok(t.YTD != null && Math.abs(t.YTD - (1.003 ** 8 - 1)) < 1e-12);
+  // the same January but partial (launched mid-January): no YTD
+  assert.equal(classFundTrailing({ all, asOf: "2025-08-31", firstMonth: "2025-01-31", inception: "2025-01-15", partialFirst: true }).YTD, null);
+  const { data } = await build();
+  const f = data.funds[MI]!.performanceByClass!.LDM081.performance;
+  assert.equal(f.growth[0].date, f.inception, "a partial first month: the growth series starts at the inception day");
+  assert.deepEqual(performanceProblems(f, "compounded", true), []);
+});
+
+test("headline: a print on the newest month's last day reversed on the next valuation day in every class is never published, even with monthly-net-returns matching", async () => {
+  const { mkdtemp, readFile, writeFile, rm } = await import("node:fs/promises");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const { FIXTURE_FACTSHEETS_DIR } = await import("../../fixtures/pipeline/mock-fetch.ts");
+  // no factsheet for the newest month (August): only the July archives
+  const fsDir = await mkdtemp(path.join(os.tmpdir(), "fs-print-"));
+  for (const f of ["bonds_data_2026-07.json", "factsheet_data_2026-07.json"]) await writeFile(path.join(fsDir, f), await readFile(path.join(FIXTURE_FACTSHEETS_DIR, f)));
+  const shift = (r: Record<string, unknown>): Record<string, unknown> => (r.date === "2026-08-31" ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 } : r.date === "2026-09-01" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 } : r);
+  const prints = ["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map((f) => history(f, (rows) => rows.map(shift)));
+  // monthly-net-returns serves the same (wrong) August as the chain: the two dataplatform views agree
+  const aug = (loadFixture("dataplatform/nav_history_LDM001.json") as { rows: Record<string, unknown>[] }).rows
+    .filter((r) => String(r.date).startsWith("2026-08") && r.source === "apex").map(shift)
+    .reduce((p, r) => p * (1 + (r.net_daily_return as number)), 1) - 1;
+  const mnr: Route = (url) => {
+    if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
+    const j = loadFixture("dataplatform/mnr_SEST.json") as { rows: Record<string, unknown>[] };
+    return json({ ...j, rows: j.rows.map((r) => (r.month === "2026-08-31" ? { ...r, net_return: aug } : r)) });
+  };
+  try {
+    const raw = await fetchAll({ fetchImpl: mockFetch(mnr, ...prints).fetch, now: NOW, env: fixtureEnv({ FACTSHEET_DATA_DIR: fsDir }) });
+    const { data } = buildSiteData(raw, null, NOW);
+    assert.ok(!data.issues.some((i) => /2026-08: daily NAV chain .* vs monthly-net-returns/.test(i.message)), "the two views agree");
+    assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record \(taken from monthly-net-returns \(the same Apex NAVs as the class chain\), which failed the class checks: bad valuation print: LDM\d+ 2026-08-31 /.test(i.message)), JSON.stringify(data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+    assert.equal(data.funds[MI]!.performance!.asOf, "2026-07-31", "the headline holds the newest month");
+  } finally {
+    await rm(fsDir, { recursive: true, force: true });
+  }
+});
+
+test("headline: the track class's own newest-month hold reaches the track record (its months come from the same NAVs)", async () => {
+  const cut = history("LDM001", (rows) => rows.filter((r) => String(r.date) <= "2026-08-31"));
+  const { data } = await build(cut);
+  assert.ok(data.issues.some((i) => i.key === `funds.${MI}.performance` && /2026-08: withheld from the track record .*newest month held/.test(i.message)), JSON.stringify(data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)));
+  assert.equal(data.funds[MI]!.performance!.asOf, "2026-07-31");
+});
+
+test("a fund new to a live site: every series gated (its page goes live without performance until approved); the very first site publication is not gated", async () => {
+  const { data, validated, context } = await build();
+  const prev = structuredClone({ ...validated, mode: "live" as const });
+  delete prev.funds[SEB];
+  const v = validateSite(structuredClone(data), context, prev, NOW);
+  assert.ok(v.classChanges.includes(SEB));
+  assert.ok(v.data.issues.some((i) => i.key === `funds.${SEB}.performance.class` && /classes published for the first time \(fund new to the site\)/.test(i.message)));
+  assert.equal(v.autoData.funds[SEB]!.performance, null);
+  assert.ok(v.autoData.funds[SEB]!.nav, "the rest of the page goes live");
+  assert.ok(!validateSite(structuredClone(data), context, null, NOW).classChanges.length);
 });

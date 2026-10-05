@@ -89,9 +89,27 @@ for (const m of months("2019-02-28", LAST_MONTH)) sebF[m] = r8(seb[m] + 0.0012);
 /** Monthly Income class F (LDM081): the same book with a slightly higher fee than class FP (synthetic) */
 const sestF: Series = {};
 for (const m of months("2019-01-31", LAST_MONTH)) sestF[m] = r8(sest[m] - 0.00025);
+/** the other classes of each book: the same daily path with their own fee load (synthetic); see NAV_HISTORY */
+const plus = (s0: Series, d: number, extra: Record<string, number> = {}): Series => Object.fromEntries(Object.keys(s0).map((m) => [m, r8(s0[m] + d + (extra[m] ?? 0))]));
+/**
+ * class I of Monthly Income drifts away from the other classes in 2023-09 (an inconsistent distribution adjustment: a
+ * cross-class outlier month, withheld for every class; synthetic)
+ */
+const sestI = plus(sest, 0.0003, { "2023-09-30": 0.009 });
+const sestJ = plus(sest, 0.0001);
+const sestA = plus(sest, -0.0009);
+const sebI = plus(seb, 0.0016);
+const sebJ = plus(seb, 0.0014);
+const sebA = plus(seb, -0.0004);
+const sebFP = plus(seb, 0.0015);
 const multi: Series = {};
 const multiAll = multi;
 for (const m of months("2019-01-31", LAST_MONTH)) multi[m] = r8(0.0055 + 0.019 * g());
+/** class A of Multi-Strategy is off by +3 % in 2025-05 alone (a broken class in a month without a distribution, synthetic) */
+const multiA = plus(multi, -0.0008, { "2025-05-31": 0.03 });
+const multiI = plus(multi, 0.0004);
+const multiJ = plus(multi, 0.0003);
+const multiFP = plus(multi, 0.0002);
 const gmv: Series = {};
 const gmvAll = gmv;
 for (const m of months("2015-01-31", LAST_MONTH)) gmv[m] = r8(0.0042 + 0.016 * g());
@@ -221,22 +239,30 @@ function businessDays(from: string, to: string): string[] {
 }
 
 const CLASSES: Record<string, { fundserv: string; display: string; currency: string; nav: number; status?: string }[]> = {
+  // the classes added later come last, so the synthetic NAV draws of the earlier ones do not move
   SEST: [
     { fundserv: "LDM001", display: "FP", currency: "CAD", nav: 10.2413 },
     { fundserv: "LDM021", display: "A", currency: "CAD", nav: 9.8712 },
     { fundserv: "LDM081", display: "F", currency: "CAD", nav: 10.0536 },
     { fundserv: "LDM011", display: "F USD", currency: "USD", nav: 10.4127 },
-    { fundserv: "LDM031", display: "O", currency: "CAD", nav: 10.9, status: "dormant" },
+    { fundserv: "LDM031", display: "I", currency: "CAD", nav: 10.9 },
+    { fundserv: "LDM061", display: "J", currency: "CAD", nav: 10.3151 },
+    { fundserv: "LDM091", display: "O", currency: "CAD", nav: 10.9, status: "dormant" },
   ],
   SEB: [
     { fundserv: "LDM201", display: "F", currency: "CAD", nav: 9.6124 },
     { fundserv: "LDM205", display: "A", currency: "CAD", nav: 9.3318 },
     { fundserv: "LDM206", display: "FP", currency: "CAD", nav: 9.7045 },
+    { fundserv: "LDM202", display: "H", currency: "CAD", nav: 9.5873 },
+    { fundserv: "LDM203", display: "I", currency: "CAD", nav: 9.6533 },
+    { fundserv: "LDM204", display: "J", currency: "CAD", nav: 9.6418 },
   ],
   Multistrat: [
     { fundserv: "LDM300", display: "A", currency: "CAD", nav: 12.3187 },
     { fundserv: "LDM301", display: "F", currency: "CAD", nav: 12.9542 },
     { fundserv: "LDM305", display: "FP", currency: "CAD", nav: 13.1076 },
+    { fundserv: "LDM303", display: "I", currency: "CAD", nav: 13.0215 },
+    { fundserv: "LDM304", display: "J", currency: "CAD", nav: 13.0047 },
   ],
 };
 
@@ -297,16 +323,43 @@ function navPayload(short: string): unknown {
  * Multistrat 2023-06-12; class F of Monthly Income launched 2024-03-01). Their compounded months equal the synthetic
  * series above, so the website's chain reproduces the analytics history and monthly-net-returns.
  */
-export const NAV_HISTORY: { fundserv: string; short: string; monthly: Series; navStart: string; nav0: number; dist?: (m: string) => number; priorFrom?: string; seed: number }[] = [
-  { fundserv: "LDM001", short: "SEST", monthly: sest, navStart: "2021-10-05", nav0: 10, dist: () => 0.0415, priorFrom: "2021-06-01", seed: 101 },
-  { fundserv: "LDM081", short: "SEST", monthly: sestF, navStart: "2024-03-01", nav0: 10, dist: () => 0.04, seed: 102 },
-  { fundserv: "LDM201", short: "SEB", monthly: sebF, navStart: "2023-07-05", nav0: 10, dist: (m) => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? 0.072 : 0), seed: 103 },
-  { fundserv: "LDM202", short: "SEB", monthly: seb, navStart: "2023-07-05", nav0: 10, dist: (m) => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? 0.07 : 0), seed: 104 },
-  { fundserv: "LDM301", short: "Multistrat", monthly: multi, navStart: "2023-06-12", nav0: 10, dist: (m) => (m.slice(5, 7) === "12" ? 0.25 : 0), seed: 105 },
+type NavHistorySpec = {
+  fundserv: string; short: string; monthly: Series; navStart: string; nav0: number; dist?: (m: string) => number; priorFrom?: string; priorTo?: string; seed: number;
+  shocks?: Record<string, number>; currency?: string;
+};
+const quarterly = (amt: number) => (m: string): number => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? amt : 0);
+const december = (amt: number) => (m: string): number => (m.slice(5, 7) === "12" ? amt : 0);
+/** a bad valuation print in every Monthly Income class: +3 % then −2.95 % on two consecutive days (synthetic) */
+const SEST_SPIKE = { "2022-03-15": 0.03, "2022-03-16": -0.0295 };
+/**
+ * Every class of the three funds. Monthly Income: FP / J since the 2021-10-05 re-seed (earlier rows under the reused code
+ * are another strategy), I relaunched (a previous life in 2022, then a gap), F since 2024, A launched 2026-03 (less than 12
+ * months), F USD in US dollars. SEB: F / H / J / I since 2023, A and FP launched in 2026. Multi-Strategy: F / I / J since
+ * 2023-06, A since 2024-09, FP launched in 2026. The classes of one fund share their daily path (NOISE_SEED).
+ */
+export const NAV_HISTORY: NavHistorySpec[] = [
+  { fundserv: "LDM001", short: "SEST", monthly: sest, navStart: "2021-10-05", nav0: 10, dist: () => 0.0415, priorFrom: "2021-06-01", seed: 101, shocks: SEST_SPIKE },
+  { fundserv: "LDM011", short: "SEST", monthly: sestF, navStart: "2025-06-02", nav0: 10, dist: () => 0.03, seed: 106, currency: "USD", shocks: SEST_SPIKE },
+  { fundserv: "LDM021", short: "SEST", monthly: sestA, navStart: "2026-03-02", nav0: 10, dist: () => 0.039, seed: 107, shocks: SEST_SPIKE },
+  { fundserv: "LDM031", short: "SEST", monthly: sestI, navStart: "2023-03-06", nav0: 10, dist: () => 0.042, priorFrom: "2022-01-04", priorTo: "2022-06-30", seed: 108, shocks: SEST_SPIKE },
+  { fundserv: "LDM061", short: "SEST", monthly: sestJ, navStart: "2021-10-05", nav0: 10, dist: () => 0.0418, priorFrom: "2021-06-01", seed: 109, shocks: SEST_SPIKE },
+  { fundserv: "LDM081", short: "SEST", monthly: sestF, navStart: "2024-03-01", nav0: 10, dist: () => 0.04, seed: 102, shocks: SEST_SPIKE },
+  { fundserv: "LDM201", short: "SEB", monthly: sebF, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.072), seed: 103 },
+  { fundserv: "LDM202", short: "SEB", monthly: seb, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.07), seed: 104 },
+  { fundserv: "LDM203", short: "SEB", monthly: sebI, navStart: "2023-11-06", nav0: 10, dist: quarterly(0.073), seed: 110 },
+  { fundserv: "LDM204", short: "SEB", monthly: sebJ, navStart: "2023-08-01", nav0: 10, dist: quarterly(0.073), seed: 111 },
+  { fundserv: "LDM205", short: "SEB", monthly: sebA, navStart: "2026-04-01", nav0: 10, dist: quarterly(0.068), seed: 112 },
+  { fundserv: "LDM206", short: "SEB", monthly: sebFP, navStart: "2026-07-27", nav0: 10, dist: quarterly(0.072), seed: 113 },
+  { fundserv: "LDM300", short: "Multistrat", monthly: multiA, navStart: "2024-09-03", nav0: 10, dist: december(0.24), seed: 114 },
+  { fundserv: "LDM301", short: "Multistrat", monthly: multi, navStart: "2023-06-12", nav0: 10, dist: december(0.25), seed: 105 },
+  { fundserv: "LDM303", short: "Multistrat", monthly: multiI, navStart: "2023-06-12", nav0: 10, dist: december(0.25), seed: 115 },
+  { fundserv: "LDM304", short: "Multistrat", monthly: multiJ, navStart: "2023-06-19", nav0: 10, dist: december(0.25), seed: 116 },
+  { fundserv: "LDM305", short: "Multistrat", monthly: multiFP, navStart: "2026-07-27", nav0: 10, dist: december(0.25), seed: 117 },
 ];
+const NOISE_SEED: Record<string, number> = { SEST: 501, SEB: 502, Multistrat: 503 };
 
 function navHistoryPayload(h: (typeof NAV_HISTORY)[number]): string {
-  const rows = synthClassRows({ fundserv: h.fundserv, monthly: h.monthly, navStart: h.navStart, end: "2026-09-28", nav0: h.nav0, dist: h.dist, priorFrom: h.priorFrom, seed: h.seed })
+  const rows = synthClassRows({ fundserv: h.fundserv, monthly: h.monthly, navStart: h.navStart, end: "2026-09-28", nav0: h.nav0, dist: h.dist, priorFrom: h.priorFrom, priorTo: h.priorTo, seed: h.seed, noiseSeed: NOISE_SEED[h.short], shocks: h.shocks, currency: h.currency })
     .map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
   // one row per line: the file stays readable and diffs stay small
   return `{"short_name": "${h.short}", "fundserv": "${h.fundserv}", "nav_type": "FINAL_NAV", "include_unmapped": false, "row_count": ${rows.length}, "warnings": [], "rows": [\n${rows.map((r) => JSON.stringify(r)).join(",\n")}\n]}\n`;
@@ -499,19 +552,23 @@ function lastWeekday(monthEndDate: string): string {
 
 /**
  * Per-class distributions: SEST monthly (every class; LDM021 also pays 0.0400 on 2026-09-28 as in the NAV fixture;
- * the dormant LDM031 has rows until 2021, never shown), SEB quarterly, Multistrat annual (December). Summaries are
+ * the dormant LDM091 has rows until 2021, never shown), SEB quarterly, Multistrat annual (December). Summaries are
  * computed from the rows like the endpoint does (trailing 12 months up to end_date).
  */
 function distributionsPayload(short: "SEST" | "SEB" | "Multistrat"): unknown {
   const endDate = FIXTURE_NOW.slice(0, 10);
-  const base: Record<string, number> = { LDM001: 0.0415, LDM021: 0.035, LDM081: 0.04, LDM011: 0.041, LDM031: 0.038, LDM201: 0.072, LDM205: 0.063, LDM206: 0.074, LDM300: 0.21, LDM301: 0.25, LDM305: 0.26 };
+  const base: Record<string, number> = {
+    LDM001: 0.0415, LDM011: 0.041, LDM021: 0.035, LDM031: 0.039, LDM061: 0.0412, LDM081: 0.04, LDM091: 0.038,
+    LDM201: 0.072, LDM202: 0.07, LDM203: 0.073, LDM204: 0.0728, LDM205: 0.063, LDM206: 0.074,
+    LDM300: 0.21, LDM301: 0.25, LDM303: 0.255, LDM304: 0.253, LDM305: 0.26,
+  };
   const freq = short === "SEST" ? 1 : short === "SEB" ? 3 : 12;
   const rowsOut: { date: string; fundserv: string; class_display: string; currency: string; amount_per_unit: number; source: string }[] = [];
   for (const k of CLASSES[short]) {
     const first = short === "SEB" ? "2019-03-31" : "2019-01-31";
     for (const m of months(first, LAST_MONTH)) {
       if ((+m.slice(5, 7)) % freq !== 0) continue;
-      if (k.fundserv === "LDM031" && m > "2021-06-30") continue;
+      if (k.fundserv === "LDM091" && m > "2021-06-30") continue;
       if (short === "Multistrat" && m.startsWith("2022")) continue; // a year without distribution
       const i = +m.slice(0, 4) - 2019;
       const amount = r6(base[k.fundserv] * (1 + 0.012 * i) + (short === "Multistrat" ? 0 : 0.0004 * Math.sin(+m.slice(5, 7))));

@@ -8,7 +8,7 @@
   "apex",
   "cibc"
  ],
- "row_count": 170,
+ "row_count": 238,
  "rows": [
   {
    "date": "2026-08-14",
@@ -29,7 +29,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-17",
@@ -50,7 +50,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-18",
@@ -71,7 +71,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-19",
@@ -92,7 +92,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-20",
@@ -113,7 +113,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-21",
@@ -134,7 +134,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-24",
@@ -155,7 +155,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-25",
@@ -176,7 +176,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-26",
@@ -197,7 +197,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-27",
@@ -218,7 +218,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-28",
@@ -239,7 +239,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-31",
@@ -260,7 +260,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 130125600
+   "net_asset_value_cad": 104940000
   },
   {
    "date": "2026-09-01",
@@ -281,7 +281,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-02",
@@ -302,7 +302,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-03",
@@ -323,7 +323,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-04",
@@ -344,7 +344,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-08-14",
@@ -365,7 +365,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-17",
@@ -386,7 +386,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-18",
@@ -407,7 +407,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-19",
@@ -428,7 +428,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-20",
@@ -449,7 +449,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-21",
@@ -470,7 +470,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-24",
@@ -491,7 +491,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-25",
@@ -512,7 +512,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-26",
@@ -533,7 +533,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-27",
@@ -554,7 +554,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-28",
@@ -575,7 +575,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-31",
@@ -596,7 +596,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 37778400
+   "net_asset_value_cad": 20988000
   },
   {
    "date": "2026-09-01",
@@ -617,7 +617,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-02",
@@ -638,7 +638,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-03",
@@ -659,7 +659,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-04",
@@ -680,7 +680,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-08-14",
@@ -701,7 +701,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-17",
@@ -722,7 +722,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-18",
@@ -743,7 +743,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-19",
@@ -764,7 +764,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-20",
@@ -785,7 +785,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-21",
@@ -806,7 +806,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-24",
@@ -827,7 +827,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-25",
@@ -848,7 +848,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-26",
@@ -869,7 +869,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-27",
@@ -890,7 +890,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-28",
@@ -911,7 +911,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-31",
@@ -932,7 +932,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 31482000
+   "net_asset_value_cad": 37778400
   },
   {
    "date": "2026-09-01",
@@ -953,7 +953,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-02",
@@ -974,7 +974,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-03",
@@ -995,7 +995,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-04",
@@ -1016,7 +1016,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-08-14",
@@ -1037,7 +1037,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-17",
@@ -1058,7 +1058,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-18",
@@ -1079,7 +1079,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-19",
@@ -1100,7 +1100,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-20",
@@ -1121,7 +1121,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-21",
@@ -1142,7 +1142,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-24",
@@ -1163,7 +1163,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-25",
@@ -1184,7 +1184,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-26",
@@ -1205,7 +1205,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-27",
@@ -1226,7 +1226,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-28",
@@ -1247,7 +1247,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-31",
@@ -1268,7 +1268,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 10494000
+   "net_asset_value_cad": 8395200
   },
   {
    "date": "2026-09-01",
@@ -1289,7 +1289,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-02",
@@ -1310,7 +1310,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-03",
@@ -1331,7 +1331,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-04",
@@ -1352,20 +1352,20 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-08-14",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7854,
    "nav_per_share_cad": 10.7854,
@@ -1373,20 +1373,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-17",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.78,
    "nav_per_share_cad": 10.78,
@@ -1394,20 +1394,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-18",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7601,
    "nav_per_share_cad": 10.7601,
@@ -1415,20 +1415,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-19",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.761,
    "nav_per_share_cad": 10.761,
@@ -1436,20 +1436,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-20",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7546,
    "nav_per_share_cad": 10.7546,
@@ -1457,20 +1457,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-21",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7624,
    "nav_per_share_cad": 10.7624,
@@ -1478,20 +1478,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-24",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7831,
    "nav_per_share_cad": 10.7831,
@@ -1499,20 +1499,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-25",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7602,
    "nav_per_share_cad": 10.7602,
@@ -1520,20 +1520,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-26",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.751,
    "nav_per_share_cad": 10.751,
@@ -1541,20 +1541,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-27",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7521,
    "nav_per_share_cad": 10.7521,
@@ -1562,20 +1562,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-28",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7298,
    "nav_per_share_cad": 10.7298,
@@ -1583,20 +1583,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-08-31",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7351,
    "nav_per_share_cad": 10.7351,
@@ -1604,20 +1604,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16790400
   },
   {
    "date": "2026-09-01",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7447,
    "nav_per_share_cad": 10.7447,
@@ -1625,20 +1625,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-02",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7422,
    "nav_per_share_cad": 10.7422,
@@ -1646,20 +1646,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-03",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.7557,
    "nav_per_share_cad": 10.7557,
@@ -1667,11 +1667,368 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-04",
    "fundserv": "LDM031",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 10.7382,
+   "nav_per_share_cad": 10.7382,
+   "net_daily_return": -0.00163024,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-03",
+   "return_source_count": 1,
+   "net_asset_value_cad": 16960000
+  },
+  {
+   "date": "2026-08-14",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.208,
+   "nav_per_share_cad": 10.208,
+   "net_daily_return": -0.0003841,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-13",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-17",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.1993,
+   "nav_per_share_cad": 10.1993,
+   "net_daily_return": -0.0008504,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-18",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2009,
+   "nav_per_share_cad": 10.2009,
+   "net_daily_return": 0.00016137,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-19",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2001,
+   "nav_per_share_cad": 10.2001,
+   "net_daily_return": -0.0000778,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-20",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.1939,
+   "nav_per_share_cad": 10.1939,
+   "net_daily_return": -0.00060708,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-19",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-21",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.205,
+   "nav_per_share_cad": 10.205,
+   "net_daily_return": 0.00108471,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-20",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-24",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2071,
+   "nav_per_share_cad": 10.2071,
+   "net_daily_return": 0.00020388,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-25",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.1958,
+   "nav_per_share_cad": 10.1958,
+   "net_daily_return": -0.00111034,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-26",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.1947,
+   "nav_per_share_cad": 10.1947,
+   "net_daily_return": -0.00011185,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-27",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2024,
+   "nav_per_share_cad": 10.2024,
+   "net_daily_return": 0.00075173,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-26",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-28",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2098,
+   "nav_per_share_cad": 10.2098,
+   "net_daily_return": 0.00072693,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-27",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-31",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2062,
+   "nav_per_share_cad": 10.2062,
+   "net_daily_return": -0.00034941,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-28",
+   "return_source_count": 1,
+   "net_asset_value_cad": 20988000
+  },
+  {
+   "date": "2026-09-01",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2142,
+   "nav_per_share_cad": 10.2142,
+   "net_daily_return": 0.00078159,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-31",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-02",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.1978,
+   "nav_per_share_cad": 10.1978,
+   "net_daily_return": -0.00160561,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-01",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-03",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2038,
+   "nav_per_share_cad": 10.2038,
+   "net_daily_return": 0.00058652,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-02",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-04",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.2298,
+   "nav_per_share_cad": 10.2298,
+   "net_daily_return": 0.00254765,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-03",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-08-14",
+   "fundserv": "LDM091",
    "class_display": "O",
    "class_code": "O",
    "currency": "CAD",
@@ -1682,9 +2039,324 @@
    "fund_name": "SYNTHETIC SEST",
    "class_name_raw": "O",
    "source": "apex",
-   "nav_per_share_local": 10.7382,
-   "nav_per_share_cad": 10.7382,
-   "net_daily_return": -0.00163024,
+   "nav_per_share_local": 10.7965,
+   "nav_per_share_cad": 10.7965,
+   "net_daily_return": 0.00051286,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-13",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-17",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.7987,
+   "nav_per_share_cad": 10.7987,
+   "net_daily_return": 0.0002016,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-18",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8085,
+   "nav_per_share_cad": 10.8085,
+   "net_daily_return": 0.00090586,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-19",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.817,
+   "nav_per_share_cad": 10.817,
+   "net_daily_return": 0.00078496,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-20",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8218,
+   "nav_per_share_cad": 10.8218,
+   "net_daily_return": 0.00044667,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-19",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-21",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8197,
+   "nav_per_share_cad": 10.8197,
+   "net_daily_return": -0.00019796,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-20",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-24",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8276,
+   "nav_per_share_cad": 10.8276,
+   "net_daily_return": 0.00072849,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-25",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8317,
+   "nav_per_share_cad": 10.8317,
+   "net_daily_return": 0.00037938,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-26",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8396,
+   "nav_per_share_cad": 10.8396,
+   "net_daily_return": 0.00073135,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-27",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.84,
+   "nav_per_share_cad": 10.84,
+   "net_daily_return": 0.00003476,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-26",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-28",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8199,
+   "nav_per_share_cad": 10.8199,
+   "net_daily_return": -0.00185618,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-27",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-08-31",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8282,
+   "nav_per_share_cad": 10.8282,
+   "net_daily_return": 0.00076545,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-28",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-01",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8293,
+   "nav_per_share_cad": 10.8293,
+   "net_daily_return": 0.00009873,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-31",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-02",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8184,
+   "nav_per_share_cad": 10.8184,
+   "net_daily_return": -0.00101,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-01",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-03",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8189,
+   "nav_per_share_cad": 10.8189,
+   "net_daily_return": 0.00004909,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-02",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-04",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8328,
+   "nav_per_share_cad": 10.8328,
+   "net_daily_return": 0.00128846,
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
@@ -1709,7 +2381,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-09",
@@ -1730,7 +2402,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-10",
@@ -1751,7 +2423,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-11",
@@ -1772,7 +2444,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-14",
@@ -1793,7 +2465,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-15",
@@ -1814,7 +2486,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-16",
@@ -1835,7 +2507,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-17",
@@ -1856,7 +2528,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-18",
@@ -1877,7 +2549,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-21",
@@ -1898,7 +2570,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-22",
@@ -1919,7 +2591,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-23",
@@ -1940,7 +2612,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-24",
@@ -1961,7 +2633,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-24",
@@ -2001,7 +2673,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-25",
@@ -2041,7 +2713,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 131440000
+   "net_asset_value_cad": 106000000
   },
   {
    "date": "2026-09-28",
@@ -2081,7 +2753,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-09",
@@ -2102,7 +2774,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-10",
@@ -2123,7 +2795,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-11",
@@ -2144,7 +2816,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-14",
@@ -2165,7 +2837,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-15",
@@ -2186,7 +2858,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-16",
@@ -2207,7 +2879,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-17",
@@ -2228,7 +2900,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-18",
@@ -2249,7 +2921,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-21",
@@ -2270,7 +2942,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-22",
@@ -2291,7 +2963,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-23",
@@ -2312,7 +2984,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-24",
@@ -2333,7 +3005,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-24",
@@ -2373,7 +3045,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-25",
@@ -2413,7 +3085,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 38160000
+   "net_asset_value_cad": 21200000
   },
   {
    "date": "2026-09-28",
@@ -2453,7 +3125,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-09",
@@ -2474,7 +3146,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-10",
@@ -2495,7 +3167,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-11",
@@ -2516,7 +3188,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-14",
@@ -2537,7 +3209,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-15",
@@ -2558,7 +3230,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-16",
@@ -2579,7 +3251,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-17",
@@ -2600,7 +3272,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-18",
@@ -2621,7 +3293,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-21",
@@ -2642,7 +3314,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-22",
@@ -2663,7 +3335,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-23",
@@ -2684,7 +3356,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-24",
@@ -2705,7 +3377,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-24",
@@ -2745,7 +3417,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-25",
@@ -2785,7 +3457,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 31800000
+   "net_asset_value_cad": 38160000
   },
   {
    "date": "2026-09-28",
@@ -2825,7 +3497,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-09",
@@ -2846,7 +3518,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-10",
@@ -2867,7 +3539,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-11",
@@ -2888,7 +3560,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-14",
@@ -2909,7 +3581,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-15",
@@ -2930,7 +3602,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-16",
@@ -2951,7 +3623,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-17",
@@ -2972,7 +3644,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-18",
@@ -2993,7 +3665,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-21",
@@ -3014,7 +3686,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-22",
@@ -3035,7 +3707,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-23",
@@ -3056,7 +3728,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-24",
@@ -3077,7 +3749,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-24",
@@ -3117,7 +3789,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-25",
@@ -3157,7 +3829,7 @@
    "net_return_method": "nav_price_ratio",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 10600000
+   "net_asset_value_cad": 8480000
   },
   {
    "date": "2026-09-28",
@@ -3181,15 +3853,15 @@
   {
    "date": "2026-09-08",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.9067,
    "nav_per_share_cad": 10.9067,
@@ -3197,20 +3869,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-09",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.9126,
    "nav_per_share_cad": 10.9126,
@@ -3218,20 +3890,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-10",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.9121,
    "nav_per_share_cad": 10.9121,
@@ -3239,20 +3911,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-11",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8965,
    "nav_per_share_cad": 10.8965,
@@ -3260,20 +3932,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-14",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.872,
    "nav_per_share_cad": 10.872,
@@ -3281,20 +3953,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-15",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8891,
    "nav_per_share_cad": 10.8891,
@@ -3302,20 +3974,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-16",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8748,
    "nav_per_share_cad": 10.8748,
@@ -3323,20 +3995,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-17",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8845,
    "nav_per_share_cad": 10.8845,
@@ -3344,20 +4016,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-18",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8868,
    "nav_per_share_cad": 10.8868,
@@ -3365,20 +4037,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-21",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8767,
    "nav_per_share_cad": 10.8767,
@@ -3386,20 +4058,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-22",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8954,
    "nav_per_share_cad": 10.8954,
@@ -3407,20 +4079,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-23",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8854,
    "nav_per_share_cad": 10.8854,
@@ -3428,20 +4100,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-24",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8712,
    "nav_per_share_cad": 10.8712,
@@ -3449,20 +4121,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-24",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "cibc",
    "nav_per_share_local": 10.9038,
    "nav_per_share_cad": null,
@@ -3473,15 +4145,15 @@
   {
    "date": "2026-09-25",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "apex",
    "nav_per_share_local": 10.8897,
    "nav_per_share_cad": 10.8897,
@@ -3489,20 +4161,20 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 0
+   "net_asset_value_cad": 16960000
   },
   {
    "date": "2026-09-25",
    "fundserv": "LDM031",
-   "class_display": "O",
-   "class_code": "O",
+   "class_display": "I",
+   "class_code": "I",
    "currency": "CAD",
    "short_name": "SEST",
    "nav_type": "FINAL_NAV",
    "fund_mapped": true,
    "account": "SYNTHETIC",
    "fund_name": "SYNTHETIC SEST",
-   "class_name_raw": "O",
+   "class_name_raw": "I",
    "source": "cibc",
    "nav_per_share_local": 10.9224,
    "nav_per_share_cad": null,
@@ -3513,6 +4185,418 @@
   {
    "date": "2026-09-28",
    "fundserv": "LDM031",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 10.8684,
+   "nav_per_share_cad": 10.8684,
+   "net_daily_return": -0.00195598,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 16960000
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM031",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "I",
+   "source": "cibc",
+   "nav_per_share_local": 10.901,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-08",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3187,
+   "nav_per_share_cad": 10.3187,
+   "net_daily_return": 0.000349,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-09",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3136,
+   "nav_per_share_cad": 10.3136,
+   "net_daily_return": -0.00049425,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-10",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3304,
+   "nav_per_share_cad": 10.3304,
+   "net_daily_return": 0.00162892,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-11",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3206,
+   "nav_per_share_cad": 10.3206,
+   "net_daily_return": -0.00094866,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-14",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3479,
+   "nav_per_share_cad": 10.3479,
+   "net_daily_return": 0.0026452,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-15",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.359,
+   "nav_per_share_cad": 10.359,
+   "net_daily_return": 0.00107268,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-16",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3731,
+   "nav_per_share_cad": 10.3731,
+   "net_daily_return": 0.00136114,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-17",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3952,
+   "nav_per_share_cad": 10.3952,
+   "net_daily_return": 0.00213051,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-18",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3947,
+   "nav_per_share_cad": 10.3947,
+   "net_daily_return": -0.0000481,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-21",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.411,
+   "nav_per_share_cad": 10.411,
+   "net_daily_return": 0.00156811,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-22",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.4018,
+   "nav_per_share_cad": 10.4018,
+   "net_daily_return": -0.00088368,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-23",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.4053,
+   "nav_per_share_cad": 10.4053,
+   "net_daily_return": 0.00033648,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3991,
+   "nav_per_share_cad": 10.3991,
+   "net_daily_return": -0.00059585,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 10.4303,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.4024,
+   "nav_per_share_cad": 10.4024,
+   "net_daily_return": 0.00031734,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 10.4336,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 10.3943,
+   "nav_per_share_cad": 10.3943,
+   "net_daily_return": -0.00077867,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 21200000
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM061",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 10.4255,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-08",
+   "fundserv": "LDM091",
    "class_display": "O",
    "class_code": "O",
    "currency": "CAD",
@@ -3523,17 +4607,269 @@
    "fund_name": "SYNTHETIC SEST",
    "class_name_raw": "O",
    "source": "apex",
-   "nav_per_share_local": 10.8684,
-   "nav_per_share_cad": 10.8684,
-   "net_daily_return": -0.00195598,
+   "nav_per_share_local": 10.896,
+   "nav_per_share_cad": 10.896,
+   "net_daily_return": -0.00036697,
    "net_return_method": "apex_distribution_aware",
-   "return_start_date": "2026-09-25",
+   "return_start_date": "2026-09-07",
    "return_source_count": 1,
    "net_asset_value_cad": 0
   },
   {
-   "date": "2026-09-28",
-   "fundserv": "LDM031",
+   "date": "2026-09-09",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8986,
+   "nav_per_share_cad": 10.8986,
+   "net_daily_return": 0.00023862,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-10",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8879,
+   "nav_per_share_cad": 10.8879,
+   "net_daily_return": -0.00098178,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-11",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8771,
+   "nav_per_share_cad": 10.8771,
+   "net_daily_return": -0.00099193,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-14",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8788,
+   "nav_per_share_cad": 10.8788,
+   "net_daily_return": 0.00015629,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-15",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8895,
+   "nav_per_share_cad": 10.8895,
+   "net_daily_return": 0.00098356,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-16",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8717,
+   "nav_per_share_cad": 10.8717,
+   "net_daily_return": -0.0016346,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-17",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8469,
+   "nav_per_share_cad": 10.8469,
+   "net_daily_return": -0.00228115,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-18",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8448,
+   "nav_per_share_cad": 10.8448,
+   "net_daily_return": -0.0001936,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-21",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8441,
+   "nav_per_share_cad": 10.8441,
+   "net_daily_return": -0.00006455,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-22",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8501,
+   "nav_per_share_cad": 10.8501,
+   "net_daily_return": 0.0005533,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-23",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.847,
+   "nav_per_share_cad": 10.847,
+   "net_daily_return": -0.00028571,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8444,
+   "nav_per_share_cad": 10.8444,
+   "net_daily_return": -0.0002397,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM091",
    "class_display": "O",
    "class_code": "O",
    "currency": "CAD",
@@ -3544,7 +4880,87 @@
    "fund_name": "SYNTHETIC SEST",
    "class_name_raw": "O",
    "source": "cibc",
-   "nav_per_share_local": 10.901,
+   "nav_per_share_local": 10.8769,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8572,
+   "nav_per_share_cad": 10.8572,
+   "net_daily_return": 0.00118033,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "cibc",
+   "nav_per_share_local": 10.8898,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "apex",
+   "nav_per_share_local": 10.8784,
+   "nav_per_share_cad": 10.8784,
+   "net_daily_return": 0.00195262,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 0
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM091",
+   "class_display": "O",
+   "class_code": "O",
+   "currency": "CAD",
+   "short_name": "SEST",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC SEST",
+   "class_name_raw": "O",
+   "source": "cibc",
+   "nav_per_share_local": 10.911,
    "nav_per_share_cad": null,
    "net_daily_return": null,
    "net_return_method": "nav_price_ratio",

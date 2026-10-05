@@ -1,6 +1,6 @@
-import { test, beforeEach } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readdir, readFile, writeFile, utimes } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, readFile, rm, writeFile, utimes } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { getRun, listRuns, pipelineStatus, publishRun, pruneSnapshots, runPipeline, type RunReport } from "../../../src/lib/pipeline/index.ts";
@@ -17,6 +17,11 @@ beforeEach(async () => {
   Object.assign(process.env, env);
   // most scenarios exercise auto publishing; the default without content is covered separately
   await setMode("auto");
+});
+
+// every scenario writes snapshots (raw payloads of every class): never leave them behind in the temp directory
+afterEach(async () => {
+  if (dir) await rm(dir, { recursive: true, force: true });
 });
 
 const readJ = async <T>(...parts: string[]): Promise<T> => JSON.parse(await readFile(path.join(dir, ...parts), "utf8")) as T;
@@ -164,34 +169,37 @@ test("H1/H3: with the opt-in factsheet gate a held month is published without al
   // performance at 2026-07 (held until the August factsheet), factsheet parts from July: not an alert
   assert.equal(r.asOf.performance, "2026-07-31");
   assert.equal(r.status, "published", JSON.stringify(r.issues.filter((i) => i.level === "error")));
-  assert.equal(posted.length, 0);
+  // no alert (only the non-blocking notice of the synthetic source-defect months, when new)
+  assert.ok(posted.every((p) => /attention \(not blocking\)/.test(p) && /PUBLISHED/.test(p)), posted.join("\n"));
+  const before = posted.length;
   // two months later nothing moved: stale -> blocked + alert
   const late = await run({ routes: [hook], now: new Date("2026-11-03T14:00:00Z") });
   assert.equal(late.status, "blocked");
   assert.ok(late.issues.some((i) => /stale: performance as of 2026-07 while 2026-10 is closed/.test(i.message)));
-  assert.equal(posted.length, 1);
+  assert.equal(posted.length, before + 1);
+  assert.match(posted[posted.length - 1], /BLOCKED/);
   delete process.env.PIPELINE_ALERT_WEBHOOK;
   delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
-test("a class never published that stays out because the fund's CIBC months are unverifiable: published (not blocked), one non-blocking notice, posted once", async () => {
-  // SEB H's stored CIBC returns no longer reproduce analytics: class F (LDM201) cannot use its CIBC months
-  const priceOnly: Route = (u) => {
-    if (u.pathname !== "/api/performance/nav-timeseries" || u.searchParams.get("fundserv") !== "LDM202") return undefined;
-    const j = loadFixture("dataplatform/nav_history_LDM202.json") as { rows: Record<string, unknown>[] };
-    return json({ ...j, rows: j.rows.map((r) => (r.date === "2024-03-28" ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.007 } : r)) });
-  };
+test("source defects withholding a month of every class: published (not blocked), one non-blocking notice, posted once", async () => {
   const posted: string[] = [];
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined);
-  const r = await run({ routes: [priceOnly, hook] });
+  // SEB class H's stored return of 2024-03-28 no longer matches the other classes (an inconsistent distribution adjustment)
+  const jump: Route = (u) => {
+    if (u.pathname !== "/api/performance/nav-timeseries" || u.searchParams.get("fundserv") !== "LDM202") return undefined;
+    const j = loadFixture("dataplatform/nav_history_LDM202.json") as { rows: Record<string, unknown>[] };
+    return json({ ...j, rows: j.rows.map((x) => (x.date === "2024-03-28" ? { ...x, net_daily_return: (x.net_daily_return as number) - 0.007 } : x)) });
+  };
+  const r = await run({ routes: [jump, hook] });
   assert.equal(r.status, "published", JSON.stringify(r.issues.filter((x) => x.level === "error")));
-  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /class F \(LDM201\) not shown/.test(a.message)));
-  assert.ok(r.issues.some((x) => x.level === "warn" && /attention \(not blocking\): class F \(LDM201\) not shown/.test(x.message)));
+  assert.ok(r.advisories?.some((a) => a.fund === "sustainable-enhanced-bonds" && /month\(s\) withheld for every class of the fund .*2024-03 classes disagree .*LDM202 /.test(a.message)));
+  assert.ok(r.issues.some((x) => x.level === "warn" && /attention \(not blocking\): month\(s\) withheld for every class of the fund .*2024-03/.test(x.message)));
   assert.equal(posted.length, 1);
-  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: class F \(LDM201\) not shown/);
+  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: month\(s\) withheld for every class/);
   // the same notice on the next run: not posted again
-  const r2 = await run({ routes: [priceOnly, hook] });
+  const r2 = await run({ routes: [jump, hook] });
   assert.equal(r2.status, "published");
   assert.equal(posted.length, 1);
   delete process.env.PIPELINE_ALERT_WEBHOOK;
@@ -450,4 +458,33 @@ test("class change (SEB F -> H): never published without an admin, even in auto 
   const next = await run({ now: new Date("2026-09-30T20:00:00Z") });
   assert.equal(next.classChanges, undefined);
   assert.equal(next.status, "published", JSON.stringify(next.issues.filter((i) => i.level === "error")));
+});
+
+test("many classes published for the first time at once: held in auto mode until an admin approves them all in one go", async () => {
+  await run(); // every class published (auto, nothing before)
+  // the publication made before every register class had returns: headline + class F only, no class notices
+  const pub = await readJ<SiteData>("published", "site-data.json");
+  for (const key of ["monthly-income", "sustainable-enhanced-bonds", "multi-strategy"] as const) {
+    const f = pub.funds[key]!;
+    const keep = new Set([f.defaultClass, ...Object.values(f.performanceByClass!).filter((c) => c.performance.classCode === f.performance!.classCode).map((c) => c.fundserv)]);
+    f.performanceByClass = Object.fromEntries(Object.entries(f.performanceByClass!).filter(([k]) => keep.has(k)));
+    delete f.classInfo;
+  }
+  await writeFile(path.join(dir, "published", "site-data.json"), JSON.stringify(pub));
+  const r = await run({ now: new Date("2026-09-30T14:00:00Z") });
+  assert.equal(r.status, "blocked");
+  assert.deepEqual([...r.classChanges!].sort(), ["monthly-income", "multi-strategy", "sustainable-enhanced-bonds"]);
+  const msg = r.issues.find((i) => i.key === "funds.sustainable-enhanced-bonds.performance.class")!.message;
+  assert.match(msg, /2 classes published for the first time: I \(LDM203\), J \(LDM204\).*an admin must approve/);
+  assert.match(r.issues.find((i) => i.key === "funds.monthly-income.performance.class")!.message, /2 classes published for the first time: I \(LDM031\), J \(LDM061\)/);
+  const live = await readJ<SiteData>("published", "site-data.json");
+  assert.equal(live.funds["sustainable-enhanced-bonds"]!.performanceByClass!.LDM203, undefined, "not live before the approval");
+  // one approval publishes every new class of every fund
+  const ok = await publishRun(r.id, "approver@nymbus.ca");
+  assert.equal(ok.classChangesApprovedBy, "approver@nymbus.ca");
+  const after = await readJ<SiteData>("published", "site-data.json");
+  assert.ok(after.funds["sustainable-enhanced-bonds"]!.performanceByClass!.LDM203 && after.funds["monthly-income"]!.performanceByClass!.LDM061 && after.funds["multi-strategy"]!.performanceByClass!.LDM304);
+  assert.equal(after.funds["monthly-income"]!.classInfo!.LDM021.status, "young");
+  const next = await run({ now: new Date("2026-09-30T20:00:00Z") });
+  assert.equal(next.classChanges, undefined);
 });

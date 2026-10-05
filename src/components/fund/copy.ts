@@ -74,6 +74,28 @@ export const T = {
     soon: l("Performance figures for series {x} coming soon.", "Les rendements de la série {x} seront bientôt publiés."),
     since: l("Since series inception ({date}): only the periods this series has completed are shown.", "Depuis la création de la série ({date})\u00a0: seules les périodes complétées par la série sont présentées."),
     siShort: l("Since series inception", "Depuis la création de la série"),
+    inception: l("Series inception", "Création de la série"),
+    launch: l("Series launch", "Lancement de la série"),
+    siTrack: l("Since track-record start ({month})", "Depuis le début de l’historique ({month})"),
+    riskFrom: l("From {month}", "Depuis {month}"),
+    partialMonth: l("Partial month: from the series inception on {date}", "Mois partiel : depuis la création de la série, le {date}"),
+    young: l(
+      "Series {x} launched on {date}. Performance will be shown once the series has {n} months of history.",
+      "La série {x} a été lancée le {date}. Les rendements seront présentés lorsque la série aura {n}\u00a0mois d’historique.",
+    ),
+    currency: l(
+      "Performance figures are not shown for series {x}: returns that account for distributions are not available for this series in {cur}.",
+      "Les rendements de la série {x} ne sont pas présentés\u00a0: les rendements tenant compte des distributions ne sont pas disponibles pour cette série en {cur}.",
+    ),
+    withheld: l(
+      "“—”: figure not shown because a month in its period could not be verified.",
+      "«\u00a0—\u00a0»\u00a0: chiffre non présenté parce qu’un mois de sa période n’a pas pu être vérifié.",
+    ),
+    withheldMonth: l("Return not shown: this month could not be verified", "Rendement non présenté\u00a0: ce mois n’a pas pu être vérifié"),
+    growthFromInception: l("Starts at the series inception, {date}.", "Débute à la création de la série, le {date}."),
+    growthFromAfter: l("Starts on {date}, after the last month whose return could not be verified.", "Débute le {date}, après le dernier mois dont le rendement n’a pas pu être vérifié."),
+    rangeFrom: l("From {date}", "Depuis le {date}"),
+    partialFirst: l("The first month runs from the series inception on {date}.", "Le premier mois court à partir de la création de la série, le {date}."),
   },
   variants: {
     label: l("Target downside volatility", "Volatilité à la baisse cible"),

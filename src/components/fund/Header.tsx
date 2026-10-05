@@ -14,6 +14,7 @@ import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
 import type { ClassCtx } from "./lib/select.ts";
+import { noticeText, periodLong } from "./lib/notice.ts";
 import { T, tr } from "./copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
@@ -140,6 +141,7 @@ function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: 
             <Fact k={tr(T.nav.series, lang)}>{cls.display}</Fact>
             <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv"><code>{cls.fundserv}</code></Fact>
             <Fact k={tr(T.nav.currency, lang)}>{cls.currency}</Fact>
+            {ctx.inception ? <Fact k={tr(T.classes.inception, lang)} testId="nav-inception">{dateLabel(ctx.inception, lang)}</Fact> : null}
             {launch ? <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
               : perf?.firstMonth ? <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact> : null}
             {content.mer ? <Fact k={tr(T.nav.mer, lang)}>{content.mer}</Fact> : content.managementFee ? <Fact k={tr(T.nav.managementFee, lang)}>{content.managementFee}</Fact> : null}
@@ -152,6 +154,7 @@ function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: 
           <p className="nc-empty">{tr(T.nav.none, lang)}</p>
           <dl className="nc-facts">
             {sel ? <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv"><code>{sel.fundserv}</code></Fact> : null}
+            {ctx.inception ? <Fact k={tr(T.classes.inception, lang)} testId="nav-inception">{dateLabel(ctx.inception, lang)}</Fact> : null}
             {launch ? <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact> : perf?.firstMonth ? <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact> : null}
             {bench ? <div className="nc-fact wide"><dt>{tr(T.nav.benchmark, lang)}</dt><dd>{bench}</dd></div> : null}
           </dl>
@@ -210,12 +213,14 @@ function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; cont
 export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
   const perf = data?.performance ?? null;
   const badges = returnBadges(perf, !!content.hide?.performance);
+  // a fund with series: the track record's since-inception figure names its start, not a series inception
+  const track = !!spec.classes?.length;
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const basis = tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang);
   const sel = ctx.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const variant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
-  const soonText = sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.badges.soon, lang);
+  const soonText = ctx.notice ? noticeText(ctx.notice, lang) : sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.badges.soon, lang);
   return (
     <section className="fr" aria-labelledby="fr-title" data-testid="return-strip">
       <div className="container">
@@ -235,16 +240,19 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
               <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
                 {badges.map((b) => (
                   <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
-                    <span className="fr-p" title={tr(T.perf.periodsLong[b.period], lang)}>
+                    <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
                       <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
-                      <span className="sr-only">{tr(T.perf.periodsLong[b.period], lang)}</span>
+                      <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
                       {b.annualized ? <sup aria-hidden="true">*</sup> : null}
                     </span>
-                    <CountUp value={b.value} pct sign decimals={2} lang={lang} className={`fr-v ${b.value < 0 ? "neg" : "pos"}`} />
+                    {b.value == null
+                      ? <span className="fr-v" title={tr(T.classes.withheld, lang)}><span aria-hidden="true">—</span><span className="sr-only">{tr(T.classes.withheld, lang)}</span></span>
+                      : <CountUp value={b.value} pct sign decimals={2} lang={lang} className={`fr-v ${b.value < 0 ? "neg" : "pos"}`} />}
                   </div>
                 ))}
               </Reveal>
               {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+              {badges.some((b) => b.value == null) ? <p className="fr-note" data-testid="strip-withheld-note">{tr(T.classes.withheld, lang)}</p> : null}
               {perf?.shortRecord && perf.firstMonth ? <p className="fr-note" data-testid="since-class-inception">{tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}</p> : null}
             </>
           ) : (

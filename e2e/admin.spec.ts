@@ -380,7 +380,7 @@ test.describe("admin flows", () => {
     expect(bad.status()).toBe(400);
   });
 
-  test("SEB pinned to a class H run: F opens as coming soon; with class H selected every performance label says Series H / Série H", async ({ page, context, request }, info) => {
+  test("SEB pinned to a class H run: opens on class H, F says coming soon; with class H selected every performance label says Series H / Série H", async ({ page, context, request }, info) => {
     // mutates the (global) content: desktop admin project only, restored at the end
     test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
@@ -408,7 +408,10 @@ test.describe("admin flows", () => {
           await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: BASE }]);
           await page.reload();
         }
-        // the page opens on class F (LDM201), which this run has no series for: "coming soon", never H's numbers under F
+        // class F (LDM201) has no series in this run: the page opens on class H, the first series with returns (never an
+        // empty performance block); F itself says "coming soon", never H's numbers under F
+        await expect(page.getByTestId("nav-card").getByTestId("series-LDM202")).toHaveAttribute("aria-checked", "true");
+        await page.getByTestId("nav-card").getByTestId("series-LDM201").click();
         await expect(page.getByTestId("figures-soon")).toBeVisible();
         await page.getByTestId("nav-card").getByTestId("series-LDM202").click();
         const h = new RegExp(`${word} H(?![A-Za-z])`);

@@ -226,7 +226,7 @@ test("distributions: per live series by FundServ code; non-live series hidden; r
   assert.equal(a.history.length, 93);
   assert.equal(a.frequency, "monthly");
   assert.equal(sel.distributions!.classes.find((c) => c.fundserv === "LDM011")!.currency, "USD");
-  assert.deepEqual(sel.issues.map((i) => i.message), ["series not live, not shown: LDM031, LDM081", "live series without distribution data: LDM999"]);
+  assert.deepEqual(sel.issues.map((i) => i.message), ["series not live, not shown: LDM031, LDM061, LDM081, LDM091", "live series without distribution data: LDM999"]);
 
   // matched by FundServ code only: a payload that relabels the class letters still maps to the right series
   const d = distFixture();
@@ -352,7 +352,7 @@ test("build: daily book computed by the website for covered funds, factsheet kep
   assert.deepEqual(data.issues.filter((i) => i.key.includes("crossCheck")), []);
   // a supplied distributions payload (the PR #621 contract) is still displayed per series
   const withDist = (await build()).data;
-  assert.deepEqual(withDist.funds["monthly-income"]!.distributions?.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM081"]);
+  assert.deepEqual(withDist.funds["monthly-income"]!.distributions?.classes.map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM031", "LDM061", "LDM081"]);
   assert.deepEqual(withDist.funds["multi-strategy"]!.distributions?.classes[0].calendarYears.map((y) => y.year), [2019, 2020, 2021, 2023, 2024, 2025]);
 });
 

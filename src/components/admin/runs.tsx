@@ -238,7 +238,7 @@ export function PublishRunButton({ run, publishedRunId }: { run: RunReport; publ
     const yes = await confirm({
       title: pending ? "publish this run?" : "roll back to this run?",
       body: pending
-        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${classChange ? ` This approves the performance class change of ${run.classChanges!.join(", ")}: every month is restated under the new class label.` : ""}${review ? ` This approves the new performance month(s) of ${run.reviewNeeded!.join(", ")} that no source independent of the dataplatform confirms: check them first.` : ""}${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
+        ? `The public site will show the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}).${classChange ? ` This approves the performance class changes of ${run.classChanges!.join(", ")} (a series relabelled, a default series changed, or series published for the first time): check them in the run issues first.` : ""}${review ? ` This approves the new performance month(s) of ${run.reviewNeeded!.join(", ")} that no source independent of the dataplatform confirms: check them first.` : ""}${run.status === "blocked" ? " This run failed a blocking check: review its issues first." : ""}`
         : `The public site will go back to the data of run ${run.id} (performance as of ${run.asOf?.performance ?? "—"}). Later runs stay in the history.`,
       action: pending ? "publish" : "roll back",
       danger: !pending,

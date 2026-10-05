@@ -16,7 +16,8 @@ import { FUND_TEXTS, T, tr } from "./copy";
 import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
-import { classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
+import { classInfoOf, classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
+import { noFiguresText, periodLong } from "./lib/notice.ts";
 import { ClassTypeBadge } from "./ClassBadge";
 import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
 import type { BrandAssets } from "@/lib/data/brand-assets";
@@ -39,8 +40,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const fundWord = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
-  const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
-  const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
+  const soon = noFiguresText(ctx, lang, T.perf.none);
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   // Morningstar rating of the fund, prominently on the overview (bond funds); the server removed a stale one
   const ms = isFund ? rankingsToShow(content, spec.classes)?.morningstar ?? null : null;
@@ -74,8 +74,8 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
-                        <td><span className="fx-long">{tr(T.perf.periodsLong[r.period], lang)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
-                        <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
+                        <td><span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span><span className="fx-short" aria-hidden="true">{tr(T.perf.periods[r.period], lang)}</span>{r.annualized ? "*" : ""}</td>
+                        <td className={r.fund != null && r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
                         {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                         {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}
                       </tr>
@@ -83,6 +83,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                   </tbody>
                 </table>
                 {rows.some((r) => r.annualized) ? <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p> : null}
+                {rows.some((r) => r.fund == null) ? <p className="fine fxb-foot" data-testid="overview-withheld-note">{tr(T.classes.withheld, lang)}</p> : null}
                 {perf?.shortRecord && perf.firstMonth ? <p className="fine fxb-foot">{tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}</p> : null}
               </div>
             ) : <p className="notice" data-testid="overview-soon">{soon}</p>}
@@ -177,6 +178,8 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
   const classes = sortedClasses(all, hl?.fundserv);
   const types = new Map(classes.map((c) => [c.fundserv, classType(c.fundserv, spec, content)] as const));
   const showType = [...types.values()].some((t) => t !== "none");
+  const inception = (code: string): string | null => classInfoOf(data, code)?.inception ?? null;
+  const showInception = classes.some((c) => inception(c.fundserv));
   return (
     <Block title={tr(T.overview.series, lang)} className="fxov-wide" testId="series">
       <div className="fx-scroll">
@@ -187,6 +190,7 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
               <th scope="col">{tr(T.facts.series, lang)}</th><th scope="col">{tr(T.facts.fundserv, lang)}</th>
               {showType ? <th scope="col">{tr(T.classes.type, lang)}</th> : null}
               <th scope="col">{tr(T.facts.currency, lang)}</th>
+              {showInception ? <th scope="col">{tr(T.classes.launch, lang)}</th> : null}
               <th scope="col">{tr(T.facts.nav, lang)}</th><th scope="col">{tr(T.facts.change, lang)}</th><th scope="col">{tr(T.facts.date, lang)}</th>
             </tr>
           </thead>
@@ -201,6 +205,7 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
                   <td data-label={tr(T.facts.fundserv, lang)}><code>{c.fundserv}</code></td>
                   {showType ? <td data-label={tr(T.classes.type, lang)} data-testid={`class-type-cell-${c.fundserv}`}>{type === "none" ? <span aria-hidden="true">—</span> : <ClassTypeBadge type={type} lang={lang} testId={`class-type-${c.fundserv}`} />}</td> : null}
                   <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
+                  {showInception ? <td data-label={tr(T.classes.launch, lang)} data-testid={`class-inception-${c.fundserv}`}>{inception(c.fundserv) ? dateLabel(inception(c.fundserv), lang) : "—"}</td> : null}
                   <td data-label={tr(T.facts.nav, lang)}>{c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : "—"}</td>
                   <td data-label={tr(T.facts.change, lang)} className={dir === "up" ? "pos" : dir === "down" ? "neg" : undefined}>
                     {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : "—"}

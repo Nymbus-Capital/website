@@ -150,7 +150,7 @@ export function fetchNavHistory(c: DpClient, short: DpShort, fundserv: string, s
       return o as unknown as NavHistory["rows"][number];
     }).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     const sources = [...new Set(rows.map((r) => r.source ?? "?"))].sort().join("/");
-    return { ok: true, data: { fundserv, rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [] }, detail: `${rows.length} daily row(s)${rows.length ? `, ${rows[0].date} to ${rows[rows.length - 1].date} (${sources})` : ""}` };
+    return { ok: true, data: { fundserv, from: start, rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [] }, detail: `${rows.length} daily row(s)${rows.length ? `, ${rows[0].date} to ${rows[rows.length - 1].date} (${sources})` : ""}` };
   });
 }
 

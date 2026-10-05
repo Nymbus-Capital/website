@@ -9,7 +9,8 @@
  *    daily returns once they reproduce the analytics history; the strategy months before the class's own NAV history
  *    (not served by any endpoint) from the analytics repo history; gaps from the factsheet monthly table (warn). It
  *    must be continuous from the official track-record start.
- *  - Other classes (Monthly Income F, SEB F): compounded from their own daily NAV chain (buildClasses).
+ *  - Every other active class of the fund register: its own daily NAV chain from its inception (buildClasses,
+ *    class-returns.ts), month by month; a month failing a check is withheld, never filled from another class.
  *  - A month's factsheet, when it exists, cross-checks it (a disagreement holds a new month back and withholds an
  *    already published one). A new month that no independent source confirms (analytics, a same-class factsheet) is
  *    listed in FundContext.unconfirmed: auto mode does not publish it without an admin (validate.ts / run.ts); with
@@ -29,11 +30,11 @@
  *    payload is supplied: distributions.ts keeps the display logic).
  */
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
-import type { Bucket, CalendarRow, Characteristic, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
+import type { Bucket, CalendarRow, Characteristic, ClassInfo, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
-import { classLabel, classSeriesOf, factsheetClassAt, FUND_SOURCES, trackFundserv, type FeeBand } from "./fund-sources.ts";
+import { classLabel, classSeriesOf, factsheetClassAt, FUND_SOURCES, trackFundserv, type ClassSeriesSource, type FeeBand } from "./fund-sources.ts";
 import { perfClassCode, withClassLabel } from "./perf-class.ts";
-import { CHAIN, CLASS_SPREAD, factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
+import { CHAIN, CLASS_CHECKS, CLASS_SPREAD, factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
 import {
   addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, monthsBetween, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
   type Method, type RiskResult, type Series,
@@ -46,7 +47,8 @@ import type { DpShort, FundPortfolio, FundRef, NavPoint, RawPayloads, Registered
 import { computeFundPortfolio } from "./fund-portfolio.ts";
 import { crossCheckPortfolio, monthEndBook, selectPortfolio } from "./portfolio.ts";
 import { selectDistributions, type LiveClass } from "./distributions.ts";
-import { buildClassPerformance, performanceProblems } from "./classes.ts";
+import { buildClassEntry, performanceProblems, pickDefaultClass } from "./classes.ts";
+import { computeFundClasses, type ClassInput, type FundClassesResult } from "./class-returns.ts";
 import { classMonths, classStart, type ChainMonth } from "./daily-chain.ts";
 
 export type PartName = "performance" | "nav" | "aum" | "factsheet";
@@ -427,7 +429,7 @@ function payloadIdentityProblem(spec: FundSpec, res: MnrResult, code: string): s
  *  - Months before the class's own NAV history (the strategy's track record since 2019, stored by the dataplatform as
  *    monthly figures that no endpoint serves): the analytics history. Gaps: the same-class factsheet monthly table.
  */
-function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string): Candidate {
+function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, defects?: Map<string, string>): Candidate {
   const c = new Ctx();
   const key = `${base}.performance`;
   const src = FUND_SOURCES[spec.key];
@@ -564,6 +566,31 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string): C
       if (used.length) chainSource = `${fsv} (${chainNote(used, ch.months)})`;
     }
   }
+  // source defects found by the class checks (class-returns.ts: a bad valuation print or classes disagreeing — months
+  // withheld for every class —, and this class's own cross-class failures and newest-month hold). A month the track record
+  // takes from its own daily NAV chain, or from monthly-net-returns (the same Apex NAVs: equal to the chain by construction,
+  // not an independent source), is the same data: it is replaced by the analytics history's official figure when that has
+  // the month (labelled "official figure", not an independent check), else withheld — never filled from the factsheet; a
+  // newest month is then held, a month in the middle interrupts the track record as any missing month does. A month taken
+  // from the analytics history (the official track record) or a factsheet stays, listed in a warning.
+  if (defects?.size) {
+    const kept: string[] = [];
+    for (const [m, why] of [...defects].sort(([a], [b]) => (a < b ? -1 : 1))) {
+      if (!(m in s)) continue;
+      if (origin[m] === "navchain" || origin[m] === "dataplatform") {
+        const from = origin[m] === "navchain" ? "its own daily NAV chain" : "monthly-net-returns (the same Apex NAVs as the class chain)";
+        if (m in analyticsMonths) {
+          set(m, analyticsMonths[m], "analytics");
+          kept.push(`${ym(m)} (official figure of the analytics history, instead of ${from})`);
+        } else {
+          c.warn(key, `${ym(m)}: withheld from the track record (taken from ${from}, which failed the class checks: ${why})`);
+          delete s[m];
+          withheld.add(m);
+        }
+      } else kept.push(`${ym(m)} (${origin[m]}: official figure)`);
+    }
+    if (kept.length) c.warn(key, `month(s) failing the class checks kept in the track record with an official figure (not an independent check of the class NAV data): ${kept.join(", ")}`);
+  }
   const sourceMonths: Series = Object.fromEntries(Object.entries(s).filter(([m]) => klass[m] === code && origin[m] !== "factsheet"));
   const fs = finishSeries(raw, spec, c, base, { s, origin, klass, classCode: code, dp, fill: true, chainSource, analyticsName: name, mandatoryTable: true, withheld });
   return { fs, sourceMonths, issues: c.issues, verify, analyticsMonths, alerts };
@@ -574,8 +601,8 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string): C
  * of ONE class (a series mixing classes is never built: finishSeries). The fund's other classes are built from their own
  * daily NAV chains next to it (buildClasses).
  */
-function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string): { fs: FundSeries | null; cand: Candidate } {
-  const cand = trackRecordCandidate(raw, spec, base);
+function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string, defects?: Map<string, string>): { fs: FundSeries | null; cand: Candidate } {
+  const cand = trackRecordCandidate(raw, spec, base, defects);
   c.issues.push(...cand.issues);
   return { fs: cand.fs, cand };
 }
@@ -706,8 +733,8 @@ export function crossCheck(fund: PeriodMap, fs: TrailingTable): { period: string
 
 const cut = (s: Series, end: string): Series => Object.fromEntries(sortedKeys(s).filter((m) => m <= end).map((m) => [m, s[m]]));
 
-function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string, opts: BuildOptions): PerfBuild | null {
-  const { fs: fsr, cand } = fundSeries(raw, spec, c, base);
+function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string, opts: BuildOptions, defects?: Map<string, string>): PerfBuild | null {
+  const { fs: fsr, cand } = fundSeries(raw, spec, c, base, defects);
   if (!fsr) return null;
   const { firstMonth } = fsr;
   const key = `${base}.performance`;
@@ -1301,107 +1328,114 @@ function comparablePrevious(prev: FundData | undefined, next: Performance): Perf
   return hit ? hit.performance : null;
 }
 
+/** every class's months of one fund from its own daily chain (class-returns.ts), up to the run's target month */
+interface FundClassRun {
+  classes: ClassSeriesSource[];
+  /** register order of the active classes (else the configuration's) */
+  order: string[];
+  res: FundClassesResult;
+}
+
+function computeClassRun(raw: RawPayloads, spec: FundSpec): FundClassRun | null {
+  const src = FUND_SOURCES[spec.key];
+  if (!src.dataplatform || !src.navStart) return null;
+  const reg = registerFund(raw, spec);
+  const classes = classSeriesOf(spec.key, reg?.classes ?? null);
+  if (!classes.length) return null;
+  const order = reg ? reg.classes.filter((k) => k.status === "active").map((k) => k.fundserv) : classes.map((k) => k.fundserv);
+  const currencyOf = new Map((reg?.classes ?? []).map((k) => [k.fundserv, k.currency || null]));
+  const inputs: ClassInput[] = classes.map((k) => {
+    const r = raw.navHistory?.[k.fundserv];
+    const rows = r?.ok && r.data ? r.data.rows.filter((x) => x.fundserv === k.fundserv) : null;
+    const foreign = r?.ok && r.data && rows!.length !== r.data.rows.length;
+    return {
+      fundserv: k.fundserv, display: k.display, currency: currencyOf.get(k.fundserv) ?? null,
+      rows: foreign ? null : rows,
+      error: !r ? "not fetched" : !r.ok || !r.data ? r.error ?? "unavailable" : foreign ? `payload has rows of another class than ${k.fundserv}` : null,
+    };
+  });
+  const requested = classes.map((k) => raw.navHistory?.[k.fundserv]?.data?.from).find((x): x is string => typeof x === "string") ?? CLASS_CHECKS.historyFrom;
+  const res = computeFundClasses(inputs, { endMonth: raw.targetMonth, cfg: CLASS_CHECKS, floor: src.classFloor, requestedFrom: requested });
+  return { classes, order, res };
+}
+
 /**
- * Returns of every class of the fund that has a series. The headline class (the track record) is the fund's main series,
- * as built and cross-checked. Every other configured class (classSeriesOf) is compounded from its OWN daily NAV chain
- * (nav-timeseries, daily-chain.ts), never from another class's numbers:
- *  - from the class's first computable month (its first complete month on or after the fund's data start and its own
- *    first valuation) to the headline's as-of, EVERY month: a month that is unavailable, or that cannot be used (CIBC
- *    months while the headline did not verify the stored CIBC returns, the cut-over bridge while the headline's was not
- *    consistent), drops the class — never a truncated run shown as "since series inception";
- *  - at least 12 months, as for the headline (regulatory rule);
- *  - the fund's fee band against the headline class on every common month (FUND_SOURCES.classSpread; none for a fund
- *    whose classes may differ by a performance fee).
- * A dropped class is absent (the page says "coming soon"), with a warn issue and an alert naming why. Class entries are
- * held and carried with the headline.
+ * Returns of EVERY active class of the fund register. The track-record class (the headline) is the fund's main series, as
+ * built and cross-checked. Every other class gets its own monthly series from its OWN daily NAV chain (nav-timeseries,
+ * class-returns.ts) from its inception — the first price of its current run — to the headline's as-of, never another
+ * class's numbers:
+ *  - a month that fails a check (coverage, method, bad valuation print — every class —, cross-class consistency — that
+ *    class or every class, class-returns.ts) is withheld, with its reason in the issues; the figures over it are withheld (classes.ts);
+ *  - less than CLASS_CHECKS.minHistoryMonths months since inception: no figure (regulatory minimum), ClassInfo "young";
+ *  - a non-CAD class: no figure (no distribution-aware returns), ClassInfo "currency".
+ * `classInfo` describes every class (inception, why no returns); `defaultClass` is the registry's headline class when it
+ * has returns, else the first class (register order) that has. Class entries are held and carried with the headline.
  */
 function buildClasses(
   raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, pb: PerfBuild | null, performance: Performance | null,
-  risk: RiskStats | null, risk3Y: RiskStats | null, c: Ctx, base: string,
-): { byClass: Record<string, ClassPerformance>; alerts: string[]; advisories: { code: string; message: string }[] } {
-  const src = FUND_SOURCES[spec.key];
-  const classes = classSeriesOf(spec.key);
+  risk: RiskStats | null, risk3Y: RiskStats | null, c: Ctx, base: string, run: FundClassRun | null,
+): { byClass: Record<string, ClassPerformance>; classInfo: Record<string, ClassInfo> | undefined; defaultClass: string | undefined; alerts: string[]; advisories: { code: string; message: string }[] } {
+  const reg = registerFund(raw, spec);
+  const classes = run?.classes ?? classSeriesOf(spec.key, reg?.classes ?? null);
+  const order = run?.order ?? (reg ? reg.classes.filter((k) => k.status === "active").map((k) => k.fundserv) : classes.map((k) => k.fundserv));
   const alerts: string[] = [];
   const advisories: { code: string; message: string }[] = [];
-  // the main series carried over (a source failed this run): the classes carried over with it
-  const byClass: Record<string, ClassPerformance> = pb ? {} : performance && prev?.performanceByClass ? { ...prev.performanceByClass } : {};
   const head = performance?.classCode ? classes.find((k) => k.classCode === performance.classCode) : undefined;
+  if (!pb) {
+    // the main series carried over (a source failed this run): the classes carried over with it
+    const byClass: Record<string, ClassPerformance> = performance && prev?.performanceByClass ? { ...prev.performanceByClass } : {};
+    if (head && performance) byClass[head.fundserv] = { fundserv: head.fundserv, display: head.display, performance, risk, risk3Y };
+    const classInfo = performance && prev?.classInfo ? { ...prev.classInfo } : undefined;
+    return { byClass, classInfo, defaultClass: performance ? prev?.defaultClass ?? pickDefaultClass(spec.headlineClass, order, byClass) : undefined, alerts, advisories };
+  }
+  const byClass: Record<string, ClassPerformance> = {};
   if (head && performance) byClass[head.fundserv] = { fundserv: head.fundserv, display: head.display, performance, risk, risk3Y };
-  if (!pb?.performance || !pb.ref || !head) return { byClass, alerts, advisories };
+  if (!pb.performance || !pb.ref || !head || !run) return { byClass, classInfo: undefined, defaultClass: pickDefaultClass(spec.headlineClass, order, byClass), alerts, advisories };
   const asOf = pb.performance.asOf;
   const ref = pb.ref;
-  for (const k of classes) {
-    if (k.classCode === head.classCode) continue;
+  const fundRes = run.res;
+  if (fundRes.fundMonths.length) {
+    const msg = `month(s) withheld for every class of the fund (source defects to report to the dataplatform): ${fundRes.fundMonths.map((x) => `${ym(x.month)} ${x.reason}`).join("; ")}`;
+    c.warn(`${base}.performance.classes`, msg);
+    // a persistent source defect, not an anomaly of this run: one non-blocking notice, posted again only when the list changes
+    advisories.push({ code: `defects ${fundRes.fundMonths.map((x) => ym(x.month)).join(",")}`, message: msg });
+  }
+  const classInfo: Record<string, ClassInfo> = {};
+  const byRes = new Map(fundRes.classes.map((r) => [r.fundserv, r]));
+  // register order first (headline-first choice in pickDefaultClass), the same order validate.ts reads from classInfo
+  const rank = (f: string): number => { const i = order.indexOf(f); return i < 0 ? order.length : i; };
+  for (const k of [...classes].sort((a, b) => rank(a.fundserv) - rank(b.fundserv))) {
+    const r = byRes.get(k.fundserv)!;
     const key = `${base}.performance.classes.${k.fundserv}`;
     const lbl = `class ${k.display} (${k.fundserv})`;
-    // a class that was published and disappears always needs a human (blocking alert); a class never published that
-    // stays out for a persistent, expected limitation (unverifiable CIBC months) is a non-blocking advisory
+    if (k.fundserv === head.fundserv) {
+      classInfo[k.fundserv] = { fundserv: k.fundserv, display: k.display, currency: r.currency, inception: r.inception, status: "shown" };
+      continue;
+    }
     const wasPublished = !!prev?.performanceByClass?.[k.fundserv];
-    const drop = (why: string, persistent = false): void => {
-      c.warn(key, `${lbl}: ${why}; returns not shown for this class`);
-      if (persistent && !wasPublished) advisories.push({ code: k.fundserv, message: `${lbl} not shown: ${why}` });
-      else alerts.push(`${lbl} not shown${wasPublished ? " (it was published before)" : ""}: ${why}`);
-    };
-    const ch = classChain(raw, spec, k.fundserv);
-    if (ch.error) {
-      drop(`daily NAV chain unavailable (${ch.error})`);
-      continue;
-    }
-    const months = ch.months.filter((m) => m.month <= asOf);
-    if (!months.length || !ch.start) {
-      // a class not launched yet, or launched within the current month: nothing to show yet (not an anomaly)
-      c.info(key, `${lbl}: no computable month up to ${ym(asOf)}${ch.start ? ` (own data from ${ch.start})` : " (no own NAV row)"}; returns not shown for this class`);
-      continue;
-    }
-    const first = months[0].month;
-    // every month from the class's first computable month: an unusable one drops the class (never a truncated run)
-    const unusable = months.map((m) => ({
-      m,
-      unverified: m.status === "ready" && m.r !== null && ((m.source === "cibc" && !ref.verify.cibc) || (m.source === "bridge" && !ref.verify.bridge)),
-      why: m.status !== "ready" || m.r === null ? m.issue ?? m.status
-        : m.source === "cibc" && !ref.verify.cibc ? "stored CIBC daily returns not verified on the headline class"
-        : m.source === "bridge" && !ref.verify.bridge ? "cut-over bridge not confirmed on the headline class" : null,
-    })).filter((x) => x.why);
-    if (unusable.length) {
-      const unverified = unusable.filter((x) => x.unverified);
-      const other = unusable.filter((x) => !x.unverified);
-      const parts = [
-        unverified.length ? `${unverified.length} month(s) (${monthRanges(unverified.map((x) => x.m.month))}) ${unverified[0].why}` : null,
-        other.length ? `${other.length} month(s) unavailable: ${other.slice(0, 3).map((x) => `${ym(x.m.month)} ${x.why}`).join("; ")}${other.length > 3 ? "; …" : ""}` : null,
-      ].filter(Boolean).join("; ");
-      drop(`not every month since its first computable month ${ym(first)} is usable (own data from ${ch.start}): ${parts}`, !other.length);
-      continue;
-    }
-    if (months[months.length - 1].month !== asOf) {
-      drop(`series ends ${ym(months[months.length - 1].month)}, not at the headline's ${ym(asOf)}`);
-      continue;
-    }
-    const series: Series = Object.fromEntries(months.map((m) => [m.month, m.r as number]));
-    const n = months.length;
-    if (n < 12) {
-      c.info(key, `${lbl}: ${n} month(s) since ${ym(first)} (< 12): returns not shown for this class (regulatory rule)`);
-      continue;
-    }
-    if (src.classSpread) {
-      const band = classSpreadProblem(series, ref.sourceMonths, src.classSpread);
-      if (band) {
-        drop(`vs class ${head.display}: ${band}`);
-        continue;
-      }
-    } else c.info(key, `${lbl}: no fee band against class ${head.display} for this fund (${src.classSpreadNote ?? "classes may differ by more than a fixed fee"}); the other gates apply`);
-    const b = buildClassPerformance({ key, cls: k, series, asOf, idx: ref.idx, indexName: ref.indexName });
+    const b = buildClassEntry({ key, cls: k, result: r, asOf, idx: ref.idx, indexName: ref.indexName, minMonths: CLASS_CHECKS.minHistoryMonths });
     c.issues.push(...b.issues);
-    if (!b.entry) continue;
-    const problems = performanceProblems(b.entry.performance, "compounded", true);
-    if (problems.length) {
-      drop(`${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}`);
+    let entry = b.entry;
+    if (entry) {
+      const problems = performanceProblems(entry.performance, "compounded", true);
+      if (problems.length) {
+        c.warn(key, `${lbl}: ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class`);
+        entry = null;
+      }
+    }
+    classInfo[k.fundserv] = entry ? b.info : { ...b.info, status: b.info.status === "shown" ? "unavailable" : b.info.status };
+    if (!entry) {
+      // a class that was published and disappears always needs a human (blocking alert)
+      if (wasPublished) alerts.push(`${lbl} not shown (it was published before): ${b.issues.filter((i) => i.level !== "info").map((i) => i.message).pop() ?? "see the issues"}`);
       continue;
     }
-    byClass[k.fundserv] = b.entry;
-    const checked = src.classSpread ? `fee band vs class ${head.display} checked on ${sortedKeys(series).filter((m) => m in ref.sourceMonths).length} month(s)` : `no fee band (${src.classSpreadNote ?? "not configured"})`;
-    c.prov[key] = `monthly net returns of ${lbl} ${ym(first)} to ${ym(asOf)} (every month since its first computable month; own data from ${ch.start}) compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=${k.fundserv} (${chainNote(sortedKeys(series), ch.months)}); ${checked}`;
+    byClass[k.fundserv] = entry;
+    const months = entry.performance.monthly.length;
+    const withheld = entry.performance.withheldMonths ?? [];
+    const unchecked = fundRes.unchecked.filter((u) => u.fundserv === k.fundserv && u.month <= asOf).map((u) => u.month);
+    c.prov[key] = `monthly net returns of ${lbl} from its inception ${r.inception} (first price of its current run; first month ${entry.performance.partialFirstMonth ? "partial, from the inception NAV per unit" : "complete"}) to ${ym(asOf)}, compounded by the website from dataplatform /api/performance/nav-timeseries fundserv=${k.fundserv} (${chainNote(entry.performance.monthly.map((m) => m.month), r.months.map((m) => ({ month: m.month, source: m.source, status: "ready", r: m.r, issue: null })))}); ${months} month(s) shown${withheld.length ? `, ${withheld.length} withheld (${monthRanges(withheld)})` : ""}; checks: coverage and method, bad valuation prints and cross-class consistency${unchecked.length ? ` (${unchecked.length} month(s) without another class to compare: ${monthRanges(unchecked)})` : ""}`;
   }
-  return { byClass, alerts, advisories };
+  return { byClass, classInfo, defaultClass: pickDefaultClass(spec.headlineClass, order, byClass), alerts, advisories };
 }
 
 /** Variants of a strategy (GMV): one factsheet block each; the default variant's data is the fund's own. */
@@ -1450,8 +1484,14 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
   let pb: PerfBuild | null = null;
   const src = FUND_SOURCES[spec.key];
   const short = src.dataplatform;
+  // every class's own chain first: its fund-wide defect months also apply to the track record's own-NAV months
+  const classRun = short ? computeClassRun(raw, spec) : null;
   if (short) {
-    pb = buildNetPerformance(raw, spec, prev, c, base, opts);
+    // defects of the track record: months withheld for every class + the track class's own check failures (buildClasses
+    // skips the headline class, so they would otherwise be lost)
+    const track = trackFundserv(spec.key);
+    const defects = classRun ? new Map([...(track ? classRun.res.classChecks[track] ?? [] : []), ...classRun.res.fundMonths].map((x) => [x.month, x.reason])) : undefined;
+    pb = buildNetPerformance(raw, spec, prev, c, base, opts, defects);
   } else if (src.factsheet) {
     if (!raw.factsheets.ok) c.error(`${base}.performance`, `factsheet archives unavailable (${raw.factsheets.error ?? "not fetched"})`);
     else pb = buildFactsheetPerformance(raw, spec, prev?.performance, c, base);
@@ -1490,10 +1530,12 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
   // returns per class (net funds): every class that has a series; the default class (F) is the headline when it has one
   let performanceByClass: FundData["performanceByClass"];
   let defaultClass: string | undefined;
+  let classInfo: FundData["classInfo"];
   if (short) {
-    const cls = buildClasses(raw, spec, prev, pb, performance, risk, risk3Y, c, base);
+    const cls = buildClasses(raw, spec, prev, pb, performance, risk, risk3Y, c, base, classRun);
     performanceByClass = cls.byClass;
-    defaultClass = spec.headlineClass ?? undefined;
+    defaultClass = cls.defaultClass;
+    classInfo = cls.classInfo;
     ctx.alerts.push(...cls.alerts);
     if (cls.advisories.length) ctx.advisories = cls.advisories;
   }
@@ -1559,7 +1601,8 @@ function buildFund(raw: RawPayloads, spec: FundSpec, prevData: SiteData | null, 
     factsheetMonth: fp.parts.factsheetMonth,
     portfolio,
     distributions,
-    ...(performanceByClass && Object.keys(performanceByClass).length ? { performanceByClass, defaultClass } : {}),
+    ...(performanceByClass && Object.keys(performanceByClass).length ? { performanceByClass, ...(defaultClass ? { defaultClass } : {}) } : {}),
+    ...(classInfo && Object.keys(classInfo).length ? { classInfo } : {}),
     ...(variants ? { variants, defaultVariant: src.variants![0].id } : {}),
   };
   return { fund, ctx };

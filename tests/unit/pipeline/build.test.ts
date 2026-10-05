@@ -43,7 +43,12 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   // the only warnings: the published 2026 index calendar rows (FTSE-era months differ from the synthetic ETF-era table),
   // the multi-strategy daily portfolio whose synthetic coverage is below the thresholds (factsheet shown), and the
   // short_corp history that starts with its 2024-12 naming generation (like the live data: no earlier name to join)
-  const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.multi-strategy.portfolio" || k === "funds.monthly-income.performance.index" || k === "funds.monthly-income.trailing.index";
+  // + the synthetic source defects: Monthly Income (a bad valuation print in every class, a drifting month of class I in a
+  // month with distributions: withheld for every class) and Multi-Strategy class A off alone in 2025-05 (that class only)
+  // (the track record takes those Monthly Income months from its official analytics history: warned)
+  const expectedWarn = (k: string) => /^funds\.[a-z-]+\.calendar\.2026\.index$/.test(k) || k === "funds.monthly-income.performance" || k === "funds.multi-strategy.portfolio" || k === "funds.monthly-income.performance.index" || k === "funds.monthly-income.trailing.index"
+    || /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k)
+    || /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-05-31)?$/.test(k);
   assert.deepEqual(data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)), [], JSON.stringify(data.issues.filter((i) => i.level !== "info")));
 
   const mi = data.funds["monthly-income"]!;
@@ -52,19 +57,20 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(p.monthly.length, 92);
   assert.equal(p.monthly[p.monthly.length - 1].r, -0.00121918, "Aug 2026 = dataplatform ready month");
   // Jul 2026 (cut-over) = NAV bridge: Apex NAV per unit 2026-07-31 / CIBC NAV per unit 2026-06-30 − 1 (python3 from nav_history_LDM001.json)
-  near(p.monthly[p.monthly.length - 2].r, -0.0013904499930977865);
-  // python3 reference: analytics 2019-01..2021-10, LDM001 CIBC daily returns compounded 2021-11..2026-06, bridge, Apex
-  near(p.trailing.fund["1Y"], 0.010394608387722215);
-  near(p.trailing.fund["3Y"], 0.01018483867950315);
-  near(p.trailing.fund.SI, 0.02269285607812921);
-  near(p.trailing.fund.YTD, -0.000619425414889796);
+  near(p.monthly[p.monthly.length - 2].r, -0.0013904499981939322);
+  // python3 reference: analytics 2019-01..2021-10, LDM001 CIBC daily returns compounded 2021-11..2026-06 except the two
+  // months withheld for every class (2022-03, 2023-09: the analytics figure instead), bridge, Apex
+  near(p.trailing.fund["1Y"], 0.010394608382565895);
+  near(p.trailing.fund["3Y"], 0.010184879046669204);
+  near(p.trailing.fund.SI, 0.02269285344014693);
+  near(p.trailing.fund.YTD, -0.0006194254199901605);
   assert.equal(p.trailing.fund["10Y"], null);
   // class label: derived from the class of the data (Monthly Income STRATEGY = FP)
   assert.equal(p.classCode, "STRATEGY");
   assert.equal(p.returnClass, "FP");
   assert.equal(p.returnClassLabel, "Series FP");
   assert.match(data.provenance["funds.monthly-income.performance"], /every month class_code STRATEGY, shown as class FP/);
-  assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(34 month\(s\): 2019-01 to 2021-10/);
+  assert.match(data.provenance["funds.monthly-income.performance"], /analytics fund_returns\.json "Nymbus Monthly Income" \(36 month\(s\): 2019-01 to 2021-10, 2022-03, 2023-09;/);
   // every index figure computed from FTSE short_corp levels (python3 reference from the fixture rows)
   assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index", "from /short-names index_name");
   near(p.trailing.index!["1M"], 0.003790669539088798);
@@ -77,18 +83,23 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   near(p.indexMonthly![p.indexMonthly!.length - 1].r, 0.003790669539088798);
   assert.equal(p.indexMonthly!.length, 20, "2025-01 to 2026-08");
   // VA = fund − FTSE index
-  assert.match(data.provenance["funds.monthly-income.performance"], /nav-timeseries LDM001 \(cibc 2021-11 to 2026-06, bridge 2026-07\) daily NAV chain compounded by the website \(57 month/);
+  assert.match(data.provenance["funds.monthly-income.performance"], /nav-timeseries LDM001 \(cibc 2021-11 to 2026-06, bridge 2026-07\) daily NAV chain compounded by the website \(55 month/);
   assert.ok(data.issues.some((i) => i.level === "info" && /stored CIBC daily returns of class FP \(LDM001\) reproduce the analytics history on 56 month/.test(i.message)));
-  near(p.trailing.va!["1Y"], 0.010394608387722215 - 0.0023965137671608794, 1e-12);
+  near(p.trailing.va!["1Y"], p.trailing.fund["1Y"]! - 0.0023965137671608794, 1e-12);
   assert.equal(p.trailing.va!.SI, null);
-  // class F (LDM081) from its own daily chain since its launch; the page opens on it (python3: compounded LDM081 months)
-  assert.deepEqual(Object.keys(mi.performanceByClass!), ["LDM001", "LDM081"]);
+  // class F (LDM081) from its own daily chain since its inception (2024-03-01, first month partial); the page opens on it;
+  // I and J too; A (launched 2026-03: < 12 months) and F USD (no distribution-aware returns) show no figure
+  assert.deepEqual(Object.keys(mi.performanceByClass!).sort(), ["LDM001", "LDM031", "LDM061", "LDM081"]);
+  assert.equal(mi.classInfo!.LDM021.status, "young");
+  assert.equal(mi.classInfo!.LDM011.status, "currency");
   assert.equal(mi.defaultClass, "LDM081");
   const f81 = mi.performanceByClass!.LDM081.performance;
   assert.equal(f81.firstMonth, "2024-03-31");
   assert.equal(f81.returnClassLabel, "Series F");
-  near(f81.trailing.fund.SI, 0.008302597453765825);
-  near(f81.trailing.fund["1Y"], 0.007370174765965576);
+  assert.equal(f81.inception, "2024-03-01");
+  assert.equal(f81.partialFirstMonth, true);
+  near(f81.trailing.fund.SI, 0.008200559405328933);
+  near(f81.trailing.fund["1Y"], 0.007370174765965132);
   assert.deepEqual(mi.performanceByClass!.LDM001.performance, p, "the headline class entry is the headline itself");
   const c2025 = p.calendar.find((r) => r.year === 2025)!;
   near(c2025.index, 0.02320695456298516);
@@ -103,7 +114,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
 
   // C3: NAV daily change = Apex distribution-aware return from the previous valuation day
   const cls = Object.fromEntries(mi.nav!.classes.map((c) => [c.fundserv, c]));
-  assert.deepEqual(Object.keys(cls), ["LDM001", "LDM021", "LDM081", "LDM011"], "dormant class excluded");
+  assert.deepEqual(Object.keys(cls), ["LDM001", "LDM021", "LDM081", "LDM011", "LDM031", "LDM061"], "dormant class excluded");
   assert.equal(cls.LDM001.changePct, 0.00111994);
   near(cls.LDM001.change, 0.0114, 1e-9);
   assert.equal(cls.LDM001.prevDate, "2026-09-25");
@@ -122,7 +133,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(mi.aum!.cad, 213_580_246);
 
   // SEB: the track record (headline) is the class H series (analytics strategy months + LDM202 daily chain + Apex
-  // months), LABELLED H; class F (LDM201) is compounded from its own daily chain since the fund's data start (2023-08)
+  // months), LABELLED H; class F (LDM201) is compounded from its own daily chain since its inception (2023-07-05)
   const seb = data.funds["sustainable-enhanced-bonds"]!.performance!;
   assert.equal(seb.firstMonth, "2019-02-28");
   assert.equal(seb.classCode, "STRATEGY_H");
@@ -130,18 +141,20 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(seb.returnClassLabel, "Series H");
   assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance"], /every month class_code STRATEGY_H, shown as class H/);
   const sebF = data.funds["sustainable-enhanced-bonds"]!.performanceByClass!.LDM201!.performance;
-  assert.equal(sebF.firstMonth, "2023-08-31");
+  assert.equal(sebF.firstMonth, "2023-07-31");
+  assert.equal(sebF.inception, "2023-07-05");
   assert.equal(sebF.classCode, "STRATEGY");
   assert.equal(sebF.returnClassLabel, "Series F");
-  near(sebF.trailing.fund.SI, 0.026826115117879468);
-  near(sebF.trailing.fund["1Y"], -0.026222032408454443);
-  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-08 to 2026-06, bridge 2026-07, apex 2026-08\); fee band vs class H checked on 37 month/);
+  assert.equal(sebF.withheldMonths, undefined);
+  near(sebF.trailing.fund.SI, 0.02930987039704447);
+  near(sebF.trailing.fund["1Y"], -0.02622203240078491);
+  assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-07 to 2026-06, bridge 2026-07, apex 2026-08\); 38 month\(s\) shown; checks: coverage and method, bad valuation prints and cross-class consistency/);
   assert.equal(data.funds["sustainable-enhanced-bonds"]!.defaultClass, "LDM201");
   // the class-H factsheet is cross-checked as before (same class)
   assert.ok(context["sustainable-enhanced-bonds"]!.factsheetTrailing, "factsheet trailing cross-check kept for class H");
   // only main-branch contracts: monthly-net-returns with short_name and dates, each class's daily history by fundserv
   assert.ok(calls.every((c) => !/class_code=|history=/.test(c.url)), "no parameter the dataplatform main branch does not have");
-  for (const fsv of ["LDM001", "LDM081", "LDM201", "LDM202", "LDM301"]) assert.ok(calls.some((c) => c.url.includes("/api/performance/nav-timeseries?") && c.url.includes(`fundserv=${fsv}`)), fsv);
+  for (const fsv of ["LDM001", "LDM011", "LDM021", "LDM031", "LDM061", "LDM081", "LDM201", "LDM202", "LDM203", "LDM204", "LDM205", "LDM206", "LDM300", "LDM301", "LDM303", "LDM304", "LDM305"]) assert.ok(calls.some((c) => c.url.includes("/api/performance/nav-timeseries?") && c.url.includes(`fundserv=${fsv}`)), fsv);
   assert.ok(calls.every((c) => !/fund-portfolio|\/api\/performance\/distributions/.test(c.url)), "no endpoint that only exists on an unmerged dataplatform branch");
   // FTSE univ, history chain-linked over its earlier generation univ_overall (python3 reference from the two fixture files)
   near(seb.trailing.index!["1Y"], -0.031101481717578983);
@@ -259,7 +272,7 @@ test("H1: a month missing from every source interrupts the track record (error);
   const mi = data.funds["monthly-income"]!.performance!.monthly;
   assert.equal(mi.find((x) => x.month === "2020-07-31")!.r, 0.0117, "factsheet table value (2 decimals)");
   assert.ok(data.issues.some((i) => i.level === "warn" && /2020-07: factsheet .* figures used/.test(i.message)));
-  near(mi.find((x) => x.month === "2026-07-31")!.r, -0.0013904499930977865, 1e-15);
+  near(mi.find((x) => x.month === "2026-07-31")!.r, -0.0013904499981939322, 1e-15);
 
   const diff: Route = (url) => {
     if (url.pathname !== "/api/performance/monthly-net-returns" || url.searchParams.get("short_name") !== "SEST") return undefined;
@@ -293,7 +306,7 @@ test("H3: by default a new month does not wait for its factsheet; opt-in waits (
   // opt-in, no previous publication: the newest cross-checkable month is July
   const p = first.data.funds["monthly-income"]!.performance!;
   assert.equal(p.asOf, "2026-07-31");
-  near(p.trailing.fund["1Y"], 0.004947973075484446);
+  near(p.trailing.fund["1Y"], 0.004947973070355882);
   assert.equal(first.context["monthly-income"]!.parts.performance, "held");
   assert.ok(first.data.issues.some((i) => i.level === "info" && /2026-08 not published yet: waiting for the factsheet of 2026-08/.test(i.message)));
   assert.ok(!first.context["monthly-income"]!.alerts.length, "waiting is not an alert");
@@ -407,7 +420,7 @@ for (const [label, mutate] of [
     const b = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, first, NOW, { requireFactsheetForNewMonth: true });
     const p = b.data.funds["monthly-income"]!.performance!;
     assert.equal(p.asOf, "2026-07-31", "August not cross-checked: not published under the opt-in gate");
-    near(p.trailing.fund["1Y"], 0.004947973075484446);
+    near(p.trailing.fund["1Y"], 0.004947973070355882);
     assert.ok(b.data.issues.some((i) => i.level === "warn" && /fund trailing row missing or incomplete/.test(i.message)));
   });
 }
@@ -482,7 +495,7 @@ test("FTSE for all benchmarks: no factsheet index table / published VA changed -
   const { data, context } = buildSiteData((await raw({ FACTSHEET_DATA_DIR: dir })).raw, null, NOW);
   const p = data.funds["monthly-income"]!.performance!;
   near(p.trailing.index!["1Y"], 0.0023965137671608794);
-  near(p.trailing.va!["1Y"], 0.010394608387722215 - 0.0023965137671608794, 1e-12);
+  near(p.trailing.va!["1Y"], p.trailing.fund["1Y"]! - 0.0023965137671608794, 1e-12);
   assert.deepEqual(context["monthly-income"]!.alerts, [], "no N5 alert any more");
   assert.ok(data.issues.some((i) => i.key === "funds.monthly-income.trailing.va.1Y" && i.level === "info"), "published VA: cross-check only");
 });

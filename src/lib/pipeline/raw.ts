@@ -59,6 +59,8 @@ export interface NavPoint {
 /** one class's daily rows (nav-timeseries fundserv=…), reduced to the fields the chain needs */
 export interface NavHistory {
   fundserv: string;
+  /** first day asked from the source (a class priced from that day may have begun earlier); absent in older snapshots */
+  from?: string;
   rows: (DailyRow & { fundserv: string })[];
   warnings: string[];
 }
@@ -126,8 +128,9 @@ export interface RawPayloads {
   /** monthly net returns with `history=full` (dataplatform PR #626, never merged; only in older snapshots, unused) */
   monthlyReturnsFull?: Partial<Record<DpShort, SourceResult<MonthlyNetReturnsResponse>>>;
   /**
-   * daily nav-timeseries rows of each class with a series (FUND_SOURCES.classFundserv), keyed by FundServ code, from the
-   * fund's NAV start: the website compounds the monthly returns itself (daily-chain.ts). Optional (older snapshots)
+   * daily nav-timeseries rows of every class (configured, registry and active register classes), keyed by FundServ code,
+   * from CLASS_CHECKS.historyFrom (older snapshots: the fund's NAV start): the website compounds the monthly returns itself
+   * (daily-chain.ts, class-returns.ts). Optional (older snapshots)
    */
   navHistory?: Record<string, SourceResult<NavHistory>>;
   nav: Partial<Record<DpShort, SourceResult<NavSeriesResponse>>>;

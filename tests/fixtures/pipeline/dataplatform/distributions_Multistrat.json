@@ -22,6 +22,22 @@
   },
   {
    "date": "2019-12-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.255,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-12-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.253,
+   "source": "cibc"
+  },
+  {
+   "date": "2019-12-31",
    "fundserv": "LDM305",
    "class_display": "FP",
    "currency": "CAD",
@@ -42,6 +58,22 @@
    "class_display": "F",
    "currency": "CAD",
    "amount_per_unit": 0.253,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-12-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.25806,
+   "source": "cibc"
+  },
+  {
+   "date": "2020-12-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.256036,
    "source": "cibc"
   },
   {
@@ -70,6 +102,22 @@
   },
   {
    "date": "2021-12-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.26112,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-12-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.259072,
+   "source": "cibc"
+  },
+  {
+   "date": "2021-12-31",
    "fundserv": "LDM305",
    "class_display": "FP",
    "currency": "CAD",
@@ -90,6 +138,22 @@
    "class_display": "F",
    "currency": "CAD",
    "amount_per_unit": 0.262,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-12-29",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.26724,
+   "source": "cibc"
+  },
+  {
+   "date": "2023-12-29",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.265144,
    "source": "cibc"
   },
   {
@@ -118,6 +182,22 @@
   },
   {
    "date": "2024-12-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.2703,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-12-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.26818,
+   "source": "cibc"
+  },
+  {
+   "date": "2024-12-31",
    "fundserv": "LDM305",
    "class_display": "FP",
    "currency": "CAD",
@@ -138,6 +218,22 @@
    "class_display": "F",
    "currency": "CAD",
    "amount_per_unit": 0.268,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-12-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "amount_per_unit": 0.27336,
+   "source": "cibc"
+  },
+  {
+   "date": "2025-12-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "amount_per_unit": 0.271216,
    "source": "cibc"
   },
   {
@@ -272,8 +368,90 @@
      "count": 1
     }
    ]
+  },
+  {
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "currency": "CAD",
+   "frequency_observed": "annual",
+   "last_date": "2025-12-31",
+   "last_amount_per_unit": 0.27336,
+   "trailing_12m_per_unit": 0.27336,
+   "calendar_years": [
+    {
+     "year": 2019,
+     "per_unit": 0.255,
+     "count": 1
+    },
+    {
+     "year": 2020,
+     "per_unit": 0.25806,
+     "count": 1
+    },
+    {
+     "year": 2021,
+     "per_unit": 0.26112,
+     "count": 1
+    },
+    {
+     "year": 2023,
+     "per_unit": 0.26724,
+     "count": 1
+    },
+    {
+     "year": 2024,
+     "per_unit": 0.2703,
+     "count": 1
+    },
+    {
+     "year": 2025,
+     "per_unit": 0.27336,
+     "count": 1
+    }
+   ]
+  },
+  {
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "currency": "CAD",
+   "frequency_observed": "annual",
+   "last_date": "2025-12-31",
+   "last_amount_per_unit": 0.271216,
+   "trailing_12m_per_unit": 0.271216,
+   "calendar_years": [
+    {
+     "year": 2019,
+     "per_unit": 0.253,
+     "count": 1
+    },
+    {
+     "year": 2020,
+     "per_unit": 0.256036,
+     "count": 1
+    },
+    {
+     "year": 2021,
+     "per_unit": 0.259072,
+     "count": 1
+    },
+    {
+     "year": 2023,
+     "per_unit": 0.265144,
+     "count": 1
+    },
+    {
+     "year": 2024,
+     "per_unit": 0.26818,
+     "count": 1
+    },
+    {
+     "year": 2025,
+     "per_unit": 0.271216,
+     "count": 1
+    }
+   ]
   }
  ],
- "row_count": 18,
+ "row_count": 30,
  "warnings": []
 }

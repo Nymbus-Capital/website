@@ -15,9 +15,10 @@ import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
 import { GrowthChart } from "./charts/GrowthChart";
 import { Heatmap } from "./charts/Heatmap";
 import { Ring } from "./charts/Breakdowns";
-import { dateLabel, fmt, type Lang, colon } from "./lib/format.ts";
+import { dateLabel, fmt, monthLabel, type Lang, colon } from "./lib/format.ts";
 import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
 import { ClassTypeBadge } from "./ClassBadge";
+import { nextMonth, noFiguresText, periodLong } from "./lib/notice.ts";
 import type { ClassCtx } from "./lib/select.ts";
 
 interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
@@ -42,7 +43,8 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const growthNames = tag ? { ...names, fund: `${names.fund} (${tag})` } : names;
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
-  const soon = ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.perf.none, lang);
+  const soon = noFiguresText(ctx, lang, T.perf.none);
+  const withheld = new Set(perf?.withheldMonths ?? []);
 
   return (
     <div className="container fp">
@@ -54,24 +56,37 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
           {sel && !variant ? <> <ClassTypeBadge type={sel.type} lang={lang} testId="perf-class-type" /></> : null}
         </p>
       ) : null}
+      {perf && any && perf.inception ? (
+        <p className="fine fp-since" data-testid="perf-inception">
+          {tr(T.classes.inception, lang)}{colon(lang)}{dateLabel(perf.inception, lang, true)}
+          {perf.partialFirstMonth ? <> · {tr(T.classes.partialFirst, lang).replace("{date}", dateLabel(perf.inception, lang, true))}</> : null}
+        </p>
+      ) : null}
       {perf && any && perf.shortRecord && perf.firstMonth ? <p className="fine fp-since" data-testid="perf-since-class">{tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}</p> : null}
       {!any ? <p className="notice" data-testid="perf-soon">{soon}</p> : null}
+      {perf && any && withheld.size ? <p className="fine fp-since" data-testid="perf-withheld-note">{tr(T.classes.withheld, lang)}</p> : null}
       {v.growth && perf ? (
         <Block title={tr(T.perf.growth, lang)} lead={tr(gross ? T.perf.growthLeadGross : T.perf.growthLead, lang)} testId="growth">
           <GrowthChart points={perf.growth} lang={lang} names={growthNames} rangeGroupLabel={tr(T.perf.range, lang)} label={tr(T.perf.growth, lang)}
-            rangeLabels={Object.fromEntries((["1Y", "3Y", "5Y", "SI"] as Range[]).map((r) => [r, tr(T.perf.ranges[r], lang)])) as Record<Range, string>}
+            rangeLabels={Object.fromEntries((["1Y", "3Y", "5Y", "SI"] as Range[]).map((r) => [r, r === "SI" && perf.growthFrom && perf.growthFrom !== perf.inception ? tr(T.classes.rangeFrom, lang).replace("{date}", dateLabel(perf.growthFrom, lang)) : tr(T.perf.ranges[r], lang)])) as Record<Range, string>}
             keysHint={tr(T.perf.keys, lang)} rebasedNote={tr(T.perf.rebased, lang)} method={growthMethod(perf, spec.sources.basis)} />
+          {perf.growthFrom ? (
+            <p className="fine fxb-foot" data-testid="growth-from">
+              {(perf.growthFrom === perf.inception ? tr(T.classes.growthFromInception, lang) : tr(T.classes.growthFromAfter, lang)).replace("{date}", dateLabel(perf.growthFrom, lang, true))}
+            </p>
+          ) : null}
         </Block>
       ) : null}
-      {v.trailing && perf ? <TrailingBlock perf={perf} names={names} lang={lang} /> : null}
+      {v.trailing && perf ? <TrailingBlock perf={perf} names={names} lang={lang} track={!!spec.classes?.length} /> : null}
       {v.calendar && perf ? <CalendarBlock perf={perf} names={names} lang={lang} /> : null}
       {v.heatmap && perf ? (
         <Block title={tr(T.perf.monthly, lang)} lead={tr(T.perf.monthlyLead, lang)} testId="heatmap">
-          <Heatmap monthly={perf.monthly} calendar={perf.calendar} asOf={perf.asOf} lang={lang} caption={tr(T.perf.monthly, lang)}
-            labels={{ year: tr(T.perf.year, lang), total: tr(T.perf.year, lang), ytd: tr(T.perf.ytd, lang), launch: tr(FL.sinceLaunch, lang), neg: tr(T.perf.negative, lang), pos: tr(T.perf.positive, lang), fund: names.fund }} />
+          <Heatmap monthly={perf.monthly} calendar={perf.calendar} asOf={perf.asOf} lang={lang} caption={tr(T.perf.monthly, lang)} withheld={withheld}
+            partial={perf.partialFirstMonth && perf.inception ? { month: perf.firstMonth.slice(0, 7), label: tr(T.classes.partialMonth, lang).replace("{date}", dateLabel(perf.inception, lang, true)) } : null}
+            labels={{ year: tr(T.perf.year, lang), total: tr(T.perf.year, lang), ytd: tr(T.perf.ytd, lang), launch: tr(FL.sinceLaunch, lang), neg: tr(T.perf.negative, lang), pos: tr(T.perf.positive, lang), fund: names.fund, withheld: tr(T.classes.withheldMonth, lang) }} />
         </Block>
       ) : null}
-      {v.risk ? <RiskBlock windows={windows} lang={lang} /> : null}
+      {v.risk ? <RiskBlock windows={windows} lang={lang} siFrom={perf?.partialFirstMonth && perf.firstMonth ? nextMonth(perf.firstMonth) : null} /> : null}
       <NotesBlock spec={spec} content={content} perf={perf} lang={lang} />
     </div>
   );
@@ -87,12 +102,12 @@ function Legend({ names, index, va }: { names: { fund: string; index: string; va
   );
 }
 
-function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Lang }) {
+function TrailingBlock({ perf, names, lang, track }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Lang; track: boolean }) {
   const rows = trailingRows(perf);
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
   const cats: BarCategory[] = rows.map((r) => ({
-    key: r.period, label: tr(T.perf.periods[r.period], lang), long: tr(T.perf.periodsLong[r.period], lang) + (r.annualized ? "*" : ""),
+    key: r.period, label: tr(T.perf.periods[r.period], lang), long: periodLong(r.period, perf, lang, track) + (r.annualized ? "*" : ""),
     fund: r.fund, index: r.index, va: r.va,
   }));
   return (
@@ -110,7 +125,7 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
             <tbody>
               {rows.map((r) => (
                 <tr key={r.period}>
-                  <td>{tr(T.perf.periodsLong[r.period], lang)}{r.annualized ? "*" : ""}</td>
+                  <td>{periodLong(r.period, perf, lang, track)}{r.annualized ? "*" : ""}</td>
                   <td>{P(r.fund, lang)}</td>
                   {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                   {hasVa ? <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td> : null}
@@ -125,7 +140,8 @@ function TrailingBlock({ perf, names, lang }: { perf: Perf; names: { fund: strin
 }
 
 function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Lang }) {
-  const rows = calendarRows(perf.calendar);
+  // a class with withheld months keeps its years without a figure ("—")
+  const rows = calendarRows(perf.calendar, !!perf.withheldMonths?.length);
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
   const kind = (r: (typeof rows)[number]) => partialKind(r.year, r.partial, perf.asOf);
@@ -172,15 +188,17 @@ const RISK_FIGS: { k: RiskKey; kind: "pct" | "ratio"; tone: "ink" | "neg" | "pos
   { k: "worstMonth", kind: "pct", tone: "neg" },
 ];
 
-function RiskBlock({ windows, lang }: { windows: RiskStats[]; lang: Lang }) {
+function RiskBlock({ windows, lang, siFrom }: { windows: RiskStats[]; lang: Lang; siFrom?: string | null }) {
+  // a series whose first month is partial: its risk statistics start at its first complete month
+  const wl = (w: RiskStats["window"]): string => (w === "SI" && siFrom ? tr(T.classes.riskFrom, lang).replace("{month}", monthLabel(siFrom, lang, true)) : tr(T.perf.windows[w], lang));
   const [w, setW] = useState(0);
   const risk = windows[Math.min(w, windows.length - 1)];
   const figs = useMemo(() => RISK_FIGS.filter((f) => typeof risk[f.k] === "number"), [risk]);
   const toggle = windows.length > 1 ? (
     <div className="fx-seg" role="group" aria-label={tr(T.perf.risk, lang)}>
-      {windows.map((x, i) => <button type="button" key={x.window} aria-pressed={i === w} onClick={() => setW(i)}>{tr(T.perf.windows[x.window], lang)}</button>)}
+      {windows.map((x, i) => <button type="button" key={x.window} aria-pressed={i === w} onClick={() => setW(i)}>{wl(x.window)}</button>)}
     </div>
-  ) : <span className="fx-chip">{tr(T.perf.windows[risk.window], lang)}</span>;
+  ) : <span className="fx-chip" data-testid="risk-window">{wl(risk.window)}</span>;
   return (
     <Block title={tr(T.perf.risk, lang)} lead={tr(T.perf.riskLead, lang)} aside={toggle} testId="risk">
       <Reveal className="rk-grid" kind="pop" stagger={60} key={risk.window}>

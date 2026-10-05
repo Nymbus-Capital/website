@@ -5,6 +5,7 @@
 import type { FundKey } from "../data/types.ts";
 import type { Method } from "./metrics.ts";
 import { PORTFOLIO_MAX_AGE_DAYS } from "../data/freshness.ts";
+import { MIN_CLASS_HISTORY_MONTHS } from "../../config/funds.ts";
 
 export interface PipelineFundSpec {
   /** first month of the official track record (month-end); null: first month of the source series */
@@ -74,6 +75,55 @@ export const TOL = {
   /** stored CIBC daily returns compounded vs the analytics monthly history (a missed distribution is 10 to 100 times this) */
   chainVsAnalytics: 2e-5,
 };
+
+/**
+ * Per-class returns (class-returns.ts, classes.ts, build.ts buildClasses): every active register class of a fund gets its
+ * own monthly series from its own daily nav-timeseries chain, from its inception (first price of its CURRENT run). A month
+ * that fails a check is withheld ("—", reason in the admin issues), never estimated or filled from another class; every
+ * figure whose window contains a withheld month is withheld too.
+ */
+export const CLASS_CHECKS = {
+  /** regulatory minimum: a class with less than this many months since inception shows no performance figure (compliance) */
+  minHistoryMonths: MIN_CLASS_HISTORY_MONTHS,
+  /**
+   * a gap of more than this many calendar days without a NAV per unit ends a run (earlier rows: a previous life of the code)
+   * only when a relaunch is corroborated — the NAV per unit jumps by more than relaunchNavJump across the gap, restarts at a
+   * launch price (10.00) after a gap of more than relaunchResetMinGapDays, or the gap is longer than relaunchLongGapDays;
+   * otherwise it is a coverage gap (months withheld)
+   */
+  relaunchGapDays: 10,
+  relaunchNavJump: 0.05,
+  relaunchLongGapDays: 180,
+  relaunchResetMinGapDays: 30,
+  /** history requested from the dataplatform for every class (a run starting within relaunchGapDays of it has an unknown inception) */
+  historyFrom: "2019-01-01",
+  /**
+   * bad valuation print: two consecutive daily returns of opposite sign, both at least `spikeMin` in size, whose combined
+   * return is at most `spikeRevert` × the smaller of the two → both months touched are withheld for every class of the fund
+   */
+  spikeMin: 0.02,
+  spikeRevert: 0.5,
+  /**
+   * cross-class consistency of a COMPLETE month, on the published monthly values. Each class's expected return is
+   * a + b × (fund median of the month), a and b fitted per class by Theil–Sen over the months where ≥ 3 classes are
+   * complete, LEAVING OUT the month under test (b clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month;
+   * a = 0, b = 1 with fewer than fitMinMonths months): a class without a performance fee legitimately beats the others by a
+   * share of a strong month. A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a
+   * distribution / price-adjustment day (a class's stored return differing from its NAV ratio − 1 by more than
+   * adjustmentMin) withholds the month for EVERY class (the majority of classes can be the wrong side); otherwise one
+   * breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else withholds every class. A class
+   * with too short a history for a fit is only ever withheld itself.
+   */
+  residualMax: 0.004,
+  adjustmentMin: 0.001,
+  fitMinMonths: 12,
+  fitSlopeMin: 0.6,
+  fitSlopeMax: 1.4,
+  fitInterceptMax: 0.003,
+  /** a partial inception month (outside the fit) against the other classes over its own days: max(crossAbs, crossRel × |median|) */
+  crossAbs: 0.005,
+  crossRel: 0.25,
+} as const;
 
 /** Daily NAV chain (daily-chain.ts, build.ts): CIBC months are used only after this many months agree with the analytics history. */
 export const CHAIN = { minVerifiedMonths: 6 } as const;

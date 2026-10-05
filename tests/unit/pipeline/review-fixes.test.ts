@@ -71,7 +71,7 @@ test("M4: a class entry changing class needs an approval like the headline; its 
   const b = buildSiteData(r, relabelled, NOW);
   const v = validateSite(b.data, b.context, relabelled, NOW);
   assert.deepEqual(v.classChanges, [SEB]);
-  assert.ok(v.data.issues.some((i) => i.key === `funds.${SEB}.performance.class` && /class entry LDM201 from LDM201 \(LDM201\) to F \(STRATEGY\)/.test(i.message)));
+  assert.ok(v.data.issues.some((i) => i.key === `funds.${SEB}.performance.class` && /class entry LDM201 from F \(LDM201\) to F \(STRATEGY\)/.test(i.message)));
   assert.deepEqual(v.autoData.funds[SEB]!.performanceByClass!.LDM201.performance.classCode, "LDM201", "auto mode keeps the previous publication");
   // the default class changing is gated too
   const otherDefault: SiteData = structuredClone(prev);
@@ -100,7 +100,7 @@ test("m9: net assets need every active register class of the day; a partial sum 
   };
   const partial = computedBook(await raw({}, noA), "SEST", "latest")!;
   assert.equal(partial.data!.method.denominator, "positions_plus_cash");
-  assert.ok(partial.data!.warnings.some((w) => /net assets of 2026-09-28 unavailable: an active register class \(LDM001, LDM021, LDM081, LDM011\) has no Apex closing capital that day/.test(w)), JSON.stringify(partial.data!.warnings));
+  assert.ok(partial.data!.warnings.some((w) => /net assets of 2026-09-28 unavailable: an active register class \(LDM001, LDM021, LDM081, LDM011, LDM031, LDM061\) has no Apex closing capital that day/.test(w)), JSON.stringify(partial.data!.warnings));
 });
 
 test("m10: the data start is the register's fund_data_start, never before the register inception (later one used, warned)", async () => {

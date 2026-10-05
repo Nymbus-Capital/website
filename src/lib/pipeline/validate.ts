@@ -36,7 +36,7 @@ import { computeAsOf } from "./build.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
 import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
-import { performanceProblems } from "./classes.ts";
+import { performanceProblems, pickDefaultClass } from "./classes.ts";
 import { FUNDS } from "../../config/funds.ts";
 import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
@@ -155,10 +155,19 @@ export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
       }
       issues.push({ key: `${base}.performance.classes.${code}`, level: "warn", message: `class ${k.display} (${code}): ${problems[0]}${problems.length > 1 ? ` (+${problems.length - 1} more)` : ""}; returns not shown for this class` });
       delete f.performanceByClass[code];
+      if (f.classInfo?.[code]) f.classInfo[code] = { ...f.classInfo[code], status: "unavailable" };
     }
     if (!Object.keys(f.performanceByClass).length) {
       delete f.performanceByClass;
       delete f.defaultClass;
+    } else if (f.defaultClass && !f.performanceByClass[f.defaultClass]) {
+      // the page never opens on a class whose returns were just dropped; same order as build.ts (classInfo is written in
+      // register order), the registry's headline class first
+      const spec = FUNDS.find((x) => x.key === f.key);
+      const order = [...Object.keys(f.classInfo ?? {}), ...(spec?.classes.map((c) => c.fundserv) ?? [])];
+      const next = pickDefaultClass(spec?.headlineClass, order, f.performanceByClass);
+      if (next) f.defaultClass = next;
+      else delete f.defaultClass;
     }
   }
   if (f.variants) {
@@ -463,7 +472,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const fromClass = prev?.performance ? perfClassCode(key, prev.performance) : null;
     const toClass = f.performance?.classCode ?? null;
     // the same gate on every class entry (the page's default class included) and on the default class itself
-    const entryChanges = classEntryChanges(key, prev, f);
+    const entryChanges = classEntryChanges(key, prev, f, !!prevLive);
     const headChange = !!(fromClass && toClass && fromClass !== toClass);
     const classChange: Issue | null = !blocking.length && (headChange || entryChanges.length)
       ? { key: `${base}.performance.class`, level: "error", message: `performance class change ${[headChange ? `from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass})` : null, ...entryChanges].filter(Boolean).join("; ")}: every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
@@ -489,6 +498,8 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
         delete f.performanceByClass;
         delete f.defaultClass;
       }
+      if (kept?.classInfo) f.classInfo = kept.classInfo;
+      else delete f.classInfo;
       if (f.variants) {
         const dv = f.defaultVariant;
         for (const id of Object.keys(f.variants)) {
@@ -530,7 +541,17 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       funds[key] = allCarried && prev ? "kept-previous" : "updated";
       if (classChange) {
         extraIssues.push(classChange);
-        held[key] = carry();
+        // a fund published for the first time next to a live site: its page goes live without any performance until approved
+        held[key] = prev ? carry() : (() => {
+          const c = structuredClone(f);
+          c.performance = null;
+          c.risk = null;
+          delete c.risk3Y;
+          delete c.performanceByClass;
+          delete c.defaultClass;
+          delete c.classInfo;
+          return c;
+        })();
       } else if (ctx?.unconfirmed?.length && f.performance && ctx.parts.performance !== "carried") review.push(key);
     }
     const alerts = [...(ctx?.alerts ?? [])];
@@ -552,6 +573,11 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     for (const key of classChanges) {
       const base = `funds.${key}`;
       autoData.funds[key] = held[key];
+      if (!prevLive?.funds[key]) {
+        // a fund new to the site: its own non-performance provenance stays
+        for (const k of Object.keys(autoData.provenance)) if (k === `${base}.performance` || k.startsWith(`${base}.performance.`) || k === `${base}.risk`) delete autoData.provenance[k];
+        continue;
+      }
       for (const k of Object.keys(autoData.provenance)) if (k === base || k.startsWith(`${base}.`)) delete autoData.provenance[k];
       for (const [k, v] of Object.entries(prevLive!.provenance)) if (k === base || k.startsWith(`${base}.`)) autoData.provenance[k] = v.startsWith("carried over") ? v : `carried over from the publication of ${prevLive!.generatedAt} (${v})`;
     }
@@ -578,6 +604,8 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
         delete f.performanceByClass;
         delete f.defaultClass;
       }
+      if (prevF?.classInfo) f.classInfo = prevF.classInfo;
+      else delete f.classInfo;
       for (const k of Object.keys(autoData.provenance)) if (k === `${base}.performance` || k.startsWith(`${base}.performance.`) || k === `${base}.risk`) delete autoData.provenance[k];
       if (prevF?.performance) {
         for (const [k, v] of Object.entries(prevLive!.provenance)) {
@@ -593,17 +621,32 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
   return { data, autoData, classChanges, needsReview, results, funds };
 }
 
-/** class changes of the class entries (same FundServ code, another class) and of the page's default class */
-function classEntryChanges(key: FundKey, prev: FundData | undefined, f: FundData): string[] {
-  if (!prev) return [];
+/**
+ * class changes of the class entries (same FundServ code, another class), classes published for the first time (a series
+ * appearing next to a published performance: e.g. a class reaching its 12 months, or every register class at once) and the
+ * page's default class. One approval of the run publishes all of them together.
+ */
+export function classEntryChanges(key: FundKey, prev: FundData | undefined, f: FundData, liveSite = true): string[] {
+  if (!prev) {
+    // a fund new to a live site: every series is published for the first time (the headline included). The very first
+    // publication of the whole site (no live site) has nothing to compare with: run it in review mode (docs/architecture.md)
+    if (!liveSite) return [];
+    const all = Object.values(f.performanceByClass ?? {}).map((e) => `${e.display} (${e.fundserv})`);
+    return all.length ? [`${all.length} class${all.length > 1 ? "es" : ""} published for the first time (fund new to the site): ${all.join(", ")}`] : [];
+  }
   const out: string[] = [];
   const code = (p: { classCode?: string; returnClass?: string } | null | undefined): string | null => p?.classCode ?? p?.returnClass ?? null;
+  const added: string[] = [];
   for (const [fsv, entry] of Object.entries(f.performanceByClass ?? {})) {
     const old = prev.performanceByClass?.[fsv];
     const a = code(old?.performance);
     const b = code(entry.performance);
     if (old && a && b && a !== b) out.push(`class entry ${fsv} from ${classLabel(key, a) ?? a} (${a}) to ${classLabel(key, b) ?? b} (${b})`);
+    // a new series next to a published performance (the headline's own entry of a pre-class publication is not new)
+    // (also when the previous publication had no performance at all: a series is never published unseen)
+    if (!old && !(entry.performance === f.performance || (prev.performance && code(entry.performance) === code(prev.performance)))) added.push(`${entry.display} (${fsv})`);
   }
+  if (added.length) out.push(`${added.length} class${added.length > 1 ? "es" : ""} published for the first time: ${added.join(", ")}`);
   if (prev.defaultClass && f.defaultClass && prev.defaultClass !== f.defaultClass && prev.performanceByClass?.[prev.defaultClass]) out.push(`default class from ${prev.defaultClass} to ${f.defaultClass}`);
   return out;
 }
