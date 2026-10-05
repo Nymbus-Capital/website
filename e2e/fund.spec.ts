@@ -297,9 +297,9 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="overview"]')).toHaveText("Aperçu");
   // class F (LDM081) has its own returns, computed from its daily NAV chain
   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
-  // a class without its own series says so, never another class's figures
+  // a class without figures says why (here: launched less than 12 months ago), never another class's figures
   await page.getByTestId("series-LDM021").click();
-  await expect(page.getByTestId("figures-soon")).toContainText(/Les rendements de la série .+ seront bientôt publiés/);
+  await expect(page.getByTestId("figures-soon")).toContainText(/La série A a été lancée le 2 mars 2026\. Les rendements seront présentés lorsque la série aura 12\smois d’historique\./);
   await page.getByTestId("series-LDM001").click();
   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
   await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
