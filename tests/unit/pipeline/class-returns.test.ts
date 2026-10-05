@@ -349,3 +349,26 @@ test("leave-class-out reference: the class with the injected error is the one wi
   assert.equal(y.fundMonths.size, 0);
   assert.deepEqual([...y.fails.keys()], ["Y"]);
 });
+
+test("a class without a fit, next to fitted classes, is never checked at slope 1: its months wait for a fit of its own", () => {
+  // I (fee-free, slope 1.2) has only 11 complete months: at slope 1 its legitimate spread could hide an error, so every
+  // month of I is withheld (alone) until it has a fit; the fitted classes are untouched
+  const path = MONTHS.map((_, i) => fundPath(i));
+  const fit = (c: string, m: number): number => (c === "F" ? m - 0.0002 : c === "A" ? m - 0.0009 : m - 0.0001);
+  const recent = MONTHS.slice(-11);
+  const strongIdx = MONTHS.indexOf(recent.reduce((a, b) => (path[MONTHS.indexOf(b)] > path[MONTHS.indexOf(a)] ? b : a)));
+  const p = panel({
+    ...Object.fromEntries(["F", "A", "J"].map((c) => [c, Object.fromEntries(MONTHS.map((d, i) => [d, fit(c, path[i])]))])),
+    I: Object.fromEntries(recent.map((d) => { const i = MONTHS.indexOf(d); return [d, 1.2 * path[i] + 0.0001 + (i === strongIdx ? -0.006 : 0)]; })),
+  });
+  const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+  assert.equal(out.fundMonths.size, 0);
+  assert.deepEqual([...out.fails.keys()], ["I"]);
+  assert.deepEqual([...out.fails.get("I")!.keys()].sort(), [...recent].sort());
+  // once I has a fit (all 24 months), its correct months pass
+  const q = panel({
+    ...Object.fromEntries(["F", "A", "J"].map((c) => [c, Object.fromEntries(MONTHS.map((d, i) => [d, fit(c, path[i])]))])),
+    I: Object.fromEntries(MONTHS.map((d, i) => [d, 1.2 * path[i] + 0.0001])),
+  });
+  assert.equal(crossClassFailures(q.months, q.daily, CLASS_CHECKS).fails.size, 0);
+});

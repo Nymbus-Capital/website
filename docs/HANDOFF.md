@@ -221,7 +221,7 @@ Not yet run against live data, not deployed.
   Apex NAVs as the chain, so defect months there are replaced by the analytics official figure or withheld (newest month held);
   the track class's own lone failures and newest-month hold feed it too (test: a reversed print on the newest month's last day,
   monthly-net-returns matching, no factsheet → not published). Relaunch by reset-to-10 needs a gap > 30 days. Funds new to a live
-  site are gated; two-class funds documented as a limit (err toward withholding).
+  site are gated; two-class funds documented as a limit (a wrong value can pass when the two classes have different slopes — none today; would need a pairwise fit). 2026-10-05 (main session): a class with no fit next to fitted classes is withheld until it has one (verifier finding 2).
 
 - 2026-10-05 (sub-agent, latest): fixes of the independent review. B1 leave-one-out Theil–Sen fit (an error in the fund's
   strongest month no longer bends its own expectation). M1 bad-print check over every row fetched; the newest month waits for one

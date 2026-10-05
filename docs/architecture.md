@@ -250,9 +250,12 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     when the month holds an adjustment day); a month with
     no other class to compare is listed in the provenance (unchecked). There is no daily cross-class check.
     Note: in a fund distributing every month, every month holds an adjustment day: any fitted breach then withholds the
-    month for every class. Limit: with only two classes (or no class with 12 months next to two others) no fit is
-    possible; each class is then compared with the other's plain value and a disagreement withholds both — it errs toward
-    withholding. None of the three funds is in that case today. With three fitted classes the reference is the mean of
+    month for every class. A class without a fit of its own (fewer than 12 complete months next to two other classes)
+    in a fund whose other classes are fitted is never checked at slope 1: its months are withheld until it has a fit.
+    Limit: with only two classes no fit is possible; each class is then compared with the other's plain value at slope 1,
+    which withholds both in strong months when their spread is legitimate AND can let an error pass when it cancels a
+    legitimate spread (different slopes, e.g. a fee-free class) — a wrong value is possible. None of the three funds is in
+    that case today (each has at least four CAD classes); a two-class fund would need a pairwise fit first. With three fitted classes the reference is the mean of
     two, so a large error in one class can also push the others past the tolerance: the month then goes to every class
     (conservative);
   - missing / duplicate days, another return method, invalid returns.

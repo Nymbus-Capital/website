@@ -373,6 +373,14 @@ export function crossClassFailures(
       });
       const out = res.filter((x) => Math.abs(x.e) > cfg.residualMax + 1e-12);
       const desc = (ys: typeof out): string => `${ys.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)} from the other classes' reference ${pct(x.m)}${x.f.fallback ? ", no fitted spread" : ""})`).join(", ")}; ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
+      // a class without a fit, in a fund whose other classes are fitted, cannot be checked at slope 1 (a fee-free class's
+      // legitimate spread could hide an error): its months are withheld until it has a fit of its own
+      if (fittable.size >= 2) {
+        for (const x of res) {
+          if (fittable.has(x.fsv) || out.includes(x)) continue;
+          alone.push({ fsv: x.fsv, why: `no fitted spread to the fund's other classes yet (fewer than ${cfg.fitMinMonths} complete months next to two other classes): month not checkable` });
+        }
+      }
       // a class without a fit is withheld alone, never the fund
       const short = out.filter((x) => x.f.fallback);
       const fitted = out.filter((x) => !x.f.fallback);
