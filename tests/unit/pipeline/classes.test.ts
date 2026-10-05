@@ -157,8 +157,8 @@ test("buildClassEntry: per-figure withholding, growth after the last withheld mo
   held.r = 0.004; held.reason = null;
   const ok = buildClassEntry({ key: "k", cls, result: res, asOf: "2026-08-31", idx, minMonths: 12 }).entry!;
   const total = Math.pow(1.004, months.length) - 1;
-  const years = (Date.parse("2026-08-31") - Date.parse("2022-04-20")) / 86_400_000 / 365.25;
-  assert.ok(Math.abs(ok.performance.trailing.fund.SI! - (Math.pow(1 + total, 1 / years) - 1)) < 1e-12);
+  const days = (Date.parse("2026-08-31") - Date.parse("2022-04-20")) / 86_400_000;
+  assert.ok(Math.abs(ok.performance.trailing.fund.SI! - (Math.pow(1 + total, 365 / days) - 1)) < 1e-12);
   assert.equal(ok.performance.trailing.index!.SI, null, "no index since inception against a partial first month");
   assert.equal(ok.performance.growthFrom, "2022-04-20");
   assert.ok(ok.performance.growth.every((g) => g.index === undefined), "no index line from a partial first month");

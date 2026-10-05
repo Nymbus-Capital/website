@@ -65,7 +65,7 @@ inputs, with gates; a figure is never assembled from two sources.
 | --- | --- | --- | --- |
 | analytics `fund_returns.json` | monthly net returns before the Apex cut-over; verifies the CIBC months of the daily chain | primary (history) | factsheet monthly table (rounded) + alert |
 | dataplatform `/api/performance/monthly-net-returns` | monthly net returns of the track-record class, `ready` months (no class parameter: main branch) | primary (Apex months) | the daily chain's Apex months; else month held / previous kept |
-| dataplatform `/api/performance/nav-timeseries` (`fundserv=`, from the class's NAV start) | daily NAV chain per class → per-class monthly returns (`daily-chain.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class "coming soon" / headline from monthly-net-returns |
+| dataplatform `/api/performance/nav-timeseries` (`fundserv=`, every class, from 2019-01-01) | daily NAV chain per class → inception and per-class monthly returns (`daily-chain.ts`, `class-returns.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class "coming soon" / headline from monthly-net-returns |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
 | dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`metrics.ts` `joinFtseHistory`) | primary | index figures not shown |
@@ -182,10 +182,11 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   in auto mode the run publishes that fund with its previous performance (every class with it) and stays
   `pending-review` (`RunReport.reviewNeeded`, webhook alert) until an admin publishes it; review mode is unchanged.
   `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH=1` still holds such a month in every mode until its factsheet exists.
-- Fund pages open on the default class F (`defaultClass`); SEB class F and Monthly Income class F come from their own
-  daily chains (above). A payload `class_code` other than the class requested is an error.
+- Fund pages open on the default class F when it has returns, else on the first class with returns (`defaultClass`,
+  § Returns per class); every other class comes from its own daily chain. A payload `class_code` other than the class
+  requested is an error.
 - A class change (H ↔ F, relative to the published performance — of the headline, of any class entry by FundServ
-  code, or of the page's default class) blocks in validation: auto mode publishes the run
+  code, of the page's default class — or classes published for the first time) blocks in validation: auto mode publishes the run
   with that fund at its previous publication (`ValidationOutcome.autoData`), the stored run holds the change, and
   publishing the run (admin "approve class change & publish") approves it (`RunReport.classChanges`). Such a run
   cannot be pinned before approval.
@@ -197,27 +198,72 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
 - The NAV card is independent: its series is the fund register's class of the FundServ code shown.
 
-### Returns per class and GMV variants (`classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
+### Returns per class and GMV variants (`class-returns.ts`, `classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
 
-- `FundData.performanceByClass` (by FundServ) and `defaultClass`: the headline's class entry is the headline itself;
-  every other configured class (`classLabels` + `classFundserv`) is compounded from its own `nav-timeseries` chain.
-  A class without a series is absent and the page says "coming soon". A class's figures are never taken from another class.
-- A class series covers EVERY month from the class's first computable month to the headline's as-of: one unavailable or
-  unusable month (CIBC months while the headline did not verify the stored CIBC returns, an unconfirmed bridge) drops
-  the class — never a truncated run shown "since inception" — with a warn and an alert naming why. Fewer than 12 months:
-  not shown (the headline's regulatory rule, info). Then the fund's fee band against the track-record class
-  (`classSpread` per fund: SEB F − H in −5 to +30 bp and ±5 bp of the median; none for Monthly Income, whose FP class may
-  carry a performance fee, `classSpreadNote`) and plausibility (`performanceProblems`; `checkClassesAndVariants` repeats
-  them on the published data). Revisions of already published months are reported per class entry (warn + alert).
-  A class never published that stays out only because the fund's CIBC months cannot be verified is a persistent,
-  expected limitation: warn + a non-blocking notice (`FundContext.advisories`, `RunReport.advisories`, webhook once when
-  new); a class that was published and disappears stays a blocking alert.
+Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpoints only), for the three funds.
+
+- **Classes**: every ACTIVE class of the fund register (`/api/apex/funds`), plus the classes of the registry
+  (`config/funds.ts` `classes`) and of the class-code configuration (`fund-sources.ts`: `STRATEGY` / `STRATEGY_H` keep their
+  codes; any other class is named by its FundServ code). The daily history of each is read from
+  `CLASS_CHECKS.historyFrom` (2019-01-01; a register class unknown to the configuration is read after the register).
+  `FundData.classInfo` (by FundServ) gives each class its inception and why it shows no returns (`young`, `currency`,
+  `unavailable`); `FundData.performanceByClass` holds the classes that show returns.
+- **Inception** = first NAV-per-unit date of the class's CURRENT continuous run: a gap of more than
+  `CLASS_CHECKS.relaunchGapDays` (10) calendar days ends a run (earlier rows are a previous life: closed and relaunched class,
+  reused fund code); `FUND_SOURCES.classFloor` (Monthly Income: 2021-10-05) cuts a run reaching back before the fund's own
+  book; a run starting within 10 days of the first day read has an unknown inception (class unavailable). The inception
+  day's own return is never used (it may be relative to the old life): the first month is a partial month from the
+  inception NAV per unit (`Performance.partialFirstMonth`, `inception`).
+- **Months** (each class's own rows): CIBC months compound the stored `legacy_stored` returns, the cut-over month uses the
+  NAV bridge (a class launched in that month before the switch has no month), Apex months the `apex_distribution_aware`
+  chain (continuous `return_start_date`); every valuation day after the inception present once, CAD. A non-CAD class (F USD:
+  `nav_price_ratio` only in the Apex era, and the fund distributes) shows no figure, with a sentence saying why.
+- **Source defects withhold months** (never repaired, never filled from another class; reasons in the issues; months
+  withheld for every class are also a non-blocking notice — `FundContext.advisories`, webhook once per list — to report to
+  the dataplatform team), config `CLASS_CHECKS`:
+  - bad valuation print: two consecutive daily returns of opposite sign, both ≥ 2 %, combined ≤ 0.5 × the smaller → both
+    months, every class of the fund;
+  - daily dispersion: on one valuation day the classes' returns spread by more than max(0.40 %, 0.5 × |median|) (classes of
+    one book move together; an inconsistent distribution adjustment shows here — the majority may be the wrong side, so it
+    cannot be told which class is right) → that month, every class;
+  - cross-class consistency of a month (each class against the others compounded over the same valuation days; a partial
+    inception month against the others' same days): a class farther than max(0.50 %, 0.25 × |median|) from the median is
+    withheld; when the deviating classes are not a strict minority (two classes that disagree, no majority) every class
+    compared is withheld. Performance-fee classes drift by up to ≈ 0.5 % a month in strong months: the tolerance stays above
+    it. A class-month with no other class over the same days cannot be compared (listed in the provenance);
+  - missing / duplicate days, another return method, invalid returns.
+  The headline (track record) keeps its own logic and checks (analytics history, CIBC verification within 0.2 bp, Apex
+  months = `monthly-net-returns`): that verification is not a gate for the other classes any more (the strategy track record
+  differs from the class NAV chains before mid-2025: a different series), nor is the old fee band against the track-record
+  class (`classSpread`, kept in the configuration, unused).
+- **Per-figure withholding** (`classes.ts`): a figure is shown only when every month of its window is usable — fixed
+  periods (1 month … 10 years) and the year to date from complete months only (never the partial first month; YTD needs the
+  year's January and a class started before the year), since inception only when every month from the inception month is
+  usable (compounded from the inception NAV; annualized from one year on, over calendar days when the first month is
+  partial, else over months — "periods of less than one year are not annualized"); calendar years with a withheld month
+  are null; risk statistics over complete months (since inception only when every complete month is usable, 3 years only
+  when its 36 months are); the growth series starts at the inception, or at the month-end after the last withheld month
+  (`growthFrom`, labelled on the page); no index figure is set against a partial first month. The page shows a withheld
+  figure as "—" (trailing table, calendar table, heat map) with a one-line note.
+- **Regulatory minimum**: a class with less than `MIN_CLASS_HISTORY_MONTHS` (12, `config/funds.ts`, compliance may change it)
+  months since its inception (same day 12 months later) shows no performance figure, only "Series X launched on <date>.
+  Performance will be shown once the series has 12 months of history." (`ClassInfo.status` `young`).
+- **Opening series**: `defaultClass` = the registry's headline class when it has returns, else the first class (register
+  order) that has; the page (`openingClass`) prefers the admin's headline class when it has returns, then the data's
+  default, then the first class offered with returns — a page never opens on an empty performance block while another
+  series has data. The home cards still read the headline class (`defaultClassCode`), unchanged.
+- **Approval**: a class entry changing class, the default class changing, and classes published for the first time next
+  to a published performance (e.g. a class reaching its 12 months, or every register class at once) go through the
+  class-change gate: auto mode keeps the fund at its previous publication until an admin publishes the run — one approval
+  publishes every class of every fund of the run. Revisions of published months (a month newly withheld counts) are
+  reported per class entry (warn + alert); a class that was published and disappears is a blocking alert.
 - **Hold**: when only the performance fails validation (`validateSite` perf-only hold) the held performance carries every
   class and variant with it (`performanceByClass`, `defaultClass`, the default variant, the other variants from the previous
   publication, or dropped when there is none): never new classes next to an old headline, never the whole fund dropped.
   A change of the headline's class still needs an admin approval (class-change gate).
-- **Not available** (no main endpoint): months of a class before its first NAV (SEB F before 2023-07, the FP/F
-  re-seed of Monthly Income in 2021-10); the A, FP and USD classes until they are configured with a NAV start.
+- **Not available** (no main endpoint): months of a class before its first NAV (the strategy months before a class's
+  inception); distributions (no endpoint: total returns cannot be rebuilt from NAVs per unit); distribution-aware returns
+  of the USD class.
 - **GMV variants**: `FundData.variants` ("3" | "6" | "9", default "6") from the factsheet blocks `GMV_3pct`, `GMV_6pct`,
   `GMV_9pct`: returns, risk, characteristics, allocation and holdings per variant; the default variant equals the fund's own
   data. A variant whose block is missing or fails the gates is dropped alone (warn); the page then shows nothing for it.

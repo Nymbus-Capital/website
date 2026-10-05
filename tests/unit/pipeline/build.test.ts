@@ -96,7 +96,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(f81.returnClassLabel, "Series F");
   assert.equal(f81.inception, "2024-03-01");
   assert.equal(f81.partialFirstMonth, true);
-  near(f81.trailing.fund.SI, 0.0082061992104554);
+  near(f81.trailing.fund.SI, 0.008200559405328933);
   near(f81.trailing.fund["1Y"], 0.007370174765965132);
   assert.deepEqual(mi.performanceByClass!.LDM001.performance, p, "the headline class entry is the headline itself");
   const c2025 = p.calendar.find((r) => r.year === 2025)!;
@@ -144,7 +144,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(sebF.classCode, "STRATEGY");
   assert.equal(sebF.returnClassLabel, "Series F");
   assert.equal(sebF.withheldMonths, undefined);
-  near(sebF.trailing.fund.SI, 0.029330237220838606);
+  near(sebF.trailing.fund.SI, 0.02930987039704447);
   near(sebF.trailing.fund["1Y"], -0.02622203240078491);
   assert.match(data.provenance["funds.sustainable-enhanced-bonds.performance.classes.LDM201"], /fundserv=LDM201 \(cibc 2023-07 to 2026-06, bridge 2026-07, apex 2026-08\); 38 month\(s\) shown; checks: coverage and method, bad valuation prints, daily dispersion and cross-class consistency/);
   assert.equal(data.funds["sustainable-enhanced-bonds"]!.defaultClass, "LDM201");

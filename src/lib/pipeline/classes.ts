@@ -48,7 +48,7 @@ export interface ClassSeriesShape {
  * Trailing returns of a class (fund side). Fixed periods and YTD from complete months only (a window containing a withheld
  * month, or reaching into the partial first month, is null); YTD only when the year's January is usable and the class
  * started before the year; since inception only when EVERY month from the first one is usable — compounded from the
- * inception NAV, annualized from one year on (over calendar days when the first month is partial, else over months).
+ * inception NAV, annualized from one year on (over calendar days, 365 a year, when the first month is partial, else over months).
  */
 export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
   const full: Series = {};
@@ -65,8 +65,9 @@ export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
   if (si && c.firstMonth in c.all && monthsBetween(c.firstMonth, c.asOf) === si.length) {
     const total = compound(si);
     if (c.partialFirst) {
-      const years = dayDiff(c.inception, c.asOf) / 365.25;
-      out.SI = years >= 1 ? Math.pow(1 + total, 1 / years) - 1 : total;
+      // one year = 365 days (the 12-month minimum guarantees at least that much for a class with figures)
+      const days = dayDiff(c.inception, c.asOf);
+      out.SI = days >= 365 ? Math.pow(1 + total, 365 / days) - 1 : total;
     } else out.SI = si.length >= 12 ? annualize(si) : total;
   }
   return out;

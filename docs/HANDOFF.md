@@ -197,7 +197,47 @@ Not yet run against live data, not deployed.
    **WordPress**: Xavier Girard and Jean-Philippe Lejeune were removed from `src/data/team.ts` only; if the CMS is enabled
    (`WP_BASE_URL`), remove them from the WordPress team too (WordPress wins over the static list).
 
+19. **Every series' returns** (branch `feat/all-classes`, from `redesign/v3-keynote-live-data`, **not merged**): every active register
+   class of the three funds gets its own monthly returns from its own `nav-timeseries` chain since its inception (first price of its
+   current run); defect months withheld per class, figures over them "—", 12-month minimum, F USD without figures. To do:
+   (a) independent adversarial review (numbers, edge cases, page copy); (b) **first live run in review mode**: read the
+   `funds.<fund>.performance.classes` issues and the non-blocking notice "month(s) withheld for every class of the fund" — expected
+   per Gabriel's checks: the bad month-end prints of 2021-11 / 2021-12 (every Monthly Income class) and the 2024-12 annual
+   distribution (SEB F / H vs I; Monthly Income classes) — tune `CLASS_CHECKS` (config.ts) only with evidence; check each class's
+   inception against the register; (c) **report the defect months to the dataplatform team** (bad CIBC month-end prints,
+   inconsistent distribution adjustment of 2024-12-31) and ask for a **distributions endpoint** on main (total returns of the USD
+   class and a cross-check of the CIBC stored returns need it); (d) compliance rows AC1–AC6 (`docs/compliance-review.md`), in
+   particular AC3 (showing some standard periods while others are withheld); (e) the first publication with every class needs one
+   admin approval of the run (classes published for the first time go through the class-change gate).
+
 ## 6. Session log
+
+- 2026-10-04 (sub-agent, branch `feat/all-classes` from `redesign/v3-keynote-live-data`; not merged): Gabriel's request "make sure
+  that all classes' returns are populated with data coming from dataplatform … for our 3 funds … inception date of each class = first
+  date when there are prices". New pure engine `src/lib/pipeline/class-returns.ts`: inception = first NAV of the class's current run
+  (gap > 10 days = previous life; `FUND_SOURCES.classFloor` Monthly Income 2021-10-05; a run starting at the first day read = unknown),
+  months from the inception (partial first month from the inception NAV, the inception day's own return never used; CIBC stored /
+  bridge / Apex distribution-aware, reusing daily-chain.ts), and the defect checks of `CLASS_CHECKS` (config.ts): bad valuation print
+  (opposite daily moves ≥ 2 %, combined ≤ half the smaller → both months, every class), daily dispersion between classes
+  (> max(0.40 %, 0.5 × |median|) → month, every class: the majority may be wrong), cross-class monthly consistency over the same days
+  (> max(0.50 %, 0.25 × |median|) → that class; no strict-minority outlier → every class compared). `classes.ts` `buildClassEntry`:
+  withheld months absent from `monthly` + `withheldMonths`, fixed periods / YTD / risk from complete months only, SI only when every
+  month since inception is usable (annualized over calendar days with a partial first month), calendar years null with a withheld
+  month, growth from the month-end after the last withheld month (`growthFrom`), no index against a partial first month; 12-month
+  minimum `MIN_CLASS_HISTORY_MONTHS` (config/funds.ts) → `ClassInfo.status` "young"; non-CAD → "currency". `build.ts` `buildClasses`
+  rewritten (register active classes ∪ registry ∪ configured codes; the old "drop all classes when the headline's CIBC months are
+  unverified", "drop the class on any unusable month" and fee-band gates are gone; headline/track record unchanged); every class's
+  history fetched from 2019-01-01 (`sources/index.ts`, register classes unknown to the configuration fetched after the register);
+  `FundData.classInfo`, `defaultClass` = headline with returns else first class with returns; validation holds / carries / drops
+  `classInfo` with the classes, `classEntryChanges` gates classes published for the first time (one approval for all), defect months
+  are a non-blocking notice. Page: `openingClass` (never opens on an empty performance block), young / USD sentences (EN/FR,
+  `lib/notice.ts`), "Series inception" in the NAV card, series table and performance tab, "—" rows kept for withheld periods
+  (`withheldPeriods`), calendar "—" years, heat-map "—" cells, growth start note and "From <date>" range. `config/funds.ts` lists
+  every register class. Fixtures: every class of the three funds with shared daily paths (`noiseSeed`), synthetic defects (print
+  in Monthly Income 2022-03, a one-day jump of MI class I 2023-09, drifting class I months 2025-03), a relaunched class, a young
+  class, a USD class; `run.test.ts` now deletes its temp directories. Docs: architecture § Returns per class, compliance AC1–AC6.
+  Not done: independent adversarial review (could not be spawned here); live run.
+
 
 - 2026-10-04 (sub-agent, branch `feat/concepts-v6` from `redesign/v3-keynote-live-data`; not merged): Gabriel's two requests.
   (1) Futures "a tiny bit faster, still slower than initially": `DAY_MS` 5000 → 3750, `SETTLE_SHARE` 0.25 kept, new
