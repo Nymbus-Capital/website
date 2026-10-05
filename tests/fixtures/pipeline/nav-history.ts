@@ -35,7 +35,26 @@ export interface SynthClass {
   seed: number;
   /** rows of ANOTHER strategy under the same code before navStart (reused fund code), from this date */
   priorFrom?: string;
+  /** last day of those earlier rows (default: the day before navStart); a gap after it is a closed-then-relaunched class */
+  priorTo?: string;
   cutover?: string;
+  /**
+   * shared daily noise: every class of one fund given the same `noiseSeed` gets the same noise on the same date, and each
+   * complete month is scaled uniformly over its days to its target (classes of one book move together, as in the source).
+   * Without it: a per-class random sequence and the month's last day carries the target.
+   */
+  noiseSeed?: number;
+  /** extra daily returns added to the noise on given dates (before the month is scaled to its target) */
+  shocks?: Record<string, number>;
+  /** class currency (default CAD); a non-CAD class gets price-ratio returns in the Apex era, like the source */
+  currency?: string;
+}
+
+/** deterministic noise in [-0.5, 0.5) for (seed, date) */
+function dayNoise(seed: number, date: string): number {
+  let h = seed >>> 0;
+  for (let i = 0; i < date.length; i++) h = Math.imul(h ^ date.charCodeAt(i), 2654435761) >>> 0;
+  return mulberry32(h)() - 0.5;
 }
 
 const r10 = (x: number): number => Math.round(x * 1e10) / 1e10;
@@ -44,11 +63,12 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
   const rnd = mulberry32(c.seed);
   const cut = c.cutover ?? CUTOVER;
   const out: DailyRow[] = [];
+  const cur = c.currency ?? "CAD";
   const row = (date: string, nav: number, ret: number, start: string | null): DailyRow & Record<string, unknown> => {
     const apex = date > cut;
     return {
-      date, source: apex ? "apex" : "cibc", fundserv: c.fundserv, currency: "CAD", nav_type: apex ? "FINAL_NAV" : null,
-      nav_per_share_cad: r10(nav), net_daily_return: ret, net_return_method: apex ? "apex_distribution_aware" : "legacy_stored",
+      date, source: apex ? "apex" : "cibc", fundserv: c.fundserv, currency: cur, nav_type: apex ? "FINAL_NAV" : null,
+      nav_per_share_cad: r10(nav), net_daily_return: ret, net_return_method: apex ? (cur === "CAD" ? "apex_distribution_aware" : "nav_price_ratio") : "legacy_stored",
       return_start_date: apex ? start : null, return_source_count: apex ? 1 : null,
     };
   };
@@ -56,7 +76,7 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
     // another strategy's rows: random walk, never part of this class
     let nav = 10;
     let prev: string | null = null;
-    for (const d of tradingDays(c.priorFrom, addDays(c.navStart, -1))) {
+    for (const d of tradingDays(c.priorFrom, c.priorTo ?? addDays(c.navStart, -1))) {
       const r = 0.004 * (rnd() - 0.5);
       nav *= 1 + r;
       out.push(row(d, nav, r, prev));
@@ -72,8 +92,22 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
     while (i < days.length && days[i].slice(0, 7) === ym) monthDays.push(days[i++]);
     const m = toMonthEnd(ym);
     const target = m in c.monthly && monthDays[0] === tradingDays(`${ym}-01`, m)[0] && monthDays[monthDays.length - 1] === tradingDays(`${ym}-01`, m).at(-1) ? c.monthly[m] : null;
-    const rs = monthDays.map(() => 0.0016 * (rnd() - 0.5));
-    if (target !== null) {
+    let rs = monthDays.map((day) => (c.noiseSeed !== undefined ? 0.0016 * dayNoise(c.noiseSeed, day) : 0.0016 * (rnd() - 0.5)) + (c.shocks?.[day] ?? 0));
+    if (c.noiseSeed !== undefined && (target !== null || m in c.monthly)) {
+      // uniform scaling over the month's days: (1 + r_d) × q, q chosen so the WHOLE month compounds exactly to the target;
+      // a class launched within the month keeps the same daily returns as a class priced all month
+      const all = tradingDays(`${ym}-01`, m);
+      const full = all.map((day) => 0.0016 * dayNoise(c.noiseSeed!, day) + (c.shocks?.[day] ?? 0));
+      const t = c.monthly[m];
+      const p = full.reduce((a, r) => a * (1 + r), 1);
+      const q = Math.pow((1 + t) / p, 1 / full.length);
+      const scaled = full.map((r) => (1 + r) * q - 1);
+      if (target !== null) {
+        const p2 = scaled.slice(0, -1).reduce((a, r) => a * (1 + r), 1);
+        scaled[scaled.length - 1] = (1 + target) / p2 - 1; // exact to the last bit
+      }
+      rs = monthDays.map((day) => scaled[all.indexOf(day)]);
+    } else if (target !== null) {
       const p = rs.slice(0, -1).reduce((a, r) => a * (1 + r), 1);
       rs[rs.length - 1] = (1 + target) / p - 1;
     }

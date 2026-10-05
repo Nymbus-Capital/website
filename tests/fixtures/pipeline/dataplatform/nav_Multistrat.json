@@ -8,7 +8,7 @@
   "apex",
   "cibc"
  ],
- "row_count": 102,
+ "row_count": 170,
  "rows": [
   {
    "date": "2026-08-14",
@@ -29,7 +29,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-17",
@@ -50,7 +50,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-18",
@@ -71,7 +71,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-19",
@@ -92,7 +92,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-20",
@@ -113,7 +113,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-21",
@@ -134,7 +134,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-24",
@@ -155,7 +155,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-25",
@@ -176,7 +176,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-26",
@@ -197,7 +197,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-27",
@@ -218,7 +218,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-28",
@@ -239,7 +239,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-31",
@@ -260,7 +260,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 18117000
+   "net_asset_value_cad": 15097500
   },
   {
    "date": "2026-09-01",
@@ -281,7 +281,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-02",
@@ -302,7 +302,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-03",
@@ -323,7 +323,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-04",
@@ -344,7 +344,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-08-14",
@@ -365,7 +365,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-17",
@@ -386,7 +386,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-18",
@@ -407,7 +407,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-19",
@@ -428,7 +428,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-20",
@@ -449,7 +449,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-21",
@@ -470,7 +470,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-24",
@@ -491,7 +491,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-25",
@@ -512,7 +512,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-26",
@@ -533,7 +533,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-27",
@@ -554,7 +554,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-28",
@@ -575,7 +575,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-31",
@@ -596,7 +596,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 33214500
+   "net_asset_value_cad": 27175500
   },
   {
    "date": "2026-09-01",
@@ -617,7 +617,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-02",
@@ -638,7 +638,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-03",
@@ -659,7 +659,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-04",
@@ -680,7 +680,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-08-14",
@@ -701,7 +701,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-13",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-17",
@@ -722,7 +722,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-18",
@@ -743,7 +743,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-19",
@@ -764,7 +764,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-20",
@@ -785,7 +785,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-19",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-21",
@@ -806,7 +806,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-20",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-24",
@@ -827,7 +827,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-25",
@@ -848,7 +848,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-26",
@@ -869,7 +869,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-27",
@@ -890,7 +890,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-26",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-28",
@@ -911,7 +911,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-27",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-08-31",
@@ -932,7 +932,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-28",
    "return_source_count": 1,
-   "net_asset_value_cad": 9058500
+   "net_asset_value_cad": 7246800
   },
   {
    "date": "2026-09-01",
@@ -953,7 +953,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-08-31",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-02",
@@ -974,7 +974,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-01",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-03",
@@ -995,7 +995,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-02",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-04",
@@ -1016,7 +1016,679 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-03",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
+  },
+  {
+   "date": "2026-08-14",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9051,
+   "nav_per_share_cad": 12.9051,
+   "net_daily_return": 0.00107375,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-13",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-17",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.907,
+   "nav_per_share_cad": 12.907,
+   "net_daily_return": 0.00014654,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-18",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8898,
+   "nav_per_share_cad": 12.8898,
+   "net_daily_return": -0.00133189,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-19",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8629,
+   "nav_per_share_cad": 12.8629,
+   "net_daily_return": -0.00208797,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-20",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8645,
+   "nav_per_share_cad": 12.8645,
+   "net_daily_return": 0.00012721,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-19",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-21",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8779,
+   "nav_per_share_cad": 12.8779,
+   "net_daily_return": 0.00104121,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-20",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-24",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.891,
+   "nav_per_share_cad": 12.891,
+   "net_daily_return": 0.00101571,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-25",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9182,
+   "nav_per_share_cad": 12.9182,
+   "net_daily_return": 0.00210936,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-26",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9206,
+   "nav_per_share_cad": 12.9206,
+   "net_daily_return": 0.00018877,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-27",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9046,
+   "nav_per_share_cad": 12.9046,
+   "net_daily_return": -0.00123527,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-26",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-28",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8912,
+   "nav_per_share_cad": 12.8912,
+   "net_daily_return": -0.0010364,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-27",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-31",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8783,
+   "nav_per_share_cad": 12.8783,
+   "net_daily_return": -0.00099733,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-28",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6039000
+  },
+  {
+   "date": "2026-09-01",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8799,
+   "nav_per_share_cad": 12.8799,
+   "net_daily_return": 0.00012656,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-31",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-02",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.879,
+   "nav_per_share_cad": 12.879,
+   "net_daily_return": -0.00007029,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-01",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-03",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8746,
+   "nav_per_share_cad": 12.8746,
+   "net_daily_return": -0.00034422,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-02",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-04",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8671,
+   "nav_per_share_cad": 12.8671,
+   "net_daily_return": -0.00057891,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-03",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-08-14",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8555,
+   "nav_per_share_cad": 12.8555,
+   "net_daily_return": -0.00149127,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-13",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-17",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8499,
+   "nav_per_share_cad": 12.8499,
+   "net_daily_return": -0.00043609,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-18",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8588,
+   "nav_per_share_cad": 12.8588,
+   "net_daily_return": 0.00069627,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-19",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8648,
+   "nav_per_share_cad": 12.8648,
+   "net_daily_return": 0.00047029,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-20",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8712,
+   "nav_per_share_cad": 12.8712,
+   "net_daily_return": 0.00049648,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-19",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-21",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8709,
+   "nav_per_share_cad": 12.8709,
+   "net_daily_return": -0.00002035,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-20",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-24",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8654,
+   "nav_per_share_cad": 12.8654,
+   "net_daily_return": -0.00042749,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-25",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.873,
+   "nav_per_share_cad": 12.873,
+   "net_daily_return": 0.0005941,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-26",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8501,
+   "nav_per_share_cad": 12.8501,
+   "net_daily_return": -0.00177857,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-27",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8531,
+   "nav_per_share_cad": 12.8531,
+   "net_daily_return": 0.00023628,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-26",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-28",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8422,
+   "nav_per_share_cad": 12.8422,
+   "net_daily_return": -0.00084646,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-27",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-08-31",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8538,
+   "nav_per_share_cad": 12.8538,
+   "net_daily_return": 0.00090239,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-28",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4831200
+  },
+  {
+   "date": "2026-09-01",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8568,
+   "nav_per_share_cad": 12.8568,
+   "net_daily_return": 0.00023413,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-08-31",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-02",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8488,
+   "nav_per_share_cad": 12.8488,
+   "net_daily_return": -0.00062564,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-01",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-03",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.865,
+   "nav_per_share_cad": 12.865,
+   "net_daily_return": 0.00125793,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-02",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-04",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8896,
+   "nav_per_share_cad": 12.8896,
+   "net_daily_return": 0.00191268,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-03",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
   },
   {
    "date": "2026-09-08",
@@ -1037,7 +1709,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-09",
@@ -1058,7 +1730,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-10",
@@ -1079,7 +1751,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-11",
@@ -1100,7 +1772,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-14",
@@ -1121,7 +1793,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-15",
@@ -1142,7 +1814,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-16",
@@ -1163,7 +1835,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-17",
@@ -1184,7 +1856,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-18",
@@ -1205,7 +1877,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-21",
@@ -1226,7 +1898,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-22",
@@ -1247,7 +1919,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-23",
@@ -1268,7 +1940,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-24",
@@ -1289,7 +1961,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-24",
@@ -1329,7 +2001,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-25",
@@ -1369,7 +2041,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 18300000
+   "net_asset_value_cad": 15250000
   },
   {
    "date": "2026-09-28",
@@ -1409,7 +2081,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-09",
@@ -1430,7 +2102,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-10",
@@ -1451,7 +2123,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-11",
@@ -1472,7 +2144,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-14",
@@ -1493,7 +2165,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-15",
@@ -1514,7 +2186,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-16",
@@ -1535,7 +2207,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-17",
@@ -1556,7 +2228,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-18",
@@ -1577,7 +2249,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-21",
@@ -1598,7 +2270,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-22",
@@ -1619,7 +2291,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-23",
@@ -1640,7 +2312,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-24",
@@ -1661,7 +2333,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-24",
@@ -1701,7 +2373,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-25",
@@ -1741,7 +2413,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 33550000
+   "net_asset_value_cad": 27450000
   },
   {
    "date": "2026-09-28",
@@ -1781,7 +2453,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-07",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-09",
@@ -1802,7 +2474,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-08",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-10",
@@ -1823,7 +2495,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-09",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-11",
@@ -1844,7 +2516,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-10",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-14",
@@ -1865,7 +2537,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-11",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-15",
@@ -1886,7 +2558,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-14",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-16",
@@ -1907,7 +2579,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-15",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-17",
@@ -1928,7 +2600,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-16",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-18",
@@ -1949,7 +2621,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-17",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-21",
@@ -1970,7 +2642,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-18",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-22",
@@ -1991,7 +2663,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-21",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-23",
@@ -2012,7 +2684,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-22",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-24",
@@ -2033,7 +2705,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-23",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-24",
@@ -2073,7 +2745,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-24",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-25",
@@ -2113,7 +2785,7 @@
    "net_return_method": "apex_distribution_aware",
    "return_start_date": "2026-09-25",
    "return_source_count": 1,
-   "net_asset_value_cad": 9150000
+   "net_asset_value_cad": 7320000
   },
   {
    "date": "2026-09-28",
@@ -2129,6 +2801,750 @@
    "class_name_raw": "FP",
    "source": "cibc",
    "nav_per_share_local": 13.2084,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-08",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 13.0903,
+   "nav_per_share_cad": 13.0903,
+   "net_daily_return": 0.00528357,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-09",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 13.1342,
+   "nav_per_share_cad": 13.1342,
+   "net_daily_return": 0.00335363,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-10",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 13.0031,
+   "nav_per_share_cad": 13.0031,
+   "net_daily_return": -0.00998157,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-11",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9389,
+   "nav_per_share_cad": 12.9389,
+   "net_daily_return": -0.00493728,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-14",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8797,
+   "nav_per_share_cad": 12.8797,
+   "net_daily_return": -0.00457535,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-15",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8965,
+   "nav_per_share_cad": 12.8965,
+   "net_daily_return": 0.00130438,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-16",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.9144,
+   "nav_per_share_cad": 12.9144,
+   "net_daily_return": 0.00138797,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-17",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.827,
+   "nav_per_share_cad": 12.827,
+   "net_daily_return": -0.00676764,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-18",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.8011,
+   "nav_per_share_cad": 12.8011,
+   "net_daily_return": -0.00201918,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-21",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.7141,
+   "nav_per_share_cad": 12.7141,
+   "net_daily_return": -0.00679629,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-22",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.7233,
+   "nav_per_share_cad": 12.7233,
+   "net_daily_return": 0.00072361,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-23",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.6772,
+   "nav_per_share_cad": 12.6772,
+   "net_daily_return": -0.00362327,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.6488,
+   "nav_per_share_cad": 12.6488,
+   "net_daily_return": -0.00224024,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "cibc",
+   "nav_per_share_local": 12.6867,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.6189,
+   "nav_per_share_cad": 12.6189,
+   "net_daily_return": -0.00236386,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "cibc",
+   "nav_per_share_local": 12.6568,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "apex",
+   "nav_per_share_local": 12.5828,
+   "nav_per_share_cad": 12.5828,
+   "net_daily_return": -0.00286079,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 6100000
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM303",
+   "class_display": "I",
+   "class_code": "I",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "I",
+   "source": "cibc",
+   "nav_per_share_local": 12.6205,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-08",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.9796,
+   "nav_per_share_cad": 12.9796,
+   "net_daily_return": -0.00193007,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-07",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-09",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.9326,
+   "nav_per_share_cad": 12.9326,
+   "net_daily_return": -0.00362107,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-08",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-10",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8413,
+   "nav_per_share_cad": 12.8413,
+   "net_daily_return": -0.00705968,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-09",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-11",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8873,
+   "nav_per_share_cad": 12.8873,
+   "net_daily_return": 0.00358219,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-10",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-14",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8895,
+   "nav_per_share_cad": 12.8895,
+   "net_daily_return": 0.00017071,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-11",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-15",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8709,
+   "nav_per_share_cad": 12.8709,
+   "net_daily_return": -0.00144304,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-14",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-16",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8073,
+   "nav_per_share_cad": 12.8073,
+   "net_daily_return": -0.00494138,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-15",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-17",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8143,
+   "nav_per_share_cad": 12.8143,
+   "net_daily_return": 0.00054656,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-16",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-18",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8602,
+   "nav_per_share_cad": 12.8602,
+   "net_daily_return": 0.00358194,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-17",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-21",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.9885,
+   "nav_per_share_cad": 12.9885,
+   "net_daily_return": 0.00997652,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-18",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-22",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 13.0125,
+   "nav_per_share_cad": 13.0125,
+   "net_daily_return": 0.00184779,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-21",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-23",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.9702,
+   "nav_per_share_cad": 12.9702,
+   "net_daily_return": -0.00325072,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-22",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.924,
+   "nav_per_share_cad": 12.924,
+   "net_daily_return": -0.00356201,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-23",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-24",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 12.9628,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.8367,
+   "nav_per_share_cad": 12.8367,
+   "net_daily_return": -0.00675487,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-24",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-25",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 12.8752,
+   "nav_per_share_cad": null,
+   "net_daily_return": null,
+   "net_return_method": "nav_price_ratio",
+   "return_start_date": null
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "apex",
+   "nav_per_share_local": 12.7828,
+   "nav_per_share_cad": 12.7828,
+   "net_daily_return": -0.0041989,
+   "net_return_method": "apex_distribution_aware",
+   "return_start_date": "2026-09-25",
+   "return_source_count": 1,
+   "net_asset_value_cad": 4880000
+  },
+  {
+   "date": "2026-09-28",
+   "fundserv": "LDM304",
+   "class_display": "J",
+   "class_code": "J",
+   "currency": "CAD",
+   "short_name": "Multistrat",
+   "nav_type": "FINAL_NAV",
+   "fund_mapped": true,
+   "account": "SYNTHETIC",
+   "fund_name": "SYNTHETIC Multistrat",
+   "class_name_raw": "J",
+   "source": "cibc",
+   "nav_per_share_local": 12.8211,
    "nav_per_share_cad": null,
    "net_daily_return": null,
    "net_return_method": "nav_price_ratio",

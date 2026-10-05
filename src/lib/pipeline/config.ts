@@ -5,6 +5,7 @@
 import type { FundKey } from "../data/types.ts";
 import type { Method } from "./metrics.ts";
 import { PORTFOLIO_MAX_AGE_DAYS } from "../data/freshness.ts";
+import { MIN_CLASS_HISTORY_MONTHS } from "../../config/funds.ts";
 
 export interface PipelineFundSpec {
   /** first month of the official track record (month-end); null: first month of the source series */
@@ -74,6 +75,42 @@ export const TOL = {
   /** stored CIBC daily returns compounded vs the analytics monthly history (a missed distribution is 10 to 100 times this) */
   chainVsAnalytics: 2e-5,
 };
+
+/**
+ * Per-class returns (class-returns.ts, classes.ts, build.ts buildClasses): every active register class of a fund gets its
+ * own monthly series from its own daily nav-timeseries chain, from its inception (first price of its CURRENT run). A month
+ * that fails a check is withheld ("—", reason in the admin issues), never estimated or filled from another class; every
+ * figure whose window contains a withheld month is withheld too.
+ */
+export const CLASS_CHECKS = {
+  /** regulatory minimum: a class with less than this many months since inception shows no performance figure (compliance) */
+  minHistoryMonths: MIN_CLASS_HISTORY_MONTHS,
+  /** a gap of more than this many calendar days without a NAV per unit ends a run: earlier rows are a previous life of the code */
+  relaunchGapDays: 10,
+  /** history requested from the dataplatform for every class (a run starting within relaunchGapDays of it has an unknown inception) */
+  historyFrom: "2019-01-01",
+  /**
+   * bad valuation print: two consecutive daily returns of opposite sign, both at least `spikeMin` in size, whose combined
+   * return is at most `spikeRevert` × the smaller of the two → both months touched are withheld for every class of the fund
+   */
+  spikeMin: 0.02,
+  spikeRevert: 0.5,
+  /**
+   * cross-class consistency of a month (same days for every class compared): a class deviating from the median of the
+   * fund's classes by more than max(crossAbs, crossRel × |median|) is withheld; when the deviating classes are not a strict
+   * minority (2 classes that disagree, no majority) the month is withheld for every class compared. Performance-fee classes
+   * legitimately drift by up to ≈ 0.5 % in strong months: crossAbs stays above that.
+   */
+  crossAbs: 0.005,
+  crossRel: 0.25,
+  /**
+   * daily dispersion: on one valuation day the classes of one book move together (fee accruals differ by < 0.01 %); a
+   * spread (max − min) above max(dailyAbs, dailyRel × |median|) is an inconsistent distribution adjustment → the month is
+   * withheld for every class of the fund (the majority may be the wrong side: it cannot be told which class is right)
+   */
+  dailyAbs: 0.004,
+  dailyRel: 0.5,
+} as const;
 
 /** Daily NAV chain (daily-chain.ts, build.ts): CIBC months are used only after this many months agree with the analytics history. */
 export const CHAIN = { minVerifiedMonths: 6 } as const;

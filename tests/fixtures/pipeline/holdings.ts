@@ -71,7 +71,11 @@ function bonds(short: Short): BondSpec[] {
 
 const NET_ASSETS: Record<Short, number> = { SEST: 212_000_000, SEB: 148_000_000, Multistrat: 61_000_000 };
 /** the classes' Apex closing capital shares (they add up to the fund's net assets on every date) */
-export const CLASS_SHARE: Record<string, number> = { LDM001: 0.62, LDM021: 0.18, LDM081: 0.15, LDM011: 0.05, LDM031: 0, LDM201: 0.71, LDM205: 0.19, LDM206: 0.1, LDM300: 0.3, LDM301: 0.55, LDM305: 0.15 };
+export const CLASS_SHARE: Record<string, number> = {
+  LDM001: 0.5, LDM011: 0.04, LDM021: 0.1, LDM031: 0.08, LDM061: 0.1, LDM081: 0.18, LDM091: 0,
+  LDM201: 0.5, LDM202: 0.2, LDM203: 0.1, LDM204: 0.06, LDM205: 0.09, LDM206: 0.05,
+  LDM300: 0.25, LDM301: 0.45, LDM303: 0.1, LDM304: 0.08, LDM305: 0.12,
+};
 export const netAssetsOf = (short: Short, date: string): number => NET_ASSETS[short] * (date === "2026-08-31" ? 0.99 : 1);
 
 /** /api/apex/holdings answer of one fund on one day (positions + bank and broker balances) */

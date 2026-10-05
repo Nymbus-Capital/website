@@ -88,8 +88,8 @@ test("daily breakdowns: display order, rating and term order kept, weights as th
 
 test("distributions: headline first, newest-first history (12 or all), last 24 bars oldest first", () => {
   const d = fund("monthly-income").distributions!;
-  assert.deepEqual(distributionClasses(d, "LDM081").map((c) => c.fundserv), ["LDM081", "LDM001", "LDM011", "LDM021"]);
-  assert.deepEqual(distributionClasses(d, null).map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM081"]);
+  assert.deepEqual(distributionClasses(d, "LDM081").map((c) => c.fundserv), ["LDM081", "LDM001", "LDM011", "LDM021", "LDM031", "LDM061"]);
+  assert.deepEqual(distributionClasses(d, null).map((c) => c.fundserv), ["LDM001", "LDM011", "LDM021", "LDM031", "LDM061", "LDM081"]);
   assert.deepEqual(distributionClasses(null, "x"), []);
   const a = d.classes.find((c) => c.fundserv === "LDM021")!;
   const recent = historyRows(a, false);

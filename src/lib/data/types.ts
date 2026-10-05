@@ -70,6 +70,20 @@ export interface Performance {
    * "since class inception"; no risk statistics. Optional.
    */
   shortRecord?: boolean;
+  /**
+   * class entries (FundData.performanceByClass) other than the track record: first price date of the class's current run
+   * (YYYY-MM-DD). The first month runs from that day's NAV (the inception day's own return is never used). Optional.
+   */
+  inception?: string;
+  /** `firstMonth` is a partial month starting at `inception` (index figures over it are not shown). Optional. */
+  partialFirstMonth?: boolean;
+  /**
+   * months between `firstMonth` and `asOf` withheld because a check failed (shown "—"; reasons in the admin issues): they are
+   * absent from `monthly`, and every figure whose window contains one is null. Optional (absent: none).
+   */
+  withheldMonths?: string[];
+  /** where the growth series starts: the inception date, or the month-end after the last withheld month. Optional. */
+  growthFrom?: string;
 }
 
 export interface RiskStats {
@@ -229,6 +243,24 @@ export interface ClassPerformance {
   risk3Y: RiskStats | null;
 }
 
+/**
+ * What the page says about one active class of the fund register (FundData.classInfo, by FundServ code):
+ *  - "shown": its returns are in performanceByClass;
+ *  - "young": less than `minMonths` months since its inception: no performance figure (regulatory minimum);
+ *  - "currency": a non-CAD series without distribution-aware returns: no performance figure;
+ *  - "unavailable": no usable daily history yet ("coming soon").
+ */
+export interface ClassInfo {
+  fundserv: string;
+  display: string;
+  currency: string | null;
+  /** first price date of the class's current run (YYYY-MM-DD), null when unknown */
+  inception: string | null;
+  status: "shown" | "young" | "currency" | "unavailable";
+  /** the regulatory minimum applied (months), for the "young" message */
+  minMonths?: number;
+}
+
 /** Target downside-volatility variants of the Global Minimum Volatility strategy (percent); 6 is the default. */
 export const GMV_VARIANTS = ["3", "6", "9"] as const;
 export type GmvVariant = (typeof GMV_VARIANTS)[number];
@@ -279,8 +311,13 @@ export interface FundData {
    * source serves by default, labelled with its true class (`performance.returnClass`).
    */
   performanceByClass?: Record<string, ClassPerformance>;
-  /** FundServ code of the default class (F) the page opens on; optional */
+  /**
+   * FundServ code of the class the page opens on: the registry's headline class when it has returns, else the first class
+   * (registry order) that has returns; optional
+   */
   defaultClass?: string;
+  /** every active register class of the fund with its inception and why it shows no returns (optional, by FundServ) */
+  classInfo?: Record<string, ClassInfo>;
   /**
    * variants of a strategy (Global Minimum Volatility: "3", "6", "9" % downside volatility), by variant id. The
    * top-level performance / risk / characteristics / breakdowns / topHoldings are the default variant's. Optional.

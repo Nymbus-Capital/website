@@ -18,11 +18,14 @@ export interface HeatmapProps {
   /** month-end of the published performance: only its year is flagged YTD */
   asOf?: string | null;
   lang: Lang;
-  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string };
+  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string; withheld?: string };
   caption: string;
+  /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */
+  withheld?: Set<string>;
 }
 
-export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption }: HeatmapProps) {
+export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption, withheld }: HeatmapProps) {
+  const held = useMemo(() => new Set([...(withheld ?? [])].map((m) => m.slice(0, 7))), [withheld]);
   const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
   const [ref, near, seen] = useNear<HTMLDivElement>("200px 0px");
@@ -60,6 +63,9 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption 
                   <th className="y" scope="row">{row.year}</th>
                   {row.cells.map((r, m) => {
                     const c = heatCell(r, scale);
+                    if (r == null && held.has(`${row.year}-${String(m + 1).padStart(2, "0")}`)) {
+                      return <td key={m} data-testid="heat-withheld"><div className="c none hm-held" title={labels.withheld}><span aria-hidden="true">—</span><span className="sr-only">{labels.withheld}</span></div></td>;
+                    }
                     if (r == null) return <td key={m}><div className="c none" aria-hidden="true" /></td>;
                     const txt = fmt(r, { pct: true, decimals: 1, lang });
                     return (

@@ -14,6 +14,7 @@ import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
 import type { ClassCtx } from "./lib/select.ts";
+import { noticeText } from "./lib/notice.ts";
 import { T, tr } from "./copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
 import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
@@ -140,6 +141,7 @@ function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: 
             <Fact k={tr(T.nav.series, lang)}>{cls.display}</Fact>
             <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv"><code>{cls.fundserv}</code></Fact>
             <Fact k={tr(T.nav.currency, lang)}>{cls.currency}</Fact>
+            {ctx.inception ? <Fact k={tr(T.classes.inception, lang)} testId="nav-inception">{dateLabel(ctx.inception, lang)}</Fact> : null}
             {launch ? <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
               : perf?.firstMonth ? <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact> : null}
             {content.mer ? <Fact k={tr(T.nav.mer, lang)}>{content.mer}</Fact> : content.managementFee ? <Fact k={tr(T.nav.managementFee, lang)}>{content.managementFee}</Fact> : null}
@@ -152,6 +154,7 @@ function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: 
           <p className="nc-empty">{tr(T.nav.none, lang)}</p>
           <dl className="nc-facts">
             {sel ? <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv"><code>{sel.fundserv}</code></Fact> : null}
+            {ctx.inception ? <Fact k={tr(T.classes.inception, lang)} testId="nav-inception">{dateLabel(ctx.inception, lang)}</Fact> : null}
             {launch ? <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact> : perf?.firstMonth ? <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact> : null}
             {bench ? <div className="nc-fact wide"><dt>{tr(T.nav.benchmark, lang)}</dt><dd>{bench}</dd></div> : null}
           </dl>
@@ -215,7 +218,7 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
   const basis = tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang);
   const sel = ctx.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const variant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
-  const soonText = sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.badges.soon, lang);
+  const soonText = ctx.notice ? noticeText(ctx.notice, lang) : sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(T.badges.soon, lang);
   return (
     <section className="fr" aria-labelledby="fr-title" data-testid="return-strip">
       <div className="container">

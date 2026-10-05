@@ -8,6 +8,7 @@
  * (daily-chain.ts); no dataplatform change (PR #621, #626, #631) is needed.
  */
 import type { FundKey } from "../data/types.ts";
+import { FUNDS } from "../../config/funds.ts";
 
 /**
  * Class code of a monthly series. "STRATEGY" / "STRATEGY_H" are the dataplatform monthly-net-returns names ("STRATEGY"
@@ -44,6 +45,12 @@ export interface FundSources {
    * month on or after this day and its own first valuation. null: no class series.
    */
   navStart: string | null;
+  /**
+   * Earliest possible class inception (the day the fund's book began under its code), or null. A class's inception is the
+   * first price of its current continuous run of NAVs (class-returns.ts); a run reaching back before this day is cut here
+   * (rows of a reused fund code before it belong to another strategy even without a gap).
+   */
+  classFloor: string | null;
   /**
    * Class of the fund returns each factsheet archive publishes (monthly table, trailing, statistics), by archive
    * month: the first entry whose `until` (YYYY-MM, inclusive) is not before the archive month, the last entry having
@@ -89,6 +96,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     trackRecordClass: "STRATEGY",
     // register fund_data_start (= inception): SEST is a reused fund code, the Monthly Income book starts at the 2021-10-05 re-seed
     navStart: "2021-10-05",
+    classFloor: "2021-10-05",
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "FP", LDM081: "F" },
     classFundserv: { STRATEGY: "LDM001", LDM081: "LDM081" },
@@ -112,6 +120,8 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     // published SEB as class F up to the 2026-07 archive and as class H from 2026-08 (fdc2b35..fed3af3)
     trackRecordClass: "STRATEGY_H",
     navStart: "2023-07-01",
+    // no reused code: each class's own run decides its inception
+    classFloor: null,
     factsheetClass: [{ until: "2026-07", class: "STRATEGY" }, { class: "STRATEGY_H" }],
     classLabels: { STRATEGY: "F", STRATEGY_H: "H" },
     classFundserv: { STRATEGY: "LDM201", STRATEGY_H: "LDM202" },
@@ -126,6 +136,8 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     analytics: "Nymbus Multistrategy (Inc. discretionary strats history)",
     trackRecordClass: "STRATEGY",
     navStart: "2023-07-01",
+    // some classes were priced before the register's fund data start: each class's own run decides its inception
+    classFloor: null,
     factsheetClass: [{ class: "STRATEGY" }],
     classLabels: { STRATEGY: "F" },
     classFundserv: { STRATEGY: "LDM301" },
@@ -139,6 +151,7 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     analytics: null,
     trackRecordClass: null,
     navStart: null,
+    classFloor: null,
     factsheetClass: [],
     classLabels: {},
     classFundserv: {},
@@ -153,10 +166,16 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
 /** Sources of one fund (every registry key has an entry). */
 export const fundSources = (key: FundKey): FundSources => FUND_SOURCES[key];
 
-/** Site label of a class code for a fund ("F", "H", "FP"), or null when the class is unknown for that fund. */
+/**
+ * Site label of a class code for a fund ("F", "H", "FP"), or null when the class is unknown for that fund. A class named by
+ * its FundServ code (no dataplatform aggregate) takes the registry's display (src/config/funds.ts `classes`).
+ */
 export function classLabel(key: FundKey, code: string | null | undefined): string | null {
   if (!code) return null;
-  return (FUND_SOURCES[key].classLabels as Record<string, string | undefined>)[code] ?? null;
+  const own = (FUND_SOURCES[key].classLabels as Record<string, string | undefined>)[code];
+  if (own) return own;
+  if (!/^LDM\d+$/.test(code) || !Object.keys(FUND_SOURCES[key].classLabels).length) return null;
+  return FUNDS.find((f) => f.key === key)?.classes.find((c) => c.fundserv === code)?.display ?? null;
 }
 
 /** Class of the fund returns published in the factsheet archive of `month` (YYYY-MM or a date), or null. */
@@ -173,14 +192,35 @@ export interface ClassSeriesSource {
   classCode: ClassCode;
 }
 
-/** Classes of a fund that can have a monthly series, from the class configuration. */
-export function classSeriesOf(key: FundKey): ClassSeriesSource[] {
+/** a share class as the fund register lists it (/api/apex/funds) */
+export interface RegisterClass { fundserv: string; display: string; currency?: string | null; status?: string | null }
+
+/**
+ * Classes of a fund that can have a monthly series: the configured classes (class code mapping of the dataplatform
+ * aggregates), the registry's classes (src/config/funds.ts) and, when given, the fund register's ACTIVE classes — a
+ * register class unknown to the configuration is named by its FundServ code with the register's display. When the
+ * register is given, a configured class it does not list as active is left out (never the track-record class).
+ * Order: configured class codes first, then the registry's order, then the register's.
+ */
+export function classSeriesOf(key: FundKey, register?: RegisterClass[] | null): ClassSeriesSource[] {
   const src = FUND_SOURCES[key];
+  if (!Object.keys(src.classLabels).length) return [];
   const out: ClassSeriesSource[] = [];
+  const seen = new Set<string>();
+  const add = (c: ClassSeriesSource): void => { if (!seen.has(c.fundserv)) { seen.add(c.fundserv); out.push(c); } };
   for (const code of Object.keys(src.classLabels) as ClassCode[]) {
     const fundserv = src.classFundserv[code];
     const display = src.classLabels[code];
-    if (fundserv && display) out.push({ fundserv, display, classCode: code });
+    if (fundserv && display) add({ fundserv, display, classCode: code });
+  }
+  for (const c of FUNDS.find((f) => f.key === key)?.classes ?? []) add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
+  for (const c of register ?? []) {
+    if (c.status === "active" && /^LDM\d+$/.test(c.fundserv) && c.display) add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
+  }
+  if (register) {
+    const active = new Set(register.filter((c) => c.status === "active").map((c) => c.fundserv));
+    const track = trackFundserv(key);
+    return out.filter((c) => active.has(c.fundserv) || c.fundserv === track);
   }
   return out;
 }

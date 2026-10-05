@@ -3,7 +3,7 @@
  * the selected class (default F); the GMV variants (3 / 6 / 9 %) switch every figure. Nothing is borrowed from another
  * class: a class without its own series shows "coming soon" (`returnsSoon`), never the default class's numbers.
  */
-import type { ClassType, FundContent, FundData, NavClass, Performance, VariantData } from "../../../lib/data/types.ts";
+import type { ClassInfo, ClassType, FundContent, FundData, NavClass, Performance, VariantData } from "../../../lib/data/types.ts";
 
 type Data = Omit<FundData, "sourceName">;
 export interface SpecLike {
@@ -47,6 +47,7 @@ export function classOptions(data: Data | null, spec: SpecLike, content: Pick<Fu
   for (const c of spec.classes ?? []) add(c.fundserv, c.display, null, null);
   for (const c of content?.hide?.nav ? [] : data?.nav?.classes ?? []) if (c.nav != null) add(c.fundserv, c.display, c.currency, c);
   for (const c of Object.values(data?.performanceByClass ?? {})) add(c.fundserv, c.display, null, null);
+  for (const c of Object.values(data?.classInfo ?? {})) add(c.fundserv, c.display, c.currency, null);
   const head = up(defaultClassCode(data, spec, content));
   return [...map.values()].sort((a, b) => (up(a.fundserv) === head ? -1 : up(b.fundserv) === head ? 1 : a.fundserv.localeCompare(b.fundserv)));
 }
@@ -63,6 +64,14 @@ export interface Selection {
   variant: string | null;
 }
 
+/**
+ * Why the selected class shows no figure, when the pipeline says so: "young" (less than `minMonths` months since its
+ * inception: regulatory minimum) or "currency" (a non-CAD series without distribution-aware returns).
+ */
+export type ClassNotice =
+  | { kind: "young"; display: string; inception: string; minMonths: number }
+  | { kind: "currency"; display: string; currency: string };
+
 export interface Picked {
   data: Data | null;
   /** the series shown is the selected class's own */
@@ -71,6 +80,23 @@ export interface Picked {
   returnsSoon: boolean;
   /** class history shorter than 12 months: only the periods that exist, "since class inception" */
   shortRecord: boolean;
+  /** why the selected class shows no figure (replaces "coming soon"), when known */
+  notice?: ClassNotice | null;
+}
+
+/** Info of one class (inception, status) published by the pipeline, by FundServ code. */
+export function classInfoOf(data: Data | null, code: string | null | undefined): ClassInfo | null {
+  if (!data?.classInfo || !code) return null;
+  return Object.values(data.classInfo).find((c) => up(c.fundserv) === up(code)) ?? null;
+}
+
+/** The notice of a class without figures (young / non-CAD), or null. */
+export function classNotice(data: Data | null, code: string | null | undefined): ClassNotice | null {
+  const i = classInfoOf(data, code);
+  if (!i) return null;
+  if (i.status === "young" && i.inception) return { kind: "young", display: i.display, inception: i.inception, minMonths: i.minMonths ?? 12 };
+  if (i.status === "currency" && i.currency) return { kind: "currency", display: i.display, currency: i.currency };
+  return null;
 }
 
 /** Returns of the selected class: its own series only. */
@@ -108,7 +134,7 @@ export function pickData(data: Data | null, spec: SpecLike, content: FundContent
     const r = classReturns(data, sel.classCode, options);
     if (!r) {
       out = { ...out, performance: null, risk: null, risk3Y: null };
-      return { data: out, returnsClass: null, returnsSoon: true, shortRecord: false };
+      return { data: out, returnsClass: null, returnsSoon: true, shortRecord: false, notice: classNotice(data, sel.classCode) };
     }
     out = { ...out, performance: r.performance, risk: r.risk, risk3Y: r.risk3Y };
     return { data: out, returnsClass: sel.classCode, returnsSoon: false, shortRecord: !!r.performance.shortRecord };
@@ -127,12 +153,31 @@ export interface ClassCtx {
   returnsSoon: boolean;
   /** the selected class has less than 12 months of history: "since series inception" */
   shortRecord: boolean;
+  /** why the selected class shows no figure (young series, non-CAD series), when known */
+  notice?: ClassNotice | null;
+  /** inception date (first price of its current run) of the selected class, when published */
+  inception?: string | null;
 }
 
-/** Initial selection: the default class and the default variant. */
+/**
+ * The class the page opens on: the admin's / registry's headline class when it has its own returns; otherwise the data's
+ * default class when it has returns (the pipeline's choice, register order), else the first class offered that has; when
+ * no class has returns, the headline class. A page never opens on an empty performance block while another series has data.
+ */
+export function openingClass(data: Data | null, spec: SpecLike, content: FundContent | null | undefined, opts: ClassOption[]): string | null {
+  const preferred = content?.headlineClass || spec.headlineClass || data?.defaultClass || null;
+  const byClass = data?.performanceByClass;
+  if (!byClass) return preferred ?? opts[0]?.fundserv ?? null;
+  const has = (code: string | null | undefined): boolean => !!code && Object.values(byClass).some((c) => up(c.fundserv) === up(code));
+  if (has(preferred)) return preferred;
+  if (has(data?.defaultClass)) return data!.defaultClass!;
+  return opts.find((o) => has(o.fundserv))?.fundserv ?? preferred ?? opts[0]?.fundserv ?? null;
+}
+
+/** Initial selection: the opening class (openingClass) and the default variant. */
 export function initialSelection(data: Data | null, spec: SpecLike, content: FundContent | null | undefined): Selection {
   const opts = classOptions(data, spec, content);
-  const code = spec.classes?.length ? defaultClassCode(data, spec, content) ?? opts[0]?.fundserv ?? null : null;
+  const code = spec.classes?.length ? openingClass(data, spec, content, opts) : null;
   const variant = spec.variants?.length
     ? (data?.defaultVariant && spec.variants.some((x) => x.id === data.defaultVariant) ? data.defaultVariant : (spec.variants.find((x) => x.default) ?? spec.variants[0]).id)
     : null;

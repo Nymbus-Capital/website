@@ -2,7 +2,8 @@
  * Fetch every source for a run. Never throws: each failure is a SourceResult with ok=false.
  */
 import { FUNDS } from "../../../config/funds.ts";
-import { FUND_SOURCES } from "../fund-sources.ts";
+import { classSeriesOf, FUND_SOURCES } from "../fund-sources.ts";
+import { CLASS_CHECKS, PIPELINE_FUNDS } from "../config.ts";
 import type { FundKey } from "../../data/types.ts";
 import type { DpShort, FtseBondAnalytics, HoldingsBook, InstrumentRefs, NavPoint, RawPayloads, SourceResult } from "../raw.ts";
 import { lastClosedMonth } from "../metrics.ts";
@@ -43,10 +44,11 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
     const fs = FUND_SOURCES[keyOf[s]];
     // main-branch contract: short_name + dates only (the answer names its class: checked by the build)
     jobs.push((c ? fetchMonthlyNetReturns(c, s, target) : Promise.resolve(noDp())).then((r) => { monthlyReturns[s] = r as never; }));
-    // each class with a series: its daily rows from the fund's NAV start (the website compounds the months)
+    // every class known to the configuration / registry: its daily rows from CLASS_CHECKS.historyFrom (the website finds
+    // each class's inception and compounds the months); the register's other active classes follow below
     if (fs.navStart) {
-      for (const fsv of new Set(Object.values(fs.classFundserv).filter((x): x is string => !!x))) {
-        jobs.push((c ? fetchNavHistory(c, s, fsv, fs.navStart, today) : Promise.resolve(noDp())).then((r) => { navHistory[fsv] = r as never; }));
+      for (const k of classSeriesOf(keyOf[s])) {
+        jobs.push((c ? fetchNavHistory(c, s, k.fundserv, CLASS_CHECKS.historyFrom, today) : Promise.resolve(noDp())).then((r) => { navHistory[k.fundserv] = r as never; }));
       }
     }
     // NAV of the last weeks (NAV card, the book dates and the net assets), then the Apex book(s) of those days
@@ -68,6 +70,22 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
   const fsP = fetchFactsheets(target, opts.fetchImpl, env);
   const anP = fetchAnalytics(opts.fetchImpl, env);
   const [apexFunds, unitholderFunds, aum, factsheets, analytics] = await Promise.all([apexP, uhP, aumP, fsP, anP, ...jobs]);
+  // active classes of the fund register that the configuration does not know yet: their history too
+  if (c && apexFunds.ok && apexFunds.data) {
+    const extra: Promise<unknown>[] = [];
+    for (const s of shorts) {
+      const key = keyOf[s];
+      if (!FUND_SOURCES[key].navStart) continue;
+      const acct = unitholderFunds.ok ? unitholderFunds.data?.find((r) => r.short_name === s)?.apex_account : undefined;
+      const live = apexFunds.data.filter((f) => f.status !== "wound_down");
+      const reg = (acct ? live.find((f) => f.apex_account === acct) : undefined) ?? live.find((f) => f.key === PIPELINE_FUNDS[key].apexKey);
+      for (const k of classSeriesOf(key, reg?.classes ?? null)) {
+        if (navHistory[k.fundserv]) continue;
+        extra.push(fetchNavHistory(c, s, k.fundserv, CLASS_CHECKS.historyFrom, today).then((r) => { navHistory[k.fundserv] = r; }));
+      }
+    }
+    await Promise.all(extra);
+  }
   // the instrument master of every security held (one pass for all funds and both book dates)
   const books = Object.values(holdings).flatMap((h) => [h?.latest, h?.monthEnd]).filter((b): b is SourceResult<HoldingsBook> => !!b?.ok && !!b.data).map((b) => b.data!);
   let instruments: SourceResult<InstrumentRefs> | undefined;

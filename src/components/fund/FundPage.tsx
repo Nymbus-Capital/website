@@ -22,7 +22,7 @@ import { rankingsToShow } from "./lib/rankings.ts";
 import { Disclosures, FeatureSection, FundCta, OtherFunds } from "./Closing";
 import type { Lang } from "./lib/format.ts";
 import { stripHidden } from "./lib/data.ts";
-import { classOptions, initialSelection, pickData, type ClassCtx, type Selection } from "./lib/select.ts";
+import { classInfoOf, classOptions, initialSelection, pickData, type ClassCtx, type Selection } from "./lib/select.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";
 
@@ -43,6 +43,8 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     selectVariant: (id) => setSel((s) => ({ ...s, variant: id })),
     returnsSoon: picked.returnsSoon,
     shortRecord: picked.shortRecord,
+    notice: picked.notice ?? null,
+    inception: classInfoOf(published, sel.classCode)?.inception ?? null,
   };
   const props = { spec, content, data, lang, ctx };
   const hasAwards = !!rankingsToShow(content, spec.classes);

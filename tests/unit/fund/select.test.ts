@@ -80,3 +80,54 @@ test("pickData: variants switch returns, risk, characteristics, allocation and h
   assert.equal(nine.data!.performance, null, "an unpublished variant shows nothing of another variant");
   assert.equal(nine.returnsSoon, true);
 });
+
+test("opening class: the headline when it has returns, else the data's default, else the first class offered that has returns", async () => {
+  const { openingClass } = await import("../../../src/components/fund/lib/select.ts");
+  // the registry's headline (F) is young: no returns; the pipeline's default (register order) is H
+  const young = base({
+    performanceByClass: { LDM202: { fundserv: "LDM202", display: "H", performance: perf("H", 0.04), risk: null, risk3Y: null } },
+    defaultClass: "LDM202",
+    classInfo: { LDM201: { fundserv: "LDM201", display: "F", currency: "CAD", inception: "2026-06-03", status: "young", minMonths: 12 } },
+  });
+  assert.equal(initialSelection(young, spec, {}).classCode, "LDM202", "never opens on an empty performance block");
+  assert.equal(openingClass({ ...young, defaultClass: undefined }, spec, {}, classOptions(young, spec, {})), "LDM202", "first class offered with returns");
+  // the admin's headline class wins when it has returns
+  assert.equal(initialSelection(withClasses(), spec, { headlineClass: "LDM202" }).classCode, "LDM202");
+  // no class has returns: the headline (the page then says why)
+  assert.equal(initialSelection(base({ performanceByClass: {} }), spec, {}).classCode, "LDM201");
+});
+
+test("notices: a young series says when it launched and the minimum; a non-CAD series says why; others 'coming soon'", async () => {
+  const { noFiguresText } = await import("../../../src/components/fund/lib/notice.ts");
+  const d = base({
+    performanceByClass: { LDM202: { fundserv: "LDM202", display: "H", performance: perf("H", 0.04), risk: null, risk3Y: null } },
+    classInfo: {
+      LDM201: { fundserv: "LDM201", display: "F", currency: "CAD", inception: "2026-06-03", status: "young", minMonths: 12 },
+      LDM299: { fundserv: "LDM299", display: "F USD", currency: "USD", inception: "2025-12-12", status: "currency" },
+    },
+  });
+  const f = pickData(d, spec, {}, { classCode: "LDM201", variant: null });
+  assert.equal(f.data!.performance, null);
+  assert.deepEqual(f.notice, { kind: "young", display: "F", inception: "2026-06-03", minMonths: 12 });
+  const ctx = { returnsSoon: true, notice: f.notice, options: [{ fundserv: "LDM201", display: "F" }], selected: "LDM201" };
+  const soon = { en: "Performance figures coming soon.", fr: "Les rendements seront bientôt publiés." };
+  assert.equal(noFiguresText(ctx, "en", soon), "Series F launched on June 3, 2026. Performance will be shown once the series has 12 months of history.");
+  assert.equal(noFiguresText(ctx, "fr", soon), "La série F a été lancée le 3 juin 2026. Les rendements seront présentés lorsque la série aura 12 mois d’historique.");
+  const u = pickData(d, spec, {}, { classCode: "LDM299", variant: null });
+  assert.match(noFiguresText({ ...ctx, notice: u.notice, selected: "LDM299" }, "en", soon), /not shown for series F USD: returns that account for distributions are not available for this series in USD/);
+  assert.equal(noFiguresText({ returnsSoon: true, notice: null, options: [{ fundserv: "LDM203", display: "I" }], selected: "LDM203" }, "en", soon), "Performance figures for series I coming soon.");
+});
+
+test("withheld figures keep their row ('—'); periods longer than the history do not appear", async () => {
+  const { trailingRows, calendarRows } = await import("../../../src/components/fund/lib/data.ts");
+  const p = perf("I", 0.05, {
+    firstMonth: "2023-03-31", inception: "2023-03-06", partialFirstMonth: true, withheldMonths: ["2025-03-31"],
+    trailing: { fund: { "1M": 0.001, "3M": 0.003, YTD: 0.01, "1Y": 0.02, "2Y": null, "3Y": null, "5Y": null, "10Y": null, SI: null } },
+    calendar: [{ year: 2024, fund: 0.03 }, { year: 2025, fund: null }],
+  });
+  assert.deepEqual(trailingRows(p).map((r) => [r.period, r.fund]), [["1M", 0.001], ["3M", 0.003], ["YTD", 0.01], ["1Y", 0.02], ["2Y", null], ["3Y", null], ["SI", null]]);
+  assert.deepEqual(calendarRows(p.calendar, true).map((r) => r.year), [2024, 2025]);
+  assert.deepEqual(calendarRows(p.calendar).map((r) => r.year), [2024], "the headline keeps its rule");
+  // without withheld months nothing changes
+  assert.deepEqual(trailingRows(perf("F", 0.05)).map((r) => r.period), ["1Y", "SI"]);
+});

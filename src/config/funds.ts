@@ -8,6 +8,12 @@
  */
 import type { FundKey, L10n } from "../lib/data/types.ts";
 
+/**
+ * Regulatory minimum (compliance may change it): a series with less than this many months since its inception shows no
+ * performance figure, only "Series X launched on <date>. Performance will be shown once the series has 12 months of history."
+ */
+export const MIN_CLASS_HISTORY_MONTHS = 12;
+
 /** A class (series) the website knows about. Other classes of the register appear in the selector from the NAV data. */
 export interface FundClassSpec {
   fundserv: string;
@@ -76,9 +82,14 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Short Term Corporate Bond Index", fr: "Indice FTSE Canada des obligations corporatives à court terme" },
     headlineClass: "LDM081",
+    // every active class of the fund register (2026-10-04); the register stays the source of the live list (build.ts)
     classes: [
       { fundserv: "LDM081", display: "F", type: "prospectus" },
       { fundserv: "LDM001", display: "FP", type: "om" },
+      { fundserv: "LDM011", display: "F USD" },
+      { fundserv: "LDM021", display: "A" },
+      { fundserv: "LDM031", display: "I" },
+      { fundserv: "LDM061", display: "J" },
     ],
     defaults: {
       riskRating: "low-medium",
@@ -100,7 +111,14 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Universe Bond Index", fr: "Indice FTSE Canada des obligations universelles" },
     headlineClass: "LDM201",
-    classes: [{ fundserv: "LDM201", display: "F" }, { fundserv: "LDM202", display: "H" }],
+    classes: [
+      { fundserv: "LDM201", display: "F" },
+      { fundserv: "LDM202", display: "H" },
+      { fundserv: "LDM203", display: "I" },
+      { fundserv: "LDM204", display: "J" },
+      { fundserv: "LDM205", display: "A" },
+      { fundserv: "LDM206", display: "FP" },
+    ],
     defaults: {
       riskRating: "low",
       tagline: { en: "Canadian core bonds, managed systematically", fr: "Obligations canadiennes de base, gérées de façon systématique" },
@@ -121,7 +139,13 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: null,
     headlineClass: "LDM301",
-    classes: [{ fundserv: "LDM301", display: "F" }],
+    classes: [
+      { fundserv: "LDM301", display: "F" },
+      { fundserv: "LDM300", display: "A" },
+      { fundserv: "LDM303", display: "I" },
+      { fundserv: "LDM304", display: "J" },
+      { fundserv: "LDM305", display: "FP" },
+    ],
     defaults: {
       riskRating: "medium",
       tagline: { en: "Four systematic strategies designed to have low correlation with one another", fr: "Quatre stratégies systématiques conçues pour être peu corrélées entre elles" },

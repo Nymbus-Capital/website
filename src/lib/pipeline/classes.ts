@@ -1,29 +1,30 @@
 /**
- * Returns per class (series) into `ClassPerformance`. Pure (no I/O). A class is shown only with its own series, which must
- * end at the validated as-of month of the fund; anything else leaves the class without data ("coming soon") — never
- * another class's numbers. The class series come from the pipeline's own class-checked candidates (build.ts: track-record
- * class and preferred full-history class), never from an unchecked answer of the endpoint.
+ * Returns per class (series) into `ClassPerformance`. Pure (no I/O). A class is shown only with its own series
+ * (class-returns.ts: its own daily chain from its inception), ending at the validated as-of month of the fund — never
+ * another class's numbers.
  *
- * A series shorter than 12 months is published with the periods that exist only (no annualized figure, no risk
- * statistics) and flagged `shortRecord`: the page says "since class inception".
+ * A month that failed a check is withheld (absent from `monthly`, listed in `withheldMonths`): every figure whose window
+ * contains a withheld month is null ("—"), the growth series starts after the last withheld month. The first month runs
+ * from the inception NAV per unit (`partialFirstMonth`): it counts for the since-inception return, the calendar year of
+ * inception and the growth series only — never for a fixed period (1 month … 10 years), the year to date or the risk
+ * statistics, which use complete months — and no index figure is set against it.
+ * A class with less than CLASS_CHECKS.minHistoryMonths months since its inception shows no figure at all (regulatory
+ * minimum): `ClassInfo.status` "young".
  */
-import type { CalendarRow, ClassPerformance, GrowthPoint, Issue, MonthlyPoint, Performance, PeriodMap, RiskStats } from "../data/types.ts";
+import type { CalendarRow, ClassInfo, ClassPerformance, GrowthPoint, Issue, MonthlyPoint, Performance, PeriodMap, RiskStats } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
 import type { ClassSeriesSource } from "./fund-sources.ts";
+import type { ClassMonthResult, ClassResult } from "./class-returns.ts";
+import { hasMinHistory } from "./class-returns.ts";
 import {
-  addMonths, calendarYears, clean, growth as growthOf, monthsBetween, riskStats, sortedKeys, trailing as trailingOf, type RiskResult, type Series,
+  addMonths, annualize, calendarYears, clean, compound, growth as growthOf, monthsBetween, riskStats, sortedKeys, trailing as trailingOf, window, type RiskResult, type Series,
 } from "./metrics.ts";
 
 const PERIOD_LIST = PERIODS as readonly string[];
 const ym = (d: string): string => d.slice(0, 7);
+const dayDiff = (a: string, b: string): number => (Date.parse(`${b.slice(0, 10)}T00:00:00Z`) - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
 
 const toPoints = (s: Series): MonthlyPoint[] => sortedKeys(s).map((month) => ({ month, r: s[month] }));
-
-function periodMap(t: ReturnType<typeof trailingOf>): PeriodMap {
-  const out: PeriodMap = {};
-  for (const p of PERIOD_LIST) out[p as keyof PeriodMap] = t[p as keyof typeof t] ?? null;
-  return out;
-}
 
 function riskFrom(r: RiskResult | null): RiskStats | null {
   if (!r) return null;
@@ -33,137 +34,215 @@ function riskFrom(r: RiskResult | null): RiskStats | null {
   };
 }
 
-/**
- * The contiguous run of months ending at `asOf` (the class's series cannot have a hole: the history of a class starts at
- * its first computable month, earlier months are simply absent, but a later gap ends the usable run).
- */
-export function runEndingAt(s: Series, asOf: string): { series: Series; first: string; before: string[] } | null {
-  if (!(asOf in s)) return null;
-  let first = asOf;
-  while (addMonths(first, -1) in s) first = addMonths(first, -1);
-  const series: Series = {};
-  const before: string[] = [];
-  for (const m of sortedKeys(s)) (m >= first ? (series[m] = s[m]) : before.push(m));
-  return { series, first, before };
-}
-
-export interface DerivedReturns {
-  trailing: Performance["trailing"];
-  calendar: CalendarRow[];
-  growth: GrowthPoint[];
-  indexMonthly?: MonthlyPoint[];
+/** what the trailing figures of a class entry are computed from */
+export interface ClassSeriesShape {
+  /** usable monthly returns (withheld months absent), the partial first month included */
+  all: Series;
+  asOf: string;
+  firstMonth: string;
+  inception: string;
+  partialFirst: boolean;
 }
 
 /**
- * Trailing / calendar / growth of a series, and of the benchmark over the same months (index figures only where the
- * index has every month: null otherwise). Same conventions as the fund's own series (metrics.ts).
+ * Trailing returns of a class (fund side). Fixed periods and YTD from complete months only (a window containing a withheld
+ * month, or reaching into the partial first month, is null); YTD only when the year's January is usable and the class
+ * started before the year; since inception only when EVERY month from the first one is usable — compounded from the
+ * inception NAV, annualized from one year on (over calendar days when the first month is partial, else over months).
  */
-export function deriveReturns(series: Series, first: string, asOf: string, idx: Series | null): DerivedReturns {
-  const fund = periodMap(trailingOf(series, asOf));
+export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
+  const full: Series = {};
+  for (const m of sortedKeys(c.all)) if (!(c.partialFirst && m === c.firstMonth)) full[m] = c.all[m];
+  const t = trailingOf(full, c.asOf);
+  const out: PeriodMap = {};
+  for (const p of PERIOD_LIST) out[p as keyof PeriodMap] = null;
+  for (const p of ["1M", "3M", "1Y", "2Y", "3Y", "5Y", "10Y"] as const) out[p] = t[p];
+  const year = c.asOf.slice(0, 4);
+  const jan = `${year}-01-31`;
+  const ytd = window(full, c.asOf, undefined, `${year}-01-01`);
+  out.YTD = ytd && jan in full && c.firstMonth < jan ? compound(ytd) : null;
+  const si = window(c.all, c.asOf, undefined, c.firstMonth);
+  if (si && c.firstMonth in c.all && monthsBetween(c.firstMonth, c.asOf) === si.length) {
+    const total = compound(si);
+    if (c.partialFirst) {
+      const years = dayDiff(c.inception, c.asOf) / 365.25;
+      out.SI = years >= 1 ? Math.pow(1 + total, 1 / years) - 1 : total;
+    } else out.SI = si.length >= 12 ? annualize(si) : total;
+  }
+  return out;
+}
+
+/** Rebuild the class series shape of a published class entry (for validation recomputations). */
+export function shapeOf(p: Performance): ClassSeriesShape | null {
+  if (!p.inception) return null;
+  const all: Series = {};
+  for (const m of p.monthly) all[m.month] = m.r;
+  return { all, asOf: p.asOf, firstMonth: p.firstMonth, inception: p.inception, partialFirst: !!p.partialFirstMonth };
+}
+
+export interface ClassEntryInput {
+  /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
+  key: string;
+  cls: ClassSeriesSource;
+  result: ClassResult;
+  /** validated as-of month of the fund: the class series ends there */
+  asOf: string;
+  /** benchmark monthly returns (FTSE), null when the fund has none */
+  idx: Series | null;
+  indexName?: string;
+  minMonths: number;
+}
+
+export interface ClassEntryBuild {
+  entry: ClassPerformance | null;
+  info: ClassInfo;
+  issues: Issue[];
+}
+
+/** One class (not the track-record one) from its own months (class-returns.ts). */
+export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
+  const { key, cls, result: res, asOf, idx } = inp;
+  const issues: Issue[] = [];
+  const label = `class ${cls.display} (${cls.fundserv})`;
+  const info: ClassInfo = { fundserv: cls.fundserv, display: cls.display, currency: res.currency, inception: res.inception, status: "unavailable" };
+  if (res.status === "currency") {
+    issues.push({ key, level: "info", message: `${label}: ${res.why}; no performance shown for this series (the page says why)` });
+    return { entry: null, info: { ...info, status: "currency" }, issues };
+  }
+  if (res.status !== "ok" || !res.inception) {
+    issues.push({ key, level: "warn", message: `${label}: ${res.why ?? "no usable daily history"}; returns not shown for this class ("coming soon")` });
+    return { entry: null, info, issues };
+  }
+  if (res.previousRunEnd) issues.push({ key, level: "info", message: `${label}: relaunched — earlier NAVs up to ${res.previousRunEnd} belong to a previous life of the code; inception ${res.inception}` });
+  if (!hasMinHistory(res.inception, asOf, inp.minMonths)) {
+    issues.push({ key, level: "info", message: `${label}: inception ${res.inception}, less than ${inp.minMonths} months before ${ym(asOf)}: no performance figure (regulatory minimum)` });
+    return { entry: null, info: { ...info, status: "young", minMonths: inp.minMonths }, issues };
+  }
+  const months: ClassMonthResult[] = res.months.filter((m) => m.month <= asOf);
+  if (!months.length || months[months.length - 1].month !== asOf) {
+    issues.push({ key, level: "warn", message: `${label}: no month computed up to ${ym(asOf)}; returns not shown for this class` });
+    return { entry: null, info, issues };
+  }
+  const firstMonth = months[0].month;
+  const partialFirst = months[0].partial;
+  const withheld = months.filter((m) => m.r === null);
+  const all: Series = {};
+  for (const m of months) if (m.r !== null) all[m.month] = m.r;
+  if (!Object.keys(all).length) {
+    issues.push({ key, level: "warn", message: `${label}: every month since inception withheld (${withheld.slice(0, 2).map((m) => `${ym(m.month)} ${m.reason}`).join("; ")}…); returns not shown for this class` });
+    return { entry: null, info, issues };
+  }
+  for (const m of withheld) issues.push({ key: `${key}.monthly.${m.month}`, level: "warn", message: `${label}: ${ym(m.month)} withheld ("—"): ${m.reason}` });
+  const shape: ClassSeriesShape = { all, asOf, firstMonth, inception: res.inception, partialFirst };
+  const fund = classFundTrailing(shape);
+  const firstFull = partialFirst ? addMonths(firstMonth, 1) : firstMonth;
+  const full: Series = {};
+  for (const m of sortedKeys(all)) if (m >= firstFull) full[m] = all[m];
+
+  // benchmark over the same complete months (never against the partial first month)
   const trailing: Performance["trailing"] = { fund };
   let indexMonthly: MonthlyPoint[] | undefined;
   if (idx) {
-    const ci = periodMap(trailingOf(idx, asOf, { siStart: first }));
+    const ti = trailingOf(idx, asOf, { siStart: firstMonth });
     const index: PeriodMap = {};
     const va: PeriodMap = {};
     for (const p of PERIOD_LIST) {
       const k = p as keyof PeriodMap;
-      if (fund[k] == null) { index[k] = null; va[k] = null; continue; }
-      const iv = ci[k] ?? null;
+      const fv = fund[k];
+      const iv = fv == null || (k === "SI" && partialFirst) ? null : ti[k as keyof typeof ti] ?? null;
       index[k] = iv;
-      va[k] = iv != null ? clean((fund[k] as number) - iv) : null;
+      va[k] = fv != null && iv != null ? clean(fv - iv) : null;
     }
     trailing.index = index;
     trailing.va = va;
     const inRange: Series = {};
-    for (const m of sortedKeys(idx)) if (m >= first && m <= asOf) inRange[m] = idx[m];
+    for (const m of sortedKeys(idx)) if (m >= firstFull && m <= asOf) inRange[m] = idx[m];
     indexMonthly = toPoints(inRange);
   }
-  const idxCal = idx ? new Map(calendarYears(idx, asOf, { first }).map((y) => [y.year, y])) : null;
-  const calendar: CalendarRow[] = calendarYears(series, asOf, { first }).map((y) => {
+  const idxCal = idx ? new Map(calendarYears(idx, asOf, { first: firstMonth }).map((y) => [y.year, y])) : null;
+  const firstYear = +firstMonth.slice(0, 4);
+  const calendar: CalendarRow[] = calendarYears(all, asOf, { first: firstMonth }).map((y) => {
     const row: CalendarRow = { year: y.year, fund: y.value };
     if (y.partial) row.partial = true;
     if (idxCal) {
       const iy = idxCal.get(y.year);
-      const iv = iy && iy.months === y.months ? iy.value : null;
+      const iv = y.value != null && iy && iy.months === y.months && !(partialFirst && y.year === firstYear) ? iy.value : null;
       row.index = iv;
       row.va = iv != null && y.value != null ? clean(y.value - iv) : null;
     }
     return row;
   });
-  let acc: number | null = 1;
-  const growth: GrowthPoint[] = growthOf(series, asOf, { first }).map((pt, i) => {
-    if (!idx) return { date: pt.date, fund: pt.value };
-    if (i > 0) acc = acc != null && pt.date in idx ? acc * (1 + idx[pt.date]) : null;
-    return { date: pt.date, fund: pt.value, index: acc != null ? 10_000 * acc : null };
-  });
-  return { trailing, calendar, growth, ...(indexMonthly ? { indexMonthly } : {}) };
-}
 
-export interface ClassBuild {
-  /** the class's returns; null when it has none to show */
-  entry: ClassPerformance | null;
-  issues: Issue[];
-}
-
-export interface ClassBuildInput {
-  /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
-  key: string;
-  cls: ClassSeriesSource;
-  /** the class's monthly net returns (one class, checked by the caller); null: none */
-  series: Series | null;
-  /** months of `series` that come from rounded factsheet figures (no risk statistics over a window containing one) */
-  roundedMonths?: string[];
-  /** validated as-of month of the fund: the class series must end there */
-  asOf: string;
-  /** benchmark monthly returns (FTSE), null when the fund has none */
-  idx: Series | null;
-  indexName?: string;
-}
-
-/** One class (not the headline one: that series is the fund's main one) from its own monthly series. */
-export function buildClassPerformance(inp: ClassBuildInput): ClassBuild {
-  const { key, cls, series, asOf, idx } = inp;
-  const issues: Issue[] = [];
-  const label = `class ${cls.display} (${cls.fundserv})`;
-  if (!series) return { entry: null, issues };
-  const run = runEndingAt(series, asOf);
-  if (!run) {
-    const last = sortedKeys(series).pop();
-    issues.push({ key, level: "warn", message: `${label}: series ${last ? `ends ${ym(last)}` : "has no month"}, not ${ym(asOf)}; returns not shown for this class` });
-    return { entry: null, issues };
+  // growth: from the inception (all months usable) or from the month-end after the last withheld month
+  const lastWithheld = withheld.length ? withheld[withheld.length - 1].month : null;
+  const gStart = lastWithheld ? addMonths(lastWithheld, 1) : firstMonth;
+  let growth: GrowthPoint[] = [];
+  let growthFrom: string | undefined;
+  if (gStart <= asOf) {
+    const pts = growthOf(all, asOf, { first: gStart });
+    const fromInception = gStart === firstMonth;
+    growthFrom = fromInception ? res.inception : addMonths(gStart, -1);
+    const withIndex = !!idx && !(fromInception && partialFirst);
+    let acc: number | null = 1;
+    growth = pts.map((pt, i) => {
+      if (!withIndex) return { date: pt.date, fund: pt.value };
+      if (i > 0) acc = acc != null && pt.date in idx! ? acc * (1 + idx![pt.date]) : null;
+      return { date: pt.date, fund: pt.value, index: acc != null ? 10_000 * acc : null };
+    });
   }
-  const n = monthsBetween(run.first, asOf);
-  const d = deriveReturns(run.series, run.first, asOf, idx);
-  const short = n < 12;
+
   const performance: Performance = {
-    asOf, basis: "net", method: "compounded", firstMonth: run.first, monthly: toPoints(run.series),
-    ...(d.indexMonthly ? { indexMonthly: d.indexMonthly } : {}), trailing: d.trailing, calendar: d.calendar, growth: d.growth,
+    asOf, basis: "net", method: "compounded", firstMonth, monthly: toPoints(all),
+    ...(indexMonthly ? { indexMonthly } : {}), trailing, calendar, growth,
     classCode: cls.classCode, returnClass: cls.display, returnClassLabel: `Series ${cls.display}`,
     ...(inp.indexName ? { indexName: inp.indexName } : {}),
-    ...(short ? { shortRecord: true } : {}),
+    inception: res.inception,
+    ...(partialFirst ? { partialFirstMonth: true } : {}),
+    ...(withheld.length ? { withheldMonths: withheld.map((m) => m.month) } : {}),
+    ...(growthFrom ? { growthFrom } : {}),
   };
-  if (short) issues.push({ key, level: "info", message: `${label}: ${n} month(s) of history (< 12): only the periods that exist are shown ("since class inception"), no risk statistics` });
-  const rounded = (inp.roundedMonths ?? []).filter((m) => m >= run.first && m <= asOf);
-  const risk = rounded.length ? null : riskFrom(riskStats(run.series, asOf, "SI"));
-  const risk3Y = rounded.some((m) => m > addMonths(asOf, -36)) ? null : riskFrom(riskStats(run.series, asOf, "3Y"));
-  if (rounded.length) issues.push({ key: key.replace(/\.performance\..*$/, ".risk"), level: "warn", message: `${label}: risk statistics not shown${risk3Y ? " for the SI window" : ""}: ${rounded.length} month(s) come from rounded factsheet figures` });
-  return { entry: { fundserv: cls.fundserv, display: cls.display, performance, risk, risk3Y }, issues };
+  // risk statistics over complete months: since inception only when every complete month is usable
+  const fullCount = Object.keys(full).length;
+  const risk = fullCount === monthsBetween(firstFull, asOf) ? riskFrom(riskStats(full, asOf, "SI")) : null;
+  const risk3Y = riskFrom(riskStats(full, asOf, "3Y"));
+  if (withheld.length) {
+    const nulls = PERIOD_LIST.filter((p) => fund[p as keyof PeriodMap] == null).join(", ");
+    issues.push({ key, level: "warn", message: `${label}: ${withheld.length} month(s) withheld (${withheld.map((m) => ym(m.month)).join(", ")}); figures over them withheld (${nulls || "none"}${risk ? "" : ", risk since inception"}${risk3Y ? "" : ", risk 3 years"}); growth from ${growthFrom ?? "—"}` });
+  }
+  return { entry: { fundserv: cls.fundserv, display: cls.display, performance, risk, risk3Y }, info: { ...info, status: "shown" }, issues };
+}
+
+/**
+ * The class the page opens on: the registry's headline class when it has returns, else the first class (in `order`) that
+ * has returns; undefined when none has.
+ */
+export function pickDefaultClass(headline: string | null | undefined, order: string[], byClass: Record<string, unknown>): string | undefined {
+  if (headline && byClass[headline]) return headline;
+  return order.find((k) => byClass[k]) ?? Object.keys(byClass).sort()[0];
 }
 
 /**
  * Why a performance block cannot be published (used for the classes and variants, whose failure drops that class /
- * variant only, never the fund): non-finite or implausible monthly returns (beyond ±25 %), a series that has a gap or does
- * not end at as-of, trailing figures that differ from a recomputation (`recompute`: the pipeline computed them), a growth
- * series that does not match the monthly returns. Empty = fine.
+ * variant only, never the fund): non-finite or implausible monthly returns (beyond ±25 %), a series that has a gap (other
+ * than its declared withheld months) or does not end at as-of, trailing figures that differ from a recomputation
+ * (`recompute`: the pipeline computed them), a growth series that does not match the monthly returns. Empty = fine.
  */
 export function performanceProblems(p: Performance, method: "compounded" | "arithmetic", recompute: boolean, maxMonthly = 0.25): string[] {
   const out: string[] = [];
   for (const m of p.monthly) if (!Number.isFinite(m.r) || Math.abs(m.r) > maxMonthly) out.push(`monthly return ${m.month} = ${m.r} is outside ±${maxMonthly * 100}%`);
   for (const m of p.indexMonthly ?? []) if (!Number.isFinite(m.r) || Math.abs(m.r) > maxMonthly) out.push(`index monthly return ${m.month} = ${m.r} is outside ±${maxMonthly * 100}%`);
   const ms = p.monthly.map((m) => m.month);
+  const withheld = new Set(p.withheldMonths ?? []);
+  const shape = shapeOf(p);
   if (!ms.length) out.push("no monthly return");
-  else {
+  else if (shape) {
+    // a class entry: every month from the first one to as-of is either published or declared withheld, never both
+    for (const m of ms) if (withheld.has(m)) { out.push(`month ${m} is both published and withheld`); break; }
+    const have = new Set(ms);
+    for (let m = p.firstMonth; m <= p.asOf; m = addMonths(m, 1)) if (!have.has(m) && !withheld.has(m)) { out.push(`monthly series has an undeclared gap at ${m}`); break; }
+    if (ms.some((m) => m < p.firstMonth || m > p.asOf)) out.push(`a monthly return lies outside ${p.firstMonth} to ${p.asOf}`);
+    if (ms[ms.length - 1] !== p.asOf && !withheld.has(p.asOf)) out.push(`last monthly return ${ms[ms.length - 1]} does not match as-of ${p.asOf}`);
+  } else {
     if (ms[ms.length - 1] !== p.asOf) out.push(`last monthly return ${ms[ms.length - 1]} does not match as-of ${p.asOf}`);
     for (let i = 1; i < ms.length; i++) if (addMonths(ms[i - 1], 1) !== ms[i]) { out.push(`monthly series has a gap between ${ms[i - 1]} and ${ms[i]}`); break; }
     if (p.firstMonth !== ms[0]) out.push(`first month ${p.firstMonth} does not match the series (${ms[0]})`);
@@ -171,16 +250,20 @@ export function performanceProblems(p: Performance, method: "compounded" | "arit
   const series: Series = {};
   for (const m of p.monthly) series[m.month] = m.r;
   if (recompute && ms.length) {
-    const t = trailingOf(series, p.asOf, { method });
+    const t: PeriodMap = shape ? classFundTrailing(shape) : trailingOf(series, p.asOf, { method });
     for (const per of PERIODS) {
       const a = p.trailing.fund[per];
-      const b = t[per];
+      const b = t[per] ?? null;
       if (a === undefined) continue;
       if ((a === null) !== (b === null) || (a !== null && b !== null && Math.abs(a - b) > 1e-9)) out.push(`trailing ${per} (${a}) differs from the recomputation (${b})`);
     }
   }
   if (p.growth.length && ms.length) {
-    const rs = p.monthly.map((m) => m.r);
+    // the growth series starts at its first point (the month-end before its first month)
+    const first = addMonths(p.growth[0].date, 1);
+    const rs = p.monthly.filter((m) => m.month >= first).map((m) => m.r);
+    const expectedMonths = monthsBetween(first, p.asOf);
+    if (shape && rs.length !== expectedMonths) out.push(`growth series from ${first} crosses a withheld month`);
     const expected = 10_000 * (1 + (method === "arithmetic" ? rs.reduce((a, b) => a + b, 0) : rs.reduce((a, r) => a * (1 + r), 1) - 1));
     const last = p.growth[p.growth.length - 1];
     if (last.date !== p.asOf || Math.abs(last.fund - expected) > 0.01) out.push(`growth of 10 000 ends at ${last.date} ${last.fund.toFixed(2)}, expected ${p.asOf} ${expected.toFixed(2)}`);
