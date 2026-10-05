@@ -199,18 +199,30 @@ Not yet run against live data, not deployed.
 
 19. **Every series' returns** (branch `feat/all-classes`, from `redesign/v3-keynote-live-data`, **not merged**): every active register
    class of the three funds gets its own monthly returns from its own `nav-timeseries` chain since its inception (first price of its
-   current run); defect months withheld per class, figures over them "—", 12-month minimum, F USD without figures. To do:
-   (a) independent adversarial review (numbers, edge cases, page copy); (b) **first live run in review mode**: read the
-   `funds.<fund>.performance.classes` issues and the non-blocking notice "month(s) withheld for every class of the fund" — expected
-   per Gabriel's checks: the bad month-end prints of 2021-11 / 2021-12 (every Monthly Income class) and the 2024-12 annual
-   distribution (SEB F / H vs I; Monthly Income classes) — tune `CLASS_CHECKS` (config.ts) only with evidence; check each class's
-   inception against the register; (c) **report the defect months to the dataplatform team** (bad CIBC month-end prints,
-   inconsistent distribution adjustment of 2024-12-31) and ask for a **distributions endpoint** on main (total returns of the USD
-   class and a cross-check of the CIBC stored returns need it); (d) compliance rows AC1–AC6 (`docs/compliance-review.md`), in
-   particular AC3 (showing some standard periods while others are withheld); (e) the first publication with every class needs one
-   admin approval of the run (classes published for the first time go through the class-change gate).
+   current run); defect months withheld ("—", figures over them "—"), 12-month minimum, F USD without figures. To do:
+   (a) **first live run** (review mode, or auto: the fund then stays at its previous publication): in *Admin → Runs* the run is
+   `pending-review` with "class changes" = every series published for the first time (and Monthly Income's default series if it
+   changes); read the `funds.<fund>.performance.classes*` issues (inceptions, withheld months and why) and the non-blocking notice
+   "month(s) withheld for every class of the fund", then press **"approve class change & publish"** once (one approval publishes
+   every class of every fund of that run; later runs are not gated again until a new series appears, e.g. a series reaching its
+   12 months). Expected per Gabriel's DP checks: the bad month-end print of 2021-11 / 2021-12 (every Monthly Income class) and the
+   2024-12 annual distribution (classes of SEB and Monthly Income disagreeing) withheld; expected inceptions roughly MI FP/J 2021-10,
+   I 2023-02, A 2025-05, F USD 2025-12, F 2026-06; SEB H/F/J 2023-07, I 2023-10, A 2026-06; Multi F/I/J 2023-06, A 2024-08 — tune
+   `CLASS_CHECKS` (`src/lib/pipeline/config.ts`) only with evidence; (b) **report to the dataplatform team**: the bad CIBC
+   month-end prints, the inconsistent distribution adjustment of 2024-12-31 between classes, and ask for a **distributions
+   endpoint** on main (total returns of the USD class); (c) compliance rows AC1–AC6 (`docs/compliance-review.md`), in particular
+   AC3 (some standard periods shown while others are "—"); (d) an independent adversarial review could not be spawned from the
+   sub-agent sessions: run one before merging.
 
 ## 6. Session log
+
+- 2026-10-05 (sub-agent, branch `feat/all-classes`; not merged): review of the 2026-10-04 work against the brief. Cross-class rule
+  aligned with the brief: over the classes with a COMPLETE month (partial first months outside the median) ANY class beyond
+  max(0.50 %, 0.25 × |median|) withholds the month for EVERY class of the fund (was: the outlier alone when a strict minority);
+  a partial inception month is compared over its own days and withheld alone. The daily-dispersion check (not in the brief) is
+  removed: a one-day mismatch offset within the month leaves the month consistent, and it risked withholding every December
+  (performance-fee crystallisation) for every class. Fixtures: Monthly Income class I drifts +0.9 % in 2023-09 (monthly), the
+  2025-03 drifts are gone (MI F, SEB F/I clean). Page: since-inception rows of a class read "Since inception (Oct 5, 2021)".
 
 - 2026-10-04 (sub-agent, branch `feat/all-classes` from `redesign/v3-keynote-live-data`; not merged): Gabriel's request "make sure
   that all classes' returns are populated with data coming from dataplatform … for our 3 funds … inception date of each class = first
