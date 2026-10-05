@@ -219,6 +219,25 @@ Not yet run against live data, not deployed.
 
 ## 6. Session log
 
+- 2026-10-05 (sub-agent, branch `feat/collapsible-disclosures` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
+  request "all the disclosure in the websites … smaller divs that have a fade out towards the end and a static arrow that shows
+  that this box can be expanded". New `src/components/site/Disclosure.tsx` (+ pure `disclosure-logic.ts`, unit-tested in
+  `tests/unit/site/disclosure.test.ts`; CSS at the end of `kit.css`): blocks of ≥ 420 characters (`DISCLOSURE_MIN_CHARS`, decided
+  on the server from the text, so the collapsed box is the SSR default and nothing moves on hydration) are clipped to
+  `--disc-max` (7.6 rem) with a mask fade and a static chevron button (`aria-expanded` / `aria-controls`, "Show full text" /
+  « Afficher le texte complet », "Show less" / « Réduire ») centred on the bottom edge; click / Enter / Space / click on the box
+  open it (max-height animation, none under reduced motion). If the text fits the collapsed height (wide screens) the box shows
+  no fade and no arrow (`data-disc="fits"`, no height change); shorter blocks render as before (`data-disc="plain"`,
+  `display: contents`). Full text always in the DOM (clip, never display:none / aria-hidden); collapsed style only under the
+  head script's `.js` class → **no-JS = everything open**; print opens everything; a scroll of the clip (find-in-page, focus,
+  scrollIntoView) opens the box; `anchors` hashes (`#disclosure`, `#disclaimers`) or an id inside the box open it on load,
+  hashchange and same-hash link clicks. Used on: fund-page Disclosures (`fund-disclosure`), footer (`footer-disclosure`; grid
+  moved to `.footer-disc-body`), Performance → Notes, Awards notes, /strategies notes, /solutions notes, /approach overlay
+  footnotes. Not used (judgement): /legal, /privacy, animation figcaptions, Morningstar info note, one-line notes.
+  e2e `e2e/disclosure.spec.ts` (desktop + mobile; screenshots `disc-fund-collapsed|fund-expanded|footer-collapsed-<project>.png`).
+  Compliance rows D1–D3 (**D1: regulator / compliance to confirm the prominence of collapsed disclosures**). Not done:
+  independent adversarial review (could not be spawned from the sub-agent).
+
 - 2026-10-05 (sub-agent, `feat/disclosures-engines`, independent review fixes; **not merged**): FR legend
   « Mois de baisse des actions » no longer ellipsised on phones (narrow: full width for the down-month key);
   "generated" back on the canvas, on the market group header ("Traditional markets · generated" / « Marchés
