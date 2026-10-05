@@ -6,15 +6,14 @@
  *   <Divider/>      hairline between sections that draws itself from the centre, then a light runs along it
  *   <Parallax/>     decorative glow that drifts against the scroll
  *   <FxEffects/>    mounted once: magnetic buttons, card spotlight following the pointer, scroll progress line
- *   <AnalysisScan/> the home "analysis scan" panel (large table of rows scanned by a light, with counters)
+ *   <AnalysisScan/> the home "analysis scan" panel (large table of rows scanned by a light)
  */
-import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { recoverFromChunkError } from "./chunk-recover";
 import { Cpu, FlaskConical, Landmark } from "lucide-react";
 import { onScrollFrame, reducedMotion, Reveal, useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { SCAN_COPY as C } from "./scan-copy";
-import { FACTORS } from "./scan-model";
 import "./fx.css";
 
 /* ------------------------------------------------------------------ user preferences */
@@ -158,9 +157,6 @@ export function FxEffects() {
 export function AnalysisScan() {
   const { locale, pick } = useTranslation();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const dp = useRef<HTMLElement>(null);
-  const sec = useRef<HTMLElement>(null);
-  const sg = useRef<HTMLElement>(null);
   const lang = useRef(locale);
   const scan = useRef<{ redraw(): void } | null>(null);
   const [ready, setReady] = useState(false);
@@ -179,7 +175,6 @@ export function AnalysisScan() {
           ...(coarsePointer() ? { maxFps: 15 } : {}),
           watermark: () => (lang.current === "fr" ? C.watermark.fr : C.watermark.en),
           lang: () => lang.current,
-          counters: { datapoints: dp.current, securities: sec.current, signals: sg.current },
           onReady: () => setReady(true),
         });
         scan.current = engine;
@@ -191,9 +186,6 @@ export function AnalysisScan() {
     return () => { dead = true; io.disconnect(); engine?.destroy(); scan.current = null; };
   }, [reduced]);
   useEffect(() => { scan.current?.redraw(); }, [locale]);
-  const stat = (label: string, node: ReactNode) => (
-    <div className="sc-stat"><dt>{label}</dt><dd className="tabnum">{node}</dd></div>
-  );
   const icons = [FlaskConical, Cpu, Landmark];
   return (
     <>
@@ -207,12 +199,6 @@ export function AnalysisScan() {
         <div className="sc-body" data-testid="scan-host">
           <canvas ref={canvas} className="sc-canvas" aria-hidden="true" data-testid="scan-canvas" />
         </div>
-        <dl className="sc-stats">
-          {stat(pick(C.counters.datapoints), <b ref={dp} data-testid="count-datapoints">0</b>)}
-          {stat(pick(C.counters.securities), <b ref={sec} data-testid="count-securities">0</b>)}
-          {stat(pick(C.counters.factors), <b data-testid="count-factors">{FACTORS.length}</b>)}
-          {stat(pick(C.counters.signals), <b ref={sg} data-testid="count-signals">0</b>)}
-        </dl>
       </div>
       <figcaption className="fine sc-cap">{pick(C.caption)}</figcaption>
       </figure>

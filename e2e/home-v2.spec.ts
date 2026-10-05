@@ -43,18 +43,17 @@ test("home (FR): AUM reads 1,9 G$ and the scan is labelled in French", async ({ 
   await expect(page.locator("main")).not.toContainText(/VL quotidienne/i);
 });
 
-test("home: the analysis scan is drawn, counts what it scans and stops when it leaves the screen", async ({ page }) => {
+test("home: the analysis scan is drawn, has no counters strip and stops when it leaves the screen", async ({ page }) => {
   await page.goto("/");
   const panel = page.getByTestId("scan-panel");
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toHaveClass(/\bon\b/);
   await expect.poll(() => frames(page, "scan-host")).toBeGreaterThan(5);
   expect(await canvasHasInk(page, "scan-canvas")).toBeGreaterThan(200);
-  // illustration, not data: the figure says so, and the counters are the animation's own
+  // illustration, not data: the figure says so; the simulated counters were removed (Gabriel, 2026-10-04)
   await expect(panel).toContainText(/illustration/i);
-  await expect.poll(async () => Number((await page.getByTestId("count-securities").innerText()).replace(/\D/g, ""))).toBeGreaterThan(0);
-  await expect.poll(async () => Number((await page.getByTestId("count-datapoints").innerText()).replace(/\D/g, ""))).toBeGreaterThan(0);
-  await expect(page.getByTestId("count-factors")).toHaveText("4");
+  await expect(panel.locator("dl")).toHaveCount(0);
+  await expect(page.getByTestId("count-securities")).toHaveCount(0);
   await expect(page.getByTestId("scan-host")).toHaveAttribute("data-running", "true");
   // off screen: the loop is stopped (no CPU while the visitor reads elsewhere)
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -86,8 +85,6 @@ test("reduced motion: the scan and the data field are one still frame, nothing i
   await expect(page.getByTestId("scan-host")).toHaveAttribute("data-running", "false");
   expect(await frames(page, "scan-host")).toBe(1);
   expect(await canvasHasInk(page, "scan-canvas")).toBeGreaterThan(200);
-  // the counters show what the still frame shows
-  expect(Number((await page.getByTestId("count-securities").innerText()).replace(/\D/g, ""))).toBeGreaterThan(0);
   const field = page.locator(".hm-hero [data-testid=data-field]");
   await expect(field).toHaveAttribute("data-running", "false");
   await page.waitForTimeout(500);

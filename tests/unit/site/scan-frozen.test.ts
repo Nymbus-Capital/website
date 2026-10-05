@@ -18,7 +18,8 @@ test("science at scale: model, engine and copy are unchanged", () => {
   assert.equal(sha(read("scan-model.ts")), "3b2d10b59b33b3d84bae6383b85d733f3ab8725ed48851feddedcaaed1d6c1e0");
   assert.equal(sha(read("scan-engine.ts")), "2f093e085911dd6d69916abd8eb062eecb35e650ea282dc4190ce189ac57809a");
   // copy changed at Gabriel's request 2026-10-03 (title and third trio card: scientists, engineers and market veterans; FR « développeurs »)
-  assert.equal(sha(read("scan-copy.ts")), "95fb90d957206852c698ec6c7f62623b891b3a344553982b6d11be94e3e6c165");
+  // 2026-10-04: Gabriel requested the removal of the simulated counters (labels and the caption sentence about them)
+  assert.equal(sha(read("scan-copy.ts")), "a7b000cefe69578f607aec8b084800e8803d683e52869d6e5a6783fdefbf3c2e");
 });
 
 test("science at scale: the AnalysisScan markup and the panel styles are unchanged", () => {
@@ -45,5 +46,7 @@ test("science at scale: its home section is unchanged and the new band comes rig
   assert.match(home.slice(at + scan.length), /^\s*<Section[^>]*labelledBy="ov-t"/);
 });
 
-const ANALYSIS_SCAN_SHA = "0e20c3d971f60cf7ebab230253086414e4842bf3c9143ec22bccb64148c49f17"; // 2026-10-04: start-failure logging + stale-chunk reload only, no visual change
+// 2026-10-04: start-failure logging + stale-chunk reload (no visual change); then, same day, Gabriel requested the removal
+// of the simulated counters strip under the panel (the <dl> and its refs); nothing else in the panel changed
+const ANALYSIS_SCAN_SHA = "b68e1b8eb8f957293c9a0e8e53d3a43d78124851158ffdac015037868a4f0a1c";
 const SCAN_CSS_SHA = "2b1ab17f6367eae6d6da42f84c342680f3763b2ccb67051eef6a14fefe190f5c";

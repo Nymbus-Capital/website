@@ -109,8 +109,8 @@ test("engines band: no horizontal scroll at 360 px, panel inside the viewport", 
   await ctx.close();
 });
 
-// copy changed at Gabriel's request 2026-10-03 (title and third trio card); layout and animation unchanged
-test("science at scale is unchanged (apart from its 2026-10-03 copy), and the engines band comes right after it", async ({ page }) => {
+// copy changed at Gabriel's request 2026-10-03 (title and third trio card) and 2026-10-04 (counters removed); animation unchanged
+test("science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-04 counters removal), and the engines band comes right after it", async ({ page }) => {
   await page.goto("/");
   const sc = page.locator("section.sc");
   await sc.scrollIntoViewIfNeeded();
@@ -120,11 +120,10 @@ test("science at scale is unchanged (apart from its 2026-10-03 copy), and the en
   expect(await texts(".section-head .lead")).toEqual(["Data at scale. Models tested before they are trusted."]);
   expect(await texts(".sc-title, .sc-chip")).toEqual(["Analysis · universe, factors, signals", "Illustration"]);
   expect(norm(await sc.locator("figcaption").textContent())).toBe(
-    "Generic labels and generated values: not actual securities, signals or results. The counters count what this animation scans.",
+    "Generic labels and generated values: not actual securities, signals or results.",
   );
-  expect(await texts(".sc-stats dt")).toEqual([
-    "Simulated data points scanned", "Simulated securities screened", "Simulated factors per security", "Simulated signals flagged",
-  ]);
+  // 2026-10-04: Gabriel requested the removal of the simulated counters strip
+  await expect(sc.locator(".sc-stats")).toHaveCount(0);
   expect(await texts(".sc-trio h3, .sc-trio p")).toEqual([
     "Scientists", "Hypotheses, tested on data.", "Engineers", "Pipelines that run every day.", "Market veterans", "Decades in fixed income and derivatives.",
   ]);
