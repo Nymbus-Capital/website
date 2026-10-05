@@ -28,7 +28,7 @@
  *    NAV bridge must equal the class's compounded daily returns;
  *    c. missing / duplicate days, invalid returns, another return method (above).
  */
-import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
+import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, dropHolidayFiller, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
 
@@ -106,12 +106,11 @@ function median(xs: number[]): number {
   return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
 }
 
-/** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable) */
+/** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable), without CIBC holiday filler rows */
 export function normalizeRows(rows: DailyRow[]): DailyRow[] {
-  return rows
+  return dropHolidayFiller(rows
     .filter((r) => r && typeof r.date === "string")
-    .map((r) => ({ ...r, date: r.date.slice(0, 10) }))
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    .map((r) => ({ ...r, date: r.date.slice(0, 10) })));
 }
 
 /**

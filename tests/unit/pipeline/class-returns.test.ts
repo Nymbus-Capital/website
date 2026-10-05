@@ -372,3 +372,22 @@ test("a class without a fit, next to fitted classes, is never checked at slope 1
   });
   assert.equal(crossClassFailures(q.months, q.daily, CLASS_CHECKS).fails.size, 0);
 });
+
+test("CIBC holiday filler rows (NAV carried over, no return, market holiday) are not valuation days; a moving holiday row stays", async () => {
+  const { dropHolidayFiller, cibcMonth } = await import("../../../src/lib/pipeline/daily-chain.ts");
+  const { tradingDays } = await import("../../../src/lib/pipeline/market-calendar.ts");
+  // September 2024: Labour Day (2024-09-02) is a market holiday
+  const days = tradingDays("2024-08-30", "2024-09-30");
+  let nav = 10;
+  const base = days.map((d) => { nav *= 1.001; return { date: d, source: "cibc", currency: "CAD", net_return_method: "legacy_stored", nav_per_share_cad: nav, net_daily_return: 0.001 }; });
+  const filler = { date: "2024-09-02", source: "cibc", currency: "CAD", net_return_method: "legacy_stored", nav_per_share_cad: base[0].nav_per_share_cad, net_daily_return: null };
+  const rows = [...base, filler];
+  assert.equal(dropHolidayFiller(rows).some((r) => r.date === "2024-09-02"), false);
+  const m = cibcMonth(rows, "2024-09-30", "2024-01-01");
+  assert.equal(m.status, "ready", m.issue ?? "");
+  assert.ok(m.r !== null && Math.abs(m.r - (1.001 ** (days.length - 1) - 1)) < 1e-12, String(m.r));
+  // the same holiday row with a moved NAV stays and withholds the month (its move would otherwise be lost)
+  const moved = [...base, { ...filler, nav_per_share_cad: (base[0].nav_per_share_cad as number) * 1.01 }];
+  assert.equal(dropHolidayFiller(moved).some((r) => r.date === "2024-09-02"), true);
+  assert.equal(cibcMonth(moved, "2024-09-30", "2024-01-01").r, null);
+});

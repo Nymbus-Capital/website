@@ -17,7 +17,7 @@
  *    using any CIBC month (build.ts). A `nav_price_ratio` row (price return, distribution-blind) is never compounded.
  */
 import { addMonths, toMonthEnd } from "./metrics.ts";
-import { tradingDays, priorTradingDay } from "./market-calendar.ts";
+import { isTradingDay, tradingDays, priorTradingDay } from "./market-calendar.ts";
 
 export { caMarketHolidays, isTradingDay, priorTradingDay, tradingDays } from "./market-calendar.ts";
 
@@ -67,6 +67,28 @@ const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
 
 const monthRows = (rows: DailyRow[], ym: string): DailyRow[] => rows.filter((r) => r.date.slice(0, 7) === ym).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
+/**
+ * CIBC holiday filler: the former administrator wrote a row on some market holidays (Labour Day, Thanksgiving, Christmas,
+ * Family Day…) with the NAV per unit carried over and no return. Such a row is not a valuation day: dropped when the date
+ * is not a trading day, its return is empty or zero, and its NAV per unit equals the previous row's (or is empty). A
+ * holiday row that moves the NAV or carries a return stays (and is judged like any other row).
+ */
+export function dropHolidayFiller<T extends DailyRow>(rows: T[]): T[] {
+  const sorted = [...rows].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const out: T[] = [];
+  let prevNav: number | null = null;
+  for (const r of sorted) {
+    const d = r.date.slice(0, 10);
+    const nav = finite(r.nav_per_share_cad) ? (r.nav_per_share_cad as number) : null;
+    const noReturn = r.net_daily_return === null || r.net_daily_return === undefined || r.net_daily_return === 0;
+    const sameNav = nav === null || (prevNav !== null && Math.abs(nav / prevNav - 1) < 1e-9);
+    if (r.source !== "apex" && !isTradingDay(d) && noReturn && sameNav) continue;
+    out.push(r);
+    if (nav !== null) prevNav = nav;
+  }
+  return out;
+}
+
 /** Apex month (port of `_monthly_rows`). */
 export function apexMonth(rows: DailyRow[], month: string): ChainMonth {
   const ym = month.slice(0, 7);
@@ -93,7 +115,7 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
   const out: ChainMonth = { month, status: "unavailable", r: null, source: "cibc", issue: null };
   const expected = tradingDays(`${ym}-01`, month);
   if (!expected.length || expected[0] < navStart) return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
-  const rs = monthRows(rows, ym);
+  const rs = monthRows(dropHolidayFiller(rows), ym);
   const days = rs.map((r) => r.date);
   if (new Set(days).size !== days.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
   const have = new Set(days);
