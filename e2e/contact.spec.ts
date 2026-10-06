@@ -99,6 +99,12 @@ test("contact: French form, server-side field errors shown at their step", async
   await expect(form.getByText(/J’accepte que Nymbus Capital utilise ces renseignements uniquement/)).toBeVisible();
   await form.scrollIntoViewIfNeeded();
   await page.getByTestId("contact-form").screenshot({ path: `${SHOTS}/contact-form-step3-fr-${info.project.name}.png` });
+  // the send button's label fits inside the button and the button inside the form (phones: its own row)
+  const send = form.locator('button[type="submit"]');
+  expect(await send.evaluate((b) => b.scrollWidth <= b.clientWidth + 1)).toBe(true);
+  const [fb, sb] = [await form.boundingBox(), await send.boundingBox()];
+  expect(sb!.x).toBeGreaterThanOrEqual(fb!.x - 1);
+  expect(sb!.x + sb!.width).toBeLessThanOrEqual(fb!.x + fb!.width + 1);
   // the server is the authority: a field it refuses (here forced through the API shape) comes back to its step
   await page.route("**/api/contact", (route) => route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "invalid_input", fields: ["interests"] }) }));
   await form.getByText(/J’accepte que Nymbus Capital/).click();

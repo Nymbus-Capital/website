@@ -398,6 +398,8 @@
 .ct-ready .body { max-width: 440px; }
 .ct-ready .actions { margin-top: 16px; }
 @media (max-width: 640px) { .ct-opts, .ct-fields { grid-template-columns: minmax(0, 1fr); } .ct-nav .btn { flex: 1; } }
+/* phones: the send button takes its own full row above "Back" (« Envoyer mon message » does not fit half a 360 px row) */
+@media (max-width: 640px) { .ct-nav .btn[type="submit"] { flex: 1 1 100%; order: -1; } }
 .ct-side { display: grid; gap: 20px; }
 .ct-office h2, .ct-resp h2 { margin: 0 0 14px; }
 .ct-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
