@@ -12,11 +12,11 @@ import type { FundKey } from "@/lib/data/types";
 import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
 import type { FundCard, HomeData } from "../home/data";
 import { Intro } from "../home/Intro";
-import { FUND_COPY as F } from "../home/copy";
+import { FUND_COPY as F } from "../home/home.copy";
 import { SampleTag, fundStyle } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
-import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions-copy";
+import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions.copy";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };

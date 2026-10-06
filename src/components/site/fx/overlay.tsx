@@ -2,16 +2,16 @@
 /**
  * overlay.tsx — the home "diversifying engines" panel (multi-strategy, futures overlay): a canvas illustration of
  * generated traditional markets (equities, bonds) falling together in down months while our strategies move on their
- * own, with a concept down-month correlation heatmap. No counters (removed at Gabriel's request, 2026-10-04).
+ * own, with a concept down-month correlation heatmap. No counters (docs/architecture.md § Decision log).
  * Same contract as the analysis scan: lazy engine, paused off-screen / hidden tab, one still frame under reduced
  * motion (live), Data Saver → still, coarse pointer → 15 fps, test hooks data-frames / data-running.
  */
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { recoverFromChunkError } from "./chunk-recover";
 import { Layers, Shuffle, TrendingDown } from "lucide-react";
-import { reducedMotion, Reveal } from "@/components/v3/motion";
+import { reducedMotion, Reveal } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
-import { OVERLAY_COPY as C } from "./overlay-copy";
+import { OVERLAY_COPY as C } from "./overlay.copy";
 import { ENGINES, MARKETS } from "./overlay-model";
 import type { OverlayLabels } from "./overlay-engine";
 import "./fx.css";

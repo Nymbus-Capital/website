@@ -12,13 +12,13 @@ import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from ".
 import { parseLooseJson } from "./factsheets.ts";
 import { githubToken } from "./github-auth.ts";
 
-export const ANALYTICS_DEFAULTS = {
+const ANALYTICS_DEFAULTS = {
   repo: "Nymbus-Capital/analytics",
   branch: "main",
   path: "fund-analytics-app/backend/data/fund_returns.json",
 };
 
-export function reduceAnalytics(body: unknown, where: string): AnalyticsReturns | null {
+function reduceAnalytics(body: unknown, where: string): AnalyticsReturns | null {
   const j = body as { dates?: unknown; returns?: unknown };
   if (!j || !Array.isArray(j.dates) || !j.returns || typeof j.returns !== "object") return null;
   const wanted = new Set(FUNDS.map((f) => FUND_SOURCES[f.key].analytics).filter((x): x is string => !!x));

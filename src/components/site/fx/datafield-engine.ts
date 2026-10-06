@@ -5,7 +5,7 @@
  */
 export interface DataField { destroy(): void }
 
-export interface DataFieldOptions {
+interface DataFieldOptions {
   still?: boolean;
   /** 0..1 overall strength */
   strength?: number;

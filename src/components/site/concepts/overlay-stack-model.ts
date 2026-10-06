@@ -5,12 +5,11 @@
  * The overlay's generated return follows market volatility (its sensitivity to volatility, or vega): small in calm
  * periods, clearly positive in volatile ones. Every value is generated; the core has no drift. Dependency-free.
  */
-import { clamp, gauss, hash01 } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "../canvas/timeline.ts";
 
 /** Steps: core invested · deposit · overlay stacked on top · two return streams. */
 export const OVERLAY_STEP_MS = [2800, 2800, 3200, 7600] as const;
 /** Shares of the capital base (illustrative estimates, as in the overlays 101 slides). */
-export const CORE_SHARE = 1;
 export const DEPOSIT_SHARE = 0.1;
 export const EXPOSURE_SHARE = 1;
 /** Generated period contributions are clamped to ±MAX_CONTRIB (generated units, not percentages). */
@@ -30,7 +29,7 @@ export interface Period {
  * Volatile stretches of chart window `w` (CHART_PERIODS periods) for `seed`: a longer episode in the first half and a
  * short one in the second, placed by the seed, so every chart shows calm and volatile periods side by side.
  */
-export function isVolatile(n: number, seed = 0): boolean {
+function isVolatile(n: number, seed = 0): boolean {
   const w = Math.floor(n / CHART_PERIODS), k = n - w * CHART_PERIODS;
   const a = 3 + Math.floor(hash01(w, 61, seed) * 4); // 3..6, four periods
   const b = 11 + Math.floor(hash01(w, 62, seed) * 3); // 11..13, two periods

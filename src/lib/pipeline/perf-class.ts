@@ -1,6 +1,6 @@
 /**
- * Class label of the published performance, derived from the class of the data actually used (Gabriel 2026-10-01:
- * "if you showcase the class H time series, then show class H"). Used by the build (carried publications) and by
+ * Class label of the published performance, derived from the class of the data actually used (the label always matches
+ * the data). Used by the build (carried publications) and by
  * the pages (render-time, so a rollback or a pin to a publication made before classes were tracked is labelled
  * by its data, never by a business label). Pure, dependency-free (Node type stripping); server only.
  */

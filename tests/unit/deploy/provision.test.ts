@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- untyped JSON bodies of the mock Northflank API, asserted field by field */
 // provision.test.ts — the Northflank provisioning script against a local mock of the API
 import { test } from "node:test";
 import assert from "node:assert/strict";

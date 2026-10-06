@@ -1,6 +1,6 @@
 "use client";
 /**
- * Collapsible box for disclosure / legal walls of text (Gabriel 2026-10-05): collapsed to a few lines with the text
+ * Collapsible box for disclosure / legal walls of text: collapsed to a few lines with the text
  * fading out and a static chevron centred on the bottom edge; the arrow (or a click on the box) opens it to full height.
  *
  * Compliance contract (docs/compliance-review.md § Collapsed disclosures):
@@ -17,7 +17,8 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
-import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel, type Lang } from "./disclosure-logic";
+import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel } from "./disclosure-logic";
+import type { Locale } from "@/lib/i18n/config";
 
 export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLOSURE_MIN_CHARS, className, testId }: {
   children: ReactNode;
@@ -27,7 +28,7 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
    */
   en?: readonly (string | null | undefined | false)[];
   /** language of the toggle's label (defaults to the site language) */
-  lang?: Lang;
+  lang?: Locale;
   /** ids of enclosing anchors whose URL hash opens the box (e.g. ["disclosure"]) */
   anchors?: readonly string[];
   minChars?: number;
@@ -36,7 +37,7 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
   testId?: string;
 }) {
   const { locale } = useTranslation();
-  const lg: Lang = lang ?? (locale === "fr" ? "fr" : "en");
+  const lg: Locale = lang ?? (locale === "fr" ? "fr" : "en");
   const collapsible = isCollapsible(en ? enLength(en) : textLength(children), minChars);
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
@@ -150,9 +151,7 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
     return <div className="disc" data-disc="plain" data-testid={testId}>{className ? <div className={className}>{children}</div> : children}</div>;
   }
 
-  // find-in-page / focus / scrollIntoView scroll the clipped part into view: open instead of scrolling inside the box.
-  // Limitation: a find match inside the faded strip (the last ≈ 3 rem, still on screen though faint) needs no scroll, so
-  // the browser highlights it there without opening the box (docs/compliance-review.md D2).
+  // find-in-page / focus / scrollIntoView scroll the clip: open the box instead (limitation: docs/compliance-review.md D2)
   const onScroll = () => {
     const clip = clipRef.current;
     if (!clip || clip.scrollTop === 0) return;

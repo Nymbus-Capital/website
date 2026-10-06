@@ -12,13 +12,10 @@
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import { newId, p, readJson, removePath, withLock, writeFileAtomic, writeJson } from "./store.ts";
-import type { DocType, DocumentMeta, FundKey, L10n, Lang } from "./types.ts";
+import type { DocType, DocumentMeta, FundKey } from "./types.ts";
+import type { L, Locale } from "../i18n/config.ts";
 
 export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
-export const DOC_TYPES: readonly DocType[] = [
-  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other",
-];
-export const DOC_LANGS: readonly (Lang | "both")[] = ["en", "fr", "both"];
 
 /** ids produced by store.newId(): `20260929T043000-1a2b3c4d` */
 const ID_RE = /^\d{8}T\d{6}-[0-9a-f]{8}$/;
@@ -48,7 +45,7 @@ export function sanitizeFileName(raw: string): string {
   return `${n}.pdf`;
 }
 
-export type UploadCheck = { ok: true } | { ok: false; status: 400 | 413 | 415; message: string };
+type UploadCheck = { ok: true } | { ok: false; status: 400 | 413 | 415; message: string };
 
 export function validateUpload(bytes: Uint8Array, declaredType?: string): UploadCheck {
   if (bytes.length === 0) return { ok: false, status: 400, message: "The file is empty." };
@@ -111,11 +108,11 @@ async function mutateIndex<T>(fn: (docs: DocumentMeta[]) => Promise<{ docs: Docu
   throw new Error("documents index is busy");
 }
 
-export interface NewDocument {
+interface NewDocument {
   scope: FundKey | "firm";
   type: DocType;
-  lang: Lang | "both";
-  title: L10n;
+  lang: Locale | "both";
+  title: L;
   date: string;
   published: boolean;
 }
@@ -143,7 +140,7 @@ export async function createDocument(meta: NewDocument, fileName: string, bytes:
   return doc;
 }
 
-export type DocumentPatch = Partial<Pick<DocumentMeta, "scope" | "type" | "lang" | "title" | "date" | "published">>;
+type DocumentPatch = Partial<Pick<DocumentMeta, "scope" | "type" | "lang" | "title" | "date" | "published">>;
 
 export async function updateDocument(id: string, patch: DocumentPatch): Promise<DocumentMeta | null> {
   if (!isDocumentId(id)) return null;
@@ -234,7 +231,7 @@ export interface PublicDocument {
   scope: DocumentMeta["scope"];
   type: DocType;
   lang: DocumentMeta["lang"];
-  title: L10n;
+  title: L;
   date: string;
   fileName: string;
   size: number;

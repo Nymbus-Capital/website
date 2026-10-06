@@ -7,9 +7,10 @@
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { barPath, bands, labelSlot, nice } from "../lib/scale.ts";
-import { fmt, type Lang } from "../lib/format.ts";
+import { fmt } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
+import type { Locale } from "@/lib/i18n/config";
 
 export interface BarCategory {
   key: string;
@@ -23,10 +24,10 @@ export interface BarCategory {
   va?: number | null;
 }
 
-export interface GroupedBarsProps {
+interface GroupedBarsProps {
   cats: BarCategory[];
   names: { fund: string; index: string; va: string };
-  lang: Lang;
+  lang: Locale;
   /** accessible name of the chart */
   label: string;
   height?: number;

@@ -47,7 +47,7 @@ export const SEEDED_RANKINGS: Partial<Record<FundKey, NonNullable<FundContent["r
  * fees in CAD (survey p. 3); PR = percentile ranking, 1 = best. Confirmed seeds: the admin edits them; a newer edition is
  * flagged by the weekly check (src/lib/rankings/rbc-survey.ts).
  */
-export const RBC_Q2_2026_URL = "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf";
+const RBC_Q2_2026_URL = "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf";
 const RBC_BASIS = { en: "gross of management fees, in Canadian dollars", fr: "avant déduction des frais de gestion, en dollars canadiens" };
 type R = [RankingPeriod, number, number];
 /** RBC category names stay in English in both languages: they are the survey's own names (no official French version). */

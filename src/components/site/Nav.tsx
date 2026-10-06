@@ -13,7 +13,7 @@ import { Logo } from "./Logo";
 import { visibleFunds } from "@/config/funds-public";
 import { CONTACT, FUND_LINKS, NAV_LINKS } from "./links";
 
-export function LangToggle({ className }: { className?: string }) {
+function LangToggle({ className }: { className?: string }) {
   const { locale, setLocale, t } = useTranslation();
   const next = locale === "en" ? "fr" : "en";
   return (

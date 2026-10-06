@@ -9,15 +9,16 @@
  */
 import type { ReactNode } from "react";
 import { Leaf } from "lucide-react";
-import { CountUp, Reveal } from "@/components/v3/motion";
+import { CountUp, Reveal } from "@/components/motion/motion";
 import type { Bucket, Characteristic, FundContent, PortfolioData, PortfolioHolding, PortfolioMetric } from "@/lib/data/types";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { T, tr } from "./copy";
+import { T } from "./fund.copy";
 import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
-import { charCount, charValue, dateLabel, elide, fmt, monthLabel, type Lang } from "./lib/format.ts";
+import { charCount, charValue, dateLabel, elide, fmt, monthLabel } from "./lib/format.ts";
 import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage, topTotal } from "./lib/data.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 type BKey = "credit" | "sectors" | "curve" | "country" | "assetClass";
 const ORDERED: BKey[] = ["credit", "curve"];
@@ -28,7 +29,7 @@ function isWhole(rows: Bucket[]) {
   return rows.length >= 2 && rows.length <= 8 && Math.abs(s - 1) < 0.03;
 }
 
-export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
+export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale }) {
   const h = content.hide ?? {};
   const esg = !data || h.esg ? [] : data.esg.filter((c) => c.fund != null && c.fund !== "");
   const daily = data && hasDailyPortfolio(data.portfolio) ? data.portfolio : null;
@@ -43,10 +44,10 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
   const bks: { key: BKey; rows: Bucket[] }[] = !data || h.breakdowns ? [] : (["assetClass", "credit", "sectors", "curve", "country"] as BKey[])
     .map((key) => ({ key, rows: ORDERED.includes(key) ? orderedBuckets(data.breakdowns[key]) : bucketRows(data.breakdowns[key]) }))
     .filter((b) => b.rows.length > 0);
-  const any = chars.length || esg.length || holdings.length || bks.length;
+  const hasContent = chars.length || esg.length || holdings.length || bks.length;
   const full = fullRowItems(bks.map((b) => b.key === "assetClass" && isWhole(b.rows)));
 
-  if (!any) return <div className="container fp"><p className="notice" data-testid="portfolio-soon">{tr(T.portfolio.none, lang)}</p></div>;
+  if (!hasContent) return <div className="container fp"><p className="notice" data-testid="portfolio-soon">{tr(T.portfolio.none, lang)}</p></div>;
   return (
     <div className="container fp">
       {data?.factsheetMonth ? (
@@ -94,7 +95,7 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
 
 /* ------------------------------------------------------------------ daily book */
 
-function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlock: ReactNode; names: { fund: string; index: string }; lang: Lang }) {
+function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlock: ReactNode; names: { fund: string; index: string }; lang: Locale }) {
   const metrics = p.characteristics.filter((m) => m.value != null);
   const partial = partialCoverage(metrics);
   const count = p.totals?.holdings;
@@ -167,7 +168,7 @@ function metricParts(m: PortfolioMetric): { value: number; decimals: number; pct
   return { value: m.value, decimals: m.id === "maturity" ? 1 : 2, pct: false };
 }
 
-function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; lang: Lang }) {
+function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; lang: Locale }) {
   const n = metricParts(m);
   if (!n && typeof m.value !== "string") return null;
   return (
@@ -182,10 +183,10 @@ function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; 
   );
 }
 
-function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Lang }) {
+function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Locale }) {
   const max = Math.max(0.0001, ...items.map((h) => h.weight));
-  const any = (k: "coupon" | "maturity" | "rating" | "sector") => items.some((h) => h[k] != null);
-  const cols = { coupon: any("coupon"), maturity: any("maturity"), rating: any("rating"), sector: any("sector") };
+  const hasColumn = (k: "coupon" | "maturity" | "rating" | "sector") => items.some((h) => h[k] != null);
+  const cols = { coupon: hasColumn("coupon"), maturity: hasColumn("maturity"), rating: hasColumn("rating"), sector: hasColumn("sector") };
   const hasGreen = items.some((h) => h.green);
   const total = topTotal(items);
   return (
@@ -237,7 +238,7 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Lang 
 
 /* ------------------------------------------------------------------ shared */
 
-function EsgBlock({ esg, month, daily, fundWord, indexWord, lang }: { esg: Characteristic[]; month: string | null; daily: boolean; fundWord: string; indexWord: string; lang: Lang }) {
+function EsgBlock({ esg, month, daily, fundWord, indexWord, lang }: { esg: Characteristic[]; month: string | null; daily: boolean; fundWord: string; indexWord: string; lang: Locale }) {
   const hasIndex = esg.some((c) => c.index != null);
   // next to the daily book, say that these figures come from the month-end factsheet
   const lead = daily && month ? `${elide(tr(T.portfolio.esgMonth, lang), monthLabel(month, lang), lang)}.` : hasIndex ? tr(T.portfolio.esgLead, lang) : undefined;
@@ -260,7 +261,7 @@ function EsgBlock({ esg, month, daily, fundWord, indexWord, lang }: { esg: Chara
   );
 }
 
-function CharTile({ c, lang }: { c: Characteristic; lang: Lang }) {
+function CharTile({ c, lang }: { c: Characteristic; lang: Locale }) {
   const n = charCount(c.fund, c.unit);
   const idx = charValue(c.index ?? null, c.unit, lang);
   return (
@@ -272,7 +273,7 @@ function CharTile({ c, lang }: { c: Characteristic; lang: Lang }) {
   );
 }
 
-function HoldingsTable({ items, lang }: { items: { name: string; weight: number }[]; lang: Lang }) {
+function HoldingsTable({ items, lang }: { items: { name: string; weight: number }[]; lang: Locale }) {
   const max = Math.max(0.0001, ...items.map((h) => h.weight));
   const total = topTotal(items);
   return (

@@ -6,15 +6,15 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import { Reveal } from "@/components/v3/motion";
+import { Reveal } from "@/components/motion/motion";
 import { Bullets } from "@/components/site/kit";
 import type { FundContent } from "@/lib/data/types";
 import { team } from "@/data/team";
 import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { FUND_TEXTS, T, tr } from "./copy";
+import { FUND_TEXTS, T } from "./fund.copy";
 import { Block } from "./Block";
-import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "./lib/format.ts";
+import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "./lib/format.ts";
 import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
 import { classInfoOf, classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
 import { noFiguresText, periodLong } from "./lib/notice.ts";
@@ -22,13 +22,14 @@ import { ClassTypeBadge } from "./ClassBadge";
 import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
 import type { BrandAssets } from "@/lib/data/brand-assets";
 import { MorningstarRatingBlock } from "./Morningstar";
-import { RK } from "./rankings-copy";
+import { RK } from "./rankings.copy";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx; brand?: BrandAssets }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; ctx?: ClassCtx; brand?: BrandAssets }
 
-const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
+const P = (v: number | null | undefined, lang: Locale, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
 
 export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
   const texts = FUND_TEXTS[spec.key];
@@ -151,7 +152,7 @@ function firstSentence(s: string): string {
   return m ? m[1].replace(/[.;]$/, "") : s.length > 60 ? `${s.slice(0, 57)}…` : s;
 }
 
-function FeesCard({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Lang }) {
+function FeesCard({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Locale }) {
   const rows: [string, string | undefined][] = [
     [tr(T.facts.managementFee, lang), content.managementFee],
     [tr(T.facts.mer, lang), content.mer],
@@ -232,7 +233,7 @@ function Avatar({ name, photo }: { name: string; photo?: string }) {
   );
 }
 
-function TeamBlock({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Lang }) {
+function TeamBlock({ spec, content, lang }: { spec: FundSpec; content: FundContent; lang: Locale }) {
   const people = resolveManagers(content.managers, team);
   const isFund = spec.vehicle === "fund";
   return (

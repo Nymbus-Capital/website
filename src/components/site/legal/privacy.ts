@@ -9,15 +9,15 @@
  * Do not edit the wording without compliance approval.
  */
 import type { LegalDoc } from "./types.ts";
+import type { Locale } from "../../../lib/i18n/config.ts";
 
-type Lang = "en" | "fr";
 
-export const PRIVACY_REVIEW = {
+const PRIVACY_REVIEW = {
   serviceProviders: "3.3 Service providers: added by the website team (section 3.2 referred to a missing 3.3).",
   law25: "10. Québec privacy law (Law 25): added by the website team (the policy only cited PIPEDA); extended on 2026-09-30 to all personal information held, governance policies and de-indexation.",
 };
 
-export function privacyPolicy(lang: Lang): LegalDoc {
+export function privacyPolicy(lang: Locale): LegalDoc {
   const fr = lang === "fr";
   return {
     id: "privacy",

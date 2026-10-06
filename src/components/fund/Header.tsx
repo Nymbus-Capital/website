@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { CalendarDays, Download, FileText } from "lucide-react";
-import { CountUp, EASE, Odometer, Reveal, RevealTitle, reducedMotion, useTilt } from "@/components/v3/motion";
+import { CountUp, EASE, Odometer, Reveal, RevealTitle, reducedMotion, useTilt } from "@/components/motion/motion";
 import { ButtonLink, Crumbs } from "@/components/site/kit";
 import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import { FUND_INCEPTION } from "@/content/disclaimers";
@@ -15,18 +15,19 @@ import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } 
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
 import type { ClassCtx } from "./lib/select.ts";
 import { noticeText, periodLong } from "./lib/notice.ts";
-import { T, tr } from "./copy";
-import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS, type Lang } from "./lib/format.ts";
+import { T } from "./fund.copy";
+import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS } from "./lib/format.ts";
 import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean; ctx: ClassCtx; docs?: FundDoc[] }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; sample: boolean; ctx: ClassCtx; docs?: FundDoc[] }
 
 /** Header shortcuts to the documents most asked for (factsheet, fund facts, prospectus), when one is published. */
 const QUICK_DOCS = ["factsheet", "fund-facts", "prospectus"] as const;
-export function quickDocs(docs: FundDoc[] | undefined, lang: Lang): { type: (typeof QUICK_DOCS)[number]; doc: FundDoc }[] {
+function quickDocs(docs: FundDoc[] | undefined, lang: Locale): { type: (typeof QUICK_DOCS)[number]; doc: FundDoc }[] {
   const groups = groupDocuments((docs ?? []).map((d) => ({ ...d.meta, doc: d })), lang);
   return QUICK_DOCS.flatMap((type) => { const g = groups.find((x) => x.type === type); return g ? [{ type, doc: g.docs[0].doc }] : []; });
 }
@@ -86,7 +87,7 @@ function Fact({ k, children, testId }: { k: string; children: ReactNode; testId?
   return <div className="nc-fact"><dt>{k}</dt><dd data-testid={testId}>{children}</dd></div>;
 }
 
-function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
+function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; ctx: ClassCtx }) {
   const tilt = useTilt<HTMLDivElement>(4);
   const opts = ctx.options;
   const sel = opts.find((o) => o.fundserv === ctx.selected) ?? opts[0] ?? null;
@@ -165,7 +166,7 @@ function NavCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: 
 }
 
 /** Managed-accounts strategy: no NAV, gross figures only. */
-function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
+function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; ctx: ClassCtx }) {
   const tilt = useTilt<HTMLDivElement>(4);
   const perf = content.hide?.performance ? null : data?.performance ?? null;
   const si = perf?.trailing.fund.SI ?? null;
@@ -210,7 +211,7 @@ function StrategyCard({ spec, content, data, lang, ctx }: { spec: FundSpec; cont
 
 /* ------------------------------------------------------------------ return badges */
 
-export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx: ClassCtx }) {
+export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; ctx: ClassCtx }) {
   const perf = data?.performance ?? null;
   const badges = returnBadges(perf, !!content.hide?.performance);
   // a fund with series: the track record's since-inception figure names its start, not a series inception
@@ -270,7 +271,7 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
  * "Data as light": the glowing line behind the header is the fund's own growth of $10,000, normalised into the
  * lower part of the band. Decorative path when there is no data.
  */
-export function trailPath(growth: GrowthPoint[] | null | undefined): string | null {
+function trailPath(growth: GrowthPoint[] | null | undefined): string | null {
   const pts = (growth ?? []).filter((p) => typeof p.fund === "number" && Number.isFinite(p.fund));
   if (pts.length < 3) return null;
   const vs = pts.map((p) => p.fund);

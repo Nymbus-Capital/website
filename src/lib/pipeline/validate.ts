@@ -40,6 +40,8 @@ import { performanceProblems, pickDefaultClass } from "./classes.ts";
 import { FUNDS } from "../../config/funds.ts";
 import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
+import { ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
 export interface FundValidation {
   fund: FundKey;
@@ -55,7 +57,6 @@ export interface FundValidation {
 }
 
 const days = (a: string, b: Date): number => (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 
 /** paths of non-finite numbers inside a value */
 export function nonFinitePaths(v: unknown, path: string, out: string[] = []): string[] {
@@ -129,7 +130,7 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
     if (last.date !== p.asOf || Math.abs(last.fund - expected) > 0.01) blocking.push({ key: `${base}.performance.growth`, level: "error", message: `growth of 10 000 ends at ${last.date} ${last.fund.toFixed(2)}, expected ${p.asOf} ${expected.toFixed(2)}` });
   }
   const closed = lastClosedMonth(now);
-  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
+  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${ym(p.asOf)} while ${ym(closed)} is closed` });
 }
 
 /**
@@ -138,7 +139,7 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
  * contiguous monthly series ending at as-of, no month beyond ±25 %, trailing figures equal to a recomputation (classes),
  * growth consistent with the monthly returns. Each class / variant is checked on its own numbers only.
  */
-export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
+function checkClassesAndVariants(f: FundData, base: string): Issue[] {
   const issues: Issue[] = [];
   // the headline class is the one of the fund's own series (the track record); without a class code (older data), the
   // default class
@@ -232,7 +233,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const RATING = /^(AAA|AA[+-]?|A[+-]?|BBB[+-]?|BB[+-]?|B[+-]?|CCC[+-]?|CC|C|D)$/;
 
 /** Why a characteristic is implausible, or null. */
-export function metricProblem(m: PortfolioMetric): string | null {
+function metricProblem(m: PortfolioMetric): string | null {
   if (!isNum(m.coverage) || m.coverage < 0 || m.coverage > 1) return `coverage ${m.coverage}`;
   if (m.id === "rating") return typeof m.value === "string" && RATING.test(m.value) ? null : `rating "${m.value}"`;
   if (!isNum(m.value)) return `value ${m.value}`;
@@ -241,7 +242,7 @@ export function metricProblem(m: PortfolioMetric): string | null {
 }
 
 /** Why a breakdown is implausible (weights not numbers, or not adding up to 100 % of net assets), or null. */
-export function breakdownProblem(rows: WeightBucket[]): string | null {
+function breakdownProblem(rows: WeightBucket[]): string | null {
   if (!rows.length) return "empty";
   if (rows.some((r) => !isNum(r.weight) || Math.abs(r.weight) > 1.5)) return "a weight is not a plausible number";
   const total = rows.reduce((a, r) => a + r.weight, 0);
@@ -249,7 +250,7 @@ export function breakdownProblem(rows: WeightBucket[]): string | null {
 }
 
 /** Why the top-holdings list is implausible, or null. */
-export function holdingsProblem(rows: PortfolioData["topHoldings"]): string | null {
+function holdingsProblem(rows: PortfolioData["topHoldings"]): string | null {
   if (rows.some((h) => !h.name || !isNum(h.weight) || h.weight <= 0 || h.weight > PORTFOLIO.maxHoldingWeight)) return `a weight is outside (0, ${pct(PORTFOLIO.maxHoldingWeight)}]`;
   const total = rows.reduce((a, h) => a + h.weight, 0);
   return total > 1 + 1e-9 ? `weights add up to ${pct(total)}` : null;
@@ -398,7 +399,7 @@ export function checkDistributions(f: FundData, base: string, now: Date): Issue[
   return issues;
 }
 
-export interface ValidationOutcome {
+interface ValidationOutcome {
   /**
    * data after repairs and merge (blocked funds replaced by their previous publication). A fund whose performance
    * class changes keeps its NEW data here: this is what publishing (approving) the run publishes
@@ -477,9 +478,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const classChange: Issue | null = !blocking.length && (headChange || entryChanges.length)
       ? { key: `${base}.performance.class`, level: "error", message: `performance class change ${[headChange ? `from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass})` : null, ...entryChanges].filter(Boolean).join("; ")}: every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
       : null;
-    // performance (and what is computed from it: trailing, risk) is gated on its own: when only it fails, the NAV,
-    // AUM, portfolio and distributions still publish and the performance alone is held (previous kept, else withheld)
-    // (the returns of a class or a variant are part of it: they are held with it)
+    // performance (with trailing, risk and the class / variant returns) is gated alone (docs/architecture.md § Performance class)
     const isPerf = (i: Issue) => [`${base}.performance`, `${base}.trailing`, `${base}.risk`, `${base}.risk3Y`].some((k) => i.key === k || i.key.startsWith(`${k}.`) || i.key.startsWith(`${k}[`))
       || new RegExp(`^${base.replaceAll(".", "\\.")}\\.(performanceByClass|variants)\\.[^.]+\\.(performance|risk|risk3Y)([.\\[]|$)`).test(i.key);
     const perfBlocking = blocking.filter(isPerf);
@@ -516,7 +515,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       }
       const closed = lastClosedMonth(now);
       if (kept?.performance && kept.performance.asOf < addMonths(closed, -1)) {
-        const stale: Issue = { key: `${base}.performance.asOf`, level: "error", message: `stale: kept performance as of ${kept.performance.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` };
+        const stale: Issue = { key: `${base}.performance.asOf`, level: "error", message: `stale: kept performance as of ${ym(kept.performance.asOf)} while ${ym(closed)} is closed` };
         warnings.push(stale);
         extraIssues.push(stale);
       }
@@ -613,7 +612,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
         }
       }
       const months = context[key]?.unconfirmed ?? [];
-      data.issues.push({ key: `${base}.performance.review`, level: "warn", message: `needs review: new month(s) ${months.map((m) => m.slice(0, 7)).join(", ")} confirmed by no source independent of the dataplatform; auto mode keeps ${prevF?.performance ? `the previous performance (as of ${prevF.performance.asOf.slice(0, 7)})` : "no performance"} live until an admin publishes this run` });
+      data.issues.push({ key: `${base}.performance.review`, level: "warn", message: `needs review: new month(s) ${months.map(ym).join(", ")} confirmed by no source independent of the dataplatform; auto mode keeps ${prevF?.performance ? `the previous performance (as of ${ym(prevF.performance.asOf)})` : "no performance"} live until an admin publishes this run` });
     }
     autoData.issues = data.issues;
     autoData.asOf = computeAsOf(autoData.funds);

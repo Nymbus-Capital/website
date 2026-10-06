@@ -1,7 +1,7 @@
 "use client";
 /** Opening screen of a secondary page: black, word-reveal display title, optional light trail and lead. */
 import type { ReactNode } from "react";
-import { LightTrail, Reveal, RevealTitle, Spotlight } from "@/components/v3/motion";
+import { LightTrail, Reveal, RevealTitle, Spotlight } from "@/components/motion/motion";
 
 export function PageHero({
   eyebrow, title, accent, lead, children, trail = true, id = "page-t", compact = false,

@@ -9,14 +9,15 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { recoverFromChunkError } from "../fx/chunk-recover";
 import { Pause, Play } from "lucide-react";
-import { reducedMotion } from "@/components/v3/motion";
+import { reducedMotion } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
-import { CC } from "./concepts-copy";
-import type { Runner } from "./runner";
+import { CC } from "./concepts.copy";
+import type { Runner } from "../canvas/runner";
 import "@/components/site/fx/fx.css";
 import "./concepts.css";
+import type { Locale } from "@/lib/i18n/config";
 
-export type ConceptId = "overlay" | "futures" | "coverage";
+type ConceptId = "overlay" | "futures" | "coverage";
 
 const subscribeMotion = (cb: () => void) => {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -29,12 +30,11 @@ function useReducedMotion(): boolean {
 const saveData = (): boolean => (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
 const coarsePointer = (): boolean => window.matchMedia("(pointer: coarse)").matches;
 
-type Lang = "en" | "fr";
-const pickAll = <T extends Record<string, { en: string; fr: string }>>(o: T, k: Lang) =>
+const pickAll = <T extends Record<string, { en: string; fr: string }>>(o: T, k: Locale) =>
   Object.fromEntries(Object.entries(o).map(([key, v]) => [key, v[k]])) as { [K in keyof T]: string };
 
 /** Creates the engine of a concept (each engine is its own lazily loaded chunk). */
-async function createEngine(id: ConceptId, canvas: HTMLCanvasElement, o: { still: boolean; maxFps?: number; lang: () => Lang; onReady: () => void; onStep: (s: number) => void }): Promise<Runner> {
+async function createEngine(id: ConceptId, canvas: HTMLCanvasElement, o: { still: boolean; maxFps?: number; lang: () => Locale; onReady: () => void; onStep: (s: number) => void }): Promise<Runner> {
   const base = { still: o.still, maxFps: o.maxFps, onReady: o.onReady, onStep: o.onStep };
   const mark = () => CC.watermark[o.lang()];
   if (id === "overlay") {
@@ -60,7 +60,7 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
   const copy = CC[id];
   const canvas = useRef<HTMLCanvasElement>(null);
   const steps = useRef<HTMLOListElement>(null);
-  const lang = useRef<Lang>(locale);
+  const lang = useRef<Locale>(locale);
   const runner = useRef<Runner | null>(null);
   const playingRef = useRef(true);
   const [ready, setReady] = useState(false);

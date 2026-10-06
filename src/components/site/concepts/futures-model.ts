@@ -5,12 +5,11 @@
  * margin buffer each side posts is sized to a potential one-day move and grows when volatility rises.
  * Everything is generated (no real contract, price or result). Dependency-free (unit tested).
  */
-import { clamp, gauss, hash01 } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "../canvas/timeline.ts";
 
 /**
- * Trading days per loop of the animation, and ms per day. Slowed down 2026-10-03 (Gabriel: "we have a hard time reading
- * the text … every day", 1.25 s → 5 s), then sped up a little 2026-10-04 ("a tiny bit faster … but still slower than
- * initially"): 3.75 s a day, each daily settlement message still held long enough to read once comfortably.
+ * Trading days per loop of the animation, and ms per day: 3.75 s a day, so each daily settlement message is held long
+ * enough to read once comfortably (history in docs/architecture.md § Decision log).
  */
 export const DAYS = 14;
 export const DAY_MS = 3750;
@@ -20,7 +19,7 @@ export const DAY_MS = 3750;
  */
 export const SETTLE_SHARE = 0.25;
 /** Fade-in / fade-out shares of the day for the settlement message (it is fully shown in between). */
-export const RULE_IN = 0.04, RULE_OUT = 0.06;
+const RULE_IN = 0.04, RULE_OUT = 0.06;
 /** Ms a reader needs per word of the settlement message (≈ 300 words a minute: short, repeated phrases). */
 export const READ_MS_PER_WORD = 200;
 /** Comfort margin over one read of the settlement message (it must be on screen ≥ this many reading times). */
@@ -29,9 +28,9 @@ export const LOOP_MS = DAYS * DAY_MS;
 /** Four focus steps over one loop: long meets short · daily settlement · margin buffer · one day at risk. */
 export const FUTURES_STEP_MS = [LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4, LOOP_MS / 4] as const;
 /** First price of every loop (internal units; never shown). */
-export const START_PRICE = 100;
+const START_PRICE = 100;
 /** A generated daily move never exceeds MOVE_CAP typical moves (σ); the margin buffer covers MARGIN_K of them. */
-export const MOVE_CAP = 2.5;
+const MOVE_CAP = 2.5;
 export const MARGIN_K = 3;
 /** Days of the high-volatility episode in each loop (the buffer grows there). */
 export const HIGH_VOL_FROM = 7;

@@ -9,17 +9,17 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { HOME_COPY } from "../../../src/components/site/home/copy.ts";
+import { HOME_COPY } from "../../../src/components/site/home/home.copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
-import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
-import { CC } from "../../../src/components/site/concepts/concepts-copy.ts";
-import { AB } from "../../../src/components/site/pages/copy-about.ts";
-import { AP } from "../../../src/components/site/pages/copy-approach.ts";
+import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay.copy.ts";
+import { CC } from "../../../src/components/site/concepts/concepts.copy.ts";
+import { AB } from "../../../src/components/site/pages/about.copy.ts";
+import { AP } from "../../../src/components/site/pages/approach.copy.ts";
 import { CT } from "../../../src/components/site/pages/copy-contact.ts";
-import { SU } from "../../../src/components/site/pages/copy-sustainability.ts";
-import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
-import { STRAT_COPY } from "../../../src/components/site/pages/strategies-copy.ts";
-import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
+import { SU } from "../../../src/components/site/pages/sustainability.copy.ts";
+import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions.copy.ts";
+import { STRAT_COPY } from "../../../src/components/site/pages/strategies.copy.ts";
+import { FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
 
 function words(x: unknown, lang: "en" | "fr"): number {
   if (Array.isArray(x)) return x.reduce((a: number, v) => a + words(v, lang), 0);

@@ -6,7 +6,7 @@
  * prefers-reduced-motion.
  */
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
-import { EASE, reducedMotion } from "@/components/v3/motion";
+import { EASE, reducedMotion } from "@/components/motion/motion";
 
 const BACK = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const SWAP = "cubic-bezier(0.65, 0, 0.35, 1)";
@@ -61,7 +61,7 @@ export function useSvgId(prefix: string) {
 }
 
 /** Plays the chart entrance on `root`. Returns a cleanup that cancels running animations. */
-export function playEntrance(root: Element | null, delay = 0): () => void {
+function playEntrance(root: Element | null, delay = 0): () => void {
   if (!root || reducedMotion()) return () => {};
   const anims: Animation[] = [];
   const push = (a: Animation | undefined) => { if (a) anims.push(a); };

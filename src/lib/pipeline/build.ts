@@ -2,7 +2,7 @@
  * Build: raw source payloads (+ previously published data) -> SiteData. Pure (no I/O, no clock: `now`
  * is a parameter).
  *
- * Rules (Gabriel 2026-10-02: the dataplatform API is the only input; the website computes whatever grouping it needs)
+ * Rules (the dataplatform API is the only input; the website computes whatever grouping it needs)
  *  - Net funds (SEST / SEB / Multistrat), headline = the track-record class: Apex months from dataplatform
  *    monthly-net-returns "ready" months, reproduced by the website's own compounding of the class's daily
  *    nav-timeseries chain; the 2026-07 cut-over month from the NAV bridge; CIBC months from the class's stored CIBC
@@ -30,13 +30,13 @@
  *    payload is supplied: distributions.ts keeps the display logic).
  */
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
-import type { Bucket, CalendarRow, Characteristic, ClassInfo, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
+import type { CalendarRow, Characteristic, ClassInfo, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
 import { classLabel, classSeriesOf, factsheetClassAt, FUND_SOURCES, trackFundserv, type ClassSeriesSource, type FeeBand } from "./fund-sources.ts";
 import { perfClassCode, withClassLabel } from "./perf-class.ts";
 import { CHAIN, CLASS_CHECKS, CLASS_SPREAD, factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
 import {
-  addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, monthsBetween, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
+  addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
   type Method, type RiskResult, type Series,
 } from "./metrics.ts";
 import {
@@ -50,12 +50,14 @@ import { selectDistributions, type LiveClass } from "./distributions.ts";
 import { buildClassEntry, performanceProblems, pickDefaultClass } from "./classes.ts";
 import { computeFundClasses, type ClassInput, type FundClassesResult } from "./class-returns.ts";
 import { classMonths, classStart, type ChainMonth } from "./daily-chain.ts";
+import { monthsBetween, ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
-export type PartName = "performance" | "nav" | "aum" | "factsheet";
+type PartName = "performance" | "nav" | "aum" | "factsheet";
 /** fresh: built this run; held: kept at an older month on purpose (waiting for a factsheet); carried: previous publication reused because a source failed */
-export type PartState = "fresh" | "held" | "carried" | "none";
+type PartState = "fresh" | "held" | "carried" | "none";
 
-export interface BuildOptions {
+interface BuildOptions {
   mode?: SiteData["mode"];
   /**
    * H3 gate: a performance month newer than the published one also needs its factsheet and a passing cross-check, in
@@ -98,11 +100,10 @@ const PERIOD_LIST = PERIODS as readonly string[];
 
 /* ------------------------------------------------------------------ helpers */
 
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 const pct4 = (x: number): string => `${(x * 100).toFixed(4)}%`;
 
 /** ["2019-01-31","2019-02-28","2019-04-30"] -> "2019-01 to 2019-02, 2019-04" */
-export function monthRanges(ms: string[]): string {
+function monthRanges(ms: string[]): string {
   const out: string[] = [];
   let a: string | null = null;
   let b: string | null = null;
@@ -114,7 +115,6 @@ export function monthRanges(ms: string[]): string {
   if (a) out.push(a === b ? ym(a) : `${ym(a)} to ${ym(b!)}`);
   return out.join(", ");
 }
-const ym = (d: string): string => d.slice(0, 7);
 
 class Ctx {
   issues: Issue[] = [];
@@ -195,7 +195,7 @@ interface FundSeries {
 type MnrResult = RawPayloads["monthlyReturns"][DpShort];
 
 /** Whether the daily NAV chain of a fund was verified on its track-record class (shared with its other classes). */
-export interface ChainVerification {
+interface ChainVerification {
   /** the stored CIBC daily returns reproduce the independent monthly history: CIBC months may be compounded */
   cibc: boolean;
   /** the cut-over month's NAV bridge is consistent: the bridge may be used for the other classes */
@@ -263,7 +263,7 @@ export function effectiveNavStart(raw: RawPayloads, spec: FundSpec): { start: st
 }
 
 /** Months of one class computed from its daily nav-timeseries rows (daily-chain.ts), its first day, or why there are none. */
-export function classChain(raw: RawPayloads, spec: FundSpec, fundserv: string): { months: ChainMonth[]; start: string | null; error: string | null } {
+function classChain(raw: RawPayloads, spec: FundSpec, fundserv: string): { months: ChainMonth[]; start: string | null; error: string | null } {
   const navStart = effectiveNavStart(raw, spec).start;
   if (!navStart) return { months: [], start: null, error: "no NAV history for this fund" };
   const res = raw.navHistory?.[fundserv];
@@ -402,7 +402,7 @@ function factsheetMonthValue(raw: RawPayloads, spec: FundSpec, classCode: string
 function multiClassAggregate(raw: RawPayloads, short: DpShort, code: string, month: string): { count: number; date: string } | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
-  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && r.date.slice(0, 7) === month.slice(0, 7) && typeof r.return_source_count === "number" && r.return_source_count > 1);
+  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && ym(r.date) === ym(month) && typeof r.return_source_count === "number" && r.return_source_count > 1);
   return hit ? { count: hit.return_source_count as number, date: hit.date } : null;
 }
 
@@ -566,13 +566,8 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
       if (used.length) chainSource = `${fsv} (${chainNote(used, ch.months)})`;
     }
   }
-  // source defects found by the class checks (class-returns.ts: a bad valuation print or classes disagreeing — months
-  // withheld for every class —, and this class's own cross-class failures and newest-month hold). A month the track record
-  // takes from its own daily NAV chain, or from monthly-net-returns (the same Apex NAVs: equal to the chain by construction,
-  // not an independent source), is the same data: it is replaced by the analytics history's official figure when that has
-  // the month (labelled "official figure", not an independent check), else withheld — never filled from the factsheet; a
-  // newest month is then held, a month in the middle interrupts the track record as any missing month does. A month taken
-  // from the analytics history (the official track record) or a factsheet stays, listed in a warning.
+  // defect months of the class checks: replaced by the official analytics figure, else withheld (never from the factsheet);
+  // see docs/architecture.md § Returns per class and GMV variants (track record defects)
   if (defects?.size) {
     const kept: string[] = [];
     for (const [m, why] of [...defects].sort(([a], [b]) => (a < b ? -1 : 1))) {
@@ -712,7 +707,7 @@ interface PerfBuild {
 }
 
 /** a factsheet trailing table can serve as a cross-check only if the fund row has 1M, 3M, YTD and 1Y */
-export function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
+function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
   return !!tt && (["1M", "3M", "YTD", "1Y"] as const).every((k) => typeof tt.fund[k] === "number" && Number.isFinite(tt.fund[k] as number));
 }
 
@@ -732,6 +727,9 @@ export function crossCheck(fund: PeriodMap, fs: TrailingTable): { period: string
 }
 
 const cut = (s: Series, end: string): Series => Object.fromEntries(sortedKeys(s).filter((m) => m <= end).map((m) => [m, s[m]]));
+
+/** Fewer than 12 monthly returns from `firstMonth` to `asOf` (both month-ends, inclusive). */
+export const isShortRecord = (firstMonth: string, asOf: string): boolean => monthsBetween(firstMonth, asOf) < 12;
 
 function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string, opts: BuildOptions, defects?: Map<string, string>): PerfBuild | null {
   const { fs: fsr, cand } = fundSeries(raw, spec, c, base, defects);
@@ -757,9 +755,7 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   const classOfArchive = (month: string): string | null => factsheetClassAt(spec.key, month);
   const archMismatch = (month: string): boolean => classOfArchive(month) !== fsr.classCode;
 
-  // choose the as-of month. A month's factsheet, when it exists, must agree (a disagreement holds a new month back and
-  // withholds an already published one); it is not required for a new month (option, default off): the months come
-  // from the dataplatform and pass its own gates (complete daily chain, monthly-net-returns agreement)
+  // as-of month: an existing factsheet must agree; a new month needs none by default (docs/architecture.md § Performance class)
   let asOf: string | null = null;
   let fsBlock: { name: string; month: string; block: Obj } | null = null;
   let fsTrailing: TrailingTable | null = null;
@@ -920,7 +916,7 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     classCode: fsr.classCode, returnClass: shown!, returnClassLabel: `Series ${shown}`,
   };
   // less than 12 monthly returns: the page says "since class inception" (same flag as the per-class series)
-  if (monthsBetween(firstMonth, asOf) + 1 < 12) performance.shortRecord = true;
+  if (isShortRecord(firstMonth, asOf)) performance.shortRecord = true;
   if (indexName) performance.indexName = indexName;
   return {
     performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts, unconfirmed,
@@ -1203,7 +1199,7 @@ function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FsParts | u
  * `net_asset_value_cad`, one row per mapped class). null when a class row of that day has no value, or when an
  * active class of the fund register (`required`) has no row that day (a partial sum is never a denominator).
  */
-export function netAssetsOn(raw: RawPayloads, short: DpShort, date: string, required?: string[] | null): number | null {
+function netAssetsOn(raw: RawPayloads, short: DpShort, date: string, required?: string[] | null): number | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
   const rows = res.data.rows.filter((r) => r.source === "apex" && r.date === date && r.fundserv);
@@ -1457,7 +1453,7 @@ function buildVariants(
     if (!pb?.performance) {
       if (old) {
         out[v.id] = old;
-        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance?.asOf.slice(0, 7) ?? "?"})`);
+        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance ? ym(old.performance.asOf) : "?"})`);
       } else c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; the variant is not shown`);
       return;
     }
@@ -1648,6 +1644,3 @@ export function buildSiteData(raw: RawPayloads, previous: SiteData | null, now: 
   };
   return { data, context };
 }
-
-/** helper for callers/tests */
-export const bucketsTotal = (bs: Bucket[]): number => bs.reduce((a, b) => a + (b.fund ?? 0), 0);

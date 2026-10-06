@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Approach } from "@/components/site/pages/Approach";
-import { AP } from "@/components/site/pages/copy-approach";
+import { AP } from "@/components/site/pages/approach.copy";
 import { getLocale } from "@/lib/i18n/server";
 import { getTeam } from "@/lib/cms";
 

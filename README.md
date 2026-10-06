@@ -5,7 +5,7 @@ with fund pages refreshed daily from the Nymbus data platform and a Microsoft-au
 
 - **Design**: one rounded "screen" per section, light or black; lowercase display titles whose words rise
   out of a blur; blue→cyan gradients in the type; glowing marks, bubbles and light trails; count-ups and
-  hand-built animated SVG charts. Design system: `src/app/globals.css`, `src/components/v3/motion.tsx`.
+  hand-built animated SVG charts. Design system: `src/app/globals.css`, `src/components/motion/motion.tsx`.
 - **Data**: an in-process pipeline (`src/lib/pipeline`) pulls monthly net returns, NAVs, AUM and FTSE
   benchmarks from the dataplatform, portfolio data from the monthly factsheet archives on SharePoint and
   the pre-Apex history from the analytics repo; it computes and cross-checks every figure, snapshots each

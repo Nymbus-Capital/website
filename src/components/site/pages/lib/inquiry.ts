@@ -3,11 +3,10 @@
  * profile, interests, contact details) is validated here and turned into a mailto: link that opens the
  * visitor's own mail app with the message prepared. Nothing is sent or stored by the site.
  */
+import type { Locale } from "../../../../lib/i18n/config.ts";
 
 export const INQUIRY_TO = "info@nymbus.ca";
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-export type Lang = "en" | "fr";
 
 export interface Inquiry {
   profile: string;
@@ -41,7 +40,7 @@ export function firstInvalidStep(q: Inquiry): 0 | 1 | 2 | 3 {
   return 0;
 }
 
-const LABELS: Record<Lang, { subject: string; profile: string; interests: string; name: string; email: string; phone: string; company: string; message: string }> = {
+const LABELS: Record<Locale, { subject: string; profile: string; interests: string; name: string; email: string; phone: string; company: string; message: string }> = {
   en: { subject: "Website inquiry", profile: "Investor profile", interests: "Interested in", name: "Name", email: "Email", phone: "Phone", company: "Organization", message: "Message" },
   fr: { subject: "Demande du site Web", profile: "Profil d’investisseur", interests: "Intérêts", name: "Nom", email: "Courriel", phone: "Téléphone", company: "Organisation", message: "Message" },
 };
@@ -49,7 +48,7 @@ const LABELS: Record<Lang, { subject: string; profile: string; interests: string
 const clip = (s: string | undefined, n: number) => (s ?? "").trim().replace(/\s+\n/g, "\n").slice(0, n);
 
 /** Subject and body of the prepared email, in the visitor's language. */
-export function inquiryEmail(q: Inquiry, lang: Lang = "en"): { subject: string; body: string } {
+export function inquiryEmail(q: Inquiry, lang: Locale = "en"): { subject: string; body: string } {
   const L = LABELS[lang];
   const name = clip(q.name, 120);
   const subject = `${L.subject} · ${clip(q.profile, 60)} · ${name}`;
@@ -74,7 +73,7 @@ export function mailto(to: string, subject?: string, body?: string): string {
   return `mailto:${to}${q ? `?${q}` : ""}`;
 }
 
-export function inquiryMailto(q: Inquiry, lang: Lang = "en", to = INQUIRY_TO): string {
+export function inquiryMailto(q: Inquiry, lang: Locale = "en", to = INQUIRY_TO): string {
   const { subject, body } = inquiryEmail(q, lang);
   return mailto(to, subject, body);
 }

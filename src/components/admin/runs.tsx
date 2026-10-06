@@ -25,7 +25,7 @@ export function RunStatusPill({ status }: { status: string }) {
   return <Pill tone={runTone(status)}>{status}</Pill>;
 }
 
-export function FundStates({ funds }: { funds: RunReport["funds"] }) {
+function FundStates({ funds }: { funds: RunReport["funds"] }) {
   return (
     <span className="adm-chips">
       {FUNDS.map((f) => {

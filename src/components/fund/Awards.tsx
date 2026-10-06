@@ -12,33 +12,34 @@ import type { FundContent, FundLibraryRanking, ThirdPartyRanking } from "@/lib/d
 import type { BrandAssets } from "@/lib/data/brand-assets";
 import { ordinal, PROVIDER_META } from "@/lib/rankings/policy";
 import type { PublicFundSpec as FundSpec } from "./types";
-import { T, tr } from "./copy";
-import { RK } from "./rankings-copy";
+import { T } from "./fund.copy";
+import { RK } from "./rankings.copy";
 import { Block } from "./Block";
 import { MorningstarRatingBlock } from "./Morningstar";
-import { dateLabel, monthLabel, type Lang } from "./lib/format.ts";
+import { dateLabel, monthLabel } from "./lib/format.ts";
 import { FUND_INCEPTION } from "@/content/disclaimers";
 import { rankingsToShow } from "./lib/rankings.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
 
 const EXTRA_PERIODS: Record<string, { en: string; fr: string }> = { "6M": { en: "6 months", fr: "6 mois" }, "4Y": { en: "4 years", fr: "4 ans" } };
-function periodLabel(p: string, lang: Lang): string {
+function periodLabel(p: string, lang: Locale): string {
   const known = (T.perf.periodsLong as Record<string, { en: string; fr: string }>)[p] ?? EXTRA_PERIODS[p];
   return known ? tr(known, lang) : p;
 }
 
 /** Provider name as plain text, or its official logo when the file is present (sized per provider in fund.css). */
-export const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
+const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
   logo ? <img className={`aw-logo aw-logo-${kind}`} src={logo} alt={children} data-testid={`logo-${kind}`} /> : <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
 
 /** Fundata's name on the page; the figures are read on its FundLibrary.com fund pages (the source link says so). */
-export const FUNDATA = "Fundata";
-export const FUNDATA_SOURCE = "Fundata (FundLibrary.com)";
+const FUNDATA = "Fundata";
+const FUNDATA_SOURCE = "Fundata (FundLibrary.com)";
 
-const sep = (lang: Lang) => (lang === "fr" ? "\u00a0: " : ": ");
+const sep = (lang: Locale) => (lang === "fr" ? "\u00a0: " : ": ");
 
-function SourceLink({ url, name, lang }: { url?: string; name: string; lang: Lang }) {
+function SourceLink({ url, name, lang }: { url?: string; name: string; lang: Locale }) {
   return url ? (
     <p className="fine fxb-foot">
       {tr(T.awards.source, lang)}{sep(lang)}<a className="link" href={url} target="_blank" rel="noopener noreferrer">{name}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({lang === "fr" ? "nouvel onglet" : "opens in a new tab"})</span></a>
@@ -47,19 +48,19 @@ function SourceLink({ url, name, lang }: { url?: string; name: string; lang: Lan
 }
 
 /** "1st percentile" / « 1er centile », else "3 of 108". */
-export function standing(r: ThirdPartyRanking["rows"][number], lang: Lang): string {
+export function standing(r: ThirdPartyRanking["rows"][number], lang: Locale): string {
   if (r.percentile != null) return tr(RK.tp.percentile, lang).replace("{ord}", ordinal(r.percentile, lang));
   return tr(RK.tp.rankOf, lang).replace("{rank}", String(r.rank)).replace("{of}", String(r.of));
 }
 
 /** Who the figures are for: the strategy track record (incl. pre-launch periods), the fund as a whole, or a series. */
-export function scopeLabel(e: Pick<ThirdPartyRanking, "scope" | "trackSince" | "classLabel">, lang: Lang, short = false): string {
+function scopeLabel(e: Pick<ThirdPartyRanking, "scope" | "trackSince" | "classLabel">, lang: Locale, short = false): string {
   if (e.trackSince) return tr(short ? RK.tp.strategyShort : RK.tp.strategyScope, lang).replace("{month}", monthLabel(e.trackSince, lang));
   if (e.scope === "fund") return tr(short ? RK.tp.fundShort : RK.tp.fundLevel, lang);
   return e.classLabel;
 }
 
-function ThirdPartyEntry({ e, lang, brand, fundKey }: { e: ThirdPartyRanking; lang: Lang; brand?: BrandAssets; fundKey: string }) {
+function ThirdPartyEntry({ e, lang, brand, fundKey }: { e: ThirdPartyRanking; lang: Locale; brand?: BrandAssets; fundKey: string }) {
   const meta = PROVIDER_META[e.provider];
   const code = e.fundserv ? ` (${e.fundserv})` : "";
   const launch = FUND_INCEPTION[fundKey]?.fundLaunch;
@@ -99,7 +100,7 @@ function ThirdPartyEntry({ e, lang, brand, fundKey }: { e: ThirdPartyRanking; la
   );
 }
 
-function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Lang; brand?: BrandAssets }) {
+function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Locale; brand?: BrandAssets }) {
   const code = e.fundserv ? ` (${e.fundserv})` : "";
   return (
     <Block title={`${tr(T.awards.series, lang)} ${e.classLabel.replace(CLASS_WORD, "")}${code}`} testId={`ranking-${e.fundserv ?? e.classLabel}`}
@@ -133,7 +134,7 @@ function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Lang; brand?: 
   );
 }
 
-export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; content: FundContent; lang: Lang; brand?: BrandAssets }) {
+export function AwardsTab({ spec, content, lang, brand }: { spec: FundSpec; content: FundContent; lang: Locale; brand?: BrandAssets }) {
   const r = rankingsToShow(content, spec.classes);
   if (!r) return null;
   const ms = r.morningstar;

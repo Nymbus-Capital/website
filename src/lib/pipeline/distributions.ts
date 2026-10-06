@@ -11,7 +11,7 @@ import type { ClassDistributions, SourceResult } from "./raw.ts";
 
 export interface LiveClass { fundserv: string; display: string | null; currency: string | null }
 
-export interface DistributionsSelection {
+interface DistributionsSelection {
   distributions: DistributionsData | null;
   issues: Issue[];
   provenance: string | null;
@@ -34,7 +34,7 @@ export function frequency(v: string | null | undefined): DistributionFrequency |
  * The currency of one series: the fund register's and the payload's (summary and every row) must agree, and one of them
  * must say it. Never a default: an amount in an unknown or disputed currency is not shown.
  */
-export function seriesCurrency(live: LiveClass, payload: (string | null | undefined)[]): { currency: string } | { problem: string } {
+function seriesCurrency(live: LiveClass, payload: (string | null | undefined)[]): { currency: string } | { problem: string } {
   const reg = live.currency?.trim().toUpperCase() || null;
   const inPayload = [...new Set(payload.filter((c): c is string => !!c?.trim()).map((c) => c.trim().toUpperCase()))].sort();
   if (inPayload.length > 1) return { problem: `currencies disagree within the payload (${inPayload.join(", ")})` };

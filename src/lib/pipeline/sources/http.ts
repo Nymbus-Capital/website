@@ -13,7 +13,7 @@ export class HttpError extends Error {
   }
 }
 
-export interface RetryOpts {
+interface RetryOpts {
   timeoutMs?: number;
   /** retries after the first attempt (default 2) */
   retries?: number;

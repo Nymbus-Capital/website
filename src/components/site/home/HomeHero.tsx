@@ -8,7 +8,7 @@
 import { ButtonLink, Eyebrow, HeroCurves, Reveal, RevealTitle } from "../kit";
 import { useTranslation } from "@/lib/i18n";
 import { DataField, Parallax } from "../fx/fx";
-import { HOME_COPY as C } from "./copy";
+import { HOME_COPY as C } from "./home.copy";
 
 export function HomeHero() {
   const { pick } = useTranslation();

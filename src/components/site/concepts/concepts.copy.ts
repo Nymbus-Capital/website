@@ -1,17 +1,17 @@
 /**
- * concepts-copy.ts — copy of /core-concepts (protective overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
+ * concepts.copy.ts — copy of /core-concepts (protective overlays, futures, ultra-micro analysis at scale), EN + FR (Québec typography).
  * Few words: the animations carry the explanation. Every drawn value is generated; the coverage figures are
  * illustrative estimates (docs/compliance-review.md § Core concepts). Low correlation is never stated as a fact;
  * wherever overlays are described, the verbatim futures-exposure disclosure follows.
  */
 import { l, type L } from "../../../lib/i18n/config.ts";
-import { OVERLAY_EXPOSURE } from "../fx/overlay-copy.ts";
+import { OVERLAY_EXPOSURE } from "../fx/overlay.copy.ts";
 
 export { OVERLAY_EXPOSURE };
 
 const NB = " ";
 
-export interface ConceptCopy {
+interface ConceptCopy {
   eyebrow: L; title: L; accent: L; lead: L;
   panel: L; chip: L; alt: L;
   steps: L[];

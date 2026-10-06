@@ -11,7 +11,7 @@
 
 export type Text = { en: string; fr: string };
 
-export interface Disclaimer {
+interface Disclaimer {
   id: string;
   label: string;
   text: Text;

@@ -9,11 +9,11 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { CountUp, EASE, Reveal, RevealTitle, reducedMotion, useInView, useScrub } from "@/components/v3/motion";
+import { CountUp, EASE, Reveal, RevealTitle, reducedMotion, useInView, useScrub } from "@/components/motion/motion";
 
 import { DataField, Divider } from "./fx/fx";
 
-export { Reveal, RevealTitle } from "@/components/v3/motion";
+export { Reveal, RevealTitle } from "@/components/motion/motion";
 
 /* ------------------------------------------------------------------ layout */
 
@@ -177,7 +177,7 @@ export function HeroCurves({ className }: { className?: string }) {
 }
 
 /** The deck's chapter light trail as a page-hero backdrop (draws in once). */
-export function HeroTrail() {
+function HeroTrail() {
   const ref = useRef<SVGPathElement>(null);
   const uid = `t${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   useEffect(() => {

@@ -17,11 +17,11 @@ import type { ClassSeriesSource } from "./fund-sources.ts";
 import type { ClassMonthResult, ClassResult } from "./class-returns.ts";
 import { hasMinHistory } from "./class-returns.ts";
 import {
-  addMonths, annualize, calendarYears, clean, compound, growth as growthOf, monthsBetween, riskStats, sortedKeys, trailing as trailingOf, window, type RiskResult, type Series,
+  addMonths, annualize, calendarYears, clean, compound, growth as growthOf, riskStats, sortedKeys, trailing as trailingOf, window, type RiskResult, type Series,
 } from "./metrics.ts";
+import { monthsBetween, ym } from "../data/dates.ts";
 
 const PERIOD_LIST = PERIODS as readonly string[];
-const ym = (d: string): string => d.slice(0, 7);
 const dayDiff = (a: string, b: string): number => (Date.parse(`${b.slice(0, 10)}T00:00:00Z`) - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
 
 const toPoints = (s: Series): MonthlyPoint[] => sortedKeys(s).map((month) => ({ month, r: s[month] }));
@@ -35,7 +35,7 @@ function riskFrom(r: RiskResult | null): RiskStats | null {
 }
 
 /** what the trailing figures of a class entry are computed from */
-export interface ClassSeriesShape {
+interface ClassSeriesShape {
   /** usable monthly returns (withheld months absent), the partial first month included */
   all: Series;
   asOf: string;
@@ -74,14 +74,14 @@ export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
 }
 
 /** Rebuild the class series shape of a published class entry (for validation recomputations). */
-export function shapeOf(p: Performance): ClassSeriesShape | null {
+function shapeOf(p: Performance): ClassSeriesShape | null {
   if (!p.inception) return null;
   const all: Series = {};
   for (const m of p.monthly) all[m.month] = m.r;
   return { all, asOf: p.asOf, firstMonth: p.firstMonth, inception: p.inception, partialFirst: !!p.partialFirstMonth };
 }
 
-export interface ClassEntryInput {
+interface ClassEntryInput {
   /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
   key: string;
   cls: ClassSeriesSource;
@@ -94,7 +94,7 @@ export interface ClassEntryInput {
   minMonths: number;
 }
 
-export interface ClassEntryBuild {
+interface ClassEntryBuild {
   entry: ClassPerformance | null;
   info: ClassInfo;
   issues: Issue[];

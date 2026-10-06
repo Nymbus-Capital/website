@@ -8,13 +8,14 @@ import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from
 import type { GrowthPoint } from "@/lib/data/types";
 import { availableRanges, growthRange, type GrowthMethod, type Range } from "../lib/data.ts";
 import { monotonePath, nearestIndex, nice, yearTicks, monthTicks } from "../lib/scale.ts";
-import { compactMoney, fmt, money, monthLabel, type Lang } from "../lib/format.ts";
+import { compactMoney, fmt, money, monthLabel } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
+import type { Locale } from "@/lib/i18n/config";
 
-export interface GrowthChartProps {
+interface GrowthChartProps {
   points: GrowthPoint[];
-  lang: Lang;
+  lang: Locale;
   names: { fund: string; index: string };
   rangeLabels: Record<Range, string>;
   rangeGroupLabel: string;

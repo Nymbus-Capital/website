@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { BOND_CHARACTERISTICS, ESG_METRICS, MULTISTRAT_CHARACTERISTICS } from "../../../src/lib/pipeline/parse.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
-import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
+import { FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const SRC = join(ROOT, "src");
@@ -27,6 +27,14 @@ function firstFamily(value: string): string | null {
   const v = value.trim().replace(/!important$/, "").trim();
   if (/^(inherit|initial|unset|revert)$/i.test(v)) return "inherit";
   return v.split(",")[0].trim().replace(/^["']|["']$/g, "");
+}
+
+/** Value of `const <name> = …` in `code`, else in the relative module `code` imports it from. */
+function constValue(code: string, name: string, file: string): string {
+  const own = code.match(new RegExp(`const ${name}\\s*=\\s*([^;\\n]+)`))?.[1];
+  if (own) return own;
+  const from = code.match(new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "(\\.[^"]+)"`))?.[1];
+  return from ? (readFileSync(join(dirname(file), from), "utf8").match(new RegExp(`const ${name}\\s*=\\s*([^;\\n]+)`))?.[1] ?? "") : "";
 }
 
 test("every font-family declaration of CSS, TSX and the standalone pages starts with Poppins (or inherits)", () => {
@@ -56,8 +64,8 @@ test("every font-family declaration of CSS, TSX and the standalone pages starts 
     }
     // canvas text
     for (const m of code.matchAll(/\.font\s*=\s*[`"']([^`"']+)[`"']/g)) {
-      // a ${CONST} family is resolved to its definition in the same file
-      const expanded = m[1].replace(/\$\{(\w+)\}/g, (_, n: string) => code.match(new RegExp(`const ${n}\\s*=\\s*([^;\\n]+)`))?.[1] ?? "");
+      // a ${CONST} family is resolved to its definition in the same file, or in the module it is imported from
+      const expanded = m[1].replace(/\$\{(\w+)\}/g, (_, n: string) => constValue(code, n, f));
       if (!/Poppins/.test(expanded)) bad.push(`${f.replace(ROOT, "")}: canvas font ${m[1]}`);
     }
   }

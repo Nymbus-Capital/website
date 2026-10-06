@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { recoverFromChunkError } from "./chunk-recover";
 import { Cpu, FlaskConical, Landmark } from "lucide-react";
-import { onScrollFrame, reducedMotion, Reveal, useInView } from "@/components/v3/motion";
+import { onScrollFrame, reducedMotion, Reveal, useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { SCAN_COPY as C } from "./scan-copy";
 import "./fx.css";

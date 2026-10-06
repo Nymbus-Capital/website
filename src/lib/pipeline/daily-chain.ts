@@ -1,7 +1,7 @@
 /**
  * Monthly net returns of ONE share class (FundServ code), computed in the website from the dataplatform's daily
- * `/api/performance/nav-timeseries` rows (Gabriel 2026-10-02: "compute whatever you need within the backend of the
- * website and only take the dataplatform api endpoints as input data"). Pure, dependency-free (Node type stripping).
+ * `/api/performance/nav-timeseries` rows (dataplatform main endpoints are the only input: docs/architecture.md § Sources).
+ * Pure, dependency-free (Node type stripping).
  *
  * Three regimes, each a port of the dataplatform's own rules so the figures are the ones it would publish:
  *  - Apex months (after the cut-over month): `monthly_net_returns._monthly_rows` (dataplatform main) — every Canadian
@@ -18,6 +18,7 @@
  */
 import { addMonths, toMonthEnd } from "./metrics.ts";
 import { isTradingDay, tradingDays, priorTradingDay } from "./market-calendar.ts";
+import { ym } from "../data/dates.ts";
 
 export { caMarketHolidays, isTradingDay, priorTradingDay, tradingDays } from "./market-calendar.ts";
 
@@ -48,7 +49,7 @@ export interface ChainMonth {
   navGap?: number | null;
 }
 
-export interface ChainOptions {
+interface ChainOptions {
   /** first date whose rows belong to this class's own book (earlier rows of a reused code are another strategy) */
   navStart: string;
   /** last closed month (month-end): later months are never computed */
@@ -65,7 +66,7 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
 
-const monthRows = (rows: DailyRow[], ym: string): DailyRow[] => rows.filter((r) => r.date.slice(0, 7) === ym).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+const monthRows = (rows: DailyRow[], monthKey: string): DailyRow[] => rows.filter((r) => ym(r.date) === monthKey).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
 /**
  * CIBC holiday filler: the former administrator wrote a row on some market holidays (Labour Day, Thanksgiving, Christmas,
@@ -95,11 +96,11 @@ export function dropHolidayFiller<T extends DailyRow>(rows: T[]): T[] {
 
 /** Apex month (port of `_monthly_rows`). */
 export function apexMonth(rows: DailyRow[], month: string): ChainMonth {
-  const ym = month.slice(0, 7);
-  const first = `${ym}-01`;
+  const monthKey = ym(month);
+  const first = `${monthKey}-01`;
   const out: ChainMonth = { month, status: "unavailable", r: null, source: "apex", issue: null };
   const expected = tradingDays(first, month);
-  const rs = monthRows(rows, ym);
+  const rs = monthRows(rows, monthKey);
   const days = rs.map((r) => r.date);
   const prior = priorTradingDay(first);
   const starts = [prior, ...expected.slice(0, -1)];
@@ -115,11 +116,11 @@ export function apexMonth(rows: DailyRow[], month: string): ChainMonth {
 
 /** CIBC month: stored daily net returns compounded over a complete month of the class's own book. */
 export function cibcMonth(rows: DailyRow[], month: string, navStart: string): ChainMonth {
-  const ym = month.slice(0, 7);
+  const monthKey = ym(month);
   const out: ChainMonth = { month, status: "unavailable", r: null, source: "cibc", issue: null };
-  const expected = tradingDays(`${ym}-01`, month);
+  const expected = tradingDays(`${monthKey}-01`, month);
   if (!expected.length || expected[0] < navStart) return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
-  const rs = monthRows(dropHolidayFiller(rows), ym);
+  const rs = monthRows(dropHolidayFiller(rows), monthKey);
   const days = rs.map((r) => r.date);
   if (new Set(days).size !== days.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
   const have = new Set(days);
@@ -130,7 +131,7 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
   const value = prod(rs.map((r) => r.net_daily_return as number)) - 1;
   if (!validReturn(value)) return { ...out, issue: "Invalid compounded monthly return" };
   // diagnostics: chain vs NAV per unit ratio from the previous month-end (a gap is a distribution, or a missed day)
-  const prevYm = addMonths(month, -1).slice(0, 7);
+  const prevYm = ym(addMonths(month, -1));
   const prevRows = monthRows(rows, prevYm).filter((r) => finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0);
   const base = prevRows[prevRows.length - 1]?.nav_per_share_cad ?? null;
   const end = rs[rs.length - 1].nav_per_share_cad;
@@ -140,20 +141,20 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
 
 /** The cut-over month: NAV bridge of dataplatform PR #626 (`_bridge` + `_bridge_issue`). */
 export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER): ChainMonth {
-  const ym = month.slice(0, 7);
+  const monthKey = ym(month);
   const out: ChainMonth = { month, status: "unavailable", r: null, source: "bridge", issue: null };
   const fail = (issue: string, status: ChainMonth["status"] = "unavailable"): ChainMonth => ({ ...out, status, issue });
-  const july = tradingDays(`${ym}-01`, month);
-  const priorEnd = priorTradingDay(`${ym}-01`);
-  const prevYm = addMonths(month, -1).slice(0, 7);
+  const july = tradingDays(`${monthKey}-01`, month);
+  const priorEnd = priorTradingDay(`${monthKey}-01`);
+  const prevYm = ym(addMonths(month, -1));
   const prior = monthRows(rows, prevYm).filter((r) => r.source === "cibc" && finite(r.nav_per_share_cad));
   const priorDay = prior.length ? prior[prior.length - 1] : null;
   if (priorDay && priorDay.currency !== "CAD") return fail(`CIBC month-end NAV per unit of ${priorDay.date} is not in CAD (${priorDay.currency ?? "unknown"})`);
   const day = prior.length ? prior[prior.length - 1].date : null;
   const base = prior.filter((r) => r.date === day);
-  const apex = monthRows(rows, ym).filter((r) => r.source === "apex");
+  const apex = monthRows(rows, monthKey).filter((r) => r.source === "apex");
   const firstApex = apex[0]?.date ?? month;
-  const cibcJuly = monthRows(rows, ym).filter((r) => r.source === "cibc" && r.date < firstApex);
+  const cibcJuly = monthRows(rows, monthKey).filter((r) => r.source === "cibc" && r.date < firstApex);
   if (!base.length || !priorEnd || day! < priorEnd) return fail("No CIBC month-end NAV per unit before the cut-over");
   if (new Set(base.map((r) => r.nav_per_share_cad)).size > 1) return fail("Conflicting CIBC month-end NAV per unit", "conflict");
   const baseNav = base[0].nav_per_share_cad as number;
@@ -212,7 +213,7 @@ export function classStart(rows: DailyRow[], navStart: string): string | null {
 /** First month whose every valuation day falls on or after `start` (the class's first computable month). */
 export function firstComputableMonth(start: string): string {
   const m = toMonthEnd(start);
-  const days = tradingDays(`${m.slice(0, 7)}-01`, m);
+  const days = tradingDays(`${ym(m)}-01`, m);
   return days.length && days[0] >= start ? m : addMonths(m, 1);
 }
 

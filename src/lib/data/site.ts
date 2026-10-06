@@ -23,7 +23,7 @@ export async function getContent(): Promise<SiteContent> {
 }
 
 /** Sample data is illustrative only: never shown in production unless explicitly allowed. */
-export const sampleAllowed = () => process.env.NODE_ENV !== "production" || process.env.SHOW_SAMPLE_DATA === "1";
+const sampleAllowed = () => process.env.NODE_ENV !== "production" || process.env.SHOW_SAMPLE_DATA === "1";
 
 export async function getSiteData(): Promise<SiteData | null> {
   const live = await readJsonCached<SiteData | null>(["published", "site-data.json"], null);

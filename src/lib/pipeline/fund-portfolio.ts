@@ -1,6 +1,6 @@
 /**
  * Daily portfolio analytics of one fund, computed by the website from dataplatform main-branch endpoints only
- * (Gabriel 2026-10-02, instead of the unmerged dataplatform PR #621 `/api/apex/fund-portfolio`):
+ * (instead of the unmerged dataplatform PR #621 `/api/apex/fund-portfolio`):
  *   /api/apex/holdings        the fund's Apex FINAL_NAV positions and bank / broker balances of one valuation day
  *   /api/instruments/batch    instrument master match by ISIN / CUSIP / FIGI: asset class, ratings, green-bond flag,
  *                             Bloomberg classification, latest price (modified duration, yield to maturity)
@@ -15,10 +15,10 @@
  */
 import type { FtseBondAnalytics, FundPortfolio, HoldingsBook, HoldingsPosition, InstrumentRef, PortfolioHoldingRow, WeightRow } from "./raw.ts";
 
-export const PRICE_MAX_AGE_DAYS = 7;
-export const GREEN_UNKNOWN_LIMIT = 0.1;
+const PRICE_MAX_AGE_DAYS = 7;
+const GREEN_UNKNOWN_LIMIT = 0.1;
 /** short bond positions above this share of net assets: duration and yield are not shown (a long-only average misstates them) */
-export const SHORT_LIMIT = 0.005;
+const SHORT_LIMIT = 0.005;
 const BOOK_GAP_WARNING = 0.05;
 const MIN_WEIGHT = 1e-6;
 
@@ -38,7 +38,7 @@ const BOND_WORDS = ["bond", "debenture", "note", "fixed income", "frn", "treasur
 const FIGI = /^BBG[0-9A-Z]{9}$/;
 const AGENCIES = ["sp", "moody", "fitch", "dbrs"];
 
-export const METHOD = {
+const METHOD = {
   source: "computed by the website from dataplatform /api/apex/holdings, /api/instruments/batch, /api/instruments (bond universe) and /api/performance/nav-timeseries (port of dataplatform PR #621 fund_portfolio.py)",
   weights: "market_value_cad / net assets (sum of the classes' Apex closing capital), signed",
   duration: "modified duration (instrument latest price), weighted by signed market value over bond positions, renormalised over covered weight; withheld when short bond positions exceed 0.5 % of net assets; labelled bond holdings only when futures are open (their exposure is not included)",
@@ -164,7 +164,7 @@ function securities(positions: HoldingsPosition[], warnings: string[]): Security
   const missing: string[] = [];
   for (const s of book.values()) {
     if (s.missing) { s.mv = null; missing.push(s.key); }
-    const { missing: _m, ...rest } = s; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { missing: _m, ...rest } = s;
     out.push(rest);
   }
   if (missing.length) warnings.push(`${missing.length} position(s) without a CAD market value, excluded from weights: ${sample(missing)}`);
@@ -318,7 +318,7 @@ function breakdown(items: [string, number, number][], denominator: number, order
 
 const termBucket = (years: number): string => (years < 1 ? "0-1" : years < 3 ? "1-3" : years < 5 ? "3-5" : years < 7 ? "5-7" : years < 10 ? "7-10" : "10+");
 
-export interface ComputeOptions {
+interface ComputeOptions {
   /** fund short name (payload identity) */
   short: string;
   /** sum of the classes' Apex closing capital on the book date (CAD), or null */

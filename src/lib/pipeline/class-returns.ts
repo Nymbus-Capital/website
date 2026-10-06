@@ -1,8 +1,6 @@
 /**
  * Monthly net returns of EVERY share class of a fund, each from its own daily `/api/performance/nav-timeseries` rows,
- * from its inception (Gabriel 2026-10-04: "make sure that all classes' returns are populated with data coming from
- * dataplatform … You can find the inception date of each class also by looking at the first date when there are prices
- * for that class"). Pure, dependency-free (Node type stripping).
+ * from its inception (the first date with prices for that class). Pure, dependency-free (Node type stripping).
  *
  *  - Inception: the first NAV-per-unit date of the class's CURRENT run. A gap of more than `relaunchGapDays` calendar days
  *    without a NAV per unit ends a run when a relaunch is corroborated (NAV jump or reset, or a very long gap): earlier rows
@@ -31,8 +29,10 @@
 import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, dropHolidayFiller, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
+import { ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
-export interface ClassCheckConfig {
+interface ClassCheckConfig {
   relaunchGapDays: number;
   spikeMin: number;
   spikeRevert: number;
@@ -98,8 +98,6 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const dayDiff = (a: string, b: string): number => (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
-const ym = (d: string): string => d.slice(0, 7);
 
 function median(xs: number[]): number {
   const s = [...xs].sort((a, b) => a - b);
@@ -107,7 +105,7 @@ function median(xs: number[]): number {
 }
 
 /** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable), without CIBC holiday filler rows */
-export function normalizeRows(rows: DailyRow[]): DailyRow[] {
+function normalizeRows(rows: DailyRow[]): DailyRow[] {
   return dropHolidayFiller(rows
     .filter((r) => r && typeof r.date === "string")
     .map((r) => ({ ...r, date: r.date.slice(0, 10) })));
@@ -216,7 +214,7 @@ export function monthsFromInception(rows: DailyRow[], inception: string, endMont
 }
 
 /** valid daily total returns of a class after its inception day (stored CIBC or distribution-aware Apex), by date */
-export function dailyReturns(rows: DailyRow[], inception: string, end?: string): Map<string, number> {
+function dailyReturns(rows: DailyRow[], inception: string, end?: string): Map<string, number> {
   const out = new Map<string, number>();
   const dup = new Set<string>();
   for (const r of normalizeRows(rows)) {
@@ -264,7 +262,7 @@ export function adjustmentDays(rows: DailyRow[], inception: string, min: number,
   return out;
 }
 
-export interface ClassFit { a: number; b: number; n: number; fallback: boolean }
+interface ClassFit { a: number; b: number; n: number; fallback: boolean }
 
 type FitCfg = Pick<ClassCheckConfig, "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">;
 

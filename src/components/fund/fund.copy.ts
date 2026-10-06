@@ -5,9 +5,7 @@
  */
 import type { DocType, FundKey, Period } from "../../lib/data/types.ts";
 import { DISC } from "../../content/disclaimers.ts";
-
-export type L = { en: string; fr: string };
-const l = (en: string, fr: string): L => ({ en, fr });
+import { l, type L } from "../../lib/i18n/config.ts";
 
 export const T = {
   crumbs: { home: l("Home", "Accueil"), strategies: l("Strategies", "Stratégies") },
@@ -418,7 +416,7 @@ export const T = {
 
 /* ------------------------------------------------------------------ per-fund texts (descriptive, no figures) */
 
-export interface FundTexts {
+interface FundTexts {
   /** shown under "What the fund does" when the admin has not entered the official investment objective */
   summary: L;
   /** investment approach as short bullets */
@@ -540,6 +538,3 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     },
   },
 };
-
-/** Pick the string of the current language. */
-export const tr = (x: L | undefined | null, lang: "en" | "fr") => (x ? x[lang] || x.en : "");

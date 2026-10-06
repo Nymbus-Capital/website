@@ -8,12 +8,13 @@
  */
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { barPath, bands, nice, yearTicks } from "../lib/scale.ts";
-import { dateLabel, money, monthLabel, type Lang } from "../lib/format.ts";
+import { dateLabel, money, monthLabel } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
+import type { Locale } from "@/lib/i18n/config";
 
 export function DistBars({ points, currency, lang, label, seriesName, height = 220, decimals: amountDecimals = 4 }: {
-  points: { date: string; amount: number }[]; currency: string; lang: Lang; label: string; seriesName: string; height?: number;
+  points: { date: string; amount: number }[]; currency: string; lang: Locale; label: string; seriesName: string; height?: number;
   /** decimals of the amounts (the series' own precision, as in the tables) */
   decimals?: number;
 }) {
@@ -100,4 +101,4 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
 }
 
 /** Amount per unit with the currency, as in the tables (the series' decimals, see amountDecimals). */
-export const perUnit = (v: number, currency: string, lang: Lang, decimals = 4) => money(v, currency, lang, decimals);
+export const perUnit = (v: number, currency: string, lang: Locale, decimals = 4) => money(v, currency, lang, decimals);

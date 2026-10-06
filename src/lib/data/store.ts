@@ -19,7 +19,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 
-export const dataDir = (): string => path.resolve(process.env.SITE_DATA_DIR || "./var");
+const dataDir = (): string => path.resolve(process.env.SITE_DATA_DIR || "./var");
 export const p = (...parts: string[]): string => {
   const root = dataDir();
   const full = path.resolve(root, ...parts);
@@ -37,7 +37,7 @@ export const p = (...parts: string[]): string => {
 const GEN = Symbol.for("nymbus.store.generation");
 const g = globalThis as unknown as Record<symbol, number>;
 export const writeGeneration = (): number => g[GEN] ?? 0;
-export const bumpWriteGeneration = (): void => { g[GEN] = writeGeneration() + 1; };
+const bumpWriteGeneration = (): void => { g[GEN] = writeGeneration() + 1; };
 
 export async function readJson<T>(rel: string[], fallback: T): Promise<T> {
   try {
@@ -60,7 +60,7 @@ export async function writeFileAtomic(rel: string[], data: string | Uint8Array):
 export const writeJson = (rel: string[], value: unknown): Promise<void> =>
   writeFileAtomic(rel, JSON.stringify(value, null, 2) + "\n");
 
-export async function appendLine(rel: string[], line: string): Promise<void> {
+async function appendLine(rel: string[], line: string): Promise<void> {
   const target = p(...rel);
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.appendFile(target, line.replace(/\n/g, " ") + "\n");

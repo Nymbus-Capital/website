@@ -6,10 +6,10 @@
  * compliance approval, see docs/compliance-review.md. Do not edit the wording without compliance approval.
  */
 import type { LegalDoc } from "./types.ts";
+import type { Locale } from "../../../lib/i18n/config.ts";
 
-type Lang = "en" | "fr";
 
-export function complaintsPolicy(lang: Lang): LegalDoc {
+export function complaintsPolicy(lang: Locale): LegalDoc {
   const fr = lang === "fr";
   return {
     id: "complaints",
@@ -72,7 +72,7 @@ export function complaintsPolicy(lang: Lang): LegalDoc {
   };
 }
 
-export function codeOfEthics(lang: Lang): LegalDoc {
+export function codeOfEthics(lang: Locale): LegalDoc {
   const fr = lang === "fr";
   const items = fr ? [
     { title: "1. Aperçu et principes généraux", text: "Nymbus, ses dirigeants, employés et administrateurs exercent leurs activités selon les normes les plus élevées d’éthique et d’intégrité. Tous les employés adhèrent aux principes de ce code d’éthique dès leur embauche pour préserver la réputation de l’entreprise et assurer une conduite professionnelle constante. Ce code s’applique à tous les employés, y compris à temps partiel, temporaires, contractuels, stagiaires et conseillers." },

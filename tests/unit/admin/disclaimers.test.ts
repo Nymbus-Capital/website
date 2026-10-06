@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DISC, DISCLAIMERS, FUND_INCEPTION, disclaimersHash, footerDisclaimers, preInceptionNote } from "../../../src/content/disclaimers.ts";
 import { complianceState, currentDisclaimersHash } from "../../../src/components/admin/compliance.ts";
-import { T } from "../../../src/components/fund/copy.ts";
+import { T } from "../../../src/components/fund/fund.copy.ts";
 import type { SiteContent } from "../../../src/lib/data/types.ts";
 
 test("every disclaimer is bilingual, located and has review points", () => {

@@ -1,15 +1,14 @@
 /**
  * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts): one large shared
- * graphic (≈2,000 dots of the Canadian investment-grade index, in six sector clusters) shown as a two-act comparison
- * (Gabriel 2026-10-04: the earlier bigger shared graphic, "starts with conventional then turns to Nymbus systems").
+ * graphic (≈2,000 dots of the Canadian investment-grade index, in six sector clusters) shown as a two-act comparison.
  * Act 1, a conventional fundamental team (one portfolio manager, six sector analysts — financials, technology &
  * communications, consumer, utilities & infrastructure, energy, industrials — each covering about 30 securities a year in
  * depth) lights 180 of them; act 2, our systems scan every liquid bond (at least $200 MM outstanding) and keep the whole
  * history in memory; a last beat compares both. A methods column on the left (a strip on top on narrow screens) stacks
  * the two methods with a "VS" badge between them: the method on the graphic is highlighted, the other faded.
- * The figures are Gabriel's illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
+ * The figures are Nymbus' illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
  */
-import { ease, hash01, span } from "./timeline.ts";
+import { ease, hash01, span } from "../canvas/timeline.ts";
 
 /** About 2,000 bonds in the Canadian investment-grade index (illustrative estimate). */
 export const UNIVERSE = 2000;
@@ -63,7 +62,7 @@ export function teamCoverage(bonds: Bond[], seed = 0): number[][] {
 }
 
 /** Gap between two sector clusters, in cells. */
-export const SECTOR_GAP = 0.9;
+const SECTOR_GAP = 0.9;
 
 /** First universe index of sector s. */
 export const sectorStart = (s: number): number => Math.ceil((s * UNIVERSE) / ANALYSTS);
@@ -101,7 +100,7 @@ export interface Rect { x: number; y: number; w: number; h: number }
  * Opacity of each method in the methods column, per step: [conventional team, our systems]. The universe step shows
  * both softly; each act highlights its method and fades the other (half strength); the compare step shows both fully.
  */
-export const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1]];
+const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1]];
 /** Share of a step over which the column's focus eases to that step's. */
 export const FOCUS_IN = 0.08;
 
@@ -185,8 +184,6 @@ export function coverageLayout(W: number, H: number) {
   const legendY = grid.y + gh + 15;
   return { narrow, pad, foot, column, team, systems, vs, area, grid, cell, cols, rows, depthX, depthY, titleY, legendY, legendH };
 }
-
-export type CoverageLayout = ReturnType<typeof coverageLayout>;
 
 /** Boxes of the texts and shapes of the scene (unit-tested apart: they never overlap). */
 export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {

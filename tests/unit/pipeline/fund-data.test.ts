@@ -13,11 +13,12 @@ import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfol
 import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
 import { DISTRIBUTIONS } from "../../../src/lib/pipeline/config.ts";
 import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite, yearBefore } from "../../../src/lib/pipeline/validate.ts";
-import { buildSiteData, computedBook as computedBookOf } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, computedBook as computedBookOf, type BuildResult } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { ClassDistributions, DpShort, FundPortfolio, RawPayloads, SourceResult } from "../../../src/lib/pipeline/raw.ts";
 import type { ClassDistribution, FundData, SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const client = (...routes: Route[]) => dpClient(mockFetch(...routes).fetch, { DATAPLATFORM_URL: "http://dataplatform.test", PIPELINE_RETRY_BASE_MS: "0" })!;
@@ -34,6 +35,11 @@ async function rawWith(opts: { routes?: Route[]; now?: Date; dist?: "ok" | "down
     }
   }
   return raw;
+}
+/** The unaltered fixtures (with distributions) are built once per file (pure); every caller gets its own deep copy. */
+const baseline = once(async () => buildSiteData(await rawWith({ dist: "ok" }), null, NOW));
+async function build(...routes: Route[]): Promise<BuildResult> {
+  return routes.length ? buildSiteData(await rawWith({ routes, dist: "ok" }), null, NOW) : baseline();
 }
 
 /* ------------------------------------------------------------------ parsers */
@@ -275,7 +281,7 @@ test("distributions gates: amount vs NAV, dates, last row, trailing 12 months, c
 /* ------------------------------------------------------------------ portfolio gates */
 
 test("portfolio gates: implausible parts dropped one by one, the block when nothing is left, never the fund", async () => {
-  const b = buildSiteData(await rawWith({ dist: "ok" }), null, NOW);
+  const b = await build();
   const fund = () => structuredClone(b.data.funds["monthly-income"]!);
   const run = (f: (x: FundData) => void) => { const x = fund(); f(x); return { x, issues: checkPortfolio(x, "p", NOW) }; };
 
@@ -318,9 +324,6 @@ test("portfolio gates: implausible parts dropped one by one, the block when noth
 
 /* ------------------------------------------------------------------ build */
 
-async function build(...routes: Route[]): Promise<{ data: SiteData }> {
-  return buildSiteData(await rawWith({ routes, dist: "ok" }), null, NOW);
-}
 
 test("build: daily book computed by the website for covered funds, factsheet kept for the others; distributions only when supplied", async () => {
   const m = mockFetch();
@@ -556,7 +559,7 @@ test("distributions gates: the trailing 12 months are checked over the data plat
 });
 
 test("distributions carried over after failed reads are dropped after 10 days without a successful read", async () => {
-  const { data: prev, context } = buildSiteData(await rawWith({ dist: "ok" }), null, NOW);
+  const { data: prev, context } = await build();
   assert.equal(prev.funds["monthly-income"]!.distributions!.checkedAt, "2026-09-29");
   const at = async (iso: string) => {
     const now = new Date(iso);
@@ -579,4 +582,8 @@ test("distributions carried over after failed reads are dropped after 10 days wi
   const f = old.funds["monthly-income"]!;
   checkDistributions(f, "b", NOW);
   assert.equal(f.distributions, null);
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, classSpreadProblem } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, classSpreadProblem, type BuildResult } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import { factsheetClassAt } from "../../../src/lib/pipeline/fund-sources.ts";
@@ -18,13 +18,21 @@ import { fundWithClassLabel, perfClassCode, withClassLabel } from "../../../src/
 import type { FundData, Performance, SiteData } from "../../../src/lib/data/types.ts";
 import type { RawPayloads } from "../../../src/lib/pipeline/raw.ts";
 import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const SEB = "sustainable-enhanced-bonds" as const;
 
-async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<RawPayloads> {
+function fetchWith(env: Record<string, string | undefined>, routes: Route[]): Promise<RawPayloads> {
   return fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv({ PIPELINE_RETRY_BASE_MS: "0", ...env }) });
 }
+// the unaltered fixtures are fetched, built and validated once per file (pure); every caller gets its own deep copy
+const baseRaw = once(() => fetchWith({}, []));
+async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<RawPayloads> {
+  return Object.keys(env).length || routes.length ? fetchWith(env, routes) : baseRaw();
+}
+/** the unaltered fixtures, built with no previous publication */
+const built: () => Promise<BuildResult> = once(async () => buildSiteData(await raw(), null, NOW));
 async function fsCopy(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "fs-class-"));
   await cp(FIXTURE_FACTSHEETS_DIR, dir, { recursive: true });
@@ -38,9 +46,13 @@ async function editJson(file: string, fn: (j: any) => void): Promise<void> { // 
 const sebIssues = (d: SiteData) => d.issues.filter((i) => i.key.startsWith(`funds.${SEB}`));
 const sebErrors = (d: SiteData) => sebIssues(d).filter((i) => i.level === "error");
 /** a previous publication built (and validated) from the given routes */
-async function published(...routes: Route[]): Promise<SiteData> {
+async function publishedWith(routes: Route[]): Promise<SiteData> {
   const b = buildSiteData(await raw({}, ...routes), null, NOW);
   return validateSite(b.data, b.context, null, NOW).data;
+}
+const basePublished = once(() => publishedWith([]));
+async function published(...routes: Route[]): Promise<SiteData> {
+  return routes.length ? publishedWith(routes) : basePublished();
 }
 /** the SEB track-record answer of monthly-net-returns, changed by `edit` */
 const sebMnr = (edit: (j: Record<string, unknown>) => Record<string, unknown>): Route => (u) =>
@@ -49,7 +61,7 @@ const sebMnr = (edit: (j: Record<string, unknown>) => Record<string, unknown>): 
 /* ------------------------------------------------------------------ the headline is the track record, labelled by its class */
 
 test("SEB headline: class H data (analytics + LDM202 chain + STRATEGY_H Apex months) labelled H; class F next to it", async () => {
-  const { data, context } = buildSiteData(await raw(), null, NOW);
+  const { data, context } = await built();
   const p = data.funds[SEB]!.performance!;
   assert.equal(p.classCode, "STRATEGY_H");
   assert.equal(p.returnClass, "H");
@@ -86,7 +98,7 @@ test("classSpreadProblem: class − track must stay in the fee band and near its
 test("the track-record answer must be the track-record class: another or a missing class_code withholds the performance", async () => {
   for (const [name, route, msg] of [
     ["class F answer", sebMnr((j) => ({ ...j, class_code: "STRATEGY" })), /monthly net returns SEB STRATEGY_H: class_code STRATEGY instead of STRATEGY_H: performance withheld/],
-    ["no class_code", sebMnr(({ class_code: _drop, ...rest }) => rest), /monthly net returns SEB STRATEGY_H: class_code missing instead of STRATEGY_H: performance withheld/], // eslint-disable-line @typescript-eslint/no-unused-vars
+    ["no class_code", sebMnr(({ class_code: _drop, ...rest }) => rest), /monthly net returns SEB STRATEGY_H: class_code missing instead of STRATEGY_H: performance withheld/],
     ["class_display of another class (a later dataplatform)", sebMnr((j) => ({ ...j, class_display: "F" })), /class_display F instead of H: performance withheld/],
     ["fundserv of another class", sebMnr((j) => ({ ...j, fundserv: "LDM201" })), /fundserv LDM201 instead of LDM202: performance withheld/],
   ] as [string, Route, RegExp][]) {
@@ -114,7 +126,7 @@ test("a class history answering rows of another class is a failure, never compou
 });
 
 test("validate: a performance whose label is not the label of its data's class is blocked", async () => {
-  const b = buildSiteData(await raw(), null, NOW);
+  const b = await built();
   for (const mutate of [
     (p: Performance) => { p.returnClass = "F"; p.returnClassLabel = "Series F"; }, // class H data labelled F (the pre-2026-10-01 bug)
     (p: Performance) => { delete p.classCode; },
@@ -243,8 +255,12 @@ test("legacy publication (before 2026-10-01: SEB class H labelled F) is relabell
 /* ------------------------------------------------------------------ NAV class vs performance class */
 
 test("NAV card and performance label are independent: SEB NAV LDM201 is class F (register) whatever the performance class", async () => {
-  const { data } = buildSiteData(await raw(), null, NOW);
+  const { data } = await built();
   const f = data.funds[SEB]!;
   assert.equal(f.performance!.returnClass, "H");
   assert.equal(f.nav!.classes.find((c) => c.fundserv === "LDM201")!.display, "F", "NAV class label comes from the fund register, by FundServ code");
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

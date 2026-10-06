@@ -58,15 +58,11 @@ export default async function StrategyPage({ params }: Params) {
   // the snapshot pin is internal (admin) state: strip it before the props cross to the client
   const { pinnedSnapshot: _pin, rankings: allRankings, ...rest } = view.content;
   void _pin;
-  // third-party rankings: only confirmed, complete entries younger than the configured limit reach the page (drafts,
-  // admin notes and stale figures stay on the server)
-  // admin "hide rankings": nothing at all in the payload
+  // only confirmed, fresh rankings reach the page (drafts, notes, stale figures stay on the server); "hide" sends none
   const rankings = rest.hide?.rankings ? undefined : publicFundRankings(allRankings, { now: new Date(), months: policyMonths(siteContent), classes: view.spec.classes });
   // awards only for a Fundata FundGrade of A or B: otherwise no rankings in the payload (CIFSC category line kept)
   const content = gateAwards(rankings ? { ...rest, rankings } : rest, view.spec.classes);
-  // internal source names / keys (dataplatform, analytics series, factsheet keys) never reach the client, nor any
-  // block the admin hid (performance, growth, calendar, risk, NAV, portfolio blocks; the fund AUM unless explicitly
-  // published): hidden data is not in the RSC payload
+  // internal source names and every block the admin hid (AUM unless published) stay out of the RSC payload
   const data = stripHidden(toPublicData(view.data), content);
   return <FundPage spec={toPublicSpec(view.spec)} content={content} data={data} sample={view.sample} docs={docs} funds={funds} firmDisclaimer={siteContent.firm.disclaimer ?? null} brand={brand} />;
 }

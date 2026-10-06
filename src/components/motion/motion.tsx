@@ -3,13 +3,14 @@
  * v3 motion primitives — the web port of nymbus-decks src/v3/anim.ts:
  *  - titles rise word by word out of a blur
  *  - everything else floats up with blur, cards pop in with a spring, key figures zoom out of a blur
- *  - figures count up; screens scale down and blur as the next one slides over them (keynote page swap)
+ *  - figures count up
  * All of it is skipped under prefers-reduced-motion, and content stays visible without JS (html.js gate).
  */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { fmt } from "@/components/fund/lib/format";
 
 export const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
-export const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 
 export const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -99,12 +100,10 @@ export function Reveal({
   // layout effect: the entrance animation is in place before the frame that shows the element
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || !seen) return;
+    if (!el || !seen || reducedMotion()) return;
     const targets = self ? [el] : (Array.from(el.children) as HTMLElement[]);
     const [dur, easing] = DUR[kind];
     targets.forEach((t, i) => {
-      t.classList.add("in"); // legacy hook (older CSS keyed on .in)
-      if (reducedMotion()) return;
       t.animate(FRAMES[kind], { duration: dur, delay: delay + i * stagger, easing, fill: "backwards" });
     });
   }, [seen, kind, delay, stagger, self, ref]);
@@ -151,17 +150,6 @@ export function RevealTitle({
       </span>
     </Tag>
   );
-}
-
-/** Formats a number as the deck does (tabular, minus sign as U+2212). */
-export function fmt(v: number, o: { decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: "en" | "fr" } = {}) {
-  const d = o.decimals ?? 1;
-  const x = o.pct ? v * 100 : v;
-  const s = Math.abs(x).toLocaleString(o.lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const zero = Number(Math.abs(x).toFixed(d)) === 0; // "−0.0%" reads as a loss: no sign once rounded to zero
-  const sign = zero ? "" : x < 0 ? "−" : o.sign && x > 0 ? "+" : "";
-  const pct = o.pct ? (o.lang === "fr" ? " %" : "%") : "";
-  return `${sign}${o.prefix ?? ""}${s}${pct}${o.suffix ?? ""}`;
 }
 
 /** Number that counts up from 0 when it scrolls into view (ease-out cubic, like countEl in the deck). */
@@ -301,46 +289,6 @@ export function Spotlight() {
     return () => host.removeEventListener("pointermove", move);
   }, []);
   return <div ref={ref} className="spot" aria-hidden="true" />;
-}
-
-/**
- * Keynote page swap on scroll: while a screen scrolls out under the next one it recedes
- * (scale .94, a light blur on desktop, fade) — the same move as swapPages() in the deck, scrubbed by the scroll.
- * Screens also enter through an "iris": their rounded frame opens from inset(4% 3% round 40px) to full size.
- * The iris uses CSS scroll-driven animations where supported (globals.css, `.screen[data-swap]`) and this
- * loop otherwise. Mount once per page; it drives every `.screen[data-swap]`.
- */
-export function ScreenSwap() {
-  useEffect(() => {
-    if (reducedMotion()) return;
-    const screens = Array.from(document.querySelectorAll<HTMLElement>(".screen[data-swap]"));
-    if (!screens.length) return;
-    // blur repaints a whole screen each frame: only on large, fine-pointer displays, and capped at 4px
-    const blur = !window.matchMedia("(pointer: coarse)").matches && window.innerWidth >= 1024;
-    const cssIris = typeof CSS !== "undefined" && CSS.supports("animation-timeline: view()");
-    const first = screens[0];
-    return onScrollFrame((vh) => {
-      for (const s of screens) {
-        const r = s.getBoundingClientRect();
-        // exit: 0 while the bottom edge is below 60 % of the viewport, 1 when it reaches the top
-        const k = Math.min(1, Math.max(0, (vh * 0.6 - r.bottom) / (vh * 0.6)));
-        if (k <= 0.001) {
-          if (s.style.transform) { s.style.transform = ""; s.style.filter = ""; s.style.opacity = ""; s.style.willChange = ""; }
-        } else {
-          s.style.willChange = "transform, opacity";
-          s.style.transform = `scale(${1 - 0.06 * k})`;
-          s.style.filter = blur ? `blur(${(4 * k).toFixed(2)}px)` : "";
-          s.style.opacity = `${1 - 0.6 * k}`;
-        }
-        // entrance iris (JS fallback): 0 when the top edge is at the bottom of the viewport, 1 at 55 %
-        if (!cssIris && s !== first) {
-          const e = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.45)));
-          s.style.clipPath = e >= 1 ? "" : `inset(${(4 * (1 - e)).toFixed(2)}% ${(3 * (1 - e)).toFixed(2)}% round ${(28 + 12 * (1 - e)).toFixed(1)}px)`;
-        }
-      }
-    });
-  }, []);
-  return null;
 }
 
 /**

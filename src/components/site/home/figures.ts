@@ -3,9 +3,10 @@
  * categories for the filter, the mini calendar-year bars. Dependency-free (unit tested under plain Node,
  * tests/unit/site/figures.test.ts).
  */
-import { dateLabel, fmt, money, monthLabel, NAV_DECIMALS, type Lang } from "../../fund/lib/format.ts";
+import { dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "../../fund/lib/format.ts";
 import type { FundKey } from "../../../lib/data/types.ts";
 import { partialKind, type PartialKind } from "../../fund/lib/data.ts";
+import type { Locale } from "../../../lib/i18n/config.ts";
 
 export type Category = "fixed-income" | "alternatives";
 export type Filter = "all" | Category;
@@ -25,24 +26,24 @@ export function filterFunds<T extends { key: FundKey }>(funds: T[], filter: Filt
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
 /** Return as shown next to the fund: "+5.2%" / "−1.3 %" (FR); null when not published. */
-export function pctText(v: number | null | undefined, lang: Lang, sign = true): string | null {
+export function pctText(v: number | null | undefined, lang: Locale, sign = true): string | null {
   return isNum(v) ? fmt(v, { pct: true, decimals: 1, sign, lang }) : null;
 }
 
 /** Table cell: the figure, or an em dash when it is not published. */
-export const cell = (v: number | null | undefined, lang: Lang): string => pctText(v, lang) ?? "—";
+export const cell = (v: number | null | undefined, lang: Locale): string => pctText(v, lang) ?? "—";
 
 /** NAV per unit in its class currency: "$10.1905" / "10,1905 $"; "US$…" for a USD class. */
-export const navText = (nav: number, currency: string, lang: Lang): string => money(nav, currency, lang, NAV_DECIMALS);
+export const navText = (nav: number, currency: string, lang: Locale): string => money(nav, currency, lang, NAV_DECIMALS);
 
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 /** "2026-08-31" → "August 2026" (EN, sentence case) / "août 2026" (FR). */
-export const monthText = (iso: string | null | undefined, lang: Lang): string =>
+export const monthText = (iso: string | null | undefined, lang: Locale): string =>
   lang === "en" ? cap(monthLabel(iso, lang)) : monthLabel(iso, lang);
 
 /** "2026-09-28" → "Sep 28, 2026" / "28 sept. 2026". */
-export const dayText = (iso: string | null | undefined, lang: Lang): string =>
+export const dayText = (iso: string | null | undefined, lang: Locale): string =>
   lang === "en" ? cap(dateLabel(iso, lang)) : dateLabel(iso, lang);
 
 /** `kind`: why a year is partial: "ytd" only for the as-of year, "launch" for a partial inception year. */
@@ -86,10 +87,10 @@ export function latest(dates: (string | null | undefined)[]): string | null {
 }
 
 /** A free-text figure such as "$1.9B" or "1,9 G$" split so it can count up. */
-export interface CountLabel { prefix: string; value: number; decimals: number; suffix: string }
+interface CountLabel { prefix: string; value: number; decimals: number; suffix: string }
 
 /** Prefix + number + suffix, or null when the text is anything else (it is then shown as written). */
-export function parseCountLabel(text: string | null | undefined, lang: Lang): CountLabel | null {
+export function parseCountLabel(text: string | null | undefined, lang: Locale): CountLabel | null {
   const m = /^(\D*?)(\d{1,4})(?:([.,])(\d{1,2}))?(\D*)$/.exec((text ?? "").trim());
   if (!m) return null;
   const [, prefix, int, sep, frac = "", suffix] = m;

@@ -7,8 +7,9 @@
  */
 import {
   THIRD_PARTY_PROVIDERS,
-  type FundLibraryRanking, type FundRankings, type L10n, type MorningstarRating, type SiteContent, type ThirdPartyProvider, type ThirdPartyRanking,
+  type FundLibraryRanking, type FundRankings, type MorningstarRating, type SiteContent, type ThirdPartyProvider, type ThirdPartyRanking,
 } from "../data/types.ts";
+import type { L } from "../i18n/config.ts";
 
 export const DEFAULT_MAX_AGE_MONTHS = 6;
 export const MIN_MAX_AGE_MONTHS = 1;
@@ -56,7 +57,7 @@ export interface ProviderMeta {
   /** short wordmark (text) */
   name: string;
   /** full source name, EN / FR */
-  source: L10n;
+  source: L;
   /** brand asset slot of its official logo (src/lib/data/brand-assets.ts) */
   logoSlot: string;
 }
@@ -174,7 +175,7 @@ export const awardsEligible = (fundLibrary: readonly Pick<FundLibraryRanking, "f
  * Server side: a fund that does not qualify receives no rankings at all (nothing in the page payload). The CIFSC category
  * line of the facts table, which used to fall back to the Fundata category, keeps that fallback through `cifscCategory`.
  */
-export function gateAwards<T extends { rankings?: FundRankings; cifscCategory?: L10n }>(content: T, classes?: { fundserv: string }[]): T {
+export function gateAwards<T extends { rankings?: FundRankings; cifscCategory?: L }>(content: T, classes?: { fundserv: string }[]): T {
   if (!content.rankings) return content;
   const shown = publicRankings(content.rankings, { now: null, classes }).fundLibrary;
   if (awardsEligible(shown)) return content;

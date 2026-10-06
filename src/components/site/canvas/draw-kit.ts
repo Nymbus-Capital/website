@@ -1,5 +1,6 @@
 /**
- * draw-kit.ts — small canvas helpers shared by the /core-concepts engines: palette (light v3 keynote), Poppins
+ * draw-kit.ts — small canvas helpers shared by the /core-concepts engines (and the home engines band for its palette, font
+ * and label split): palette (light v3 keynote), Poppins
  * fonts, measured and fitted text (cached widths), rounded rectangles, glows without shadowBlur, the on-canvas
  * "ILLUSTRATION · generated values" mark. Framework-free.
  */
@@ -19,7 +20,7 @@ export const rgba = (hex: string, a: number): string => {
   return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
 };
 
-export type Align = "left" | "center" | "right";
+type Align = "left" | "center" | "right";
 
 export interface Pen {
   font(weight: 400 | 500 | 600 | 700, size: number): void;

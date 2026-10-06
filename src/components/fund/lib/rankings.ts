@@ -1,8 +1,7 @@
 /** Which third-party rankings the page shows, and the CIFSC category line of the facts table (pure, unit tested). */
 import type { FundContent, FundLibraryRanking, MorningstarRating, ThirdPartyRanking } from "../../../lib/data/types.ts";
 import { awardsEligible, DEFAULT_MAX_AGE_MONTHS, publicRankings } from "../../../lib/rankings/policy.ts";
-import { tr } from "../copy.ts";
-import type { Lang } from "./format.ts";
+import { tr, type Locale } from "../../../lib/i18n/config.ts";
 
 /** Default staleness limit (~6 months); the configured one is `SiteContent.rankingPolicy.maxAgeMonths`. */
 export const RANKING_MAX_AGE_DAYS = 183;
@@ -37,7 +36,7 @@ const byProvider = (list: ThirdPartyRanking[]): ThirdPartyRanking[] =>
   [...list.filter((e) => e.provider === "rbc-pfs"), ...list.filter((e) => e.provider !== "rbc-pfs")];
 
 /** The CIFSC category for the facts table: the admin's, else the Fundata category when every entry agrees. */
-export function cifscCategory(content: Pick<FundContent, "cifscCategory" | "rankings" | "hide"> | null | undefined, lang: Lang, classes?: { fundserv: string }[], now?: Date): string | null {
+export function cifscCategory(content: Pick<FundContent, "cifscCategory" | "rankings" | "hide"> | null | undefined, lang: Locale, classes?: { fundserv: string }[], now?: Date): string | null {
   const own = content?.cifscCategory;
   if (own && (own.en || own.fr)) return tr(own, lang);
   if (!content || content.hide?.rankings) return null;

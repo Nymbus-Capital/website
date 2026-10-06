@@ -7,7 +7,7 @@ import type { AuthConfig } from "./config.ts";
 import { pkceChallenge } from "./pkce.ts";
 import { timingSafeEqualStr } from "./guards.ts";
 
-export const OIDC_SCOPE = "openid profile email";
+const OIDC_SCOPE = "openid profile email";
 
 export async function authorizeUrl(cfg: AuthConfig, f: { state: string; nonce: string; verifier: string }): Promise<string> {
   const u = new URL(cfg.authorizeEndpoint);

@@ -13,7 +13,7 @@ import { gauss, hash01 } from "./scan-model.ts";
 
 const l = (en: string, fr: string) => ({ en, fr });
 
-export interface Engine { key: string; label: { en: string; fr: string }; color: string; /** part of the blended line */ blend: boolean }
+interface Engine { key: string; label: { en: string; fr: string }; color: string; /** part of the blended line */ blend: boolean }
 
 /**
  * The Multi-Strategy Fund's four strategies (names as on the fund page and /approach) and the bond funds' futures
@@ -186,7 +186,7 @@ export function downsideCorrelation(get: (n: number) => Month, end: number, wind
 }
 
 /** Height of the blended line's row, in strategy rows. */
-export const COMBINED_ROWS = 1.4;
+const COMBINED_ROWS = 1.4;
 
 /**
  * Layout of the canvas for a width: two groups on the left — traditional markets (equities, bonds) above our
@@ -224,7 +224,7 @@ export function overlayLayout(W: number, H: number) {
   };
 }
 
-export type OverlayLayout = ReturnType<typeof overlayLayout>;
+type OverlayLayout = ReturnType<typeof overlayLayout>;
 export interface Row { y: number; h: number }
 
 /** Centre line and height of every row: equities and bonds, the five engines, then the blended line. */

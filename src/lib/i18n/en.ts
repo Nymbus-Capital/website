@@ -1,6 +1,6 @@
 /**
  * Site chrome strings (nav, footer, shared UI). Page copy lives next to the pages as bilingual
- * `{ en, fr }` objects (src/components/site/copy.ts), which keeps both languages side by side.
+ * `{ en, fr }` objects (the `*.copy.ts` files next to each page), which keeps both languages side by side.
  * fr.ts must define every key of this file (enforced by its type).
  */
 export const en = {

@@ -10,7 +10,7 @@
  */
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "@/lib/i18n";
-import { T, tr } from "./copy";
+import { T } from "./fund.copy";
 import { FundHeader, ReturnStrip } from "./Header";
 import { FundTabs } from "./FundTabs";
 import { Overview } from "./Overview";
@@ -20,15 +20,15 @@ import { DistributionsTab, DocumentsTab } from "./DocsDist";
 import { AwardsTab } from "./Awards";
 import { rankingsToShow } from "./lib/rankings.ts";
 import { Disclosures, FeatureSection, FundCta, OtherFunds } from "./Closing";
-import type { Lang } from "./lib/format.ts";
 import { stripHidden } from "./lib/data.ts";
 import { classInfoOf, classOptions, initialSelection, pickData, type ClassCtx, type Selection } from "./lib/select.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 export function FundPage({ spec, content, data: published, sample, docs, funds, firmDisclaimer, brand }: FundPageProps) {
   const { locale } = useTranslation();
-  const lang: Lang = locale === "fr" ? "fr" : "en";
+  const lang: Locale = locale === "fr" ? "fr" : "en";
   const isFund = spec.vehicle === "fund";
   const style = { "--fund-from": spec.color.from, "--fund-to": spec.color.to, "--fund": spec.color.solid } as CSSProperties;
   const [sel, setSel] = useState<Selection>(() => initialSelection(published, spec, content));
@@ -67,7 +67,7 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
       <FeatureSection spec={spec} data={data} content={content} lang={lang} />
       <FundCta spec={spec} lang={lang} />
       <OtherFunds current={spec.key} funds={funds} lang={lang} />
-      {/* Gabriel 2026-10-04: the disclosures are the last block, below the call to action and the other strategies */}
+      {/* the disclosures are the last block, below the call to action and the other strategies (docs/architecture.md § Decision log) */}
       <Disclosures {...props} sample={sample} firmDisclaimer={firmDisclaimer} />
     </div>
   );

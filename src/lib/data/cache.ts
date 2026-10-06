@@ -21,7 +21,7 @@ const KEY = Symbol.for("nymbus.data.cache");
 const g = globalThis as unknown as Record<symbol, { entries: Map<string, Entry>; loading: Map<string, Promise<Entry>> } | undefined>;
 const state = (g[KEY] ??= { entries: new Map(), loading: new Map() });
 
-export const DEFAULT_RECHECK_MS = 1000;
+const DEFAULT_RECHECK_MS = 1000;
 /** cached snapshot files (paths under snapshots/), least recently used evicted first */
 export const MAX_SNAPSHOT_ENTRIES = 8;
 const ABSENT = "absent";

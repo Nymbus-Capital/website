@@ -1,6 +1,6 @@
 /**
  * /sustainability copy, EN / FR. Facts only: no ESG metrics, green-bond allocations or "PRI scorecard" percentages
- * (the old figures were placeholders). Scope (Gabriel, 2026-10-02): ESG criteria and exclusions belong to the
+ * (the old figures were placeholders). Scope: ESG criteria and exclusions belong to the
  * Sustainable Enhanced Bonds Fund ONLY; firm-level items are the public commitments (PRI signatory since 2018, the
  * Tobacco-Free Finance Pledge, 2024) and the Fondaction mandates. tests/unit/site/esg-scope.test.ts fails when
  * exclusion / ESG-screen wording appears on a firm-level page without the fund's name in the same block.

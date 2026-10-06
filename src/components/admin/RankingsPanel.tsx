@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, useToast } from "./client";
 
-export interface RankingsPanelProps {
+interface RankingsPanelProps {
   issues: { level: "warn" | "info"; key: string; message: string }[];
   months: number;
   rbc: { checkedAt: string; ok: boolean; latest?: { label: string; asOf: string; url?: string } } | null;

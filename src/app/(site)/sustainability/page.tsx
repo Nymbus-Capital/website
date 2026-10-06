@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Sustainability } from "@/components/site/pages/Sustainability";
-import { SU } from "@/components/site/pages/copy-sustainability";
+import { SU } from "@/components/site/pages/sustainability.copy";
 import { getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {

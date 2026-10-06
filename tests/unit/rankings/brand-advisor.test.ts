@@ -9,7 +9,7 @@ import {
 } from "../../../src/lib/data/brand-assets.ts";
 import { MORNINGSTAR_ASSETS_MISSING, missingMorningstarAssets, rankingIssues } from "../../../src/lib/rankings/issues.ts";
 import { mergeContent } from "../../../src/lib/data/defaults.ts";
-import { RK } from "../../../src/components/fund/rankings-copy.ts";
+import { RK } from "../../../src/components/fund/rankings.copy.ts";
 
 const NOW = new Date("2026-10-02T12:00:00Z");
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);

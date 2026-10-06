@@ -5,17 +5,18 @@
  * src/lib/pipeline/fund-sources.ts and are never part of either module.
  */
 import { FUNDS } from "./funds.ts";
-import type { FundKey, L10n } from "../lib/data/types.ts";
+import type { FundKey } from "../lib/data/types.ts";
+import type { L } from "../lib/i18n/config.ts";
 
-export interface PublicFund {
+interface PublicFund {
   key: FundKey;
-  name: L10n;
-  short: L10n;
-  tagline: L10n;
+  name: L;
+  short: L;
+  tagline: L;
   color: { solid: string; from: string; to: string };
-  assetClass: L10n;
+  assetClass: L;
   vehicle: "fund" | "strategy";
-  benchmark: L10n | null;
+  benchmark: L | null;
 }
 
 export const PUBLIC_FUNDS: readonly PublicFund[] = FUNDS.map((f) => ({

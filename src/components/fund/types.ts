@@ -2,8 +2,9 @@
  * Props that cross the server → client boundary: plain JSON, no functions.
  */
 import type { FundSpec } from "@/config/funds";
-import type { DocumentMeta, FundContent, FundData, FundKey, L10n } from "@/lib/data/types";
+import type { DocumentMeta, FundContent, FundData, FundKey } from "@/lib/data/types";
 import type { BrandAssets } from "@/lib/data/brand-assets";
+import type { L } from "@/lib/i18n/config";
 
 /** Public projection of a published document (see toPublicDocument in lib/data/documents.ts): no uploader / hash. */
 export type PublicDocument = Pick<DocumentMeta, "id" | "scope" | "type" | "lang" | "title" | "date" | "fileName" | "size">;
@@ -27,9 +28,9 @@ export function toPublicData(data: FundData | null): PublicFundData | null {
 }
 
 /** Admin content as the public page receives it: without the internal snapshot pin. */
-export type PublicFundContent = Omit<FundContent, "pinnedSnapshot">;
+type PublicFundContent = Omit<FundContent, "pinnedSnapshot">;
 
-export interface FundLink { key: FundKey; name: L10n; short: L10n; assetClass: L10n; tagline: L10n; color: { solid: string; from: string; to: string } }
+export interface FundLink { key: FundKey; name: L; short: L; assetClass: L; tagline: L; color: { solid: string; from: string; to: string } }
 
 export interface FundPageProps {
   spec: PublicFundSpec;
@@ -41,7 +42,7 @@ export interface FundPageProps {
   /** every visible fund, for the switcher */
   funds: FundLink[];
   /** admin override of the firm disclaimer (settings); null → boilerplate of src/content/disclaimers.ts */
-  firmDisclaimer?: L10n | null;
+  firmDisclaimer?: L | null;
   /** official third-party brand images available (Morningstar logo / stars, provider logos); absent → text */
   brand?: BrandAssets;
 }
