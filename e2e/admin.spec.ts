@@ -438,7 +438,7 @@ test.describe("admin flows", () => {
       await shot(page, "seb-class-h-strategies", info.project.name);
     } finally {
       const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
-      const { pinnedSnapshot: _pin, ...rest } = cur.funds[fund] ?? {}; // eslint-disable-line @typescript-eslint/no-unused-vars
+      const { pinnedSnapshot: _pin, ...rest } = cur.funds[fund] ?? {};
       const unpin = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: rest } });
       expect(unpin.status()).toBe(200);
     }

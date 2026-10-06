@@ -164,7 +164,7 @@ function securities(positions: HoldingsPosition[], warnings: string[]): Security
   const missing: string[] = [];
   for (const s of book.values()) {
     if (s.missing) { s.mv = null; missing.push(s.key); }
-    const { missing: _m, ...rest } = s; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { missing: _m, ...rest } = s;
     out.push(rest);
   }
   if (missing.length) warnings.push(`${missing.length} position(s) without a CAD market value, excluded from weights: ${sample(missing)}`);

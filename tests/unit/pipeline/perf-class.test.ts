@@ -98,7 +98,7 @@ test("classSpreadProblem: class − track must stay in the fee band and near its
 test("the track-record answer must be the track-record class: another or a missing class_code withholds the performance", async () => {
   for (const [name, route, msg] of [
     ["class F answer", sebMnr((j) => ({ ...j, class_code: "STRATEGY" })), /monthly net returns SEB STRATEGY_H: class_code STRATEGY instead of STRATEGY_H: performance withheld/],
-    ["no class_code", sebMnr(({ class_code: _drop, ...rest }) => rest), /monthly net returns SEB STRATEGY_H: class_code missing instead of STRATEGY_H: performance withheld/], // eslint-disable-line @typescript-eslint/no-unused-vars
+    ["no class_code", sebMnr(({ class_code: _drop, ...rest }) => rest), /monthly net returns SEB STRATEGY_H: class_code missing instead of STRATEGY_H: performance withheld/],
     ["class_display of another class (a later dataplatform)", sebMnr((j) => ({ ...j, class_display: "F" })), /class_display F instead of H: performance withheld/],
     ["fundserv of another class", sebMnr((j) => ({ ...j, fundserv: "LDM201" })), /fundserv LDM201 instead of LDM202: performance withheld/],
   ] as [string, Route, RegExp][]) {

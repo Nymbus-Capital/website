@@ -43,8 +43,8 @@ jobs:
           php wordpress/tests/normalize-test.php 2>&1 | tee -a ci-out/php.log
       - name: Type check
         run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
-      - name: Lint (blocking; eslint.config.mjs)
-        run: set -o pipefail; npm run lint 2>&1 | tee ci-out/lint.log
+      - name: Lint (blocking; eslint.config.mjs; warnings ratchet — lower the cap when warnings are fixed, never raise it)
+        run: set -o pipefail; npm run lint -- --max-warnings=25 2>&1 | tee ci-out/lint.log
       - name: Build
         run: set -o pipefail; npm run build 2>&1 | tee ci-out/build.log
       - name: Install Playwright browser
