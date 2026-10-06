@@ -8,9 +8,10 @@ export interface TipState { x: number; y: number; title: string; rows: TipRow[] 
 export function Tip({ tip, hostWidth }: { tip: TipState | null; hostWidth: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
-  const last = useRef<TipState | null>(null);
-  if (tip) last.current = tip;
-  const t = tip ?? last.current;
+  // the last tip stays rendered while it fades out
+  const [last, setLast] = useState<TipState | null>(null);
+  if (tip && tip !== last) setLast(tip);
+  const t = tip ?? last;
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !tip) return;

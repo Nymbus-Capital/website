@@ -24,8 +24,6 @@ const ADDRESS = "1002 Sherbrooke Street West, Suite 1900, Montreal, Quebec H3A 3
 function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
   const { locale, pick } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null);
-  const shown = useRef<TeamMember | null>(null);
-  shown.current = m;
   // a click closes only when it started AND ended on the backdrop (a text selection dragged out of the dialog does not)
   const downOnBackdrop = useRef(false);
   useEffect(() => {
@@ -42,7 +40,7 @@ function Bio({ m, onClose }: { m: TeamMember | null; onClose: () => void }) {
   return (
     // the native close event (Escape) is the only one that reaches the parent from here: when the parent already closed the
     // bio (X button, backdrop), the dialog closing in response must not close it a second time
-    <dialog ref={ref} className="ab-bio" aria-labelledby="bio-name" onClose={() => { if (shown.current) onClose(); }}
+    <dialog ref={ref} className="ab-bio" aria-labelledby="bio-name" onClose={() => { if (m) onClose(); }}
       onPointerDown={(e) => { downOnBackdrop.current = e.target === ref.current; }}
       onClick={(e) => { const ok = downOnBackdrop.current && e.target === ref.current; downOnBackdrop.current = false; if (ok) onClose(); }} data-testid="bio-dialog">
       {m ? (

@@ -55,7 +55,7 @@ function measureLabel(s: string): number {
 }
 
 export function GroupedBars({ cats, names, lang, label, height = 380, values = true, labelAll = false }: GroupedBarsProps) {
-  const [host, w] = useWidth<HTMLDivElement>();
+  const [hostRef, w] = useWidth<HTMLDivElement>();
   const [near, nearRef, seen] = useNearRef();
   const svgRef = useRef<SVGSVGElement>(null);
   const id = useSvgId("gb");
@@ -137,7 +137,7 @@ export function GroupedBars({ cats, names, lang, label, height = 380, values = t
   const tabbable = Math.min(tab, Math.max(0, cats.length - 1));
 
   return (
-    <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
+    <div ref={(el) => { hostRef.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
       <div className={`fx-chart-in${scrolls ? " scroll" : ""}`} style={scrolls ? undefined : { height: H }} data-scroll={scrolls ? "" : undefined}>
       {near && w > 0 ? (
         <svg ref={svgRef} width={cw} height={H} viewBox={`0 0 ${cw} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}

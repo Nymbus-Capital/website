@@ -30,7 +30,7 @@ interface GrowthChartProps {
 export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel, label, keysHint, rebasedNote, method = "compounded", height = 440 }: GrowthChartProps) {
   const ranges = useMemo(() => availableRanges(points), [points]);
   const [range, setRange] = useState<Range>("SI");
-  const [host, w] = useWidth<HTMLDivElement>();
+  const [hostRef, w] = useWidth<HTMLDivElement>();
   const [nearRef, near, seen] = useNear<HTMLDivElement>();
   const svgRef = useRef<SVGSVGElement>(null);
   const id = useSvgId("gr");
@@ -102,7 +102,7 @@ export function GrowthChart({ points, lang, names, rangeLabels, rangeGroupLabel,
         <span><i className="fund" />{names.fund}</span>
         {s.hasIndex ? <span><i className="line index" />{names.index}</span> : null}
       </div>
-      <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
+      <div ref={(el) => { hostRef.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
         {near && w > 0 ? (
           <svg ref={svgRef} width={w} height={H} viewBox={`0 0 ${w} ${H}`} tabIndex={0} role="img"
             aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])}${changeText}, ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}

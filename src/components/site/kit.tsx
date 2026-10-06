@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { CountUp, EASE, Reveal, RevealTitle, reducedMotion, useInView, useScrub } from "@/components/motion/motion";
+import { CountUp, EASE, Reveal, RevealTitle, reducedMotion, useInView, useMountValue, useScrub } from "@/components/motion/motion";
 
 import { DataField, Divider } from "./fx/fx";
 
@@ -114,12 +114,11 @@ export function PageHero({
 export function HeroCurves({ className }: { className?: string }) {
   const uid = `c${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const ref = useRef<SVGSVGElement>(null);
-  const [anim, setAnim] = useState(false);
+  const anim = useMountValue(() => !reducedMotion(), false);
   useEffect(() => {
     const svg = ref.current;
     if (!svg) return;
     if (reducedMotion()) return;
-    setAnim(true);
     svg.querySelectorAll<SVGPathElement>("path[data-curve]").forEach((p, i) => {
       const len = p.getTotalLength();
       p.style.strokeDasharray = `${len}`;

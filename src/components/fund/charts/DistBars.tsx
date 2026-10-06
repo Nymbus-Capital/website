@@ -18,7 +18,7 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   /** decimals of the amounts (the series' own precision, as in the tables) */
   decimals?: number;
 }) {
-  const [host, w] = useWidth<HTMLDivElement>();
+  const [hostRef, w] = useWidth<HTMLDivElement>();
   const [nearRef, near, seen] = useNear<HTMLDivElement>();
   const svgRef = useRef<SVGSVGElement>(null);
   const id = useSvgId("db");
@@ -65,7 +65,7 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   };
 
   return (
-    <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
+    <div ref={(el) => { hostRef.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
       {near && w > 0 ? (
         <svg ref={svgRef} width={w} height={height} viewBox={`0 0 ${w} ${height}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined} onPointerLeave={() => focusBar(null)}>
           <defs>

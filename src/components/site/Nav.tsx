@@ -53,7 +53,9 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
     return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, []);
 
-  useEffect(() => { setOpen(false); }, [path]);
+  // a navigation closes the menu
+  const [menuPath, setMenuPath] = useState(path);
+  if (menuPath !== path) { setMenuPath(path); setOpen(false); }
   const close = useCallback(() => { setOpen(false); toggleRef.current?.focus(); }, []);
 
   // menu open: lock scroll, trap focus, Escape closes

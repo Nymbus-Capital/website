@@ -57,7 +57,8 @@ export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: 
   const size = 260, thick = 26, r = size / 2 - thick / 2 - 8, cx = size / 2, C = 2 * Math.PI * r;
   const total = parts.reduce((s, p) => s + (p.fund ?? 0), 0) || 1;
   const gap = parts.length > 1 ? thick + 6 : 0;
-  let acc = 0;
+  const lens = parts.map((p) => ((p.fund ?? 0) / total) * C);
+  const starts = lens.map((_, i) => lens.slice(0, i).reduce((s, l) => s + l, 0)); // where each arc begins along the ring
   const focus = on ?? 0;
   return (
     <div ref={ref} className={`fx-donut${on != null ? " focus" : ""}`}>
@@ -69,10 +70,8 @@ export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: 
           <circle r={r} cx={cx} cy={cx} fill="none" stroke="var(--fx-cell)" strokeWidth={thick} />
           <g filter={`url(#${id}g)`}>
             {parts.map((p, i) => {
-              const len = ((p.fund ?? 0) / total) * C;
-              const dash = Math.max(0.01, len - gap);
-              const off = -(acc + gap / 2);
-              acc += len;
+              const dash = Math.max(0.01, lens[i] - gap);
+              const off = -(starts[i] + gap / 2);
               return (
                 <circle key={p.label} r={r} cx={cx} cy={cx} fill="none" stroke={SLICE[i % SLICE.length]} strokeWidth={on === i ? thick + 6 : thick} strokeLinecap={parts.length > 1 ? "round" : "butt"}
                   strokeDasharray={`${dash} ${C}`} strokeDashoffset={off} transform={`rotate(-90 ${cx} ${cx})`} className={`arc${on === i ? " on" : ""}`}

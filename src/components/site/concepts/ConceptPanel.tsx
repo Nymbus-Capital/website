@@ -6,7 +6,7 @@
  * viewport, the loop pauses off screen / in a hidden tab, one still frame per step under reduced motion (live) or
  * Data Saver, 15 fps on coarse pointers; test hooks data-frames / data-running / data-step on the canvas host.
  */
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { recoverFromChunkError } from "../fx/chunk-recover";
 import { Pause, Play } from "lucide-react";
 import { reducedMotion } from "@/components/motion/motion";
@@ -68,7 +68,7 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
   const [playing, setPlaying] = useState(true);
   const [still, setStill] = useState(false);
   const reduced = useReducedMotion();
-  lang.current = locale;
+  useLayoutEffect(() => { lang.current = locale; }, [locale]); // engines read the language on each frame
 
   useEffect(() => {
     const c = canvas.current;

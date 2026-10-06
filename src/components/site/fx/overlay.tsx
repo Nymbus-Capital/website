@@ -6,7 +6,7 @@
  * Same contract as the analysis scan: lazy engine, paused off-screen / hidden tab, one still frame under reduced
  * motion (live), Data Saver → still, coarse pointer → 15 fps, test hooks data-frames / data-running.
  */
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { recoverFromChunkError } from "./chunk-recover";
 import { Layers, Shuffle, TrendingDown } from "lucide-react";
 import { reducedMotion, Reveal } from "@/components/motion/motion";
@@ -35,7 +35,7 @@ export function OverlayEngines() {
   const viz = useRef<{ redraw(): void } | null>(null);
   const [ready, setReady] = useState(false);
   const reduced = useReducedMotion();
-  lang.current = locale;
+  useLayoutEffect(() => { lang.current = locale; }, [locale]); // the engine reads the language on each frame
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;

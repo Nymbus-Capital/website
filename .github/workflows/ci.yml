@@ -53,7 +53,7 @@ jobs:
       - name: Type check
         run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
       - name: Lint (blocking; eslint.config.mjs; warnings ratchet — lower the cap when warnings are fixed, never raise it)
-        run: set -o pipefail; npm run lint -- --max-warnings=25 2>&1 | tee ci-out/lint.log
+        run: set -o pipefail; npm run lint -- --max-warnings=0 2>&1 | tee ci-out/lint.log
       - name: Build
         run: set -o pipefail; npm run build 2>&1 | tee ci-out/build.log
       - name: Install Playwright browser
