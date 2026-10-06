@@ -6,13 +6,14 @@
  */
 import { useRef, useState } from "react";
 import type { Bucket } from "@/lib/data/types";
-import { fmt, type Lang } from "../lib/format.ts";
+import { fmt } from "../lib/format.ts";
 import { barWidthPct } from "../lib/scale.ts";
 import { useEntrance, useNear, useSvgId } from "./hooks";
+import type { Locale } from "@/lib/i18n/config";
 
-const pctF = (v: number, lang: Lang, d = 1) => fmt(v, { pct: true, decimals: d, lang });
+const pctF = (v: number, lang: Locale, d = 1) => fmt(v, { pct: true, decimals: d, lang });
 
-export function HBars({ rows, lang, names, label }: { rows: Bucket[]; lang: Lang; names: { fund: string; index: string }; label: string }) {
+export function HBars({ rows, lang, names, label }: { rows: Bucket[]; lang: Locale; names: { fund: string; index: string }; label: string }) {
   const [ref, , seen] = useNear<HTMLDivElement>();
   useEntrance(ref, seen);
   const max = Math.max(0.0001, ...rows.flatMap((r) => [r.fund ?? 0, r.index ?? 0]).filter(Number.isFinite));
@@ -46,7 +47,7 @@ function Bar({ cls, v, max, hidden }: { cls: string; v: number | null | undefine
 /** Colours of the donut slices: the fund gradient first, then neighbouring keynote hues. */
 const SLICE = ["var(--fund)", "var(--fund-from)", "#4c8dff", "#00a3e0", "#34a853", "#fbbc04", "#9aa0a6", "#5f6368"];
 
-export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: Lang; label: string; indexName: string }) {
+export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: Locale; label: string; indexName: string }) {
   const [ref, , seen] = useNear<HTMLDivElement>();
   const svgRef = useRef<SVGSVGElement>(null);
   useEntrance(svgRef, seen);
@@ -101,7 +102,7 @@ export function Donut({ rows, lang, label, indexName }: { rows: Bucket[]; lang: 
 }
 
 /** Ring gauge for a share (e.g. % positive months). */
-export function Ring({ value, lang, label }: { value: number; lang: Lang; label: string }) {
+export function Ring({ value, lang, label }: { value: number; lang: Locale; label: string }) {
   const [ref, , seen] = useNear<HTMLDivElement>();
   useEntrance(ref, seen);
   const id = useSvgId("rg");

@@ -8,18 +8,18 @@
 import { ExternalLink } from "lucide-react";
 import type { MorningstarRating } from "@/lib/data/types";
 import type { BrandAssets } from "@/lib/data/brand-assets";
-import { tr } from "./copy";
 import { RK } from "./rankings-copy";
 import { InfoNote } from "./InfoNote";
-import { dateLabel, type Lang } from "./lib/format.ts";
+import { dateLabel } from "./lib/format.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
 
-const ratingText = (m: Pick<MorningstarRating, "stars">, lang: Lang): string =>
+const ratingText = (m: Pick<MorningstarRating, "stars">, lang: Locale): string =>
   m.stars === 1 ? tr(RK.ms.ratingOne, lang) : tr(RK.ms.rating, lang).replace("{n}", String(m.stars));
 
 export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testId = "morningstar" }: {
-  m: MorningstarRating; brand?: BrandAssets; lang: Lang; variant?: "overview" | "full"; testId?: string;
+  m: MorningstarRating; brand?: BrandAssets; lang: Locale; variant?: "overview" | "full"; testId?: string;
 }) {
   const logo = brand?.["morningstar-logo"];
   const stars = brand?.[`morningstar-stars-${m.stars}` as keyof BrandAssets];

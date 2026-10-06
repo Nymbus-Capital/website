@@ -12,7 +12,8 @@
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import { newId, p, readJson, removePath, withLock, writeFileAtomic, writeJson } from "./store.ts";
-import type { DocType, DocumentMeta, FundKey, L10n, Lang } from "./types.ts";
+import type { DocType, DocumentMeta, FundKey } from "./types.ts";
+import type { L, Locale } from "../i18n/config.ts";
 
 export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 
@@ -110,8 +111,8 @@ async function mutateIndex<T>(fn: (docs: DocumentMeta[]) => Promise<{ docs: Docu
 interface NewDocument {
   scope: FundKey | "firm";
   type: DocType;
-  lang: Lang | "both";
-  title: L10n;
+  lang: Locale | "both";
+  title: L;
   date: string;
   published: boolean;
 }
@@ -230,7 +231,7 @@ export interface PublicDocument {
   scope: DocumentMeta["scope"];
   type: DocType;
   lang: DocumentMeta["lang"];
-  title: L10n;
+  title: L;
   date: string;
   fileName: string;
   size: number;

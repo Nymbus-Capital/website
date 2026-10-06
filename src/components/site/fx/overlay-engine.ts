@@ -14,11 +14,12 @@
  *  - Runs only while the canvas is on screen and the tab is visible; one still frame under reduced motion.
  *  - `data-frames` / `data-running` on the host let tests observe it.
  */
-import { fitText, type Lang } from "./scan-model.ts";
+import { fitText } from "./scan-model.ts";
 import {
   DEPTH, ENGINES, MARKETS, NM, PHI, combinedMove, downsideCorrelation, heatColor, laneRows, lit, monthCache,
   monthWidth, overlayLayout, type Month,
 } from "./overlay-model.ts";
+import type { Locale } from "../../../lib/i18n/config.ts";
 
 export interface OverlayLabels {
   /** lane labels of the traditional markets (equities, bonds) and their short names in the heatmap */
@@ -30,7 +31,7 @@ export interface OverlayLabels {
 
 interface OverlayOptions {
   still?: boolean;
-  lang: () => Lang;
+  lang: () => Locale;
   labels: () => OverlayLabels;
   onReady?: () => void;
   /** frame-rate ceiling (default 30; 15 on coarse pointers) */

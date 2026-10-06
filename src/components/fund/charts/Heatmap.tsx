@@ -8,16 +8,17 @@
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import type { CalendarRow, MonthlyPoint } from "@/lib/data/types";
 import { heatCell, heatmapGrid, heatScale } from "../lib/data.ts";
-import { fmt, MONTH_INITIALS, monthName, type Lang } from "../lib/format.ts";
+import { fmt, MONTH_INITIALS, monthName } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear } from "./hooks";
+import type { Locale } from "@/lib/i18n/config";
 
 interface HeatmapProps {
   monthly: MonthlyPoint[];
   calendar?: CalendarRow[] | null;
   /** month-end of the published performance: only its year is flagged YTD */
   asOf?: string | null;
-  lang: Lang;
+  lang: Locale;
   labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string; withheld?: string };
   caption: string;
   /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */

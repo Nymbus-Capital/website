@@ -14,17 +14,18 @@ import { Disclosure } from "@/components/site/Disclosure";
 import { preInceptionNote } from "@/content/disclaimers";
 import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { FUND_TEXTS, T, tr, type FeatureIcon } from "./copy";
-import { dateLabel, monthLabel, type Lang, colon } from "./lib/format.ts";
+import { FUND_TEXTS, T, type FeatureIcon } from "./copy";
+import { dateLabel, monthLabel, colon } from "./lib/format.ts";
 import { perfClassLabel } from "./lib/data.ts";
 import { provenanceLine } from "./lib/provenance.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const ICONS: Record<FeatureIcon, typeof Leaf> = {
   calendar: CalendarClock, timer: Timer, scan: ScanSearch, shield: ShieldCheck, leaf: Leaf, filter: Ban, gauge: Gauge, sprout: Sprout,
   layers: Layers, trend: TrendingUp, repeat: Repeat, umbrella: Umbrella, stack: Blocks, waves: Waves,
 };
 
-export function FeatureSection({ spec, data, content, lang }: { spec: FundSpec; data: FundData | null; content: FundContent; lang: Lang }) {
+export function FeatureSection({ spec, data, content, lang }: { spec: FundSpec; data: FundData | null; content: FundContent; lang: Locale }) {
   const f = FUND_TEXTS[spec.key].feature;
   const hasEsg = !content.hide?.esg && !!data?.esg.some((c) => c.fund != null);
   // long cards (disclosure text) would tower over the others: shown last, spanning the row (one long card)
@@ -49,7 +50,7 @@ export function FeatureSection({ spec, data, content, lang }: { spec: FundSpec; 
 }
 
 export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer, ctx }: {
-  spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; sample: boolean; firmDisclaimer?: { en: string; fr: string } | null;
+  spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; sample: boolean; firmDisclaimer?: { en: string; fr: string } | null;
   ctx?: { variant: string | null };
 }) {
   // regulatory texts come from src/content/disclaimers.ts; the admin may override the firm text and, per fund,
@@ -109,7 +110,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer,
   );
 }
 
-export function FundCta({ spec, lang }: { spec: FundSpec; lang: Lang }) {
+export function FundCta({ spec, lang }: { spec: FundSpec; lang: Locale }) {
   const isFund = spec.vehicle === "fund";
   return (
     <CtaBand title={tr(isFund ? T.cta.title : T.cta.titleStrategy, lang)} text={tr(isFund ? T.cta.text : T.cta.textStrategy, lang)}>
@@ -119,7 +120,7 @@ export function FundCta({ spec, lang }: { spec: FundSpec; lang: Lang }) {
   );
 }
 
-export function OtherFunds({ current, funds, lang }: { current: string; funds: FundLink[]; lang: Lang }) {
+export function OtherFunds({ current, funds, lang }: { current: string; funds: FundLink[]; lang: Locale }) {
   const others = funds.filter((f) => f.key !== current);
   if (!others.length) return null;
   return (

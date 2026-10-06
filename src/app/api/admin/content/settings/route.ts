@@ -3,14 +3,15 @@ import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
 import { updateContent } from "@/lib/data/content";
 import { audit } from "@/lib/data/store";
-import type { L10n, SiteContent } from "@/lib/data/types";
+import type { SiteContent } from "@/lib/data/types";
 import { isResponse, ok, parseJson } from "../../_lib/http";
 import { saveSettingsSchema } from "../../_lib/schemas";
 import { contentError } from "../../_lib/save";
+import type { L } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 
-const empty = (l: L10n | null | undefined) => !l || (!l.en && !l.fr);
+const empty = (l: L | null | undefined) => !l || (!l.en && !l.fr);
 
 export async function PUT(request: NextRequest) {
   const user = await requireAdmin(request);

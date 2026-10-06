@@ -2,34 +2,35 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { HIDE_BLOCKS, type ClassType, type FundContent, type FundKey, type FundRankings, type L10n } from "@/lib/data/types";
+import { HIDE_BLOCKS, type ClassType, type FundContent, type FundKey, type FundRankings } from "@/lib/data/types";
 import { api, ApiError, L10nInput, useToast } from "./client";
 import { RankingsEditor } from "./RankingsEditor";
+import type { L } from "@/lib/i18n/config";
 
 const BLOCKS = HIDE_BLOCKS;
 const RISKS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
-const E: L10n = { en: "", fr: "" };
+const E: L = { en: "", fr: "" };
 
 type Form = {
   hidden: boolean;
   hide: Partial<Record<(typeof BLOCKS)[number], boolean>>;
-  tagline: L10n;
-  description: L10n;
-  objective: L10n;
+  tagline: L;
+  description: L;
+  objective: L;
   riskRating: string;
   managementFee: string;
   performanceFee: string;
   mer: string;
   minInvestment: string;
-  distributions: L10n;
+  distributions: L;
   headlineClass: string;
   classTypes: Record<string, string>;
   minSubsequent: string;
   rspEligible: string;
-  liquidity: L10n;
-  cifscCategory: L10n;
+  liquidity: L;
+  cifscCategory: L;
   rankings: FundRankings;
-  performanceNote: L10n;
+  performanceNote: L;
   managers: string;
   pinnedSnapshot: string;
 };
@@ -83,7 +84,7 @@ export function FundEditor({
   fundKey: FundKey;
   version: number;
   initial: FundContent;
-  defaults: { tagline: L10n; description: L10n; riskRating: string; headlineClass: string | null };
+  defaults: { tagline: L; description: L; riskRating: string; headlineClass: string | null };
   classes: { fundserv: string; label: string }[];
   runs: { id: string; label: string }[];
   /** share classes of the registry and of the published data, with the type the registry gives them */

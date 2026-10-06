@@ -4,11 +4,12 @@
  * book is shown, the sustainability metrics (factsheet only) say so separately. Texts: src/content/disclaimers.ts. Pure.
  */
 import type { FundData } from "../../../lib/data/types.ts";
-import { T, tr } from "../copy.ts";
-import { dateLabel, elide, monthLabel, type Lang } from "./format.ts";
+import { T } from "../copy.ts";
+import { dateLabel, elide, monthLabel } from "./format.ts";
 import { portfolioOrigin } from "./data.ts";
+import { tr, type Locale } from "../../../lib/i18n/config.ts";
 
-export function provenanceLine(data: Pick<FundData, "portfolio" | "factsheetMonth" | "esg"> | null | undefined, lang: Lang): string {
+export function provenanceLine(data: Pick<FundData, "portfolio" | "factsheetMonth" | "esg"> | null | undefined, lang: Locale): string {
   const parts = [tr(T.disclosure.provenance, lang)];
   const origin = portfolioOrigin(data);
   if (origin?.kind === "daily") {

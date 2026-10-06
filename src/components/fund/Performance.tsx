@@ -8,22 +8,23 @@ import { CountUp, Reveal } from "@/components/v3/motion";
 import type { FundContent, Performance as Perf, RiskStats } from "@/lib/data/types";
 import { preInceptionNote } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { T, tr } from "./copy";
+import { T } from "./copy";
 import { FL } from "./labels";
 import { Block } from "./Block";
 import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
 import { GrowthChart } from "./charts/GrowthChart";
 import { Heatmap } from "./charts/Heatmap";
 import { Ring } from "./charts/Breakdowns";
-import { dateLabel, fmt, monthLabel, type Lang, colon } from "./lib/format.ts";
+import { dateLabel, fmt, monthLabel, colon } from "./lib/format.ts";
 import { benchmarkLabel, calendarRows, growthMethod, partialKind, perfClassLabel, riskWindows, trailingRows, visibleBlocks, type Range } from "./lib/data.ts";
 import { ClassTypeBadge } from "./ClassBadge";
 import { nextMonth, noFiguresText, periodLong } from "./lib/notice.ts";
 import type { ClassCtx } from "./lib/select.ts";
+import { tr, type Locale } from "@/lib/i18n/config";
 
-interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang; ctx?: ClassCtx }
+interface Props { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale; ctx?: ClassCtx }
 
-const P = (v: number | null | undefined, lang: Lang, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
+const P = (v: number | null | undefined, lang: Locale, sign = false) => (v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang }));
 
 export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const v = visibleBlocks(data, content, 0);
@@ -102,7 +103,7 @@ function Legend({ names, index, va }: { names: { fund: string; index: string; va
   );
 }
 
-function TrailingBlock({ perf, names, lang, track }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Lang; track: boolean }) {
+function TrailingBlock({ perf, names, lang, track }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Locale; track: boolean }) {
   const rows = trailingRows(perf);
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
@@ -139,7 +140,7 @@ function TrailingBlock({ perf, names, lang, track }: { perf: Perf; names: { fund
   );
 }
 
-function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Lang }) {
+function CalendarBlock({ perf, names, lang }: { perf: Perf; names: { fund: string; index: string; va: string }; lang: Locale }) {
   // a class with withheld months keeps its years without a figure ("—")
   const rows = calendarRows(perf.calendar, !!perf.withheldMonths?.length);
   const hasIndex = rows.some((r) => r.index != null);
@@ -188,7 +189,7 @@ const RISK_FIGS: { k: RiskKey; kind: "pct" | "ratio"; tone: "ink" | "neg" | "pos
   { k: "worstMonth", kind: "pct", tone: "neg" },
 ];
 
-function RiskBlock({ windows, lang, siFrom }: { windows: RiskStats[]; lang: Lang; siFrom?: string | null }) {
+function RiskBlock({ windows, lang, siFrom }: { windows: RiskStats[]; lang: Locale; siFrom?: string | null }) {
   // a series whose first month is partial: its risk statistics start at its first complete month
   const wl = (w: RiskStats["window"]): string => (w === "SI" && siFrom ? tr(T.classes.riskFrom, lang).replace("{month}", monthLabel(siFrom, lang, true)) : tr(T.perf.windows[w], lang));
   const [w, setW] = useState(0);
@@ -223,7 +224,7 @@ function RiskBlock({ windows, lang, siFrom }: { windows: RiskStats[]; lang: Lang
   );
 }
 
-function NotesBlock({ spec, content, perf, lang }: { spec: FundSpec; content: FundContent; perf: Perf | null; lang: Lang }) {
+function NotesBlock({ spec, content, perf, lang }: { spec: FundSpec; content: FundContent; perf: Perf | null; lang: Locale }) {
   const note = content.performanceNote && (content.performanceNote.en || content.performanceNote.fr) ? content.performanceNote : preInceptionNote(spec.key);
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   return (

@@ -7,8 +7,7 @@
  * default and nothing moves on hydration); the browser then only measures whether the text actually overflows the
  * collapsed height (wide screens), and drops the fade and the arrow when it does not — without changing any height.
  */
-
-export type Lang = "en" | "fr";
+import type { Locale } from "../../lib/i18n/config.ts";
 
 /**
  * Below this many characters (of the ENGLISH text, so both languages behave the same) a block is a short note: rendered
@@ -57,13 +56,13 @@ export function discState(collapsible: boolean, expanded: boolean, overflows: bo
   return overflows ? "collapsed" : "fits";
 }
 
-const LABELS: Record<Lang, { more: string; less: string }> = {
+const LABELS: Record<Locale, { more: string; less: string }> = {
   en: { more: "Show full text", less: "Show less" },
   fr: { more: "Afficher le texte complet", less: "Réduire" },
 };
 
 /** Accessible name of the toggle button. */
-export function toggleLabel(lang: Lang, expanded: boolean): string {
+export function toggleLabel(lang: Locale, expanded: boolean): string {
   const l = LABELS[lang] ?? LABELS.en;
   return expanded ? l.less : l.more;
 }

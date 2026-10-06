@@ -11,16 +11,17 @@ import { Reveal } from "@/components/v3/motion";
 import { CONTACT } from "@/components/site/links";
 import type { ClassDistribution, FundContent } from "@/lib/data/types";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { T, tr } from "./copy";
+import { T } from "./copy";
 import { Block } from "./Block";
 import { FL } from "./labels";
-import { dateLabel, fileSize, type Lang, colon } from "./lib/format.ts";
+import { dateLabel, fileSize, colon } from "./lib/format.ts";
 import { amountDecimals, distributionBars, distributionClasses, groupDocuments, historyRows, isYearToDate, REGULATORY_DOCS } from "./lib/data.ts";
 import { DistBars, perUnit } from "./charts/DistBars";
+import { tr, type Locale } from "@/lib/i18n/config";
 
 const mailto = (subject: string) => `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}`;
 
-export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Lang }) {
+export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale }) {
   const isFund = spec.vehicle === "fund";
   const text = content.distributions && (content.distributions.en || content.distributions.fr) ? tr(content.distributions, lang) : null;
   const classes = distributionClasses(content.hide?.distributions ? null : data?.distributions, content.headlineClass ?? spec.headlineClass);
@@ -47,7 +48,7 @@ export function DistributionsTab({ spec, content, data, lang }: { spec: FundSpec
 }
 
 /** Every live series: last distribution, trailing 12 months (to the day the data were read), observed frequency. */
-function RecentDistributions({ classes, headline, trailingTo, lang }: { classes: ClassDistribution[]; headline: string; trailingTo: string | null; lang: Lang }) {
+function RecentDistributions({ classes, headline, trailingTo, lang }: { classes: ClassDistribution[]; headline: string; trailingTo: string | null; lang: Locale }) {
   const to = trailingTo ? dateLabel(trailingTo, lang) : "";
   const t12m = to ? tr(T.dist.t12mTo, lang).replace("{date}", to) : tr(T.dist.t12m, lang);
   const t12mLong = to ? tr(T.dist.t12mToLong, lang).replace("{date}", dateLabel(trailingTo, lang, true)) : tr(T.dist.t12mLong, lang);
@@ -81,7 +82,7 @@ function RecentDistributions({ classes, headline, trailingTo, lang }: { classes:
 }
 
 /** One series at a time (the headline one first): bar chart of the last distributions, calendar-year totals, full history. */
-function DistributionHistory({ classes, ytdRef, lang }: { classes: ClassDistribution[]; ytdRef: string; lang: Lang }) {
+function DistributionHistory({ classes, ytdRef, lang }: { classes: ClassDistribution[]; ytdRef: string; lang: Locale }) {
   const [code, setCode] = useState((classes.find((x) => x.history.length > 0) ?? classes[0]).fundserv);
   const [all, setAll] = useState(false);
   const listId = useId();
@@ -142,7 +143,7 @@ function DistributionHistory({ classes, ytdRef, lang }: { classes: ClassDistribu
   );
 }
 
-export function DocumentsTab({ spec, docs, lang }: { spec: FundSpec; docs: FundDoc[]; lang: Lang }) {
+export function DocumentsTab({ spec, docs, lang }: { spec: FundSpec; docs: FundDoc[]; lang: Locale }) {
   const isFund = spec.vehicle === "fund";
   const byId = new Map(docs.map((d) => [d.meta.id, d]));
   const groups = groupDocuments(docs.map((d) => d.meta), lang);

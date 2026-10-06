@@ -7,9 +7,10 @@
  *  - `null` means "unknown / not published"; the UI hides the metric instead of showing 0.
  *  - This file is dependency-free so the pipeline and its tests can run under plain Node (type stripping).
  */
+import type { L, Locale } from "../i18n/config.ts";
 
-export type Lang = "en" | "fr";
-export type L10n = { en: string; fr: string };
+/** @deprecated use `L` from lib/i18n/config.ts (alias kept for src/lib/rankings, in flight on another branch) */
+export type L10n = L;
 
 /** Website fund keys (stable URL slugs). */
 export type FundKey = "monthly-income" | "sustainable-enhanced-bonds" | "multi-strategy" | "global-minimum-volatility";
@@ -131,7 +132,7 @@ export interface Holding { name: string; weight: number }
 export interface Characteristic {
   /** stable id, e.g. `portfolioYield`, `duration`, `creditQuality` */
   id: string;
-  label: L10n;
+  label: L;
   fund: number | string | null;
   index?: number | string | null;
   /** how to format: pct (decimal), num (1 decimal), int, text */
@@ -350,8 +351,8 @@ export interface DocumentMeta {
   /** fund key, or "firm" for firm-wide documents */
   scope: FundKey | "firm";
   type: DocType;
-  lang: Lang | "both";
-  title: L10n;
+  lang: Locale | "both";
+  title: L;
   /** as-of / publication date */
   date: string;
   fileName: string;
@@ -385,7 +386,7 @@ export interface FundLibraryRanking {
   /** class the ranking is for, as the source names it ("Class F") */
   classLabel: string;
   fundserv?: string;
-  category: L10n;
+  category: L;
   /** "as at" date of the ranking (YYYY-MM-DD) */
   asOf: string;
   /** Fundata FundGrade letter, when the source gives one (the awards are shown only with A or B: AWARD_GRADES) */
@@ -401,7 +402,7 @@ export interface MorningstarRating {
   asOf: string;
   /** class the rating is for, as the source names it ("Class F"): required, a rating is never shown without it */
   classLabel: string;
-  category?: L10n;
+  category?: L;
   /** number of funds rated in the category, when the source states it ("out of N funds") */
   fundsInCategory?: number;
   url?: string;
@@ -447,11 +448,11 @@ export interface ThirdPartyRanking {
   /** "fund": the source ranks the fund (or its strategy) as a whole, not a series (RBC pooled fund survey) */
   scope?: "fund";
   /** basis of the figures as the source states it ("gross of management fees, in Canadian dollars"); shown next to them */
-  basis?: L10n;
+  basis?: L;
   /** FundServ code when the ranking is for one series (must be a class of the fund) */
   fundserv?: string;
   /** peer group / category as the source names it */
-  category: L10n;
+  category: L;
   /** end of the period measured (quarter end for the RBC survey), YYYY-MM-DD; "" in a draft */
   asOf: string;
   /** edition of the survey or report ("Q2 2026"), when the source has one */
@@ -481,15 +482,15 @@ export interface FundContent {
   hidden?: boolean;
   /** hide specific blocks on the public page (fund AUM is hidden unless `aum: false`) */
   hide?: Partial<Record<HideBlock, boolean>>;
-  tagline?: L10n;
-  description?: L10n;
-  objective?: L10n;
+  tagline?: L;
+  description?: L;
+  objective?: L;
   riskRating?: "low" | "low-medium" | "medium" | "medium-high" | "high";
   managementFee?: string;
   performanceFee?: string;
   mer?: string;
   minInvestment?: string;
-  distributions?: L10n;
+  distributions?: L;
   /** FundServ code highlighted on the page (the class whose NAV headlines) */
   headlineClass?: string;
   /**
@@ -500,12 +501,12 @@ export interface FundContent {
   /** fund facts shown only when filled: subsequent minimum, RSP eligibility, liquidity (redemption), CIFSC category */
   minSubsequent?: string;
   rspEligible?: "yes" | "no";
-  liquidity?: L10n;
-  cifscCategory?: L10n;
+  liquidity?: L;
+  cifscCategory?: L;
   /** third-party rankings and ratings (Fundata category rank / quartile, Morningstar); updated manually */
   rankings?: FundRankings;
   /** footnotes shown under performance, EN/FR */
-  performanceNote?: L10n;
+  performanceNote?: L;
   managers?: string[];
   /** freeze: keep showing this snapshot id instead of the latest one for this fund */
   pinnedSnapshot?: string | null;
@@ -516,9 +517,9 @@ export interface SiteContent {
   updatedAt: string;
   updatedBy: string;
   firm: {
-    aumLabel?: L10n;          // e.g. "$1.9B" (firm AUM incl. mandates is not in the dataplatform)
-    announcement?: L10n | null;
-    disclaimer?: L10n;
+    aumLabel?: L;          // e.g. "$1.9B" (firm AUM incl. mandates is not in the dataplatform)
+    announcement?: L | null;
+    disclaimer?: L;
   };
   funds: Partial<Record<FundKey, FundContent>>;
   pipeline: {

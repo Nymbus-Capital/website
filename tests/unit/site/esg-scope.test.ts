@@ -20,13 +20,13 @@ import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solution
 import { STRAT_COPY } from "../../../src/components/site/pages/strategies-copy.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
 import { team } from "../../../src/data/team.ts";
+import type { Locale } from "../../../src/lib/i18n/config.ts";
 
-type Lang = "en" | "fr";
-const SCOPE: Record<Lang, RegExp> = {
+const SCOPE: Record<Locale, RegExp> = {
   en: /exclu|\bESG\b|(?:positive|negative|sustainab\w*|exclusion)\s+screen/i,
   fr: /exclu|\bESG\b|filtr\w*\s+(?:positif|négatif|d’exclusion|de durabilité)/i,
 };
-const SEB: Record<Lang, RegExp> = {
+const SEB: Record<Locale, RegExp> = {
   en: /Sustainable Enhanced Bonds? Fund/,
   fr: /Fonds Obligations Durables Bonifiées/,
 };
@@ -35,7 +35,7 @@ const isL = (x: unknown): x is { en: string; fr: string } =>
   !!x && typeof x === "object" && typeof (x as { en?: unknown }).en === "string" && typeof (x as { fr?: unknown }).fr === "string";
 
 /** Strings of `lang` that use exclusion / ESG-screen wording without the fund's name in the string or its block. */
-export function unscoped(value: unknown, where: string, lang: Lang, context: string[] = [], out: string[] = []): string[] {
+export function unscoped(value: unknown, where: string, lang: Locale, context: string[] = [], out: string[] = []): string[] {
   if (isL(value)) {
     const s = value[lang];
     if (SCOPE[lang].test(s) && !SEB[lang].test(s) && !context.some((c) => SEB[lang].test(c))) out.push(`${where} (${lang}): ${s.slice(0, 90)}`);

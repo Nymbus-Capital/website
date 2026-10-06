@@ -28,7 +28,7 @@ export function fromAcceptLanguage(header: string | null | undefined): Locale | 
   return null;
 }
 
-/** Bilingual string, as used across the data contract (`L10n`). */
+/** Bilingual string: the one EN / FR text type of the site and of the data contract. */
 export type L = { en: string; fr: string };
 export const l = (en: string, fr: string): L => ({ en, fr });
 /** Pick a language from a bilingual string. */

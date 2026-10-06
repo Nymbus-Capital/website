@@ -5,27 +5,28 @@
  * number. Internal fields (source names, fund AUM, snapshot pins) never reach these props.
  */
 import type { FundView } from "@/lib/data/site";
-import type { FundKey, L10n, NavClass, SiteContent } from "@/lib/data/types";
+import type { FundKey, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
 import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
 import { defaultClassCode, initialSelection, pickData } from "../../fund/lib/select.ts";
 import { shownVariant } from "../../../config/funds.ts";
+import type { L } from "@/lib/i18n/config";
 
 type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
 export interface FundCard {
   key: FundKey;
-  name: L10n;
-  short: L10n;
-  assetClass: L10n;
-  tagline: L10n;
-  description: L10n;
+  name: L;
+  short: L;
+  assetClass: L;
+  tagline: L;
+  description: L;
   vehicle: "fund" | "strategy";
   color: { solid: string; from: string; to: string };
   risk: RiskRating;
   /** FundServ code of the headline class (null for strategies without a fund vehicle) */
   code: string | null;
-  benchmark: L10n | null;
+  benchmark: L | null;
   /** since-inception return (decimal), annualized when the record is at least 12 months */
   si: number | null;
   siAnnualized: boolean;
@@ -44,12 +45,12 @@ export interface FundCard {
   /** class of the published returns ("F", "H", "FP"), derived from the class of their data; null when none */
   perfClass: string | null;
   /** the strategy variant of the returns shown (Global Minimum Volatility: "6% downside volatility"); null without variants */
-  perfVariant: L10n | null;
+  perfVariant: L | null;
 }
 
 export interface HomeData {
   funds: FundCard[];
-  aumLabel: L10n | null;
+  aumLabel: L | null;
   /** the figures are the illustrative sample (never in production unless SHOW_SAMPLE_DATA=1) */
   sample: boolean;
   /** month-end of the latest published performance across the funds */

@@ -4,8 +4,9 @@
  * `convert_to_percent_str`: "4.82%", "7.2", "+2.1%", "−0.6%" (unicode minus), "nan", "", NaN, or raw
  * numbers. Pure and dependency-free.
  */
-import type { Bucket, Characteristic, Holding, L10n, MonthlyPoint, PeriodMap } from "../data/types.ts";
+import type { Bucket, Characteristic, Holding, MonthlyPoint, PeriodMap } from "../data/types.ts";
 import { monthEnd } from "./metrics.ts";
+import type { L } from "../i18n/config.ts";
 
 type Json = unknown;
 export type Obj = Record<string, Json>;
@@ -53,7 +54,7 @@ export function parseText(v: Json): string | null {
 
 /* ------------------------------------------------------------------ characteristics */
 
-interface CharSpec { id: string; source: string; label: L10n; unit: Characteristic["unit"] }
+interface CharSpec { id: string; source: string; label: L; unit: Characteristic["unit"] }
 
 /** Bond fund characteristics (bonds_data "Characteristics"), in display order. */
 export const BOND_CHARACTERISTICS: CharSpec[] = [

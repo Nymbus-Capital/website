@@ -6,7 +6,8 @@
  *
  * Dependency-free (plain TS) so the pipeline can import it under Node type stripping.
  */
-import type { FundKey, L10n } from "../lib/data/types.ts";
+import type { FundKey } from "../lib/data/types.ts";
+import type { L } from "../lib/i18n/config.ts";
 
 /**
  * Regulatory minimum (compliance may change it): a series with less than this many months since its inception shows no
@@ -26,7 +27,7 @@ interface FundClassSpec {
  * a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown;
  * `default` marks the variant selected when nothing else is (the list itself is in display order)
  */
-interface VariantSpec { id: string; label: L10n; name: L10n; default?: true }
+interface VariantSpec { id: string; label: L; name: L; default?: true }
 
 /** Global Minimum Volatility variants are named by their target downside volatility, everywhere a figure is shown. */
 const gmvVariant = (pct: number, isDefault = false): VariantSpec => ({
@@ -38,10 +39,10 @@ const gmvVariant = (pct: number, isDefault = false): VariantSpec => ({
 
 export interface FundSpec {
   key: FundKey;
-  name: L10n;
-  short: L10n;
+  name: L;
+  short: L;
   vehicle: "fund" | "strategy";
-  assetClass: L10n;
+  assetClass: L;
   /** accent gradient (from, to) and solid accent: v3 keynote colours */
   color: { solid: string; from: string; to: string };
   /** legacy slugs that should redirect here */
@@ -53,7 +54,7 @@ export interface FundSpec {
      */
     basis: "net" | "gross";
   };
-  benchmark: L10n | null;
+  benchmark: L | null;
   /** default headline class (FundServ) when the admin has not chosen one: class F, the page opens on it */
   headlineClass: string | null;
   /** classes known to the site, the default (F) first; the selector adds the other live classes from the NAV data */
@@ -65,8 +66,8 @@ export interface FundSpec {
   variants?: VariantSpec[];
   defaults: {
     riskRating: "low" | "low-medium" | "medium" | "medium-high" | "high";
-    tagline: L10n;
-    description: L10n;
+    tagline: L;
+    description: L;
   };
 }
 

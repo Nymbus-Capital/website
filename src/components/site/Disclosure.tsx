@@ -17,7 +17,8 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
-import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel, type Lang } from "./disclosure-logic";
+import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel } from "./disclosure-logic";
+import type { Locale } from "@/lib/i18n/config";
 
 export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLOSURE_MIN_CHARS, className, testId }: {
   children: ReactNode;
@@ -27,7 +28,7 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
    */
   en?: readonly (string | null | undefined | false)[];
   /** language of the toggle's label (defaults to the site language) */
-  lang?: Lang;
+  lang?: Locale;
   /** ids of enclosing anchors whose URL hash opens the box (e.g. ["disclosure"]) */
   anchors?: readonly string[];
   minChars?: number;
@@ -36,7 +37,7 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
   testId?: string;
 }) {
   const { locale } = useTranslation();
-  const lg: Lang = lang ?? (locale === "fr" ? "fr" : "en");
+  const lg: Locale = lang ?? (locale === "fr" ? "fr" : "en");
   const collapsible = isCollapsible(en ? enLength(en) : textLength(children), minChars);
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);

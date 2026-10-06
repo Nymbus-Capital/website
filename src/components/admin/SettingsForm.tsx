@@ -2,17 +2,18 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Save } from "lucide-react";
-import type { L10n, SiteContent } from "@/lib/data/types";
+import type { SiteContent } from "@/lib/data/types";
 import { api, L10nInput, useToast } from "./client";
+import type { L } from "@/lib/i18n/config";
 
-const E: L10n = { en: "", fr: "" };
+const E: L = { en: "", fr: "" };
 
 export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths: m0 = 6 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review"; maxAgeMonths?: number }) {
   const [version, setVersion] = useState(v0);
-  const [aumLabel, setAum] = useState<L10n>(firm.aumLabel ?? E);
+  const [aumLabel, setAum] = useState<L>(firm.aumLabel ?? E);
   const [bannerOn, setBannerOn] = useState(!!firm.announcement);
-  const [announcement, setAnn] = useState<L10n>(firm.announcement ?? E);
-  const [disclaimer, setDisc] = useState<L10n>(firm.disclaimer ?? E);
+  const [announcement, setAnn] = useState<L>(firm.announcement ?? E);
+  const [disclaimer, setDisc] = useState<L>(firm.disclaimer ?? E);
   const [publishMode, setPm] = useState(pm0);
   const [maxAge, setMaxAge] = useState(String(m0));
   const [saving, setSaving] = useState(false);
