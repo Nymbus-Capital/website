@@ -18,6 +18,7 @@ import { fundWithClassLabel, perfClassCode, withClassLabel } from "../../../src/
 import type { FundData, Performance, SiteData } from "../../../src/lib/data/types.ts";
 import type { RawPayloads } from "../../../src/lib/pipeline/raw.ts";
 import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const SEB = "sustainable-enhanced-bonds" as const;
@@ -26,19 +27,12 @@ function fetchWith(env: Record<string, string | undefined>, routes: Route[]): Pr
   return fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv({ PIPELINE_RETRY_BASE_MS: "0", ...env }) });
 }
 // the unaltered fixtures are fetched, built and validated once per file (pure); every caller gets its own deep copy
-let baseRaw: Promise<RawPayloads> | undefined;
-let baseBuilt: Promise<BuildResult> | undefined;
-let basePublished: Promise<SiteData> | undefined;
+const baseRaw = once(() => fetchWith({}, []));
 async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<RawPayloads> {
-  if (Object.keys(env).length || routes.length) return fetchWith(env, routes);
-  baseRaw ??= fetchWith({}, []);
-  return structuredClone(await baseRaw);
+  return Object.keys(env).length || routes.length ? fetchWith(env, routes) : baseRaw();
 }
 /** the unaltered fixtures, built with no previous publication */
-async function built(): Promise<BuildResult> {
-  baseBuilt ??= raw().then((r) => buildSiteData(r, null, NOW));
-  return structuredClone(await baseBuilt);
-}
+const built: () => Promise<BuildResult> = once(async () => buildSiteData(await raw(), null, NOW));
 async function fsCopy(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "fs-class-"));
   await cp(FIXTURE_FACTSHEETS_DIR, dir, { recursive: true });
@@ -56,10 +50,9 @@ async function publishedWith(routes: Route[]): Promise<SiteData> {
   const b = buildSiteData(await raw({}, ...routes), null, NOW);
   return validateSite(b.data, b.context, null, NOW).data;
 }
+const basePublished = once(() => publishedWith([]));
 async function published(...routes: Route[]): Promise<SiteData> {
-  if (routes.length) return publishedWith(routes);
-  basePublished ??= publishedWith([]);
-  return structuredClone(await basePublished);
+  return routes.length ? publishedWith(routes) : basePublished();
 }
 /** the SEB track-record answer of monthly-net-returns, changed by `edit` */
 const sebMnr = (edit: (j: Record<string, unknown>) => Record<string, unknown>): Route => (u) =>
@@ -266,4 +259,8 @@ test("NAV card and performance label are independent: SEB NAV LDM201 is class F 
   const f = data.funds[SEB]!;
   assert.equal(f.performance!.returnClass, "H");
   assert.equal(f.nav!.classes.find((c) => c.fundserv === "LDM201")!.display, "F", "NAV class label comes from the fund register, by FundServ code");
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

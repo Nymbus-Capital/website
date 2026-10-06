@@ -13,6 +13,7 @@ import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { NavPoint, RawPayloads } from "../../../src/lib/pipeline/raw.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const near = (a: number | null | undefined, b: number, eps = 1e-12): void => {
@@ -25,18 +26,12 @@ async function fetchWith(env: Record<string, string | undefined>, routes: Route[
   return { raw: await fetchAll({ fetchImpl: m.fetch, now: NOW, env: fixtureEnv(env) }), calls: m.calls };
 }
 // the unaltered fixtures are fetched and built once per file (pure); every caller gets its own deep copy
-let baseFetched: Promise<Fetched> | undefined;
-let baseBuilt: Promise<BuildResult> | undefined;
+const baseFetched = once(() => fetchWith({}, []));
 async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<Fetched> {
-  if (Object.keys(env).length || routes.length) return fetchWith(env, routes);
-  baseFetched ??= fetchWith({}, []);
-  return structuredClone(await baseFetched);
+  return Object.keys(env).length || routes.length ? fetchWith(env, routes) : baseFetched();
 }
 /** the unaltered fixtures, built with no previous publication */
-async function built(): Promise<BuildResult> {
-  baseBuilt ??= raw().then(({ raw: r }) => buildSiteData(r, null, NOW));
-  return structuredClone(await baseBuilt);
-}
+const built: () => Promise<BuildResult> = once(async () => buildSiteData((await raw()).raw, null, NOW));
 async function fsCopy(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "fs-"));
   await cp(FIXTURE_FACTSHEETS_DIR, dir, { recursive: true });
@@ -356,10 +351,12 @@ test("H3 tolerances: 1Y rounding (0.05 %) + 0.05 %; 5Y 0.05 % + 0.1 %", async ()
 
 test("track record < 12 months: performance and risk withheld (compliance), info only", async () => {
   const { PIPELINE_FUNDS } = await import("../../../src/lib/pipeline/config.ts");
+  const { raw: r } = await raw();
   const saved = PIPELINE_FUNDS["multi-strategy"].trackStart;
   PIPELINE_FUNDS["multi-strategy"].trackStart = "2025-12-31";
   try {
-    const { data, context } = await built();
+    // built fresh: the memoised baseline must never see a mutated configuration
+    const { data, context } = buildSiteData(r, null, NOW);
     assert.equal(data.funds["multi-strategy"]!.performance, null);
     assert.equal(data.funds["multi-strategy"]!.risk, null);
     assert.ok(data.issues.some((i) => i.level === "info" && i.message.includes("< 12")));
@@ -367,6 +364,18 @@ test("track record < 12 months: performance and risk withheld (compliance), info
   } finally {
     PIPELINE_FUNDS["multi-strategy"].trackStart = saved;
   }
+});
+
+test("a memoised baseline refuses to serve while the pipeline config is mutated", async () => {
+  const { PIPELINE_FUNDS } = await import("../../../src/lib/pipeline/config.ts");
+  const saved = PIPELINE_FUNDS["multi-strategy"].trackStart;
+  PIPELINE_FUNDS["multi-strategy"].trackStart = "2025-12-31";
+  try {
+    await assert.rejects(built(), /pipeline config was mutated/);
+  } finally {
+    PIPELINE_FUNDS["multi-strategy"].trackStart = saved;
+  }
+  assertConfigUntouched();
 });
 
 test("C3 navChange unit cases", () => {
@@ -537,4 +546,8 @@ test("FTSE for all benchmarks: a period FTSE does not cover is null with an issu
   assert.equal(d2.funds["monthly-income"]!.performance!.trailing.index!["1Y"], null);
   assert.equal(d2.funds["monthly-income"]!.performance!.indexName, "FTSE Canada Short Term Corporate Bond Index", "fallback to the funds.ts benchmark label");
   assert.ok(d2.issues.some((i) => i.level === "warn" && /FTSE short_corp unavailable .*: no index figure shown/.test(i.message)));
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

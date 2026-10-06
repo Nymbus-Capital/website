@@ -5,17 +5,14 @@ import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { validateSite, validateFund, nonFinitePaths } from "../../../src/lib/pipeline/validate.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, mockFetch } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 
 const clone = <T>(x: T): T => structuredClone(x);
 
-/** One fetch + build of the fixtures per file (the build is pure); every caller gets its own deep copy. */
-let baseline: Promise<BuildResult> | undefined;
-async function built(): Promise<BuildResult> {
-  baseline ??= fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }).then((raw) => buildSiteData(raw, null, NOW));
-  return clone(await baseline);
-}
+/** The unaltered fixtures, fetched and built once per file (pure); every caller gets its own deep copy. */
+const built: () => Promise<BuildResult> = once(async () => buildSiteData(await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }), null, NOW));
 
 test("clean fixtures pass every gate", async () => {
   const b = await built();
@@ -219,4 +216,8 @@ test("held performance: unknown class of the previous publication -> nothing kep
   assert.equal(v3.funds["monthly-income"], "updated");
   assert.equal(v3.data.funds["monthly-income"]!.risk3Y, undefined);
   assert.ok(v3.data.funds["monthly-income"]!.nav);
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

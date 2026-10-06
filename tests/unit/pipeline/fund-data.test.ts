@@ -18,6 +18,7 @@ import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { ClassDistributions, DpShort, FundPortfolio, RawPayloads, SourceResult } from "../../../src/lib/pipeline/raw.ts";
 import type { ClassDistribution, FundData, SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const client = (...routes: Route[]) => dpClient(mockFetch(...routes).fetch, { DATAPLATFORM_URL: "http://dataplatform.test", PIPELINE_RETRY_BASE_MS: "0" })!;
@@ -36,11 +37,9 @@ async function rawWith(opts: { routes?: Route[]; now?: Date; dist?: "ok" | "down
   return raw;
 }
 /** The unaltered fixtures (with distributions) are built once per file (pure); every caller gets its own deep copy. */
-let baseline: Promise<BuildResult> | undefined;
+const baseline = once(async () => buildSiteData(await rawWith({ dist: "ok" }), null, NOW));
 async function build(...routes: Route[]): Promise<BuildResult> {
-  if (routes.length) return buildSiteData(await rawWith({ routes, dist: "ok" }), null, NOW);
-  baseline ??= rawWith({ dist: "ok" }).then((raw) => buildSiteData(raw, null, NOW));
-  return structuredClone(await baseline);
+  return routes.length ? buildSiteData(await rawWith({ routes, dist: "ok" }), null, NOW) : baseline();
 }
 
 /* ------------------------------------------------------------------ parsers */
@@ -583,4 +582,8 @@ test("distributions carried over after failed reads are dropped after 10 days wi
   const f = old.funds["monthly-income"]!;
   checkDistributions(f, "b", NOW);
   assert.equal(f.distributions, null);
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });

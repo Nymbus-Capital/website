@@ -13,6 +13,7 @@ import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import type { ClassResult } from "../../../src/lib/pipeline/class-returns.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
+import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
 import type { FundContext } from "../../../src/lib/pipeline/build.ts";
 import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
 
@@ -27,12 +28,10 @@ async function buildWith(routes: Route[]): Promise<Built> {
   const { data, context } = buildSiteData(raw, null, NOW);
   return { data, validated: validateSite(data, context, null, NOW).data, context };
 }
-/** The unaltered fixtures are built once per file (the build is pure); every caller gets its own deep copy. */
-let baseline: Promise<Built> | undefined;
+/** The unaltered fixtures are built once per file (pure); every caller gets its own deep copy. */
+const baseline = once(() => buildWith([]));
 async function build(...routes: Route[]): Promise<Built> {
-  if (routes.length) return buildWith(routes);
-  baseline ??= buildWith([]);
-  return structuredClone(await baseline);
+  return routes.length ? buildWith(routes) : baseline();
 }
 
 /** route serving one class's daily history altered by `fn` */
@@ -458,4 +457,8 @@ test("class histories: after 3 failures in a row the rest are not requested (a f
   assert.equal(histories, 3);
   const skipped = Object.values(raw.navHistory ?? {}).filter((r) => !r.ok && /not fetched/.test(r.error ?? ""));
   assert.ok(skipped.length >= 2, String(skipped.length));
+});
+
+test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
+  assertConfigUntouched();
 });
