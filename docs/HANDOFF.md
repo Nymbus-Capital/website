@@ -35,12 +35,24 @@ Commit trailers used so far (keep them):
   (`src/lib/pipeline/**`, `src/lib/data/{types,store}.ts`, `src/config/funds.ts`, `src/lib/auth/policy.ts`,
   `src/content/disclaimers.ts`, `deploy/northflank/provision.mjs`) use relative imports with explicit
   `.ts` extensions and erasable TypeScript only, so they run under Node type stripping.
-- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (non-blocking) → build →
+- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (**blocking**, `eslint.config.mjs`) → build →
   Playwright e2e (desktop + Pixel 7; admin tests run after public ones) → Docker build.
   Add `[ci-logs]` to a commit message to have CI push logs + screenshots to a `ci/run-<n>` branch
   (useful from sandboxes that cannot download Actions artifacts:
   `git fetch origin 'refs/heads/ci/*:refs/remotes/origin/ci/*'` then `git show origin/ci/run-<n>:ci-out/e2e.log`).
   Those branches can be deleted any time.
+- **Visual diff (refactor safety net)**: `e2e/visual-baseline.spec.ts` saves deterministic screenshots of every public
+  page (home, strategies, core concepts, approach, sustainability, team, solutions, contact, legal, privacy, each fund
+  page full / top / bottom; desktop + mobile; English, reduced motion, animations finished, caret hidden, fonts loaded,
+  off-site requests aborted) to `e2e/screenshots/visual/<page>[-top|-bottom]-<project>.png`. Before a "no visual change"
+  refactor: push the base commit with `[ci-logs]`, then the work with `[ci-logs]`, fetch both `ci/run-<n>` branches and run
+  `node scripts/visual-diff.mjs <before>/screenshots/visual <after>/screenshots/visual [--max-ratio=0.001] [--tolerance=0]
+  [--out=<dir>]` (no dependencies; exit 1 on any image changed beyond the ratio, resized or missing; `--out` writes red
+  masks of the changed pixels). Two runs of the same commit are byte-identical, so any reported pixel is a real change.
+  Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
+- **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
+  (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
+  the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
 - **Environment differences**: the cloud workspace (home session) cannot reach the npm registry,
   Northflank, the dataplatform or SharePoint — it relies on CI. A local office machine can
   `npm install`, `npm run dev`, `npm run build`, `npm run e2e` directly (Node ≥ 22.12). Neither
@@ -218,6 +230,28 @@ Not yet run against live data, not deployed.
    AC3 (some standard periods shown while others are "—"); (d) a second independent review of the 2026-10-05 fixes before merging.
 
 ## 6. Session log
+
+- 2026-10-05 (sub-agent, branch `feat/cleanup` from `redesign/v3-keynote-live-data`; **not merged**): code cleanup with no
+  rendered change ("keep the looks and feel … beautiful code that's easy to read"), proven by the visual diff (every page
+  byte-identical to the baseline run 232). (0) visual baseline spec + `scripts/visual-diff.mjs` (see § 2). (1) ESLint flat
+  config (Next core web vitals + TypeScript), lint blocking in CI; `.prettierrc` (120 columns) and `.editorconfig` — **no
+  repository-wide reformat yet** (later pass). React Compiler readiness rules (`react-hooks/refs`, `set-state-in-effect`,
+  `immutability`) are warnings: the flagged patterns are deliberate and changing them is not a no-visual-change refactor.
+  (2) Unused dependencies removed (framer-motion, recharts, gsap, @gsap/react, clsx, tailwind-merge). (3) Dead exports deleted
+  (ScreenSwap, team helpers, fundSources, bucketsTotal, morningstarSlots, …), 199 file-local symbols un-exported, the
+  legacy `.in` reveal class dropped. (4) One `Locale`, one bilingual `L` and one `tr` (src/lib/i18n/config.ts); motion's
+  CountUp uses `fund/lib/format` `fmt`; `ym` / `monthsBetween` in `src/lib/data/dates.ts` (client code may import it),
+  pipeline `pct` in `src/lib/pipeline/format.ts`; canvas kit (`draw-kit`, `runner`, `timeline`) in
+  `src/components/site/canvas/`, used by the home engines band too. (5) The two `.fx-chip` rules are scoped with `:where()`
+  (no added specificity). (6) Copy files renamed `<page>.copy.ts`; motion primitives in `src/components/motion/motion.tsx`;
+  dated owner notes moved from code comments to `docs/architecture.md` § Decision log. (7) Pipeline tests build the
+  unaltered fixtures once per file (`npm test` ≈ 131 s → 88 s). Follow-ups after the parallel branches merge: Contact.tsx
+  still imports the one-line shim `src/components/v3/motion.ts`; `src/lib/rankings` still uses the deprecated `L10n` alias;
+  `copy-contact.ts`, `rankings-copy.ts`, `scan-copy.ts` keep their names (contact / rankings in flight, scan frozen);
+  `inquiry.ts` keeps its own `Lang`; `run.test.ts` not sped up (run.ts in flight); split the big files and run the
+  formatter. **Could not delete the stale `ci/run-*` branches** (the sandbox proxy refuses ref deletion, HTTP 403):
+  Gabriel can run `git ls-remote origin 'refs/heads/ci/*'` and `git push origin --delete <ci/run-n …>` for all but the
+  last ten.
 
 - 2026-10-05 (sub-agent, branch `feat/collapsible-disclosures` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
   request "all the disclosure in the websites … smaller divs that have a fade out towards the end and a static arrow that shows
