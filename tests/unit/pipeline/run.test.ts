@@ -488,3 +488,64 @@ test("many classes published for the first time at once: held in auto mode until
   const next = await run({ now: new Date("2026-09-30T20:00:00Z") });
   assert.equal(next.classChanges, undefined);
 });
+
+test("run alerts: posted when a run needs attention, deduped while the problem is the same, reminded daily, resolved once; Teams format; failed delivery retried at the next run", async () => {
+  const { ALERT_DELIVERY, readAlertState } = await import("../../../src/lib/pipeline/alerts.ts");
+  const saved = ALERT_DELIVERY.delays;
+  ALERT_DELIVERY.delays = [0, 0, 0];
+  try {
+    await run();
+    const posted: string[] = [];
+    let hookStatus = 200;
+    process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+    process.env.PUBLIC_URL = "https://www.example.test";
+    const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("x", { status: hookStatus })) : undefined);
+    const aumDown: Route = (u) => (u.pathname === "/api/unitholders/aum" ? json({ detail: "x" }, 503) : undefined);
+    const r1 = await run({ routes: [hook, aumDown], now: new Date("2026-09-30T14:00:00Z") });
+    assert.equal(r1.status, "blocked");
+    assert.equal(posted.length, 1);
+    const m1 = JSON.parse(posted[0]) as { text: string; adminUrl: string };
+    assert.match(m1.text, /BLOCKED/);
+    assert.match(m1.text, /What to do: open \/admin\/runs\//);
+    assert.equal(m1.adminUrl, `https://www.example.test/admin/runs/${r1.id}`);
+    // the same problem on the next runs: not posted again
+    await run({ routes: [hook, aumDown], now: new Date("2026-09-30T18:00:00Z") });
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-01T10:00:00Z") });
+    assert.equal(posted.length, 1, posted.map((p) => (JSON.parse(p) as { title: string }).title).join(" | "));
+    // still blocked a day after the alert: one daily reminder
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-01T14:30:00Z") });
+    assert.equal(posted.length, 2);
+    assert.match((JSON.parse(posted[1]) as { title: string }).title, /^Reminder \(daily, since 2026-09-30 14:00 UTC\): .*BLOCKED/);
+    // fixed: resolved, once
+    const ok = await run({ routes: [hook], now: new Date("2026-10-01T18:00:00Z") });
+    assert.equal(ok.status, "published");
+    assert.equal(posted.length, 3);
+    assert.match((JSON.parse(posted[2]) as { title: string }).title, /^Resolved: .*PUBLISHED/);
+    await run({ routes: [hook], now: new Date("2026-10-01T22:00:00Z") });
+    assert.equal(posted.length, 3);
+    // Teams format; a delivery that fails is not recorded as sent: the next run posts again
+    process.env.PIPELINE_ALERT_FORMAT = "teams";
+    hookStatus = 500;
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-02T14:00:00Z") });
+    assert.equal(posted.length, 7, "4 attempts");
+    const card = JSON.parse(posted[6]) as { type: string; attachments: { content: { body: { text: string }[]; actions: { url: string }[] } }[] };
+    assert.equal(card.type, "message");
+    assert.match(card.attachments[0].content.body[0].text, /BLOCKED/);
+    assert.match(card.attachments[0].content.actions[0].url, /^https:\/\/www\.example\.test\/admin\/runs\//);
+    const st = await readAlertState();
+    assert.equal(st.lastDelivery!.ok, false);
+    assert.equal(st.open["pipeline.run"], undefined);
+    hookStatus = 200;
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-02T18:00:00Z") });
+    assert.equal(posted.length, 8);
+    assert.equal((await readAlertState()).lastDelivery!.ok, true);
+    // a dry run posts nothing
+    await run({ routes: [hook], dryRun: true, now: new Date("2026-10-02T19:00:00Z") });
+    assert.equal(posted.length, 8);
+  } finally {
+    ALERT_DELIVERY.delays = saved;
+    delete process.env.PIPELINE_ALERT_WEBHOOK;
+    delete process.env.PIPELINE_ALERT_FORMAT;
+    delete process.env.PUBLIC_URL;
+  }
+});

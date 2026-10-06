@@ -11,15 +11,16 @@ import { complianceState } from "@/components/admin/compliance";
 import { DISCLAIMERS } from "@/content/disclaimers";
 import { summarizeFund } from "@/components/admin/summary";
 import { money, pct, when } from "@/components/admin/format";
-import { safeRuns, safeStatus } from "./_lib/data";
+import { safeAlerts, safeRuns, safeStatus } from "./_lib/data";
 import { rankingsAdmin } from "./_lib/rankings";
 import { RankingsPanel } from "@/components/admin/RankingsPanel";
+import { AlertsPanel } from "@/components/admin/AlertsPanel";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   await requireAdminPage("/admin"); // defence in depth: every page re-verifies the session (not only the layout)
-  const [status, runs, content, site, docs] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments()]);
+  const [status, runs, content, site, docs, alerts] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments(), safeAlerts()]);
   const published = docs.filter((d) => d.published).length;
   const rk = await rankingsAdmin(content);
   const comp = complianceState(content);
@@ -57,7 +58,12 @@ export default async function AdminDashboard() {
         approvedBy={comp.status === "never" ? undefined : comp.approvedBy}
       />
 
+      {/* alerts off or failing: shown above the pipeline so it is seen at once */}
+      {!alerts?.configured || alerts.lastDelivery?.ok === false ? <AlertsPanel status={alerts} /> : null}
+
       <PipelinePanel initialStatus={status} initialRuns={runs} />
+
+      {alerts?.configured && alerts.lastDelivery?.ok !== false ? <AlertsPanel status={alerts} /> : null}
 
       <RankingsPanel issues={rk.issues} months={rk.months} rbc={rk.rbc ? { checkedAt: rk.rbc.checkedAt, ok: rk.rbc.ok, latest: rk.latest } : null} latest={rk.latest} />
 

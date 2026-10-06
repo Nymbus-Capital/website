@@ -51,7 +51,8 @@ private network, like the IMS frontend.
 | `ADMIN_REQUIRED_ROLE` | optional app role (e.g. `Admin.Web`) assigned to the people allowed in the admin |
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | the app-only registration the deck studio already uses (`Sites.Selected` read on the Data site) — same values as the `nymbus-decks` service |
 | `GITHUB_TOKEN` | fine-grained token, contents:read on `Nymbus-Capital/analytics` only |
-| `PIPELINE_ALERT_WEBHOOK` | optional Teams incoming webhook for blocked/failed runs |
+| `PIPELINE_ALERT_WEBHOOK` | **recommended**: a Microsoft Teams channel webhook (how-to below) — without it alerts are off and only the admin dashboard shows problems |
+| `PIPELINE_ALERT_FORMAT` | optional: `teams`, `json` or `auto` (default: Teams when the URL is a Teams / Workflows / Power Automate host, else generic JSON `{ text, title, severity, lines, adminUrl }`) |
 
 `AUTH_SECRET` is optional: without it the server generates one on first start and keeps it on the
 volume (`/data/secrets/auth-secret`). Already filled: `PUBLIC_URL`, `DATAPLATFORM_URL`, `ADMIN_ALLOWED_DOMAINS=nymbus.ca`,
@@ -81,11 +82,67 @@ repository settings once the new address is live.
 
 ## 4. Operations
 
-- Schedule: 06:45, 12:45, 18:45 America/Toronto (NAVs final the next morning, factsheets early month).
+- Schedule: 06:45, 12:45, 18:45 America/Toronto (NAVs final the next morning, factsheets early month). After a restart
+  or a redeploy that skipped a slot, the service runs once about 90 s after boot (not when a run started less than an
+  hour before, nor when the next slot is less than 45 min away). A run that failed or was blocked while a source was
+  unavailable (HTTP 5xx / 429 / timeout / network) is retried once about 30 min later — never for an approval gate
+  (class change, unconfirmed month: an admin decides).
 - A run that blocks a fund keeps its last validated figures and posts an alert.
 - Roll back: Runs → pick a published run → publish. Freeze one fund: Funds → pin to a run.
 - CLI inside the container, as the app user (a shell opens as root): `runuser -u nymbus -- npm run pipeline -- status | run --dry-run | publish <id>`. Files a root shell leaves on `/data` are re-owned at the next start (`docker/start.mjs`).
 - Backups: enable the daily backup schedule on the `website-data` volume (Northflank → Volumes).
+
+### Alerts (`PIPELINE_ALERT_WEBHOOK`)
+
+What is posted (one channel for everything; state on the volume, `alerts/state.json`, so a restart does not repeat
+alerts):
+
+| Alert | When | Repeats |
+| --- | --- | --- |
+| Run failed / blocked / waiting for approval | when a run first needs attention, and when the problem changes (status, set of errors, funds to review, class changes) | one reminder a day while it lasts; "Resolved" once when a run publishes cleanly |
+| Non-blocking notice (source defects to report) | when a notice first appears | never |
+| Public data **stale** (see `/api/status`) | when the verdict turns stale, or what is stale changes | one reminder a day; "fresh again" once |
+| Rankings about to be hidden | 30 days before an entry's last day, and when it is hidden | once per entry, edition and phase |
+| New RBC pooled fund survey edition | once per edition | never |
+
+Each message says what to do and links the admin page (absolute when `PUBLIC_URL` is set). Delivery is retried 3 times
+(2 s, 8 s, 30 s; a 429 `Retry-After` up to 60 s is honoured); a message not delivered is posted again at the next
+evaluation. **Admin → dashboard → alerts** shows whether the channel is configured, the last delivery result and the
+open alerts, with a "send a test alert" button. No email is sent: the site has no mail path (contact is `mailto:`), and
+the Graph app only reads SharePoint.
+
+**Teams how-to** (either works; the payload is an Adaptive Card, accepted by both):
+
+1. *Workflows* (recommended — Microsoft is retiring Office 365 connectors): in the Teams channel → **⋯ → Workflows** →
+   template **"Post to a channel when a webhook request is received"** → choose the team and channel → **Add workflow** →
+   copy the URL (`https://….logic.azure.com/…` or `https://….powerplatform.com/…`).
+2. *Incoming Webhook connector* (if still enabled in the tenant): channel → **⋯ → Manage channel → Connectors →
+   Incoming Webhook → Configure**, name it "Nymbus website", copy the `https://….webhook.office.com/…` URL.
+
+Paste the URL into `PIPELINE_ALERT_WEBHOOK` in `website-secrets` (the URL is the secret: never commit or share it),
+restart the service, then press **send a test alert** on the dashboard. A Slack (or any) webhook taking `{ "text" }`
+works with the default generic format.
+
+### Status endpoint and monitoring (`/api/status`)
+
+`GET /api/status` is public (no secrets, no issue texts, no hostnames) and cacheable for 60 s: last run (time, status,
+trigger), last publication, performance and NAV as-of per fund, next scheduled run (and a pending retry), and a
+freshness verdict. It answers **HTTP 200 always**, with `"ok": true|false` and `"verdict": "ok"|"stale"`;
+`/api/status?strict=1` answers **503** when stale. Stale when:
+
+- no publication for more than **36 hours counted on business days** (TSX days, Toronto; weekends and holidays do not
+  count), or never published;
+- a fund's performance does not include the last closed month **10 business days** after that month ended;
+- a fund's NAV is more than **4 business days** old (funds only; Global Minimum Volatility has no NAV);
+- a fund shown on the site has no performance (funds hidden in the admin are not reported).
+
+Monitoring:
+
+- **Northflank health checks stay on `/api/health`** (liveness / readiness, port 3000). Never point them at
+  `/api/status?strict=1`: stale data would make Northflank restart a healthy container.
+- **External uptime monitor** (e.g. Better Stack, UptimeRobot, Azure Monitor availability test, every 5–15 min): an
+  HTTP check on `<PUBLIC_URL>/api/status?strict=1` expecting 200 (or keyword `"ok":true`). It catches both a dead
+  service and stale data, independently of the webhook — set its notifications to the same Teams channel or to email.
 
 ## 5. WordPress content backend (optional, headless)
 

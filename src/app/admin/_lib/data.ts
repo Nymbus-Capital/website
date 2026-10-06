@@ -4,6 +4,7 @@
  */
 import { getRun, listRuns, pipelineStatus, type RunReport } from "@/lib/pipeline";
 import type { PipelineStatus } from "@/components/admin/runs";
+import { alertChannelStatus, readAlertState } from "@/lib/pipeline/alerts";
 
 async function safe<T>(where: string, fn: () => Promise<T>): Promise<T | null> {
   try {
@@ -17,3 +18,4 @@ async function safe<T>(where: string, fn: () => Promise<T>): Promise<T | null> {
 export const safeStatus = () => safe<PipelineStatus>("pipelineStatus", async () => (await pipelineStatus()) as PipelineStatus);
 export const safeRuns = async (limit: number): Promise<RunReport[]> => (await safe("listRuns", () => listRuns(limit))) ?? [];
 export const safeRun = (id: string) => safe("getRun", () => getRun(id));
+export const safeAlerts = () => safe("alertChannelStatus", async () => alertChannelStatus(await readAlertState()));

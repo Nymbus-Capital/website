@@ -1,7 +1,8 @@
 /**
  * Weekly rankings freshness check (RBC pooled fund survey), started by src/instrumentation.ts next to the pipeline
  * scheduler. Every 6 hours the process looks at the stored state and runs the check when the last one is older than
- * RANKINGS_CHECK_DAYS (default 7), so restarts neither skip nor repeat it. RANKINGS_CHECK=off disables it.
+ * RANKINGS_CHECK_DAYS (default 7), so restarts neither skip nor repeat it; each tick also posts the rankings about to be
+ * hidden (expiry-alert.ts, once per entry). RANKINGS_CHECK=off disables both.
  */
 const G = globalThis as typeof globalThis & { __nymbusRankingsCheck?: { timer: ReturnType<typeof setInterval> | null } };
 
@@ -30,11 +31,19 @@ export function startRankingsCheck(opts: { log?: (m: string) => void } = {}): bo
     if (running) return;
     running = true;
     try {
+      const { getContent } = await import("../data/content.ts");
+      const content = await getContent();
+      // rankings about to be hidden (30 days ahead) or just hidden: webhook, once per entry and phase
+      try {
+        const [{ alertRankingExpiries }, { FUNDS }] = await Promise.all([import("./expiry-alert.ts"), import("../../config/funds.ts")]);
+        await alertRankingExpiries(content, { classes: Object.fromEntries(FUNDS.map((f) => [f.key, f.classes])) });
+      } catch (e: unknown) {
+        log(`expiry alert failed: ${(e as Error)?.message ?? e}`);
+      }
       const { readRbcState, runRbcSurveyCheck } = await import("./rbc-survey.ts");
       const prev = await readRbcState();
       if (!checkDue(prev?.checkedAt, new Date(), days)) return;
-      const { getContent } = await import("../data/content.ts");
-      await runRbcSurveyCheck({ content: await getContent() });
+      await runRbcSurveyCheck({ content });
     } catch (e: unknown) {
       log(`freshness check crashed: ${(e as Error)?.message ?? e}`);
     } finally {
