@@ -169,8 +169,11 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 - 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
   behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
   through `build/index.ts` and `validate/index.ts`, pipeline output on the fixtures byte-identical, `npm test` green;
-  Contact.tsx shim and `contact.copy.ts` done. Visual proof: base run on branch `refactor/split-modules-base` vs the
-  branch's last `[ci-logs]` run (`scripts/visual-diff.mjs --max-ratio=0`, visual / visual-fr / visual-motion).
+  Contact.tsx shim and `contact.copy.ts` done. Visual proof: run 252 (base `d62a263`, pushed to the helper branch
+  `refactor/split-modules-base` because the branch's own baseline run was cancelled by the next push) vs run 253
+  (`239f4e9`): `scripts/visual-diff.mjs --max-ratio=0` → 44 + 6 + 10 images (visual, visual-fr, visual-motion), all
+  byte-identical. Run 253 green (its first attempt failed only on the flaky WordPress smoke check "login page offers
+  Sign in with Microsoft"; nothing under `wordpress/` changed; the re-run passed). The helper branch can be deleted.
 
 - 2026-10-06 (home session): feat/cleanup, feat/automation, feat/wp-ready merged and pushed (CI green on each,
   reviewed); §3 / §5 rewritten (every branch listed as "not merged" was merged); merged local branches and worktrees
