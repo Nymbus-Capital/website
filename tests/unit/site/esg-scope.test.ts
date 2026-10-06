@@ -8,16 +8,16 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
-import { HOME_COPY, FUND_COPY } from "../../../src/components/site/home/copy.ts";
+import { FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
+import { HOME_COPY, FUND_COPY } from "../../../src/components/site/home/home.copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 import { NEWS } from "../../../src/components/site/home/news.ts";
-import { AB } from "../../../src/components/site/pages/copy-about.ts";
-import { AP } from "../../../src/components/site/pages/copy-approach.ts";
+import { AB } from "../../../src/components/site/pages/about.copy.ts";
+import { AP } from "../../../src/components/site/pages/approach.copy.ts";
 import { CT } from "../../../src/components/site/pages/copy-contact.ts";
-import { SU } from "../../../src/components/site/pages/copy-sustainability.ts";
-import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
-import { STRAT_COPY } from "../../../src/components/site/pages/strategies-copy.ts";
+import { SU } from "../../../src/components/site/pages/sustainability.copy.ts";
+import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions.copy.ts";
+import { STRAT_COPY } from "../../../src/components/site/pages/strategies.copy.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
 import { team } from "../../../src/data/team.ts";
 import type { Locale } from "../../../src/lib/i18n/config.ts";

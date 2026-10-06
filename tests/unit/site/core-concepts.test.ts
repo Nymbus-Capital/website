@@ -20,7 +20,7 @@ import {
   ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, FOCUS_IN, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
   focusFrom, focusTracker, gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
-import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts-copy.ts";
+import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts.copy.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");

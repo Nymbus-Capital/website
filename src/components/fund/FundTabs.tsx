@@ -7,7 +7,7 @@
  * other; links such as <a href="#documents"> select a tab and scroll to it.
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { reducedMotion } from "@/components/v3/motion";
+import { reducedMotion } from "@/components/motion/motion";
 
 interface FundTab { id: string; label: string; content: ReactNode }
 

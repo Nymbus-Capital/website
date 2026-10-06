@@ -9,9 +9,9 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { recoverFromChunkError } from "../fx/chunk-recover";
 import { Pause, Play } from "lucide-react";
-import { reducedMotion } from "@/components/v3/motion";
+import { reducedMotion } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
-import { CC } from "./concepts-copy";
+import { CC } from "./concepts.copy";
 import type { Runner } from "./runner";
 import "@/components/site/fx/fx.css";
 import "./concepts.css";

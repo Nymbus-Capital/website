@@ -10,7 +10,7 @@
  */
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "@/lib/i18n";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { FundHeader, ReturnStrip } from "./Header";
 import { FundTabs } from "./FundTabs";
 import { Overview } from "./Overview";

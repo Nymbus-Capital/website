@@ -2,7 +2,7 @@
  * The sentence a fund page shows instead of figures for the selected series: a young series (regulatory minimum of
  * months since its inception), a non-CAD series without distribution-aware returns, or "coming soon". Pure.
  */
-import { T } from "../copy.ts";
+import { T } from "../fund.copy.ts";
 import { dateLabel, monthLabel } from "./format.ts";
 import type { ClassNotice } from "./select.ts";
 import { tr, type L, type Locale } from "../../../lib/i18n/config.ts";

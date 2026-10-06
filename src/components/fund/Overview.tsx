@@ -6,13 +6,13 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import { Reveal } from "@/components/v3/motion";
+import { Reveal } from "@/components/motion/motion";
 import { Bullets } from "@/components/site/kit";
 import type { FundContent } from "@/lib/data/types";
 import { team } from "@/data/team";
 import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { FUND_TEXTS, T } from "./copy";
+import { FUND_TEXTS, T } from "./fund.copy";
 import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "./lib/format.ts";
 import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";

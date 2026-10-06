@@ -69,7 +69,7 @@ They are **not** covered by the admin fingerprint banner above: review them here
 Other page statements compliance may want to see (not boilerplate, written for the rebuild; facts only, no figures
 other than counts computed from `src/data/team.ts`):
 
-- `/sustainability` (`src/components/site/pages/copy-sustainability.ts`): the exclusion policy (fossil fuel
+- `/sustainability` (`src/components/site/pages/sustainability.copy.ts`): the exclusion policy (fossil fuel
   production > 5 % of revenue, tobacco, controversial weapons, severe ESG controversies) is presented as applying
   "as set out in each fund's offering documents and each mandate's investment policy": confirm the scope per fund.
   Fondaction described as a Québec labour-sponsored fund that entrusted Nymbus with sustainable bond mandates. PRI
@@ -260,7 +260,7 @@ wording), the six PRI principles (official wording), the contact form texts and 
 
 Changed pages (please tick once reviewed):
 
-- [ ] **Home** (`src/components/site/home/copy.ts`, `news.ts`): hero lead, approach lead + 3 bullets, card texts
+- [ ] **Home** (`src/components/site/home/home.copy.ts`, `news.ts`): hero lead, approach lead + 3 bullets, card texts
   (the "Risk management does not eliminate the risk of loss." sentence kept), strategies / process leads and step
   texts, CTA; news summaries and "Read more" texts shortened (Mageska, Tobacco-Free Finance Pledge, Dans la rue: same
   facts, the opinion sentence of the tobacco item and the closing sentence of the Dans la rue item removed). "Investment
@@ -284,7 +284,7 @@ Changed pages (please tick once reviewed):
   still listed in the dialog). Jean Turmel FR keeps « Financière Banque Nationale » (A15).
 - [ ] **Contact** (`copy-contact.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
   one business day. Urgent? Please call."), visit text. Form note about sensitive information unchanged.
-- [ ] **Fund pages** (`src/components/fund/copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
+- [ ] **Fund pages** (`src/components/fund/fund.copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
   approach" is now 3 bullets plus the risk note in fine print (overlay caveat + futures-exposure disclosure, verbatim; GMV: the
   futures-exposure disclosure); the fund's own section (Monthly Income features, SEB sustainability, Multi-Strategy
   sub-strategies, GMV overlay) has a shorter lead and card texts, with the same disclosures in the same cards
@@ -363,7 +363,7 @@ Gabriel asked for an inspiring home page (AUM now C$1.9 billion, no daily NAV on
 
 Gabriel asked for a visual "as impactful as science at scale" about protective overlays and low-correlation strategies
 within the multi-strategy. New band right after science at scale (which is unchanged, guarded by
-`tests/unit/site/scan-frozen.test.ts`). Copy: `src/components/site/fx/overlay-copy.ts` (EN + FR). Please tick once reviewed:
+`tests/unit/site/scan-frozen.test.ts`). Copy: `src/components/site/fx/overlay.copy.ts` (EN + FR). Please tick once reviewed:
 
 - [ ] **Generated illustration, not data.** A canvas animation of a generated bond reference (calm months and stress
   episodes, down months shaded), five lanes and a blended line, plus a concept heatmap. **Revised 2026-10-03
@@ -417,7 +417,7 @@ within the multi-strategy. New band right after science at scale (which is uncha
 ## Fund pages v2 (2026-10-01): returns per class, rankings, GMV variants — to review
 
 Branch `feat/fund-pages-v2`. Everything below is **new wording or a new kind of statement**; none of it has been
-reviewed by compliance. All visitor-facing texts are in `src/components/fund/copy.ts` (EN and FR).
+reviewed by compliance. All visitor-facing texts are in `src/components/fund/fund.copy.ts` (EN and FR).
 
 | # | Change | Where | Verify |
 |---|---|---|---|
@@ -456,7 +456,7 @@ eVestment, RBC, LSEG/Lipper and GMR for advisors. Nothing below has been reviewe
 ## Content v3 (2026-10-02): risk-first approach, multi-strategy, team credentials, use cases, ESG scope — to review
 
 Branch `feat/content-v3`. Gabriel's eight requests of 2026-10-02. Everything below is **new wording or a new kind of
-statement**; none of it has been reviewed by compliance. EN and FR texts: `src/components/site/pages/copy-approach.ts`,
+statement**; none of it has been reviewed by compliance. EN and FR texts: `src/components/site/pages/approach.copy.ts`,
 `copy-about.ts`, `solutions-copy.ts`, `copy-sustainability.ts`, `src/components/site/home/{copy,news}.ts`,
 `src/data/team.ts`. Tests: `tests/unit/site/content-v3.test.ts`, `tests/unit/site/esg-scope.test.ts`, `e2e/content-v3.spec.ts`.
 
@@ -513,7 +513,7 @@ V8 are superseded by P1; W1/W8 by P3; the Fund Library name in W-rows by P2). Pl
 
 | # | Change | Where | Verify |
 |---|---|---|---|
-| P1 | **"Protective overlay(s)"** / « superposition(s) protectrice(s) » is now the name of the overlay strategy (Gabriel's choice) wherever it is named: home strategies lead, "diversifying engines" band (trio card, canvas lane, alt text; the Science at scale band is untouched), approach (risk-first card, overlay section eyebrow / title / "Our response" / chart legend, multi-strategy band and "Three ways" cards, meta description), solutions (vehicle, pension and family-office use cases, GMV managed accounts), about (hero lead, intro bullet, meta description, two bios) and the fund pages (feature cards, notes, GMV summary / "How the protective overlay works", fund descriptions and taglines, GMV asset class "Protective overlay (managed accounts)"). **The qualifier is kept next to the name** on every page: "designed to offset part of (bond) losses; it may not do so and can lose money" (fund pages, approach, solutions; FR « conçue pour compenser une partie des pertes …; elle peut ne pas y parvenir et peut subir des pertes »); about gains the note "Protective overlays are designed to offset part of losses; they may not do so and can lose money."; the engines band trio says "Futures designed to offset part of bond losses. They may not." The futures-exposure disclosure ("The overlay adds futures exposure on top of the underlying portfolio; its losses add …") is unchanged and verbatim everywhere. Unit test: on approach / solutions / about the name never appears without the qualifier and "may not"; no "protective overlay protects / guarantees / eliminates". | copy files under `src/components/site/**`, `src/components/fund/copy.ts`, `src/config/funds.ts`, `src/data/team.ts` | Is "protective" acceptable as a strategy **name** with this qualifier (AMF / CIRO: a name must not imply a protection or guarantee the strategy does not give)? Short labels (eyebrows, GMV asset class on tiles and the strategies index, bios) carry the name without the qualifier in the same sentence; the qualifier is on the same page. |
+| P1 | **"Protective overlay(s)"** / « superposition(s) protectrice(s) » is now the name of the overlay strategy (Gabriel's choice) wherever it is named: home strategies lead, "diversifying engines" band (trio card, canvas lane, alt text; the Science at scale band is untouched), approach (risk-first card, overlay section eyebrow / title / "Our response" / chart legend, multi-strategy band and "Three ways" cards, meta description), solutions (vehicle, pension and family-office use cases, GMV managed accounts), about (hero lead, intro bullet, meta description, two bios) and the fund pages (feature cards, notes, GMV summary / "How the protective overlay works", fund descriptions and taglines, GMV asset class "Protective overlay (managed accounts)"). **The qualifier is kept next to the name** on every page: "designed to offset part of (bond) losses; it may not do so and can lose money" (fund pages, approach, solutions; FR « conçue pour compenser une partie des pertes …; elle peut ne pas y parvenir et peut subir des pertes »); about gains the note "Protective overlays are designed to offset part of losses; they may not do so and can lose money."; the engines band trio says "Futures designed to offset part of bond losses. They may not." The futures-exposure disclosure ("The overlay adds futures exposure on top of the underlying portfolio; its losses add …") is unchanged and verbatim everywhere. Unit test: on approach / solutions / about the name never appears without the qualifier and "may not"; no "protective overlay protects / guarantees / eliminates". | copy files under `src/components/site/**`, `src/components/fund/fund.copy.ts`, `src/config/funds.ts`, `src/data/team.ts` | Is "protective" acceptable as a strategy **name** with this qualifier (AMF / CIRO: a name must not imply a protection or guarantee the strategy does not give)? Short labels (eyebrows, GMV asset class on tiles and the strategies index, bios) carry the name without the qualifier in the same sentence; the qualifier is on the same page. |
 | P2 | **Fund Library is now Fundata**: the awards tab and admin labels say "Fundata"; the source link reads **"Fundata (FundLibrary.com)"** and still points to the fundlibrary.com fund pages the figures were read from (no fundata.com URL exists for these pages); FundGrade kept as the rating's name. Admin brand slot renamed `fundata-logo` (an upload stored under the old `fundlibrary-logo` name keeps working). | `src/components/fund/Awards.tsx`, admin rankings editor / settings / brand assets | Fundata's preferred attribution wording for rankings and FundGrade read on FundLibrary.com (e.g. "© Fundata Canada Inc."), if any. |
 | P3 | **Morningstar methodology and © attribution behind an info note**: the long paragraph under the rating is replaced by a compact "ⓘ Rating methodology and attribution" button (FR « Méthodologie de la cote et attribution ») next to "Source: Morningstar"; the **full text is unchanged** and opens in a toggletip on hover, keyboard focus or tap (Escape closes; `aria-describedby` / `aria-controls`, so screen readers announce it with the button). Overview and awards tab. | `src/components/fund/Morningstar.tsx`, `InfoNote.tsx` | **Compliance to confirm** that a disclosure available on hover / tap (not visible by default) satisfies Morningstar's attribution requirement and the performance-advertising rules for third-party ratings. If not, revert to the visible paragraph (one component). |
 | P4 | **Official Fundata and RBC Investor Services logos** shown next to their rankings (`public/brand/third-party/fundata-logo.png` 554×84 and `rbc-logo.png` 787×354, transparent), **fetched from the providers' own websites** by the coordinator; Gabriel states that **Nymbus has the providers' permission** to use them. Rendered at ~124 px wide (Fundata) and ~38 px high (RBC stacked mark), like the Morningstar logo; served with the sandbox CSP. | awards tab | Keep written confirmation of both permissions; check each provider's logo usage guidelines (clear space, minimum size, colour on white). |
@@ -527,7 +527,7 @@ V8 are superseded by P1; W1/W8 by P3; the Fund Library name in W-rows by P2). Pl
 Page now **"Core concepts" at `/core-concepts`** (CC9; `/critical-concepts` redirects). New page `/critical-concepts` ("Critical concepts" / « Concepts clés » in the nav, after Approach, and in the footer).
 Gabriel asked for three simple, very visual explainers (overlays, futures, systematic coverage) "without too much text",
 using the June 2026 NBPW deck (overlays 101, futures 101, small deposit) and the January 2026 "Investing using AI" deck
-(traditional team, inputs, process). Copy: `src/components/site/concepts/concepts-copy.ts` (EN + FR); everything drawn
+(traditional team, inputs, process). Copy: `src/components/site/concepts/concepts.copy.ts` (EN + FR); everything drawn
 on the three canvases is generated, "ILLUSTRATION · generated values" is drawn on each canvas and every panel has a
 visible caption. No performance figure, no dates, no axis values. Please tick once reviewed:
 
@@ -550,7 +550,7 @@ visible caption. No performance figure, no dates, no axis values. Please tick on
 
 ## Every series' returns (branch `feat/all-classes`, 2026-10-04) — to review
 
-Gabriel 2026-10-04: every class of the three funds shows its own returns from the dataplatform. Copy: `src/components/fund/copy.ts`
+Gabriel 2026-10-04: every class of the three funds shows its own returns from the dataplatform. Copy: `src/components/fund/fund.copy.ts`
 (`classes.*`, EN + FR). Rules: `docs/architecture.md` § Returns per class. Please tick once reviewed:
 
 | # | Change | Where | Verify |

@@ -7,11 +7,11 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Award, BookOpen, Cpu, GraduationCap, Handshake, Hourglass, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";
-import { useInView, useScrub } from "@/components/v3/motion";
+import { useInView, useScrub } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team as staticTeam, type TeamMember } from "@/data/team";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
-import { AB } from "./copy-about";
+import { AB } from "./about.copy";
 import { Portrait } from "./Portrait";
 import { badgesOf, combinedExperience, countCharter, countEngineering, countGraduate, countPhD, inDept, membersOf, type DeptFilter } from "./lib/people";
 import { mailto, mapsLink } from "./lib/inquiry";

@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useInView } from "@/components/v3/motion";
+import { useInView } from "@/components/motion/motion";
 import { l, useTranslation } from "@/lib/i18n";
 import { ButtonLink, Eyebrow, Reveal, RevealTitle } from "../kit";
 import "../kit.css";

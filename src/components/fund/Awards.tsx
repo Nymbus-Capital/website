@@ -12,7 +12,7 @@ import type { FundContent, FundLibraryRanking, ThirdPartyRanking } from "@/lib/d
 import type { BrandAssets } from "@/lib/data/brand-assets";
 import { ordinal, PROVIDER_META } from "@/lib/rankings/policy";
 import type { PublicFundSpec as FundSpec } from "./types";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { RK } from "./rankings-copy";
 import { Block } from "./Block";
 import { MorningstarRatingBlock } from "./Morningstar";

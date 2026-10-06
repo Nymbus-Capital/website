@@ -7,11 +7,11 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { ArrowRight, Download, FileText, Mail } from "lucide-react";
-import { Reveal } from "@/components/v3/motion";
+import { Reveal } from "@/components/motion/motion";
 import { CONTACT } from "@/components/site/links";
 import type { ClassDistribution, FundContent } from "@/lib/data/types";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { Block } from "./Block";
 import { FL } from "./labels";
 import { dateLabel, fileSize, colon } from "./lib/format.ts";

@@ -4,7 +4,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { BOND_CHARACTERISTICS, ESG_METRICS, MULTISTRAT_CHARACTERISTICS } from "../../../src/lib/pipeline/parse.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
-import { FUND_TEXTS } from "../../../src/components/fund/copy.ts";
+import { FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const SRC = join(ROOT, "src");

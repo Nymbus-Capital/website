@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { CalendarDays, Download, FileText } from "lucide-react";
-import { CountUp, EASE, Odometer, Reveal, RevealTitle, reducedMotion, useTilt } from "@/components/v3/motion";
+import { CountUp, EASE, Odometer, Reveal, RevealTitle, reducedMotion, useTilt } from "@/components/motion/motion";
 import { ButtonLink, Crumbs } from "@/components/site/kit";
 import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import { FUND_INCEPTION } from "@/content/disclaimers";
@@ -15,7 +15,7 @@ import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } 
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
 import type { ClassCtx } from "./lib/select.ts";
 import { noticeText, periodLong } from "./lib/notice.ts";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS } from "./lib/format.ts";
 import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
 import { monotonePath } from "./lib/scale.ts";

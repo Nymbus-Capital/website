@@ -19,7 +19,7 @@ no forced lowercase, no chapter interstitials.
   or light trail, optional `aside`), `FeatureCard`, `CardGrid` (pop-in stagger), `Stat` / `StatRow` (count to the
   real value; `null` renders nothing), `Steps` (glowing bubbles joined by a line that fills on scroll), `CtaBand`,
   `ButtonLink`, `Marquee`, `Tabs` (ARIA tabs synced with the URL hash), `Bars` (horizontal % bars growing in),
-  `HeroCurves`, `HeroTrail`, `Eyebrow`, `Crumbs`. Re-exports `Reveal`, `RevealTitle` from `src/components/v3/motion.tsx`
+  `HeroCurves`, `HeroTrail`, `Eyebrow`, `Crumbs`. Re-exports `Reveal`, `RevealTitle` from `src/components/motion/motion.tsx`
   (also `CountUp`, `Odometer`, `useScrub`, `useTilt`, `LightTrail` there).
 - `Nav.tsx` (Strategies ▾ · Approach · About → /team · Solutions · Sustainability · Contact · EN/FR),
   `Footer.tsx` (brand + description + address · Strategies · Company · Resources · disclaimers · © · PRI).

@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { cifscCategory, rankingsToShow } from "../../../src/components/fund/lib/rankings.ts";
-import { T } from "../../../src/components/fund/copy.ts";
+import { T } from "../../../src/components/fund/fund.copy.ts";
 import { SEEDED_RANKINGS, SEEDED_THIRD_PARTY } from "../../../src/lib/data/defaults.ts";
 import { awardsEligible, gateAwards } from "../../../src/lib/rankings/policy.ts";
 import type { FundContent } from "../../../src/lib/data/types.ts";

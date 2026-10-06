@@ -6,7 +6,7 @@
  * prefers-reduced-motion.
  */
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
-import { EASE, reducedMotion } from "@/components/v3/motion";
+import { EASE, reducedMotion } from "@/components/motion/motion";
 
 const BACK = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const SWAP = "cubic-bezier(0.65, 0, 0.35, 1)";

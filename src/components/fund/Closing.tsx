@@ -9,12 +9,12 @@ import {
   ArrowRight, Ban, Blocks, CalendarClock, Gauge, Layers, Leaf, Repeat, ScanSearch, ShieldCheck, Sprout, Timer, TrendingUp, Umbrella, Waves,
 } from "lucide-react";
 import { ButtonLink, CardGrid, CtaBand, FeatureCard, Section, SectionHead } from "@/components/site/kit";
-import { Reveal } from "@/components/v3/motion";
+import { Reveal } from "@/components/motion/motion";
 import { Disclosure } from "@/components/site/Disclosure";
 import { preInceptionNote } from "@/content/disclaimers";
 import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { FUND_TEXTS, T, type FeatureIcon } from "./copy";
+import { FUND_TEXTS, T, type FeatureIcon } from "./fund.copy";
 import { dateLabel, monthLabel, colon } from "./lib/format.ts";
 import { perfClassLabel } from "./lib/data.ts";
 import { provenanceLine } from "./lib/provenance.ts";

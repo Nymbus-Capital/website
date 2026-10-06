@@ -10,10 +10,10 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { ArrowRight, Clock } from "lucide-react";
-import { Odometer, useInView, useTilt } from "@/components/v3/motion";
+import { Odometer, useInView, useTilt } from "@/components/motion/motion";
 import { useTranslation, type L } from "@/lib/i18n";
 import type { FundCard } from "./data";
-import { FUND_COPY as F, RISK_COPY, VEHICLE_COPY } from "./copy";
+import { FUND_COPY as F, RISK_COPY, VEHICLE_COPY } from "./home.copy";
 import { dayText, miniBars, monthText, navText, pctText } from "./figures";
 import { HL } from "./labels";
 

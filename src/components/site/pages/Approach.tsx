@@ -7,11 +7,11 @@
  */
 import Link from "next/link";
 import { Activity, ArrowRight, Brain, Database, FlaskConical, Layers, Microscope, Radar, Shield, ShieldCheck, Workflow } from "lucide-react";
-import { useInView } from "@/components/v3/motion";
+import { useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team as staticTeam, type TeamMember } from "@/data/team";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
-import { AP } from "./copy-approach";
+import { AP } from "./approach.copy";
 import { Portrait } from "./Portrait";
 import { countCharter, countPhD, membersOf } from "./lib/people";
 import "./pages.css";

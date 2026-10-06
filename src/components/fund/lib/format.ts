@@ -1,7 +1,7 @@
 /**
  * Formatting helpers for the fund pages. Pure and dependency-free (unit-tested under plain Node).
  *
- * `fmt` is also what the counting figures of src/components/v3/motion.tsx (CountUp) print, so figures that count up
+ * `fmt` is also what the counting figures of src/components/motion/motion.tsx (CountUp) print, so figures that count up
  * and static figures render identically (tabular, U+2212 minus, FR "5,2 %").
  */
 import type { Locale } from "../../../lib/i18n/config.ts";

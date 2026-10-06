@@ -1,6 +1,6 @@
 /** Badge and one-line disclosure of a share class's offering type; nothing at all while the type is not known. */
 import type { ClassType } from "@/lib/data/types";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { tr, type Locale } from "@/lib/i18n/config";
 
 export function ClassTypeBadge({ type, lang, testId = "class-type" }: { type: ClassType; lang: Locale; testId?: string }) {

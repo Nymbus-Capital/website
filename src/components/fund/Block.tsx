@@ -1,7 +1,7 @@
 "use client";
 /** A titled block inside a fund tab: optional card surface, heading (h3) with an optional aside, floats up on scroll. */
 import type { ReactNode } from "react";
-import { Reveal } from "@/components/v3/motion";
+import { Reveal } from "@/components/motion/motion";
 
 export function Block({ title, children, aside, card = true, className, id, lead, testId }: {
   title: string; children: ReactNode; aside?: ReactNode; card?: boolean; className?: string; id?: string; lead?: ReactNode; testId?: string;

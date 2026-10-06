@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Team } from "@/components/site/pages/Team";
-import { AB } from "@/components/site/pages/copy-about";
+import { AB } from "@/components/site/pages/about.copy";
 import { getLocale } from "@/lib/i18n/server";
 import { getTeam } from "@/lib/cms";
 

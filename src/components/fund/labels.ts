@@ -1,6 +1,6 @@
 /**
  * Fund page labels added by the data fixes (partial-year flags, per-figure basis markers), EN / FR. Kept apart
- * from copy.ts (texts under review). Pure data.
+ * from fund.copy.ts (texts under review). Pure data.
  */
 import { l } from "../../lib/i18n/config.ts";
 

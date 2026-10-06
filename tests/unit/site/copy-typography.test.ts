@@ -4,19 +4,19 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { T, FUND_TEXTS } from "../../../src/components/fund/copy.ts";
+import { T, FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
 import { RK } from "../../../src/components/fund/rankings-copy.ts";
-import { HOME_COPY, FUND_COPY, RISK_COPY, CATEGORY_COPY, VEHICLE_COPY } from "../../../src/components/site/home/copy.ts";
+import { HOME_COPY, FUND_COPY, RISK_COPY, CATEGORY_COPY, VEHICLE_COPY } from "../../../src/components/site/home/home.copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
-import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay-copy.ts";
-import { CC } from "../../../src/components/site/concepts/concepts-copy.ts";
+import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay.copy.ts";
+import { CC } from "../../../src/components/site/concepts/concepts.copy.ts";
 import { NEWS, NEWS_CATEGORY } from "../../../src/components/site/home/news.ts";
-import { AB } from "../../../src/components/site/pages/copy-about.ts";
-import { AP } from "../../../src/components/site/pages/copy-approach.ts";
+import { AB } from "../../../src/components/site/pages/about.copy.ts";
+import { AP } from "../../../src/components/site/pages/approach.copy.ts";
 import { CT } from "../../../src/components/site/pages/copy-contact.ts";
-import { SU } from "../../../src/components/site/pages/copy-sustainability.ts";
-import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
-import { STRAT_COPY } from "../../../src/components/site/pages/strategies-copy.ts";
+import { SU } from "../../../src/components/site/pages/sustainability.copy.ts";
+import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions.copy.ts";
+import { STRAT_COPY } from "../../../src/components/site/pages/strategies.copy.ts";
 import { DISCLAIMERS, FUND_INCEPTION } from "../../../src/content/disclaimers.ts";
 import { complaintsPolicy, codeOfEthics } from "../../../src/components/site/legal/complaints.ts";
 import { privacyPolicy } from "../../../src/components/site/legal/privacy.ts";

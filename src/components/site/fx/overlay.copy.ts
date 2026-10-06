@@ -1,5 +1,5 @@
 /**
- * overlay-copy.ts — copy of the home "diversifying engines" band (traditional markets vs the Multi-Strategy Fund
+ * overlay.copy.ts — copy of the home "diversifying engines" band (traditional markets vs the Multi-Strategy Fund
  * strategies and the futures overlay), EN + FR. Everything drawn is generated; low correlation in down months is
  * stated as a design objective, never as a fact; the overlay's futures-exposure disclosure is the one used on
  * /approach and /solutions. No counters (removed at Gabriel's request, 2026-10-04).

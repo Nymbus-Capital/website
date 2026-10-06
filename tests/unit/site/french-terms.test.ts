@@ -7,12 +7,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { T, FUND_TEXTS } from "../../../src/components/fund/copy.ts";
-import { HOME_COPY, FUND_COPY, VEHICLE_COPY } from "../../../src/components/site/home/copy.ts";
-import { AB } from "../../../src/components/site/pages/copy-about.ts";
-import { AP } from "../../../src/components/site/pages/copy-approach.ts";
+import { T, FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
+import { HOME_COPY, FUND_COPY, VEHICLE_COPY } from "../../../src/components/site/home/home.copy.ts";
+import { AB } from "../../../src/components/site/pages/about.copy.ts";
+import { AP } from "../../../src/components/site/pages/approach.copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
-import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions-copy.ts";
+import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions.copy.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
 
 const SRC = resolve(import.meta.dirname, "../../../src");

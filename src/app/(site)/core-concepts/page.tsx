@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CoreConcepts } from "@/components/site/concepts/CoreConcepts";
-import { CC } from "@/components/site/concepts/concepts-copy";
+import { CC } from "@/components/site/concepts/concepts.copy";
 import { getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {

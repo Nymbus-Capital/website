@@ -5,7 +5,7 @@
  */
 import { PageHero, Section, SectionHead } from "../kit";
 import { useTranslation } from "@/lib/i18n";
-import { CC, CONCEPTS } from "./concepts-copy";
+import { CC, CONCEPTS } from "./concepts.copy";
 import { ConceptPanel } from "./ConceptPanel";
 import "./concepts.css";
 

@@ -4,7 +4,7 @@
  * book is shown, the sustainability metrics (factsheet only) say so separately. Texts: src/content/disclaimers.ts. Pure.
  */
 import type { FundData } from "../../../lib/data/types.ts";
-import { T } from "../copy.ts";
+import { T } from "../fund.copy.ts";
 import { dateLabel, elide, monthLabel } from "./format.ts";
 import { portfolioOrigin } from "./data.ts";
 import { tr, type Locale } from "../../../lib/i18n/config.ts";

@@ -5,10 +5,10 @@
  * ESG metrics, green-bond allocation chart and "PRI alignment scorecard" were placeholders and are not shown.
  */
 import { ArrowUpRight, Award, Ban, Building2, Bus, Eye, Flame, Handshake, Scale, ShieldAlert, Sprout, Sun, TriangleAlert, Zap } from "lucide-react";
-import { useInView } from "@/components/v3/motion";
+import { useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
-import { SU } from "./copy-sustainability";
+import { SU } from "./sustainability.copy";
 import "./pages.css";
 
 /** Three rings (E, S, G) drawing themselves around the hero. */

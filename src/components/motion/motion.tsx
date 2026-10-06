@@ -3,7 +3,7 @@
  * v3 motion primitives — the web port of nymbus-decks src/v3/anim.ts:
  *  - titles rise word by word out of a blur
  *  - everything else floats up with blur, cards pop in with a spring, key figures zoom out of a blur
- *  - figures count up; screens scale down and blur as the next one slides over them (keynote page swap)
+ *  - figures count up
  * All of it is skipped under prefers-reduced-motion, and content stays visible without JS (html.js gate).
  */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";

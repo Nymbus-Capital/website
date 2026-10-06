@@ -10,7 +10,7 @@ import { ArrowRight, Database, Handshake, HeartHandshake, Layers, Leaf, Medal, S
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CardGrid, Marquee, Reveal, Section, SectionHead, Stat, StatRow, Steps } from "../kit";
 import type { HomeData } from "./data";
-import { HOME_COPY as C, FUND_COPY as F } from "./copy";
+import { HOME_COPY as C, FUND_COPY as F } from "./home.copy";
 import { FundTile } from "./FundTile";
 import { dayText, parseCountLabel } from "./figures";
 import { NEWS, NEWS_CATEGORY, type NewsCategory, type NewsItem } from "./news";

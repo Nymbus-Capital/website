@@ -1,6 +1,6 @@
 /**
  * Labels of the home / strategies / solutions fund figures added by the data fixes (partial-year flags, inline
- * gross marker), EN / FR. Kept apart from copy.ts (texts under review). Pure data.
+ * gross marker), EN / FR. Kept apart from home.copy.ts (texts under review). Pure data.
  */
 import { l } from "../../../lib/i18n/config.ts";
 

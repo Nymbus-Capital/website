@@ -11,7 +11,7 @@ import {
   CORR_WINDOW, DOWN_CUT, ENGINES, LEVEL_BOUND, MARKETS, MAX_MOVE, NM, combinedMove, downsideCorrelation,
   heatColor, isStress, laneRows, level, lit, monthAt, monthCache, monthWidth, overlayLayout,
 } from "../../../src/components/site/fx/overlay-model.ts";
-import { OVERLAY_COPY, OVERLAY_EXPOSURE } from "../../../src/components/site/fx/overlay-copy.ts";
+import { OVERLAY_COPY, OVERLAY_EXPOSURE } from "../../../src/components/site/fx/overlay.copy.ts";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -231,8 +231,8 @@ test("copy: EN and FR, short lines, labelled as an illustration, low correlation
   // the futures-exposure disclosure, word for word as on /approach (and /solutions), in both languages
   assert.ok(OVERLAY_COPY.caption.en.endsWith(OVERLAY_EXPOSURE.en));
   assert.ok(OVERLAY_COPY.caption.fr.endsWith(OVERLAY_EXPOSURE.fr));
-  const approach = readFileSync(resolve(import.meta.dirname, "../../../src/components/site/pages/copy-approach.ts"), "utf8");
-  const fund = readFileSync(resolve(import.meta.dirname, "../../../src/components/fund/copy.ts"), "utf8");
+  const approach = readFileSync(resolve(import.meta.dirname, "../../../src/components/site/pages/approach.copy.ts"), "utf8");
+  const fund = readFileSync(resolve(import.meta.dirname, "../../../src/components/fund/fund.copy.ts"), "utf8");
   for (const src of [approach, fund]) { assert.ok(src.includes(OVERLAY_EXPOSURE.en)); assert.ok(src.includes(OVERLAY_EXPOSURE.fr)); }
   // never stated as a fact
   const text = all.map(([, v]) => `${v.en} ${v.fr}`).join(" ");
@@ -245,7 +245,7 @@ test("copy: EN and FR, short lines, labelled as an illustration, low correlation
 });
 
 test("lanes: the Multi-Strategy Fund's four strategies as named on /approach, plus the overlay on its own lane", () => {
-  const approach = readFileSync(resolve(import.meta.dirname, "../../../src/components/site/pages/copy-approach.ts"), "utf8");
+  const approach = readFileSync(resolve(import.meta.dirname, "../../../src/components/site/pages/approach.copy.ts"), "utf8");
   const four = ENGINES.filter((e) => e.blend);
   assert.deepEqual(four.map((e) => e.label.en), ["Low volatility", "Directional", "Mean reversion", "Hedging"]);
   for (const e of four) assert.ok(approach.includes(`l("${e.label.en}", "${e.label.fr}")`), e.label.en);

@@ -4,11 +4,11 @@
  * map, risk statistics (since inception / 3 years) and the performance notes. Every chart has its data table.
  */
 import { useMemo, useState } from "react";
-import { CountUp, Reveal } from "@/components/v3/motion";
+import { CountUp, Reveal } from "@/components/motion/motion";
 import type { FundContent, Performance as Perf, RiskStats } from "@/lib/data/types";
 import { preInceptionNote } from "@/content/disclaimers";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
-import { T } from "./copy";
+import { T } from "./fund.copy";
 import { FL } from "./labels";
 import { Block } from "./Block";
 import { GroupedBars, type BarCategory } from "./charts/GroupedBars";
