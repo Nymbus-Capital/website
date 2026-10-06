@@ -174,9 +174,14 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
   never pooled with the other — slope 1 when the other side is within 0.10 of 1, else its months are withheld ("not
   checkable"); fits iterated to a fixed point (damped, decaying step, normalised median a → 0 / slopes → 1, tolerance 0.01 %
   at ±10 %, ≤ 400 rounds; unsettled → checked months withheld for the fund); second leave-out pass without the class's
-  other first-pass breaches. Reviewer's stress scripts (20 random 30-month funds per row, ±0.6/0.8/1.0 % errors on 4
-  classes in 5 months): misses 0 / 0 / 4 / 2 / 0 / 2 of 2 400 at 3 / 5 / 6 / 7 / 8 / 11 down months (all ±0.6 % in deep down
-  months, at the residual tolerance's noise floor), no unsettled fit, extra correct months 93 / 5 / 0 / 0 at 6 / 7 / 8 / 11.
+  other first-pass breaches. Verifier round: stability rule of the second pass (`robustResiduals`: an unstable class keeps
+  its first-pass verdicts; a cleared breach stands unless another on the same side is confirmed); a class-month whose other
+  classes are all not checkable that month is not checkable (no slope-1 fallback next to fitted classes). Stress scripts
+  (20 random 30-month funds per row, ±0.6/0.8/1.0 % errors, 4 classes, 5 target months): misses 0 / 0 / 5 / 2 / 0 / 2 of
+  2 400 at 3 / 5 / 6 / 7 / 8 / 11 down months (two-error: 0 / 0 / 4 / 1 / 0 / 2), every one a ±0.6 % error in a deep
+  down month (the residual tolerance's noise floor); every month as target at ±0.8 / 1.0 % (10 funds, 4 800 cases per
+  row, single and two-error): 0 misses at 6 / 7 / 8 / 11; never an unsettled fit; result independent of class order
+  (720 permutations × 3 scripts); ≈ 150 ms for 6 classes × 60 months.
   Sample data messages regenerated (same withheld months).
 - 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
   behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
