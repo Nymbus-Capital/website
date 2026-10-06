@@ -13,13 +13,13 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
-import { useInView } from "@/components/v3/motion";
+import { useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
 import { CONTACT } from "../links";
 import { oneLine, type CmsContact } from "@/lib/cms/map";
-import { CT } from "./copy-contact";
+import { CT } from "./contact.copy";
 import { INQUIRY_TO, firstInvalidStep, inquiryMailto, mailto, mapsLink, validateInquiry, type Inquiry, type InquiryErrors } from "./lib/inquiry";
 import "./pages.css";
 

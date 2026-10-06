@@ -15,7 +15,7 @@ import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay.copy.ts";
 import { CC } from "../../../src/components/site/concepts/concepts.copy.ts";
 import { AB } from "../../../src/components/site/pages/about.copy.ts";
 import { AP } from "../../../src/components/site/pages/approach.copy.ts";
-import { CT } from "../../../src/components/site/pages/copy-contact.ts";
+import { CT } from "../../../src/components/site/pages/contact.copy.ts";
 import { SU } from "../../../src/components/site/pages/sustainability.copy.ts";
 import { SOL_COPY, AUDIENCES } from "../../../src/components/site/pages/solutions.copy.ts";
 import { STRAT_COPY } from "../../../src/components/site/pages/strategies.copy.ts";
