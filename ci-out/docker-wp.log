@@ -1,0 +1,20 @@
+#8 DONE 0.0s
+
+#9 [4/6] RUN { echo "ServerTokens Prod"; echo "ServerSignature Off"; echo "TraceEnable Off"; } > /etc/apache2/conf-available/nymbus-security.conf  && a2enconf nymbus-security  && { echo "expose_php = Off"; echo "upload_max_filesize = 16M"; echo "post_max_size = 20M"; } > /usr/local/etc/php/conf.d/nymbus.ini
+#9 0.153 Enabling conf nymbus-security.
+#9 0.157 To activate the new configuration, you need to run:
+#9 0.157   service apache2 reload
+#9 DONE 0.2s
+
+#10 [5/6] COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
+#10 DONE 0.0s
+
+#11 [6/6] RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh
+#11 DONE 0.1s
+
+#12 exporting to image
+#12 exporting layers
+#12 exporting layers 1.1s done
+#12 writing image sha256:111a5c32846115eda1d891b70321326f31234d42c9a8148b9099addea3ee7a56 done
+#12 naming to docker.io/library/nymbus-wp:ci done
+#12 DONE 1.1s
