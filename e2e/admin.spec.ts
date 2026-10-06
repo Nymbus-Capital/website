@@ -126,6 +126,9 @@ test.describe("API guards", () => {
     ["GET", "/api/admin/content"],
     ["GET", "/api/admin/documents"],
     ["GET", "/api/admin/audit"],
+    ["GET", "/api/admin/inquiries"],
+    ["PATCH", "/api/admin/inquiries/20261006T120000-0123abcd"],
+    ["DELETE", "/api/admin/inquiries/20261006T120000-0123abcd"],
     ["POST", "/api/admin/pipeline/run"],
     ["PUT", "/api/admin/content/settings"],
     ["POST", "/api/admin/upload/documents"],
@@ -195,6 +198,10 @@ test.describe("API guards", () => {
       expect([400, 404]).toContain(adm.status());
       const run = await request.get(`/api/admin/runs/${id}`, { headers: adminHeaders(t) });
       expect([400, 404]).toContain(run.status());
+      const inq = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: adminHeaders(t), data: { handled: true } });
+      expect([400, 404]).toContain(inq.status());
+      const inqDel = await request.delete(`/api/admin/inquiries/${id}`, { headers: adminHeaders(t, false) });
+      expect([400, 404]).toContain(inqDel.status());
     }
     const traversal = await request.get("/api/documents/../../package.json");
     expect(traversal.status()).not.toBe(200);
@@ -555,6 +562,64 @@ test.describe("admin flows", () => {
     const del = await request.delete("/api/admin/brand/gmr-logo", { headers: adminHeaders(token, false) });
     expect(del.status()).toBe(200);
     expect((await request.get("/api/brand/gmr-logo")).status()).toBe(404);
+  });
+
+  test("inquiries: contact form messages listed (bots filtered), marked handled, deleted, audited without personal data", async ({ page, context, request }, info) => {
+    const token = await signIn(context);
+    // unauthenticated: the page goes to sign-in, the API answers 401, a mutation without the CSRF header is refused
+    expect((await request.get("/admin/inquiries", { maxRedirects: 0 })).status()).toBe(302);
+    // one inquiry of this project, posted through the public API once the form's 3 s timing window has passed
+    const html = await (await request.get("/contact")).text();
+    const t = /name="t" value="(v1\.[^"]+)"/.exec(html)![1];
+    await page.waitForTimeout(3200);
+    const name = `E2E Admin ${info.project.name}`;
+    const posted = await request.post("/api/contact", {
+      headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a::2" : "2001:db8:a::1" },
+      data: JSON.stringify({ profile: "Institutional investor", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
+    });
+    expect(posted.status()).toBe(200);
+
+    const dialogs: string[] = [];
+    page.on("dialog", (d) => { dialogs.push(d.message()); void d.dismiss(); });
+    expect((await page.goto("/admin/inquiries"))?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1, name: "inquiries" })).toBeVisible();
+    const list = page.getByTestId("inquiries");
+    await list.getByLabel("filter by status").selectOption("all");
+    // the public tests' inquiries are there (with and without JavaScript), the bots' never are
+    await expect(list).toContainText("E2E Visitor");
+    await expect(list).toContainText("E2E NoScript");
+    await expect(list).not.toContainText("E2E Bot");
+    const card = list.locator("article", { hasText: name });
+    await expect(card).toHaveCount(1);
+    await expect(card.getByTestId("inquiry-message")).toHaveText(/Line one\s+<script>alert\(1\)<\/script>/); // plain text, never markup
+    await expect(card.getByRole("link", { name: "admin-test@example.com" })).toHaveAttribute("href", "mailto:admin-test@example.com");
+    await expect(card).toContainText("E2E Pension");
+    await expect(card).toContainText("français");
+    await shot(page, "inquiries", info.project.name);
+
+    await card.getByTestId("inquiry-handled").click();
+    await expect(card.getByTestId("inquiry-reopen")).toBeVisible();
+    await expect(card.locator(".adm-pill", { hasText: /^handled$/ })).toBeVisible();
+    const id = await card.getAttribute("data-inquiry-id");
+    // the JSON API agrees, and refuses a mutation without the CSRF header
+    const listed = (await (await request.get("/api/admin/inquiries", { headers: adminHeaders(token, false) })).json()) as { inquiries: { id: string; handled: { by: string } | null }[] };
+    expect(listed.inquiries.find((x) => x.id === id)?.handled?.by).toBe("alice@nymbus.ca");
+    const csrf = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: { cookie: `${SESSION_COOKIE}=${token}`, origin: BASE, "content-type": "text/plain" }, data: JSON.stringify({ handled: false }) });
+    expect(csrf.status()).toBe(403);
+    const unknownKey = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: adminHeaders(token), data: { handled: false, extra: 1 } });
+    expect(unknownKey.status()).toBe(400);
+
+    await card.getByTestId("inquiry-delete").click();
+    await page.getByRole("dialog").getByRole("button", { name: "delete" }).click();
+    await expect(card).toHaveCount(0);
+    expect((await request.delete(`/api/admin/inquiries/${id}`, { headers: adminHeaders(token, false) })).status()).toBe(404);
+    expect(dialogs).toEqual([]);
+
+    await page.goto("/admin/audit");
+    const audit = page.getByTestId("audit-table");
+    for (const a of ["inquiries.view", "inquiry.handled", "inquiry.delete"]) await expect(audit).toContainText(a);
+    await expect(audit).toContainText(id!);
+    for (const pii of ["admin-test@example.com", name, "E2E Pension", "Line one"]) await expect(audit).not.toContainText(pii);
   });
 
   test("logout clears and revokes the session", async ({ request }) => {

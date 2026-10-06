@@ -618,3 +618,16 @@
   .pg *, .pg *::before, .pg *::after { animation-delay: 0s !important; }
 }
 abbr.ab-tag { text-decoration: none; cursor: help; }
+/* contact form backend (2026-10-06): honeypot, consent tile, send failure */
+.ct-wrap { position: relative; scroll-margin-top: 96px; }
+.ct-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.ct-consent { margin-top: 4px; }
+.ct-consent .ct-opt-t { font-size: 14.5px; font-weight: 400; line-height: 1.5; color: var(--ink2); }
+.ct-consent-link { justify-self: start; margin-top: 4px; font-size: 14px; }
+.ct-consent-link svg { width: 14px; height: 14px; }
+.ct-consent:has(input[aria-invalid="true"]) { border-color: var(--red); }
+.ct-fail { display: grid; gap: 6px; justify-items: start; margin: 22px 0 0; padding: 14px 18px; border-radius: 14px; background: rgba(217,48,37,.06); box-shadow: inset 0 0 0 1px rgba(217,48,37,.28); }
+.ct-fail p { margin: 0; font-size: 14.5px; color: var(--ink); }
+.ct-fail .link { font-size: 14.5px; }
+.ct-fail .link svg { width: 16px; height: 16px; }
+.ct-form .btn[disabled] { opacity: .7; cursor: progress; }

@@ -2,49 +2,65 @@
 /**
  * /contact: the Montreal office (address, phone, toll-free, email, hours, LinkedIn, Google Maps link: a link,
  * not an embed, the CSP allows no third-party frames), the previous site's three-step form (investor type,
- * interests, contact details) and "who to contact" cards.
+ * interests, contact details and consent) and "who to contact" cards.
  *
- * The site has no email backend: the form is validated in the browser (lib/inquiry.ts) and prepares the
- * message in the visitor's own mail app (mailto:). Without JavaScript the three steps show one under the
- * other and the browser's own mailto form submission is the fallback.
+ * The form is sent to POST /api/contact and read by the team in the admin (/admin/inquiries). With JavaScript it is
+ * validated step by step (lib/inquiry.ts, the server's rules) and posted as JSON; without JavaScript the three steps
+ * show one under the other and the browser posts the form, the server answering with a redirect to
+ * /contact?sent=1 or /contact?error=<code> (`initialStatus`). A hidden honeypot field and the page's timing token
+ * (`formToken`, rendered by the server) filter automated posts. If sending fails, the visitor can still email us
+ * (prepared mailto: link) or call.
  *
- * Office address, phone and e-mail: WordPress (Site texts) where set (`contact`), else the built-in values. The form's
- * recipient (INQUIRY_TO) and the "who to contact" addresses stay in code.
+ * Office address, phone and e-mail: WordPress (Site texts) where set (`contact`), else the built-in values. The
+ * "who to contact" addresses stay in code.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
-import { useInView, useMountValue } from "@/components/motion/motion";
+import { useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
 import { CONTACT } from "../links";
 import { oneLine, type CmsContact } from "@/lib/cms/map";
 import { CT } from "./contact.copy";
-import { INQUIRY_TO, firstInvalidStep, inquiryMailto, mailto, mapsLink, validateInquiry, type Inquiry, type InquiryErrors } from "./lib/inquiry";
+import { FIELD_STEP, INQUIRY_TO, firstInvalidStep, inquiryMailto, mailto, mapsLink, validateInquiry, type Inquiry, type InquiryErrors, type InquiryField } from "./lib/inquiry";
 import "./pages.css";
 
 const ADDRESS = "1002 Sherbrooke Street West, Suite 1900, Montreal, Quebec H3A 3L6";
-const EMPTY: Inquiry = { profile: "", interests: [], name: "", email: "", phone: "", company: "", message: "" };
+const EMPTY: Inquiry = { profile: "", interests: [], name: "", email: "", phone: "", company: "", message: "", consent: false };
 
-function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
+/** Errors the server can answer with that the form explains (anything else shows the generic one). */
+export type ContactFailure = keyof typeof CT.form.fail;
+export type ContactStatus = "sent" | ContactFailure | null;
+const isFailure = (c: unknown): c is ContactFailure => typeof c === "string" && Object.hasOwn(CT.form.fail, c);
+
+function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: string[]; token: string; initialStatus: ContactStatus }) {
   const { locale, pick } = useTranslation();
   const F = CT.form;
-  const live = useMountValue(() => true, false); // the steps show one at a time once the script runs
+  const [live, setLive] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [q, setQ] = useState<Inquiry>(EMPTY);
   const [errs, setErrs] = useState<InquiryErrors>({});
-  const [ready, setReady] = useState<string | null>(null);
-  const step1Ref = useRef<HTMLFieldSetElement>(null), step2Ref = useRef<HTMLFieldSetElement>(null), step3Ref = useRef<HTMLFieldSetElement>(null);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(initialStatus === "sent");
+  const [fail, setFail] = useState<ContactFailure | null>(initialStatus && initialStatus !== "sent" ? initialStatus : null);
+  const stepRefs = [useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null)];
+  const sentRef = useRef<HTMLParagraphElement>(null);
   const moved = useRef(false);
+  useEffect(() => { setLive(true); }, []);
   useEffect(() => {
     if (!moved.current) return;
-    [step1Ref, step2Ref, step3Ref][step - 1].current?.focus();
+    stepRefs[step - 1].current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+  useEffect(() => {
+    if (sent && moved.current) sentRef.current?.focus();
+  }, [sent]);
 
   const interests = [...visibleFunds(PUBLIC_FUNDS, hiddenFunds).map((f) => ({ v: f.short.en, t: f.short })), { v: "Custom mandate", t: F.custom }, { v: "General inquiry", t: F.general }];
   const set = <K extends keyof Inquiry>(k: K, v: Inquiry[K]) => {
     setQ((x) => ({ ...x, [k]: v }));
-    setErrs((e) => { const n = { ...e }; delete n[k as keyof InquiryErrors]; return n; });
+    setErrs((e) => { const n = { ...e }; delete n[k as InquiryField]; return n; });
   };
   const toggle = (v: string) => set("interests", q.interests.includes(v) ? q.interests.filter((x) => x !== v) : [...q.interests, v]);
   const go = (s: 1 | 2 | 3) => { moved.current = true; setStep(s); };
@@ -54,125 +70,188 @@ function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
     if (Object.keys(e).length) return;
     if (step < 3) go((step + 1) as 2 | 3);
   };
-  const submit = (ev: FormEvent<HTMLFormElement>) => {
+  const submit = async (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    if (sending) return;
     const bad = firstInvalidStep(q);
     if (bad) { setErrs(validateInquiry(q, bad)); if (bad !== step) go(bad); return; }
-    const href = inquiryMailto(q, locale);
-    setReady(href);
-    window.location.href = href;
+    const hp = new FormData(ev.currentTarget).get("website");
+    setSending(true);
+    setFail(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({ ...q, consent: q.consent === true, website: typeof hp === "string" ? hp : "", t: token, lang: locale }),
+      });
+      if (res.ok) {
+        moved.current = true;
+        setSent(true);
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as { error?: string; fields?: unknown };
+      const fields = Array.isArray(data.fields) ? data.fields.filter((f): f is InquiryField => typeof f === "string" && Object.hasOwn(FIELD_STEP, f)) : [];
+      if (data.error === "invalid_input" && fields.length) {
+        setErrs(Object.fromEntries(fields.map((f) => [f, true])) as InquiryErrors);
+        const first = Math.min(...fields.map((f) => FIELD_STEP[f])) as 1 | 2 | 3;
+        if (first !== step) go(first);
+        return;
+      }
+      setFail(isFailure(data.error) ? data.error : "error");
+    } catch {
+      setFail("error");
+    } finally {
+      setSending(false);
+    }
   };
-  const reset = () => { setQ(EMPTY); setErrs({}); setReady(null); moved.current = true; setStep(1); };
+  const reset = () => {
+    setQ(EMPTY); setErrs({}); setFail(null); setSent(false); moved.current = true; setStep(1);
+    try { window.history.replaceState(null, "", "/contact#contact-form"); } catch { /* ignore */ }
+  };
 
-  const err = (k: keyof InquiryErrors, id: string) => errs[k] ? <p id={id} className="ct-err" role="alert">{pick(F.errs[k])}</p> : null;
+  const err = (k: InquiryField, id: string) => errs[k] ? <p id={id} className="ct-err" role="alert">{pick(F.errs[k])}</p> : null;
   const shown = (s: 1 | 2 | 3) => !live || step === s;
-
-  if (ready) {
-    return (
-      <div className="ct-ready" role="status" data-testid="contact-ready">
-        <span className="bubble" style={{ ["--bc" as string]: "#188038" }} aria-hidden="true"><Check /></span>
-        <p className="h3">{pick(F.ready)}</p>
-        <p className="body">{pick(F.readyD)}</p>
-        <div className="actions">
-          <a className="btn" href={ready}>{pick(F.openMail)} <Send aria-hidden="true" /></a>
-          <button type="button" className="btn ghost" onClick={reset}><RotateCcw aria-hidden="true" /> {pick(F.again)}</button>
-        </div>
-      </div>
-    );
-  }
+  const failure = fail ? (
+    <div className="ct-fail" role="alert" data-testid="contact-fail">
+      <p>{pick(F.fail[fail])}</p>
+      {fail === "expired"
+        ? <a className="link" href="/contact#contact-form">{pick(F.again)} <ArrowRight aria-hidden="true" /></a>
+        : <a className="link" href={live && q.name ? inquiryMailto(q, locale) : mailto(INQUIRY_TO)}><Mail aria-hidden="true" /> {pick(F.mailInstead)}</a>}
+    </div>
+  ) : null;
 
   return (
-    <form className="ct-form" action={`mailto:${INQUIRY_TO}`} method="post" encType="text/plain" noValidate onSubmit={submit}
-      data-live={live ? "" : undefined} data-testid="contact-form">
-      <ol className="ct-progress" aria-label={pick(F.stepsLabel)}>
-        {F.steps.map((s, i) => {
-          const n = (i + 1) as 1 | 2 | 3;
-          const state = !live ? "todo" : n < step ? "done" : n === step ? "on" : "todo";
-          return (
-            <li key={i} data-state={state} aria-current={live && n === step ? "step" : undefined}>
-              <span className="ct-progress-b" aria-hidden="true">{state === "done" ? <Check /> : n}</span>
-              <span className="ct-progress-t">{pick(s)}</span>
-            </li>
-          );
-        })}
-      </ol>
+    <div id="contact-form" className="ct-wrap">
+      <div className="sr-only" role="status">{sending ? pick(F.sending) : sent ? pick(F.sent) : ""}</div>
+      {sent ? (
+        <div className="ct-ready" data-testid="contact-sent">
+          <span className="bubble" style={{ ["--bc" as string]: "#188038" }} aria-hidden="true"><Check /></span>
+          <p ref={sentRef} tabIndex={-1} className="h3">{pick(F.sent)}</p>
+          <p className="body">{pick(F.sentD)}</p>
+          <div className="actions">
+            <a className="btn ghost" href="/contact#contact-form" onClick={(e) => { if (live) { e.preventDefault(); reset(); } }}><RotateCcw aria-hidden="true" /> {pick(F.again)}</a>
+          </div>
+        </div>
+      ) : (
+        <form className="ct-form" action="/api/contact" method="post" noValidate={live} onSubmit={submit}
+          data-live={live ? "" : undefined} aria-busy={sending || undefined} data-testid="contact-form">
+          <input type="hidden" name="t" value={token} />
+          <input type="hidden" name="lang" value={locale} />
+          <div className="ct-hp" aria-hidden="true">
+            <label htmlFor="ct-website">Website</label>
+            <input id="ct-website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+          </div>
+          {!live ? failure : null}
+          <ol className="ct-progress" aria-label={pick(F.stepsLabel)}>
+            {F.steps.map((s, i) => {
+              const n = (i + 1) as 1 | 2 | 3;
+              const state = !live ? "todo" : n < step ? "done" : n === step ? "on" : "todo";
+              return (
+                <li key={i} data-state={state} aria-current={live && n === step ? "step" : undefined}>
+                  <span className="ct-progress-b" aria-hidden="true">{state === "done" ? <Check /> : n}</span>
+                  <span className="ct-progress-t">{pick(s)}</span>
+                </li>
+              );
+            })}
+          </ol>
 
-      <fieldset ref={step1Ref} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
-        <legend className="ct-q">{pick(F.q1)}</legend>
-        <div className="ct-opts">
-          {F.profiles.map((p) => (
-            <label key={p.v} className="ct-opt">
-              <input type="radio" name="profile" value={p.v} checked={q.profile === p.v} onChange={() => set("profile", p.v)} />
-              <span className="ct-opt-b">
-                <span className="ct-opt-t">{pick(p.t)}</span>
-                <span className="ct-opt-d">{pick(p.d)}</span>
-              </span>
-              <span className="ct-opt-c" aria-hidden="true"><Check /></span>
-            </label>
-          ))}
-        </div>
-        {err("profile", "ct-e-profile")}
-        <div className="ct-nav">
-          <button type="button" className="btn ct-next" onClick={next}>{pick(F.next)} <ArrowRight className="arrow" aria-hidden="true" /></button>
-        </div>
-      </fieldset>
+          <fieldset ref={stepRefs[0]} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
+            <legend className="ct-q">{pick(F.q1)}</legend>
+            <div className="ct-opts">
+              {F.profiles.map((p) => (
+                <label key={p.v} className="ct-opt">
+                  <input type="radio" name="profile" value={p.v} required checked={q.profile === p.v} onChange={() => set("profile", p.v)} />
+                  <span className="ct-opt-b">
+                    <span className="ct-opt-t">{pick(p.t)}</span>
+                    <span className="ct-opt-d">{pick(p.d)}</span>
+                  </span>
+                  <span className="ct-opt-c" aria-hidden="true"><Check /></span>
+                </label>
+              ))}
+            </div>
+            {err("profile", "ct-e-profile")}
+            <div className="ct-nav">
+              <button type="button" className="btn ct-next" onClick={next}>{pick(F.next)} <ArrowRight className="arrow" aria-hidden="true" /></button>
+            </div>
+          </fieldset>
 
-      <fieldset ref={step2Ref} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
-        <legend className="ct-q">{pick(F.q2)}</legend>
-        <p id="ct-h-interests" className="small">{pick(F.q2hint)}</p>
-        <div className="ct-opts ct-opts-s">
-          {interests.map((it) => (
-            <label key={it.v} className="ct-opt ct-check">
-              <input type="checkbox" name="interests" value={it.v} checked={q.interests.includes(it.v)} onChange={() => toggle(it.v)} />
-              <span className="ct-opt-b"><span className="ct-opt-t">{pick(it.t)}</span></span>
-              <span className="ct-opt-c" aria-hidden="true"><Check /></span>
-            </label>
-          ))}
-        </div>
-        {err("interests", "ct-e-interests")}
-        <div className="ct-nav">
-          <button type="button" className="btn ghost ct-back" onClick={() => go(1)}><ArrowLeft aria-hidden="true" /> {pick(F.back)}</button>
-          <button type="button" className="btn ct-next" onClick={next}>{pick(F.next)} <ArrowRight className="arrow" aria-hidden="true" /></button>
-        </div>
-      </fieldset>
+          <fieldset ref={stepRefs[1]} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
+            <legend className="ct-q">{pick(F.q2)}</legend>
+            <p id="ct-h-interests" className="small">{pick(F.q2hint)}</p>
+            <div className="ct-opts ct-opts-s">
+              {interests.map((it) => (
+                <label key={it.v} className="ct-opt ct-check">
+                  <input type="checkbox" name="interests" value={it.v} checked={q.interests.includes(it.v)} onChange={() => toggle(it.v)} />
+                  <span className="ct-opt-b"><span className="ct-opt-t">{pick(it.t)}</span></span>
+                  <span className="ct-opt-c" aria-hidden="true"><Check /></span>
+                </label>
+              ))}
+            </div>
+            {err("interests", "ct-e-interests")}
+            <div className="ct-nav">
+              <button type="button" className="btn ghost ct-back" onClick={() => go(1)}><ArrowLeft aria-hidden="true" /> {pick(F.back)}</button>
+              <button type="button" className="btn ct-next" onClick={next}>{pick(F.next)} <ArrowRight className="arrow" aria-hidden="true" /></button>
+            </div>
+          </fieldset>
 
-      <fieldset ref={step3Ref} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
-        <legend className="ct-q">{pick(F.q3)}</legend>
-        <div className="ct-fields">
-          <div className="ct-field">
-            <label htmlFor="ct-name">{pick(F.name)}</label>
-            <input id="ct-name" name="name" autoComplete="name" required value={q.name} onChange={(e) => set("name", e.target.value)}
-              aria-invalid={errs.name ? true : undefined} aria-describedby={errs.name ? "ct-e-name" : undefined} />
-            {err("name", "ct-e-name")}
-          </div>
-          <div className="ct-field">
-            <label htmlFor="ct-email">{pick(F.email)}</label>
-            <input id="ct-email" name="email" type="email" autoComplete="email" required value={q.email} onChange={(e) => set("email", e.target.value)}
-              aria-invalid={errs.email ? true : undefined} aria-describedby={errs.email ? "ct-e-email" : undefined} />
-            {err("email", "ct-e-email")}
-          </div>
-          <div className="ct-field">
-            <label htmlFor="ct-phone">{pick(F.phone)}</label>
-            <input id="ct-phone" name="phone" type="tel" autoComplete="tel" value={q.phone} onChange={(e) => set("phone", e.target.value)}
-              aria-invalid={errs.phone ? true : undefined} aria-describedby={errs.phone ? "ct-e-phone" : undefined} />
-            {err("phone", "ct-e-phone")}
-          </div>
-          <div className="ct-field">
-            <label htmlFor="ct-company">{pick(F.company)}</label>
-            <input id="ct-company" name="company" autoComplete="organization" value={q.company} onChange={(e) => set("company", e.target.value)} />
-          </div>
-          <div className="ct-field ct-wide">
-            <label htmlFor="ct-message">{pick(F.message)}</label>
-            <textarea id="ct-message" name="message" rows={4} placeholder={pick(F.messagePh)} value={q.message} onChange={(e) => set("message", e.target.value)} />
-          </div>
-        </div>
-        <div className="ct-nav">
-          <button type="button" className="btn ghost ct-back" onClick={() => go(2)}><ArrowLeft aria-hidden="true" /> {pick(F.back)}</button>
-          <button type="submit" className="btn">{pick(F.send)} <Send aria-hidden="true" /></button>
-        </div>
-      </fieldset>
-      <p className="ct-note">{pick(F.note)}</p>
-    </form>
+          <fieldset ref={stepRefs[2]} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
+            <legend className="ct-q">{pick(F.q3)}</legend>
+            <div className="ct-fields">
+              <div className="ct-field">
+                <label htmlFor="ct-name">{pick(F.name)}</label>
+                <input id="ct-name" name="name" autoComplete="name" required maxLength={120} value={q.name} onChange={(e) => set("name", e.target.value)}
+                  aria-invalid={errs.name ? true : undefined} aria-describedby={errs.name ? "ct-e-name" : undefined} />
+                {err("name", "ct-e-name")}
+              </div>
+              <div className="ct-field">
+                <label htmlFor="ct-email">{pick(F.email)}</label>
+                <input id="ct-email" name="email" type="email" autoComplete="email" required maxLength={200} value={q.email} onChange={(e) => set("email", e.target.value)}
+                  aria-invalid={errs.email ? true : undefined} aria-describedby={errs.email ? "ct-e-email" : undefined} />
+                {err("email", "ct-e-email")}
+              </div>
+              <div className="ct-field">
+                <label htmlFor="ct-phone">{pick(F.phone)}</label>
+                <input id="ct-phone" name="phone" type="tel" autoComplete="tel" maxLength={25} value={q.phone} onChange={(e) => set("phone", e.target.value)}
+                  aria-invalid={errs.phone ? true : undefined} aria-describedby={errs.phone ? "ct-e-phone" : undefined} />
+                {err("phone", "ct-e-phone")}
+              </div>
+              <div className="ct-field">
+                <label htmlFor="ct-company">{pick(F.company)}</label>
+                <input id="ct-company" name="company" autoComplete="organization" maxLength={160} value={q.company} onChange={(e) => set("company", e.target.value)}
+                  aria-invalid={errs.company ? true : undefined} aria-describedby={errs.company ? "ct-e-company" : undefined} />
+                {err("company", "ct-e-company")}
+              </div>
+              <div className="ct-field ct-wide">
+                <label htmlFor="ct-message">{pick(F.message)}</label>
+                <textarea id="ct-message" name="message" rows={4} maxLength={3000} placeholder={pick(F.messagePh)} value={q.message} onChange={(e) => set("message", e.target.value)}
+                  aria-invalid={errs.message ? true : undefined} aria-describedby={errs.message ? "ct-e-message" : undefined} />
+                {err("message", "ct-e-message")}
+              </div>
+              <div className="ct-wide">
+                <label className="ct-opt ct-check ct-consent">
+                  <input type="checkbox" name="consent" value="on" required checked={q.consent === true} onChange={(e) => set("consent", e.target.checked)}
+                    aria-invalid={errs.consent ? true : undefined} aria-describedby={errs.consent ? "ct-e-consent" : undefined} data-testid="contact-consent" />
+                  <span className="ct-opt-b">
+                    <span className="ct-opt-t">{pick(F.consent)}</span>
+                    <a className="link ct-consent-link" href="/privacy" target="_blank" rel="noopener noreferrer">{pick(F.privacy)} <ArrowUpRight aria-hidden="true" /></a>
+                  </span>
+                  <span className="ct-opt-c" aria-hidden="true"><Check /></span>
+                </label>
+                {err("consent", "ct-e-consent")}
+              </div>
+            </div>
+            {live ? failure : null}
+            <div className="ct-nav">
+              <button type="button" className="btn ghost ct-back" onClick={() => go(2)}><ArrowLeft aria-hidden="true" /> {pick(F.back)}</button>
+              <button type="submit" className="btn" disabled={sending}>{pick(sending ? F.sending : F.send)} <Send aria-hidden="true" /></button>
+            </div>
+          </fieldset>
+          <p className="ct-note">{pick(F.note)}</p>
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -203,7 +282,7 @@ function VisitMap({ address, mapsAddress }: { address: { en: string; fr: string 
   );
 }
 
-export function Contact({ hiddenFunds = [], contact = {} }: { hiddenFunds?: string[]; contact?: CmsContact }) {
+export function Contact({ hiddenFunds = [], contact = {}, formToken = "", initialStatus = null }: { hiddenFunds?: string[]; contact?: CmsContact; formToken?: string; initialStatus?: ContactStatus }) {
   const { locale, pick } = useTranslation();
   const O = CT.office;
   const address = contact.address ?? O.address;
@@ -224,7 +303,7 @@ export function Contact({ hiddenFunds = [], contact = {} }: { hiddenFunds?: stri
           <Reveal self kind="pop" className="card ct-card">
             <h2 id="ct-form-t" className="h2">{pick(CT.form.title)}</h2>
             <p className="ct-lead">{pick(CT.form.lead)}</p>
-            <InquiryForm hiddenFunds={hiddenFunds} />
+            <InquiryForm hiddenFunds={hiddenFunds} token={formToken} initialStatus={initialStatus} />
           </Reveal>
           <Reveal as="aside" className="ct-side" stagger={120} aria-label={pick(O.title)}>
             <div className="card ct-office">

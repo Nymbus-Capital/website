@@ -1,12 +1,15 @@
 /**
- * Contact form logic (pure, unit tested). The site has no email backend: the three-step form (investor
- * profile, interests, contact details) is validated here and turned into a mailto: link that opens the
- * visitor's own mail app with the message prepared. Nothing is sent or stored by the site.
+ * Contact form logic of the page (pure, unit tested): step validation of the three-step form (investor profile,
+ * interests, contact details and consent) with the rules the server applies (src/lib/contact/validate.ts), and the
+ * prepared e-mail offered as a fallback when the form cannot be sent (mailto:, the visitor's own mail app).
  */
 import type { Locale } from "../../../../lib/i18n/config.ts";
+import { EMAIL_RE, inquiryFieldErrors, type InquiryField } from "../../../../lib/contact/validate.ts";
+
+export { EMAIL_RE };
+export type { InquiryField };
 
 export const INQUIRY_TO = "info@nymbus.ca";
-export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export interface Inquiry {
   profile: string;
@@ -16,21 +19,18 @@ export interface Inquiry {
   phone?: string;
   company?: string;
   message?: string;
+  consent?: boolean;
 }
 
-export type InquiryField = "profile" | "interests" | "name" | "email" | "phone";
 export type InquiryErrors = Partial<Record<InquiryField, true>>;
 
-/** Errors of one step (1: profile, 2: interests, 3: details) or of every step (0). */
+/** The step (1-3) where a field is entered. */
+export const FIELD_STEP: Record<InquiryField, 1 | 2 | 3> = { profile: 1, interests: 2, name: 3, email: 3, phone: 3, company: 3, message: 3, consent: 3 };
+
+/** Errors of one step (1: profile, 2: interests, 3: details and consent) or of every step (0). */
 export function validateInquiry(q: Inquiry, step: 0 | 1 | 2 | 3 = 0): InquiryErrors {
   const e: InquiryErrors = {};
-  if ((step === 0 || step === 1) && !q.profile.trim()) e.profile = true;
-  if ((step === 0 || step === 2) && q.interests.length === 0) e.interests = true;
-  if (step === 0 || step === 3) {
-    if (q.name.trim().length < 2) e.name = true;
-    if (!EMAIL_RE.test(q.email.trim())) e.email = true;
-    if (q.phone && q.phone.trim() && !/^[+()\d\s.-]{7,25}$/.test(q.phone.trim())) e.phone = true;
-  }
+  for (const f of inquiryFieldErrors({ ...q, interests: q.interests ?? [] })) if (step === 0 || FIELD_STEP[f] === step) e[f] = true;
   return e;
 }
 

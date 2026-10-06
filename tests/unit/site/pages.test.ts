@@ -47,19 +47,21 @@ test("people: initials never carry a numeric suffix (the old site showed 'JL2')"
 
 /* ------------------------------------------------------------------ contact form */
 
-const OK: Inquiry = { profile: "Family office", interests: ["Monthly Income"], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello" };
+const OK: Inquiry = { profile: "Family office", interests: ["Monthly Income"], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
 
 test("inquiry: each step validates its own fields", () => {
   const empty: Inquiry = { profile: "", interests: [], name: "", email: "" };
   assert.deepEqual(validateInquiry(empty, 1), { profile: true });
   assert.deepEqual(validateInquiry(empty, 2), { interests: true });
-  assert.deepEqual(validateInquiry(empty, 3), { name: true, email: true });
+  assert.deepEqual(validateInquiry(empty, 3), { name: true, email: true, consent: true });
   assert.deepEqual(validateInquiry(OK), {});
   assert.deepEqual(validateInquiry({ ...OK, phone: "call me" }, 3), { phone: true });
   assert.deepEqual(validateInquiry({ ...OK, phone: "+1 (514) 985-1138" }, 3), {});
   assert.equal(firstInvalidStep(OK), 0);
   assert.equal(firstInvalidStep({ ...OK, interests: [] }), 2);
   assert.equal(firstInvalidStep({ ...OK, email: "nope" }), 3);
+  assert.equal(firstInvalidStep({ ...OK, consent: false }), 3);
+  assert.deepEqual(validateInquiry({ ...OK, profile: "Hacker" }), { profile: true });
 });
 
 test("inquiry: email pattern", () => {

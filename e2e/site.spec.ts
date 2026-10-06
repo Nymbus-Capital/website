@@ -221,38 +221,7 @@ test("team: filter by department and open a bio", async ({ page }) => {
   await expect(first).toBeFocused();
 });
 
-test("contact: three steps, validated, then an email is prepared (no backend)", async ({ page }) => {
-  await page.goto("/contact");
-  const form = page.getByTestId("contact-form");
-  await form.scrollIntoViewIfNeeded();
-  await expect(form).toHaveAttribute("data-live", "");
-  // step 1: an investor type is required
-  await form.getByRole("button", { name: /^continue/i }).click();
-  await expect(form.getByText("Please choose an investor type.")).toBeVisible();
-  await form.getByText("Family office", { exact: true }).click();
-  await form.getByRole("button", { name: /^continue/i }).click();
-  // step 2: at least one interest
-  await expect(form.getByRole("group", { name: /what are you interested in/i })).toBeVisible();
-  await form.getByRole("button", { name: /^continue/i }).click();
-  await expect(form.getByText("Please choose at least one interest.")).toBeVisible();
-  await form.getByText("Monthly Income", { exact: true }).click();
-  await form.getByRole("button", { name: /^continue/i }).click();
-  // step 3: name and a valid email
-  await form.getByRole("button", { name: /prepare my email/i }).click();
-  await expect(form.getByText("Please enter a valid email address.")).toBeVisible();
-  await page.getByLabel("Full name").fill("Test Person");
-  await page.getByLabel("Email address").fill("test@example.com");
-  await page.getByLabel(/^Message/).fill("Hello, I would like to learn more about your funds.");
-  // the mailto: hand-off opens the mail app (a no-op in the test browser); the ready state must show
-  await form.getByRole("button", { name: /prepare my email/i }).click();
-  const ready = page.getByTestId("contact-ready");
-  await expect(ready).toBeVisible();
-  await expect(ready.getByRole("link")).toHaveAttribute("href", /^mailto:info@nymbus\.ca\?subject=Website%20inquiry%20%C2%B7%20Family%20office/);
-  // office details and a map link (no third-party frame)
-  await expect(page.locator('a[href^="tel:+15149851138"]').first()).toBeVisible();
-  await expect(page.locator('a[href^="https://www.google.com/maps/search/"]').first()).toBeAttached();
-  await expect(page.locator("iframe")).toHaveCount(0);
-});
+// contact form: e2e/contact.spec.ts
 
 test("approach: the pipeline and the risk flow draw themselves in when scrolled into view", async ({ page }) => {
   await page.goto("/approach");
