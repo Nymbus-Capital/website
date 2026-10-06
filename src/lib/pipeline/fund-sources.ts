@@ -26,7 +26,7 @@ interface FundSources {
   ftseIndex: string | null;
   /**
    * Earlier FTSE short_names to try for the benchmark's history before its current name (checked by equal daily returns
-   * on common days before being chain-linked, metrics.ts joinFtseHistory); names sharing the index_id or the published
+   * on common days before being chain-linked, index-levels.ts joinFtseHistory); names sharing the index_id or the published
    * name are tried too. Optional.
    */
   ftseAliases?: string[];
@@ -41,7 +41,7 @@ interface FundSources {
    * First day of the fund's own NAV history at the dataplatform: the fund register's `fund_data_start` (apex.fund; not
    * served by /api/apex/funds, so mirrored here — keep equal to the register). Earlier rows under the same fund code
    * belong to another strategy (SEST is a reused code) or are placeholders. Never before the register's `inception`
-   * when /api/apex/funds gives one (build.ts effectiveNavStart). A class's computed series starts at its first complete
+   * when /api/apex/funds gives one (build/register.ts effectiveNavStart). A class's computed series starts at its first complete
    * month on or after this day and its own first valuation. null: no class series.
    */
   navStart: string | null;

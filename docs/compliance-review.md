@@ -82,7 +82,7 @@ other than counts computed from `src/data/team.ts`):
   founding, 2018 PRI, 2021 Monthly Income launch from `FUND_INCEPTION`, 2023 Dans la rue, 2024 tobacco-free pledge,
   2025 Mageska partnership). The old timeline's AUM figures, the 2019/2023 fund launch years and the 2020 merger were
   left out (inconsistent or unverified).
-- `/contact` (`copy-contact.ts`): office hours (Monday to Friday, 8:30 to 5:00 ET) and "reply within one business
+- `/contact` (`contact.copy.ts`): office hours (Monday to Friday, 8:30 to 5:00 ET) and "reply within one business
   day" come from the previous site. Advisors described as "registered with CIRO or a provincial securities regulator" (the old site said IIROC; "or the CSA" replaced on 2026-09-30).
 
 ## Website copy review 2026-09-30
@@ -282,7 +282,7 @@ Changed pages (please tick once reviewed):
 - [ ] **Team** (`copy-about.ts`, `src/data/team.ts`): hero lead, intro as 4 bullets, values and milestones shortened;
   every biography cut to one or two sentences (facts kept are a subset of the previous bios; previous roles and education
   still listed in the dialog). Jean Turmel FR keeps « Financière Banque Nationale » (A15).
-- [ ] **Contact** (`copy-contact.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
+- [ ] **Contact** (`contact.copy.ts`): hero lead, form lead, "who to contact" texts, response time ("Usually within
   one business day. Urgent? Please call."), visit text. Form note about sensitive information unchanged.
 - [ ] **Fund pages** (`src/components/fund/fund.copy.ts`, `FUND_TEXTS`): "What the fund does" shortened; "Investment
   approach" is now 3 bullets plus the risk note in fine print (overlay caveat + futures-exposure disclosure, verbatim; GMV: the

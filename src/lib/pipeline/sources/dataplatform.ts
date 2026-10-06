@@ -12,7 +12,7 @@
 import type { FtseBondAnalytics, FtseBondPoint } from "../raw.ts";
 import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, HoldingsBook, HoldingsPosition, InstrumentRef, InstrumentRefs, MonthlyNetReturnsResponse, NavHistory, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
-import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../metrics.ts";
+import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../index-levels.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
 interface DpClient {
@@ -413,10 +413,10 @@ const FTSE_LISTED_LOOSE = 10;
  * Aggregate daily levels of one FTSE index over its whole history. ftse.bond_index_summary names an index by a slug of
  * its published name, so the days before a naming generation sit under another short_name (e.g. "univ_overall" before
  * the 2024-12 generation of "univ"). Candidates: the configured aliases, the names sharing the index_id, and the names
- * of the same family (metrics.ts ftseFamily) in /short-names, then loose matches (every family word in the name, e.g.
+ * of the same family (index-levels.ts ftseFamily) in /short-names, then loose matches (every family word in the name, e.g.
  * "short" and "corp"). A candidate is joined on equal daily returns over a common period that includes the current name's
  * first day; a strict candidate (alias, index_id, family) without overlap may be joined across a verified one-day gap
- * (metrics.ts ftseGapCheck). The detail lists what was joined, the gap verification, the loose name matches and why
+ * (index-levels.ts ftseGapCheck). The detail lists what was joined, the gap verification, the loose name matches and why
  * every other candidate was not.
  */
 export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: string[] = []): Promise<SourceResult<FtseLevels>> {

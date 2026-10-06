@@ -7,7 +7,8 @@
 import type { FundView } from "@/lib/data/site";
 import type { FundKey, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
-import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
+import { siAnnualized, trackMonths } from "../../fund/lib/performance.ts";
+import { stripHidden } from "../../fund/lib/visibility.ts";
 import { defaultClassCode, initialSelection, pickData } from "../../fund/lib/select.ts";
 import { shownVariant } from "../../../config/funds.ts";
 import type { L } from "@/lib/i18n/config";

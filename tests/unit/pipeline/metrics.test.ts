@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  addMonths, annualize, calendarYears, compound, downsideDeviation, ftseLevels, growth, lastClosedMonth, lastWeekdays, levelsToMonthly, maxDrawdown, monthEnd, monthEndReturns,
-  riskStats, trailing, window, type Series,
+  addMonths, annualize, calendarYears, compound, downsideDeviation, growth, lastClosedMonth, maxDrawdown, monthEnd, riskStats, trailing, window, type Series,
 } from "../../../src/lib/pipeline/metrics.ts";
+import { ftseLevels, lastWeekdays, levelsToMonthly, monthEndReturns } from "../../../src/lib/pipeline/index-levels.ts";
 
 const close = (a: number | null | undefined, b: number, eps = 1e-12): void => {
   assert.ok(a !== null && a !== undefined, `expected ${b}, got ${a}`);

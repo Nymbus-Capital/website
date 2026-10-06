@@ -13,7 +13,7 @@ import { AP } from "../../../src/components/site/pages/approach.copy.ts";
 import { AB } from "../../../src/components/site/pages/about.copy.ts";
 import { SU } from "../../../src/components/site/pages/sustainability.copy.ts";
 import { SOL_COPY } from "../../../src/components/site/pages/solutions.copy.ts";
-import { CT } from "../../../src/components/site/pages/copy-contact.ts";
+import { CT } from "../../../src/components/site/pages/contact.copy.ts";
 
 const fixture = JSON.parse(readFileSync(resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8"));
 const OPTS = { mediaOrigin: "http://localhost:3199", allowLoopbackHttp: true };

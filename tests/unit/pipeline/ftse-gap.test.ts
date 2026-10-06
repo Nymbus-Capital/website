@@ -1,10 +1,10 @@
 /**
- * FTSE naming generations without overlap: the verified one-day gap link (metrics.ts ftseGapCheck / joinFtseHistory),
+ * FTSE naming generations without overlap: the verified one-day gap link (index-levels.ts ftseGapCheck / joinFtseHistory),
  * and the broadened index-family matching. Synthetic index rows only.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ftseDaily, ftseFamily, ftseGapCheck, ftseReturnEstimate, joinFtseHistory, type FtseDay } from "../../../src/lib/pipeline/metrics.ts";
+import { ftseDaily, ftseFamily, ftseGapCheck, ftseReturnEstimate, joinFtseHistory, type FtseDay } from "../../../src/lib/pipeline/index-levels.ts";
 import { bondDays } from "../../../src/lib/pipeline/market-calendar.ts";
 
 /** a synthetic index whose daily return is the yield/duration estimate plus a small deterministic noise (±0.4 bp) */

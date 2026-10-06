@@ -7,7 +7,7 @@
  */
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import type { CalendarRow, MonthlyPoint } from "@/lib/data/types";
-import { heatCell, heatmapGrid, heatScale } from "../lib/data.ts";
+import { heatCell, heatmapGrid, heatScale } from "../lib/heatmap.ts";
 import { fmt, MONTH_INITIALS, monthName } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear } from "./hooks";

@@ -2,11 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fmt, pct, money, moneyParts, compactMoney, monthLabel, dateLabel, charValue, charCount, pctTick, fileSize, bigMoney } from "../../../src/components/fund/lib/format.ts";
 import { nice, linear, barPath, barWidthPct, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
-import {
-  trailingPeriods, isAnnualized, headlineClass, availableRanges, growthRange, heatmapGrid, heatScale, heatCell, groupDocuments,
-  visibleBlocks, riskIndex, calendarRows, riskWindows, bucketRows, vaRounded, perfClassLabel,
-  returnBadges, trailingRows, navDirection, resolveManagers, initials, sortedClasses, REGULATORY_DOCS,
-} from "../../../src/components/fund/lib/data.ts";
+import { groupDocuments, REGULATORY_DOCS } from "../../../src/components/fund/lib/documents.ts";
+import { headlineClass, initials, navDirection, resolveManagers, riskIndex, sortedClasses } from "../../../src/components/fund/lib/facts.ts";
+import { availableRanges, growthRange } from "../../../src/components/fund/lib/growth.ts";
+import { heatCell, heatmapGrid, heatScale } from "../../../src/components/fund/lib/heatmap.ts";
+import { calendarRows, isAnnualized, perfClassLabel, returnBadges, riskWindows, trailingPeriods, trailingRows, vaRounded } from "../../../src/components/fund/lib/performance.ts";
+import { bucketRows } from "../../../src/components/fund/lib/portfolio.ts";
+import { visibleBlocks } from "../../../src/components/fund/lib/visibility.ts";
 import type { DocumentMeta, FundData, GrowthPoint, NavClass } from "../../../src/lib/data/types.ts";
 
 const NB = " ";

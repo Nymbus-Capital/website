@@ -6,9 +6,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import sample from "../../../src/lib/data/sample-site-data.json" with { type: "json" };
 import type { FundData, SiteData } from "../../../src/lib/data/types.ts";
-import {
-  amountDecimals, dailyBreakdowns, distributionBars, distributionClasses, fullRowItems, hasDailyPortfolio, isYearToDate, historyRows, partialCoverage, portfolioOrigin, stripHidden, visibleBlocks,
-} from "../../../src/components/fund/lib/data.ts";
+import { amountDecimals, distributionBars, distributionClasses, historyRows, isYearToDate } from "../../../src/components/fund/lib/distributions.ts";
+import { dailyBreakdowns, fullRowItems, hasDailyPortfolio, partialCoverage, portfolioOrigin } from "../../../src/components/fund/lib/portfolio.ts";
+import { stripHidden, visibleBlocks } from "../../../src/components/fund/lib/visibility.ts";
 import { categoryLabel } from "../../../src/components/fund/labels.ts";
 import { provenanceLine } from "../../../src/components/fund/lib/provenance.ts";
 

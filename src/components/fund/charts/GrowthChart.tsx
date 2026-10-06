@@ -6,7 +6,7 @@
  */
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { GrowthPoint } from "@/lib/data/types";
-import { availableRanges, growthRange, type GrowthMethod, type Range } from "../lib/data.ts";
+import { availableRanges, growthRange, type GrowthMethod, type Range } from "../lib/growth.ts";
 import { monotonePath, nearestIndex, nice, yearTicks, monthTicks } from "../lib/scale.ts";
 import { compactMoney, fmt, money, monthLabel } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";

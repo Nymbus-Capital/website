@@ -5,16 +5,16 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { buildClassEntry, classFundTrailing, performanceProblems, pickDefaultClass } from "../../../src/lib/pipeline/classes.ts";
 import { classSeriesOf } from "../../../src/lib/pipeline/fund-sources.ts";
-import { validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { validateSite } from "../../../src/lib/pipeline/validate/index.ts";
 import type { ClassResult } from "../../../src/lib/pipeline/class-returns.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
-import type { FundContext } from "../../../src/lib/pipeline/build.ts";
+import type { FundContext } from "../../../src/lib/pipeline/build/index.ts";
 import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
@@ -351,7 +351,7 @@ test("M2: a month withheld for every class applies to the track record where it 
 });
 
 test("new classes are gated even when the previous publication had no performance", async () => {
-  const { classEntryChanges } = await import("../../../src/lib/pipeline/validate.ts");
+  const { classEntryChanges } = await import("../../../src/lib/pipeline/validate/index.ts");
   const { data } = await build();
   const f = data.funds[SEB]!;
   const prev = { ...f, performance: null, risk: null, performanceByClass: undefined, defaultClass: undefined };

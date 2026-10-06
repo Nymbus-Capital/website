@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildSiteData, type BuildResult } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, type BuildResult } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
-import { validateSite, validateFund, nonFinitePaths } from "../../../src/lib/pipeline/validate.ts";
+import { validateSite, validateFund, nonFinitePaths } from "../../../src/lib/pipeline/validate/index.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, mockFetch } from "../../fixtures/pipeline/mock-fetch.ts";
 import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";

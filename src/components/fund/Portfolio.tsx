@@ -17,7 +17,7 @@ import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
 import { charCount, charValue, dateLabel, elide, fmt, monthLabel } from "./lib/format.ts";
-import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage, topTotal } from "./lib/data.ts";
+import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage, topTotal } from "./lib/portfolio.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
 
 type BKey = "credit" | "sectors" | "curve" | "country" | "assetClass";

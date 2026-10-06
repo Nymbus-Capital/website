@@ -5,7 +5,7 @@
  */
 import { dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "../../fund/lib/format.ts";
 import type { FundKey } from "../../../lib/data/types.ts";
-import { partialKind, type PartialKind } from "../../fund/lib/data.ts";
+import { partialKind, type PartialKind } from "../../fund/lib/performance.ts";
 import type { Locale } from "../../../lib/i18n/config.ts";
 
 export type Category = "fixed-income" | "alternatives";

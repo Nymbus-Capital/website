@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Contact } from "@/components/site/pages/Contact";
-import { CT } from "@/components/site/pages/copy-contact";
+import { CT } from "@/components/site/pages/contact.copy";
 import { getLocale } from "@/lib/i18n/server";
 import { getContent } from "@/lib/data/site";
 import { hiddenFundKeys } from "@/config/funds-public";

@@ -1,6 +1,6 @@
 /**
  * Canadian (TSX) valuation-day calendar: port of the dataplatform's `app/core/market_calendar.py`, shared by the daily
- * NAV chain (daily-chain.ts) and the FTSE month-end rule (metrics.ts). Pure, dependency-free.
+ * NAV chain (daily-chain.ts) and the FTSE month-end rule (index-levels.ts). Pure, dependency-free.
  */
 
 const iso = (t: number): string => new Date(t).toISOString().slice(0, 10);

@@ -146,9 +146,17 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 1. **Multi-Strategy series checks**: its series carry a performance fee charged in up months only, so the linear
    cross-class fit (`src/lib/pipeline/class-returns.ts`) withholds too many months; fit separate up / down slopes.
-2. **Readability**: split `src/lib/pipeline/build.ts` (≈ 1 650 lines) and the other files above ~500 lines by
-   responsibility; run Prettier once over the repository (separate commit, visual diff byte-identical); Contact.tsx still
-   imports the shim `src/components/v3/motion.ts`, `copy-contact.ts` → `contact.copy.ts`.
+2. **Readability** — split done on branch `refactor/split-modules` (not merged, 2026-10-06): `build.ts` →
+   `src/lib/pipeline/build/` (entry `index.ts`; `context`, `helpers`, `factsheets`, `register`, `series`, `track-record`,
+   `benchmark`, `performance`, `net-performance`, `factsheet-performance`, `nav`, `factsheet-parts`, `daily-book`,
+   `class-series`, `variants`, `fund`, `site`); `validate.ts` → `src/lib/pipeline/validate/` (`performance`, `nav`,
+   `portfolio`, `distributions`, `site`, `helpers`); FTSE level code out of `metrics.ts` into `index-levels.ts`;
+   `components/fund/lib/data.ts` → `performance`, `growth`, `heatmap`, `portfolio`, `distributions`, `documents`,
+   `visibility`, `facts`, `is-num`; Contact.tsx imports `components/motion/motion` (shim deleted), `contact.copy.ts`.
+   Remaining: run Prettier once over the repository (separate commit, visual diff byte-identical); `class-returns.ts`
+   (≈ 500 lines) left whole while B1 changes it; `fund.copy.ts` and `data/types.ts` (≈ 530 lines each) are copy / the
+   data contract and read best in one file; references to `build.ts` in `config.ts` comments left (CLASS_CHECKS is being
+   changed on another branch).
 3. **React Compiler readiness**: the 25 lint warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`);
    lower the `--max-warnings` cap as they go.
 4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
@@ -157,6 +165,15 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    WordPress, News in the navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
+  behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
+  through `build/index.ts` and `validate/index.ts`, pipeline output on the fixtures byte-identical, `npm test` green;
+  Contact.tsx shim and `contact.copy.ts` done. Visual proof: run 252 (base `d62a263`, pushed to the helper branch
+  `refactor/split-modules-base` because the branch's own baseline run was cancelled by the next push) vs run 253
+  (`239f4e9`): `scripts/visual-diff.mjs --max-ratio=0` → 44 + 6 + 10 images (visual, visual-fr, visual-motion), all
+  byte-identical. Run 253 green (its first attempt failed only on the flaky WordPress smoke check "login page offers
+  Sign in with Microsoft"; nothing under `wordpress/` changed; the re-run passed). The helper branch can be deleted.
 
 - 2026-10-06 (home session): feat/cleanup, feat/automation, feat/wp-ready merged and pushed (CI green on each,
   reviewed); §3 / §5 rewritten (every branch listed as "not merged" was merged); merged local branches and worktrees

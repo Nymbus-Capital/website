@@ -38,7 +38,7 @@ never calls the dataplatform from the browser.
    credit/sector/curve breakdowns, top holdings, ESG metrics, published trailing returns used as a cross-check).
    The two fund-data endpoints follow the contract agreed with the dataplatform (2026-09-30); their payloads are
    parsed tolerantly in `sources/contracts.ts` (a bad row is dropped and noted, a missing number stays null).
-2. **Build** (`src/lib/pipeline/build.ts`, pure): computes trailing / calendar / growth / risk figures
+2. **Build** (`src/lib/pipeline/build/`, entry `index.ts`, pure; one module per part: track record, other classes, FTSE index, NAV and AUM, factsheet parts, daily book, variants): computes trailing / calendar / growth / risk figures
    from the monthly net returns (same conventions as the factsheets and the deck studio), parses the
    factsheet strings into numbers, and produces `SiteData` (`src/lib/data/types.ts`).
 3. **Validate** (`src/lib/pipeline/validate.ts`, pure): gates per fund (as-of regression, outliers,
@@ -68,7 +68,7 @@ inputs, with gates; a figure is never assembled from two sources.
 | dataplatform `/api/performance/nav-timeseries` (`fundserv=`, every class, from 2019-01-01) | daily NAV chain per class → inception and per-class monthly returns (`daily-chain.ts`, `class-returns.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class "coming soon" / headline from monthly-net-returns |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
-| dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`metrics.ts` `joinFtseHistory`) | primary | index figures not shown |
+| dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`index-levels.ts` `joinFtseHistory`) | primary | index figures not shown |
 | dataplatform `/api/apex/holdings` + `/api/instruments/batch` + `/api/instruments` (bond universe) | daily (and month-end) book computed by the website (`fund-portfolio.ts`, port of the PR #621 analytics) | primary when covered (below) | month-end factsheet figures (issue) |
 | factsheet archives (SharePoint) | characteristics vs index, breakdowns, top 10, ESG, published returns, GMV variants | ESG / GMV primary; portfolio fallback; cross-check | previous kept + alert |
 
@@ -78,7 +78,7 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
 
 ### Computed by the website from main endpoints
 
-- **Per-class monthly returns** (`daily-chain.ts`, `build.ts` `classChain`): from `nav-timeseries` daily rows of one
+- **Per-class monthly returns** (`daily-chain.ts`, `build/series.ts` `classChain`): from `nav-timeseries` daily rows of one
   FundServ code. Apex months (`apex_distribution_aware`) compound daily returns over the Canadian trading calendar
   (port of the dataplatform `market_calendar` and `_monthly_rows`); CIBC months (`legacy_stored`) are taken only
   complete and in CAD, from the class's first computable month (its first complete month on or after the fund's data
@@ -164,7 +164,7 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   history does not reach its start). The page labels it "12 months to <trailingTo>", not the last distribution. The page shows every amount of a series with one precision (4–6
   decimals, the fewest at which all are exact), so rows add up to the calendar totals as displayed.
 
-### Performance class (`fund-sources.ts`, `build.ts` `fundSeries`, `perf-class.ts`; Gabriel 2026-10-01)
+### Performance class (`fund-sources.ts`, `build/track-record.ts` `fundSeries`, `perf-class.ts`; Gabriel 2026-10-01)
 
 - The class label shown with returns ("Series F" / « Série F ») is derived from the class of the data actually used
   (`performance.classCode`: dataplatform `STRATEGY` = the fund's F / FP class, `STRATEGY_H` = SEB's H class) through
@@ -198,7 +198,7 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
 - The NAV card is independent: its series is the fund register's class of the FundServ code shown.
 
-### Returns per class and GMV variants (`class-returns.ts`, `classes.ts`, `build.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
+### Returns per class and GMV variants (`class-returns.ts`, `classes.ts`, `build/class-series.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
 
 Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpoints only), for the three funds.
 
@@ -372,7 +372,7 @@ decisions is `docs/HANDOFF.md` § 4).
 | Date | Decision (Gabriel) | Where |
 | --- | --- | --- |
 | 2026-10-01 | The performance label always matches the data: "if you showcase the class H time series, then show class H". | `src/lib/pipeline/perf-class.ts` |
-| 2026-10-02 | "Compute whatever you need within the backend of the website and only take the dataplatform api endpoints as input data": every figure from dataplatform main-branch endpoints, no dataplatform change (PR #621, #626, #631 not needed). | `build.ts`, `daily-chain.ts`, `fund-sources.ts`, `fund-portfolio.ts` |
+| 2026-10-02 | "Compute whatever you need within the backend of the website and only take the dataplatform api endpoints as input data": every figure from dataplatform main-branch endpoints, no dataplatform change (PR #621, #626, #631 not needed). | `build/`, `daily-chain.ts`, `fund-sources.ts`, `fund-portfolio.ts` |
 | 2026-10-02 | ESG criteria and exclusions belong to the Sustainable Enhanced Bonds Fund only; firm-level items are the public commitments. | `src/components/site/pages/sustainability.copy.ts`, `tests/unit/site/esg-scope.test.ts` |
 | 2026-10-03 | Futures animation slowed down ("we have a hard time reading the text … every day": 1.25 s → 5 s a day). | `src/components/site/concepts/futures-model.ts` |
 | 2026-10-04 | Futures "a tiny bit faster … but still slower than initially": 3.75 s a day. | `futures-model.ts` |

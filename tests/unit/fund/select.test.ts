@@ -119,7 +119,7 @@ test("notices: a young series says when it launched and the minimum; a non-CAD s
 });
 
 test("withheld figures keep their row ('—'); periods longer than the history do not appear", async () => {
-  const { trailingRows, calendarRows } = await import("../../../src/components/fund/lib/data.ts");
+  const { trailingRows, calendarRows } = await import("../../../src/components/fund/lib/performance.ts");
   const p = perf("I", 0.05, {
     firstMonth: "2023-03-31", inception: "2023-03-06", partialFirstMonth: true, withheldMonths: ["2025-03-31"],
     trailing: { fund: { "1M": 0.001, "3M": 0.003, YTD: 0.01, "1Y": 0.02, "2Y": null, "3Y": null, "5Y": null, "10Y": null, SI: null } },

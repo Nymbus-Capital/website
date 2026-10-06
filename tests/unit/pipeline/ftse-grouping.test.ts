@@ -1,7 +1,7 @@
 // ftse-grouping.test.ts — diagnostic summary when no aggregate FTSE row is found
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ftseGroupingSummary, ftseLevels } from "../../../src/lib/pipeline/metrics.ts";
+import { ftseGroupingSummary, ftseLevels } from "../../../src/lib/pipeline/index-levels.ts";
 
 test("summarises the grouping values of the latest date", () => {
   const rows = [
