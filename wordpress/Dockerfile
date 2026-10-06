@@ -15,10 +15,8 @@ FROM wordpress:7.1.2-php8.3-apache
 ARG LLAR_VERSION=3.3.10
 ARG LLAR_SHA256=9125ac1bc06c876326802ff1b9783ef0081749d0025e578c6b355d65622abb3f
 ARG OIDC_VERSION=3.11.3
-ARG OIDC_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+ARG OIDC_SHA256=81c009fe8f8f1504b329656d5a41176b5de09febfca4574393889c46387f8a97
 
-# TEMPORARY probe (removed once the checksum is pinned)
-RUN for v in 3.11.3 3.11.2 3.11.1 3.11.0 3.10.2 3.10.1 3.10.0; do s="$(curl -fsSL "https://downloads.wordpress.org/plugin/daggerhart-openid-connect-generic.$v.zip" | sha256sum | cut -d' ' -f1)"; echo "PROBE daggerhart-openid-connect-generic $v $s"; done; true
 RUN set -eu; \
     cd /tmp; bad=0; \
     fetch() { \
