@@ -278,7 +278,7 @@ export function adjustmentDays(rows: DailyRow[], inception: string, min: number,
  */
 export function crossClassFailures(
   months: Record<string, { month: string; r: number | null; days: string[]; partial?: boolean }[]>, daily: Record<string, Map<string, number>>,
-  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax"> & FitCfg,
+  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax" | "fitSuspectMinSide"> & FitCfg,
   adjustments: Map<string, string> = new Map(),
 ): { fundMonths: Map<string, string>; fails: Map<string, Map<string, string>>; unchecked: { fundserv: string; month: string }[]; fits: Record<string, ClassFit> } {
   const fundMonths = new Map<string, string>();
