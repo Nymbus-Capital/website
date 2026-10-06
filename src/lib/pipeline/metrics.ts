@@ -26,6 +26,7 @@
  *    drawdown = value - running peak (in units of the initial investment).
  */
 import { bondDays, isBondDay } from "./market-calendar.ts";
+import { monthsBetween, ym } from "../data/dates.ts";
 
 export type Series = Record<string, number>;
 export type Method = "compounded" | "arithmetic";
@@ -42,17 +43,12 @@ export function toMonthEnd(date: string): string {
   return monthEnd(Number(date.slice(0, 4)), Number(date.slice(5, 7)));
 }
 
-/** `ym` (YYYY-MM[-DD]) shifted by n months, as a month-end. */
-export function addMonths(ym: string, n: number): string {
-  const y = Number(ym.slice(0, 4));
-  const m = Number(ym.slice(5, 7));
+/** `month` (YYYY-MM[-DD]) shifted by n months, as a month-end. */
+export function addMonths(month: string, n: number): string {
+  const y = Number(month.slice(0, 4));
+  const m = Number(month.slice(5, 7));
   const t = y * 12 + (m - 1) + n;
   return monthEnd(Math.floor(t / 12), (t % 12) + 1);
-}
-
-/** Number of months from a to b inclusive (both month keys). */
-export function monthsBetween(a: string, b: string): number {
-  return (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 + (Number(b.slice(5, 7)) - Number(a.slice(5, 7))) + 1;
 }
 
 /** Last closed month-end before `now` (the month before the current one, UTC). */
@@ -369,7 +365,7 @@ const calDays = (a: string, b: string): number => Math.round((Date.parse(`${b}T0
 /** the first bond-market business day of its month (the index rebalances at the month-end: not a typical day) */
 function firstBondDayOfMonth(d: string): boolean {
   if (!isBondDay(d)) return false;
-  for (let t = Date.parse(`${d.slice(0, 7)}-01T00:00:00Z`); ; t += 86_400_000) {
+  for (let t = Date.parse(`${ym(d)}-01T00:00:00Z`); ; t += 86_400_000) {
     const x = new Date(t).toISOString().slice(0, 10);
     if (isBondDay(x)) return x === d;
   }
@@ -482,9 +478,9 @@ export function joinFtseHistory(current: Record<string, number>, candidates: Fts
 
 const isWeekday = (t: number): boolean => { const w = new Date(t).getUTCDay(); return w !== 0 && w !== 6; };
 
-/** last weekday (Mon-Fri) of the month of `ym`, and the weekday `back` weekdays before it */
-export function lastWeekdays(ym: string, back = 2): { last: string; earliest: string } {
-  let t = Date.parse(toMonthEnd(ym));
+/** last weekday (Mon-Fri) of the month of `month`, and the weekday `back` weekdays before it */
+export function lastWeekdays(month: string, back = 2): { last: string; earliest: string } {
+  let t = Date.parse(toMonthEnd(month));
   while (!isWeekday(t)) t -= 86_400_000;
   const last = new Date(t).toISOString().slice(0, 10);
   for (let n = 0; n < back; ) {
@@ -509,7 +505,7 @@ export function monthEndReturns(levels: Record<string, number>): MonthEndReturns
   for (const d of Object.keys(levels).sort()) {
     const v = levels[d];
     if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) continue;
-    last[d.slice(0, 7)] = { d, v };
+    last[ym(d)] = { d, v };
   }
   const months = Object.keys(last).sort();
   const dropped: MonthEndReturns["dropped"] = [];

@@ -13,9 +13,10 @@ import type { Bucket, Characteristic, Issue, PortfolioBreakdownKey, PortfolioDat
 import { PORTFOLIO } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
 import type { BreakdownKey, FundPortfolio, PortfolioMeasureKey, SourceResult, WeightRow } from "./raw.ts";
+import { ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
 const DAY = 86_400_000;
-const pct = (x: number, d = 1): string => `${(x * 100).toFixed(d)}%`;
 
 /* ------------------------------------------------------------------ mapping */
 
@@ -75,7 +76,7 @@ function coveredMetrics(book: FundPortfolio): { metrics: PortfolioMetric[]; hidd
     const typeOk = m.unit === "rating" ? typeof src.value === "string" : typeof src.value === "number";
     if (!typeOk) { hidden.push(`${m.from} (value of the wrong type)`); continue; }
     if (src.coverage === null || src.coverage < PORTFOLIO.minMetricCoverage) {
-      hidden.push(`${m.from} (coverage ${src.coverage === null ? "unknown" : pct(src.coverage)})`);
+      hidden.push(`${m.from} (coverage ${src.coverage === null ? "unknown" : pct(src.coverage, 1)})`);
       continue;
     }
     metrics.push({ id: m.id, value: src.value, unit: m.unit, coverage: Math.min(1, src.coverage), ...(src.scope === "bond_holdings" ? { scope: "bondHoldings" as const } : {}) });
@@ -137,7 +138,7 @@ export function selectPortfolio(res: SourceResult<FundPortfolio> | undefined, o:
   if (stale) return none([...issues, { key, level: "warn", message: `daily portfolio not used: ${stale}; month-end factsheet figures shown` }]);
   const { priced_weight: priced, resolved_weight: resolved } = book.coverage;
   if (priced === null || resolved === null || priced < PORTFOLIO.minPricedWeight || resolved < PORTFOLIO.minResolvedWeight) {
-    const fmt = (v: number | null) => (v === null ? "unknown" : pct(v));
+    const fmt = (v: number | null) => (v === null ? "unknown" : pct(v, 1));
     return none([...issues, {
       key, level: "warn",
       message: `daily portfolio coverage below the thresholds (priced ${fmt(priced)} < ${pct(PORTFOLIO.minPricedWeight, 0)} or resolved ${fmt(resolved)} < ${pct(PORTFOLIO.minResolvedWeight, 0)} of the bond weight): month-end factsheet figures shown`,
@@ -148,7 +149,7 @@ export function selectPortfolio(res: SourceResult<FundPortfolio> | undefined, o:
   if (hidden.length) issues.push({ key: `${key}.characteristics`, level: "info", message: `not shown (coverage below ${pct(PORTFOLIO.minMetricCoverage, 0)} or unusable): ${hidden.join(", ")}` });
   if (book.warnings.length) issues.push({ key, level: "info", message: `dataplatform: ${book.warnings.slice(0, 5).join("; ")}` });
   const m = book.method;
-  const provenance = `${m.source ?? "dataplatform /api/apex/fund-portfolio"}: ${o.short} FINAL_NAV book ${book.as_of}; priced ${pct(priced)}, resolved ${pct(resolved)} of the bond weight${m.weights ? `; weights: ${m.weights}` : ""}${m.duration ? `; duration: ${m.duration}` : ""}`;
+  const provenance = `${m.source ?? "dataplatform /api/apex/fund-portfolio"}: ${o.short} FINAL_NAV book ${book.as_of}; priced ${pct(priced, 1)}, resolved ${pct(resolved, 1)} of the bond weight${m.weights ? `; weights: ${m.weights}` : ""}${m.duration ? `; duration: ${m.duration}` : ""}`;
   return { portfolio, issues, provenance, absent: false };
 }
 
@@ -161,14 +162,14 @@ interface FactsheetPortfolio {
   sectors?: Bucket[];
 }
 
-const lastDayOfMonth = (ym: string): string => new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).toISOString().slice(0, 10);
+const lastDayOfMonth = (month: string): string => new Date(Date.UTC(+month.slice(0, 4), +month.slice(5, 7), 0)).toISOString().slice(0, 10);
 const normLabel = (s: string): string => s.toLowerCase().replace(/[^a-z]/g, "").replace(/s$/, "");
 
 /** A book usable for the month-end comparison: in the factsheet's month, within its last days. */
 export function monthEndBook(books: (FundPortfolio | null | undefined)[], month: string): FundPortfolio | null {
   const end = lastDayOfMonth(month);
   for (const b of books) {
-    if (!b || b.as_of.slice(0, 7) !== month) continue;
+    if (!b || ym(b.as_of) !== month) continue;
     if ((Date.parse(end) - Date.parse(b.as_of)) / DAY <= PORTFOLIO.crossCheck.bookWithinDays) return b;
   }
   return null;
@@ -207,7 +208,7 @@ export function crossCheckPortfolio(book: FundPortfolio, fs: FactsheetPortfolio,
     const f = fsSectors.get(normLabel(r.label));
     if (f === undefined) continue;
     compared++;
-    if (Math.abs(r.weight - f) > tol.sectorWeight) out.push({ key: `${key}.sector`, level: "warn", message: `month-end cross-check ${book.as_of}: sector ${r.label} ${pct(r.weight)} (daily book) vs ${pct(f)} (factsheet ${fs.month}), gap above ${pct(tol.sectorWeight, 0)}` });
+    if (Math.abs(r.weight - f) > tol.sectorWeight) out.push({ key: `${key}.sector`, level: "warn", message: `month-end cross-check ${book.as_of}: sector ${r.label} ${pct(r.weight, 1)} (daily book) vs ${pct(f, 1)} (factsheet ${fs.month}), gap above ${pct(tol.sectorWeight, 0)}` });
   }
   if (!compared) out.push({ key, level: "info", message: `month-end cross-check ${book.as_of}: nothing comparable with the factsheet ${fs.month}` });
   return out;

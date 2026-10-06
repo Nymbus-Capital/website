@@ -31,6 +31,8 @@
 import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, dropHolidayFiller, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
+import { ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
 interface ClassCheckConfig {
   relaunchGapDays: number;
@@ -98,8 +100,6 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const dayDiff = (a: string, b: string): number => (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
-const ym = (d: string): string => d.slice(0, 7);
 
 function median(xs: number[]): number {
   const s = [...xs].sort((a, b) => a - b);

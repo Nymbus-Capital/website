@@ -9,6 +9,7 @@
  */
 import type { FundKey } from "../data/types.ts";
 import { FUNDS } from "../../config/funds.ts";
+import { ym } from "../data/dates.ts";
 
 /**
  * Class code of a monthly series. "STRATEGY" / "STRATEGY_H" are the dataplatform monthly-net-returns names ("STRATEGY"
@@ -177,7 +178,7 @@ export function classLabel(key: FundKey, code: string | null | undefined): strin
 
 /** Class of the fund returns published in the factsheet archive of `month` (YYYY-MM or a date), or null. */
 export function factsheetClassAt(key: FundKey, month: string): ClassCode | null {
-  const m = month.slice(0, 7);
+  const m = ym(month);
   for (const e of FUND_SOURCES[key].factsheetClass) if (!e.until || m <= e.until) return e.class;
   return null;
 }

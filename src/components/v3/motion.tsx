@@ -7,6 +7,7 @@
  * All of it is skipped under prefers-reduced-motion, and content stays visible without JS (html.js gate).
  */
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { fmt } from "@/components/fund/lib/format";
 
 export const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
@@ -149,17 +150,6 @@ export function RevealTitle({
       </span>
     </Tag>
   );
-}
-
-/** Formats a number as the deck does (tabular, minus sign as U+2212). */
-export function fmt(v: number, o: { decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: "en" | "fr" } = {}) {
-  const d = o.decimals ?? 1;
-  const x = o.pct ? v * 100 : v;
-  const s = Math.abs(x).toLocaleString(o.lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const zero = Number(Math.abs(x).toFixed(d)) === 0; // "−0.0%" reads as a loss: no sign once rounded to zero
-  const sign = zero ? "" : x < 0 ? "−" : o.sign && x > 0 ? "+" : "";
-  const pct = o.pct ? (o.lang === "fr" ? " %" : "%") : "";
-  return `${sign}${o.prefix ?? ""}${s}${pct}${o.suffix ?? ""}`;
 }
 
 /** Number that counts up from 0 when it scrolls into view (ease-out cubic, like countEl in the deck). */

@@ -40,6 +40,8 @@ import { performanceProblems, pickDefaultClass } from "./classes.ts";
 import { FUNDS } from "../../config/funds.ts";
 import { fundWithClassLabel, perfClassCode } from "./perf-class.ts";
 import { addMonths, compound, lastClosedMonth, sum, trailing, type Method, type Series } from "./metrics.ts";
+import { ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
 export interface FundValidation {
   fund: FundKey;
@@ -55,7 +57,6 @@ export interface FundValidation {
 }
 
 const days = (a: string, b: Date): number => (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 
 /** paths of non-finite numbers inside a value */
 export function nonFinitePaths(v: unknown, path: string, out: string[] = []): string[] {
@@ -129,7 +130,7 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
     if (last.date !== p.asOf || Math.abs(last.fund - expected) > 0.01) blocking.push({ key: `${base}.performance.growth`, level: "error", message: `growth of 10 000 ends at ${last.date} ${last.fund.toFixed(2)}, expected ${p.asOf} ${expected.toFixed(2)}` });
   }
   const closed = lastClosedMonth(now);
-  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${p.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` });
+  if (p.asOf < addMonths(closed, -1)) warnings.push({ key: `${base}.performance.asOf`, level: "error", message: `stale: performance as of ${ym(p.asOf)} while ${ym(closed)} is closed` });
 }
 
 /**
@@ -516,7 +517,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
       }
       const closed = lastClosedMonth(now);
       if (kept?.performance && kept.performance.asOf < addMonths(closed, -1)) {
-        const stale: Issue = { key: `${base}.performance.asOf`, level: "error", message: `stale: kept performance as of ${kept.performance.asOf.slice(0, 7)} while ${closed.slice(0, 7)} is closed` };
+        const stale: Issue = { key: `${base}.performance.asOf`, level: "error", message: `stale: kept performance as of ${ym(kept.performance.asOf)} while ${ym(closed)} is closed` };
         warnings.push(stale);
         extraIssues.push(stale);
       }
@@ -613,7 +614,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
         }
       }
       const months = context[key]?.unconfirmed ?? [];
-      data.issues.push({ key: `${base}.performance.review`, level: "warn", message: `needs review: new month(s) ${months.map((m) => m.slice(0, 7)).join(", ")} confirmed by no source independent of the dataplatform; auto mode keeps ${prevF?.performance ? `the previous performance (as of ${prevF.performance.asOf.slice(0, 7)})` : "no performance"} live until an admin publishes this run` });
+      data.issues.push({ key: `${base}.performance.review`, level: "warn", message: `needs review: new month(s) ${months.map(ym).join(", ")} confirmed by no source independent of the dataplatform; auto mode keeps ${prevF?.performance ? `the previous performance (as of ${ym(prevF.performance.asOf)})` : "no performance"} live until an admin publishes this run` });
     }
     autoData.issues = data.issues;
     autoData.asOf = computeAsOf(autoData.funds);

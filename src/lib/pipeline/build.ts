@@ -36,7 +36,7 @@ import { classLabel, classSeriesOf, factsheetClassAt, FUND_SOURCES, trackFundser
 import { perfClassCode, withClassLabel } from "./perf-class.ts";
 import { CHAIN, CLASS_CHECKS, CLASS_SPREAD, factsheetTolerance, FTSE_COMPARABLE_FROM, INDEX_MONTHLY_TOL, PIPELINE_FUNDS, TOL } from "./config.ts";
 import {
-  addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, monthsBetween, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
+  addMonths, calendarYears, clean, growth as growthOf, lastClosedMonth, monthEndReturns, riskStats, sortedKeys, toMonthEnd, trailing as trailingOf,
   type Method, type RiskResult, type Series,
 } from "./metrics.ts";
 import {
@@ -50,6 +50,8 @@ import { selectDistributions, type LiveClass } from "./distributions.ts";
 import { buildClassEntry, performanceProblems, pickDefaultClass } from "./classes.ts";
 import { computeFundClasses, type ClassInput, type FundClassesResult } from "./class-returns.ts";
 import { classMonths, classStart, type ChainMonth } from "./daily-chain.ts";
+import { monthsBetween, ym } from "../data/dates.ts";
+import { pct } from "./format.ts";
 
 type PartName = "performance" | "nav" | "aum" | "factsheet";
 /** fresh: built this run; held: kept at an older month on purpose (waiting for a factsheet); carried: previous publication reused because a source failed */
@@ -98,7 +100,6 @@ const PERIOD_LIST = PERIODS as readonly string[];
 
 /* ------------------------------------------------------------------ helpers */
 
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 const pct4 = (x: number): string => `${(x * 100).toFixed(4)}%`;
 
 /** ["2019-01-31","2019-02-28","2019-04-30"] -> "2019-01 to 2019-02, 2019-04" */
@@ -114,7 +115,6 @@ function monthRanges(ms: string[]): string {
   if (a) out.push(a === b ? ym(a) : `${ym(a)} to ${ym(b!)}`);
   return out.join(", ");
 }
-const ym = (d: string): string => d.slice(0, 7);
 
 class Ctx {
   issues: Issue[] = [];
@@ -402,7 +402,7 @@ function factsheetMonthValue(raw: RawPayloads, spec: FundSpec, classCode: string
 function multiClassAggregate(raw: RawPayloads, short: DpShort, code: string, month: string): { count: number; date: string } | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
-  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && r.date.slice(0, 7) === month.slice(0, 7) && typeof r.return_source_count === "number" && r.return_source_count > 1);
+  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && ym(r.date) === ym(month) && typeof r.return_source_count === "number" && r.return_source_count > 1);
   return hit ? { count: hit.return_source_count as number, date: hit.date } : null;
 }
 
@@ -1457,7 +1457,7 @@ function buildVariants(
     if (!pb?.performance) {
       if (old) {
         out[v.id] = old;
-        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance?.asOf.slice(0, 7) ?? "?"})`);
+        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance ? ym(old.performance.asOf) : "?"})`);
       } else c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; the variant is not shown`);
       return;
     }

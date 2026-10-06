@@ -17,11 +17,11 @@ import type { ClassSeriesSource } from "./fund-sources.ts";
 import type { ClassMonthResult, ClassResult } from "./class-returns.ts";
 import { hasMinHistory } from "./class-returns.ts";
 import {
-  addMonths, annualize, calendarYears, clean, compound, growth as growthOf, monthsBetween, riskStats, sortedKeys, trailing as trailingOf, window, type RiskResult, type Series,
+  addMonths, annualize, calendarYears, clean, compound, growth as growthOf, riskStats, sortedKeys, trailing as trailingOf, window, type RiskResult, type Series,
 } from "./metrics.ts";
+import { monthsBetween, ym } from "../data/dates.ts";
 
 const PERIOD_LIST = PERIODS as readonly string[];
-const ym = (d: string): string => d.slice(0, 7);
 const dayDiff = (a: string, b: string): number => (Date.parse(`${b.slice(0, 10)}T00:00:00Z`) - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
 
 const toPoints = (s: Series): MonthlyPoint[] => sortedKeys(s).map((month) => ({ month, r: s[month] }));

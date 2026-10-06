@@ -10,14 +10,15 @@ import type { FactsheetFiles, SourceResult } from "../raw.ts";
 import { addMonths } from "../metrics.ts";
 import { errMsg, type FetchImpl } from "./http.ts";
 import { graphConfig, graphDownload } from "./graph.ts";
+import { ym } from "../../data/dates.ts";
 
 const FACTSHEET_PREFIXES = ["bonds_data", "factsheet_data"] as const;
 
 export function candidateFiles(targetMonth: string, back = 2): string[] {
   const out: string[] = [];
   for (let i = 0; i <= back; i++) {
-    const ym = addMonths(targetMonth, -i).slice(0, 7);
-    for (const p of FACTSHEET_PREFIXES) out.push(`${p}_${ym}.json`);
+    const month = ym(addMonths(targetMonth, -i));
+    for (const p of FACTSHEET_PREFIXES) out.push(`${p}_${month}.json`);
   }
   return out;
 }

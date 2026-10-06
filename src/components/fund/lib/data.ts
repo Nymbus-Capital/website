@@ -8,6 +8,7 @@ import type {
   PortfolioBreakdownKey, PortfolioData, PortfolioMetric, RiskStats,
 } from "../../../lib/data/types.ts";
 import { isFreshBook } from "../../../lib/data/freshness.ts";
+import { monthsBetween } from "../../../lib/data/dates.ts";
 
 const PERIOD_ORDER: Period[] = ["1M", "3M", "YTD", "1Y", "2Y", "3Y", "5Y", "10Y", "SI"];
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -20,7 +21,7 @@ export function trailingPeriods(fund: PeriodMap | undefined | null): Period[] {
 
 /** Monthly returns in a track record from `firstMonth` to `asOf` (both month-ends, inclusive). */
 export function trackMonths(firstMonth: string, asOf: string): number {
-  return monthsBetween(firstMonth, asOf) + 1;
+  return monthsBetween(firstMonth, asOf);
 }
 
 /**
@@ -37,12 +38,6 @@ export function isAnnualized(p: Period, firstMonth?: string | null, asOf?: strin
   if (p === "2Y" || p === "3Y" || p === "5Y" || p === "10Y") return true;
   if (p !== "SI") return false;
   return siAnnualized(firstMonth, asOf);
-}
-
-export function monthsBetween(a: string, b: string): number {
-  const [ya, ma] = [+a.slice(0, 4), +a.slice(5, 7)];
-  const [yb, mb] = [+b.slice(0, 4), +b.slice(5, 7)];
-  return (yb - ya) * 12 + (mb - ma);
 }
 
 /**
