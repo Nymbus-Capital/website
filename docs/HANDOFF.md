@@ -183,7 +183,9 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
   180 days); compliance CF2 amended, CF6 (individual investors), CF7 (Teams notice), CF8 (retention) added. Decisions
   kept from the earlier passes: no zod in the shared rule module (plain-Node tests, browser bundle), native no-JS post
   with 303 back (mailto stays as the alternative and as the fallback on failure), in-memory per-client limiter (single
-  instance).
+  instance). Phones: the send button takes its own row above "Back" (« Envoyer mon message »
+  overflowed half a row; e2e checks it fits). CI run 272 green; adversarial review by separate
+  reviewer agents still to run.
 
 - 2026-10-06 (sub-agent, branch `feat/contact-form`; **not merged**): § 5 B5 contact form backend, no e-mail service and
   no new credential or env var. The three-step form (unchanged design) now posts to `POST /api/contact` (JSON with
