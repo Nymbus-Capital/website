@@ -82,7 +82,7 @@ test("contact: three steps validated, consent required, sent to the site (EN)", 
   // another message starts over at step 1
   await sent.getByRole("link", { name: /send another message/i }).click();
   await expect(page.getByTestId("contact-form")).toBeVisible();
-  await expect(page.getByRole("group", { name: /what type of investor/i })).toBeVisible();
+  await expect(page.getByRole("group", { name: /who are you/i })).toBeVisible();
   // office details and the mailto / phone alternatives remain
   await expect(page.locator('a[href^="tel:+15149851138"]').first()).toBeVisible();
   await expect(page.locator('a[href^="mailto:info@nymbus.ca"]').first()).toBeAttached();
