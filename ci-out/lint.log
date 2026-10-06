@@ -1,0 +1,398 @@
+
+> nymbus-web@0.1.0 lint
+> eslint --max-warnings=25
+
+
+/home/runner/work/website/website/src/components/fund/charts/Breakdowns.tsx
+  75:15  warning  Error: Cannot reassign variable after render completes
+
+Reassigning `acc` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+/home/runner/work/website/website/src/components/fund/charts/Breakdowns.tsx:75:15
+  73 |               const dash = Math.max(0.01, len - gap);
+  74 |               const off = -(acc + gap / 2);
+> 75 |               acc += len;
+     |               ^^^ Cannot reassign `acc` after render completes
+  76 |               return (
+  77 |                 <circle key={p.label} r={r} cx={cx} cy={cx} fill="none" stroke={SLICE[i % SLICE.length]} strokeWidth={on === i ? thick + 6 : thick} strokeLinecap={parts.length > 1 ? "round" : "butt"}
+  78 |                   strokeDasharray={`${dash} ${C}`} strokeDashoffset={off} transform={`rotate(-90 ${cx} ${cx})`} className={`arc${on === i ? " on" : ""}`}  react-hooks/immutability
+
+/home/runner/work/website/website/src/components/fund/charts/DistBars.tsx
+  68:15  warning  Error: Cannot modify local variables after render completes
+
+This argument is a function which may reassign or mutate `host` after render, which can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+/home/runner/work/website/website/src/components/fund/charts/DistBars.tsx:68:15
+  66 |
+  67 |   return (
+> 68 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This function may (indirectly) reassign or modify `host` after render
+  69 |       {near && w > 0 ? (
+  70 |         <svg ref={svgRef} width={w} height={height} viewBox={`0:0 ${w} ${height}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined} onPointerLeave={() => focusBar(null)}>
+  71 |           <defs>
+
+/home/runner/work/website/website/src/components/fund/charts/DistBars.tsx:68:25
+  66 |
+  67 |   return (
+> 68 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
+     |                         ^^^^ This modifies `host`
+  69 |       {near && w > 0 ? (
+  70 |         <svg ref={svgRef} width={w} height={height} viewBox={`0:0 ${w} ${height}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined} onPointerLeave={() => focusBar(null)}>
+  71 |           <defs>  react-hooks/immutability
+  68:25  warning  Error: This value cannot be modified
+
+Modifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the value is constructed.
+
+/home/runner/work/website/website/src/components/fund/charts/DistBars.tsx:68:25
+  66 |
+  67 |   return (
+> 68 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
+     |                         ^^^^ `host` cannot be modified
+  69 |       {near && w > 0 ? (
+  70 |         <svg ref={svgRef} width={w} height={height} viewBox={`0:0 ${w} ${height}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined} onPointerLeave={() => focusBar(null)}>
+  71 |           <defs>
+
+Hint: If this value is a Ref (value returned by `useRef()`), rename the variable to end in "Ref"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/immutability
+
+/home/runner/work/website/website/src/components/fund/charts/GroupedBars.tsx
+  140:15  warning  Error: Cannot modify local variables after render completes
+
+This argument is a function which may reassign or mutate `host` after render, which can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+/home/runner/work/website/website/src/components/fund/charts/GroupedBars.tsx:140:15
+  138 |
+  139 |   return (
+> 140 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
+      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This function may (indirectly) reassign or modify `host` after render
+  141 |       <div className={`fx-chart-in${scrolls ? " scroll" : ""}`} style={scrolls ? undefined : { height: H }} data-scroll={scrolls ? "" : undefined}>
+  142 |       {near && w > 0 ? (
+  143 |         <svg ref={svgRef} width={cw} height={H} viewBox={`0:0 ${cw} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}
+
+/home/runner/work/website/website/src/components/fund/charts/GroupedBars.tsx:140:25
+  138 |
+  139 |   return (
+> 140 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
+      |                         ^^^^ This modifies `host`
+  141 |       <div className={`fx-chart-in${scrolls ? " scroll" : ""}`} style={scrolls ? undefined : { height: H }} data-scroll={scrolls ? "" : undefined}>
+  142 |       {near && w > 0 ? (
+  143 |         <svg ref={svgRef} width={cw} height={H} viewBox={`0:0 ${cw} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}  react-hooks/immutability
+  140:25  warning  Error: This value cannot be modified
+
+Modifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the value is constructed.
+
+/home/runner/work/website/website/src/components/fund/charts/GroupedBars.tsx:140:25
+  138 |
+  139 |   return (
+> 140 |     <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={scrolls ? undefined : { height: H }}>
+      |                         ^^^^ `host` cannot be modified
+  141 |       <div className={`fx-chart-in${scrolls ? " scroll" : ""}`} style={scrolls ? undefined : { height: H }} data-scroll={scrolls ? "" : undefined}>
+  142 |       {near && w > 0 ? (
+  143 |         <svg ref={svgRef} width={cw} height={H} viewBox={`0:0 ${cw} ${H}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined}
+
+Hint: If this value is a Ref (value returned by `useRef()`), rename the variable to end in "Ref"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/immutability
+
+/home/runner/work/website/website/src/components/fund/charts/GrowthChart.tsx
+  105:17  warning  Error: Cannot modify local variables after render completes
+
+This argument is a function which may reassign or mutate `host` after render, which can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+/home/runner/work/website/website/src/components/fund/charts/GrowthChart.tsx:105:17
+  103 |         {s.hasIndex ? <span><i className="line index" />{names.index}</span> : null}
+  104 |       </div>
+> 105 |       <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
+      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This function may (indirectly) reassign or modify `host` after render
+  106 |         {near && w > 0 ? (
+  107 |           <svg ref={svgRef} width={w} height={H} viewBox={`0:0 ${w} ${H}`} tabIndex={0} role="img"
+  108 |             aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])}${changeText}, ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}
+
+/home/runner/work/website/website/src/components/fund/charts/GrowthChart.tsx:105:27
+  103 |         {s.hasIndex ? <span><i className="line index" />{names.index}</span> : null}
+  104 |       </div>
+> 105 |       <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
+      |                           ^^^^ This modifies `host`
+  106 |         {near && w > 0 ? (
+  107 |           <svg ref={svgRef} width={w} height={H} viewBox={`0:0 ${w} ${H}`} tabIndex={0} role="img"
+  108 |             aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])}${changeText}, ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}  react-hooks/immutability
+  105:27  warning  Error: This value cannot be modified
+
+Modifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the value is constructed.
+
+/home/runner/work/website/website/src/components/fund/charts/GrowthChart.tsx:105:27
+  103 |         {s.hasIndex ? <span><i className="line index" />{names.index}</span> : null}
+  104 |       </div>
+> 105 |       <div ref={(el) => { host.current = el; nearRef.current = el; }} className="fx-chart" style={{ height: H }}>
+      |                           ^^^^ `host` cannot be modified
+  106 |         {near && w > 0 ? (
+  107 |           <svg ref={svgRef} width={w} height={H} viewBox={`0:0 ${w} ${H}`} tabIndex={0} role="img"
+  108 |             aria-label={`${label}. ${names.fund}: ${cur(s.fund[0])} → ${cur(s.fund[last])}${changeText}, ${monthLabel(s.dates[0], lang)} – ${monthLabel(s.dates[last], lang)}. ${keysHint}`}
+
+Hint: If this value is a Ref (value returned by `useRef()`), rename the variable to end in "Ref"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/immutability
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx
+  12:12  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx:12:12
+  10 |   const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
+  11 |   const last = useRef<TipState | null>(null);
+> 12 |   if (tip) last.current = tip;
+     |            ^^^^^^^^^^^^ Cannot update ref during render
+  13 |   const t = tip ?? last.current;
+  14 |   useLayoutEffect(() => {
+  15 |     const el = ref.current;  react-hooks/refs
+  13:20  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx:13:20
+  11 |   const last = useRef<TipState | null>(null);
+  12 |   if (tip) last.current = tip;
+> 13 |   const t = tip ?? last.current;
+     |                    ^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   useLayoutEffect(() => {
+  15 |     const el = ref.current;
+  16 |     if (!el || !tip) return;                                             react-hooks/refs
+  13:20  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx:13:20
+  11 |   const last = useRef<TipState | null>(null);
+  12 |   if (tip) last.current = tip;
+> 13 |   const t = tip ?? last.current;
+     |                    ^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   useLayoutEffect(() => {
+  15 |     const el = ref.current;
+  16 |     if (!el || !tip) return;                                             react-hooks/refs
+  13:20  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx:13:20
+  11 |   const last = useRef<TipState | null>(null);
+  12 |   if (tip) last.current = tip;
+> 13 |   const t = tip ?? last.current;
+     |                    ^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   useLayoutEffect(() => {
+  15 |     const el = ref.current;
+  16 |     if (!el || !tip) return;                                             react-hooks/refs
+  13:20  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/fund/charts/Tip.tsx:13:20
+  11 |   const last = useRef<TipState | null>(null);
+  12 |   if (tip) last.current = tip;
+> 13 |   const t = tip ?? last.current;
+     |                    ^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   useLayoutEffect(() => {
+  15 |     const el = ref.current;
+  16 |     if (!el || !tip) return;                                             react-hooks/refs
+
+/home/runner/work/website/website/src/components/fund/charts/hooks.ts
+  49:56  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/fund/charts/hooks.ts:49:56
+  47 |     const el = ref.current;
+  48 |     if (!el) return;
+> 49 |     if (typeof IntersectionObserver === "undefined") { setNear(true); setSeen(true); return; }
+     |                                                        ^^^^^^^ Avoid calling setState() directly within an effect
+  50 |     const a = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setNear(true); a.disconnect(); } }, { rootMargin: margin });
+  51 |     const b = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); b.disconnect(); } }, { rootMargin: "0px 0px -15% 0px", threshold: 0.15 });
+  52 |     a.observe(el); b.observe(el);  react-hooks/set-state-in-effect
+
+/home/runner/work/website/website/src/components/motion/motion.tsx
+   62:56  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/motion/motion.tsx:62:56
+  60 |     const el = ref.current;
+  61 |     if (!el || seen) return;
+> 62 |     if (typeof IntersectionObserver === "undefined") { setSeen(true); return; }
+     |                                                        ^^^^^^^ Avoid calling setState() directly within an effect
+  63 |     const t = opts.threshold ?? 0.12;
+  64 |     const io = new IntersectionObserver(
+  65 |       (entries) => {                                                                                            react-hooks/set-state-in-effect
+  197:57  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/motion/motion.tsx:197:57
+  195 |   const final = fmt(value, { decimals, pct, sign, prefix, suffix, lang });
+  196 |   const [roll, setRoll] = useState(false);
+> 197 |   useLayoutEffect(() => { if (seen && !reducedMotion()) setRoll(true); }, [seen]);
+      |                                                         ^^^^^^^ Avoid calling setState() directly within an effect
+  198 |   const chars = Array.from(final);
+  199 |   let digitIndex = 0;
+  200 |   const nDigits = chars.filter((c) => /\d/.test(c)).length;  react-hooks/set-state-in-effect
+
+/home/runner/work/website/website/src/components/site/Nav.tsx
+  56:21  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/site/Nav.tsx:56:21
+  54 |   }, []);
+  55 |
+> 56 |   useEffect(() => { setOpen(false); }, [path]);
+     |                     ^^^^^^^ Avoid calling setState() directly within an effect
+  57 |   const close = useCallback(() => { setOpen(false); toggleRef.current?.focus(); }, []);
+  58 |
+  59 |   // menu open: lock scroll, trap focus, Escape closes  react-hooks/set-state-in-effect
+
+/home/runner/work/website/website/src/components/site/concepts/ConceptPanel.tsx
+  71:3  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/concepts/ConceptPanel.tsx:71:3
+  69 |   const [still, setStill] = useState(false);
+  70 |   const reduced = useReducedMotion();
+> 71 |   lang.current = locale;
+     |   ^^^^^^^^^^^^ Cannot update ref during render
+  72 |
+  73 |   useEffect(() => {
+  74 |     const c = canvas.current;  react-hooks/refs
+
+/home/runner/work/website/website/src/components/site/fx/fx.tsx
+  164:3  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/fx/fx.tsx:164:3
+  162 |   const [ready, setReady] = useState(false);
+  163 |   const reduced = useReducedMotion();
+> 164 |   lang.current = locale;
+      |   ^^^^^^^^^^^^ Cannot update ref during render
+  165 |   useEffect(() => {
+  166 |     const c = canvas.current;
+  167 |     if (!c) return;  react-hooks/refs
+
+/home/runner/work/website/website/src/components/site/fx/overlay.tsx
+  38:3  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/fx/overlay.tsx:38:3
+  36 |   const [ready, setReady] = useState(false);
+  37 |   const reduced = useReducedMotion();
+> 38 |   lang.current = locale;
+     |   ^^^^^^^^^^^^ Cannot update ref during render
+  39 |   useEffect(() => {
+  40 |     const c = canvas.current;
+  41 |     if (!c) return;  react-hooks/refs
+
+/home/runner/work/website/website/src/components/site/kit.tsx
+  122:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/site/kit.tsx:122:5
+  120 |     if (!svg) return;
+  121 |     if (reducedMotion()) return;
+> 122 |     setAnim(true);
+      |     ^^^^^^^ Avoid calling setState() directly within an effect
+  123 |     svg.querySelectorAll<SVGPathElement>("path[data-curve]").forEach((p, i) => {
+  124 |       const len = p.getTotalLength();
+  125 |       p.style.strokeDasharray = `${len}`;  react-hooks/set-state-in-effect
+
+/home/runner/work/website/website/src/components/site/pages/Contact.tsx
+   50:21  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/site/pages/Contact.tsx:50:21
+  48 |   const sentRef = useRef<HTMLParagraphElement>(null);
+  49 |   const moved = useRef(false);
+> 50 |   useEffect(() => { setLive(true); }, []);
+     |                     ^^^^^^^ Avoid calling setState() directly within an effect
+  51 |   useEffect(() => {
+  52 |     if (!moved.current) return;
+  53 |     stepRefs[step - 1].current?.focus();  react-hooks/set-state-in-effect
+  190:26  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/pages/Contact.tsx:190:26
+  188 |           </fieldset>
+  189 |
+> 190 |           <fieldset ref={stepRefs[1]} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
+      |                          ^^^^^^^^^^^ Cannot access ref value during render
+  191 |             <legend className="ct-q">{pick(F.q2)}</legend>
+  192 |             <p id="ct-h-interests" className="small">{pick(F.q2hint)}</p>
+  193 |             <div className="ct-opts ct-opts-s">                                                                                                                                                                                                          react-hooks/refs
+  209:26  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/pages/Contact.tsx:209:26
+  207 |           </fieldset>
+  208 |
+> 209 |           <fieldset ref={stepRefs[2]} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
+      |                          ^^^^^^^^^^^ Cannot access ref value during render
+  210 |             <legend className="ct-q">{pick(F.q3)}</legend>
+  211 |             <div className="ct-fields">
+  212 |               <div className="ct-field">                                                                                                                                                                                                                                                                                                                           react-hooks/refs
+
+/home/runner/work/website/website/src/components/site/pages/StrategiesIndex.tsx
+  28:30  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/website/website/src/components/site/pages/StrategiesIndex.tsx:28:30
+  26 |   useEffect(() => {
+  27 |     const h = window.location.hash.slice(1) as Filter;
+> 28 |     if (FILTERS.includes(h)) setFilter(h);
+     |                              ^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |   }, []);
+  30 |   const choose = (f: Filter) => {
+  31 |     setFilter(f);  react-hooks/set-state-in-effect
+
+/home/runner/work/website/website/src/components/site/pages/Team.tsx
+  28:3  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/home/runner/work/website/website/src/components/site/pages/Team.tsx:28:3
+  26 |   const ref = useRef<HTMLDialogElement>(null);
+  27 |   const shown = useRef<TeamMember | null>(null);
+> 28 |   shown.current = m;
+     |   ^^^^^^^^^^^^^ Cannot update ref during render
+  29 |   // a click closes only when it started AND ended on the backdrop (a text selection dragged out of the dialog does not)
+  30 |   const downOnBackdrop = useRef(false);
+  31 |   useEffect(() => {  react-hooks/refs
+
+✖ 25 problems (0 errors, 25 warnings)
+
