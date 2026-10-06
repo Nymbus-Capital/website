@@ -136,8 +136,8 @@ function fitChange(x: Record<string, ClassFit>, y: Record<string, ClassFit>, ran
  * The fits and the references they are fitted on depend on each other: iterate from a = 0, slope 1 (damped — two classes
  * that are each other's reference would otherwise swap their spreads every round — and normalised) until no class's
  * expected return moves by more than fitTolerance (for a fund month within ±fitToleranceRange), at most fitMaxRounds
- * rounds. `pointsOf(c, fits)`: class c's
- * (month, reference m, return r) points under `fits`. Returns the fits, the points under them and whether it converged.
+ * rounds. `pointsOf(c, fits)`: class c's (month, reference m, return r) points under `fits`. Returns the fits, the points
+ * under them and whether they settled.
  */
 export function solveFits<P extends FitPoint>(
   classes: string[], fittable: Set<string>, pointsOf: (c: string, fits: Record<string, ClassFit>) => P[], cfg: FitCfg,
