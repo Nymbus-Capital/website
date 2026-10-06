@@ -144,7 +144,7 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ### B. Development (Claude or a developer)
 
-1. **Multi-Strategy series checks**: its series carry a performance fee charged in up months only, so the linear
+1. [in progress — sub-agent, 2026-10-06, branch `feat/multi-fee-fit`] **Multi-Strategy series checks**: its series carry a performance fee charged in up months only, so the linear
    cross-class fit (`src/lib/pipeline/class-returns.ts`) withholds too many months; fit separate up / down slopes.
 2. **Readability** — split done on branch `refactor/split-modules` (not merged, 2026-10-06): `build.ts` →
    `src/lib/pipeline/build/` (entry `index.ts`; `context`, `helpers`, `factsheets`, `register`, `series`, `track-record`,
