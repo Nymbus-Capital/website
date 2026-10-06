@@ -9,7 +9,7 @@ import { withAuthSecret } from "./volume-secret.ts";
 
 type Env = Record<string, string | undefined>;
 
-export const AUTH_ENV_KEYS = ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AUTH_SECRET", "PUBLIC_URL", "ADMIN_ALLOWED_DOMAINS"] as const;
+const AUTH_ENV_KEYS = ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AUTH_SECRET", "PUBLIC_URL", "ADMIN_ALLOWED_DOMAINS"] as const;
 
 /** "writable" or the error code (EACCES, EROFS …) for the data directory. */
 export function dataDirStatus(env: Env): string {
@@ -25,7 +25,7 @@ export function dataDirStatus(env: Env): string {
   }
 }
 
-export const PIPELINE_ENV_KEYS = ["DATAPLATFORM_URL", "GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_DRIVE_ID", "GITHUB_TOKEN", "PIPELINE_ALERT_WEBHOOK"] as const;
+const PIPELINE_ENV_KEYS = ["DATAPLATFORM_URL", "GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_DRIVE_ID", "GITHUB_TOKEN", "PIPELINE_ALERT_WEBHOOK"] as const;
 
 /** Which data-pipeline settings are present (names only). */
 export function pipelineDiagnostics(env: Env): string {

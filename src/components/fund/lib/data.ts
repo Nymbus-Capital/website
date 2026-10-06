@@ -9,7 +9,7 @@ import type {
 } from "../../../lib/data/types.ts";
 import { isFreshBook } from "../../../lib/data/freshness.ts";
 
-export const PERIOD_ORDER: Period[] = ["1M", "3M", "YTD", "1Y", "2Y", "3Y", "5Y", "10Y", "SI"];
+const PERIOD_ORDER: Period[] = ["1M", "3M", "YTD", "1Y", "2Y", "3Y", "5Y", "10Y", "SI"];
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
 /** Periods for which the fund has a trailing return, in display order. */
@@ -77,7 +77,7 @@ export function perfClassLabel(perf: { returnClass?: string; returnClassLabel?: 
 }
 
 export const RISK_LEVELS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
-export type RiskLevel = (typeof RISK_LEVELS)[number];
+type RiskLevel = (typeof RISK_LEVELS)[number];
 export const riskIndex = (r: string | null | undefined) => Math.max(0, RISK_LEVELS.indexOf((r ?? "low") as RiskLevel));
 
 /** The class whose NAV headlines: the admin's choice, else the registry default, else the first class with a NAV. */
@@ -94,7 +94,7 @@ export function headlineClass(classes: NavClass[] | undefined | null, preferred:
 /* ------------------------------------------------------------------ growth of 10 000 $ */
 
 export type Range = "1Y" | "3Y" | "5Y" | "SI";
-export const RANGE_MONTHS: Record<Range, number> = { "1Y": 12, "3Y": 36, "5Y": 60, SI: Infinity };
+const RANGE_MONTHS: Record<Range, number> = { "1Y": 12, "3Y": 36, "5Y": 60, SI: Infinity };
 
 /** Ranges the record is long enough for (SI always; 1Y/3Y/5Y only when shorter than the whole record). */
 export function availableRanges(points: GrowthPoint[]): Range[] {
@@ -114,7 +114,7 @@ export function growthMethod(perf: { method?: string | null; basis?: string | nu
   return (perf?.basis ?? specBasis) === "gross" ? "arithmetic" : "compounded";
 }
 
-export interface GrowthSeries {
+interface GrowthSeries {
   dates: string[]; fund: number[]; index: (number | null)[]; hasIndex: boolean; start: number;
   /** fund return over the range shown (decimal), consistent with the method: what the end label / aria state */
   change: number | null;
@@ -163,7 +163,7 @@ export function partialKind(year: number, partial: boolean | null | undefined, a
 
 /* ------------------------------------------------------------------ monthly heatmap */
 
-export interface HeatRow { year: number; cells: (number | null)[]; total: number | null; partial: boolean; kind: PartialKind }
+interface HeatRow { year: number; cells: (number | null)[]; total: number | null; partial: boolean; kind: PartialKind }
 
 /**
  * Years × 12 months grid of monthly returns, with the calendar-year return when published. A partial row is
@@ -224,7 +224,7 @@ export function orderedBuckets(b: Bucket[] | undefined | null): Bucket[] {
 
 /* ------------------------------------------------------------------ documents */
 
-export const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "esg", "other"];
+const DOC_ORDER: DocType[] = ["factsheet", "fund-facts", "commentary", "presentation", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "esg", "other"];
 
 /** Group documents by type (fixed order), newest first within a group; the display language first. Documents that
  * carry `published: false` are dropped (the public DTO has no flag: it only ever contains published ones). */
@@ -309,7 +309,7 @@ export function portfolioOrigin(data: Pick<FundData, "portfolio" | "factsheetMon
 }
 
 /** Breakdowns of the daily book in display order (paired by typical length in the two-column grid), as bars. */
-export const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sector", "rating", "term"];
+const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sector", "rating", "term"];
 export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
   if (!p) return [];
   return DAILY_BREAKDOWNS.map((key) => ({ key, rows: (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight })) }))
@@ -423,7 +423,7 @@ export function riskWindows(risk: unknown): RiskStats[] {
 /* ------------------------------------------------------------------ fund page (light rebuild) */
 
 /** Periods shown as return badges under the header (6M is not published by the pipeline). */
-export const BADGE_PERIODS: Period[] = ["1M", "3M", "YTD", "1Y", "3Y", "5Y", "10Y", "SI"];
+const BADGE_PERIODS: Period[] = ["1M", "3M", "YTD", "1Y", "3Y", "5Y", "10Y", "SI"];
 
 /** `value` null: the period is withheld (a month of its window could not be verified), shown "—" */
 export interface Badge { period: Period; value: number | null; annualized: boolean }
@@ -438,7 +438,7 @@ export function returnBadges(perf: { trailing: { fund: PeriodMap }; firstMonth?:
 }
 
 /** `fund` is null for a period withheld because a month of its window could not be verified (shown "—"). */
-export interface TrailingRow { period: Period; fund: number | null; index: number | null; va: number | null; annualized: boolean }
+interface TrailingRow { period: Period; fund: number | null; index: number | null; va: number | null; annualized: boolean }
 
 const PERIOD_MONTHS: Partial<Record<Period, number>> = { "1M": 1, "3M": 3, "1Y": 12, "2Y": 24, "3Y": 36, "5Y": 60, "10Y": 120 };
 
@@ -446,7 +446,7 @@ const PERIOD_MONTHS: Partial<Record<Period, number>> = { "1M": 1, "3M": 3, "1Y":
  * Periods of a class entry with withheld months whose window its history covers but whose figure is withheld: they keep
  * their row with "—" (a figure is never silently dropped). Empty for any other performance.
  */
-export function withheldPeriods(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined): Period[] {
+function withheldPeriods(perf: { trailing: { fund: PeriodMap }; firstMonth?: string; asOf?: string; withheldMonths?: string[]; partialFirstMonth?: boolean } | null | undefined): Period[] {
   if (!perf?.withheldMonths?.length || !perf.firstMonth || !perf.asOf) return [];
   const full = trackMonths(perf.firstMonth, perf.asOf) - (perf.partialFirstMonth ? 1 : 0);
   return PERIOD_ORDER.filter((p) => {

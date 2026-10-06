@@ -30,15 +30,15 @@ export interface AuthConfig {
   cookie: CookieSpec;
 }
 
-export type AuthConfigResult = { ok: true; config: AuthConfig } | { ok: false; error: string };
+type AuthConfigResult = { ok: true; config: AuthConfig } | { ok: false; error: string };
 
-export const MIN_SECRET_LENGTH = 32;
+const MIN_SECRET_LENGTH = 32;
 
 /**
  * AUTH_SECRET values committed to this public repository (the e2e server's). Refused unless the process is the
  * e2e / localhost setup (localhost PUBLIC_URL + the explicit insecure-cookie opt-in).
  */
-export const KNOWN_PUBLIC_SECRETS: readonly string[] = ["e2e-auth-secret-0123456789abcdef0123456789abcdef"];
+const KNOWN_PUBLIC_SECRETS: readonly string[] = ["e2e-auth-secret-0123456789abcdef0123456789abcdef"];
 
 type Env = Record<string, string | undefined>;
 

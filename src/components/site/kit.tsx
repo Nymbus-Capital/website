@@ -177,7 +177,7 @@ export function HeroCurves({ className }: { className?: string }) {
 }
 
 /** The deck's chapter light trail as a page-hero backdrop (draws in once). */
-export function HeroTrail() {
+function HeroTrail() {
   const ref = useRef<SVGPathElement>(null);
   const uid = `t${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   useEffect(() => {

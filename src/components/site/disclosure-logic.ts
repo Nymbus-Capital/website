@@ -49,7 +49,7 @@ export function isCollapsible(length: number, minChars: number = DISCLOSURE_MIN_
  * State shown (the `data-disc` attribute): `plain` = short note (no box), `collapsed` = clipped with the fade and the
  * arrow, `fits` = the box at its collapsed height but the text fits (no fade, no arrow), `expanded` = full height.
  */
-export type DiscState = "plain" | "collapsed" | "fits" | "expanded";
+type DiscState = "plain" | "collapsed" | "fits" | "expanded";
 
 export function discState(collapsible: boolean, expanded: boolean, overflows: boolean): DiscState {
   if (!collapsible) return "plain";

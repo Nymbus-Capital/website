@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authConfig, verifySessionToken, type AdminUser, type SessionCheck } from "./session.ts";
 
-export async function adminSession(): Promise<SessionCheck> {
+async function adminSession(): Promise<SessionCheck> {
   const c = authConfig();
   if (!c.ok) return { status: "misconfigured", message: "Admin sign-in is not configured on this server." };
   const store = await cookies();

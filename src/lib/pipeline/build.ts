@@ -30,7 +30,7 @@
  *    payload is supplied: distributions.ts keeps the display logic).
  */
 import { FUNDS, type FundSpec } from "../../config/funds.ts";
-import type { Bucket, CalendarRow, Characteristic, ClassInfo, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
+import type { CalendarRow, Characteristic, ClassInfo, ClassPerformance, FundData, FundKey, GrowthPoint, Issue, MonthlyPoint, NavClass, Performance, PeriodMap, RiskStats, SiteData, Trailing, VariantData } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
 import { classLabel, classSeriesOf, factsheetClassAt, FUND_SOURCES, trackFundserv, type ClassSeriesSource, type FeeBand } from "./fund-sources.ts";
 import { perfClassCode, withClassLabel } from "./perf-class.ts";
@@ -51,11 +51,11 @@ import { buildClassEntry, performanceProblems, pickDefaultClass } from "./classe
 import { computeFundClasses, type ClassInput, type FundClassesResult } from "./class-returns.ts";
 import { classMonths, classStart, type ChainMonth } from "./daily-chain.ts";
 
-export type PartName = "performance" | "nav" | "aum" | "factsheet";
+type PartName = "performance" | "nav" | "aum" | "factsheet";
 /** fresh: built this run; held: kept at an older month on purpose (waiting for a factsheet); carried: previous publication reused because a source failed */
-export type PartState = "fresh" | "held" | "carried" | "none";
+type PartState = "fresh" | "held" | "carried" | "none";
 
-export interface BuildOptions {
+interface BuildOptions {
   mode?: SiteData["mode"];
   /**
    * H3 gate: a performance month newer than the published one also needs its factsheet and a passing cross-check, in
@@ -102,7 +102,7 @@ const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 const pct4 = (x: number): string => `${(x * 100).toFixed(4)}%`;
 
 /** ["2019-01-31","2019-02-28","2019-04-30"] -> "2019-01 to 2019-02, 2019-04" */
-export function monthRanges(ms: string[]): string {
+function monthRanges(ms: string[]): string {
   const out: string[] = [];
   let a: string | null = null;
   let b: string | null = null;
@@ -195,7 +195,7 @@ interface FundSeries {
 type MnrResult = RawPayloads["monthlyReturns"][DpShort];
 
 /** Whether the daily NAV chain of a fund was verified on its track-record class (shared with its other classes). */
-export interface ChainVerification {
+interface ChainVerification {
   /** the stored CIBC daily returns reproduce the independent monthly history: CIBC months may be compounded */
   cibc: boolean;
   /** the cut-over month's NAV bridge is consistent: the bridge may be used for the other classes */
@@ -263,7 +263,7 @@ export function effectiveNavStart(raw: RawPayloads, spec: FundSpec): { start: st
 }
 
 /** Months of one class computed from its daily nav-timeseries rows (daily-chain.ts), its first day, or why there are none. */
-export function classChain(raw: RawPayloads, spec: FundSpec, fundserv: string): { months: ChainMonth[]; start: string | null; error: string | null } {
+function classChain(raw: RawPayloads, spec: FundSpec, fundserv: string): { months: ChainMonth[]; start: string | null; error: string | null } {
   const navStart = effectiveNavStart(raw, spec).start;
   if (!navStart) return { months: [], start: null, error: "no NAV history for this fund" };
   const res = raw.navHistory?.[fundserv];
@@ -712,7 +712,7 @@ interface PerfBuild {
 }
 
 /** a factsheet trailing table can serve as a cross-check only if the fund row has 1M, 3M, YTD and 1Y */
-export function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
+function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
   return !!tt && (["1M", "3M", "YTD", "1Y"] as const).every((k) => typeof tt.fund[k] === "number" && Number.isFinite(tt.fund[k] as number));
 }
 
@@ -1203,7 +1203,7 @@ function buildFactsheetParts(raw: RawPayloads, spec: FundSpec, prev: FsParts | u
  * `net_asset_value_cad`, one row per mapped class). null when a class row of that day has no value, or when an
  * active class of the fund register (`required`) has no row that day (a partial sum is never a denominator).
  */
-export function netAssetsOn(raw: RawPayloads, short: DpShort, date: string, required?: string[] | null): number | null {
+function netAssetsOn(raw: RawPayloads, short: DpShort, date: string, required?: string[] | null): number | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
   const rows = res.data.rows.filter((r) => r.source === "apex" && r.date === date && r.fundserv);
@@ -1648,6 +1648,3 @@ export function buildSiteData(raw: RawPayloads, previous: SiteData | null, now: 
   };
   return { data, context };
 }
-
-/** helper for callers/tests */
-export const bucketsTotal = (bs: Bucket[]): number => bs.reduce((a, b) => a + (b.fund ?? 0), 0);

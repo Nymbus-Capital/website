@@ -8,7 +8,7 @@
  */
 import { cycleMs, stepAt, stepStarts } from "./timeline.ts";
 
-export interface Scene {
+interface Scene {
   /** durations (ms) of the steps of one cycle */
   steps: readonly number[];
   /** clock time shown for a step's still frame (reduced motion, or a step chosen while paused) */

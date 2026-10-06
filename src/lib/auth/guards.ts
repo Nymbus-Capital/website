@@ -8,9 +8,9 @@
 
 export const SESSION_COOKIE = "__Host-nymbus_admin";
 export const SESSION_COOKIE_INSECURE = "nymbus_admin";
-export const FLOW_COOKIE = "__Host-nymbus_oidc";
-export const FLOW_COOKIE_INSECURE = "nymbus_oidc";
-export const CSRF_HEADER = "x-nymbus-admin";
+const FLOW_COOKIE = "__Host-nymbus_oidc";
+const FLOW_COOKIE_INSECURE = "nymbus_oidc";
+const CSRF_HEADER = "x-nymbus-admin";
 export const SESSION_TTL_SECONDS = 4 * 60 * 60;
 export const FLOW_TTL_SECONDS = 10 * 60;
 
@@ -102,7 +102,7 @@ export function originOf(url: string | undefined): string | null {
   }
 }
 
-export type CsrfResult = { ok: true } | { ok: false; reason: string };
+type CsrfResult = { ok: true } | { ok: false; reason: string };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 

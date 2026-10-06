@@ -33,7 +33,7 @@ const BREAKDOWNS: { from: BreakdownKey; to: PortfolioBreakdownKey }[] = [
 ];
 
 /** Letter grades from best to worst; "not rated" always last. */
-export const RATING_ORDER = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"];
+const RATING_ORDER = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"];
 export const TERM_BUCKETS = ["0-1", "1-3", "3-5", "5-7", "7-10", "10+"];
 
 const isNotRated = (label: string): boolean => /^(nr|n\/r|not rated|unrated)$/i.test(label.trim());
@@ -66,7 +66,7 @@ export function orderRows(key: PortfolioBreakdownKey, rows: WeightRow[], termOrd
 }
 
 /** Characteristics whose own coverage is at least the threshold, in display order; the others are listed in `hidden`. */
-export function coveredMetrics(book: FundPortfolio): { metrics: PortfolioMetric[]; hidden: string[] } {
+function coveredMetrics(book: FundPortfolio): { metrics: PortfolioMetric[]; hidden: string[] } {
   const metrics: PortfolioMetric[] = [];
   const hidden: string[] = [];
   for (const m of METRICS) {
@@ -90,7 +90,7 @@ function holdings(book: FundPortfolio): PortfolioHolding[] {
 }
 
 /** The daily book in the site's shape (no selection rule applied here). */
-export function mapPortfolio(book: FundPortfolio, opts: { greenBonds: boolean }): PortfolioData {
+function mapPortfolio(book: FundPortfolio, opts: { greenBonds: boolean }): PortfolioData {
   const breakdowns: PortfolioData["breakdowns"] = {};
   for (const b of BREAKDOWNS) {
     const rows = book.breakdowns[b.from];
@@ -111,7 +111,7 @@ export function mapPortfolio(book: FundPortfolio, opts: { greenBonds: boolean })
 
 /* ------------------------------------------------------------------ selection */
 
-export interface PortfolioSelection {
+interface PortfolioSelection {
   portfolio: PortfolioData | null;
   issues: Issue[];
   provenance: string | null;
@@ -154,7 +154,7 @@ export function selectPortfolio(res: SourceResult<FundPortfolio> | undefined, o:
 
 /* ------------------------------------------------------------------ month-end cross-check */
 
-export interface FactsheetPortfolio {
+interface FactsheetPortfolio {
   /** YYYY-MM */
   month: string;
   characteristics: Characteristic[];

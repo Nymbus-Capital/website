@@ -7,7 +7,7 @@
 import { FUNDS } from "./funds.ts";
 import type { FundKey, L10n } from "../lib/data/types.ts";
 
-export interface PublicFund {
+interface PublicFund {
   key: FundKey;
   name: L10n;
   short: L10n;

@@ -141,7 +141,7 @@ export interface Characteristic {
 /* ------------------------------------------------------------------ daily portfolio and distributions */
 
 /** Portfolio characteristic ids of the daily block, in display order. */
-export const PORTFOLIO_METRICS = ["duration", "ytm", "coupon", "maturity", "rating"] as const;
+const PORTFOLIO_METRICS = ["duration", "ytm", "coupon", "maturity", "rating"] as const;
 export type PortfolioMetricId = (typeof PORTFOLIO_METRICS)[number];
 
 export interface PortfolioMetric {
@@ -261,11 +261,6 @@ export interface ClassInfo {
   minMonths?: number;
 }
 
-/** Target downside-volatility variants of the Global Minimum Volatility strategy (percent); 6 is the default. */
-export const GMV_VARIANTS = ["3", "6", "9"] as const;
-export type GmvVariant = (typeof GMV_VARIANTS)[number];
-export const GMV_DEFAULT_VARIANT: GmvVariant = "6";
-
 /** Everything the page shows for one variant of a strategy: returns, risk, characteristics, allocation, holdings. */
 export interface VariantData {
   variant: string;
@@ -369,7 +364,7 @@ export interface DocumentMeta {
 
 /** Blocks an admin can hide on a fund page (`characteristics`, `breakdowns`, `holdings` apply to the daily portfolio too). */
 export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions", "rankings"] as const;
-export type HideBlock = (typeof HIDE_BLOCKS)[number];
+type HideBlock = (typeof HIDE_BLOCKS)[number];
 
 export type ClassType = "prospectus" | "om" | "none";
 
@@ -431,7 +426,7 @@ export interface PercentileRow {
  * A rolling multi-year period ending on a date (RBC survey table "Four year periods ending June 30": columns 2026, 2025,
  * 2024, 2023 are the 4-year annualized periods ending June 30 of each year).
  */
-export interface RollingPercentileRow {
+interface RollingPercentileRow {
   /** end of the period, YYYY-MM-DD */
   end: string;
   /** length of the period in years (4 for the RBC survey table) */

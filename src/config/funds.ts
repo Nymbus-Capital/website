@@ -15,7 +15,7 @@ import type { FundKey, L10n } from "../lib/data/types.ts";
 export const MIN_CLASS_HISTORY_MONTHS = 12;
 
 /** A class (series) the website knows about. Other classes of the register appear in the selector from the NAV data. */
-export interface FundClassSpec {
+interface FundClassSpec {
   fundserv: string;
   display: string;
   /** offered by simplified prospectus or by offering memorandum, when known (the admin can override: FundContent.classTypes) */
@@ -26,7 +26,7 @@ export interface FundClassSpec {
  * a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown;
  * `default` marks the variant selected when nothing else is (the list itself is in display order)
  */
-export interface VariantSpec { id: string; label: L10n; name: L10n; default?: true }
+interface VariantSpec { id: string; label: L10n; name: L10n; default?: true }
 
 /** Global Minimum Volatility variants are named by their target downside volatility, everywhere a figure is shown. */
 const gmvVariant = (pct: number, isDefault = false): VariantSpec => ({

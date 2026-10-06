@@ -13,7 +13,7 @@ import {
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { clamp, ease, span, stepAt } from "./timeline.ts";
 
-export interface FuturesLabels {
+interface FuturesLabels {
   price: string; settled: string; today: string; long: string; short: string; clearing: string; matched: string;
   closeDay: string; upPays: string; downPays: string; buffer: string; bufferNote: string; calm: string; volatile: string; settleRow: string;
   sum: string; realized: string; formula: string; watermark: string;

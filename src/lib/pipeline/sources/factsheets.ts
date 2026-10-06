@@ -11,7 +11,7 @@ import { addMonths } from "../metrics.ts";
 import { errMsg, type FetchImpl } from "./http.ts";
 import { graphConfig, graphDownload } from "./graph.ts";
 
-export const FACTSHEET_PREFIXES = ["bonds_data", "factsheet_data"] as const;
+const FACTSHEET_PREFIXES = ["bonds_data", "factsheet_data"] as const;
 
 export function candidateFiles(targetMonth: string, back = 2): string[] {
   const out: string[] = [];

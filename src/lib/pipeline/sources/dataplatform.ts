@@ -15,7 +15,7 @@ import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
 import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../metrics.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
-export interface DpClient {
+interface DpClient {
   base: string;
   headers: Record<string, string>;
   fetchImpl: FetchImpl;
@@ -287,9 +287,9 @@ export function fetchHoldings(c: DpClient, short: DpShort, date: string): Promis
 }
 
 const FIGI_RE = /^BBG[0-9A-Z]{9}$/;
-export const BATCH_SIZE = 40;
-export const UNIVERSE_PAGE = 500;
-export const UNIVERSE_MAX_PAGES = 60;
+const BATCH_SIZE = 40;
+const UNIVERSE_PAGE = 500;
+const UNIVERSE_MAX_PAGES = 60;
 
 type Detail = Record<string, unknown>;
 const s = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
@@ -403,11 +403,11 @@ export function fetchFtseBondAnalytics(c: DpClient, date: string, isins: string[
   });
 }
 
-export const FTSE_START = "2000-01-01";
+const FTSE_START = "2000-01-01";
 /** at most this many earlier-name candidates are read per index (strict ones first, then loose name matches) */
-export const FTSE_MAX_CANDIDATES = 12;
+const FTSE_MAX_CANDIDATES = 12;
 /** short_names listed in the source detail as possible earlier names (loose word match), for the admin */
-export const FTSE_LISTED_LOOSE = 10;
+const FTSE_LISTED_LOOSE = 10;
 
 /**
  * Aggregate daily levels of one FTSE index over its whole history. ftse.bond_index_summary names an index by a slug of

@@ -28,7 +28,7 @@ export interface OverlayLabels {
   engines: string[];
 }
 
-export interface OverlayOptions {
+interface OverlayOptions {
   still?: boolean;
   lang: () => Lang;
   labels: () => OverlayLabels;

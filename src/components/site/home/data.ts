@@ -11,7 +11,7 @@ import { siAnnualized, stripHidden, trackMonths } from "../../fund/lib/data.ts";
 import { defaultClassCode, initialSelection, pickData } from "../../fund/lib/select.ts";
 import { shownVariant } from "../../../config/funds.ts";
 
-export type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
+type RiskRating = "low" | "low-medium" | "medium" | "medium-high" | "high";
 
 export interface FundCard {
   key: FundKey;

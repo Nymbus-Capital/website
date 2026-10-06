@@ -86,7 +86,7 @@ export function latest(dates: (string | null | undefined)[]): string | null {
 }
 
 /** A free-text figure such as "$1.9B" or "1,9 G$" split so it can count up. */
-export interface CountLabel { prefix: string; value: number; decimals: number; suffix: string }
+interface CountLabel { prefix: string; value: number; decimals: number; suffix: string }
 
 /** Prefix + number + suffix, or null when the text is anything else (it is then shown as written). */
 export function parseCountLabel(text: string | null | undefined, lang: Lang): CountLabel | null {

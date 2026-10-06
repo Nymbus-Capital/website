@@ -32,7 +32,7 @@ import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, dropHolid
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
 
-export interface ClassCheckConfig {
+interface ClassCheckConfig {
   relaunchGapDays: number;
   spikeMin: number;
   spikeRevert: number;
@@ -107,7 +107,7 @@ function median(xs: number[]): number {
 }
 
 /** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable), without CIBC holiday filler rows */
-export function normalizeRows(rows: DailyRow[]): DailyRow[] {
+function normalizeRows(rows: DailyRow[]): DailyRow[] {
   return dropHolidayFiller(rows
     .filter((r) => r && typeof r.date === "string")
     .map((r) => ({ ...r, date: r.date.slice(0, 10) })));
@@ -216,7 +216,7 @@ export function monthsFromInception(rows: DailyRow[], inception: string, endMont
 }
 
 /** valid daily total returns of a class after its inception day (stored CIBC or distribution-aware Apex), by date */
-export function dailyReturns(rows: DailyRow[], inception: string, end?: string): Map<string, number> {
+function dailyReturns(rows: DailyRow[], inception: string, end?: string): Map<string, number> {
   const out = new Map<string, number>();
   const dup = new Set<string>();
   for (const r of normalizeRows(rows)) {
@@ -264,7 +264,7 @@ export function adjustmentDays(rows: DailyRow[], inception: string, min: number,
   return out;
 }
 
-export interface ClassFit { a: number; b: number; n: number; fallback: boolean }
+interface ClassFit { a: number; b: number; n: number; fallback: boolean }
 
 type FitCfg = Pick<ClassCheckConfig, "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">;
 

@@ -13,7 +13,7 @@ export interface SpecLike {
   variants?: { id: string; label: { en: string; fr: string }; default?: true }[];
 }
 
-export interface ClassOption {
+interface ClassOption {
   fundserv: string;
   display: string;
   currency: string | null;
@@ -72,7 +72,7 @@ export type ClassNotice =
   | { kind: "young"; display: string; inception: string; minMonths: number }
   | { kind: "currency"; display: string; currency: string };
 
-export interface Picked {
+interface Picked {
   data: Data | null;
   /** the series shown is the selected class's own */
   returnsClass: string | null;
@@ -91,7 +91,7 @@ export function classInfoOf(data: Data | null, code: string | null | undefined):
 }
 
 /** The notice of a class without figures (young / non-CAD), or null. */
-export function classNotice(data: Data | null, code: string | null | undefined): ClassNotice | null {
+function classNotice(data: Data | null, code: string | null | undefined): ClassNotice | null {
   const i = classInfoOf(data, code);
   if (!i) return null;
   if (i.status === "young" && i.inception) return { kind: "young", display: i.display, inception: i.inception, minMonths: i.minMonths ?? 12 };

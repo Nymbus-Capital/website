@@ -6,7 +6,7 @@ import { errMsg, fetchRetry, HttpError, retryBaseMs, safeUrl, type FetchImpl } f
 
 export const GRAPH = "https://graph.microsoft.com/v1.0";
 
-export interface GraphConfig { tenantId: string; clientId: string; clientSecret: string; driveId: string; backoffMs?: number }
+interface GraphConfig { tenantId: string; clientId: string; clientSecret: string; driveId: string; backoffMs?: number }
 
 export function graphConfig(env: Record<string, string | undefined> = process.env): GraphConfig | null {
   const { GRAPH_TENANT_ID, GRAPH_CLIENT_ID, GRAPH_CLIENT_SECRET, GRAPH_DRIVE_ID } = env;
@@ -21,7 +21,7 @@ export function clearGraphTokenCache(): void {
   tokens.clear();
 }
 
-export async function graphToken(cfg: GraphConfig, fetchImpl: FetchImpl): Promise<string> {
+async function graphToken(cfg: GraphConfig, fetchImpl: FetchImpl): Promise<string> {
   const k = `${cfg.tenantId}/${cfg.clientId}`;
   const cached = tokens.get(k);
   if (cached && cached.exp > Date.now() + 60_000) return cached.value;
@@ -38,7 +38,7 @@ export async function graphToken(cfg: GraphConfig, fetchImpl: FetchImpl): Promis
   return j.access_token;
 }
 
-export const itemPath = (p: string): string => p.replace(/^\/+|\/+$/g, "").split("/").map(encodeURIComponent).join("/");
+const itemPath = (p: string): string => p.replace(/^\/+|\/+$/g, "").split("/").map(encodeURIComponent).join("/");
 
 /**
  * Download a drive item by path. Returns null when the file does not exist (404). Retries 429/5xx

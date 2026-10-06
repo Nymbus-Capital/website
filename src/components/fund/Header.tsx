@@ -26,7 +26,7 @@ interface Props { spec: FundSpec; content: FundContent; data: FundData | null; l
 
 /** Header shortcuts to the documents most asked for (factsheet, fund facts, prospectus), when one is published. */
 const QUICK_DOCS = ["factsheet", "fund-facts", "prospectus"] as const;
-export function quickDocs(docs: FundDoc[] | undefined, lang: Lang): { type: (typeof QUICK_DOCS)[number]; doc: FundDoc }[] {
+function quickDocs(docs: FundDoc[] | undefined, lang: Lang): { type: (typeof QUICK_DOCS)[number]; doc: FundDoc }[] {
   const groups = groupDocuments((docs ?? []).map((d) => ({ ...d.meta, doc: d })), lang);
   return QUICK_DOCS.flatMap((type) => { const g = groups.find((x) => x.type === type); return g ? [{ type, doc: g.docs[0].doc }] : []; });
 }
@@ -270,7 +270,7 @@ export function ReturnStrip({ spec, content, data, lang, ctx }: { spec: FundSpec
  * "Data as light": the glowing line behind the header is the fund's own growth of $10,000, normalised into the
  * lower part of the band. Decorative path when there is no data.
  */
-export function trailPath(growth: GrowthPoint[] | null | undefined): string | null {
+function trailPath(growth: GrowthPoint[] | null | undefined): string | null {
   const pts = (growth ?? []).filter((p) => typeof p.fund === "number" && Number.isFinite(p.fund));
   if (pts.length < 3) return null;
   const vs = pts.map((p) => p.fund);

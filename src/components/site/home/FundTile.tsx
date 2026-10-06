@@ -20,9 +20,9 @@ import { HL } from "./labels";
 export const fundStyle = (f: Pick<FundCard, "color">) =>
   ({ "--fund": f.color.solid, "--fund-from": f.color.from, "--fund-to": f.color.to }) as CSSProperties;
 
-export const hasPerf = (f: FundCard) => f.si !== null || f.ytd !== null || f.y1 !== null;
+const hasPerf = (f: FundCard) => f.si !== null || f.ytd !== null || f.y1 !== null;
 
-export function siLabel(f: FundCard): L {
+function siLabel(f: FundCard): L {
   return f.siAnnualized ? F.si : F.siCum;
 }
 
@@ -32,7 +32,7 @@ export function SampleTag() {
 }
 
 /** "Figures coming soon": a calm, static state (no placeholder number, no animation). */
-export function Soon({ long = false }: { long?: boolean }) {
+function Soon({ long = false }: { long?: boolean }) {
   const { pick } = useTranslation();
   return (
     <span className="fx-soon" data-testid="figures-soon">
@@ -58,7 +58,7 @@ export function RiskScale({ risk }: { risk: FundCard["risk"] }) {
 }
 
 /** Last calendar years, bars growing up (or down) from the zero line when they scroll into view. */
-export function MiniBars({ f }: { f: FundCard }) {
+function MiniBars({ f }: { f: FundCard }) {
   const { locale, pick } = useTranslation();
   const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.3 });
   if (!f.calendar.length) return null;

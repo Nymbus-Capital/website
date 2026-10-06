@@ -2,7 +2,7 @@
 /** Chart tooltip (the `.tip` of globals.css): positioned inside the chart host, flips at the edges. */
 import { useLayoutEffect, useRef, useState } from "react";
 
-export interface TipRow { cls: "fund" | "index" | "va"; label: string; value: string }
+interface TipRow { cls: "fund" | "index" | "va"; label: string; value: string }
 export interface TipState { x: number; y: number; title: string; rows: TipRow[] }
 
 export function Tip({ tip, hostWidth }: { tip: TipState | null; hostWidth: number }) {

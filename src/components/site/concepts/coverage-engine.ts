@@ -16,7 +16,7 @@ import {
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 
-export interface CoverageLabels {
+interface CoverageLabels {
   pm: string; perYear: string; covered: string; of: string; universe: string; liquid: string; below: string;
   scan: string; scanned: string; memory: string; otc: string; dot: string; team: string; teamShort: string; systems: string; vs: string;
   teamLegend: string; systemsLegend: string; watermark: string;
@@ -26,7 +26,7 @@ export interface CoverageLabels {
 
 const STARTS = stepStarts(COVERAGE_STEP_MS);
 /** One colour per sector (and its analyst): financials, technology & communications, consumer, utilities & infrastructure, energy, industrials. */
-export const ANALYST_COLORS = ["#1a73e8", "#00a3e0", "#6d5bd0", "#0f9d8a", "#e37400", "#c5221f"];
+const ANALYST_COLORS = ["#1a73e8", "#00a3e0", "#6d5bd0", "#0f9d8a", "#e37400", "#c5221f"];
 
 export function createCoverage(canvas: HTMLCanvasElement, opts: RunnerOptions & { labels: () => CoverageLabels }): Runner {
   const bonds: Bond[] = universe(0);

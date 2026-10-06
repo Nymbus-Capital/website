@@ -418,7 +418,7 @@ export const T = {
 
 /* ------------------------------------------------------------------ per-fund texts (descriptive, no figures) */
 
-export interface FundTexts {
+interface FundTexts {
   /** shown under "What the fund does" when the admin has not entered the official investment objective */
   summary: L;
   /** investment approach as short bullets */

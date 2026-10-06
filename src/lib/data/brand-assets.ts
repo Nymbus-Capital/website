@@ -17,14 +17,14 @@ export const BRAND_SLOTS = [
   "morningstar-logo", "morningstar-stars-1", "morningstar-stars-2", "morningstar-stars-3", "morningstar-stars-4", "morningstar-stars-5",
   "rbc-logo", "evestment-logo", "lseg-lipper-logo", "gmr-logo", "fundata-logo",
 ] as const;
-export type BrandSlot = (typeof BRAND_SLOTS)[number];
+type BrandSlot = (typeof BRAND_SLOTS)[number];
 export const isBrandSlot = (s: unknown): s is BrandSlot => typeof s === "string" && (BRAND_SLOTS as readonly string[]).includes(s);
 
 /**
  * Former slot names (Fund Library is now Fundata, 2026-10-04): an upload stored under the old name keeps working — it is
  * listed, served and replaced as the new slot; its file stays at its old path until it is replaced or removed.
  */
-export const LEGACY_BRAND_SLOTS: Readonly<Record<string, BrandSlot>> = { "fundlibrary-logo": "fundata-logo" };
+const LEGACY_BRAND_SLOTS: Readonly<Record<string, BrandSlot>> = { "fundlibrary-logo": "fundata-logo" };
 /** The current slot for a current or former slot name (null when unknown). */
 export const toBrandSlot = (s: unknown): BrandSlot | null =>
   isBrandSlot(s) ? s : typeof s === "string" && Object.hasOwn(LEGACY_BRAND_SLOTS, s) ? LEGACY_BRAND_SLOTS[s] : null;
@@ -43,7 +43,7 @@ export const BRAND_SLOT_LABEL: Record<BrandSlot, string> = {
   "fundata-logo": "Fundata logo (formerly Fund Library)",
 };
 
-export type BrandType = "image/svg+xml" | "image/png" | "image/webp";
+type BrandType = "image/svg+xml" | "image/png" | "image/webp";
 const EXT: Record<BrandType, string> = { "image/svg+xml": "svg", "image/png": "png", "image/webp": "webp" };
 const TYPE_OF_EXT: Record<string, BrandType> = { svg: "image/svg+xml", png: "image/png", webp: "image/webp" };
 
@@ -130,7 +130,7 @@ export function svgProblem(text: string): string | null {
   return null;
 }
 
-export type BrandCheck = { ok: true; type: BrandType } | { ok: false; status: 400 | 413 | 415; message: string };
+type BrandCheck = { ok: true; type: BrandType } | { ok: false; status: 400 | 413 | 415; message: string };
 
 export function validateBrandImage(bytes: Uint8Array): BrandCheck {
   if (bytes.length === 0) return { ok: false, status: 400, message: "The file is empty." };
@@ -162,7 +162,7 @@ export function brandHeaders(type: BrandType, sha: string): Record<string, strin
 
 /* ------------------------------------------------------------------ shipped files (public/brand/third-party) */
 
-export const STATIC_BRAND_DIR = ["public", "brand", "third-party"];
+const STATIC_BRAND_DIR = ["public", "brand", "third-party"];
 
 /** slot → URL of the shipped files in `dir` (first match in svg, png, webp order). */
 export function staticBrandAssets(dir: string = path.join(process.cwd(), ...STATIC_BRAND_DIR)): BrandAssets {
@@ -186,7 +186,7 @@ export function staticBrandAssets(dir: string = path.join(process.cwd(), ...STAT
 
 /* ------------------------------------------------------------------ uploaded files (data volume) */
 
-export interface BrandMeta {
+interface BrandMeta {
   slot: BrandSlot; type: BrandType; size: number; sha256: string; uploadedBy: string; uploadedAt: string;
   /** former slot name the file was stored under (LEGACY_BRAND_SLOTS); absent for current uploads */
   storedAs?: string;
@@ -267,6 +267,3 @@ export async function resolveBrandAssets(): Promise<BrandAssets> {
   }
   return out;
 }
-
-/** The asset slots a Morningstar rating of `stars` needs: logo + the matching rating image. */
-export const morningstarSlots = (stars: number): BrandSlot[] => ["morningstar-logo", `morningstar-stars-${stars}` as BrandSlot];

@@ -53,7 +53,7 @@ export function parseText(v: Json): string | null {
 
 /* ------------------------------------------------------------------ characteristics */
 
-export interface CharSpec { id: string; source: string; label: L10n; unit: Characteristic["unit"] }
+interface CharSpec { id: string; source: string; label: L10n; unit: Characteristic["unit"] }
 
 /** Bond fund characteristics (bonds_data "Characteristics"), in display order. */
 export const BOND_CHARACTERISTICS: CharSpec[] = [
@@ -212,7 +212,7 @@ export function parsePeriodMap(d: Json, ytdYear: string): PeriodMap {
   return out;
 }
 
-export type PeriodDecimals = Partial<Record<keyof PeriodMap, number>>;
+type PeriodDecimals = Partial<Record<keyof PeriodMap, number>>;
 
 export interface TrailingTable {
   fund: PeriodMap; index?: PeriodMap; va?: PeriodMap; fundName?: string; indexName?: string;
@@ -221,7 +221,7 @@ export interface TrailingTable {
 }
 
 /** decimals of each published period value (current-year label maps to YTD) */
-export function periodDecimals(d: Json, ytdYear: string): PeriodDecimals {
+function periodDecimals(d: Json, ytdYear: string): PeriodDecimals {
   const out: PeriodDecimals = {};
   if (!isObj(d)) return out;
   for (const [k, v] of Object.entries(d)) {
@@ -306,7 +306,7 @@ export function parseCalendarTable(section: Json): Record<string, { fund: number
   return out;
 }
 
-export interface PublishedStatistics {
+interface PublishedStatistics {
   annReturn: number | null; annVol: number | null; downsideDev: number | null; sharpe: number | null;
   sortino: number | null; positiveMonths: number | null; maxDrawdown: number | null;
   /** published decimals (display units) of each value present */

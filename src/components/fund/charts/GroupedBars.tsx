@@ -23,7 +23,7 @@ export interface BarCategory {
   va?: number | null;
 }
 
-export interface GroupedBarsProps {
+interface GroupedBarsProps {
   cats: BarCategory[];
   names: { fund: string; index: string; va: string };
   lang: Lang;

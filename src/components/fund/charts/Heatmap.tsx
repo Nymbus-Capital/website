@@ -12,7 +12,7 @@ import { fmt, MONTH_INITIALS, monthName, type Lang } from "../lib/format.ts";
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear } from "./hooks";
 
-export interface HeatmapProps {
+interface HeatmapProps {
   monthly: MonthlyPoint[];
   calendar?: CalendarRow[] | null;
   /** month-end of the published performance: only its year is flagged YTD */

@@ -7,7 +7,7 @@ import { fail, readBodyCapped } from "./http";
 
 const FORM_OVERHEAD = 64 * 1024;
 
-export interface ParsedUpload {
+interface ParsedUpload {
   form: FormData;
   fileName: string;
   bytes: Uint8Array;

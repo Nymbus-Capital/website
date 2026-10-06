@@ -48,7 +48,7 @@ export interface ChainMonth {
   navGap?: number | null;
 }
 
-export interface ChainOptions {
+interface ChainOptions {
   /** first date whose rows belong to this class's own book (earlier rows of a reused code are another strategy) */
   navStart: string;
   /** last closed month (month-end): later months are never computed */

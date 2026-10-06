@@ -61,7 +61,7 @@ export function useSvgId(prefix: string) {
 }
 
 /** Plays the chart entrance on `root`. Returns a cleanup that cancels running animations. */
-export function playEntrance(root: Element | null, delay = 0): () => void {
+function playEntrance(root: Element | null, delay = 0): () => void {
   if (!root || reducedMotion()) return () => {};
   const anims: Animation[] = [];
   const push = (a: Animation | undefined) => { if (a) anims.push(a); };

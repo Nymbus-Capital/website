@@ -30,19 +30,19 @@ export const isoDate = z
 export const runIdSchema = z.string().regex(/^[0-9A-Za-z][0-9A-Za-z-]{0,79}$/, "invalid run id");
 
 export { HIDE_BLOCKS };
-export const RISK_RATINGS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
+const RISK_RATINGS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
 
 const httpsUrl = z.string().trim().max(300).regex(/^https:\/\/[^\s]+$/, "expected an https:// address");
 const fundservCode = z.string().trim().regex(/^[A-Za-z0-9]{0,12}$/, "invalid FundServ code");
 
-export const rankingRowSchema = z.strictObject({
+const rankingRowSchema = z.strictObject({
   period: z.enum(RANKING_PERIODS),
   rank: z.number().int().min(1).max(5000),
   of: z.number().int().min(1).max(5000),
   quartile: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).nullable(),
 }).refine((r) => r.rank <= r.of, "rank cannot exceed the number of funds");
 
-export const fundLibraryRankingSchema = z.strictObject({
+const fundLibraryRankingSchema = z.strictObject({
   classLabel: text(40).min(1),
   fundserv: fundservCode.optional(),
   category: l10n(120).refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required"),
@@ -52,7 +52,7 @@ export const fundLibraryRankingSchema = z.strictObject({
   url: httpsUrl.optional(),
 });
 
-export const morningstarSchema = z.strictObject({
+const morningstarSchema = z.strictObject({
   stars: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   asOf: isoDate,
   classLabel: text(40).min(1),
@@ -61,7 +61,7 @@ export const morningstarSchema = z.strictObject({
   url: httpsUrl.optional(),
 });
 
-export const percentileRowSchema = z.strictObject({
+const percentileRowSchema = z.strictObject({
   period: z.enum(RANKING_PERIODS),
   percentile: z.number().int().min(1).max(100).nullable(),
   rank: z.number().int().min(1).max(100_000).nullable().optional(),
@@ -69,7 +69,7 @@ export const percentileRowSchema = z.strictObject({
   ror: z.number().min(-100).max(1000).nullable().optional(),
 }).refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
 
-export const rollingRowSchema = z.strictObject({
+const rollingRowSchema = z.strictObject({
   end: isoDate,
   years: z.number().int().min(1).max(20),
   percentile: z.number().int().min(1).max(100).nullable(),
@@ -81,7 +81,7 @@ export const rollingRowSchema = z.strictObject({
  * entry needs everything the public page shows with it: class, category EN + FR, as-of date, https source and a figure
  * (percentile, or rank out of N) for every period.
  */
-export const thirdPartyRankingSchema = z.strictObject({
+const thirdPartyRankingSchema = z.strictObject({
   provider: z.enum(THIRD_PARTY_PROVIDERS),
   classLabel: text(40),
   scope: z.literal("fund").optional(),
@@ -110,13 +110,13 @@ export const thirdPartyRankingSchema = z.strictObject({
   need(e.rows.every((r) => r.percentile != null || (r.rank != null && r.of != null)), "rows", "every period needs a percentile or a rank out of N to confirm");
 });
 
-export const fundRankingsSchema = z.strictObject({
+const fundRankingsSchema = z.strictObject({
   fundLibrary: z.array(fundLibraryRankingSchema).max(6).optional(),
   morningstar: morningstarSchema.optional(),
   thirdParty: z.array(thirdPartyRankingSchema).max(12).optional(),
 });
 
-export const fundContentSchema = z.strictObject({
+const fundContentSchema = z.strictObject({
   hidden: z.boolean().optional(),
   hide: z.partialRecord(z.enum(HIDE_BLOCKS), z.boolean()).optional(),
   tagline: l10n(200).optional(),
@@ -158,11 +158,11 @@ export const saveSettingsSchema = z.strictObject({
 
 export const runPipelineSchema = z.strictObject({ dryRun: z.boolean().default(false) });
 
-export const DOC_TYPE_VALUES = [
+const DOC_TYPE_VALUES = [
   "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other",
 ] as const;
 
-export const docScopeSchema = z.union([fundKeySchema, z.literal("firm")]);
+const docScopeSchema = z.union([fundKeySchema, z.literal("firm")]);
 
 export const documentMetaSchema = z.strictObject({
   scope: docScopeSchema,

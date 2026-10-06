@@ -19,7 +19,7 @@ export const rgba = (hex: string, a: number): string => {
   return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
 };
 
-export type Align = "left" | "center" | "right";
+type Align = "left" | "center" | "right";
 
 export interface Pen {
   font(weight: 400 | 500 | 600 | 700, size: number): void;

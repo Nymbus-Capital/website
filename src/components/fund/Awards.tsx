@@ -29,12 +29,12 @@ function periodLabel(p: string, lang: Lang): string {
 }
 
 /** Provider name as plain text, or its official logo when the file is present (sized per provider in fund.css). */
-export const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
+const Wordmark = ({ kind, children, logo }: { kind: string; children: string; logo?: string }) =>
   logo ? <img className={`aw-logo aw-logo-${kind}`} src={logo} alt={children} data-testid={`logo-${kind}`} /> : <span className={`aw-wm aw-wm-${kind}`}>{children}</span>;
 
 /** Fundata's name on the page; the figures are read on its FundLibrary.com fund pages (the source link says so). */
-export const FUNDATA = "Fundata";
-export const FUNDATA_SOURCE = "Fundata (FundLibrary.com)";
+const FUNDATA = "Fundata";
+const FUNDATA_SOURCE = "Fundata (FundLibrary.com)";
 
 const sep = (lang: Lang) => (lang === "fr" ? "\u00a0: " : ": ");
 
@@ -53,7 +53,7 @@ export function standing(r: ThirdPartyRanking["rows"][number], lang: Lang): stri
 }
 
 /** Who the figures are for: the strategy track record (incl. pre-launch periods), the fund as a whole, or a series. */
-export function scopeLabel(e: Pick<ThirdPartyRanking, "scope" | "trackSince" | "classLabel">, lang: Lang, short = false): string {
+function scopeLabel(e: Pick<ThirdPartyRanking, "scope" | "trackSince" | "classLabel">, lang: Lang, short = false): string {
   if (e.trackSince) return tr(short ? RK.tp.strategyShort : RK.tp.strategyScope, lang).replace("{month}", monthLabel(e.trackSince, lang));
   if (e.scope === "fund") return tr(short ? RK.tp.fundShort : RK.tp.fundLevel, lang);
   return e.classLabel;

@@ -17,7 +17,7 @@ export function isPinnable(report: { status: string; publishedAt?: string; class
   return report.status === "blocked" && typeof report.publishedAt === "string" && report.publishedAt.length > 0;
 }
 
-export interface FundSummary {
+interface FundSummary {
   key: FundKey;
   performanceAsOf: string | null;
   basis: "net" | "gross" | null;
@@ -60,7 +60,7 @@ export function summarizeFund(key: FundKey, f: FundData | undefined | null): Fun
   };
 }
 
-export interface RunDataSummary {
+interface RunDataSummary {
   mode: SiteData["mode"];
   generatedAt: string;
   asOf: SiteData["asOf"];

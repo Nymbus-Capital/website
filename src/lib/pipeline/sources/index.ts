@@ -13,7 +13,7 @@ import { fetchAnalytics } from "./analytics.ts";
 import type { FetchImpl } from "./http.ts";
 
 /** FTSE short name per fund, with the env override for the Monthly Income benchmark. */
-export function ftseIndexFor(key: FundKey, env: Record<string, string | undefined> = process.env): string | null {
+function ftseIndexFor(key: FundKey, env: Record<string, string | undefined> = process.env): string | null {
   const src = FUND_SOURCES[key];
   if (!src?.ftseIndex) return null;
   if (key === "monthly-income" && env.FTSE_INDEX_SEST) return env.FTSE_INDEX_SEST.trim();
@@ -129,7 +129,7 @@ export async function fetchAll(opts: { fetchImpl: FetchImpl; now: Date; env?: Re
  * Book dates of a fund from its NAV rows: the latest Apex FINAL_NAV valuation day, and the last one of the last closed
  * month (for the month-end cross-check with the factsheet).
  */
-export function bookDays(rows: NavPoint[], monthEnd: string): { latest: string | null; monthEnd: string | null } {
+function bookDays(rows: NavPoint[], monthEnd: string): { latest: string | null; monthEnd: string | null } {
   const apex = [...new Set(rows.filter((r) => r.source === "apex" && (r.nav_type ?? "FINAL_NAV") === "FINAL_NAV").map((r) => String(r.date).slice(0, 10)))].sort();
   const inMonth = apex.filter((d) => d.slice(0, 7) === monthEnd.slice(0, 7));
   return { latest: apex.at(-1) ?? null, monthEnd: inMonth.at(-1) ?? null };

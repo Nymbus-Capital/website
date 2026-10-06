@@ -34,7 +34,7 @@ export function duration(a: string | null | undefined, b: string | null | undefi
   return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`;
 }
 
-export type Tone = "ok" | "warn" | "err" | "info" | "mute";
+type Tone = "ok" | "warn" | "err" | "info" | "mute";
 
 export const runTone = (status: string): Tone =>
   status === "published" ? "ok" : status === "pending-review" ? "info" : status === "blocked" ? "warn" : status === "failed" ? "err" : "mute";

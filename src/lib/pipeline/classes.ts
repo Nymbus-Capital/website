@@ -35,7 +35,7 @@ function riskFrom(r: RiskResult | null): RiskStats | null {
 }
 
 /** what the trailing figures of a class entry are computed from */
-export interface ClassSeriesShape {
+interface ClassSeriesShape {
   /** usable monthly returns (withheld months absent), the partial first month included */
   all: Series;
   asOf: string;
@@ -74,14 +74,14 @@ export function classFundTrailing(c: ClassSeriesShape): PeriodMap {
 }
 
 /** Rebuild the class series shape of a published class entry (for validation recomputations). */
-export function shapeOf(p: Performance): ClassSeriesShape | null {
+function shapeOf(p: Performance): ClassSeriesShape | null {
   if (!p.inception) return null;
   const all: Series = {};
   for (const m of p.monthly) all[m.month] = m.r;
   return { all, asOf: p.asOf, firstMonth: p.firstMonth, inception: p.inception, partialFirst: !!p.partialFirstMonth };
 }
 
-export interface ClassEntryInput {
+interface ClassEntryInput {
   /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
   key: string;
   cls: ClassSeriesSource;
@@ -94,7 +94,7 @@ export interface ClassEntryInput {
   minMonths: number;
 }
 
-export interface ClassEntryBuild {
+interface ClassEntryBuild {
   entry: ClassPerformance | null;
   info: ClassInfo;
   issues: Issue[];

@@ -5,7 +5,7 @@
 import { disclaimersHash, type DisclaimerOverrides } from "../../content/disclaimers.ts";
 import type { FundKey, SiteContent } from "../../lib/data/types.ts";
 
-export function overridesOf(c: Pick<SiteContent, "firm" | "funds">): DisclaimerOverrides {
+function overridesOf(c: Pick<SiteContent, "firm" | "funds">): DisclaimerOverrides {
   const notes: Record<string, { en: string; fr: string } | undefined> = {};
   for (const [k, f] of Object.entries(c.funds ?? {}) as [FundKey, { performanceNote?: { en: string; fr: string } } | undefined][]) {
     if (f?.performanceNote) notes[k] = f.performanceNote;
@@ -15,7 +15,7 @@ export function overridesOf(c: Pick<SiteContent, "firm" | "funds">): DisclaimerO
 
 export const currentDisclaimersHash = (c: Pick<SiteContent, "firm" | "funds">): string => disclaimersHash(overridesOf(c));
 
-export type ComplianceState =
+type ComplianceState =
   | { status: "never"; hash: string }
   | { status: "changed"; hash: string; approvedAt: string; approvedBy: string }
   | { status: "approved"; hash: string; approvedAt: string; approvedBy: string };

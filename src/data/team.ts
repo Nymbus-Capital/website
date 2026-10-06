@@ -382,13 +382,3 @@ export const team: TeamMember[] = [
     photo: "/team/danira-csano.webp",
   },
 ];
-
-export const departmentLabels = ["Leadership", "Quantitative Research", "Investment Team", "Operations", "Board"] as const;
-
-export const teamByDepartment = (department: TeamMember["department"]): TeamMember[] => {
-  return team.filter((member) => member.department === department);
-};
-
-export const teamMemberByName = (name: string): TeamMember | undefined => {
-  return team.find((member) => member.name === name);
-};

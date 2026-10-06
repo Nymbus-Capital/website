@@ -15,11 +15,11 @@ import { FUNDS } from "../../config/funds.ts";
  * = the fund's F / FP class, "STRATEGY_H" = SEB's H class); a class the dataplatform has no aggregate for is named by
  * its FundServ code (e.g. "LDM081", Monthly Income class F).
  */
-export type ClassCode = "STRATEGY" | "STRATEGY_H" | `LDM${string}`;
+type ClassCode = "STRATEGY" | "STRATEGY_H" | `LDM${string}`;
 
 export interface FeeBand { minDiff: number; maxDiff: number; maxFromMedian: number }
 
-export interface FundSources {
+interface FundSources {
   /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
   dataplatform: "SEST" | "SEB" | "Multistrat" | null;
   /** FTSE index-summary short_name of the benchmark (every index figure is computed from its levels). null: no benchmark */
@@ -163,9 +163,6 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
   },
 };
 
-/** Sources of one fund (every registry key has an entry). */
-export const fundSources = (key: FundKey): FundSources => FUND_SOURCES[key];
-
 /**
  * Site label of a class code for a fund ("F", "H", "FP"), or null when the class is unknown for that fund. A class named by
  * its FundServ code (no dataplatform aggregate) takes the registry's display (src/config/funds.ts `classes`).
@@ -193,7 +190,7 @@ export interface ClassSeriesSource {
 }
 
 /** a share class as the fund register lists it (/api/apex/funds) */
-export interface RegisterClass { fundserv: string; display: string; currency?: string | null; status?: string | null }
+interface RegisterClass { fundserv: string; display: string; currency?: string | null; status?: string | null }
 
 /**
  * Classes of a fund that can have a monthly series: the configured classes (class code mapping of the dataplatform

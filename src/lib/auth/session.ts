@@ -19,8 +19,8 @@ import { isRevoked } from "./revocation.ts";
 import { randomToken } from "./pkce.ts";
 import { FLOW_TTL_SECONDS, SESSION_TTL_SECONDS, checkCsrf, sanitizeReturnTo } from "./guards.ts";
 
-export const SESSION_ISSUER = "nymbus-admin";
-export const SESSION_AUDIENCE = "nymbus-admin";
+const SESSION_ISSUER = "nymbus-admin";
+const SESSION_AUDIENCE = "nymbus-admin";
 
 export interface AdminUser {
   oid: string;
@@ -29,7 +29,7 @@ export interface AdminUser {
   tid: string;
 }
 
-export interface SessionInfo {
+interface SessionInfo {
   jti: string;
   exp: number;
 }
@@ -114,7 +114,7 @@ export async function checkRequestSession(req: NextRequest): Promise<SessionChec
 
 /* ------------------------------------------------------------------ OIDC flow state */
 
-export interface FlowState {
+interface FlowState {
   state: string;
   nonce: string;
   verifier: string;

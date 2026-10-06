@@ -16,7 +16,7 @@ import type { Runner } from "./runner";
 import "@/components/site/fx/fx.css";
 import "./concepts.css";
 
-export type ConceptId = "overlay" | "futures" | "coverage";
+type ConceptId = "overlay" | "futures" | "coverage";
 
 const subscribeMotion = (cb: () => void) => {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");

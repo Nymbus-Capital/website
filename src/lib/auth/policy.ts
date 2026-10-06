@@ -26,13 +26,13 @@ export interface PolicyConfig {
   requiredRole?: string;
 }
 
-export type PolicyDenyReason = "tenant" | "subject" | "guest" | "acct-missing" | "email" | "domain" | "groups" | "groups-overage" | "role";
+type PolicyDenyReason = "tenant" | "subject" | "guest" | "acct-missing" | "email" | "domain" | "groups" | "groups-overage" | "role";
 
 export type PolicyResult =
   | { ok: true; oid: string; email: string; name: string; tid: string }
   | { ok: false; reason: PolicyDenyReason; message: string };
 
-export const DEFAULT_ALLOWED_DOMAINS: readonly string[] = ["nymbus.ca"];
+const DEFAULT_ALLOWED_DOMAINS: readonly string[] = ["nymbus.ca"];
 
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DOMAIN_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;

@@ -15,7 +15,7 @@ import { dateLabel, type Lang } from "./lib/format.ts";
 
 const CLASS_WORD = /^(class|series|série|classe)\s+/i;
 
-export const ratingText = (m: Pick<MorningstarRating, "stars">, lang: Lang): string =>
+const ratingText = (m: Pick<MorningstarRating, "stars">, lang: Lang): string =>
   m.stars === 1 ? tr(RK.ms.ratingOne, lang) : tr(RK.ms.rating, lang).replace("{n}", String(m.stars));
 
 export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testId = "morningstar" }: {

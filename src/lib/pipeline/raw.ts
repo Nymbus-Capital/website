@@ -9,7 +9,7 @@ import type { DailyRow } from "./daily-chain.ts";
 
 export type DpShort = "SEST" | "SEB" | "Multistrat";
 
-export interface MonthlyNetReturnRow {
+interface MonthlyNetReturnRow {
   month: string;
   net_return: number | null;
   status: "ready" | "unavailable" | "conflict" | string;
@@ -68,7 +68,7 @@ export interface NavHistory {
 /** `aggregates`: the dataplatform's STRATEGY / STRATEGY_H rows (no FundServ code), kept for their return_source_count only */
 export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; aggregates?: { date: string; class_code: string; return_source_count: number | null }[]; [k: string]: unknown }
 
-export interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
+interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
 export interface RegisteredFund {
   key: string;
   name: string;
@@ -170,7 +170,7 @@ export interface HoldingsPosition {
   quantity: number | null; market_value_cad: number | null;
 }
 /** /api/apex/holdings bank / broker balance line, reduced */
-export interface HoldingsCash { date: string; currency: string | null; glc_description: string | null; closing_bal_cad: number | null }
+interface HoldingsCash { date: string; currency: string | null; glc_description: string | null; closing_bal_cad: number | null }
 /** one fund's Apex FINAL_NAV book of one valuation day */
 export interface HoldingsBook { fund: string; date: string; positions: HoldingsPosition[]; cash: HoldingsCash[]; warnings: string[] }
 

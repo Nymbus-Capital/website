@@ -138,7 +138,7 @@ function checkPerformance(f: FundData, ctx: FundContext | undefined, prev: FundD
  * contiguous monthly series ending at as-of, no month beyond ±25 %, trailing figures equal to a recomputation (classes),
  * growth consistent with the monthly returns. Each class / variant is checked on its own numbers only.
  */
-export function checkClassesAndVariants(f: FundData, base: string): Issue[] {
+function checkClassesAndVariants(f: FundData, base: string): Issue[] {
   const issues: Issue[] = [];
   // the headline class is the one of the fund's own series (the track record); without a class code (older data), the
   // default class
@@ -232,7 +232,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const RATING = /^(AAA|AA[+-]?|A[+-]?|BBB[+-]?|BB[+-]?|B[+-]?|CCC[+-]?|CC|C|D)$/;
 
 /** Why a characteristic is implausible, or null. */
-export function metricProblem(m: PortfolioMetric): string | null {
+function metricProblem(m: PortfolioMetric): string | null {
   if (!isNum(m.coverage) || m.coverage < 0 || m.coverage > 1) return `coverage ${m.coverage}`;
   if (m.id === "rating") return typeof m.value === "string" && RATING.test(m.value) ? null : `rating "${m.value}"`;
   if (!isNum(m.value)) return `value ${m.value}`;
@@ -241,7 +241,7 @@ export function metricProblem(m: PortfolioMetric): string | null {
 }
 
 /** Why a breakdown is implausible (weights not numbers, or not adding up to 100 % of net assets), or null. */
-export function breakdownProblem(rows: WeightBucket[]): string | null {
+function breakdownProblem(rows: WeightBucket[]): string | null {
   if (!rows.length) return "empty";
   if (rows.some((r) => !isNum(r.weight) || Math.abs(r.weight) > 1.5)) return "a weight is not a plausible number";
   const total = rows.reduce((a, r) => a + r.weight, 0);
@@ -249,7 +249,7 @@ export function breakdownProblem(rows: WeightBucket[]): string | null {
 }
 
 /** Why the top-holdings list is implausible, or null. */
-export function holdingsProblem(rows: PortfolioData["topHoldings"]): string | null {
+function holdingsProblem(rows: PortfolioData["topHoldings"]): string | null {
   if (rows.some((h) => !h.name || !isNum(h.weight) || h.weight <= 0 || h.weight > PORTFOLIO.maxHoldingWeight)) return `a weight is outside (0, ${pct(PORTFOLIO.maxHoldingWeight)}]`;
   const total = rows.reduce((a, h) => a + h.weight, 0);
   return total > 1 + 1e-9 ? `weights add up to ${pct(total)}` : null;
@@ -398,7 +398,7 @@ export function checkDistributions(f: FundData, base: string, now: Date): Issue[
   return issues;
 }
 
-export interface ValidationOutcome {
+interface ValidationOutcome {
   /**
    * data after repairs and merge (blocked funds replaced by their previous publication). A fund whose performance
    * class changes keeps its NEW data here: this is what publishing (approving) the run publishes

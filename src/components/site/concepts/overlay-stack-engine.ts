@@ -13,7 +13,7 @@ import {
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
 import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
 
-export interface OverlayStackLabels {
+interface OverlayStackLabels {
   core: string; coreSub: string; deposit: string; depositSub: string; overlay: string; overlaySub: string;
   bracket: string; bracketSub: string; coreRet: string; ovRet: string; combined: string; tagline: string; loss: string;
   calm: string; volatile: string; volNote: string; watermark: string;

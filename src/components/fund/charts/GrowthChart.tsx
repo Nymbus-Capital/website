@@ -12,7 +12,7 @@ import { compactMoney, fmt, money, monthLabel, type Lang } from "../lib/format.t
 import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
 
-export interface GrowthChartProps {
+interface GrowthChartProps {
   points: GrowthPoint[];
   lang: Lang;
   names: { fund: string; index: string };

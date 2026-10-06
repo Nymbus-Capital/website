@@ -7,9 +7,9 @@
  */
 export type Lang = "en" | "fr";
 
-export const MINUS = "−";
+const MINUS = "−";
 
-export interface FmtOpts { decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: Lang }
+interface FmtOpts { decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: Lang }
 
 export function fmt(v: number, o: FmtOpts = {}): string {
   const d = o.decimals ?? 1;

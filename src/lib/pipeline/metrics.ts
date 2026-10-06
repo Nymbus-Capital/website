@@ -95,7 +95,7 @@ export function annualize(rs: number[], method: Method = "compounded"): number {
 
 const periodReturn = (rs: number[], method: Method): number => (method === "arithmetic" ? sum(rs) : compound(rs));
 
-export const TRAILING_SPECS: { period: "1M" | "3M" | "1Y" | "2Y" | "3Y" | "5Y" | "10Y"; months: number; ann: boolean }[] = [
+const TRAILING_SPECS: { period: "1M" | "3M" | "1Y" | "2Y" | "3Y" | "5Y" | "10Y"; months: number; ann: boolean }[] = [
   { period: "1M", months: 1, ann: false },
   { period: "3M", months: 3, ann: false },
   { period: "1Y", months: 12, ann: false },
@@ -105,7 +105,7 @@ export const TRAILING_SPECS: { period: "1M" | "3M" | "1Y" | "2Y" | "3Y" | "5Y" |
   { period: "10Y", months: 120, ann: true },
 ];
 
-export type TrailingMap = { "1M": number | null; "3M": number | null; YTD: number | null; "1Y": number | null; "2Y": number | null; "3Y": number | null; "5Y": number | null; "10Y": number | null; SI: number | null };
+type TrailingMap = { "1M": number | null; "3M": number | null; YTD: number | null; "1Y": number | null; "2Y": number | null; "3Y": number | null; "5Y": number | null; "10Y": number | null; SI: number | null };
 
 /**
  * Trailing returns at `end`. `siStart` optionally restricts the SI window (e.g. an index aligned on
@@ -133,7 +133,7 @@ export function trailing(series: Series, end: string, opts: { method?: Method; s
   return out;
 }
 
-export interface CalendarYear { year: number; value: number | null; months: number; partial: boolean }
+interface CalendarYear { year: number; value: number | null; months: number; partial: boolean }
 
 /**
  * Calendar-year returns from `first` (month-end) to `end`. A year missing a month inside its expected
@@ -338,8 +338,8 @@ export interface FtseCandidate {
   gapOk?: boolean;
 }
 /** the verification of a gap link (one missing daily return between two naming generations) */
-export interface FtseGapCheck { last: string; first: string; implied: number; estimate: number; residual: number; threshold: number; p95: number; samples: number }
-export interface FtseJoin {
+interface FtseGapCheck { last: string; first: string; implied: number; estimate: number; residual: number; threshold: number; p95: number; samples: number }
+interface FtseJoin {
   levels: Record<string, number>;
   /** earlier names linked in front: on an overlap (equal daily returns) or across a verified one-day gap */
   used: { name: string; link: string; from: string; checked: number; why: string; kind: "overlap" | "gap"; gap?: FtseGapCheck }[];
@@ -352,7 +352,7 @@ export interface FtseJoin {
  * gapZero while the estimate is not), the levels within gapMaxLevelDiff, and the
  * tolerance needs gapMinSamples daily residuals (all of the current series, the earlier one's last gapOldDays days).
  */
-export const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6, gapResidualMult: 3, gapMinTol: 2e-4, gapMaxTol: 5e-4, gapZero: 1e-7, gapMaxReturn: 0.01, gapMaxLevelDiff: 0.03, gapMinSamples: 20, gapOldDays: 250 };
+const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6, gapResidualMult: 3, gapMinTol: 2e-4, gapMaxTol: 5e-4, gapZero: 1e-7, gapMaxReturn: 0.01, gapMaxLevelDiff: 0.03, gapMinSamples: 20, gapOldDays: 250 };
 
 /**
  * Daily index return estimated from the index's own analytics: carry (average yield, act/365) minus modified duration ×
@@ -494,7 +494,7 @@ export function lastWeekdays(ym: string, back = 2): { last: string; earliest: st
   return { last, earliest: new Date(t).toISOString().slice(0, 10) };
 }
 
-export interface MonthEndReturns { series: Series; dropped: { month: string; reason: string }[] }
+interface MonthEndReturns { series: Series; dropped: { month: string; reason: string }[] }
 
 /**
  * Daily levels -> month-end to month-end returns. A month's closing level is accepted only when

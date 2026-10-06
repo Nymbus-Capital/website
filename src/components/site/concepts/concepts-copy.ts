@@ -11,7 +11,7 @@ export { OVERLAY_EXPOSURE };
 
 const NB = " ";
 
-export interface ConceptCopy {
+interface ConceptCopy {
   eyebrow: L; title: L; accent: L; lead: L;
   panel: L; chip: L; alt: L;
   steps: L[];

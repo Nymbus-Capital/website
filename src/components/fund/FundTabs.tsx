@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { reducedMotion } from "@/components/v3/motion";
 
-export interface FundTab { id: string; label: string; content: ReactNode }
+interface FundTab { id: string; label: string; content: ReactNode }
 
 export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
   const ids = tabs.map((t) => t.id);
