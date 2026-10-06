@@ -348,8 +348,9 @@ export function crossClassFailures(
   // first pass: each class's breaching months. The second pass fits each month without them too, so one wrong month
   // cannot bend the fit that tests the class's other months (when every own side keeps fitSuspectMinSide months)
   const checked = [...full].filter(([, xs]) => xs.length >= 2);
-  const first = new Map(checked.map(([month, xs]) => [month, assess(month, xs, () => new Set())]));
-  const flaggedIn = (pass: Map<string, ReturnType<typeof assess>>): Map<string, Set<string>> => {
+  type Assessed = ReturnType<typeof assess>;
+  const first = new Map<string, Assessed>(checked.map(([month, xs]) => [month, assess(month, xs, () => new Set())]));
+  const flaggedIn = (pass: Map<string, Assessed>): Map<string, Set<string>> => {
     const out = new Map<string, Set<string>>(fsvs.map((c) => [c, new Set<string>()]));
     for (const [month, res] of pass) for (const x of res) if (breaches(x.e)) out.get(x.fsv)!.add(month);
     return out;
@@ -361,11 +362,11 @@ export function crossClassFailures(
     const keeps = (up: boolean): boolean => (up ? f.up : f.down) !== "fit" || points[c].filter((p) => (p.m > 0) === up && !s.has(p.month)).length >= cfg.fitSuspectMinSide;
     return s.size && keeps(true) && keeps(false) ? s : new Set();
   };
-  const second = new Map(checked.map(([month, xs]) => [month, assess(month, xs, leaveOut)]));
+  const second = new Map<string, Assessed>(checked.map(([month, xs]) => [month, assess(month, xs, leaveOut)]));
   const confirmed = flaggedIn(second);
   // a first-pass breach the second pass clears stands unless the second pass still flags another month of that class
   // (the month that bent the fit): clearing never loses a breach that nothing explains
-  const settled = (month: string): ReturnType<typeof assess> => second.get(month)!.map((x) => {
+  const settled = (month: string): Assessed => second.get(month)!.map((x) => {
     const p1 = first.get(month)!.find((y) => y.fsv === x.fsv)!;
     const explained = [...confirmed.get(x.fsv)!].some((m) => m !== month);
     return breaches(p1.e) && !breaches(x.e) && !explained ? p1 : x;
