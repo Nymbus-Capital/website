@@ -67,7 +67,7 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
       <FeatureSection spec={spec} data={data} content={content} lang={lang} />
       <FundCta spec={spec} lang={lang} />
       <OtherFunds current={spec.key} funds={funds} lang={lang} />
-      {/* Gabriel 2026-10-04: the disclosures are the last block, below the call to action and the other strategies */}
+      {/* the disclosures are the last block, below the call to action and the other strategies (docs/architecture.md § Decision log) */}
       <Disclosures {...props} sample={sample} firmDisclaimer={firmDisclaimer} />
     </div>
   );

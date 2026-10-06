@@ -363,6 +363,26 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   hover / keyboard focus / tap, Escape, `aria-describedby`; compliance row P3).
 - The /solutions advisor rankings list (`AdvisorRankings`) was removed on 2026-10-04: rankings live on the fund pages only.
 
+## Decision log
+
+Owner decisions that shaped the code (the dated notes that used to sit in code comments; the full list of standing
+decisions is `docs/HANDOFF.md` § 4).
+
+| Date | Decision (Gabriel) | Where |
+| --- | --- | --- |
+| 2026-10-01 | The performance label always matches the data: "if you showcase the class H time series, then show class H". | `src/lib/pipeline/perf-class.ts` |
+| 2026-10-02 | "Compute whatever you need within the backend of the website and only take the dataplatform api endpoints as input data": every figure from dataplatform main-branch endpoints, no dataplatform change (PR #621, #626, #631 not needed). | `build.ts`, `daily-chain.ts`, `fund-sources.ts`, `fund-portfolio.ts` |
+| 2026-10-02 | ESG criteria and exclusions belong to the Sustainable Enhanced Bonds Fund only; firm-level items are the public commitments. | `src/components/site/pages/sustainability.copy.ts`, `tests/unit/site/esg-scope.test.ts` |
+| 2026-10-03 | Futures animation slowed down ("we have a hard time reading the text … every day": 1.25 s → 5 s a day). | `src/components/site/concepts/futures-model.ts` |
+| 2026-10-04 | Futures "a tiny bit faster … but still slower than initially": 3.75 s a day. | `futures-model.ts` |
+| 2026-10-04 | Core concepts, concept 3: back to the bigger shared graphic, "starts with conventional then turns to Nymbus systems"; the figures are Nymbus' illustrative estimates. | `src/components/site/concepts/coverage-model.ts` |
+| 2026-10-04 | No simulated counters on the home animations (engines band, Science at scale). | `src/components/site/fx/overlay.tsx`, `overlay.copy.ts` |
+| 2026-10-04 | GMV variants shown in the order 3 %, 6 %, 9 % (6 % the default). | `src/config/funds.ts` |
+| 2026-10-04 | Two people removed from the static team list; on /team the values come after the people. | `src/data/team.ts`, `src/components/site/pages/Team.tsx` |
+| 2026-10-04 | Every class's returns from the dataplatform; "the inception date of each class … the first date when there are prices for that class". | `src/lib/pipeline/class-returns.ts` |
+| 2026-10-04 | Fund-page disclosures are the last block, below the call to action and the other strategies. | `src/components/fund/FundPage.tsx` |
+| 2026-10-05 | Long disclosures collapse into a faded box with a static expand arrow. | `src/components/site/Disclosure.tsx`, `src/components/fund/Closing.tsx` |
+
 ## Conventions
 
 - All returns/weights/yields are decimal fractions in data; formatting happens in the UI only.

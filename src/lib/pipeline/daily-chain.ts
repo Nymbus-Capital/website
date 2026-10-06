@@ -1,7 +1,7 @@
 /**
  * Monthly net returns of ONE share class (FundServ code), computed in the website from the dataplatform's daily
- * `/api/performance/nav-timeseries` rows (Gabriel 2026-10-02: "compute whatever you need within the backend of the
- * website and only take the dataplatform api endpoints as input data"). Pure, dependency-free (Node type stripping).
+ * `/api/performance/nav-timeseries` rows (dataplatform main endpoints are the only input: docs/architecture.md § Sources).
+ * Pure, dependency-free (Node type stripping).
  *
  * Three regimes, each a port of the dataplatform's own rules so the figures are the ones it would publish:
  *  - Apex months (after the cut-over month): `monthly_net_returns._monthly_rows` (dataplatform main) — every Canadian

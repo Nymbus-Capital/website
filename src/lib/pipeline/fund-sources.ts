@@ -3,8 +3,7 @@
  * keys). Internal: pipeline / server only, never imported by a client component (tests/unit/site/client-imports.test.ts).
  * Dependency-free (plain TS) for Node type stripping.
  *
- * Gabriel 2026-10-02: every figure is computed in the website from endpoints that exist on the dataplatform's main
- * branch. The class series are compounded here from the daily `/api/performance/nav-timeseries` rows of each class
+ * Every figure is computed in the website from endpoints that exist on the dataplatform's main branch. The class series are compounded here from the daily `/api/performance/nav-timeseries` rows of each class
  * (daily-chain.ts); no dataplatform change (PR #621, #626, #631) is needed.
  */
 import type { FundKey } from "../data/types.ts";

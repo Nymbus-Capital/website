@@ -3,7 +3,7 @@
  * /team ("About" in the navigation): credentials, the firm (who we are, Montreal office), then the people
  * (src/data/team.ts, self-hosted portraits, initials when missing), filterable by department (a person can belong
  * to several), each opening a bio dialog (native <dialog>: focus trap, Escape, backdrop click), verifiable
- * milestones, the values (after the people since 2026-10-04, Gabriel's request), and a join-us / contact band.
+ * milestones, the values (after the people), and a join-us / contact band.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Award, BookOpen, Cpu, GraduationCap, Handshake, Hourglass, Lightbulb, MapPin, Scale, ShieldCheck, Users, X, Zap } from "lucide-react";

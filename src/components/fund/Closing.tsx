@@ -87,8 +87,7 @@ export function Disclosures({ spec, content, data, lang, sample, firmDisclaimer,
               </p>
             ) : null}
             <p>{gross ? tr(T.disclosure.gross, lang) : tr(T.disclosure.net, lang)}</p>
-            {/* the boilerplate that follows is collapsed to its first lines with a fade (Gabriel 2026-10-05); the full text stays
-                in the DOM, "#disclosure" opens it; sized on the English texts so both languages behave the same */}
+            {/* the boilerplate below collapses to a few faded lines (full text in the DOM, "#disclosure" opens it), sized on the English text */}
             <Disclosure lang={lang} anchors={["disclosure"]} testId="fund-disclosure"
               en={[spec.vehicle === "fund" && T.disclosure.standard.en, hasBenchmark && T.disclosure.index.en, firm.en || firm.fr, hasBenchmark && T.disclosure.ftse.en, provenanceLine(data, "en")]}>
               {spec.vehicle === "fund" ? <p>{tr(T.disclosure.standard, lang)}</p> : null}

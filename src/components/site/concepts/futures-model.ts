@@ -8,9 +8,8 @@
 import { clamp, gauss, hash01 } from "./timeline.ts";
 
 /**
- * Trading days per loop of the animation, and ms per day. Slowed down 2026-10-03 (Gabriel: "we have a hard time reading
- * the text … every day", 1.25 s → 5 s), then sped up a little 2026-10-04 ("a tiny bit faster … but still slower than
- * initially"): 3.75 s a day, each daily settlement message still held long enough to read once comfortably.
+ * Trading days per loop of the animation, and ms per day: 3.75 s a day, so each daily settlement message is held long
+ * enough to read once comfortably (history in docs/architecture.md § Decision log).
  */
 export const DAYS = 14;
 export const DAY_MS = 3750;

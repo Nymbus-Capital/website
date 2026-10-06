@@ -61,7 +61,7 @@ export interface FundSpec {
   classes: FundClassSpec[];
   /**
    * variants of a strategy offered with their own figures (Global Minimum Volatility: target downside volatility, %), in
-   * display order (3 %, 6 %, 9 %: Gabriel, 2026-10-04); the one flagged `default` (6 %) is selected unless another is
+   * display order (3 %, 6 %, 9 %); the one flagged `default` (6 %) is selected unless another is
    */
   variants?: VariantSpec[];
   defaults: {

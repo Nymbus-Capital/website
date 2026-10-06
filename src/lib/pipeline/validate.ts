@@ -478,9 +478,7 @@ export function validateSite(input: SiteData, context: Partial<Record<FundKey, F
     const classChange: Issue | null = !blocking.length && (headChange || entryChanges.length)
       ? { key: `${base}.performance.class`, level: "error", message: `performance class change ${[headChange ? `from class ${classLabel(key, fromClass) ?? "?"} (${fromClass}) to class ${classLabel(key, toClass) ?? "?"} (${toClass})` : null, ...entryChanges].filter(Boolean).join("; ")}: every month restated and relabelled; an admin must approve (publish) this run — until then the previous publication stays live, also in auto mode` }
       : null;
-    // performance (and what is computed from it: trailing, risk) is gated on its own: when only it fails, the NAV,
-    // AUM, portfolio and distributions still publish and the performance alone is held (previous kept, else withheld)
-    // (the returns of a class or a variant are part of it: they are held with it)
+    // performance (with trailing, risk and the class / variant returns) is gated alone (docs/architecture.md § Performance class)
     const isPerf = (i: Issue) => [`${base}.performance`, `${base}.trailing`, `${base}.risk`, `${base}.risk3Y`].some((k) => i.key === k || i.key.startsWith(`${k}.`) || i.key.startsWith(`${k}[`))
       || new RegExp(`^${base.replaceAll(".", "\\.")}\\.(performanceByClass|variants)\\.[^.]+\\.(performance|risk|risk3Y)([.\\[]|$)`).test(i.key);
     const perfBlocking = blocking.filter(isPerf);

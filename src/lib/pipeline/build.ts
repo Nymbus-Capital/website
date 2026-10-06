@@ -2,7 +2,7 @@
  * Build: raw source payloads (+ previously published data) -> SiteData. Pure (no I/O, no clock: `now`
  * is a parameter).
  *
- * Rules (Gabriel 2026-10-02: the dataplatform API is the only input; the website computes whatever grouping it needs)
+ * Rules (the dataplatform API is the only input; the website computes whatever grouping it needs)
  *  - Net funds (SEST / SEB / Multistrat), headline = the track-record class: Apex months from dataplatform
  *    monthly-net-returns "ready" months, reproduced by the website's own compounding of the class's daily
  *    nav-timeseries chain; the 2026-07 cut-over month from the NAV bridge; CIBC months from the class's stored CIBC
@@ -566,13 +566,8 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
       if (used.length) chainSource = `${fsv} (${chainNote(used, ch.months)})`;
     }
   }
-  // source defects found by the class checks (class-returns.ts: a bad valuation print or classes disagreeing — months
-  // withheld for every class —, and this class's own cross-class failures and newest-month hold). A month the track record
-  // takes from its own daily NAV chain, or from monthly-net-returns (the same Apex NAVs: equal to the chain by construction,
-  // not an independent source), is the same data: it is replaced by the analytics history's official figure when that has
-  // the month (labelled "official figure", not an independent check), else withheld — never filled from the factsheet; a
-  // newest month is then held, a month in the middle interrupts the track record as any missing month does. A month taken
-  // from the analytics history (the official track record) or a factsheet stays, listed in a warning.
+  // defect months of the class checks: replaced by the official analytics figure, else withheld (never from the factsheet);
+  // see docs/architecture.md § Returns per class and GMV variants (track record defects)
   if (defects?.size) {
     const kept: string[] = [];
     for (const [m, why] of [...defects].sort(([a], [b]) => (a < b ? -1 : 1))) {
@@ -757,9 +752,7 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
   const classOfArchive = (month: string): string | null => factsheetClassAt(spec.key, month);
   const archMismatch = (month: string): boolean => classOfArchive(month) !== fsr.classCode;
 
-  // choose the as-of month. A month's factsheet, when it exists, must agree (a disagreement holds a new month back and
-  // withholds an already published one); it is not required for a new month (option, default off): the months come
-  // from the dataplatform and pass its own gates (complete daily chain, monthly-net-returns agreement)
+  // as-of month: an existing factsheet must agree; a new month needs none by default (docs/architecture.md § Performance class)
   let asOf: string | null = null;
   let fsBlock: { name: string; month: string; block: Obj } | null = null;
   let fsTrailing: TrailingTable | null = null;

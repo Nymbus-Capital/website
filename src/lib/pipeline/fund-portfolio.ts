@@ -1,6 +1,6 @@
 /**
  * Daily portfolio analytics of one fund, computed by the website from dataplatform main-branch endpoints only
- * (Gabriel 2026-10-02, instead of the unmerged dataplatform PR #621 `/api/apex/fund-portfolio`):
+ * (instead of the unmerged dataplatform PR #621 `/api/apex/fund-portfolio`):
  *   /api/apex/holdings        the fund's Apex FINAL_NAV positions and bank / broker balances of one valuation day
  *   /api/instruments/batch    instrument master match by ISIN / CUSIP / FIGI: asset class, ratings, green-bond flag,
  *                             Bloomberg classification, latest price (modified duration, yield to maturity)

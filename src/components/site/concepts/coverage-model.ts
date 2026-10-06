@@ -1,13 +1,12 @@
 /**
  * coverage-model.ts — pure model of the "ultra-micro analysis, at scale" animation (/core-concepts): one large shared
- * graphic (≈2,000 dots of the Canadian investment-grade index, in six sector clusters) shown as a two-act comparison
- * (Gabriel 2026-10-04: the earlier bigger shared graphic, "starts with conventional then turns to Nymbus systems").
+ * graphic (≈2,000 dots of the Canadian investment-grade index, in six sector clusters) shown as a two-act comparison.
  * Act 1, a conventional fundamental team (one portfolio manager, six sector analysts — financials, technology &
  * communications, consumer, utilities & infrastructure, energy, industrials — each covering about 30 securities a year in
  * depth) lights 180 of them; act 2, our systems scan every liquid bond (at least $200 MM outstanding) and keep the whole
  * history in memory; a last beat compares both. A methods column on the left (a strip on top on narrow screens) stacks
  * the two methods with a "VS" badge between them: the method on the graphic is highlighted, the other faded.
- * The figures are Gabriel's illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
+ * The figures are Nymbus' illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
  */
 import { ease, hash01, span } from "./timeline.ts";
 

@@ -1,8 +1,6 @@
 /**
  * Monthly net returns of EVERY share class of a fund, each from its own daily `/api/performance/nav-timeseries` rows,
- * from its inception (Gabriel 2026-10-04: "make sure that all classes' returns are populated with data coming from
- * dataplatform … You can find the inception date of each class also by looking at the first date when there are prices
- * for that class"). Pure, dependency-free (Node type stripping).
+ * from its inception (the first date with prices for that class). Pure, dependency-free (Node type stripping).
  *
  *  - Inception: the first NAV-per-unit date of the class's CURRENT run. A gap of more than `relaunchGapDays` calendar days
  *    without a NAV per unit ends a run when a relaunch is corroborated (NAV jump or reset, or a very long gap): earlier rows

@@ -3,7 +3,7 @@
  * (data/seed/team.json, the source of decks.nymbus.ca) take their titles, years of experience, education, designations,
  * LinkedIn and portraits from it (2026-10-02), updated 2026-10-03 from the live decks.nymbus.ca team (/api/team): newer
  * portraits for Jennifer Pinkerton, Danira Csano, Gabriel Cefaloni, Fraser Coburn and Lyes Hammadi, live titles, and
- * two new people (Léana D’Imperio, Philippe Rivet). Two people left the list on 2026-10-04 (Gabriel's request).
+ * two new people (Léana D’Imperio, Philippe Rivet). Two people left the list on 2026-10-04.
  * Guy Liébart, Jason Laliberte and Luca Ieraci
  * are in neither: previous site's data, no `yearsExperience`. Credential counts are computed from this file only
  * (src/components/site/pages/lib/people.ts).
