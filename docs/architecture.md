@@ -337,7 +337,8 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   legacy `rbcits.com` address), parses survey editions from article links, PDF links and titles, and HEAD-probes the
   predictable PDF address (`/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q<q>_<yyyy>.pdf`) of the next quarters. A
   quarter newer than a fund's confirmed RBC entry gives a dashboard issue ("New RBC pooled fund survey Qx published —
-  update rankings") and one `PIPELINE_ALERT_WEBHOOK` message per edition. **A failed check only logs and shows an issue;
+  update rankings") and one `PIPELINE_ALERT_WEBHOOK` message per edition (a delivery that fails is tried again at the next
+  check). **A failed check only logs and shows an issue;
   it never hides or changes data** (hiding is the as-of rule above). `POST /api/admin/rankings/check` runs it on demand.
 - **Seeds** (`defaults.ts`): Morningstar 5 stars Class F as of 2026-10-01 for both bond funds (stated by Nymbus); Fund
   Library as at 2026-08-31; RBC Investor Services Pooled Fund Survey Q2 2026 for both bond funds, **confirmed**
@@ -382,6 +383,52 @@ decisions is `docs/HANDOFF.md` § 4).
 | 2026-10-04 | Every class's returns from the dataplatform; "the inception date of each class … the first date when there are prices for that class". | `src/lib/pipeline/class-returns.ts` |
 | 2026-10-04 | Fund-page disclosures are the last block, below the call to action and the other strategies. | `src/components/fund/FundPage.tsx` |
 | 2026-10-05 | Long disclosures collapse into a faded box with a static expand arrow. | `src/components/site/Disclosure.tsx`, `src/components/fund/Closing.tsx` |
+
+## Monitoring and alerts (`src/lib/pipeline/{alerts,freshness,monitor,schedule}.ts`, `src/lib/rankings/expiry-alert.ts`)
+
+- **Alerts** (`alerts.ts`): one channel, `PIPELINE_ALERT_WEBHOOK` (https only). Payload = Teams Adaptive Card
+  (`type: "message"`, accepted by Teams Workflows and incoming webhooks; TextBlock Markdown escaped) or generic JSON
+  `{ text, title, severity, lines, adminUrl }`, chosen by `PIPELINE_ALERT_FORMAT` or the URL host (`*.webhook.office.com`,
+  `*.logic.azure.com`, `*.powerplatform.com`, `*.powerautomate.com` → Teams). Titles carry the host of `PUBLIC_URL`
+  (environment label); hosts are stripped from every line (`scrubHosts`: `http://svc:8000/api/x` → `/api/x`). Delivery:
+  4 attempts (2 s, 8 s, 30 s; network errors, timeouts, 408, 429 with `Retry-After` ≤ 60 s, 5xx), never on another 4xx.
+  Dedup state on the volume (`alerts/state.json`: open conditions by key with fingerprint, first / last posted, clean-run
+  count; `sentAt` per key; the last delivery result — never the URL), updated in-process under a promise-chain mutex
+  (single instance). A condition is recorded only once delivered, so a failed or unconfigured delivery is posted at the
+  next evaluation. The admin test message (`sendTestAlert`) is one attempt, 8 s, outside the queue, one a minute.
+- **Run alert** (`run.ts` `notifyRun`, key `pipeline.run`): a run needs attention when `failed`, `blocked`, or
+  `pending-review` behind an approval gate (unconfirmed months, class changes). Fingerprint = status + error issues (key
+  and message, digits masked) + funds to review + class changes: posted when new or changed, one reminder a day while
+  unchanged, "Resolved" after 2 consecutive runs needing no attention (`RESOLVE_AFTER_CLEAN_RUNS`; a clean run in between
+  resets nothing visible — no flapping). `publishRun` of the newest run settles `pipeline.run` / `pipeline.review`
+  silently. Review mode: a clean waiting run (`isReviewWait`) is not a problem; when it holds data the live publication
+  does not (`RunReport.newData`, digest of as-of dates + funds), "N runs waiting for approval" (`pipeline.review`) is
+  posted at most once a day. Non-blocking notices (`pipeline.advisories`) are posted once, when they first appear. Dry
+  runs post nothing.
+- **Scheduler** (`schedule.ts`): besides the slots, (1) **catch-up** ~90 s and again ~35 min after boot when a slot
+  passed since the newest non-dry run started, no run holds the lock, that run started ≥ 1 h ago and the next slot is
+  ≥ 45 min away (`catchUpDue`; a volume with no run gets one); (2) **one retry** 30 min after a scheduled / catch-up run
+  that failed or was blocked with a source unavailable (`retryWanted`: a source error matching HTTP 5xx / 429 / 408 /
+  timeout / network), never when the run has class changes or unconfirmed months, never after a crash, and not when the
+  next slot is within 45 min of the retry (the next slot is armed before the run, so a slot run is compared with the
+  following slot); a slot cancels a pending retry; (3) the **freshness monitor** after every run and every 30 min. All
+  runs go through `runPipeline` (same lock, same gates: nothing is auto-approved).
+- **Freshness** (`freshness.ts`, pure; `monitor.ts` reads the volume): per fund the site shows — performance lacking the
+  last month-end closed for > 15 business days, the oldest class's NAV > 4 business days old (fund vehicles), or no
+  performance; blocks hidden by the admin (`hide.performance`, `hide.nav`) and hidden funds are skipped. No
+  publication-age rule (review mode would make it fire between approvals). `GET /api/status` serves `publicStatus`
+  (`ok`, `verdict`, `checkedAt`, `lastPublishAt`, `stale` codes, per-fund as-of of the shown blocks; 60 s memo +
+  `Cache-Control: public, max-age=60`; always 200; `?strict=1` → 503 `no-store` when stale). Run status, schedule,
+  reasons and retry are admin-only (`siteStatus`, dashboard). Stale-data alert key `data.freshness` (fingerprint = stale
+  codes, daily reminder, "fresh again" once). `/api/health` stays a bare liveness probe.
+- **Rankings expiry** (`rankings/issues.ts` `rankingExpiries`, `expiry-alert.ts`): a shown ranking whose last day
+  (`lastShowDay`) is within 30 days (Toronto date) → dashboard warn issue and one webhook message (key `rankings.expiry`,
+  each entry / as-of / phase once); a complete entry hidden within the last 30 days → one "now hidden" message. Run every
+  6 h by the rankings tick (`RANKINGS_CHECK=off` disables it with the RBC check). The RBC edition alert is marked as sent
+  only once delivered (without a webhook it is posted when one is configured).
+- **Admin**: the dashboard's *alerts* panel (above the pipeline when alerts are off or the last delivery failed) shows
+  configured / format / webhook host, last delivery, open alerts, the public-data verdict with reasons and a pending
+  retry, and a "send a test alert" button (`POST /api/admin/alerts/test`, audited, 429 within a minute).
 
 ## Conventions
 
@@ -472,7 +519,8 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `ANALYTICS_RETURNS_FILE` | optional local copy of `fund_returns.json` (overrides GitHub) |
 | `PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH` | default `0`: a new month no independent source confirms needs an admin in auto mode (run `pending-review`); `1`: it waits for its factsheet in every mode (an existing disagreeing factsheet always blocks) |
 | `PIPELINE_SCHEDULE` | `HH:MM,HH:MM` America/Toronto, or `off` (default `06:45,12:45,18:45`) |
-| `PIPELINE_ALERT_WEBHOOK` | optional Teams/Slack incoming webhook for failed or blocked runs (also: a new RBC pooled fund survey edition, once per edition) |
+| `PIPELINE_ALERT_WEBHOOK` | Teams (Workflows or incoming webhook) / generic JSON webhook for every operations alert (§ Monitoring and alerts); unset = alerts off (the admin dashboard says so) |
+| `PIPELINE_ALERT_FORMAT` | `teams`, `json` or `auto` (default: detected from the webhook host) |
 | `RANKINGS_CHECK` | `off` disables the weekly RBC pooled fund survey check (e2e sets it) |
 | `RANKINGS_CHECK_DAYS` | days between two survey checks (default 7, 1–60) |
 | `SHOW_SAMPLE_DATA` | `1` to allow the synthetic sample in production (demo environments only) |

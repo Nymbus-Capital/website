@@ -236,6 +236,15 @@ Not yet run against live data, not deployed.
    endpoint** on main (total returns of a USD series); (c) compliance rows AC1–AC6 (`docs/compliance-review.md`), in particular
    AC3 (some standard periods shown while others are "—"); (d) a second independent review of the 2026-10-05 fixes before merging.
 
+20. **Automation / monitoring** (branch `feat/automation`, from `redesign/v3-keynote-live-data`, **not merged**): deduped
+   alerts (Teams / JSON, retries, daily reminders, resolved), catch-up of a missed slot after boot, one retry after a source
+   outage, public `GET /api/status` (+ `?strict=1` 503 when stale), stale-data alert, rankings expiry alert 30 days ahead,
+   alerts panel on the dashboard. **Gabriel to do**: (a) create the Teams channel webhook (Workflows template "Post to a
+   channel when a webhook request is received") and paste it into `PIPELINE_ALERT_WEBHOOK` in `website-secrets`, restart,
+   press "send a test alert" (`docs/deploy.md` § Alerts); (b) point an external uptime monitor at
+   `<PUBLIC_URL>/api/status?strict=1` (keep the Northflank health check on `/api/health`); (c) independent adversarial review
+   before merging.
+
 ## 6. Session log
 
 - 2026-10-05 (sub-agent, branch `feat/cleanup` from `redesign/v3-keynote-live-data`; **not merged**): code cleanup with no
@@ -268,6 +277,29 @@ Not yet run against live data, not deployed.
   run on its own temp volume, nothing to share); split the big files and run the formatter. **Could not delete the stale `ci/run-*` branches** (the sandbox proxy refuses ref deletion, HTTP 403):
   Gabriel can run `git ls-remote origin 'refs/heads/ci/*'` and `git push origin --delete <ci/run-n …>` for all but the
   last ten.
+
+- 2026-10-05 (sub-agent, branch `feat/automation` from `redesign/v3-keynote-live-data`; **not merged**): automation /
+  monitoring. `src/lib/pipeline/alerts.ts` (format detection Teams / JSON, Adaptive Card payload, delivery with 4 attempts
+  and backoff, dedup state `alerts/state.json`, `raiseAlert` / `resolveAlert` / `announceNew`, admin channel status);
+  `run.ts` `notifyRun` replaces the old per-run alert (attention = failed / blocked / pending-review; fingerprint = status +
+  masked error issues + review / class-change funds; daily reminder; "Resolved"; notices once; dry runs silent);
+  `schedule.ts` catch-up after boot (`catchUpDue`: a slot passed since the last run, ≥ 1 h since it, next slot ≥ 45 min away
+  — judgement: the brief's "> 7 h since the last run" alone would miss a redeploy just after a slot and would run at night),
+  one retry 30 min after a source outage (`retryWanted`), monitor every 30 min and after runs; `freshness.ts` (pure verdict)
+  + `monitor.ts` (`siteStatus`, stale-data alert) + `GET /api/status`; rankings `rankingExpiries` (dashboard warn issue 30
+  days ahead) + `expiry-alert.ts` (webhook once per entry / phase, from the 6-hourly rankings tick); RBC alert through the
+  shared delivery (alertedFor kept only when delivered); dashboard `AlertsPanel` (+ `POST /api/admin/alerts/test`). No
+  email (no mail path exists). Tests: `alerts`, `freshness`, `monitor`, `schedule` (catch-up / retry / runtime wiring),
+  `run` (run alert dedup, Teams format, failed delivery), `rankings/expiry`; e2e: alerts panel off, `/api/status`. Docs:
+  deploy (alerts, Teams how-to, status + monitoring), architecture § Monitoring and alerts. Publishing gates unchanged.
+  **Review fixes (2026-10-06)**: retry after a slot run now happens (next slot armed before the run); review mode — clean
+  waiting runs are not problem alerts, "N runs waiting for approval" at most daily and only with new data, `publishRun`
+  settles the alerts, freshness has no publication-age rule (performance threshold 15 business days, NAV = oldest class);
+  `/api/status` public payload reduced to ok / verdict / checkedAt / lastPublishAt / stale codes / per-fund as-of of
+  shown blocks (ops details on the dashboard; strict 503 no-store); hidden blocks skipped; "Resolved" after 2 clean runs;
+  dry runs ignored by the catch-up, second check ~35 min after boot; Toronto date for rankings expiry; RBC alertedFor
+  only on delivery; test alert one attempt, outside the queue, one a minute; https webhooks only; environment label in
+  titles; Teams Markdown escaped; hosts stripped from alert lines.
 
 - 2026-10-05 (sub-agent, branch `feat/collapsible-disclosures` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
   request "all the disclosure in the websites … smaller divs that have a fade out towards the end and a static arrow that shows

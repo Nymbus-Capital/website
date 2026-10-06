@@ -100,6 +100,23 @@ test.describe("sign-in gate", () => {
     expect(r.status()).toBe(200);
     expect(await r.json()).toEqual({ ok: true });
   });
+
+  test("/api/status is public, cacheable, always 200 with an ok flag, no ops state; strict=1 answers 503 (no-store) when stale", async ({ request }) => {
+    const r = await request.get("/api/status");
+    expect(r.status()).toBe(200);
+    expect(r.headers()["cache-control"]).toContain("max-age=60");
+    const s = await r.json();
+    expect(Object.keys(s).sort()).toEqual(["checkedAt", "funds", "lastPublishAt", "ok", "stale", "verdict"]);
+    expect(typeof s.ok).toBe("boolean");
+    expect(["ok", "stale"]).toContain(s.verdict);
+    expect(Object.keys(s.funds)).toContain("monthly-income");
+    const body = JSON.stringify(s);
+    for (const leak of ["blocked", "pending", "failed", "running", "retry", "schedule", "dataplatform", "webhook", "http://", "https://", "issues"]) expect(body, leak).not.toContain(leak);
+    const strict = await request.get("/api/status?strict=1");
+    expect(strict.status()).toBe(s.ok ? 200 : 503);
+    if (!s.ok) expect(strict.headers()["cache-control"]).toBe("no-store");
+    expect(typeof (await strict.json()).ok).toBe("boolean");
+  });
 });
 
 test.describe("API guards", () => {
@@ -195,6 +212,9 @@ test.describe("admin flows", () => {
     expect(res?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: "dashboard" })).toBeVisible();
     await expect(page.getByTestId("pipeline-status")).toBeVisible();
+    // no PIPELINE_ALERT_WEBHOOK in e2e: the dashboard says at once that alerts are off
+    await expect(page.getByTestId("alerts-off")).toBeVisible();
+    await expect(page.getByTestId("alerts-test")).toBeDisabled();
     await expect(page.locator(".adm-user")).toContainText("alice@nymbus.ca");
     // the GMV returns row names its downside volatility variant
     await expect(page.getByTestId("admin-variant-global-minimum-volatility")).toHaveText("6% downside volatility");

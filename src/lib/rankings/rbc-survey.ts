@@ -11,6 +11,7 @@
  */
 import type { FundKey, SiteContent } from "../data/types.ts";
 import { readJson, withLock, writeJson } from "../data/store.ts";
+import { sendAlertNow } from "../pipeline/alerts.ts";
 
 export const RBC_LISTING_URLS = ["https://www.rbcis.com/en/our-insights.page", "https://www.rbcits.com/en/insights/"];
 export const RBC_PDF_BASE = "https://www.rbcis.com/assets/rbcits/docs/";
@@ -325,8 +326,8 @@ async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?:
   if (opts.content && state.latest) {
     const pending = rbcIssues(state, opts.content, now).filter((i) => i.key.startsWith("rankings.rbc.new."));
     if (pending.length && state.alertedFor !== state.latest.label) {
-      await alertWebhook(fetchImpl, [`Nymbus website: new RBC pooled fund survey ${state.latest.label} published — update the rankings in /admin.`, ...pending.map((i) => `• ${i.message}`)].join("\n"));
-      state.alertedFor = state.latest.label;
+      // a failed delivery is tried again at the next check
+      if (await alertWebhook(fetchImpl, `Nymbus website: new RBC pooled fund survey ${state.latest.label} published — update the rankings in /admin.`, pending.map((i) => `• ${i.message}`))) state.alertedFor = state.latest.label;
     }
   }
   try {
@@ -337,13 +338,8 @@ async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?:
   return state;
 }
 
-async function alertWebhook(fetchImpl: typeof fetch, text: string): Promise<void> {
-  const url = process.env.PIPELINE_ALERT_WEBHOOK;
-  if (!url) return;
-  try {
-    const res = await fetchImpl(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(15_000) });
-    await res.body?.cancel().catch(() => undefined);
-  } catch (e: unknown) {
-    console.error(`[rankings] alert webhook failed: ${String((e as Error)?.message ?? e).split(url).join("<webhook>")}`);
-  }
+/** true only when delivered: without a webhook (or on a failure) the edition is posted once one is configured / works */
+async function alertWebhook(fetchImpl: typeof fetch, title: string, lines: string[]): Promise<boolean> {
+  const r = await sendAlertNow({ title, lines, severity: "warn", adminPath: "/admin" }, { fetchImpl });
+  return r === "sent";
 }

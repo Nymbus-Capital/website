@@ -488,3 +488,111 @@ test("many classes published for the first time at once: held in auto mode until
   const next = await run({ now: new Date("2026-09-30T20:00:00Z") });
   assert.equal(next.classChanges, undefined);
 });
+
+test("run alerts: posted when a run needs attention, deduped while the problem is the same, reminded daily, resolved after 2 clean runs (no flapping); Teams format; failed delivery retried at the next run", async () => {
+  const { ALERT_DELIVERY, readAlertState } = await import("../../../src/lib/pipeline/alerts.ts");
+  const saved = ALERT_DELIVERY.delays;
+  ALERT_DELIVERY.delays = [0, 0, 0];
+  try {
+    await run();
+    const posted: string[] = [];
+    let hookStatus = 200;
+    process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+    process.env.PUBLIC_URL = "https://www.example.test";
+    const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("x", { status: hookStatus })) : undefined);
+    const aumDown: Route = (u) => (u.pathname === "/api/unitholders/aum" ? json({ detail: "x" }, 503) : undefined);
+    const title = (i: number): string => (JSON.parse(posted[i]) as { title: string }).title;
+    const r1 = await run({ routes: [hook, aumDown], now: new Date("2026-09-30T14:00:00Z") });
+    assert.equal(r1.status, "blocked");
+    assert.equal(posted.length, 1);
+    const m1 = JSON.parse(posted[0]) as { text: string; title: string; adminUrl: string };
+    assert.match(m1.title, /^\[www\.example\.test\] Nymbus website data pipeline: run .* BLOCKED/, "environment label");
+    assert.match(m1.text, /What to do: open \/admin\/runs\//);
+    assert.equal(m1.adminUrl, `https://www.example.test/admin/runs/${r1.id}`);
+    assert.ok(!/https?:\/\/(?!www\.example\.test)/.test(m1.text), "no host other than the admin link");
+    // the same problem on the next runs: not posted again
+    await run({ routes: [hook, aumDown], now: new Date("2026-09-30T18:00:00Z") });
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-01T10:00:00Z") });
+    assert.equal(posted.length, 1, posted.map((_, i) => title(i)).join(" | "));
+    // still blocked a day after the alert: one daily reminder
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-01T14:30:00Z") });
+    assert.equal(posted.length, 2);
+    assert.match(title(1), /^\[www\.example\.test\] Reminder \(daily, since 2026-09-30 14:00 UTC\): .*BLOCKED/);
+    // flapping: one clean run, then blocked again → nothing posted
+    assert.equal((await run({ routes: [hook], now: new Date("2026-10-01T18:00:00Z") })).status, "published");
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-01T19:00:00Z") });
+    assert.equal(posted.length, 2, "a clean run in between neither resolves nor re-posts");
+    // two clean runs in a row: resolved, once
+    await run({ routes: [hook], now: new Date("2026-10-01T20:00:00Z") });
+    assert.equal(posted.length, 2);
+    await run({ routes: [hook], now: new Date("2026-10-01T21:00:00Z") });
+    assert.equal(posted.length, 3);
+    assert.match(title(2), /Resolved: .*PUBLISHED/);
+    await run({ routes: [hook], now: new Date("2026-10-01T22:00:00Z") });
+    assert.equal(posted.length, 3);
+    // Teams format; a delivery that fails is not recorded as sent: the next run posts again
+    process.env.PIPELINE_ALERT_FORMAT = "teams";
+    hookStatus = 500;
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-02T14:00:00Z") });
+    assert.equal(posted.length, 7, "4 attempts");
+    const card = JSON.parse(posted[6]) as { type: string; attachments: { content: { body: { text: string }[]; actions: { url: string }[] } }[] };
+    assert.equal(card.type, "message");
+    assert.match(card.attachments[0].content.body[0].text, /BLOCKED/);
+    assert.match(card.attachments[0].content.actions[0].url, /^https:\/\/www\.example\.test\/admin\/runs\//);
+    const st = await readAlertState();
+    assert.equal(st.lastDelivery!.ok, false);
+    assert.equal(st.open["pipeline.run"], undefined);
+    hookStatus = 200;
+    await run({ routes: [hook, aumDown], now: new Date("2026-10-02T18:00:00Z") });
+    assert.equal(posted.length, 8);
+    assert.equal((await readAlertState()).lastDelivery!.ok, true);
+    // a dry run posts nothing
+    await run({ routes: [hook], dryRun: true, now: new Date("2026-10-02T19:00:00Z") });
+    assert.equal(posted.length, 8);
+    // an admin publishing the newest run settles its alert without a message
+    const blocked = await run({ routes: [hook, aumDown], now: new Date("2026-10-02T20:00:00Z") });
+    assert.ok((await readAlertState()).open["pipeline.run"]);
+    await publishRun(blocked.id, "admin@nymbus.ca");
+    assert.equal((await readAlertState()).open["pipeline.run"], undefined);
+    assert.equal(posted.length, 8);
+  } finally {
+    ALERT_DELIVERY.delays = saved;
+    delete process.env.PIPELINE_ALERT_WEBHOOK;
+    delete process.env.PIPELINE_ALERT_FORMAT;
+    delete process.env.PUBLIC_URL;
+  }
+});
+
+test("review mode: a clean waiting run is not a problem alert; \"N runs waiting for approval\" only with new data, at most once a day; publishing settles it", async () => {
+  const { ALERT_DELIVERY, readAlertState } = await import("../../../src/lib/pipeline/alerts.ts");
+  const saved = ALERT_DELIVERY.delays;
+  ALERT_DELIVERY.delays = [0];
+  try {
+    await setMode("review");
+    const posted: { title: string; lines: string[] }[] = [];
+    process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
+    const hook: Route = (u, init) => (u.hostname === "hooks.example.test" ? (posted.push(JSON.parse(String(init?.body))), new Response("x")) : undefined);
+    const first = await run({ routes: [hook], now: new Date("2026-09-29T14:00:00Z") });
+    assert.equal(first.status, "pending-review");
+    assert.equal(first.newData, true, "nothing published yet");
+    const waiting = posted.filter((p) => /waiting for approval/.test(p.title));
+    assert.equal(waiting.length, 1);
+    assert.match(waiting[0].title, /1 run waiting for approval \(review mode\)/);
+    // only the non-blocking notices of the synthetic fixtures may come with the run's status: never a problem alert
+    assert.ok(posted.filter((p) => /PENDING-REVIEW/.test(p.title)).every((p) => p.lines.some((l) => /attention \(not blocking\)/.test(l)) && !p.lines.some((l) => /What to do/.test(l))), "not a problem alert");
+    const n = posted.length;
+    // more waiting runs the same day: no new message
+    await run({ routes: [hook], now: new Date("2026-09-29T18:00:00Z") });
+    assert.equal(posted.length, n);
+    // approved: the open entry is settled; the next run holds the same data → nothing to announce, even a day later
+    const latest = (await listRuns(1))[0];
+    await publishRun(latest.id, "admin@nymbus.ca");
+    assert.equal((await readAlertState()).open["pipeline.review"], undefined);
+    const same = await run({ routes: [hook], now: new Date("2026-09-30T19:00:00Z") });
+    assert.equal(same.newData, false);
+    assert.equal(posted.length, n);
+  } finally {
+    ALERT_DELIVERY.delays = saved;
+    delete process.env.PIPELINE_ALERT_WEBHOOK;
+  }
+});
