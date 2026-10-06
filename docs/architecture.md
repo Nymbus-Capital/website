@@ -246,19 +246,24 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
       the other side's slope is within 0.10 of 1 (`fitUnitSlopeTolerance`: a class charged like the reference), else the
       side is **not checkable** — its months are withheld for that class ("too few down months to fit the series'
       spread": a fee-free class in a fund with few down months) and it is left out of the other classes' references in
-      those months.
+      those months. A fitted fund's class-month whose other complete classes are all not checkable that month (no
+      reference left) is not checkable either — never compared at slope 1. Only a fund with no fitted class at all (e.g.
+      two classes) compares a class with the others' plain median.
     - **Fixed point**: the fits and the references depend on each other. From a = 0, slope 1 they are iterated, each round
       damped (half-way to the new fits, the step divided by 2, 3, … every 20 rounds: two classes that are each other's
       reference would otherwise swap their spreads forever, and Theil–Sen medians jump between neighbouring pair slopes)
-      and normalised (median a of the fitted classes → 0, median own up slope and down slope → 1), until no class's
-      expected return moves by more than 0.01 % for a fund month within ±10 % (`fitTolerance`, `fitToleranceRange`), at
-      most 400 rounds (`fitMaxRounds`). Not settled → every month checked against a fit is withheld for EVERY class.
-    - **Leave-out**: each class-month is tested against a fit made without that month (an error in the fund's strongest
-      month cannot bend its own expectation) and, in a second pass, also without the class's other months that breached in
-      a first pass (when each own side keeps ≥ 4 months, `fitSuspectMinSide`), so one wrong month does not drag a correct
-      month of the same class out of tolerance. A first-pass breach the second pass clears stands unless the second pass
-      still flags another month of that class (the month that bent the fit). With 6–8 months on a side an error can still,
-      rarely, withhold a second correct month of the same class (never a wrong number).
+      and normalised (median a of the fitted classes → 0, median own up slope and down slope → 1), until a round's step —
+      the largest change of a class's expected return for a fund month within ±10 % — is at most 0.01 % (`fitTolerance`;
+      a step size, not a distance to the exact fixed point), at most 400 rounds (`fitMaxRounds`). Not settled → every
+      month checked against a fit is withheld for EVERY class (no leave-out pass is run).
+    - **Leave-out** (`robustResiduals`): each class-month is tested against a fit made without that month (an error in the
+      fund's strongest month cannot bend its own expectation) and, in a second pass, also without the class's other months
+      that breached in the first pass (when each own side keeps ≥ 4 months, `fitSuspectMinSide`), so one wrong month does
+      not drag a correct month of the same class out of tolerance. Stability rule: a class keeps its second-pass verdicts
+      only if the second pass flags no month the first pass did not (else its fit is unstable and the first-pass verdicts
+      stand), and a first-pass breach the second pass clears stands unless the second pass confirms another breach of that
+      class on the same (up / down) side. With 6–8 months on a side an error can still, rarely, withhold a second correct
+      month of the same class (never a wrong number).
     Residual = r_c − E_c(m₋c); above `residualMax` (0.40 %) it is a breach. For the fitted classes:
     - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
       distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
