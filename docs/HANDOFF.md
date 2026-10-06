@@ -177,7 +177,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 - 2026-10-06 (sub-agent, branch `chore/react-compiler-warnings`, **not merged**): § 5 B3 — lint warnings 25 → 0, CI
   `--max-warnings=0`; the frozen AnalysisScan keeps its render-time language ref under a region disable placed outside
   the hashed slice. Visual proof: baseline run 264 (empty `[ci-logs]` commit on `5b2f067`) vs the final run,
-  `scripts/visual-diff.mjs --max-ratio=0` on visual, visual-fr and visual-motion: see the commit / report.
+  `scripts/visual-diff.mjs --max-ratio=0` vs run 268 (`7787479`): visual 44, visual-fr 6, visual-motion 10 images,
+  all byte-identical (0 changed).
 - 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
   a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
   independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
