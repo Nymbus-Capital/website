@@ -10,6 +10,8 @@ import { ArrowUpRight, Award, BookOpen, Cpu, GraduationCap, Handshake, Hourglass
 import { useInView, useScrub } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team as staticTeam, type TeamMember } from "@/data/team";
+import { introCopy } from "@/lib/cms/map";
+import type { CmsPageIntro } from "@/lib/cms/types";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AB } from "./about.copy";
 import { Portrait } from "./Portrait";
@@ -143,8 +145,10 @@ function Milestones() {
   );
 }
 
-export function Team({ members: team = staticTeam }: { members?: TeamMember[] }) {
+export function Team({ members: team = staticTeam, intro }: { members?: TeamMember[]; intro?: CmsPageIntro }) {
   const { locale, pick } = useTranslation();
+  // hero copy: the WordPress page intro where filled, else the coded copy (identical rendering without WordPress)
+  const hero = introCopy(AB.hero, intro);
   const fr = locale === "fr";
   const P = AB.people;
   const [dept, setDept] = useState<DeptFilter>("all");
@@ -163,7 +167,7 @@ export function Team({ members: team = staticTeam }: { members?: TeamMember[] })
 
   return (
     <div className="pg ab">
-      <PageHero eyebrow={pick(AB.hero.eyebrow)} title={pick(AB.hero.title)} accent={pick(AB.hero.accent)} lead={pick(AB.hero.lead)}
+      <PageHero eyebrow={pick(AB.hero.eyebrow)} title={pick(hero.title)} accent={pick(hero.accent)} lead={pick(hero.lead)}
         crumbs={[{ href: "/", label: fr ? "Accueil" : "Home" }, { label: pick(AB.hero.eyebrow) }]}
         aside={
           <div className="ab-hero-card card">

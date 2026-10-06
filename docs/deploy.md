@@ -157,23 +157,63 @@ Monitoring:
 
 ## 5. WordPress content backend (optional, headless)
 
-Lets non-technical editors change the news, the team and a few texts (EN/FR); the website keeps running without it.
-**Not created yet — done by hand in the Northflank UI** (the provisioning script does not cover it). Full details,
-variable names and the editor guide: [`wordpress/README.md`](../wordpress/README.md); how the website uses it:
-[architecture.md](architecture.md) ("Headless WordPress").
+Lets non-technical editors change the news, the team, the contact details and a few page intros (EN/FR); the website
+keeps running without it. **Not created yet — done by hand in the Northflank UI and the Entra portal** (the
+provisioning script does not cover it). Variable names, security model, updating and the editor guide:
+[`wordpress/README.md`](../wordpress/README.md); how the website uses it: [architecture.md](architecture.md)
+("Headless WordPress"). The image is built and smoke-tested by CI (`wordpress/tests/docker-smoke.sh`).
 
-1. **Addon**: MySQL (smallest plan, TLS, backups on) in the same project.
-2. **Volume** `wordpress-uploads` (SSD, a few GB), mounted at `/var/www/html/wp-content/uploads` on the service.
-3. **Secret group** `wordpress-secrets` restricted to the `wordpress` service: `WORDPRESS_DB_HOST`, `WORDPRESS_DB_NAME`,
-   `WORDPRESS_DB_USER`, `WORDPRESS_DB_PASSWORD` (from the addon), the eight `WORDPRESS_*_KEY` / `*_SALT` variables
-   (random, fixed), `WORDPRESS_CONFIG_EXTRA` (`WP_HOME`, `WP_SITEURL`, `FORCE_SSL_ADMIN`), `NYMBUS_CONTENT_SECRET`,
-   `NYMBUS_REVALIDATE_URL`, `NYMBUS_REVALIDATE_SECRET`, optional `NYMBUS_PUBLIC_SITE_URL`.
-4. **Service** `wordpress` (combined, this repository, branch `main`): Dockerfile `wordpress/Dockerfile`, build context
-   `wordpress`, **one instance**, port 80 HTTP public, health check `GET /wp-login.php`.
-5. Open `/wp-admin/install.php`, create the emergency administrator, activate **Nymbus Site Content**, Settings →
-   Permalinks → *Post name*. Create editors with the **Editor** role. Microsoft sign-in (SSO plugin + Entra app
-   registration) is a TODO for Gabriel, see the README.
-6. **Connect the website**: add to `website-secrets`: `WP_BASE_URL`, `WP_CONTENT_SECRET` (= `NYMBUS_CONTENT_SECRET`),
-   `WP_REVALIDATE_SECRET` (= `NYMBUS_REVALIDATE_SECRET`), `WP_MEDIA_ORIGIN`; redeploy the website. Check `/news` shows the
-   WordPress items; stop the WordPress service and check the pages still render (last good copy).
-7. Never go live with the "[Sample]" items of the local set-up. Backups: addon schedule + the uploads volume.
+**Gabriel** (credentials, billing, Entra, people):
+
+1. **MySQL addon** in the same project (smallest plan, TLS on, **backups on**, daily). Keep its connection values.
+2. **Volume** `wordpress-uploads` (SSD, a few GB) for `/var/www/html/wp-content/uploads`, with a backup schedule
+   (the editors' pictures exist nowhere else).
+3. **Entra app registration "Nymbus WordPress"** (*App registrations → New registration*): single tenant; platform
+   **Web**, redirect URI `https://<wordpress address>/wp-admin/admin-ajax.php?action=openid-connect-authorize`; no
+   implicit / hybrid flow. *Token configuration → optional claims (ID token)*: `email`, **`acct`** (members only; guests
+   are also refused by their `idp` claim and `#EXT#` name). Allowed sign-in domains (`NYMBUS_SSO_ALLOWED_DOMAINS`,
+   default `nymbus.ca`) must be domains **verified** in the tenant. *Certificates & secrets* → new client secret (note the expiry, set a reminder to rotate).
+   *Enterprise applications → Nymbus WordPress → Properties → **Assignment required = Yes***, then *Users and groups* →
+   assign the editors (a group is easiest). If the first sign-in asks for consent and users cannot give it: *API
+   permissions → Grant admin consent*.
+4. **Secret group** `wordpress-secrets`, restricted to the `wordpress` service (runtime): the variables of the table in
+   `wordpress/README.md` → *Deploying on Northflank*: database (addon), eight keys / salts (random, fixed),
+   `WORDPRESS_CONFIG_EXTRA`, `NYMBUS_CONTENT_SECRET`, `NYMBUS_REVALIDATE_URL`, `NYMBUS_REVALIDATE_SECRET`,
+   `NYMBUS_SSO_TENANT_ID`, `NYMBUS_SSO_CLIENT_ID`, `NYMBUS_SSO_CLIENT_SECRET`, `NYMBUS_EMERGENCY_ADMIN` (the login you
+   will create in step 6: **hard to guess**, e.g. `nyx-` + random letters; never `admin`). Leave
+   `NYMBUS_SSO_LINK_EXISTING_USERS` unset.
+5. **Service** `wordpress` (combined, this repository, branch `main`): Dockerfile `wordpress/Dockerfile`, build context
+   `wordpress`, **one instance** (single-attach volume; never scale up), the volume of step 2 mounted, port 80 HTTP
+   public (a `*.code.run` address first, `cms.<domain>` later — then update the Entra redirect URI and `WP_HOME`),
+   health check `GET /wp-login.php`.
+6. Open `https://<wordpress address>/wp-admin/install.php` once: site title, the **emergency administrator** (login =
+   `NYMBUS_EMERGENCY_ADMIN`, long random password in the password manager, a shared-mailbox e-mail that is nobody's
+   Microsoft sign-in). Then *Settings → Permalinks → Post name → Save*. The bundled plugins activate themselves on this
+   first admin visit (Nymbus Site Content, Limit Login Attempts Reloaded, OpenID Connect Generic Client).
+7. **Editors' roles**: each editor signs in once with *Sign in with Microsoft* (they get the **Editor** role). Promote
+   nobody to Administrator unless needed. Check that an editor's password sign-in is refused and that the emergency
+   account still works.
+8. **Connect the website**: add to `website-secrets`: `WP_BASE_URL` (the WordPress address, no trailing slash),
+   `WP_CONTENT_SECRET` (= `NYMBUS_CONTENT_SECRET`), `WP_REVALIDATE_SECRET` (= `NYMBUS_REVALIDATE_SECRET`),
+   `WP_MEDIA_ORIGIN` (the same origin, so pictures load); redeploy the website — **after** Claude's import (step B), so
+   the site switches straight from the built-in team and news to the same content in WordPress.
+
+**Claude** (with Gabriel's go-ahead; nothing secret involved):
+
+- A. Check the service: the Apache log shows visitors' addresses (not the balancer's; else the login limiter counts
+  everyone as one), `/wp-login.php` shows *Sign in with Microsoft*, `/wp-content/uploads/x.php` is refused,
+  `/wp-json/nymbus/v1/site-content` answers 401 without the secret and a JSON document with it:
+  `curl -s -H "X-Nymbus-Content-Secret: $SECRET" https://<wordpress address>/wp-json/nymbus/v1/site-content | head -c 300`.
+- B. **Import the current team and news** (photos downloaded from the running website):
+  `node --experimental-strip-types wordpress/scripts/import-from-site.mjs --site-url https://<website address> --out nymbus-import.json`,
+  bring it to the `wordpress` service (Northflank shell: `cat > /tmp/nymbus-import.json`, paste, Ctrl-D — or pass an
+  https URL, or `-` to read standard input), then
+  `wp nymbus import /tmp/nymbus-import.json --dry-run` (lists *create* / *skip*, changes nothing) and
+  `wp nymbus import /tmp/nymbus-import.json --photos`. Existing items (same slug) are never overwritten unless `--update`
+  is given; nothing is deleted. Years of experience and the short summaries are not WordPress fields: with the CMS on,
+  the team band hides the experience counter (see HANDOFF).
+- C. After step 8: `/news` and `/team` show the WordPress items, an edit appears within a minute, and with the
+  `wordpress` service stopped the pages still render (last good copy).
+
+Never go live with the "[Sample]" items of the local set-up (`wp nymbus clear-samples`). Backups: addon schedule +
+uploads volume schedule. Updates: rebuild the image (README → *Updating WordPress*); nothing updates itself.

@@ -94,6 +94,12 @@
     "aumLabel": { "en": "$9.9B+ (CMS test)", "fr": "9,9 G$+ (test CMS)" },
     "banner": { "en": "CMS test banner: scheduled maintenance tonight.", "fr": "Bannière de test CMS : entretien prévu ce soir." },
     "contactEmail": "info@example.org",
-    "contactPhone": "+1 514 555 0100"
+    "contactPhone": "+1 514 555 0100",
+    "contactAddress": { "en": "1 CMS Test Street, Suite 100\nMontreal, Quebec H0H 0H0", "fr": "" },
+    "pageIntros": {
+      "approach": { "headline": { "en": "CMS test approach headline", "fr": "" }, "highlight": { "en": "in colour", "fr": "" }, "lead": { "en": "CMS test approach lead.", "fr": "" } },
+      "team": { "lead": { "en": "CMS test team lead.", "fr": "Chapeau de test CMS pour l’équipe." } },
+      "sustainability": { "headline": { "en": "CMS test sustainability headline", "fr": "" }, "lead": { "en": "CMS TEST LEAD THAT MUST NOT SHOW", "fr": "" } }
+    }
   }
 }

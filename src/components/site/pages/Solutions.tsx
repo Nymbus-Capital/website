@@ -17,6 +17,8 @@ import { SampleTag, fundStyle } from "../home/FundTile";
 import { monthText, pctText } from "../home/figures";
 import { HL } from "../home/labels";
 import { AUDIENCES, SOL_COPY as S, type Audience, type AudienceCopy } from "./solutions.copy";
+import { introCopy } from "@/lib/cms/map";
+import type { CmsPageIntro } from "@/lib/cms/types";
 import "../home/home.css";
 
 const ICON: Record<Audience, typeof Building2> = { institutional: Building2, family: Users, advisor: Briefcase };
@@ -121,8 +123,10 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
   );
 }
 
-export function Solutions({ data }: { data: HomeData }) {
+export function Solutions({ data, intro }: { data: HomeData; intro?: CmsPageIntro }) {
   const { pick } = useTranslation();
+  // hero copy: the WordPress page intro where filled, else the coded copy (identical rendering without WordPress)
+  const hero = introCopy({ title: S.title, accent: S.accent, lead: S.lead }, intro);
   const funds = new Map(data.funds.map((f) => [f.key, f] as const));
   const anyFig = data.funds.some((f) => f.si !== null);
   const anyGross = data.funds.some((f) => f.si !== null && f.basis === "gross");
@@ -130,7 +134,7 @@ export function Solutions({ data }: { data: HomeData }) {
     <div className="hm">
       <Intro
         crumbs={[{ href: "/", label: pick(S.home) }, { label: pick(S.crumb) }]}
-        eyebrow={pick(S.eyebrow)} title={pick(S.title)} accent={pick(S.accent)} lead={pick(S.lead)} id="solutions-t"
+        eyebrow={pick(S.eyebrow)} title={pick(hero.title)} accent={pick(hero.accent)} lead={pick(hero.lead)} id="solutions-t"
       >
         <ButtonLink href="/contact">{pick(S.talk)}</ButtonLink>
         <ButtonLink href="/strategies" variant="ghost">{pick(S.strategies)}</ButtonLink>

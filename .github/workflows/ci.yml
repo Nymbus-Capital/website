@@ -40,7 +40,16 @@ jobs:
           set -o pipefail
           mkdir -p ci-out
           find wordpress -name '*.php' -print0 | xargs -0 -n1 php -l 2>&1 | tee ci-out/php.log
-          php wordpress/tests/normalize-test.php 2>&1 | tee -a ci-out/php.log
+          for t in wordpress/tests/*-test.php; do php "$t" 2>&1 | tee -a ci-out/php.log; done
+      # every push and pull request; early for fast feedback; a failure is reported by the last step so the website checks still run
+      - name: WordPress image builds
+        id: wpbuild
+        continue-on-error: true
+        run: set -o pipefail; mkdir -p ci-out; docker build --progress=plain -t nymbus-wp:ci wordpress 2>&1 | tail -60 | tee ci-out/docker-wp.log
+      - name: WordPress image smoke test (hardening, sign-in, plugins, content endpoint)
+        id: wpsmoke
+        continue-on-error: true
+        run: set -o pipefail; bash wordpress/tests/docker-smoke.sh nymbus-wp:ci 2>&1 | tee ci-out/docker-wp-smoke.log
       - name: Type check
         run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
       - name: Lint (blocking; eslint.config.mjs; warnings ratchet — lower the cap when warnings are fixed, never raise it)
@@ -56,9 +65,11 @@ jobs:
       - name: Docker image builds
         if: always() && github.event_name == 'push'
         run: set -o pipefail; docker build -t nymbus-web:ci . 2>&1 | tail -40 | tee ci-out/docker.log
-      - name: WordPress image builds
-        if: always() && github.event_name == 'push'
-        run: set -o pipefail; docker build -t nymbus-wp:ci wordpress 2>&1 | tail -20 | tee ci-out/docker-wp.log
+      - name: WordPress image result (build + smoke test above)
+        if: always()
+        run: |
+          echo "build: ${{ steps.wpbuild.outcome }}, smoke test: ${{ steps.wpsmoke.outcome }}"
+          [ "${{ steps.wpbuild.outcome }}" = success ] && [ "${{ steps.wpsmoke.outcome }}" = success ]
       - name: Upload screenshots and report
         if: always()
         uses: actions/upload-artifact@v4

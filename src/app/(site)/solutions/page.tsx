@@ -3,6 +3,7 @@ import { Solutions } from "@/components/site/pages/Solutions";
 import { toHomeData } from "@/components/site/home/data";
 import { getAllFundViews, getContent } from "@/lib/data/site";
 import { getLocale } from "@/lib/i18n/server";
+import { getSiteTexts } from "@/lib/cms";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [views, content] = await Promise.all([getAllFundViews(), getContent()]);
-  return <Solutions data={toHomeData(views, content)} />;
+  const [views, content, texts] = await Promise.all([getAllFundViews(), getContent(), getSiteTexts()]);
+  return <Solutions data={toHomeData(views, content)} intro={texts.pageIntros?.solutions} />;
 }

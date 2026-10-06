@@ -85,6 +85,13 @@ function nymbus_sc_field_input( array $f, $name, $id, $value ) {
 	}
 }
 
+/** Prints the optional group heading of a field (`section`) as a full-width table row. */
+function nymbus_sc_section_row( array $f ) {
+	if ( ! empty( $f['section'] ) ) {
+		echo '<tr class="nymbus-sc-section"><th colspan="2" scope="colgroup"><h2>' . esc_html( $f['section'] ) . '</h2></th></tr>';
+	}
+}
+
 /**
  * Prints the fields in two groups: language-neutral rows, then the English / French tabs.
  *
@@ -109,6 +116,7 @@ function nymbus_sc_render_fields( array $fields, $prefix, $value_of, $meta_key )
 		foreach ( $plain as $f ) {
 			$key = $meta_key( $f['key'], '' );
 			$id  = 'nymbus-' . $key;
+			nymbus_sc_section_row( $f );
 			echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $f['label'] ) . '</label></th><td>';
 			nymbus_sc_field_input( $f, $prefix . '[' . $key . ']', $id, $value_of( $f['key'], '' ) );
 			if ( ! empty( $f['help'] ) ) {
@@ -144,6 +152,7 @@ function nymbus_sc_render_fields( array $fields, $prefix, $value_of, $meta_key )
 				}
 				$key = $meta_key( $f['key'], $code );
 				$id  = 'nymbus-' . $key;
+				nymbus_sc_section_row( $f );
 				echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $f['label'] ) . ' (' . esc_html( $name ) . ')</label></th><td>';
 				nymbus_sc_field_input( $f, $prefix . '[' . $key . ']', $id, $value_of( $f['key'], $code ) );
 				if ( ! empty( $f['help'] ) ) {

@@ -9,6 +9,8 @@ import { useInView } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Steps } from "../kit";
 import { SU } from "./sustainability.copy";
+import { introCopy } from "@/lib/cms/map";
+import type { CmsPageIntro } from "@/lib/cms/types";
 import "./pages.css";
 
 /** Three rings (E, S, G) drawing themselves around the hero. */
@@ -43,13 +45,15 @@ function EsgRings() {
   );
 }
 
-export function Sustainability() {
+export function Sustainability({ intro }: { intro?: CmsPageIntro } = {}) {
   const { locale, pick } = useTranslation();
+  // hero copy: the WordPress headline where filled, else the coded copy; the lead (ESG scope qualifier) stays coded
+  const hero = introCopy(SU.hero, intro ? { headline: intro.headline, highlight: intro.highlight } : undefined);
   const exIcons = [Flame, Ban, ShieldAlert, TriangleAlert];
   const useIcons = [Sun, Zap, Bus, Building2];
   return (
     <div className="pg su">
-      <PageHero eyebrow={pick(SU.hero.eyebrow)} title={pick(SU.hero.title)} accent={pick(SU.hero.accent)} lead={pick(SU.hero.lead)} art="none"
+      <PageHero eyebrow={pick(SU.hero.eyebrow)} title={pick(hero.title)} accent={pick(hero.accent)} lead={pick(hero.lead)} art="none"
         crumbs={[{ href: "/", label: locale === "fr" ? "Accueil" : "Home" }, { label: pick(SU.hero.eyebrow) }]} aside={<EsgRings />}>
         <ButtonLink href="/strategies/sustainable-enhanced-bonds">{pick(SU.hero.cta1)}</ButtonLink>
         <ButtonLink href="#exclusions" variant="ghost">{pick(SU.hero.cta2)}</ButtonLink>

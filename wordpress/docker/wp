@@ -1,0 +1,8 @@
+#!/bin/sh
+# WP-CLI for the Nymbus WordPress image: always runs as the web server user (files it creates, e.g. imported photos,
+# stay writable by WordPress) against /var/www/html. Usage: wp <command> (e.g. `wp nymbus import file.json --dry-run`).
+export WP_CLI_CACHE_DIR="${WP_CLI_CACHE_DIR:-/tmp/wp-cli-cache}"
+if [ "$(id -u)" = 0 ]; then
+  exec su -s /bin/sh -c 'exec php /usr/local/lib/wp-cli.phar --path=/var/www/html "$@"' www-data -- wp "$@"
+fi
+exec php /usr/local/lib/wp-cli.phar --path=/var/www/html "$@"

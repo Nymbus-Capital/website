@@ -2,6 +2,7 @@
 /**
  * Footer (structure of the previous site): brand + description + address, then Strategies · Company · Resources,
  * the regulatory disclaimers (src/content/disclaimers.ts, firm text overridable in the admin), copyright, LinkedIn, PRI.
+ * Address, phone and e-mail come from WordPress (Site texts) when set there, else the built-in values (`contact`).
  */
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -9,9 +10,10 @@ import { useTranslation } from "@/lib/i18n";
 import { footerDisclaimers } from "@/content/disclaimers";
 import { Disclosure } from "./Disclosure";
 import { Logo } from "./Logo";
+import type { CmsContact } from "@/lib/cms/map";
 import { CONTACT, FUND_LINKS } from "./links";
 
-export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[] }) {
+export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }: { firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[]; contact?: CmsContact }) {
   const { t, pick } = useTranslation();
   const year = new Date().getFullYear();
   const texts = footerDisclaimers(firmDisclaimer, hiddenFunds);
@@ -23,10 +25,10 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [] }: { firmDiscla
             <Link href="/" aria-label={t("nav.homeLink")}><Logo /></Link>
             <p>{t("footer.description")}</p>
             <address>
-              <span style={{ whiteSpace: "pre-line" }}>{t("footer.address")}</span>
-              <a href={`tel:${CONTACT.phone}`}>{t("footer.phone")}</a>
+              <span style={{ whiteSpace: "pre-line" }}>{contact.address ? pick(contact.address) : t("footer.address")}</span>
+              <a href={`tel:${contact.phone?.tel ?? CONTACT.phone}`}>{contact.phone?.display ?? t("footer.phone")}</a>
               <span>{t("footer.tollFree")}</span>
-              <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+              <a href={`mailto:${contact.email ?? CONTACT.email}`}>{contact.email ?? CONTACT.email}</a>
             </address>
           </div>
           <div className="footer-col">
