@@ -13,7 +13,7 @@ import type { BrandAssets } from "@/lib/data/brand-assets";
 import { ordinal, PROVIDER_META } from "@/lib/rankings/policy";
 import type { PublicFundSpec as FundSpec } from "./types";
 import { T } from "./fund.copy";
-import { RK } from "./rankings-copy";
+import { RK } from "./rankings.copy";
 import { Block } from "./Block";
 import { MorningstarRatingBlock } from "./Morningstar";
 import { dateLabel, monthLabel } from "./lib/format.ts";

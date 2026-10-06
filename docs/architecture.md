@@ -349,7 +349,7 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   list keeps it empty.
 - **Morningstar on the overview**: the bond funds' Overview tab shows the rating in the side column
   (`components/fund/Morningstar.tsx`), with class, as-of date, source link, methodology and © attribution
-  (`rankings-copy.ts`, compliance row W3). The awards tab shows the same block.
+  (`rankings.copy.ts`, compliance row W3). The awards tab shows the same block.
 - **Official brand assets** (`brand-assets.ts`): slots `morningstar-logo`, `morningstar-stars-1..5`, `rbc-logo`,
   `evestment-logo`, `lseg-lipper-logo`, `gmr-logo`, `fundata-logo` (former name `fundlibrary-logo`: an upload stored under it is listed, served — also at
   `/api/brand/fundlibrary-logo` — and replaced as `fundata-logo`; `LEGACY_BRAND_SLOTS`). Shipped: Morningstar logo and

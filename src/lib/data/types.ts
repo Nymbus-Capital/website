@@ -9,9 +9,6 @@
  */
 import type { L, Locale } from "../i18n/config.ts";
 
-/** @deprecated use `L` from lib/i18n/config.ts (alias kept for src/lib/rankings, in flight on another branch) */
-export type L10n = L;
-
 /** Website fund keys (stable URL slugs). */
 export type FundKey = "monthly-income" | "sustainable-enhanced-bonds" | "multi-strategy" | "global-minimum-volatility";
 

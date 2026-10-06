@@ -44,13 +44,19 @@ Commit trailers used so far (keep them):
 - **Visual diff (refactor safety net)**: `e2e/visual-baseline.spec.ts` saves deterministic screenshots of every public
   page (home, strategies, core concepts, approach, sustainability, team, solutions, contact, legal, privacy, each fund
   page full / top / bottom; desktop + mobile; English, reduced motion, animations finished, caret hidden, fonts loaded,
-  off-site requests aborted) to `e2e/screenshots/visual/<page>[-top|-bottom]-<project>.png`. Before a "no visual change"
+  off-site requests aborted) to `e2e/screenshots/visual/<page>[-top|-bottom]-<project>.png`; three French pages to
+  `visual-fr/`; and each animated canvas (home Science at scale and engines band, the three core-concepts panels) with
+  motion ON to `visual-motion/`, at a fixed position of Playwright's paused fake clock (`page.clock`: every engine
+  starts at the same instant and `runFor(4000)` advances the same frames). The spec fails on a blank canvas. Limit: the
+  hero data-field backdrop uses `Math.random` and is not captured in motion. Before a "no visual change"
   refactor: push the base commit with `[ci-logs]`, then the work with `[ci-logs]`, fetch both `ci/run-<n>` branches and run
   `node scripts/visual-diff.mjs <before>/screenshots/visual <after>/screenshots/visual [--max-ratio=0] [--tolerance=0]
   [--out=<dir>]` (no dependencies; exit 1 on any image changed beyond the ratio, resized or missing, 2 on invalid options;
   `--out` writes red masks of the changed pixels). **Refactor proofs use `--max-ratio=0`** (the default): two runs of the
   same commit are byte-identical, so any reported pixel is a real change.
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
+- **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 25 today: the React Compiler readiness
+  warnings). Fixing warnings → lower the cap in the same commit; never raise it.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
   the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
@@ -246,11 +252,20 @@ Not yet run against live data, not deployed.
   `src/components/site/canvas/`, used by the home engines band too. (5) The two `.fx-chip` rules are scoped with `:where()`
   (no added specificity). (6) Copy files renamed `<page>.copy.ts`; motion primitives in `src/components/motion/motion.tsx`;
   dated owner notes moved from code comments to `docs/architecture.md` § Decision log. (7) Pipeline tests build the
-  unaltered fixtures once per file (`npm test` ≈ 131 s → 88 s). Follow-ups after the parallel branches merge: Contact.tsx
-  still imports the one-line shim `src/components/v3/motion.ts`; `src/lib/rankings` still uses the deprecated `L10n` alias;
-  `copy-contact.ts`, `rankings-copy.ts`, `scan-copy.ts` keep their names (contact / rankings in flight, scan frozen);
-  `inquiry.ts` keeps its own `Lang`; `run.test.ts` not sped up (run.ts in flight); split the big files and run the
-  formatter. **Could not delete the stale `ci/run-*` branches** (the sandbox proxy refuses ref deletion, HTTP 403):
+  unaltered fixtures once per file (`npm test` ≈ 131 s → 88 s) through `tests/fixtures/pipeline/memo.ts`, which refuses
+  to serve a baseline while a test has the pipeline config mutated.
+  **Review fixes (2026-10-06)**: the < 12 months test no longer poisons the memoised build; `visual-diff.mjs` defaults to
+  `--max-ratio=0`, validates options (exit 2), rejects corrupt filter bytes / unsupported tRNS, works from paths with
+  spaces (unit-tested in `tests/unit/scripts/`); visual spec adds FR pages, motion captures and blank-canvas checks;
+  `e2e/soft-nav-css.spec.ts` proves the `.fx-chip` fix — **intended behaviour after a soft navigation home → fund → home:
+  the tile chip stays 26px and the fund chip 30px** (before the `:where()` scoping, whichever stylesheet loaded last won
+  on both pages); lint warnings ratchet; `fund/lib/format` `ym` → `parseYmd`; `build.ts` short record fixed
+  (`isShortRecord`: fewer than 12 inclusive months; it double counted with `+ 1`, so an 11-month record lost its "since
+  class inception" note); `L10n` alias removed (`src/lib/rankings/policy.ts` uses `L`), `rankings-copy.ts` →
+  `rankings.copy.ts`, `inquiry.ts` uses `Locale`. Still open: Contact.tsx imports the one-line shim
+  `src/components/v3/motion.ts` and `copy-contact.ts` keeps its name (both need an edit of Contact.tsx, which another
+  branch changes); `scan-copy.ts` keeps its name (frozen); `run.test.ts` not sped up (every test runs a full pipeline
+  run on its own temp volume, nothing to share); split the big files and run the formatter. **Could not delete the stale `ci/run-*` branches** (the sandbox proxy refuses ref deletion, HTTP 403):
   Gabriel can run `git ls-remote origin 'refs/heads/ci/*'` and `git push origin --delete <ci/run-n …>` for all but the
   last ten.
 

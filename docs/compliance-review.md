@@ -439,7 +439,7 @@ reviewed by compliance. All visitor-facing texts are in `src/components/fund/fun
 Gabriel's requests: Morningstar 5 stars and logo on the overview of each bond fund (real assets, not imitations); the RBC
 Investor Services pooled fund survey with source and date and a quarterly freshness check; the funds' standing in
 eVestment, RBC, LSEG/Lipper and GMR for advisors. Nothing below has been reviewed by compliance. Texts:
-`src/components/fund/rankings-copy.ts` (EN / FR).
+`src/components/fund/rankings.copy.ts` (EN / FR).
 
 | # | Change | Where | Verify |
 |---|---|---|---|

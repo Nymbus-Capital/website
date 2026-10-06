@@ -22,7 +22,7 @@ import { ClassTypeBadge } from "./ClassBadge";
 import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
 import type { BrandAssets } from "@/lib/data/brand-assets";
 import { MorningstarRatingBlock } from "./Morningstar";
-import { RK } from "./rankings-copy";
+import { RK } from "./rankings.copy";
 import { tr, type Locale } from "@/lib/i18n/config";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

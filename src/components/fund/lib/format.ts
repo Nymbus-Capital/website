@@ -86,7 +86,7 @@ export const MONTH_INITIALS: Record<Locale, string[]> = {
 export const monthName = (m: number, lang: Locale, short = false) => (short ? MONTHS_SHORT : MONTHS)[lang][m - 1] ?? "";
 
 /** Year and month (1-12) of an ISO date or a `YYYY-MM` month key, without time-zone surprises. */
-export function ym(iso: string): { y: number; m: number; d: number } | null {
+function parseYmd(iso: string): { y: number; m: number; d: number } | null {
   const r = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(iso || "");
   if (!r) return null;
   return { y: +r[1], m: +r[2], d: r[3] ? +r[3] : 1 };
@@ -94,13 +94,13 @@ export function ym(iso: string): { y: number; m: number; d: number } | null {
 
 /** "2026-08-31" or "2026-08" → "August 2026" / "août 2026" (French months stay lowercase). */
 export function monthLabel(iso: string | null | undefined, lang: Locale, short = false): string {
-  const p = iso ? ym(iso) : null;
+  const p = iso ? parseYmd(iso) : null;
   return p ? `${monthName(p.m, lang, short)} ${p.y}` : "";
 }
 
 /** "2026-09-26" → "Sep 26, 2026" / "26 sept. 2026"; `long`: "September 26, 2026" / "26 septembre 2026". */
 export function dateLabel(iso: string | null | undefined, lang: Locale, long = false): string {
-  const p = iso ? ym(iso) : null;
+  const p = iso ? parseYmd(iso) : null;
   if (!p) return "";
   return lang === "fr" ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, !long)} ${p.y}` : `${monthName(p.m, lang, !long)} ${p.d}, ${p.y}`;
 }

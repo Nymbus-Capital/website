@@ -8,7 +8,7 @@
 import { ExternalLink } from "lucide-react";
 import type { MorningstarRating } from "@/lib/data/types";
 import type { BrandAssets } from "@/lib/data/brand-assets";
-import { RK } from "./rankings-copy";
+import { RK } from "./rankings.copy";
 import { InfoNote } from "./InfoNote";
 import { dateLabel } from "./lib/format.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
