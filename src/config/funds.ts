@@ -83,7 +83,7 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Short Term Corporate Bond Index", fr: "Indice FTSE Canada des obligations corporatives à court terme" },
     headlineClass: "LDM081",
-    // every active class of the fund register (2026-10-04); the register stays the source of the live list (build.ts)
+    // every active class of the fund register (2026-10-04); the register stays the source of the live list (build/class-series.ts)
     classes: [
       { fundserv: "LDM081", display: "F", type: "prospectus" },
       { fundserv: "LDM001", display: "FP", type: "om" },

@@ -14,7 +14,7 @@
  *    month whose every Canadian valuation day is present (no partial month), from the class's data start (`navStart`;
  *    earlier rows of a reused fund code belong to another strategy and are ignored). The API does not say whether the
  *    stored CIBC returns include distributions: the caller verifies them against an independent monthly history before
- *    using any CIBC month (build.ts). A `nav_price_ratio` row (price return, distribution-blind) is never compounded.
+ *    using any CIBC month (build/track-record.ts). A `nav_price_ratio` row (price return, distribution-blind) is never compounded.
  */
 import { addMonths, toMonthEnd } from "./metrics.ts";
 import { isTradingDay, tradingDays, priorTradingDay } from "./market-calendar.ts";

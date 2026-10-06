@@ -31,8 +31,7 @@
  */
 import type { ClassDistribution, FundData, FundKey, Issue, NavClass, PeriodMap, PortfolioData, PortfolioMetric, SiteData, WeightBucket } from "../data/types.ts";
 import { PERIODS } from "../data/types.ts";
-import type { FundContext } from "./build.ts";
-import { computeAsOf } from "./build.ts";
+import { computeAsOf, type FundContext } from "./build/index.ts";
 import { DISTRIBUTIONS, factsheetTolerance, PIPELINE_FUNDS, PORTFOLIO, TOL } from "./config.ts";
 import { bookAgeProblem } from "../data/freshness.ts";
 import { classLabel, FUND_SOURCES } from "./fund-sources.ts";
@@ -162,7 +161,7 @@ function checkClassesAndVariants(f: FundData, base: string): Issue[] {
       delete f.performanceByClass;
       delete f.defaultClass;
     } else if (f.defaultClass && !f.performanceByClass[f.defaultClass]) {
-      // the page never opens on a class whose returns were just dropped; same order as build.ts (classInfo is written in
+      // the page never opens on a class whose returns were just dropped; same order as build/class-series.ts (classInfo is written in
       // register order), the registry's headline class first
       const spec = FUNDS.find((x) => x.key === f.key);
       const order = [...Object.keys(f.classInfo ?? {}), ...(spec?.classes.map((c) => c.fundserv) ?? [])];

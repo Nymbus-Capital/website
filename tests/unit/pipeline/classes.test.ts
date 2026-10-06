@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildSiteData } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { buildClassEntry, classFundTrailing, performanceProblems, pickDefaultClass } from "../../../src/lib/pipeline/classes.ts";
 import { classSeriesOf } from "../../../src/lib/pipeline/fund-sources.ts";
@@ -14,7 +14,7 @@ import type { ClassResult } from "../../../src/lib/pipeline/class-returns.ts";
 import type { SiteData } from "../../../src/lib/data/types.ts";
 import { fixtureEnv, json, loadFixture, mockFetch, type Route } from "../../fixtures/pipeline/mock-fetch.ts";
 import { assertConfigUntouched, once } from "../../fixtures/pipeline/memo.ts";
-import type { FundContext } from "../../../src/lib/pipeline/build.ts";
+import type { FundContext } from "../../../src/lib/pipeline/build/index.ts";
 import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");

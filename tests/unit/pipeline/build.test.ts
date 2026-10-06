@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, isShortRecord, navChange, revisions, type BuildResult } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, isShortRecord, navChange, revisions, type BuildResult } from "../../../src/lib/pipeline/build/index.ts";
 import { ftseFamily } from "../../../src/lib/pipeline/metrics.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { NavPoint, RawPayloads } from "../../../src/lib/pipeline/raw.ts";

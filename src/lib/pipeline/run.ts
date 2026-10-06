@@ -19,7 +19,7 @@
 import crypto from "node:crypto";
 import type { FundKey, Issue, SiteContent, SiteData } from "../data/types.ts";
 import { audit, listDir, lockHeartbeat, readJson, removePath, withLock, writeJson } from "../data/store.ts";
-import { buildSiteData } from "./build.ts";
+import { buildSiteData } from "./build/index.ts";
 import { DEFAULT_SCHEDULE, SNAPSHOT_RETENTION, TIMEZONE } from "./config.ts";
 import type { RawPayloads, SourceResult } from "./raw.ts";
 import { formatSchedule, nextRun, parseSchedule } from "./schedule.ts";

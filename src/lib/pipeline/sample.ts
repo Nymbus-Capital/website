@@ -6,7 +6,7 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SiteData } from "../data/types.ts";
-import { buildSiteData } from "./build.ts";
+import { buildSiteData } from "./build/index.ts";
 import { fetchAll } from "./sources/index.ts";
 import { FIXTURE_NOW } from "../../../tests/fixtures/pipeline/generate.ts";
 import { fixtureEnv, json, loadFixture, mockFetch } from "../../../tests/fixtures/pipeline/mock-fetch.ts";

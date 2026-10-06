@@ -13,7 +13,7 @@ import { crossCheckPortfolio, monthEndBook, orderRows, ratingRank, selectPortfol
 import { classDistribution, frequency, selectDistributions } from "../../../src/lib/pipeline/distributions.ts";
 import { DISTRIBUTIONS } from "../../../src/lib/pipeline/config.ts";
 import { checkDistributions, checkPortfolio, distributionProblem, trailingProblem, validateSite, yearBefore } from "../../../src/lib/pipeline/validate.ts";
-import { buildSiteData, computedBook as computedBookOf, type BuildResult } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, computedBook as computedBookOf, type BuildResult } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { ClassDistributions, DpShort, FundPortfolio, RawPayloads, SourceResult } from "../../../src/lib/pipeline/raw.ts";
 import type { ClassDistribution, FundData, SiteData } from "../../../src/lib/data/types.ts";

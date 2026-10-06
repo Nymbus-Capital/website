@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, computedBook, effectiveNavStart } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, computedBook, effectiveNavStart } from "../../../src/lib/pipeline/build/index.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { FUNDS } from "../../../src/config/funds.ts";

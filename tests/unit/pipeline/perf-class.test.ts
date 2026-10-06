@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, classSpreadProblem, type BuildResult } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, classSpreadProblem, type BuildResult } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import { factsheetClassAt } from "../../../src/lib/pipeline/fund-sources.ts";
