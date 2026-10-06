@@ -1,7 +1,36 @@
 # WordPress for the Nymbus content editor (production image, deployed as its own Northflank service: see README.md).
-# The plugin and the must-use plugin are baked into the image; only the uploads folder needs a volume.
+# Everything is baked into the image (WordPress core, our plugin and must-use plugins, the two third-party plugins);
+# only the uploads folder needs a volume. Nothing can be installed or updated from wp-admin (DISALLOW_FILE_MODS):
+# updating = change the pinned versions below, rebuild, redeploy (README.md, "Updating WordPress").
 # Configuration is read from environment variables (names in README.md); there is nothing secret in this file.
-FROM wordpress:6-php8.3-apache
+
+# Exact WordPress core + PHP + Apache build (official image). Bump: README.md, "Updating WordPress".
+FROM wordpress:7.1.2-php8.3-apache
+
+# Third-party plugins from wordpress.org, pinned to a version AND to the SHA-256 of that exact zip: a changed or
+# tampered download fails the build instead of reaching production.
+#   Limit Login Attempts Reloaded: brute-force protection of /wp-login.php (the emergency password account).
+#   OpenID Connect Generic Client: "Sign in with Microsoft" (Entra ID), configured from env by mu-plugins/nymbus-security.php.
+ARG LLAR_VERSION=3.3.10
+ARG LLAR_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+ARG OIDC_VERSION=3.11.3
+ARG OIDC_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+
+RUN set -eu; \
+    cd /tmp; \
+    fetch() { \
+      slug="$1"; ver="$2"; sum="$3"; \
+      curl -fsSL --retry 3 --retry-delay 5 -o "$slug.zip" "https://downloads.wordpress.org/plugin/$slug.$ver.zip"; \
+      got="$(sha256sum "$slug.zip" | cut -d' ' -f1)"; \
+      if [ "$got" != "$sum" ]; then echo "CHECKSUM MISMATCH $slug $ver: expected $sum got $got" >&2; exit 1; fi; \
+      php -r '$z = new ZipArchive(); if ($z->open($argv[1]) !== true || !$z->extractTo($argv[2])) { fwrite(STDERR, "cannot unzip\n"); exit(1); }' "$slug.zip" /usr/src/wordpress/wp-content/plugins; \
+      test -f "/usr/src/wordpress/wp-content/plugins/$slug/$slug.php"; \
+      grep -Eq "^[[:space:]*]*Version:[[:space:]]*$ver[[:space:]]*$" "/usr/src/wordpress/wp-content/plugins/$slug/$slug.php"; \
+      rm -f "$slug.zip"; \
+    }; \
+    fetch limit-login-attempts-reloaded "$LLAR_VERSION" "$LLAR_SHA256"; \
+    fetch openid-connect-generic "$OIDC_VERSION" "$OIDC_SHA256"; \
+    chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins
 
 COPY plugins/nymbus-site-content /usr/src/wordpress/wp-content/plugins/nymbus-site-content
 COPY mu-plugins /usr/src/wordpress/wp-content/mu-plugins
@@ -9,10 +38,12 @@ COPY mu-plugins /usr/src/wordpress/wp-content/mu-plugins
 # Uploaded pictures (news images, team photos): mount a persistent volume here.
 VOLUME ["/var/www/html/wp-content/uploads"]
 
-# Apache: no version banner, nothing listed
-RUN { echo "ServerTokens Prod"; echo "ServerSignature Off"; echo "TraceEnable Off"; } > /etc/apache2/conf-available/nymbus-security.conf \
- && a2enconf nymbus-security \
- && { echo "expose_php = Off"; echo "upload_max_filesize = 16M"; echo "post_max_size = 20M"; } > /usr/local/etc/php/conf.d/nymbus.ini
+# Apache: no version banner, nothing listed; no PHP ever runs from the uploads folder (an uploaded script stays a
+# file: refused, and the PHP engine is off there; .htaccess files in uploads are ignored).
+# PHP: uploads up to 8 MB (web images: about 1600 px wide is a few hundred KB; raise both values here if a PDF needs more).
+COPY docker/apache-security.conf /etc/apache2/conf-available/nymbus-security.conf
+RUN a2enconf nymbus-security \
+ && { echo "expose_php = Off"; echo "upload_max_filesize = 8M"; echo "post_max_size = 10M"; echo "max_file_uploads = 10"; } > /usr/local/etc/php/conf.d/nymbus.ini
 
 COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
 RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh

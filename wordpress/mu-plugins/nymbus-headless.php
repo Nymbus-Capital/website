@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Nymbus Headless Hardening (must-use)
- * Description: WordPress is only the editor backend of the Nymbus website: no public front end, no XML-RPC, no file editor, correct HTTPS behind the load balancer, no indexing. Loaded automatically (wp-content/mu-plugins).
- * Version:     1.0.0
+ * Description: WordPress is only the editor backend of the Nymbus website: no public front end, no XML-RPC, no file editor, no install / update from wp-admin (updates = rebuild the image), no application passwords, correct HTTPS behind the load balancer, no indexing. Loaded automatically (wp-content/mu-plugins).
+ * Version:     1.1.0
  *
  * Optional environment variable: NYMBUS_PUBLIC_SITE_URL — where visitors who open the WordPress address itself are sent.
  *
@@ -20,6 +20,25 @@ if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && false !== strpos( (string) $
 if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
 	define( 'DISALLOW_FILE_EDIT', true );
 }
+
+// The image is immutable: no plugin / theme / core install or update from wp-admin, no automatic updates.
+// Updating = bump the versions in wordpress/Dockerfile and redeploy (wordpress/README.md, "Updating WordPress").
+foreach ( array( 'DISALLOW_FILE_MODS' => true, 'AUTOMATIC_UPDATER_DISABLED' => true, 'WP_AUTO_UPDATE_CORE' => false ) as $nymbus_c => $nymbus_v ) {
+	if ( ! defined( $nymbus_c ) ) {
+		define( $nymbus_c, $nymbus_v );
+	}
+}
+unset( $nymbus_c, $nymbus_v );
+// the same, whatever the constants say (a WORDPRESS_CONFIG_EXTRA line cannot switch it back on)
+add_filter( 'file_mod_allowed', '__return_false' );
+add_filter( 'automatic_updater_disabled', '__return_true' );
+add_filter( 'auto_update_core', '__return_false' );
+add_filter( 'auto_update_plugin', '__return_false' );
+add_filter( 'auto_update_theme', '__return_false' );
+add_filter( 'auto_update_translation', '__return_false' );
+
+// No application passwords (nothing uses them; they would bypass the Microsoft sign-in and the login limiter).
+add_filter( 'wp_is_application_passwords_available', '__return_false' );
 
 add_filter( 'xmlrpc_enabled', '__return_false' );
 add_filter( 'wp_headers', function ( $headers ) {
