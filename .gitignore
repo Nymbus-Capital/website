@@ -12,3 +12,6 @@ var-e2e/
 var-e2e-cms/
 wordpress/.env
 .claude/worktrees/
+
+# Playwright screenshots (CI publishes them to ci/run-* branches)
+e2e/screenshots/
