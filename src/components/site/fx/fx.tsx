@@ -154,6 +154,7 @@ export function FxEffects() {
 
 /* ------------------------------------------------------------------ analysis scan */
 
+/* eslint-disable react-hooks/refs -- frozen panel (scan-frozen.test.ts hashes from here to the end of the file): it writes its language ref during render */
 export function AnalysisScan() {
   const { locale, pick } = useTranslation();
   const canvas = useRef<HTMLCanvasElement>(null);

@@ -56,8 +56,8 @@ Commit trailers used so far (keep them):
   `--out` writes red masks of the changed pixels). **Refactor proofs use `--max-ratio=0`** (the default): two runs of the
   same commit are byte-identical, so any reported pixel is a real change.
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
-- **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 25 today: the React Compiler readiness
-  warnings). Fixing warnings → lower the cap in the same commit; never raise it.
+- **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 0 since § 5 B3: no warning may be added).
+  Fixing warnings → lower the cap in the same commit; never raise it.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
   the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
@@ -159,8 +159,14 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    (≈ 500 lines) left whole while B1 changes it; `fund.copy.ts` and `data/types.ts` (≈ 530 lines each) are copy / the
    data contract and read best in one file; references to `build.ts` in `config.ts` comments left (CLASS_CHECKS is being
    changed on another branch).
-3. **React Compiler readiness**: the 25 lint warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`);
-   lower the `--max-warnings` cap as they go.
+3. **React Compiler readiness** — done on branch `chore/react-compiler-warnings` (not merged, 2026-10-06): the 25 lint
+   warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`) fixed with no rendered change, CI cap 25 → 0.
+   Patterns: values derived during render (Breakdowns arc starts, Nav closes on a path change, Tip keeps the last tip,
+   Odometer decides its roll once), browser values read after hydration through `useMountValue` /
+   `useNoObserver` (`useSyncExternalStore`, `components/motion/motion.tsx`), language refs synced in a layout effect
+   (ConceptPanel, overlay), no ref written during render (Team bio, Contact steps, chart `hostRef`). The frozen
+   AnalysisScan still writes its language ref during render: one `eslint-disable react-hooks/refs` line right before
+   `export function AnalysisScan()` (outside the hashed slice, covers only the panel to the end of fx.tsx).
 4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
    variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
 5. Nice to have: contact form backend (mailto today), team LinkedIn in the WordPress team modal, fund managers from
@@ -168,6 +174,10 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ## 6. Session log
 
+- 2026-10-06 (sub-agent, branch `chore/react-compiler-warnings`, **not merged**): § 5 B3 — lint warnings 25 → 0, CI
+  `--max-warnings=0`; the frozen AnalysisScan keeps its render-time language ref under a region disable placed outside
+  the hashed slice. Visual proof: baseline run 264 (empty `[ci-logs]` commit on `5b2f067`) vs the final run,
+  `scripts/visual-diff.mjs --max-ratio=0` on visual, visual-fr and visual-motion: see the commit / report.
 - 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
   a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
   independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
