@@ -19,6 +19,7 @@
              │      /data volume: published/site-data.json ◀────┘               │
              │                    content/site-content.json ◀── admin (Entra ID) │
              │                    documents/                ◀── admin uploads    │
+             │                    inquiries/                ◀── /contact form    │
              │                                                  │               │
              │      Next.js server (standalone) ────────────────┴──▶ public site│
              └──────────────────────────────────────────────────────────────────┘
@@ -532,6 +533,30 @@ page and never carries fund data. Plugin, editor guide and Northflank steps: [`w
 with an account in an allowed domain (`nymbus.ca`). Checks are done server-side on every request
 (`src/proxy.ts` + route handlers): signed session cookie, tenant id, domain, optional group allow-list.
 Setup of the Entra app registration and the security model: [docs/admin.md](admin.md).
+
+## Contact form (`src/lib/contact/`, `POST /api/contact`, `/admin/inquiries`)
+
+The /contact form (three steps: investor type, interests, contact details + consent) posts to `POST /api/contact`:
+JSON from the page with JavaScript, a native urlencoded form post without it (answered with a 303 to
+`/contact?sent=1` or `/contact?error=<code>`). No e-mail service and no new credential: each inquiry is a JSON file on
+the data volume (`inquiries/<id>.json`, atomic write), read and answered from the admin (`/admin/inquiries`: newest
+first, mark handled, delete; every view and change audited with the id only).
+
+- **Guards** (`guards.ts`, `token.ts`, `validate.ts`): same origin (`Origin`, else `Referer` = `PUBLIC_URL`;
+  `Sec-Fetch-Site` same-origin; no `PUBLIC_URL` → 503), 5 attempts / 15 min per client (rightmost non-internal
+  `X-Forwarded-For` entry, the left part being forgeable), JSON or urlencoded only, 16 KB body, strict field rules shared
+  with the browser (no zod: the module is unit tested under plain Node), honeypot field and a signed form timing token
+  (HMAC of the render time, key derived from `AUTH_SECRET`; a post < 3 s after render or with a forged / missing token is
+  answered as a success and dropped; a page older than 7 days asks for a reload), 40 stored inquiries / hour site-wide,
+  hard cap of 5 000 stored.
+- **Stored**: investor type, interests, name, e-mail, optional phone / organisation / message, language, consent time
+  and version (`CONSENT_VERSION`); never the IP address or user agent. Plain text (control and bidi-override characters
+  removed), rendered escaped by React.
+- **Retention**: deleted 12 months after receipt (`RETENTION_DAYS`), by a 12-hour timer started in
+  `src/instrumentation.ts` and on every admin listing. Privacy policy § 11 says so (pending compliance review).
+- **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website inquiry from <name> (<investor type>)" with a link to
+  the admin, after the response (`notify.ts`); never the e-mail, phone, organisation or message. Otherwise just stored.
+- Logs carry outcomes and error codes only, never a submitted field.
 
 ## Environment
 
