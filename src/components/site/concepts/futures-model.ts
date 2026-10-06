@@ -5,7 +5,7 @@
  * margin buffer each side posts is sized to a potential one-day move and grows when volatility rises.
  * Everything is generated (no real contract, price or result). Dependency-free (unit tested).
  */
-import { clamp, gauss, hash01 } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "../canvas/timeline.ts";
 
 /**
  * Trading days per loop of the animation, and ms per day: 3.75 s a day, so each daily settlement message is held long

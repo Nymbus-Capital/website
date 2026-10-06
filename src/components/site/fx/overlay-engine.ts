@@ -15,6 +15,7 @@
  *  - `data-frames` / `data-running` on the host let tests observe it.
  */
 import { fitText } from "./scan-model.ts";
+import { COL, rgba, SANS, splitLabel } from "../canvas/draw-kit.ts";
 import {
   DEPTH, ENGINES, MARKETS, NM, PHI, combinedMove, downsideCorrelation, heatColor, laneRows, lit, monthCache,
   monthWidth, overlayLayout, type Month,
@@ -43,8 +44,7 @@ interface OverlayOptions {
 
 export interface Overlay { destroy(): void; redraw(): void }
 
-const SANS = `"Poppins", ui-sans-serif, system-ui, sans-serif`;
-const INK2 = "#444746", MUTE = "#5f6368", BLUE = "#1a73e8", CYAN = "#00a3e0", ORANGE = "#c2410c";
+const { ink2: INK2, mute: MUTE, blue: BLUE, cyan: CYAN, orange: ORANGE, blueD: STRAT } = COL;
 /** first month shown: enough history behind it for the paths and the correlation window */
 const START = 300;
 /** ms per generated month */
@@ -52,24 +52,6 @@ const MONTH_MS = 640;
 const NE = ENGINES.length;
 /** index of the blended line in a levels() row: [equity, bond, engines…, combined] */
 const CB = NM + NE;
-const STRAT = "#0b57d0";
-
-/** a label cut into two balanced lines at a space (null when it has no space) */
-function splitLabel(s: string): [string, string] | null {
-  const parts = s.split(" ");
-  if (parts.length < 2) return null;
-  let best = 1, diff = Infinity;
-  for (let k = 1; k < parts.length; k++) {
-    const d = Math.abs(parts.slice(0, k).join(" ").length - parts.slice(k).join(" ").length);
-    if (d < diff) { diff = d; best = k; }
-  }
-  return [parts.slice(0, best).join(" "), parts.slice(best).join(" ")];
-}
-
-const rgba = (hex: string, a: number) => {
-  const v = parseInt(hex.slice(1), 16);
-  return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
-};
 
 export function createOverlay(canvas: HTMLCanvasElement, opts: OverlayOptions): Overlay {
   const ctx = canvas.getContext("2d", { alpha: true });

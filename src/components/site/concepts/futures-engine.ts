@@ -6,12 +6,12 @@
  * side's margin buffer is sized to a one-day move and widens in the volatile episode. Four focus steps highlight, in
  * turn, the matched positions, the daily cash settlement, the margin buffer and the single day at risk.
  */
-import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
+import { COL, makePen, rgba, splitLabel, type Pen } from "../canvas/draw-kit.ts";
 import {
   DAYS, DAY_MS, FUTURES_STEP_MS, LOOP_MS, SETTLE_SHARE, futuresLayout, futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, type Day,
 } from "./futures-model.ts";
-import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
-import { ease, span, stepAt } from "./timeline.ts";
+import { runScene, type Runner, type RunnerOptions } from "../canvas/runner.ts";
+import { ease, span, stepAt } from "../canvas/timeline.ts";
 
 interface FuturesLabels {
   price: string; settled: string; today: string; long: string; short: string; clearing: string; matched: string;

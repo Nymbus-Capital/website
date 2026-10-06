@@ -1,5 +1,6 @@
 /**
- * draw-kit.ts — small canvas helpers shared by the /core-concepts engines: palette (light v3 keynote), Poppins
+ * draw-kit.ts — small canvas helpers shared by the /core-concepts engines (and the home engines band for its palette, font
+ * and label split): palette (light v3 keynote), Poppins
  * fonts, measured and fitted text (cached widths), rounded rectangles, glows without shadowBlur, the on-canvas
  * "ILLUSTRATION · generated values" mark. Framework-free.
  */

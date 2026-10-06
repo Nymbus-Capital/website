@@ -6,12 +6,12 @@
  * combined one (overlay losses add up too); a regime strip under the bars and shaded columns behind them mark the
  * volatile periods, where the generated overlay does better. Lazily imported; drawn by runner.ts.
  */
-import { COL, makePen, rgba, splitLabel, type Pen } from "./draw-kit.ts";
+import { COL, makePen, rgba, splitLabel, type Pen } from "../canvas/draw-kit.ts";
 import {
   CHART_PERIODS, OVERLAY_STEP_MS, PERIOD_MS, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, overlayStackLayout, periodAt, stackBlocks, type Period,
 } from "./overlay-stack-model.ts";
-import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
-import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
+import { runScene, type Runner, type RunnerOptions } from "../canvas/runner.ts";
+import { ease, easeOut, span, stepAt, stepStarts } from "../canvas/timeline.ts";
 
 interface OverlayStackLabels {
   core: string; coreSub: string; deposit: string; depositSub: string; overlay: string; overlaySub: string;

@@ -8,13 +8,13 @@
  * The methods column (a strip on top on narrow screens) stacks both methods with a VS badge between them: the method on
  * the graphic is highlighted, the other faded. Dots are drawn in batched paths; history layers are pre-rendered.
  */
-import { COL, makePen, rgba, type Pen } from "./draw-kit.ts";
+import { COL, makePen, rgba, type Pen } from "../canvas/draw-kit.ts";
 import {
   ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, LAYERS, PER_ANALYST, UNIVERSE, analystPos, analystSlot, cellOf, coverageLayout, focusTracker, pmPos,
   sectorFont, sectorLabelBoxes, teamCoverage, universe, type Bond, type Rect,
 } from "./coverage-model.ts";
-import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
-import { ease, easeOut, span, stepAt, stepStarts } from "./timeline.ts";
+import { runScene, type Runner, type RunnerOptions } from "../canvas/runner.ts";
+import { ease, easeOut, span, stepAt, stepStarts } from "../canvas/timeline.ts";
 
 interface CoverageLabels {
   pm: string; perYear: string; covered: string; of: string; universe: string; liquid: string; below: string;

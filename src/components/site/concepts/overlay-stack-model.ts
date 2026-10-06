@@ -5,7 +5,7 @@
  * The overlay's generated return follows market volatility (its sensitivity to volatility, or vega): small in calm
  * periods, clearly positive in volatile ones. Every value is generated; the core has no drift. Dependency-free.
  */
-import { clamp, gauss, hash01 } from "./timeline.ts";
+import { clamp, gauss, hash01 } from "../canvas/timeline.ts";
 
 /** Steps: core invested · deposit · overlay stacked on top · two return streams. */
 export const OVERLAY_STEP_MS = [2800, 2800, 3200, 7600] as const;

@@ -12,7 +12,7 @@ import { Pause, Play } from "lucide-react";
 import { reducedMotion } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { CC } from "./concepts.copy";
-import type { Runner } from "./runner";
+import type { Runner } from "../canvas/runner";
 import "@/components/site/fx/fx.css";
 import "./concepts.css";
 import type { Locale } from "@/lib/i18n/config";

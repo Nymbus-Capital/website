@@ -8,7 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { cycleMs, stepAt, stepStarts } from "../../../src/components/site/concepts/timeline.ts";
+import { cycleMs, stepAt, stepStarts } from "../../../src/components/site/canvas/timeline.ts";
 import {
   CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
@@ -605,7 +605,7 @@ test("nav and footer link the page as \"Core concepts\"; route and labels exist 
 });
 
 test("engines keep the motion contract: DPR cap, fps cap, still frames, pause off screen and in hidden tabs, test hooks", () => {
-  const runner = read("src/components/site/concepts/runner.ts");
+  const runner = read("src/components/site/canvas/runner.ts");
   assert.match(runner, /Math\.min\(1\.5, window\.devicePixelRatio/);
   assert.match(runner, /maxFps \?\? 30/);
   assert.match(runner, /IntersectionObserver/);

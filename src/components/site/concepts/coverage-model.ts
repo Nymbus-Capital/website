@@ -8,7 +8,7 @@
  * the two methods with a "VS" badge between them: the method on the graphic is highlighted, the other faded.
  * The figures are Nymbus' illustrative estimates; the dots, sectors and amounts are generated. Dependency-free.
  */
-import { ease, hash01, span } from "./timeline.ts";
+import { ease, hash01, span } from "../canvas/timeline.ts";
 
 /** About 2,000 bonds in the Canadian investment-grade index (illustrative estimate). */
 export const UNIVERSE = 2000;
