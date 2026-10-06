@@ -69,6 +69,48 @@ test("home: three latest CMS news, link to all news, banner and AUM label from W
   await expect(page.getByText("$9.9B+ (CMS test)").first()).toBeAttached();
 });
 
+const heroTitle = (page: import("@playwright/test").Page) => page.locator("h1.reveal-title").first();
+const heroLead = (page: import("@playwright/test").Page) => page.locator("header .lead").first();
+
+test("footer and contact page: address, phone and e-mail from WordPress; toll-free and form recipient stay built-in", async ({ page }) => {
+  await page.goto("/contact");
+  const footer = page.getByTestId("site-footer");
+  await expect(footer.locator('a[href="mailto:info@example.org"]')).toHaveText("info@example.org");
+  await expect(footer.locator('a[href="tel:+15145550100"]')).toHaveText("+1 514 555 0100");
+  await expect(footer).toContainText("1 CMS Test Street, Suite 100");
+  await expect(footer).toContainText("1-833-227-2656");
+  await expect(footer).not.toContainText("1002 Sherbrooke");
+  const main = page.locator("main");
+  await expect(main.locator('a[href="tel:+15145550100"]').first()).toBeVisible();
+  await expect(main.locator('a[href="mailto:info@example.org"]').first()).toBeVisible();
+  await expect(main.locator(".ct-office")).toContainText("1 CMS Test Street, Suite 100");
+  await expect(main.locator(".ct-office a.link").first()).toHaveAttribute("href", /1%20CMS%20Test%20Street|1\+CMS\+Test\+Street/);
+  await expect(main).not.toContainText("1002 Sherbrooke");
+  await expect(page.getByTestId("contact-form")).toHaveAttribute("action", "mailto:info@nymbus.ca");
+});
+
+test("page intros: WordPress headline / lead where filled, built-in copy elsewhere; Sustainability lead stays built-in", async ({ page, context }) => {
+  await page.goto("/approach");
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "CMS test approach headline in colour");
+  await expect(heroLead(page)).toHaveText("CMS test approach lead.");
+  await page.goto("/team");
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "Scientists and market veterans");
+  await expect(heroLead(page)).toHaveText("CMS test team lead.");
+  await page.goto("/sustainability");
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "CMS test sustainability headline");
+  await expect(heroLead(page)).toContainText("PRI signatory");
+  await expect(page.locator("body")).not.toContainText("MUST NOT SHOW");
+  await page.goto("/solutions");
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "Solutions tailored to your mandate");
+  // French: languages not filled in WordPress keep the built-in French copy
+  await context.addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+  await page.goto("/approach");
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "À l’intersection de la technologie, des données et de la finance");
+  await page.goto("/team");
+  await expect(heroLead(page)).toHaveText("Chapeau de test CMS pour l’équipe.");
+  await context.clearCookies();
+});
+
 test("team page: members come from WordPress, not from the built-in list", async ({ page }) => {
   await page.goto("/team");
   const people = page.getByTestId("people").locator(":scope > li");
@@ -154,4 +196,28 @@ test("without WP_BASE_URL the site is unchanged: static news and team", async ({
   await expect(page.getByRole("heading", { name: "Mageska Capital and Nymbus Capital announce a partnership" })).toBeVisible();
   await page.goto(`${MAIN}/team`);
   await expect(page.getByTestId("people")).toContainText("Jean Turmel");
+});
+
+test("without WP_BASE_URL: built-in contact details and page intros, exactly as before", async ({ page }) => {
+  await page.goto(`${MAIN}/contact`);
+  const footer = page.getByTestId("site-footer");
+  await expect(footer.locator('a[href="mailto:info@nymbus.ca"]')).toHaveText("info@nymbus.ca");
+  await expect(footer.locator('a[href="tel:+15149851138"]')).toHaveText("514-985-1138");
+  await expect(footer.locator("address > span").first()).toHaveText("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", { useInnerText: false });
+  const office = page.locator(".ct-office");
+  await expect(office.locator('a[href="tel:+15149851138"]')).toHaveText("514-985-1138");
+  await expect(office.locator('a[href="mailto:info@nymbus.ca"]')).toHaveText("info@nymbus.ca");
+  await expect(office.locator(".ct-pre")).toHaveText("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", { useInnerText: false });
+  await expect(office.locator("a.link").first()).toHaveAttribute("href", "https://www.google.com/maps/search/?api=1&query=1002%20Sherbrooke%20Street%20West%2C%20Suite%201900%2C%20Montreal%2C%20Quebec%20H3A%203L6");
+  for (const [path, title, lead] of [
+    ["/approach", "At the intersection of technology, data and finance", "Systematic, with human oversight. Tested before use, monitored while it runs."],
+    ["/team", "Scientists and market veterans", "Systematic fixed income and protective overlays, from Montreal, since 2013."],
+    ["/solutions", "Solutions tailored to your mandate", "Our systematic strategies, in the form your mandate needs."],
+  ] as const) {
+    await page.goto(`${MAIN}${path}`);
+    await expect(heroTitle(page)).toHaveAttribute("aria-label", title);
+    await expect(heroLead(page)).toHaveText(lead);
+  }
+  await page.goto(`${MAIN}/sustainability`);
+  await expect(heroTitle(page)).toHaveAttribute("aria-label", "Our commitments, and a sustainable bond fund");
 });

@@ -4,6 +4,8 @@
  *
  *   wp nymbus seed            create clearly labelled SAMPLE news / team members / texts (does nothing twice)
  *   wp nymbus clear-samples   delete everything `seed` created (run this before going live)
+ *   wp nymbus import <file>   import the website's current team and news (file made by
+ *                             wordpress/scripts/import-from-site.mjs); --dry-run shows what would change
  *
  * The samples are fictional. They are flagged with the meta `_nymbus_sample` so they can be removed in one go.
  *
@@ -125,6 +127,146 @@ class Nymbus_SC_CLI {
 		}
 		nymbus_sc_invalidate();
 		WP_CLI::success( 'Sample news, team members and texts created.' );
+	}
+
+	/**
+	 * Imports the team and news exported from the website code (wordpress/scripts/import-from-site.mjs).
+	 *
+	 * Matches existing items by their slug: an item that exists already is skipped (or updated with --update); nothing
+	 * is ever deleted. Every value goes through the same sanitiser as the editor screens.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <file>
+	 * : The JSON file made by import-from-site.mjs: a path, an https URL, or - to read standard input.
+	 *
+	 * [--dry-run]
+	 * : Only list what would be created / updated / skipped. Changes nothing.
+	 *
+	 * [--update]
+	 * : Overwrite the fields of items that exist already (default: leave them as they are).
+	 *
+	 * [--status=<status>]
+	 * : publish (default) or draft.
+	 *
+	 * [--photos]
+	 * : Download each person's photo / news image (https URL in the file) into the media library and set it as the
+	 *   picture, when the item has none yet.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp nymbus import /tmp/nymbus-import.json --dry-run
+	 *     wp nymbus import /tmp/nymbus-import.json --photos
+	 *     wp nymbus import - --dry-run < nymbus-import.json
+	 *
+	 * @param array $args       File path.
+	 * @param array $assoc_args Flags.
+	 */
+	public function import( $args, $assoc_args ) {
+		$src = isset( $args[0] ) ? $args[0] : '';
+		if ( '-' === $src ) {
+			$raw = stream_get_contents( STDIN, 2 * MB_IN_BYTES );
+		} elseif ( 0 === strpos( $src, 'https://' ) ) {
+			$res = wp_safe_remote_get( $src, array( 'timeout' => 20, 'redirection' => 0, 'limit_response_size' => 2 * MB_IN_BYTES ) );
+			if ( is_wp_error( $res ) || 200 !== wp_remote_retrieve_response_code( $res ) ) {
+				WP_CLI::error( 'Cannot download the import file.' );
+			}
+			$raw = wp_remote_retrieve_body( $res );
+		} elseif ( '' !== $src && is_readable( $src ) ) {
+			$raw = file_get_contents( $src ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- local CLI file.
+		} else {
+			WP_CLI::error( 'Cannot read the import file (a path, an https URL, or - for standard input).' );
+		}
+		$data = json_decode( (string) $raw, true );
+		if ( ! is_array( $data ) || ! isset( $data['format'] ) || 'nymbus-site-import' !== $data['format'] || 1 !== ( isset( $data['version'] ) ? $data['version'] : 0 ) ) {
+			WP_CLI::error( 'Not a nymbus-site-import version 1 file (make it with wordpress/scripts/import-from-site.mjs).' );
+		}
+		$dry    = ! empty( $assoc_args['dry-run'] );
+		$update = ! empty( $assoc_args['update'] );
+		$photos = ! empty( $assoc_args['photos'] );
+		$status = isset( $assoc_args['status'] ) ? $assoc_args['status'] : 'publish';
+		if ( ! in_array( $status, array( 'publish', 'draft' ), true ) ) {
+			WP_CLI::error( '--status must be publish or draft.' );
+		}
+		if ( $photos && ! $dry ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+		$counts = array( 'create' => 0, 'update' => 0, 'skip' => 0, 'invalid' => 0, 'photo' => 0 );
+		foreach ( array( 'nymbus_news' => 'news', 'nymbus_team' => 'team' ) as $type => $key ) {
+			$rows = isset( $data[ $key ] ) && is_array( $data[ $key ] ) ? $data[ $key ] : array();
+			foreach ( $rows as $i => $row ) {
+				$e = nymbus_sc_import_entry( $type, $row );
+				if ( null === $e ) {
+					++$counts['invalid'];
+					WP_CLI::warning( sprintf( '%s[%d]: cannot be imported (missing slug, title / name, date or department)', $key, $i ) );
+					continue;
+				}
+				$found  = get_posts( array( 'post_type' => $type, 'name' => $e['slug'], 'post_status' => 'any', 'numberposts' => 1, 'fields' => 'ids', 'no_found_rows' => true ) );
+				$exists = $found ? (int) $found[0] : 0;
+				$action = $exists ? ( $update ? 'update' : 'skip' ) : 'create';
+				++$counts[ $action ];
+				WP_CLI::log( sprintf( '%-6s %s %s (%s)', $action, $key, $e['slug'], $e['title'] ) );
+				if ( $dry || 'skip' === $action ) {
+					if ( $photos && '' !== $e['photo'] && ( ! $exists || ! has_post_thumbnail( $exists ) ) ) {
+						WP_CLI::log( sprintf( '       photo %s%s', $e['photo'], $dry ? ' (would download)' : '' ) );
+					}
+					if ( $dry ) {
+						continue;
+					}
+				}
+				$post_id = $exists;
+				if ( 'skip' !== $action ) {
+					$post = array(
+						'ID'          => $exists,
+						'post_type'   => $type,
+						'post_status' => $status,
+						'post_title'  => $e['title'],
+						'post_name'   => $e['slug'],
+					);
+					if ( '' !== $e['date'] ) {
+						$post['post_date'] = $e['date'] . ' 09:00:00';
+					}
+					$post_id = wp_insert_post( wp_slash( $post ), true );
+					if ( is_wp_error( $post_id ) ) {
+						WP_CLI::warning( $post_id->get_error_message() );
+						continue;
+					}
+					foreach ( nymbus_sc_fields_for( $type ) as $f ) {
+						$langs = ! empty( $f['bi'] ) ? array( 'en', 'fr' ) : array( '' );
+						foreach ( $langs as $lang ) {
+							if ( ! empty( $f['only_lang'] ) && $f['only_lang'] !== $lang ) {
+								continue;
+							}
+							$mk = nymbus_sc_meta_key( $f['key'], $lang );
+							if ( ! array_key_exists( $mk, $e['input'] ) ) {
+								continue;
+							}
+							$value = nymbus_sc_sanitize_field( $f, $e['input'][ $mk ] );
+							update_post_meta( $post_id, $mk, wp_slash( is_array( $value ) ? implode( ',', $value ) : $value ) );
+						}
+					}
+					update_post_meta( $post_id, '_nymbus_imported', '1' );
+				}
+				if ( $photos && '' !== $e['photo'] && ! has_post_thumbnail( $post_id ) ) {
+					$att = media_sideload_image( $e['photo'], $post_id, $e['title'], 'id' );
+					if ( is_wp_error( $att ) ) {
+						WP_CLI::warning( sprintf( 'photo of %s: %s', $e['slug'], $att->get_error_message() ) );
+					} else {
+						set_post_thumbnail( $post_id, (int) $att );
+						++$counts['photo'];
+					}
+				}
+			}
+		}
+		nymbus_sc_invalidate();
+		$summary = sprintf( '%d to create, %d to update, %d skipped (exist already), %d invalid, %d photos', $counts['create'], $counts['update'], $counts['skip'], $counts['invalid'], $counts['photo'] );
+		if ( $dry ) {
+			WP_CLI::success( 'Dry run, nothing changed: ' . $summary . '.' );
+		} else {
+			WP_CLI::success( str_replace( 'to create, ', 'created, ', str_replace( 'to update', 'updated', $summary ) ) . '.' );
+		}
 	}
 
 	/**

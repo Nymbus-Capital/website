@@ -100,9 +100,50 @@ check( 'banner stripped', $texts['banner']['en'], 'Maintenance tonight' );
 check( 'empty headline absent', isset( $texts['homeHeadline'] ), false );
 check( 'email', $texts['contactEmail'], 'info@example.org' );
 check( 'phone', $texts['contactPhone'], '+1 514 555 0100' );
+check( 'address keeps its line breaks', nymbus_sc_shape_texts( array( 'contact_address_en' => "1 Test Street<br>\r\n\r\nMontreal  QC" ) )['contactAddress'], array( 'en' => "1 Test Street\nMontreal QC", 'fr' => '' ) );
+check( 'address at most 4 lines', substr_count( nymbus_sc_shape_texts( array( 'contact_address_fr' => "a\nb\nc\nd\ne\nf" ) )['contactAddress']['fr'], "\n" ), 3 );
 check( 'banner off: absent', isset( nymbus_sc_shape_texts( array( 'banner_enabled' => '', 'banner_en' => 'x' ) )['banner'] ), false );
 check( 'bad email dropped', isset( nymbus_sc_shape_texts( array( 'contact_email' => 'not an email' ) )['contactEmail'] ), false );
 check( 'markup stripped from an email', nymbus_sc_shape_texts( array( 'contact_email' => 'x@example.org<script>' ) )['contactEmail'], 'x@example.org' );
+
+// --- page intros --------------------------------------------------------------------------------------------
+$pi = nymbus_sc_shape_texts( array(
+	'intro_approach_headline_en' => 'How we <b>invest</b>', 'intro_approach_highlight_en' => 'with data', 'intro_approach_lead_fr' => "Une phrase.\n\nDeux.",
+	'intro_team_highlight_en'    => 'orphan highlight', 'intro_unknown_headline_en' => 'ignored', 'intro_solutions_lead_en' => '   ',
+) );
+check( 'intro headline stripped', $pi['pageIntros']['approach']['headline'], array( 'en' => 'How we invest', 'fr' => '' ) );
+check( 'intro highlight kept with a headline', $pi['pageIntros']['approach']['highlight']['en'], 'with data' );
+check( 'intro lead one line', $pi['pageIntros']['approach']['lead']['fr'], 'Une phrase. Deux.' );
+check( 'highlight without headline dropped', isset( $pi['pageIntros']['team'] ), false );
+check( 'unknown page ignored', isset( $pi['pageIntros']['unknown'] ), false );
+check( 'blank lead absent', isset( $pi['pageIntros']['solutions'] ), false );
+check( 'no intros: key absent', isset( nymbus_sc_shape_texts( array() )['pageIntros'] ), false );
+check( 'sustainability lead stays in code', isset( nymbus_sc_shape_texts( array( 'intro_sustainability_lead_en' => 'No qualifier' ) )['pageIntros'] ), false );
+check( 'sustainability headline editable', nymbus_sc_shape_texts( array( 'intro_sustainability_headline_en' => 'H' ) )['pageIntros']['sustainability']['headline']['en'], 'H' );
+check( 'intro pages', array_keys( nymbus_sc_intro_pages() ), array( 'approach', 'solutions', 'sustainability', 'team' ) );
+check( 'intro headline capped', mb_strlen( nymbus_sc_shape_texts( array( 'intro_team_headline_fr' => str_repeat( 'x', 500 ) ) )['pageIntros']['team']['headline']['fr'] ), 200 );
+
+// --- import entries (wp nymbus import) ------------------------------------------------------------------------
+$imp = nymbus_sc_import_entry( 'nymbus_team', array(
+	'slug' => 'jane-doe', 'name' => 'Jane <b>Doe</b>', 'department' => 'Operations', 'additionalDepartments' => array( 'Board', 7 ), 'order' => 30,
+	'role' => array( 'en' => 'Role', 'fr' => 'Rôle' ), 'bio' => array( 'en' => 'Bio', 'fr' => '' ), 'previousRoles' => array( 'en' => array( 'A', 'B' ), 'fr' => array() ),
+	'designations' => array( 'CFA' ), 'education' => array( 'PhD' ), 'yearJoined' => 2019, 'linkedin' => 'https://www.linkedin.com/in/x', 'photo' => 'https://site.example/team/j.webp',
+) );
+check( 'import team: name plain', $imp['title'], 'Jane Doe' );
+check( 'import team: slug', $imp['slug'], 'jane-doe' );
+check( 'import team: order as editor input', $imp['input']['nymbus_order'], '30' );
+check( 'import team: lists one per line', $imp['input']['nymbus_previous_roles_en'], "A\nB" );
+check( 'import team: extra departments strings only', $imp['input']['nymbus_additional_departments'], array( 'Board' ) );
+check( 'import team: photo kept (https)', $imp['photo'], 'https://site.example/team/j.webp' );
+check( 'import team: bad department refused', nymbus_sc_import_entry( 'nymbus_team', array( 'slug' => 'x', 'name' => 'X', 'department' => 'Sales' ) ), null );
+check( 'import team: http photo dropped', nymbus_sc_import_entry( 'nymbus_team', array( 'slug' => 'x', 'name' => 'X', 'department' => 'Board', 'photo' => 'http://a/b.png' ) )['photo'], '' );
+$impn = nymbus_sc_import_entry( 'nymbus_news', array( 'slug' => 'mageska', 'date' => '2025-01-28', 'category' => 'partnership', 'title' => array( 'en' => 'T', 'fr' => 'TF' ), 'summary' => array( 'en' => 'S', 'fr' => 'SF' ), 'body' => array( 'en' => 'B', 'fr' => '' ) ) );
+check( 'import news: date', $impn['date'], '2025-01-28' );
+check( 'import news: french title as meta', $impn['input']['nymbus_title_fr'], 'TF' );
+check( 'import news: no date refused', nymbus_sc_import_entry( 'nymbus_news', array( 'slug' => 'a', 'title' => array( 'en' => 'T' ) ) ), null );
+check( 'import: bad slug refused', nymbus_sc_import_entry( 'nymbus_news', array( 'slug' => 'Bad Slug!', 'date' => '2025-01-01', 'title' => array( 'en' => 'T' ) ) ), null );
+check( 'import: unknown type', nymbus_sc_import_entry( 'post', array( 'slug' => 'a' ) ), null );
+check( 'import: not an array', nymbus_sc_import_entry( 'nymbus_news', 'x' ), null );
 
 // --- document -----------------------------------------------------------------------------------------------
 $old   = array_merge( $news, array( 'id' => 'old', 'date' => '2025-01-01' ) );

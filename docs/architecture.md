@@ -405,8 +405,14 @@ page and never carries fund data. Plugin, editor guide and Northflank steps: [`w
   WordPress text; else the built-in default. The overlay (`getPublicContent()`, `src/lib/cms/map.ts overlayTexts`) is
   used by the public layout and home page only: the admin UI keeps reading the raw admin content, so a WordPress text is
   never saved back as an admin value. To switch a WordPress banner off, clear it in WordPress (the admin "off" means
-  "not set here"). Home headline / sub-headline / contact texts are exposed by `getSiteTexts()` but not wired (the pages
-  keep their reviewed copy).
+  "not set here"). **Contact details** (e-mail, phone, multi-line address) feed the footer and `/contact`
+  (`contactOverrides`; the toll-free number, the contact form's recipient `INQUIRY_TO` and the "who to contact" addresses
+  stay in code). **Page intros** (`texts.pageIntros.<approach|solutions|sustainability|team>`: headline, highlighted
+  ending, lead) replace the hero copy **per language** (`introCopy`): a language left empty keeps the coded copy; the
+  **Sustainability lead stays in code** (ESG scope qualifier, compliance-reviewed; dropped by the plugin and by
+  `validate.ts`). Without WordPress these components receive nothing and render exactly the coded copy. Disclosures,
+  fund copy, awards and legal texts are never editable in WordPress (code or `/admin`). Home headline / sub-headline
+  are exposed by `getSiteTexts()` but not wired (the home keynote keeps its reviewed copy).
 - **Security**: every string is reduced to plain text (entities decoded once, tags stripped, control / bidi characters
   removed, capped); links must be `https` without credentials; images (`photo`, news `image`) are accepted only on
   the configured media origin (`WP_MEDIA_ORIGIN`, default the origin of `WP_BASE_URL` when it is public https or
@@ -418,7 +424,8 @@ page and never carries fund data. Plugin, editor guide and Northflank steps: [`w
 - **Code map**: `types.ts` (document), `sanitize.ts`, `validate.ts` (whitelisting parser), `config.ts` (env),
   `client.ts` (fetch), `source.ts` (cache, last good, backoff, revalidate), `map.ts` (to page shapes, precedence),
   `index.ts` (public API, server only). Tests: `tests/unit/cms/*`, `e2e/cms.spec.ts` (mock WordPress
-  `e2e/mock-wp.mjs`, fixture `e2e/fixtures/wp-site-content.json`), `wordpress/tests/normalize-test.php`.
+  `e2e/mock-wp.mjs`, fixture `e2e/fixtures/wp-site-content.json`), `wordpress/tests/*-test.php` (plain PHP),
+  `wordpress/tests/docker-smoke.sh` (the built image: hardening, sign-in, plugins, import).
 - The fund pages still read their managers from `src/data/team.ts` (`resolveManagers`); the CMS team feeds the team page,
   the approach page figures and the home page head-count.
 

@@ -8,11 +8,12 @@ import { I18nProvider, type Locale } from "@/lib/i18n";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { FxEffects } from "./fx/fx";
+import type { CmsContact } from "@/lib/cms/map";
 
 declare global { interface Window { __nyReady?: boolean } }
 
-export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds = [] }: {
-  children: ReactNode; locale: Locale; firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[];
+export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds = [], contact }: {
+  children: ReactNode; locale: Locale; firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[]; contact?: CmsContact;
 }) {
   // hydrated: the reveal gate (html.js) may stay (see theme-script.ts failsafe)
   useEffect(() => { window.__nyReady = true; document.documentElement.classList.add("js"); }, []);
@@ -21,7 +22,7 @@ export function SiteShell({ children, locale, firmDisclaimer = null, hiddenFunds
       <FxEffects />
       <Nav hiddenFunds={hiddenFunds} />
       <main id="main" tabIndex={-1}>{children}</main>
-      <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} />
+      <Footer firmDisclaimer={firmDisclaimer} hiddenFunds={hiddenFunds} contact={contact} />
     </I18nProvider>
   );
 }

@@ -5,3 +5,5 @@
 .nymbus-sc .nymbus-sc-checks label { display: inline-block; margin: 0 14px 4px 0; }
 .nymbus-sc textarea.large-text { min-height: 60px; }
 .nymbus-sc-status td, .nymbus-sc-status th { padding: 6px 10px 6px 0; }
+.nymbus-sc .nymbus-sc-section th { padding: 18px 0 0; }
+.nymbus-sc .nymbus-sc-section h2 { margin: 0; font-size: 1.15em; border-top: 1px solid #dcdcde; padding-top: 14px; }

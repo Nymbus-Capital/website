@@ -131,7 +131,8 @@ function nymbus_sso_claim_allowed( $claim, $tenant, array $domains ) {
 		return false;
 	}
 	$account = nymbus_sso_account( $claim );
-	if ( '' === $account || 1 !== substr_count( $account, '@' ) ) {
+	// guests invited into our tenant carry our tid and a "...#EXT#@<tenant domain>" sign-in name
+	if ( '' === $account || 1 !== substr_count( $account, '@' ) || false !== strpos( $account, '#ext#' ) ) {
 		return false;
 	}
 	$domain = substr( $account, strpos( $account, '@' ) + 1 );

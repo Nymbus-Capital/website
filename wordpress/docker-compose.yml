@@ -25,7 +25,10 @@ services:
       retries: 20
 
   wordpress:
-    image: wordpress:6-php8.3-apache
+    # the production image (pinned WordPress, bundled plugins, hardening); after changing the Dockerfile:
+    # `docker compose build` and start from scratch (`docker compose down -v`): the WordPress files live in a volume
+    build: .
+    image: nymbus-wordpress:local
     restart: unless-stopped
     depends_on:
       db:
@@ -45,6 +48,11 @@ services:
       NYMBUS_CONTENT_SECRET: ${WP_CONTENT_SECRET:-}
       NYMBUS_REVALIDATE_URL: ${WP_REVALIDATE_URL:-}
       NYMBUS_REVALIDATE_SECRET: ${WP_REVALIDATE_SECRET:-}
+      # optional: try "Sign in with Microsoft" locally (needs the redirect http://localhost:8080/wp-admin/admin-ajax.php?action=openid-connect-authorize on a TEST app registration)
+      NYMBUS_SSO_TENANT_ID: ${NYMBUS_SSO_TENANT_ID:-}
+      NYMBUS_SSO_CLIENT_ID: ${NYMBUS_SSO_CLIENT_ID:-}
+      NYMBUS_SSO_CLIENT_SECRET: ${NYMBUS_SSO_CLIENT_SECRET:-}
+      NYMBUS_EMERGENCY_ADMIN: ${WP_ADMIN_USER:-editor-admin}
     volumes:
       - wp-html:/var/www/html
       - ./plugins/nymbus-site-content:/var/www/html/wp-content/plugins/nymbus-site-content:ro

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Nymbus Site Content
  * Description:       Lets editors manage the news, the team and a few texts of the Nymbus website (English and French). WordPress is only the editor: the website reads the content from /wp-json/nymbus/v1/site-content.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Nymbus Capital
@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'NYMBUS_SC_VERSION', '1.0.0' );
+define( 'NYMBUS_SC_VERSION', '1.1.0' );
 define( 'NYMBUS_SC_FILE', __FILE__ );
 define( 'NYMBUS_SC_DIR', plugin_dir_path( __FILE__ ) );
 

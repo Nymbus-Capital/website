@@ -17,6 +17,11 @@ if ( ! defined( 'NYMBUS_SC_SCHEMA' ) ) {
 	define( 'NYMBUS_SC_SCHEMA', 1 );
 }
 
+/** Post meta key of a field (and language). */
+function nymbus_sc_meta_key( $field_key, $lang = '' ) {
+	return 'nymbus_' . $field_key . ( '' !== $lang ? '_' . $lang : '' );
+}
+
 /** Departments of the team page (same list as src/lib/cms/types.ts). */
 function nymbus_sc_departments() {
 	return array( 'Leadership', 'Quantitative Research', 'Investment Team', 'Operations', 'Board' );
@@ -30,6 +35,27 @@ function nymbus_sc_news_categories() {
 		'recognition' => 'Recognition',
 		'community'   => 'Community',
 	);
+}
+
+/**
+ * Pages whose introduction (headline, highlighted ending, lead) editors may change (same list as src/lib/cms/types.ts
+ * INTRO_PAGES). Disclosures, fund copy, awards and legal texts are compliance-reviewed and are NOT editable here.
+ */
+function nymbus_sc_intro_pages() {
+	return array(
+		'approach'       => 'Approach',
+		'solutions'      => 'Solutions',
+		'sustainability' => 'Sustainability',
+		'team'           => 'Team',
+	);
+}
+
+/**
+ * Intro pages whose LEAD stays in code: the Sustainability lead carries the scope qualifier of the ESG criteria (they
+ * apply to the fund's bonds, not to its futures overlay), which is compliance-reviewed. Same list in src/lib/cms/types.ts.
+ */
+function nymbus_sc_intro_lead_locked() {
+	return array( 'sustainability' );
 }
 
 /** Removes tags (script / style bodies and comments included), repeatedly so a rebuilt tag cannot survive. */
@@ -255,8 +281,33 @@ function nymbus_sc_shape_texts( array $t ) {
 	if ( ! empty( $t['banner_enabled'] ) && null !== ( $v = $bi( 'banner', 400 ) ) ) {
 		$out['banner'] = $v;
 	}
-	if ( null !== ( $v = $bi( 'contact_address', 300 ) ) ) {
-		$out['contactAddress'] = $v;
+	// the address keeps its line breaks (one line per row, at most 4)
+	$addr = function ( $lang ) use ( $t ) {
+		return nymbus_sc_cut( implode( "\n", nymbus_sc_lines( isset( $t[ 'contact_address_' . $lang ] ) ? $t[ 'contact_address_' . $lang ] : '', 4, 300 ) ), 300 );
+	};
+	$address = array( 'en' => $addr( 'en' ), 'fr' => $addr( 'fr' ) );
+	if ( '' !== $address['en'] || '' !== $address['fr'] ) {
+		$out['contactAddress'] = $address;
+	}
+	$intros = array();
+	foreach ( array_keys( nymbus_sc_intro_pages() ) as $page ) {
+		$intro = array();
+		if ( null !== ( $v = $bi( 'intro_' . $page . '_headline', 200 ) ) ) {
+			$intro['headline'] = $v;
+			// the highlighted ending only means something after a headline
+			if ( null !== ( $h = $bi( 'intro_' . $page . '_highlight', 120 ) ) ) {
+				$intro['highlight'] = $h;
+			}
+		}
+		if ( ! in_array( $page, nymbus_sc_intro_lead_locked(), true ) && null !== ( $v = $bi( 'intro_' . $page . '_lead', 400 ) ) ) {
+			$intro['lead'] = $v;
+		}
+		if ( $intro ) {
+			$intros[ $page ] = $intro;
+		}
+	}
+	if ( $intros ) {
+		$out['pageIntros'] = $intros;
 	}
 	$email = nymbus_sc_plain( isset( $t['contact_email'] ) ? $t['contact_email'] : '', 120 );
 	if ( '' !== $email && false !== filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
@@ -310,4 +361,73 @@ function nymbus_sc_build_document( array $news_rows, array $team_rows, array $te
 		'team'          => $team,
 		'texts'         => (object) nymbus_sc_shape_texts( $texts ),
 	);
+}
+
+/**
+ * One entry of an import file (wordpress/scripts/import-from-site.mjs) → the post fields and the RAW editor input
+ * (meta key => value) that the import command then passes through the editor's own sanitiser, exactly like a save.
+ * Returns null for an entry that cannot be imported. Pure (unit-tested).
+ *
+ * @param string $type nymbus_news | nymbus_team.
+ * @param mixed  $row  Decoded JSON object.
+ * @return array|null array( 'slug', 'title', 'date' (news: Y-m-d, team: ''), 'photo' (https URL or ''), 'input' )
+ */
+function nymbus_sc_import_entry( $type, $row ) {
+	if ( ! is_array( $row ) ) {
+		return null;
+	}
+	$slug = nymbus_sc_slug( isset( $row['slug'] ) ? $row['slug'] : '', '' );
+	$s    = function ( $v ) {
+		return is_string( $v ) ? $v : '';
+	};
+	$bi   = function ( $v, $lang ) use ( $s ) {
+		return is_array( $v ) && isset( $v[ $lang ] ) ? $s( $v[ $lang ] ) : '';
+	};
+	$lst  = function ( $v ) {
+		return is_array( $v ) ? implode( "\n", array_filter( $v, 'is_string' ) ) : '';
+	};
+	$k    = 'nymbus_sc_meta_key';
+	if ( 'nymbus_news' === $type ) {
+		$title = nymbus_sc_plain( $bi( isset( $row['title'] ) ? $row['title'] : null, 'en' ), 200 );
+		$date  = nymbus_sc_date( $s( isset( $row['date'] ) ? $row['date'] : '' ) );
+		if ( '' === $slug || '' === $title || '' === $date ) {
+			return null;
+		}
+		$in = array(
+			$k( 'title', 'fr' )   => $bi( $row['title'], 'fr' ),
+			$k( 'summary', 'en' ) => $bi( isset( $row['summary'] ) ? $row['summary'] : null, 'en' ),
+			$k( 'summary', 'fr' ) => $bi( isset( $row['summary'] ) ? $row['summary'] : null, 'fr' ),
+			$k( 'body', 'en' )    => $bi( isset( $row['body'] ) ? $row['body'] : null, 'en' ),
+			$k( 'body', 'fr' )    => $bi( isset( $row['body'] ) ? $row['body'] : null, 'fr' ),
+			$k( 'category' )      => $s( isset( $row['category'] ) ? $row['category'] : '' ),
+			$k( 'link' )          => $s( isset( $row['link'] ) ? $row['link'] : '' ),
+		);
+		return array( 'slug' => $slug, 'title' => $title, 'date' => $date, 'photo' => nymbus_sc_https_url( isset( $row['image'] ) ? $row['image'] : '' ), 'input' => $in );
+	}
+	if ( 'nymbus_team' === $type ) {
+		$name = nymbus_sc_plain( $s( isset( $row['name'] ) ? $row['name'] : '' ), 120 );
+		$dept = $s( isset( $row['department'] ) ? $row['department'] : '' );
+		if ( '' === $slug || '' === $name || ! in_array( $dept, nymbus_sc_departments(), true ) ) {
+			return null;
+		}
+		$pr = isset( $row['previousRoles'] ) && is_array( $row['previousRoles'] ) ? $row['previousRoles'] : array();
+		$in = array(
+			$k( 'department' )             => $dept,
+			$k( 'additional_departments' ) => isset( $row['additionalDepartments'] ) && is_array( $row['additionalDepartments'] ) ? array_values( array_filter( $row['additionalDepartments'], 'is_string' ) ) : array(),
+			$k( 'order' )                  => isset( $row['order'] ) && is_int( $row['order'] ) ? (string) $row['order'] : '',
+			$k( 'hidden' )                 => '',
+			$k( 'linkedin' )               => $s( isset( $row['linkedin'] ) ? $row['linkedin'] : '' ),
+			$k( 'year_joined' )            => isset( $row['yearJoined'] ) && is_int( $row['yearJoined'] ) ? (string) $row['yearJoined'] : '',
+			$k( 'role', 'en' )             => $bi( isset( $row['role'] ) ? $row['role'] : null, 'en' ),
+			$k( 'role', 'fr' )             => $bi( isset( $row['role'] ) ? $row['role'] : null, 'fr' ),
+			$k( 'bio', 'en' )              => $bi( isset( $row['bio'] ) ? $row['bio'] : null, 'en' ),
+			$k( 'bio', 'fr' )              => $bi( isset( $row['bio'] ) ? $row['bio'] : null, 'fr' ),
+			$k( 'previous_roles', 'en' )   => $lst( isset( $pr['en'] ) ? $pr['en'] : null ),
+			$k( 'previous_roles', 'fr' )   => $lst( isset( $pr['fr'] ) ? $pr['fr'] : null ),
+			$k( 'designations' )           => $lst( isset( $row['designations'] ) ? $row['designations'] : null ),
+			$k( 'education' )              => $lst( isset( $row['education'] ) ? $row['education'] : null ),
+		);
+		return array( 'slug' => $slug, 'title' => $name, 'date' => '', 'photo' => nymbus_sc_https_url( isset( $row['photo'] ) ? $row['photo'] : '' ), 'input' => $in );
+	}
+	return null;
 }

@@ -7,13 +7,15 @@
  */
 import { safeHttpUrl, safeImageUrl, safeLinkedIn, plainLines, plainParagraphs, plainText } from "./sanitize.ts";
 import {
-  DEPARTMENTS, NEWS_CATEGORIES,
-  type Bi, type CmsDepartment, type CmsDocument, type CmsNews, type CmsNewsCategory, type CmsTeamMember, type CmsTexts,
+  DEPARTMENTS, INTRO_LEAD_LOCKED, INTRO_PAGES, NEWS_CATEGORIES,
+  type Bi, type CmsDepartment, type CmsDocument, type CmsNews, type CmsNewsCategory, type CmsPageIntro, type CmsTeamMember, type CmsTexts,
+  type IntroPage,
 } from "./types.ts";
 
 export const LIMITS = {
   news: 200, team: 100,
   title: 200, summary: 600, body: 20_000, name: 120, role: 160, bio: 5_000, listLines: 20, listLine: 200, text: 400, address: 300,
+  introHeadline: 200, introHighlight: 120, introLead: 400,
 } as const;
 
 export class CmsInvalidError extends Error {
@@ -106,6 +108,26 @@ function biIfAny(v: unknown, max: number): Bi | undefined {
 const EMAIL = /^[^\s@<>"'()[\]\\,;:]+@[^\s@<>"'()[\]\\,;:]+\.[A-Za-z]{2,}$/;
 const PHONE = /^[+0-9][0-9 ().\-]{3,30}$/;
 
+function parseIntros(v: unknown): CmsTexts["pageIntros"] {
+  const o = isObj(v) ? v : {};
+  const out: Partial<Record<IntroPage, CmsPageIntro>> = {};
+  for (const page of INTRO_PAGES) {
+    const p = o[page];
+    if (!isObj(p)) continue;
+    const intro: CmsPageIntro = {};
+    const headline = biIfAny(p.headline, LIMITS.introHeadline);
+    if (headline) {
+      intro.headline = headline;
+      const highlight = biIfAny(p.highlight, LIMITS.introHighlight);
+      if (highlight) intro.highlight = highlight;
+    }
+    const lead = INTRO_LEAD_LOCKED.includes(page) ? undefined : biIfAny(p.lead, LIMITS.introLead);
+    if (lead) intro.lead = lead;
+    if (intro.headline || intro.lead) out[page] = intro;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function parseTexts(v: unknown): CmsTexts {
   const o = isObj(v) ? v : {};
   const t: CmsTexts = {};
@@ -117,12 +139,17 @@ function parseTexts(v: unknown): CmsTexts {
   if (aum) t.aumLabel = aum;
   const banner = biIfAny(o.banner, LIMITS.text);
   if (banner) t.banner = banner;
-  const address = biIfAny(o.contactAddress, LIMITS.address);
-  if (address) t.contactAddress = address;
+  // the address keeps its line breaks (shown on several lines, like the built-in one); at most 4 lines
+  const a = isObj(o.contactAddress) ? o.contactAddress : {};
+  const addrLines = (x: unknown) => plainLines(x, 4, LIMITS.address).join("\n").slice(0, LIMITS.address);
+  const address: Bi = { en: addrLines(a.en), fr: addrLines(a.fr) };
+  if ((address.en || address.fr) && !isSample(address)) t.contactAddress = address;
   const email = plainText(o.contactEmail, 120);
   if (EMAIL.test(email)) t.contactEmail = email;
   const phone = plainText(o.contactPhone, 40);
   if (PHONE.test(phone)) t.contactPhone = phone;
+  const intros = parseIntros(o.pageIntros);
+  if (intros) t.pageIntros = intros;
   return t;
 }
 

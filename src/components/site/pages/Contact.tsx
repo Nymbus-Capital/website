@@ -7,6 +7,9 @@
  * The site has no email backend: the form is validated in the browser (lib/inquiry.ts) and prepares the
  * message in the visitor's own mail app (mailto:). Without JavaScript the three steps show one under the
  * other and the browser's own mailto form submission is the fallback.
+ *
+ * Office address, phone and e-mail: WordPress (Site texts) where set (`contact`), else the built-in values. The form's
+ * recipient (INQUIRY_TO) and the "who to contact" addresses stay in code.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
@@ -15,6 +18,7 @@ import { useTranslation } from "@/lib/i18n";
 import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
 import { CONTACT } from "../links";
+import { oneLine, type CmsContact } from "@/lib/cms/map";
 import { CT } from "./copy-contact";
 import { INQUIRY_TO, firstInvalidStep, inquiryMailto, mailto, mapsLink, validateInquiry, type Inquiry, type InquiryErrors } from "./lib/inquiry";
 import "./pages.css";
@@ -174,11 +178,11 @@ function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
   );
 }
 
-function VisitMap() {
+function VisitMap({ address, mapsAddress }: { address: { en: string; fr: string }; mapsAddress: string }) {
   const [ref, seen] = useInView<HTMLAnchorElement>({ threshold: 0.3 });
   const { pick } = useTranslation();
   return (
-    <a ref={ref} className="ct-map" href={mapsLink(ADDRESS)} target="_blank" rel="noopener noreferrer" data-on={seen ? "" : undefined}>
+    <a ref={ref} className="ct-map" href={mapsLink(mapsAddress)} target="_blank" rel="noopener noreferrer" data-on={seen ? "" : undefined}>
       <svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <rect width="640" height="360" className="ct-map-bg" />
         <path className="ct-map-park" d="M430 250 C 470 220, 560 230, 640 260 L 640 360 L 410 360 Z" />
@@ -194,22 +198,27 @@ function VisitMap() {
       </svg>
       <span className="ct-map-card">
         <b>Nymbus Capital</b>
-        <span>{pick(CT.office.address)}</span>
+        <span>{pick(address)}</span>
         <span className="link">{pick(CT.office.map)} <ArrowUpRight aria-hidden="true" /></span>
       </span>
     </a>
   );
 }
 
-export function Contact({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
+export function Contact({ hiddenFunds = [], contact = {} }: { hiddenFunds?: string[]; contact?: CmsContact }) {
   const { locale, pick } = useTranslation();
   const O = CT.office;
+  const address = contact.address ?? O.address;
+  const mapsAddress = contact.address ? oneLine(contact.address.en) : ADDRESS;
+  const tel = contact.phone?.tel ?? CONTACT.phone;
+  const email = contact.email ?? CONTACT.email;
+  const phone = contact.phone ? { en: contact.phone.display, fr: contact.phone.display } : O.phone;
   return (
     <div className="pg ct">
       <PageHero eyebrow={pick(CT.hero.eyebrow)} title={pick(CT.hero.title)} accent={pick(CT.hero.accent)} lead={pick(CT.hero.lead)}
         crumbs={[{ href: "/", label: locale === "fr" ? "Accueil" : "Home" }, { label: pick(CT.hero.eyebrow) }]}>
-        <a className="btn" href={`tel:${CONTACT.phone}`}><Phone aria-hidden="true" /> {pick(O.phone)}</a>
-        <a className="btn ghost" href={`mailto:${CONTACT.email}`}><Mail aria-hidden="true" /> {CONTACT.email}</a>
+        <a className="btn" href={`tel:${tel}`}><Phone aria-hidden="true" /> {pick(phone)}</a>
+        <a className="btn ghost" href={`mailto:${email}`}><Mail aria-hidden="true" /> {email}</a>
       </PageHero>
 
       <Section labelledBy="ct-form-t" glow="tr">
@@ -223,13 +232,13 @@ export function Contact({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
             <div className="card ct-office">
               <h2 className="h4">{pick(O.title)}</h2>
               <ul className="ct-lines">
-                <li><MapPin aria-hidden="true" /><span className="ct-pre">{pick(O.address)}</span></li>
-                <li><Phone aria-hidden="true" /><span><a href={`tel:${CONTACT.phone}`}>{pick(O.phone)}</a><br /><a href="tel:+18332272656">{pick(O.tollFree)}</a></span></li>
-                <li><Mail aria-hidden="true" /><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></li>
+                <li><MapPin aria-hidden="true" /><span className="ct-pre">{pick(address)}</span></li>
+                <li><Phone aria-hidden="true" /><span><a href={`tel:${tel}`}>{pick(phone)}</a><br /><a href="tel:+18332272656">{pick(O.tollFree)}</a></span></li>
+                <li><Mail aria-hidden="true" /><a href={`mailto:${email}`}>{email}</a></li>
                 <li><Clock aria-hidden="true" /><span>{pick(O.hours)}</span></li>
               </ul>
               <div className="ct-office-links">
-                <a className="link" href={mapsLink(ADDRESS)} target="_blank" rel="noopener noreferrer">{pick(O.map)} <ArrowUpRight aria-hidden="true" /></a>
+                <a className="link" href={mapsLink(mapsAddress)} target="_blank" rel="noopener noreferrer">{pick(O.map)} <ArrowUpRight aria-hidden="true" /></a>
                 <a className="link" href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn <ArrowUpRight aria-hidden="true" /></a>
               </div>
             </div>
@@ -261,15 +270,15 @@ export function Contact({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
             <SectionHead eyebrow={pick(CT.visit.eyebrow)} title={pick(CT.visit.title)} accent={pick(CT.visit.accent)} id="ct-visit-t" />
             <Reveal self delay={120}>
               <ul className="ct-lines ct-visit-lines">
-                <li><MapPin aria-hidden="true" /><span className="ct-pre">{pick(O.address)}</span></li>
+                <li><MapPin aria-hidden="true" /><span className="ct-pre">{pick(address)}</span></li>
                 <li><Clock aria-hidden="true" /><span>{pick(O.hours)}</span></li>
               </ul>
               <div className="actions">
-                <a className="btn ghost" href={mapsLink(ADDRESS)} target="_blank" rel="noopener noreferrer">{pick(O.map)} <ArrowUpRight aria-hidden="true" /></a>
+                <a className="btn ghost" href={mapsLink(mapsAddress)} target="_blank" rel="noopener noreferrer">{pick(O.map)} <ArrowUpRight aria-hidden="true" /></a>
               </div>
             </Reveal>
           </div>
-          <Reveal self kind="pop"><VisitMap /></Reveal>
+          <Reveal self kind="pop"><VisitMap address={address} mapsAddress={mapsAddress} /></Reveal>
         </div>
       </Section>
     </div>

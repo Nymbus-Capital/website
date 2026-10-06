@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Team } from "@/components/site/pages/Team";
 import { AB } from "@/components/site/pages/copy-about";
 import { getLocale } from "@/lib/i18n/server";
-import { getTeam } from "@/lib/cms";
+import { getSiteTexts, getTeam } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -10,5 +10,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  return <Team members={await getTeam()} />;
+  const [members, texts] = await Promise.all([getTeam(), getSiteTexts()]);
+  return <Team members={members} intro={texts.pageIntros?.team} />;
 }

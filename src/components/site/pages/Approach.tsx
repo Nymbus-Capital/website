@@ -10,6 +10,8 @@ import { Activity, ArrowRight, Brain, Database, FlaskConical, Layers, Microscope
 import { useInView } from "@/components/v3/motion";
 import { useTranslation } from "@/lib/i18n";
 import { team as staticTeam, type TeamMember } from "@/data/team";
+import { introCopy } from "@/lib/cms/map";
+import type { CmsPageIntro } from "@/lib/cms/types";
 import { Bullets, ButtonLink, CardGrid, CtaBand, FeatureCard, PageHero, Reveal, Section, SectionHead, Stat, StatRow } from "../kit";
 import { AP } from "./copy-approach";
 import { Portrait } from "./Portrait";
@@ -250,13 +252,15 @@ function MultiStrategy() {
 
 /* ------------------------------------------------------------------ page */
 
-export function Approach({ members: team = staticTeam }: { members?: TeamMember[] }) {
+export function Approach({ members: team = staticTeam, intro }: { members?: TeamMember[]; intro?: CmsPageIntro }) {
   const { locale, pick } = useTranslation();
+  // hero copy: the WordPress page intro where filled, else the coded copy (identical rendering without WordPress)
+  const hero = introCopy(AP.hero, intro);
   const faces = membersOf(team, "all").filter((m) => m.photo && m.department !== "Board").slice(0, 9);
   const riskIcons = [Microscope, Radar, Shield];
   return (
     <div className="pg">
-      <PageHero eyebrow={pick(AP.hero.eyebrow)} title={pick(AP.hero.title)} accent={pick(AP.hero.accent)} lead={pick(AP.hero.lead)}
+      <PageHero eyebrow={pick(AP.hero.eyebrow)} title={pick(hero.title)} accent={pick(hero.accent)} lead={pick(hero.lead)}
         crumbs={[{ href: "/", label: locale === "fr" ? "Accueil" : "Home" }, { label: pick(AP.hero.eyebrow) }]}>
         <ButtonLink href="/strategies">{pick(AP.hero.cta1)}</ButtonLink>
         <ButtonLink href="/team" variant="ghost">{pick(AP.hero.cta2)}</ButtonLink>

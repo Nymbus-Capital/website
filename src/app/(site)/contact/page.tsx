@@ -4,6 +4,8 @@ import { CT } from "@/components/site/pages/copy-contact";
 import { getLocale } from "@/lib/i18n/server";
 import { getContent } from "@/lib/data/site";
 import { hiddenFundKeys } from "@/config/funds-public";
+import { getSiteTexts } from "@/lib/cms";
+import { contactOverrides } from "@/lib/cms/map";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   // funds hidden in the admin are not offered as an interest
-  const content = await getContent().catch(() => null);
+  const [content, texts] = await Promise.all([getContent().catch(() => null), getSiteTexts()]);
   const hiddenFunds = hiddenFundKeys(content);
-  return <Contact hiddenFunds={hiddenFunds} />;
+  // address, phone and e-mail from WordPress where set, else the built-in ones
+  return <Contact hiddenFunds={hiddenFunds} contact={contactOverrides(texts)} />;
 }

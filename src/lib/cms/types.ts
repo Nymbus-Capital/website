@@ -42,6 +42,20 @@ export interface CmsTeamMember {
   order: number;
 }
 
+/** Pages whose intro (headline, highlighted ending, lead) editors may change. Compliance-reviewed copy is not editable. */
+export const INTRO_PAGES = ["approach", "solutions", "sustainability", "team"] as const;
+export type IntroPage = (typeof INTRO_PAGES)[number];
+/** Intro pages whose lead stays in code (Sustainability: the compliance-reviewed scope qualifier of the ESG criteria). */
+export const INTRO_LEAD_LOCKED: readonly IntroPage[] = ["sustainability"];
+
+/** Each part is present only when filled in at least one language. `highlight` is only sent with a `headline`. */
+export interface CmsPageIntro {
+  headline?: Bi;
+  /** few words shown in colour after the headline */
+  highlight?: Bi;
+  lead?: Bi;
+}
+
 export interface CmsTexts {
   homeHeadline?: Bi;
   homeSubheadline?: Bi;
@@ -51,6 +65,7 @@ export interface CmsTexts {
   contactEmail?: string;
   contactPhone?: string;
   contactAddress?: Bi;
+  pageIntros?: Partial<Record<IntroPage, CmsPageIntro>>;
 }
 
 export interface CmsDocument {

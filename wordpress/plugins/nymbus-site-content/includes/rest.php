@@ -141,7 +141,7 @@ function nymbus_sc_collect_team() {
 	return $rows;
 }
 
-define( 'NYMBUS_SC_TRANSIENT', 'nymbus_sc_doc_v1' );
+define( 'NYMBUS_SC_TRANSIENT', 'nymbus_sc_doc_v2' );
 
 /** The document (array with `json` and `etag`), from the transient or rebuilt. */
 function nymbus_sc_get_document() {

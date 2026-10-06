@@ -2,18 +2,14 @@
 /**
  * Field schema of the editor screens (one table drives the form, the saving and the document).
  *
- * type: text | textarea | url | number | select | checkbox | lines | multicheck
- * bi:   true = one field per language (stored as <key>_en / <key>_fr), shown on the English / French tab
+ * type:    text | textarea | url | email | number | select | checkbox | lines | multicheck
+ * bi:      true = one field per language (stored as <key>_en / <key>_fr), shown on the English / French tab
+ * section: optional heading printed above the field (groups the Site texts screen)
  *
  * @package NymbusSiteContent
  */
 
 defined( 'ABSPATH' ) || exit;
-
-/** Post meta key of a field (and language). */
-function nymbus_sc_meta_key( $field_key, $lang = '' ) {
-	return 'nymbus_' . $field_key . ( '' !== $lang ? '_' . $lang : '' );
-}
 
 function nymbus_sc_news_fields() {
 	return array(
@@ -55,7 +51,7 @@ function nymbus_sc_team_fields() {
 
 /** Editable site texts (one option, `nymbus_sc_texts`; keys are `<key>_en` / `<key>_fr` for bilingual ones). */
 function nymbus_sc_text_fields() {
-	return array(
+	return array_merge( array(
 		array( 'key' => 'home_headline', 'bi' => true, 'type' => 'text', 'max' => 200, 'label' => __( 'Home page headline', 'nymbus-site-content' ) ),
 		array( 'key' => 'home_subheadline', 'bi' => true, 'type' => 'textarea', 'rows' => 2, 'max' => 400, 'label' => __( 'Home page sub-headline', 'nymbus-site-content' ) ),
 		array( 'key' => 'aum_label', 'bi' => true, 'type' => 'text', 'max' => 60, 'label' => __( 'Assets under management label', 'nymbus-site-content' ),
@@ -63,10 +59,41 @@ function nymbus_sc_text_fields() {
 		array( 'key' => 'banner_enabled', 'type' => 'checkbox', 'label' => __( 'Show the announcement banner', 'nymbus-site-content' ) ),
 		array( 'key' => 'banner', 'bi' => true, 'type' => 'textarea', 'rows' => 2, 'max' => 400, 'label' => __( 'Announcement banner text', 'nymbus-site-content' ),
 			'help' => __( 'A banner saved in the website admin takes precedence.', 'nymbus-site-content' ) ),
-		array( 'key' => 'contact_email', 'type' => 'email', 'max' => 120, 'label' => __( 'Contact e-mail', 'nymbus-site-content' ) ),
-		array( 'key' => 'contact_phone', 'type' => 'text', 'max' => 40, 'label' => __( 'Contact phone', 'nymbus-site-content' ) ),
-		array( 'key' => 'contact_address', 'bi' => true, 'type' => 'textarea', 'rows' => 2, 'max' => 300, 'label' => __( 'Office address', 'nymbus-site-content' ) ),
-	);
+		array( 'key' => 'contact_email', 'type' => 'email', 'max' => 120, 'section' => __( 'Contact details', 'nymbus-site-content' ), 'label' => __( 'Contact e-mail', 'nymbus-site-content' ),
+			'help' => __( 'Shown in the footer and on the Contact page (the contact form still prepares its e-mail to the built-in address).', 'nymbus-site-content' ) ),
+		array( 'key' => 'contact_phone', 'type' => 'text', 'max' => 40, 'label' => __( 'Contact phone', 'nymbus-site-content' ),
+			'help' => __( 'Shown in the footer and on the Contact page, e.g. 514-985-1138. Digits, spaces, + ( ) . - only.', 'nymbus-site-content' ) ),
+		array( 'key' => 'contact_address', 'bi' => true, 'type' => 'lines', 'rows' => 3, 'max' => 150, 'section' => __( 'Contact details', 'nymbus-site-content' ), 'label' => __( 'Office address', 'nymbus-site-content' ),
+			'help' => __( 'Shown in the footer and on the Contact page. Press Enter for a new line.', 'nymbus-site-content' ) ),
+	), nymbus_sc_intro_fields() );
+}
+
+/**
+ * "Page intros": headline, highlighted ending and lead of a few pages, English and French. A field left empty keeps the
+ * website's built-in text for that language. Compliance-reviewed texts (disclosures, fund copy, awards, legal) are not here.
+ */
+function nymbus_sc_intro_fields() {
+	$out = array();
+	foreach ( nymbus_sc_intro_pages() as $page => $name ) {
+		/* translators: %s: page name (Approach, Solutions...) */
+		$section = sprintf( __( 'Page intro: %s', 'nymbus-site-content' ), $name );
+		$out[]   = array( 'key' => 'intro_' . $page . '_headline', 'bi' => true, 'type' => 'text', 'max' => 200, 'section' => $section,
+			/* translators: %s: page name */
+			'label' => sprintf( __( '%s: headline', 'nymbus-site-content' ), $name ),
+			'help'  => __( 'The big title at the top of the page. Empty: the built-in title.', 'nymbus-site-content' ) );
+		$out[]   = array( 'key' => 'intro_' . $page . '_highlight', 'bi' => true, 'type' => 'text', 'max' => 120,
+			/* translators: %s: page name */
+			'label' => sprintf( __( '%s: highlighted ending (optional)', 'nymbus-site-content' ), $name ),
+			'help'  => __( 'A few words shown in colour right after the headline. Used only when the headline is filled.', 'nymbus-site-content' ) );
+		if ( in_array( $page, nymbus_sc_intro_lead_locked(), true ) ) {
+			continue; // compliance-reviewed lead: stays in code
+		}
+		$out[]   = array( 'key' => 'intro_' . $page . '_lead', 'bi' => true, 'type' => 'textarea', 'rows' => 2, 'max' => 400,
+			/* translators: %s: page name */
+			'label' => sprintf( __( '%s: lead', 'nymbus-site-content' ), $name ),
+			'help'  => __( 'One or two sentences under the title. Empty: the built-in text.', 'nymbus-site-content' ) );
+	}
+	return $out;
 }
 
 /**

@@ -12,7 +12,7 @@ FROM wordpress:7.1.2-php8.3-apache
 #   Limit Login Attempts Reloaded: brute-force protection of /wp-login.php (the emergency password account).
 #   OpenID Connect Generic Client: "Sign in with Microsoft" (Entra ID), configured from env by mu-plugins/nymbus-security.php.
 ARG LLAR_VERSION=3.3.10
-ARG LLAR_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+ARG LLAR_SHA256=9125ac1bc06c876326802ff1b9783ef0081749d0025e578c6b355d65622abb3f
 ARG OIDC_VERSION=3.11.3
 ARG OIDC_SHA256=0000000000000000000000000000000000000000000000000000000000000000
 
@@ -32,6 +32,16 @@ RUN set -eu; \
     fetch openid-connect-generic "$OIDC_VERSION" "$OIDC_SHA256"; \
     chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins
 
+# WP-CLI (pinned + checksum of the official release) for operations from the Northflank shell: `wp nymbus import`,
+# `wp user ...`, database updates after an image bump. The `wp` wrapper runs it as the web server user.
+ARG WPCLI_VERSION=2.12.0
+ARG WPCLI_SHA256=ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c
+RUN set -eu; \
+    curl -fsSL --retry 3 --retry-delay 5 -o /usr/local/lib/wp-cli.phar "https://github.com/wp-cli/wp-cli/releases/download/v$WPCLI_VERSION/wp-cli-$WPCLI_VERSION.phar"; \
+    echo "$WPCLI_SHA256  /usr/local/lib/wp-cli.phar" | sha256sum -c -; \
+    chmod 0644 /usr/local/lib/wp-cli.phar
+COPY docker/wp /usr/local/bin/wp
+
 COPY plugins/nymbus-site-content /usr/src/wordpress/wp-content/plugins/nymbus-site-content
 COPY mu-plugins /usr/src/wordpress/wp-content/mu-plugins
 
@@ -46,7 +56,7 @@ RUN a2enconf nymbus-security \
  && { echo "expose_php = Off"; echo "upload_max_filesize = 8M"; echo "post_max_size = 10M"; echo "max_file_uploads = 10"; } > /usr/local/etc/php/conf.d/nymbus.ini
 
 COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
-RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh
+RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh /usr/local/bin/wp
 ENTRYPOINT ["nymbus-entrypoint.sh"]
 CMD ["apache2-foreground"]
 

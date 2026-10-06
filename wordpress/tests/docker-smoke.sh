@@ -30,9 +30,8 @@ trap cleanup EXIT
 ok()   { echo "ok   - $1"; }
 fail() { echo "FAIL - $1" >&2; FAILS=$((FAILS + 1)); }
 check() { if eval "$2"; then ok "$1"; else fail "$1"; fi; }
-wpcli() { docker run --rm --network "$NET" --volumes-from "$WP" --user 33:33 \
-  -e WORDPRESS_DB_HOST="$DB" -e WORDPRESS_DB_NAME=wp -e WORDPRESS_DB_USER=wp -e WORDPRESS_DB_PASSWORD=smoke-db \
-  wordpress:cli-php8.3 wp "$@"; }
+wpcli() { docker exec "$WP" wp "$@"; } # the image's own WP-CLI (runs as www-data)
+HERE="$(cd "$(dirname "$0")" && pwd)"
 
 echo "# static checks"
 check "apache configuration is valid" "docker run --rm --entrypoint apache2ctl '$IMG' -t >/dev/null 2>&1"
@@ -40,6 +39,7 @@ check "upload limit is 8M" "[ \"\$(docker run --rm --entrypoint php '$IMG' -r 'e
 for p in nymbus-site-content limit-login-attempts-reloaded openid-connect-generic; do
   check "plugin $p baked in" "docker run --rm --entrypoint test '$IMG' -d /usr/src/wordpress/wp-content/plugins/$p"
 done
+check "WP-CLI baked in (pinned)" "docker run --rm --entrypoint wp '$IMG' --version | grep -q \"WP-CLI \$(sed -n 's/^ARG WPCLI_VERSION=//p' '$HERE/../Dockerfile')\""
 check "must-use plugins baked in" "docker run --rm --entrypoint test '$IMG' -f /usr/src/wordpress/wp-content/mu-plugins/nymbus-security.php"
 
 echo "# start"
@@ -57,7 +57,7 @@ docker run -d --name "$WP" --network "$NET" -p "127.0.0.1:$PORT:80" \
   "$IMG" >/dev/null
 
 for i in $(seq 1 60); do
-  if wpcli db check >/dev/null 2>&1; then break; fi
+  if docker exec "$WP" sh -c 'test -f /var/www/html/wp-config.php && php -r "exit(@mysqli_connect(getenv(\"WORDPRESS_DB_HOST\"), getenv(\"WORDPRESS_DB_USER\"), getenv(\"WORDPRESS_DB_PASSWORD\"), getenv(\"WORDPRESS_DB_NAME\")) ? 0 : 1);"' >/dev/null 2>&1; then break; fi
   sleep 3
   if [ "$i" = 60 ]; then echo "WordPress / database did not come up" >&2; exit 1; fi
 done
@@ -93,7 +93,6 @@ ACTIVE="$(wpcli plugin list --status=active --field=name)"
 for p in nymbus-site-content limit-login-attempts-reloaded openid-connect-generic; do
   check "plugin $p active" "grep -qx '$p' <<<\"\$ACTIVE\""
 done
-HERE="$(cd "$(dirname "$0")" && pwd)"
 for pair in "limit-login-attempts-reloaded LLAR_VERSION" "openid-connect-generic OIDC_VERSION"; do
   set -- $pair
   want="$(sed -n "s/^ARG $2=//p" "$HERE/../Dockerfile")"
@@ -107,6 +106,20 @@ check "an editor cannot sign in with a password once SSO is on" "[ \"\$(login sm
 
 echo "# content endpoint"
 check "content document served" "curl -s '$BASE/?rest_route=/nymbus/v1/site-content' | grep -q '\"schemaVersion\":1'"
+
+echo "# import of the website's team and news (wp nymbus import)"
+node --experimental-strip-types "$HERE/../scripts/import-from-site.mjs" --out /tmp/nywp-import.json 2>/dev/null
+docker cp /tmp/nywp-import.json "$WP:/tmp/nywp-import.json"
+NTEAM="$(node -e 'console.log(require("/tmp/nywp-import.json").team.length)')"
+NNEWS="$(node -e 'console.log(require("/tmp/nywp-import.json").news.length)')"
+count() { wpcli post list --post_type="$1" --post_status=any --format=count; }
+check "dry run lists everything to create" "wpcli nymbus import /tmp/nywp-import.json --dry-run | grep -q '$((NNEWS + NTEAM)) to create'"
+check "dry run changes nothing" "[ \"\$(count nymbus_team)\" = 0 ] && [ \"\$(count nymbus_news)\" = 0 ]"
+wpcli nymbus import /tmp/nywp-import.json >/dev/null
+check "import creates every team member ($NTEAM)" "[ \"\$(count nymbus_team)\" = '$NTEAM' ]"
+check "import creates every news item ($NNEWS)" "[ \"\$(count nymbus_news)\" = '$NNEWS' ]"
+check "a second import skips what exists" "wpcli nymbus import /tmp/nywp-import.json | grep -q '0 created, 0 updated, $((NNEWS + NTEAM)) skipped'"
+check "imported team served by the endpoint" "curl -s '$BASE/?rest_route=/nymbus/v1/site-content' | grep -q '\"id\":\"jean-turmel\"'"
 
 echo "# brute force (last: it locks the test IP out)"
 for i in 1 2 3 4 5; do login smoke-admin "wrong-$i" "203.0.113.$i" >/dev/null; done
