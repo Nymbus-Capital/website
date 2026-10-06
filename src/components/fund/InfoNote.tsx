@@ -41,6 +41,7 @@ export function InfoNote({ label, children, testId = "info-note" }: { label: str
     };
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- closeAll only calls state setters and clears a ref timer
   }, [pinned]);
   // Escape closes it wherever the focus is (a hovered note has no focus inside)
   useEffect(() => {
@@ -50,6 +51,7 @@ export function InfoNote({ label, children, testId = "info-note" }: { label: str
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- closeAll only calls state setters and clears a ref timer
   }, [open]);
   useEffect(() => clearTimer, []);
 

@@ -11,7 +11,7 @@ import {
   DAYS, DAY_MS, FUTURES_STEP_MS, LOOP_MS, SETTLE_SHARE, futuresLayout, futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, type Day,
 } from "./futures-model.ts";
 import { runScene, type Runner, type RunnerOptions } from "./runner.ts";
-import { clamp, ease, span, stepAt } from "./timeline.ts";
+import { ease, span, stepAt } from "./timeline.ts";
 
 interface FuturesLabels {
   price: string; settled: string; today: string; long: string; short: string; clearing: string; matched: string;

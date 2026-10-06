@@ -142,7 +142,7 @@ export interface Characteristic {
 /* ------------------------------------------------------------------ daily portfolio and distributions */
 
 /** Portfolio characteristic ids of the daily block, in display order. */
-const PORTFOLIO_METRICS = ["duration", "ytm", "coupon", "maturity", "rating"] as const;
+export const PORTFOLIO_METRICS = ["duration", "ytm", "coupon", "maturity", "rating"] as const;
 export type PortfolioMetricId = (typeof PORTFOLIO_METRICS)[number];
 
 export interface PortfolioMetric {

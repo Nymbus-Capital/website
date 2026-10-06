@@ -4,7 +4,7 @@
  * process · institutions and partners · news. Every figure is admin content or a structural fact (number of
  * strategies, people and doctorates in src/data/team.ts); no NAV, no as-of date.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Database, Handshake, HeartHandshake, Layers, Leaf, Medal, ShieldCheck, X, Zap } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
