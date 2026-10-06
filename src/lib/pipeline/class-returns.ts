@@ -14,9 +14,12 @@
  *  - Known source defects withhold months (never repaired, never filled from another class):
  *    a. bad valuation print: two consecutive daily returns of opposite sign, both ≥ `spikeMin`, combined ≤ `spikeRevert` ×
  *       the smaller → both months, every class of the fund;
- *    b. cross-class consistency of a complete month (published values): each class's expected return is a_c + b_c × m
- *       (m = the fund's median of complete months; a_c, b_c by Theil–Sen over the months where ≥ 3 classes are complete,
- *       leaving the month under test out); a residual beyond `residualMax` is a breach. A breach of a fitted class in a month
+ *    b. cross-class consistency of a complete month (published values): each class's expected return is
+ *       a_c + b⁺_c × max(m, 0) + b⁻_c × min(m, 0) (m = the other classes' reference; separate up / down slopes because a
+ *       performance fee is charged in up months only; class-fit.ts: a_c and each slope by Theil–Sen over the months where
+ *       ≥ 3 classes are complete, leaving the month under test out — and the class's other first-pass breaches — a side with
+ *       too few months at slope 1 or not checkable, the fits iterated to a settled fixed point or every checked month
+ *       withheld); a residual beyond `residualMax` is a breach. A breach of a fitted class in a month
  *       holding a distribution / price-adjustment day in any class (stored return ≠ NAV ratio − 1 by more than
  *       `adjustmentMin`) → the month for EVERY class (the majority may be the wrong side); else a single breaching class
  *       whose ≥ 2 other complete classes are consistent → that class only; else every class. A class too young for a fit is
@@ -27,6 +30,7 @@
  *    c. missing / duplicate days, invalid returns, another return method (above).
  */
 import { apexMonth, BRIDGE_TOLERANCE, bridgeMonth, cibcMonth, CUTOVER, dropHolidayFiller, type ChainMonth, type ChainSource, type DailyRow } from "./daily-chain.ts";
+import { expectedReturn, fitWithSides, median, referenceOf, robustResiduals, sideOf, solveFits, type ClassFit, type FitCfg } from "./class-fit.ts";
 import { tradingDays } from "./market-calendar.ts";
 import { addMonths, toMonthEnd } from "./metrics.ts";
 import { ym } from "../data/dates.ts";
@@ -41,9 +45,15 @@ interface ClassCheckConfig {
   residualMax: number;
   adjustmentMin: number;
   fitMinMonths: number;
+  fitSideMinMonths: number;
+  fitUnitSlopeTolerance: number;
   fitSlopeMin: number;
   fitSlopeMax: number;
   fitInterceptMax: number;
+  fitTolerance: number;
+  fitMaxRounds: number;
+  fitDamping: number;
+  fitSuspectMinSide: number;
   relaunchNavJump: number;
   relaunchLongGapDays: number;
   relaunchResetMinGapDays: number;
@@ -98,11 +108,6 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const dayDiff = (a: string, b: string): number => (Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
-
-function median(xs: number[]): number {
-  const s = [...xs].sort((a, b) => a - b);
-  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-}
 
 /** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable), without CIBC holiday filler rows */
 function normalizeRows(rows: DailyRow[]): DailyRow[] {
@@ -262,28 +267,6 @@ export function adjustmentDays(rows: DailyRow[], inception: string, min: number,
   return out;
 }
 
-interface ClassFit { a: number; b: number; n: number; fallback: boolean }
-
-type FitCfg = Pick<ClassCheckConfig, "fitMinMonths" | "fitSlopeMin" | "fitSlopeMax" | "fitInterceptMax">;
-
-/**
- * a, b of r ≈ a + b·m by Theil–Sen (median of the pairwise slopes, intercept = median of r − b·m): robust to the outlier
- * months it is meant to find. b clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax; fewer than fitMinMonths
- * points → a = 0, b = 1 (`fallback`).
- */
-export function fitClass(pts: { m: number; r: number }[], cfg: FitCfg): ClassFit {
-  if (pts.length < cfg.fitMinMonths) return { a: 0, b: 1, n: pts.length, fallback: true };
-  const slopes: number[] = [];
-  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
-    const dm = pts[j].m - pts[i].m;
-    if (Math.abs(dm) > 1e-9) slopes.push((pts[j].r - pts[i].r) / dm);
-  }
-  const clip = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
-  const b = clip(slopes.length ? median(slopes) : 1, cfg.fitSlopeMin, cfg.fitSlopeMax);
-  const a = clip(median(pts.map((p) => p.r - b * p.m)), -cfg.fitInterceptMax, cfg.fitInterceptMax);
-  return { a, b, n: pts.length, fallback: false };
-}
-
 /**
  * (b) cross-class consistency of each month (see the module comment), on the PUBLISHED monthly values. Each class-month
  * is tested against a fit made WITHOUT that month (leave-one-out: an error in the fund's strongest month cannot bend its
@@ -293,7 +276,7 @@ export function fitClass(pts: { m: number; r: number }[], cfg: FitCfg): ClassFit
  */
 export function crossClassFailures(
   months: Record<string, { month: string; r: number | null; days: string[]; partial?: boolean }[]>, daily: Record<string, Map<string, number>>,
-  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax"> & FitCfg,
+  cfg: Pick<ClassCheckConfig, "crossAbs" | "crossRel" | "residualMax" | "fitSuspectMinSide"> & FitCfg,
   adjustments: Map<string, string> = new Map(),
 ): { fundMonths: Map<string, string>; fails: Map<string, Map<string, string>>; unchecked: { fundserv: string; month: string }[]; fits: Record<string, ClassFit> } {
   const fundMonths = new Map<string, string>();
@@ -326,11 +309,10 @@ export function crossClassFailures(
   // classes enter another class's reference (a young class never moves it)
   const fsvs = Object.keys(months);
   const fittable = new Set(fsvs.filter((c) => [...full.values()].filter((xs) => xs.length >= 3 && xs.some((x) => x.fsv === c)).length >= cfg.fitMinMonths));
-  let fits: Record<string, ClassFit> = Object.fromEntries(fsvs.map((c) => [c, { a: 0, b: 1, n: 0, fallback: !fittable.has(c) }]));
-  // leave-CLASS-out reference of class c in a month: median over the OTHER fitted complete classes d of (r_d − a_d) / b_d —
-  // each mapped back to the fund's common return through its own fit — so an error in c never moves its own reference
+  // leave-CLASS-out reference of class c in a month: median over the OTHER fitted complete classes d of r_d mapped back to
+  // the fund's common return through d's own fit — so an error in c never moves its own reference
   const refOf = (c: string, month: string, fs: Record<string, ClassFit>): { m: number; n: number } | null => {
-    const xs = (full.get(month) ?? []).filter((x) => x.fsv !== c && fittable.has(x.fsv)).map((x) => (x.v - fs[x.fsv].a) / fs[x.fsv].b);
+    const xs = (full.get(month) ?? []).filter((x) => x.fsv !== c && fittable.has(x.fsv)).map((x) => referenceOf(fs[x.fsv], x.v)).filter((m): m is number => m !== null);
     return xs.length ? { m: median(xs), n: xs.length } : null;
   };
   const pointsOf = (c: string, fs: Record<string, ClassFit>): { month: string; m: number; r: number }[] => {
@@ -342,34 +324,52 @@ export function crossClassFailures(
     }
     return out;
   };
-  // the fits and the references depend on each other: a few rounds from a = 0, b = 1
-  let points: Record<string, { month: string; m: number; r: number }[]> = {};
-  for (let round = 0; round < 4; round++) {
-    points = Object.fromEntries(fsvs.map((c) => [c, fittable.has(c) ? pointsOf(c, fits) : []]));
-    fits = Object.fromEntries(fsvs.map((c) => [c, fittable.has(c) ? fitClass(points[c], cfg) : { a: 0, b: 1, n: 0, fallback: true }]));
-  }
-  const looFit = (c: string, month: string): ClassFit => {
-    if (!fittable.has(c)) return { a: 0, b: 1, n: 0, fallback: true };
-    const ps = points[c];
-    return ps.some((p) => p.month === month) ? fitClass(ps.filter((p) => p.month !== month), cfg) : fits[c];
-  };
+  const { fits, points, converged, rounds } = solveFits(fsvs, fittable, pointsOf, cfg);
+  const sideCount = (c: string, up: boolean): number => points[c].filter((p) => (p.m > 0) === up).length;
+  const breaches = (e: number): boolean => Math.abs(e) > cfg.residualMax + 1e-12;
+  // residual of every complete class of a month against its fit without `month` (and `leaveOut`), on the side kinds of
+  // its full-sample fit, and its leave-class-out reference; `blind`: why the class-month cannot be checked
+  const assess = (month: string, leaveOut: (c: string) => Set<string>) => full.get(month)!.map((x) => {
+    const xs = full.get(month)!;
+    const own = fits[x.fsv];
+    const also = leaveOut(x.fsv);
+    const f = own.fallback ? own : fitWithSides(points[x.fsv].filter((p) => p.month !== month && !also.has(p.month)), own, cfg);
+    let ref = refOf(x.fsv, month, fits);
+    let blind: string | null = null;
+    if (!ref) {
+      // a fund with no fitted class (e.g. two classes): the other classes' plain median at slope 1 — such a class is only
+      // ever withheld itself, so a disagreement withholds both sides. Next to fitted classes that cannot be mapped this
+      // month (too few months on that side), slope 1 could hide an error: not checkable
+      if (fittable.size) blind = "not checkable: no other class with a fitted spread on that side this month";
+      ref = { m: median(xs.filter((y) => y.fsv !== x.fsv).map((y) => y.v)), n: 0 };
+    }
+    const fb = f.fallback || ref.n === 0;
+    if (!blind && !fb && sideOf(f, ref.m) === "uncheckable") {
+      const side = ref.m > 0 ? "up" : "down";
+      blind = `not checkable: too few ${side} months to fit the series' spread (${sideCount(x.fsv, side === "up")} < ${cfg.fitSideMinMonths}, and its other side's slope is not ≈ 1)`;
+    }
+    return { ...x, f: fb ? { ...f, fallback: true } : f, m: ref.m, blind, e: blind ? 0 : x.v - (fb && ref.n === 0 ? ref.m : expectedReturn(f, ref.m)) };
+  });
+  // whether class c can also leave `out` out of its fits: each of its own sides keeps fitSuspectMinSide months
+  const canLeaveOut = (c: string, out: Set<string>): boolean => (["up", "down"] as const).every((side) => fits[c][side] !== "fit"
+    || points[c].filter((p) => (p.m > 0) === (side === "up") && !out.has(p.month)).length >= cfg.fitSuspectMinSide);
+  const checked = [...full.keys()].filter((month) => full.get(month)!.length >= 2);
+  const unsettled = `the cross-class fit did not settle in ${rounds} rounds: no class can be checked against the others`;
+  const residuals = converged ? robustResiduals(checked, assess, canLeaveOut, breaches) : null;
   for (const month of [...byMonth.keys()].sort()) {
     const list = byMonth.get(month)!;
     const xs = full.get(month)!;
     const adj = adjustments.get(month);
     let all: string | null = null;
     const alone: { fsv: string; why: string }[] = [];
-    if (xs.length >= 2) {
-      const res = xs.map((x) => {
-        const f = looFit(x.fsv, month);
-        // no fitted class to compare with (e.g. a fund with two classes): the other classes' plain median, no fit — such a
-        // class is only ever withheld itself, so a disagreement withholds both sides
-        const ref = refOf(x.fsv, month, fits) ?? { m: median(xs.filter((y) => y.fsv !== x.fsv).map((y) => y.v)), n: 0 };
-        const fb = f.fallback || ref.n === 0;
-        return { ...x, f: fb ? { ...f, fallback: true } : f, m: ref.m, e: x.v - (fb && ref.n === 0 ? ref.m : f.a + f.b * ref.m) };
+    if (xs.length >= 2 && !residuals) all = unsettled;
+    else if (xs.length >= 2 && residuals) {
+      const res = residuals.get(month)!.filter((x) => {
+        if (x.blind) alone.push({ fsv: x.fsv, why: x.blind });
+        return !x.blind;
       });
-      const out = res.filter((x) => Math.abs(x.e) > cfg.residualMax + 1e-12);
-      const desc = (ys: typeof out): string => `${ys.map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)} from the other classes' reference ${pct(x.m)}${x.f.fallback ? ", no fitted spread" : ""})`).join(", ")}; ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
+      const out = res.filter((x) => breaches(x.e));
+      const desc = (ys: typeof out): string => `${[...ys].sort((p, q) => (p.fsv < q.fsv ? -1 : 1)).map((x) => `${x.fsv} ${pct(x.v)} (expected ${pct(x.v - x.e)} from the other classes' reference ${pct(x.m)}${x.f.fallback ? ", no fitted spread" : ""})`).join(", ")}; ${xs.length} classes with a complete month, residual tolerance ${pct(cfg.residualMax)}`;
       // a class without a fit, in a fund whose other classes are fitted, cannot be checked at slope 1 (a fee-free class's
       // legitimate spread could hide an error): its months are withheld until it has a fit of its own
       if (fittable.size >= 2) {

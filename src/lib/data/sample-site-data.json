@@ -21379,7 +21379,7 @@
   {
    "key": "funds.monthly-income.performance.classes",
    "level": "warn",
-   "message": "month(s) withheld for every class of the fund (source defects to report to the dataplatform): 2022-03 bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%); 2023-09 classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.56% from the other classes' reference 0.56%), LDM031 1.03% (expected 0.12% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.55% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
+   "message": "month(s) withheld for every class of the fund (source defects to report to the dataplatform): 2022-03 bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%); 2023-09 classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.55% from the other classes' reference 0.55%), LDM031 1.03% (expected 0.13% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.56% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM021",
@@ -21399,7 +21399,7 @@
   {
    "key": "funds.monthly-income.performance.classes.LDM031.monthly.2023-09-30",
    "level": "warn",
-   "message": "class I (LDM031): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.56% from the other classes' reference 0.56%), LDM031 1.03% (expected 0.12% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.55% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
+   "message": "class I (LDM031): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.55% from the other classes' reference 0.55%), LDM031 1.03% (expected 0.13% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.56% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM031",
@@ -21414,7 +21414,7 @@
   {
    "key": "funds.monthly-income.performance.classes.LDM061.monthly.2023-09-30",
    "level": "warn",
-   "message": "class J (LDM061): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.56% from the other classes' reference 0.56%), LDM031 1.03% (expected 0.12% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.55% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
+   "message": "class J (LDM061): 2023-09 withheld (\"—\"): classes disagree in a month with a distribution / price-adjustment day (LDM001 2023-09-29 return -0.08% vs NAV ratio -0.51%): LDM001 0.10% (expected 0.55% from the other classes' reference 0.55%), LDM031 1.03% (expected 0.13% from the other classes' reference 0.10%), LDM061 0.11% (expected 0.56% from the other classes' reference 0.55%); 3 classes with a complete month, residual tolerance 0.40%; which class is right cannot be told"
   },
   {
    "key": "funds.monthly-income.performance.classes.LDM061",
@@ -21559,7 +21559,7 @@
   {
    "key": "funds.multi-strategy.performance.classes.LDM300.monthly.2025-05-31",
    "level": "warn",
-   "message": "class A (LDM300): 2025-05 withheld (\"—\"): deviates from the fund's other classes, which agree with each other: LDM300 6.10% (expected 3.13% from the other classes' reference 3.21%); 4 classes with a complete month, residual tolerance 0.40%"
+   "message": "class A (LDM300): 2025-05 withheld (\"—\"): deviates from the fund's other classes, which agree with each other: LDM300 6.10% (expected 3.10% from the other classes' reference 3.20%); 4 classes with a complete month, residual tolerance 0.40%"
   },
   {
    "key": "funds.multi-strategy.performance.classes.LDM300",

@@ -77,7 +77,7 @@ export const TOL = {
 };
 
 /**
- * Per-class returns (class-returns.ts, classes.ts, build.ts buildClasses): every active register class of a fund gets its
+ * Per-class returns (class-returns.ts, classes.ts, build/class-series.ts buildClasses): every active register class of a fund gets its
  * own monthly series from its own daily nav-timeseries chain, from its inception (first price of its CURRENT run). A month
  * that fails a check is withheld ("—", reason in the admin issues), never estimated or filled from another class; every
  * figure whose window contains a withheld month is withheld too.
@@ -104,19 +104,45 @@ export const CLASS_CHECKS = {
   spikeMin: 0.02,
   spikeRevert: 0.5,
   /**
-   * cross-class consistency of a COMPLETE month, on the published monthly values. Each class's expected return is
-   * a + b × (fund median of the month), a and b fitted per class by Theil–Sen over the months where ≥ 3 classes are
-   * complete, LEAVING OUT the month under test (b clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month;
-   * a = 0, b = 1 with fewer than fitMinMonths months): a class without a performance fee legitimately beats the others by a
-   * share of a strong month. A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a
-   * distribution / price-adjustment day (a class's stored return differing from its NAV ratio − 1 by more than
-   * adjustmentMin) withholds the month for EVERY class (the majority of classes can be the wrong side); otherwise one
-   * breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else withholds every class. A class
-   * with too short a history for a fit is only ever withheld itself.
+   * cross-class consistency of a COMPLETE month, on the published monthly values (class-fit.ts). Each class's expected
+   * return is a + b⁺ × max(m, 0) + b⁻ × min(m, 0), m = the other classes' reference for the month: a class without a
+   * performance fee legitimately beats the others by a share of an UP month only (the fee is charged in up months), so up
+   * and down months get their own slope. a, b⁺ and b⁻ are fitted per class by Theil–Sen over the months where ≥ 3
+   * classes are complete, LEAVING OUT the month under test; each slope is clipped to [fitSlopeMin, fitSlopeMax] and a to
+   * ±fitInterceptMax a month; a class with fewer than fitMinMonths such months has no fit (a = 0, slope 1).
+   * A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a distribution /
+   * price-adjustment day (a class's stored return differing from its NAV ratio − 1 by more than adjustmentMin) withholds
+   * the month for EVERY class (the majority of classes can be the wrong side); otherwise one breaching class whose ≥ 2
+   * other complete classes agree is withheld alone, anything else withholds every class. A class with too short a
+   * history for a fit is only ever withheld itself.
    */
   residualMax: 0.004,
   adjustmentMin: 0.001,
   fitMinMonths: 12,
+  /**
+   * fewest up (or down) months — counted on the class's full sample, kept in every leave-one-out fit — for that side to get
+   * its own slope. A shorter side is never fitted with the other side's months: it takes slope 1 when the other side's
+   * slope is within fitUnitSlopeTolerance of 1, else its months are withheld for that class ("not checkable"), as are a
+   * class's months whose other classes all have such a side that month
+   */
+  fitSideMinMonths: 6,
+  fitUnitSlopeTolerance: 0.1,
+  /**
+   * the fits and the references are iterated from a = 0, slope 1, each round moving fitDamping of the way to the new fits
+   * (a step that shrinks every few rounds) and normalised (median a → 0, median own slopes → 1), until a round's step —
+   * the largest change of a class's expected return for a fund month within ±10 % — is at most fitTolerance (a step size,
+   * not a distance to the exact fixed point), at most fitMaxRounds rounds. Not settled → every month checked against a fit
+   * is withheld for the fund
+   */
+  fitTolerance: 0.0001,
+  fitMaxRounds: 400,
+  fitDamping: 0.5,
+  /**
+   * a class-month is also tested against a fit without the class's other breaching months of a first pass (one wrong month
+   * must not drag a correct one out of tolerance), as long as each of its own sides keeps this many months; the
+   * stability rule is robustResiduals' (class-fit.ts)
+   */
+  fitSuspectMinSide: 4,
   fitSlopeMin: 0.6,
   fitSlopeMax: 1.4,
   fitInterceptMax: 0.003,
@@ -125,14 +151,14 @@ export const CLASS_CHECKS = {
   crossRel: 0.25,
 } as const;
 
-/** Daily NAV chain (daily-chain.ts, build.ts): CIBC months are used only after this many months agree with the analytics history. */
+/** Daily NAV chain (daily-chain.ts, build/track-record.ts): CIBC months are used only after this many months agree with the analytics history. */
 export const CHAIN = { minVerifiedMonths: 6 } as const;
 
 /**
- * Daily portfolio (dataplatform /api/apex/fund-portfolio). Selection (build.ts / portfolio.ts): the daily book is the
+ * Daily portfolio (dataplatform /api/apex/fund-portfolio). Selection (build/daily-book.ts / portfolio.ts): the daily book is the
  * primary source only when its bond book is covered (priced >= 90 % and resolved >= 95 % of the bond weight) and it
  * is recent; each characteristic is shown only when its own coverage is >= 90 %. Otherwise the month-end factsheet
- * figures are shown, with an issue. Gates (validate.ts) drop what is implausible rather than publish it.
+ * figures are shown, with an issue. Gates (validate/portfolio.ts) drop what is implausible rather than publish it.
  */
 export const PORTFOLIO = {
   minPricedWeight: 0.9,
@@ -157,7 +183,7 @@ export const PORTFOLIO = {
   crossCheck: { durationYears: 0.25, durationRel: 0.05, yield: 0.003, sectorWeight: 0.05, sectors: 3, bookWithinDays: 7 },
 };
 
-/** Distributions gates (validate.ts): a class whose figures fail is dropped, the others are kept. */
+/** Distributions gates (validate/distributions.ts): a class whose figures fail is dropped, the others are kept. */
 export const DISTRIBUTIONS = {
   /** one distribution per unit above 5 % of the class NAV per unit is treated as a data error */
   maxShareOfNav: 0.05,
