@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  growthMethod, growthRange, heatmapGrid, isAnnualized, partialKind, returnBadges, siAnnualized, stripHidden, trackMonths, visibleBlocks,
-} from "../../../src/components/fund/lib/data.ts";
+import { growthMethod, growthRange } from "../../../src/components/fund/lib/growth.ts";
+import { heatmapGrid } from "../../../src/components/fund/lib/heatmap.ts";
+import { isAnnualized, partialKind, returnBadges, siAnnualized, trackMonths } from "../../../src/components/fund/lib/performance.ts";
+import { stripHidden, visibleBlocks } from "../../../src/components/fund/lib/visibility.ts";
 import { lastYears, navText } from "../../../src/components/site/home/figures.ts";
 import { toFundCard, toHomeData } from "../../../src/components/site/home/data.ts";
 import { FUNDS } from "../../../src/config/funds.ts";

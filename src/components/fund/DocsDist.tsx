@@ -15,7 +15,8 @@ import { T } from "./fund.copy";
 import { Block } from "./Block";
 import { FL } from "./labels";
 import { dateLabel, fileSize, colon } from "./lib/format.ts";
-import { amountDecimals, distributionBars, distributionClasses, groupDocuments, historyRows, isYearToDate, REGULATORY_DOCS } from "./lib/data.ts";
+import { amountDecimals, distributionBars, distributionClasses, historyRows, isYearToDate } from "./lib/distributions.ts";
+import { groupDocuments, REGULATORY_DOCS } from "./lib/documents.ts";
 import { DistBars, perUnit } from "./charts/DistBars";
 import { tr, type Locale } from "@/lib/i18n/config";
 

@@ -20,7 +20,7 @@ import { DistributionsTab, DocumentsTab } from "./DocsDist";
 import { AwardsTab } from "./Awards";
 import { rankingsToShow } from "./lib/rankings.ts";
 import { Disclosures, FeatureSection, FundCta, OtherFunds } from "./Closing";
-import { stripHidden } from "./lib/data.ts";
+import { stripHidden } from "./lib/visibility.ts";
 import { classInfoOf, classOptions, initialSelection, pickData, type ClassCtx, type Selection } from "./lib/select.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";

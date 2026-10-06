@@ -9,7 +9,7 @@ import { mkdtemp, cp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { buildSiteData, computedBook, effectiveNavStart } from "../../../src/lib/pipeline/build/index.ts";
-import { validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { validateSite } from "../../../src/lib/pipeline/validate/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { FUNDS } from "../../../src/config/funds.ts";
 import type { RawPayloads } from "../../../src/lib/pipeline/raw.ts";

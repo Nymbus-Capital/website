@@ -6,7 +6,7 @@
 import type { FundData } from "../../../lib/data/types.ts";
 import { T } from "../fund.copy.ts";
 import { dateLabel, elide, monthLabel } from "./format.ts";
-import { portfolioOrigin } from "./data.ts";
+import { portfolioOrigin } from "./portfolio.ts";
 import { tr, type Locale } from "../../../lib/i18n/config.ts";
 
 export function provenanceLine(data: Pick<FundData, "portfolio" | "factsheetMonth" | "esg"> | null | undefined, lang: Locale): string {

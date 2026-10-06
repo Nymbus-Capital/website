@@ -8,8 +8,8 @@ import { bookAgeDays, bookAgeProblem, dropStalePortfolio, isFreshBook, PORTFOLIO
 import { PORTFOLIO } from "../../../src/lib/pipeline/config.ts";
 import { parseFundPortfolio } from "../../../src/lib/pipeline/sources/contracts.ts";
 import { selectPortfolio } from "../../../src/lib/pipeline/portfolio.ts";
-import { checkPortfolio } from "../../../src/lib/pipeline/validate.ts";
-import { hasDailyPortfolio } from "../../../src/components/fund/lib/data.ts";
+import { checkPortfolio } from "../../../src/lib/pipeline/validate/index.ts";
+import { hasDailyPortfolio } from "../../../src/components/fund/lib/portfolio.ts";
 import sample from "../../../src/lib/data/sample-site-data.json" with { type: "json" };
 import type { FundData, SiteData } from "../../../src/lib/data/types.ts";
 import { loadFixture } from "../../fixtures/pipeline/mock-fetch.ts";

@@ -17,7 +17,9 @@ import type { ClassCtx } from "./lib/select.ts";
 import { noticeText, periodLong } from "./lib/notice.ts";
 import { T } from "./fund.copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS } from "./lib/format.ts";
-import { benchmarkLabel, groupDocuments, isAnnualized, navDirection, perfClassLabel, returnBadges, riskIndex, RISK_LEVELS } from "./lib/data.ts";
+import { groupDocuments } from "./lib/documents.ts";
+import { navDirection, RISK_LEVELS, riskIndex } from "./lib/facts.ts";
+import { benchmarkLabel, isAnnualized, perfClassLabel, returnBadges } from "./lib/performance.ts";
 import { monotonePath } from "./lib/scale.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
 

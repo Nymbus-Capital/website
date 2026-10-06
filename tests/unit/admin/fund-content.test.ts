@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { aumPublic, cleanFundContent } from "../../../src/components/admin/fund-content.ts";
-import { benchmarkLabel } from "../../../src/components/fund/lib/data.ts";
+import { benchmarkLabel } from "../../../src/components/fund/lib/performance.ts";
 import { tr } from "../../../src/lib/i18n/config.ts";
 
 test("hide keeps true entries and an explicit aum:false (AUM published)", () => {

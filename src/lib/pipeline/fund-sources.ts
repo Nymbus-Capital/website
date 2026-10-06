@@ -26,7 +26,7 @@ interface FundSources {
   ftseIndex: string | null;
   /**
    * Earlier FTSE short_names to try for the benchmark's history before its current name (checked by equal daily returns
-   * on common days before being chain-linked, metrics.ts joinFtseHistory); names sharing the index_id or the published
+   * on common days before being chain-linked, index-levels.ts joinFtseHistory); names sharing the index_id or the published
    * name are tried too. Optional.
    */
   ftseAliases?: string[];

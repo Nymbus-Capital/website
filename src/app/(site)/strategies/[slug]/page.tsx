@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FundPage } from "@/components/fund/FundPage";
 import { toPublicData, toPublicSpec, type FundDoc, type FundLink } from "@/components/fund/types";
-import { stripHidden } from "@/components/fund/lib/data";
+import { stripHidden } from "@/components/fund/lib/visibility";
 import { documentUrl, listPublishedDocuments, toPublicDocument } from "@/lib/data/documents";
 import { getAllFundViews, getContent, getFundView } from "@/lib/data/site";
 import type { DocumentMeta } from "@/lib/data/types";

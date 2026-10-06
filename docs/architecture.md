@@ -68,7 +68,7 @@ inputs, with gates; a figure is never assembled from two sources.
 | dataplatform `/api/performance/nav-timeseries` (`fundserv=`, every class, from 2019-01-01) | daily NAV chain per class → inception and per-class monthly returns (`daily-chain.ts`, `class-returns.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class "coming soon" / headline from monthly-net-returns |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
-| dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`metrics.ts` `joinFtseHistory`) | primary | index figures not shown |
+| dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`index-levels.ts` `joinFtseHistory`) | primary | index figures not shown |
 | dataplatform `/api/apex/holdings` + `/api/instruments/batch` + `/api/instruments` (bond universe) | daily (and month-end) book computed by the website (`fund-portfolio.ts`, port of the PR #621 analytics) | primary when covered (below) | month-end factsheet figures (issue) |
 | factsheet archives (SharePoint) | characteristics vs index, breakdowns, top 10, ESG, published returns, GMV variants | ESG / GMV primary; portfolio fallback; cross-check | previous kept + alert |
 

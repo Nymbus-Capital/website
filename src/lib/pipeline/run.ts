@@ -26,7 +26,7 @@ import { formatSchedule, nextRun, parseSchedule } from "./schedule.ts";
 import { fetchAll } from "./sources/index.ts";
 import { errMsg } from "./sources/http.ts";
 import { alertDecision, fingerprintList, markSent, REMIND_AFTER_MS, withAlerts, type AlertMessage } from "./alerts.ts";
-import { validateSite } from "./validate.ts";
+import { validateSite } from "./validate/index.ts";
 
 export interface RunReport {
   id: string;

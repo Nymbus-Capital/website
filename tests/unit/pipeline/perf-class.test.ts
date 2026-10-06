@@ -12,7 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import { buildSiteData, classSpreadProblem, type BuildResult } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
-import { validateSite } from "../../../src/lib/pipeline/validate.ts";
+import { validateSite } from "../../../src/lib/pipeline/validate/index.ts";
 import { factsheetClassAt } from "../../../src/lib/pipeline/fund-sources.ts";
 import { fundWithClassLabel, perfClassCode, withClassLabel } from "../../../src/lib/pipeline/perf-class.ts";
 import type { FundData, Performance, SiteData } from "../../../src/lib/data/types.ts";

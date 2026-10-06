@@ -15,7 +15,8 @@ import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./t
 import { FUND_TEXTS, T } from "./fund.copy";
 import { Block } from "./Block";
 import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "./lib/format.ts";
-import { benchmarkLabel, initials, navDirection, perfClassLabel, resolveManagers, riskIndex, sortedClasses, trailingRows } from "./lib/data.ts";
+import { initials, navDirection, resolveManagers, riskIndex, sortedClasses } from "./lib/facts.ts";
+import { benchmarkLabel, perfClassLabel, trailingRows } from "./lib/performance.ts";
 import { classInfoOf, classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
 import { noFiguresText, periodLong } from "./lib/notice.ts";
 import { ClassTypeBadge } from "./ClassBadge";

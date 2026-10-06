@@ -16,7 +16,7 @@ import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { FUND_TEXTS, T, type FeatureIcon } from "./fund.copy";
 import { dateLabel, monthLabel, colon } from "./lib/format.ts";
-import { perfClassLabel } from "./lib/data.ts";
+import { perfClassLabel } from "./lib/performance.ts";
 import { provenanceLine } from "./lib/provenance.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
 
