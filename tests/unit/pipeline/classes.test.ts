@@ -21,10 +21,18 @@ const SEB = "sustainable-enhanced-bonds";
 const MI = "monthly-income";
 const GMV = "global-minimum-volatility";
 
-async function build(...routes: Route[]): Promise<{ data: SiteData; validated: SiteData; context: Partial<Record<string, FundContext>> }> {
+type Built = { data: SiteData; validated: SiteData; context: Partial<Record<string, FundContext>> };
+async function buildWith(routes: Route[]): Promise<Built> {
   const raw = await fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv() });
   const { data, context } = buildSiteData(raw, null, NOW);
   return { data, validated: validateSite(data, context, null, NOW).data, context };
+}
+/** The unaltered fixtures are built once per file (the build is pure); every caller gets its own deep copy. */
+let baseline: Promise<Built> | undefined;
+async function build(...routes: Route[]): Promise<Built> {
+  if (routes.length) return buildWith(routes);
+  baseline ??= buildWith([]);
+  return structuredClone(await baseline);
 }
 
 /** route serving one class's daily history altered by `fn` */

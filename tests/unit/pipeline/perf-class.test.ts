@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, classSpreadProblem } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, classSpreadProblem, type BuildResult } from "../../../src/lib/pipeline/build.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import { validateSite } from "../../../src/lib/pipeline/validate.ts";
 import { factsheetClassAt } from "../../../src/lib/pipeline/fund-sources.ts";
@@ -22,8 +22,22 @@ import { FIXTURE_FACTSHEETS_DIR, fixtureEnv, json, loadFixture, mockFetch, type 
 const NOW = new Date("2026-09-29T14:00:00Z");
 const SEB = "sustainable-enhanced-bonds" as const;
 
-async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<RawPayloads> {
+function fetchWith(env: Record<string, string | undefined>, routes: Route[]): Promise<RawPayloads> {
   return fetchAll({ fetchImpl: mockFetch(...routes).fetch, now: NOW, env: fixtureEnv({ PIPELINE_RETRY_BASE_MS: "0", ...env }) });
+}
+// the unaltered fixtures are fetched, built and validated once per file (pure); every caller gets its own deep copy
+let baseRaw: Promise<RawPayloads> | undefined;
+let baseBuilt: Promise<BuildResult> | undefined;
+let basePublished: Promise<SiteData> | undefined;
+async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<RawPayloads> {
+  if (Object.keys(env).length || routes.length) return fetchWith(env, routes);
+  baseRaw ??= fetchWith({}, []);
+  return structuredClone(await baseRaw);
+}
+/** the unaltered fixtures, built with no previous publication */
+async function built(): Promise<BuildResult> {
+  baseBuilt ??= raw().then((r) => buildSiteData(r, null, NOW));
+  return structuredClone(await baseBuilt);
 }
 async function fsCopy(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "fs-class-"));
@@ -38,9 +52,14 @@ async function editJson(file: string, fn: (j: any) => void): Promise<void> { // 
 const sebIssues = (d: SiteData) => d.issues.filter((i) => i.key.startsWith(`funds.${SEB}`));
 const sebErrors = (d: SiteData) => sebIssues(d).filter((i) => i.level === "error");
 /** a previous publication built (and validated) from the given routes */
-async function published(...routes: Route[]): Promise<SiteData> {
+async function publishedWith(routes: Route[]): Promise<SiteData> {
   const b = buildSiteData(await raw({}, ...routes), null, NOW);
   return validateSite(b.data, b.context, null, NOW).data;
+}
+async function published(...routes: Route[]): Promise<SiteData> {
+  if (routes.length) return publishedWith(routes);
+  basePublished ??= publishedWith([]);
+  return structuredClone(await basePublished);
 }
 /** the SEB track-record answer of monthly-net-returns, changed by `edit` */
 const sebMnr = (edit: (j: Record<string, unknown>) => Record<string, unknown>): Route => (u) =>
@@ -49,7 +68,7 @@ const sebMnr = (edit: (j: Record<string, unknown>) => Record<string, unknown>): 
 /* ------------------------------------------------------------------ the headline is the track record, labelled by its class */
 
 test("SEB headline: class H data (analytics + LDM202 chain + STRATEGY_H Apex months) labelled H; class F next to it", async () => {
-  const { data, context } = buildSiteData(await raw(), null, NOW);
+  const { data, context } = await built();
   const p = data.funds[SEB]!.performance!;
   assert.equal(p.classCode, "STRATEGY_H");
   assert.equal(p.returnClass, "H");
@@ -114,7 +133,7 @@ test("a class history answering rows of another class is a failure, never compou
 });
 
 test("validate: a performance whose label is not the label of its data's class is blocked", async () => {
-  const b = buildSiteData(await raw(), null, NOW);
+  const b = await built();
   for (const mutate of [
     (p: Performance) => { p.returnClass = "F"; p.returnClassLabel = "Series F"; }, // class H data labelled F (the pre-2026-10-01 bug)
     (p: Performance) => { delete p.classCode; },
@@ -243,7 +262,7 @@ test("legacy publication (before 2026-10-01: SEB class H labelled F) is relabell
 /* ------------------------------------------------------------------ NAV class vs performance class */
 
 test("NAV card and performance label are independent: SEB NAV LDM201 is class F (register) whatever the performance class", async () => {
-  const { data } = buildSiteData(await raw(), null, NOW);
+  const { data } = await built();
   const f = data.funds[SEB]!;
   assert.equal(f.performance!.returnClass, "H");
   assert.equal(f.nav!.classes.find((c) => c.fundserv === "LDM201")!.display, "F", "NAV class label comes from the fund register, by FundServ code");

@@ -8,11 +8,14 @@ import { fixtureEnv, mockFetch } from "../../fixtures/pipeline/mock-fetch.ts";
 
 const NOW = new Date("2026-09-29T14:00:00Z");
 
-async function built(): Promise<BuildResult> {
-  const raw = await fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() });
-  return buildSiteData(raw, null, NOW);
-}
 const clone = <T>(x: T): T => structuredClone(x);
+
+/** One fetch + build of the fixtures per file (the build is pure); every caller gets its own deep copy. */
+let baseline: Promise<BuildResult> | undefined;
+async function built(): Promise<BuildResult> {
+  baseline ??= fetchAll({ fetchImpl: mockFetch().fetch, now: NOW, env: fixtureEnv() }).then((raw) => buildSiteData(raw, null, NOW));
+  return clone(await baseline);
+}
 
 test("clean fixtures pass every gate", async () => {
   const b = await built();

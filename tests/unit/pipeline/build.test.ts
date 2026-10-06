@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, navChange, revisions } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, navChange, revisions, type BuildResult } from "../../../src/lib/pipeline/build.ts";
 import { ftseFamily } from "../../../src/lib/pipeline/metrics.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { NavPoint, RawPayloads } from "../../../src/lib/pipeline/raw.ts";
@@ -19,9 +19,23 @@ const near = (a: number | null | undefined, b: number, eps = 1e-12): void => {
   assert.ok(a != null && Math.abs(a - b) <= eps, `expected ${b}, got ${a}`);
 };
 
-async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<{ raw: RawPayloads; calls: ReturnType<typeof mockFetch>["calls"] }> {
+type Fetched = { raw: RawPayloads; calls: ReturnType<typeof mockFetch>["calls"] };
+async function fetchWith(env: Record<string, string | undefined>, routes: Route[]): Promise<Fetched> {
   const m = mockFetch(...routes);
   return { raw: await fetchAll({ fetchImpl: m.fetch, now: NOW, env: fixtureEnv(env) }), calls: m.calls };
+}
+// the unaltered fixtures are fetched and built once per file (pure); every caller gets its own deep copy
+let baseFetched: Promise<Fetched> | undefined;
+let baseBuilt: Promise<BuildResult> | undefined;
+async function raw(env: Record<string, string | undefined> = {}, ...routes: Route[]): Promise<Fetched> {
+  if (Object.keys(env).length || routes.length) return fetchWith(env, routes);
+  baseFetched ??= fetchWith({}, []);
+  return structuredClone(await baseFetched);
+}
+/** the unaltered fixtures, built with no previous publication */
+async function built(): Promise<BuildResult> {
+  baseBuilt ??= raw().then(({ raw: r }) => buildSiteData(r, null, NOW));
+  return structuredClone(await baseBuilt);
 }
 async function fsCopy(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "fs-"));
@@ -345,7 +359,7 @@ test("track record < 12 months: performance and risk withheld (compliance), info
   const saved = PIPELINE_FUNDS["multi-strategy"].trackStart;
   PIPELINE_FUNDS["multi-strategy"].trackStart = "2025-12-31";
   try {
-    const { data, context } = buildSiteData((await raw()).raw, null, NOW);
+    const { data, context } = await built();
     assert.equal(data.funds["multi-strategy"]!.performance, null);
     assert.equal(data.funds["multi-strategy"]!.risk, null);
     assert.ok(data.issues.some((i) => i.level === "info" && i.message.includes("< 12")));
@@ -375,7 +389,7 @@ test("M5 revisions: months up to the previous as-of changed by more than 1e-6", 
 });
 
 test("failed sources carry over previous values, with error issues and alerts", async () => {
-  const first = buildSiteData((await raw()).raw, null, NOW).data;
+  const first = (await built()).data;
   const later = new Date("2026-09-30T14:00:00Z");
   const down: Route = (url) => (url.pathname.startsWith("/api/") ? json({ detail: "maintenance" }, 503) : undefined);
   const m = mockFetch(down);
