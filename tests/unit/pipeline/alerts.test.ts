@@ -4,7 +4,7 @@ import { mkdtemp, rm, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
-  ALERT_DELIVERY, alertChannelStatus, alertDecision, alertFormat, alertPayload, announceNew, deliverWebhook, messageText, raiseAlert,
+  ALERT_DELIVERY, envLabel, escapeTeamsMarkdown, resetTestAlertCooldown, scrubHosts, sendTestAlert, webhookUrl, alertChannelStatus, alertDecision, alertFormat, alertPayload, announceNew, deliverWebhook, messageText, raiseAlert,
   readAlertState, resolveAlert, sendAlertNow, type AlertMessage,
 } from "../../../src/lib/pipeline/alerts.ts";
 
@@ -52,7 +52,7 @@ test("payloads: Teams Adaptive Card with an Open-the-admin button (absolute with
   assert.equal(t.type, "message");
   assert.equal(t.attachments[0].contentType, "application/vnd.microsoft.card.adaptive");
   assert.equal(t.attachments[0].content.type, "AdaptiveCard");
-  assert.deepEqual(t.attachments[0].content.body.map((b) => b.text), ["T", "a", "b"]);
+  assert.deepEqual(t.attachments[0].content.body.map((b) => b.text), ["\\[www.example.test\\] T", "a", "b"], "environment label from PUBLIC_URL (Markdown-escaped)");
   assert.equal(t.attachments[0].content.body[0].color, "Attention");
   assert.equal(t.attachments[0].content.actions![0].url, "https://www.example.test/admin/runs/x");
   const noBase = alertPayload(MSG, "teams", {}) as { attachments: { content: { body: { text: string }[]; actions?: unknown } }[] };
@@ -167,4 +167,34 @@ test("concurrent alerts of the process are serialised: no lost update of the sta
   const h = hook();
   await Promise.all(["a", "b", "c", "d"].map((k) => raiseAlert({ key: k, fingerprint: "x", message: () => MSG }, { fetchImpl: h.fetchImpl, env: env() })));
   assert.deepEqual(Object.keys((await readAlertState()).open).sort(), ["a", "b", "c", "d"]);
+});
+
+test("hygiene: https webhooks only; hosts stripped from lines (paths kept, clock times untouched); Teams Markdown escaped; environment label", () => {
+  assert.equal(webhookUrl({ PIPELINE_ALERT_WEBHOOK: "http://hooks.example.test/x" }), null, "never in clear");
+  assert.equal(webhookUrl({ PIPELINE_ALERT_WEBHOOK: " https://hooks.example.test/x " }), "https://hooks.example.test/x");
+  assert.equal(scrubHosts("HTTP 503 on http://dataplatform-staging:8000/api/apex/funds?x=1"), "HTTP 503 on /api/apex/funds?x=1");
+  assert.equal(scrubHosts("network error: connect ECONNREFUSED svc-a.internal:5432 at 14:00 UTC"), "network error: connect ECONNREFUSED <host> at 14:00 UTC");
+  assert.equal(escapeTeamsMarkdown("- *x* _y_ [z](u) `c`"), "\\- \\*x\\* \\_y\\_ \\[z\\](u) \\`c\\`");
+  assert.equal(escapeTeamsMarkdown("• a: 1.5 %"), "• a: 1.5 %");
+  assert.equal(envLabel({ PUBLIC_URL: "https://p01--website--x.code.run" }), "p01--website--x.code.run");
+  assert.equal(envLabel({}), null);
+  const j = alertPayload({ title: "T", lines: ["HTTP 500 on https://dp.internal:8000/api/x"], severity: "error", adminPath: "/admin" }, "json", { PUBLIC_URL: "https://www.example.test" }) as { text: string; lines: string[] };
+  assert.deepEqual(j.lines, ["HTTP 500 on /api/x"]);
+  assert.ok(!j.text.includes("dp.internal") && j.text.includes("https://www.example.test/admin"), j.text);
+});
+
+test("test alert: delivered at once (one attempt), not queued behind other alerts; one a minute", async () => {
+  resetTestAlertCooldown();
+  let n = 0;
+  const slow = (async () => (n++, new Response("", { status: 500 }))) as typeof fetch;
+  assert.equal(await sendTestAlert(MSG, { fetchImpl: slow, env: env() }), "failed");
+  assert.equal(n, 1, "no retries");
+  assert.equal(await sendTestAlert(MSG, { fetchImpl: slow, env: env() }), "cooldown");
+  resetTestAlertCooldown();
+  assert.equal(await sendTestAlert(MSG, { env: {} }), "off");
+  const h = hook([200]);
+  assert.equal(await sendTestAlert(MSG, { fetchImpl: h.fetchImpl, env: env() }), "sent");
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal((await readAlertState()).lastDelivery!.ok, true, "recorded afterwards");
+  resetTestAlertCooldown();
 });

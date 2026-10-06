@@ -338,8 +338,8 @@ async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?:
   return state;
 }
 
-/** true when delivered or when no webhook is configured (nothing to retry) */
+/** true only when delivered: without a webhook (or on a failure) the edition is posted once one is configured / works */
 async function alertWebhook(fetchImpl: typeof fetch, title: string, lines: string[]): Promise<boolean> {
   const r = await sendAlertNow({ title, lines, severity: "warn", adminPath: "/admin" }, { fetchImpl });
-  return r !== "failed";
+  return r === "sent";
 }

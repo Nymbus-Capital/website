@@ -1,9 +1,9 @@
 /**
- * Public status (GET /api/status) and the stale-data alert. Reads only what the site already publishes (as-of dates,
- * publication time) plus the last run's status and the scheduler's next slot: no issue text, no source detail, no
- * hostname, no secret. Dependency-free (relative imports): unit tested with plain Node.
+ * Data status for operations (admin dashboard, stale-data alert) and its public projection (GET /api/status: only what
+ * the site already shows — publication time and as-of dates — plus the verdict; no run status, no schedule, no issue
+ * text, no hostname). Dependency-free (relative imports): unit tested with plain Node.
  */
-import type { SiteContent, SiteData } from "../data/types.ts";
+import type { FundData, SiteContent, SiteData } from "../data/types.ts";
 import { readJson } from "../data/store.ts";
 import { FUNDS } from "../../config/funds.ts";
 import { raiseAlert, REMIND_AFTER_MS, resolveAlert, type AlertOpts } from "./alerts.ts";
@@ -14,19 +14,51 @@ import { formatSchedule, nextRun, parseSchedule, schedulerState } from "./schedu
 
 export const FRESHNESS_ALERT_KEY = "data.freshness";
 
+/** GET /api/status body */
+export interface PublicStatus {
+  ok: boolean;
+  verdict: Freshness["verdict"];
+  checkedAt: string;
+  lastPublishAt: string | null;
+  /** what is stale, as stable codes ("<fund>:performance", "<fund>:nav") */
+  stale: string[];
+  /** as-of dates of the blocks the site shows (a block the admin hides is left out) */
+  funds: Record<string, { performanceAsOf?: string | null; navAsOf?: string | null; verdict: "ok" | "stale" }>;
+}
+
+/** operations view (admin, alerts): never served publicly */
 export interface SiteStatus {
   ok: boolean;
   verdict: Freshness["verdict"];
   checkedAt: string;
-  /** what is stale, as stable codes ("publish", "<fund>:performance", "<fund>:nav") */
+  /** what is stale, as stable codes ("<fund>:performance", "<fund>:nav") */
   stale: string[];
   reasons: string[];
   lastRun: { startedAt: string; finishedAt: string; status: RunReport["status"]; trigger: RunReport["trigger"] } | null;
   running: boolean;
   lastPublishAt: string | null;
   scheduler: { active: boolean; schedule: string[]; timezone: string; nextRunAt: string | null; retryAt: string | null };
-  funds: Record<string, { performanceAsOf: string | null; navAsOf: string | null; performanceExpected: string; navLagBusinessDays: number | null; verdict: "ok" | "stale"; reasons: string[] }>;
+  /** per fund: freshness, and which blocks the site shows (a hidden block or a fund without NAV is not checked) */
+  funds: Record<string, Freshness["funds"][string] & { shows: { performance: boolean; nav: boolean } }>;
   thresholds: Freshness["thresholds"];
+}
+
+export function publicStatus(s: SiteStatus): PublicStatus {
+  const funds: PublicStatus["funds"] = {};
+  for (const [k, f] of Object.entries(s.funds)) {
+    funds[k] = {
+      ...(f.shows.performance ? { performanceAsOf: f.performanceAsOf } : {}),
+      ...(f.shows.nav ? { navAsOf: f.navAsOf } : {}),
+      verdict: f.verdict,
+    };
+  }
+  return { ok: s.ok, verdict: s.verdict, checkedAt: s.checkedAt, lastPublishAt: s.lastPublishAt, stale: s.stale, funds };
+}
+
+/** NAV date of the fund's OLDEST class with a NAV (a class stuck behind the others makes the fund stale), else nav.asOf */
+export function oldestNavDate(nav: FundData["nav"] | undefined): string | null {
+  const dates = (nav?.classes ?? []).filter((c) => c.nav !== null && typeof c.date === "string" && c.date).map((c) => c.date as string).sort();
+  return dates[0] ?? nav?.asOf ?? null;
 }
 
 async function lastPublishAt(): Promise<{ at: string | null; site: SiteData | null }> {
@@ -48,13 +80,17 @@ export async function siteStatus(now: Date = new Date(), env: Record<string, str
   ]);
   // funds hidden by the admin are not on the site: not reported
   const shown = FUNDS.filter((f) => !content?.funds?.[f.key]?.hidden);
+  const showsOf = (f: (typeof FUNDS)[number]) => ({ performance: !content?.funds?.[f.key]?.hide?.performance, nav: f.vehicle === "fund" && !content?.funds?.[f.key]?.hide?.nav });
   const fr = freshness({
-    now, lastPublishAt: at,
+    now,
     funds: shown.map((f) => {
       const d = site?.funds?.[f.key];
-      return { key: f.key, hasNav: f.vehicle === "fund", performanceAsOf: d?.performance?.asOf ?? null, navAsOf: d?.nav?.asOf ?? null };
+      const sh = showsOf(f);
+      return { key: f.key, hasNav: sh.nav, hasPerformance: sh.performance, performanceAsOf: d?.performance?.asOf ?? null, navAsOf: oldestNavDate(d?.nav) };
     }),
   });
+  const funds: SiteStatus["funds"] = {};
+  for (const f of shown) funds[f.key] = { ...fr.funds[f.key], shows: showsOf(f) };
   const st = schedulerState();
   let times: ReturnType<typeof parseSchedule> = [];
   try {
@@ -79,7 +115,7 @@ export async function siteStatus(now: Date = new Date(), env: Record<string, str
       nextRunAt: st ? (st.next?.toISOString() ?? null) : null,
       retryAt: st?.retryAt?.toISOString() ?? null,
     },
-    funds: fr.funds,
+    funds,
     thresholds: fr.thresholds,
   };
 }

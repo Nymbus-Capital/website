@@ -53,6 +53,8 @@ export interface RunReport {
    * previous performance and stays "pending-review" until an admin publishes it (the new months included)
    */
   reviewNeeded?: FundKey[];
+  /** review mode: the run holds data (as-of dates, funds) the live publication does not (alerting only) */
+  newData?: boolean;
   /** non-blocking notices (persistent, expected data limitations), also listed as warn issues */
   advisories?: { fund: FundKey; code: string; message: string }[];
 }
@@ -187,8 +189,25 @@ export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[
 export const RUN_ALERT_KEY = "pipeline.run";
 export const ADVISORY_ALERT_KEY = "pipeline.advisories";
 
-/** a run that needs a human: nothing published, something blocked, or waiting for an approval */
-export const runNeedsAttention = (r: Pick<RunReport, "status">): boolean => r.status === "failed" || r.status === "blocked" || r.status === "pending-review";
+export const REVIEW_ALERT_KEY = "pipeline.review";
+/** consecutive clean runs before a run alert is posted as resolved (a flapping source does not post twice a run) */
+export const RESOLVE_AFTER_CLEAN_RUNS = 2;
+
+/**
+ * A clean run waiting for approval in review mode: nothing is wrong, an admin has to publish it. Not a problem alert:
+ * posted as "N runs waiting for approval" at most once a day, and only when the run holds data the site does not show.
+ */
+export const isReviewWait = (r: Pick<RunReport, "status" | "publishedAt" | "reviewNeeded" | "classChanges">): boolean =>
+  r.status === "pending-review" && !r.publishedAt && !r.reviewNeeded?.length && !r.classChanges?.length;
+
+/** a run that needs a human: nothing published, something blocked, or an approval gate (unconfirmed month) */
+export const runNeedsAttention = (r: Pick<RunReport, "status" | "publishedAt" | "reviewNeeded" | "classChanges">): boolean =>
+  r.status === "failed" || r.status === "blocked" || (r.status === "pending-review" && !isReviewWait(r));
+
+/** digest of what a page shows from a dataset (as-of dates and funds): tells a run with new data from a repeat */
+export function dataDigest(d: Pick<SiteData, "asOf" | "funds"> | null | undefined): string | null {
+  return d ? crypto.createHash("sha256").update(JSON.stringify({ asOf: d.asOf, funds: d.funds })).digest("hex") : null;
+}
 
 /**
  * What identifies a run's alert: status, the set of error issues (digits masked, so a count or a date moving inside the
@@ -218,17 +237,30 @@ function runAction(r: RunReport): string[] {
 }
 
 /**
- * Post the run's alert: when it needs attention and its condition is new or changed, a daily reminder while it lasts,
- * "resolved" when a later run no longer needs attention; non-blocking notices once, when they first appear. One message
- * per run at most. Dry runs post nothing.
+ * Post the run's alerts (dry runs post nothing):
+ * - a run needing attention: when new or changed, one reminder a day while unchanged; "Resolved" after
+ *   RESOLVE_AFTER_CLEAN_RUNS consecutive runs needing none (a clean run in between does not post);
+ * - non-blocking notices once, when they first appear (same message);
+ * - review mode: "N runs waiting for approval" when a run waits with data the site does not show yet, at most once a day.
  */
 async function notifyRun(report: RunReport, fetchImpl: typeof fetch, now: Date): Promise<void> {
   if (report.status === "dry-run") return;
+  const waiting = isReviewWait(report) && report.newData
+    ? await waitingRuns().catch(() => [report.id])
+    : [];
   await withAlerts(async (ctx) => {
     const attention = runNeedsAttention(report);
     const fp = runAlertFingerprint(report);
     const open = ctx.state.open[RUN_ALERT_KEY];
-    const kind = attention ? alertDecision(open, fp, ctx.now, REMIND_AFTER_MS) : open ? "resolved" : "none";
+    let kind: "new" | "changed" | "reminder" | "none" | "resolved" = "none";
+    if (attention) {
+      kind = alertDecision(open, fp, ctx.now, REMIND_AFTER_MS);
+      if (kind === "none" && open?.clean) ctx.state.open[RUN_ALERT_KEY] = { ...open, clean: 0 };
+    } else if (open) {
+      const clean = (open.clean ?? 0) + 1;
+      if (clean >= RESOLVE_AFTER_CLEAN_RUNS) kind = "resolved";
+      else ctx.state.open[RUN_ALERT_KEY] = { ...open, clean };
+    }
     const advisories = report.advisories ?? [];
     const ids = [...new Set(advisories.map(advisoryId))].sort();
     const known = new Set(fingerprintList(ctx.state.open[ADVISORY_ALERT_KEY]?.fingerprint));
@@ -238,13 +270,30 @@ async function notifyRun(report: RunReport, fetchImpl: typeof fetch, now: Date):
       if (!still.length) delete ctx.state.open[ADVISORY_ALERT_KEY];
       else if (still.length !== known.size) ctx.state.open[ADVISORY_ALERT_KEY] = { ...ctx.state.open[ADVISORY_ALERT_KEY]!, fingerprint: JSON.stringify(still) };
     };
-    if ((kind === "none" && !fresh.length) || !ctx.configured) return keepKnown();
+    if (!ctx.configured) return keepKnown();
+    // review mode: a run waiting with new data, at most one message a day (an approval clears the open entry, not the clock)
+    if (!isReviewWait(report)) delete ctx.state.open[REVIEW_ALERT_KEY];
+    else if (waiting.length) {
+      const last = ctx.state.sentAt?.[REVIEW_ALERT_KEY];
+      if (!last || ctx.now.getTime() - Date.parse(last) >= REMIND_AFTER_MS) {
+        const title = `Nymbus website data pipeline: ${waiting.length} run${waiting.length === 1 ? "" : "s"} waiting for approval (review mode)`;
+        const ok = await ctx.send({
+          title, severity: "info", adminPath: `/admin/runs/${report.id}`,
+          lines: [
+            `The newest run (${report.id}) holds data the public site does not show yet.`,
+            `What to do: open /admin/runs/${report.id}, check the figures and issues, then publish it (approve). Publishing the newest run is enough; older waiting runs need nothing.`,
+          ],
+        });
+        if (ok) markSent(ctx.state, REVIEW_ALERT_KEY, "waiting", title, ctx.now, ctx.state.open[REVIEW_ALERT_KEY] ? "reminder" : "new");
+      }
+    }
+    if (kind === "none" && !fresh.length) return keepKnown();
     const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
     const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
     const head = `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.status === "published" ? ", published" : report.publishedAt ? ", other funds published" : ", nothing published"})`;
     const prefix = kind === "reminder" ? `Reminder (daily, since ${open!.since.slice(0, 16).replace("T", " ")} UTC): ` : kind === "resolved" ? "Resolved: " : "";
     const lines = [
-      ...(kind === "resolved" ? [`The earlier alert is resolved (${open!.title.slice(0, 160)}).`] : []),
+      ...(kind === "resolved" ? [`The earlier alert is resolved: ${RESOLVE_AFTER_CLEAN_RUNS} runs in a row need no attention (${open!.title.slice(0, 160)}).`] : []),
       ...(kind === "changed" ? ["The problem changed since the last alert."] : []),
       ...(review ? [`new month(s) of ${report.reviewNeeded!.join(", ")} confirmed by no independent source: publish the run in the admin to approve them`] : []),
       ...(attention && kind !== "none" ? runAction(report) : []),
@@ -259,6 +308,22 @@ async function notifyRun(report: RunReport, fetchImpl: typeof fetch, now: Date):
     if (ids.length) markSent(ctx.state, ADVISORY_ALERT_KEY, JSON.stringify(ids), "non-blocking notices", ctx.now, "new");
     else delete ctx.state.open[ADVISORY_ALERT_KEY];
   }, { fetchImpl, now });
+}
+
+/** ids of the runs waiting for approval since the live publication (review mode), newest first */
+async function waitingRuns(): Promise<string[]> {
+  const pub = (await publishedMeta())?.runId ?? "";
+  return (await listRuns(50)).filter((r) => r.id > pub && isReviewWait(r)).map((r) => r.id);
+}
+
+/** An admin published (approved) the newest run: its alerts are settled, without a message. */
+async function settleRunAlerts(id: string): Promise<void> {
+  const newest = (await listRuns(1))[0]?.id;
+  if (newest && id < newest) return; // a rollback to an older run settles nothing about the newest one
+  await withAlerts(async (ctx) => {
+    delete ctx.state.open[RUN_ALERT_KEY];
+    delete ctx.state.open[REVIEW_ALERT_KEY];
+  });
 }
 
 export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: string; dryRun?: boolean; fetchImpl?: typeof fetch; now?: Date }): Promise<RunReport | { locked: true }> {
@@ -304,6 +369,7 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       // auto mode: what needs a human (unconfirmed new months) is kept out of the auto-published data and the run waits
       else report.status = mode === "auto" && !v.needsReview.length ? "published" : "pending-review";
       autoPublish = autoData;
+      if (report.status === "pending-review" && mode !== "auto") report.newData = dataDigest(data) !== dataDigest(previous);
       if (!opts.dryRun && updated && mode === "auto") {
         report.publishedAt = new Date().toISOString();
         report.publishedBy = `pipeline (${opts.trigger}, ${opts.by})`;
@@ -374,6 +440,7 @@ export async function publishRun(id: string, by: string): Promise<RunReport> {
     };
     await writeJson(["snapshots", id, "report.json"], updated);
     await audit({ by, action: previousRunId && previousRunId > id ? "pipeline.rollback" : "pipeline.publish", target: id, detail: { previousRunId, status: updated.status } });
+    await settleRunAlerts(id).catch((e: unknown) => console.error(`[pipeline] could not settle the alerts: ${errMsg(e)}`));
     return updated;
   });
   if ("locked" in res) throw new Error("a pipeline run is in progress: try again in a minute");

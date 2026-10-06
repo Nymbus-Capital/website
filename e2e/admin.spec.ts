@@ -101,19 +101,20 @@ test.describe("sign-in gate", () => {
     expect(await r.json()).toEqual({ ok: true });
   });
 
-  test("/api/status is public, cacheable, always 200 with an ok flag; strict=1 answers 503 when stale", async ({ request }) => {
+  test("/api/status is public, cacheable, always 200 with an ok flag, no ops state; strict=1 answers 503 (no-store) when stale", async ({ request }) => {
     const r = await request.get("/api/status");
     expect(r.status()).toBe(200);
     expect(r.headers()["cache-control"]).toContain("max-age=60");
     const s = await r.json();
+    expect(Object.keys(s).sort()).toEqual(["checkedAt", "funds", "lastPublishAt", "ok", "stale", "verdict"]);
     expect(typeof s.ok).toBe("boolean");
     expect(["ok", "stale"]).toContain(s.verdict);
     expect(Object.keys(s.funds)).toContain("monthly-income");
-    expect(s.thresholds).toEqual({ publishBusinessHours: 36, performanceBusinessDays: 10, navBusinessDays: 4 });
     const body = JSON.stringify(s);
-    for (const leak of ["dataplatform", "webhook", "http://", "https://", "issues"]) expect(body, leak).not.toContain(leak);
+    for (const leak of ["blocked", "pending", "failed", "running", "retry", "schedule", "dataplatform", "webhook", "http://", "https://", "issues"]) expect(body, leak).not.toContain(leak);
     const strict = await request.get("/api/status?strict=1");
     expect(strict.status()).toBe(s.ok ? 200 : 503);
+    if (!s.ok) expect(strict.headers()["cache-control"]).toBe("no-store");
     expect(typeof (await strict.json()).ok).toBe("boolean");
   });
 });

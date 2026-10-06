@@ -122,6 +122,9 @@ export function retryWanted(r: Pick<RunReport, "status" | "sources" | "classChan
   return r.sources.some((s) => !s.ok && TRANSIENT_SOURCE_ERROR.test(String(s.detail ?? "")));
 }
 
+/** start of the newest run that is not a dry run (newest first), null when none: a dry run publishes nothing */
+export const newestRunStart = (runs: Pick<RunReport, "status" | "startedAt">[]): string | null => runs.find((r) => r.status !== "dry-run")?.startedAt ?? null;
+
 /* ------------------------------------------------------------------ runtime */
 
 type RunResult = RunReport | { locked: true };
@@ -146,7 +149,7 @@ export function schedulerState(): SchedulerState | undefined {
 
 export interface SchedulerDeps {
   runPipeline: (o: { trigger: "schedule"; by: string }) => Promise<RunResult>;
-  /** start of the newest run (any trigger), null when none */
+  /** start of the newest run that is not a dry run (any trigger), null when none */
   lastStartedAt: () => Promise<string | null>;
   running: () => Promise<boolean>;
   /** freshness check + alert (monitor.ts); called after every run and every `monitorEveryMs` */
@@ -155,7 +158,8 @@ export interface SchedulerDeps {
 
 const defaultDeps = (): SchedulerDeps => ({
   runPipeline: async (o) => (await import("./run.ts")).runPipeline(o),
-  lastStartedAt: async () => ((await (await import("./run.ts")).listRuns(1))[0]?.startedAt ?? null),
+  // dry runs do not count: they publish nothing
+  lastStartedAt: async () => newestRunStart(await (await import("./run.ts")).listRuns(20)),
   running: async () => (await import("./run.ts")).pipelineRunning(),
   monitor: async () => {
     await (await import("./monitor.ts")).runMonitor();
@@ -168,7 +172,7 @@ const defaultDeps = (): SchedulerDeps => ({
  * when a slot was missed (`catchUpDue`), one retry ~30 min after a run a source made fail (`retryWanted`), and the data
  * freshness monitor every 30 min.
  */
-export function startScheduler(opts: { schedule?: string; log?: (msg: string) => void; deps?: Partial<SchedulerDeps>; bootDelayMs?: number; retryDelayMs?: number; monitorEveryMs?: number } = {}): SchedulerState | null {
+export function startScheduler(opts: { schedule?: string; log?: (msg: string) => void; deps?: Partial<SchedulerDeps>; bootDelayMs?: number; secondCheckMs?: number; retryDelayMs?: number; monitorEveryMs?: number } = {}): SchedulerState | null {
   const log = opts.log ?? ((m: string) => console.log(`[pipeline] ${m}`));
   if (G.__nymbusPipelineScheduler?.started) return G.__nymbusPipelineScheduler;
   let times: LocalTime[];
@@ -245,15 +249,13 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
       state.retryTimer = null;
       state.retryAt = null;
     }
-    try {
-      await execute("scheduler", "scheduled run", true);
-    } finally {
-      if (live()) arm();
-    }
+    // arm the next slot first: the retry decision compares with it (it must not see this slot as "next")
+    if (live()) arm();
+    await execute("scheduler", "scheduled run", true);
   };
   arm();
-  state.catchUpTimer = setTimeout(async () => {
-    state.catchUpTimer = null;
+  // catch-up checks: shortly after boot, and again after the lock of a run killed by the restart has gone stale
+  const catchUpCheck = async (): Promise<void> => {
     if (!live()) return;
     try {
       const [lastStartedAt, running] = await Promise.all([deps.lastStartedAt(), deps.running()]);
@@ -264,6 +266,14 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
     } catch (e: unknown) {
       log(`catch-up check failed: ${(e as Error)?.message ?? e}`);
     }
+  };
+  state.catchUpTimer = setTimeout(() => {
+    state.catchUpTimer = setTimeout(() => {
+      state.catchUpTimer = null;
+      void catchUpCheck();
+    }, Math.max(0, (opts.secondCheckMs ?? 35 * 60_000) - (opts.bootDelayMs ?? 90_000)));
+    state.catchUpTimer.unref?.();
+    void catchUpCheck();
   }, opts.bootDelayMs ?? 90_000);
   state.catchUpTimer.unref?.();
   state.monitorTimer = setInterval(() => void monitor(), opts.monitorEveryMs ?? 30 * 60_000);

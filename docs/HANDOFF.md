@@ -242,6 +242,14 @@ Not yet run against live data, not deployed.
   email (no mail path exists). Tests: `alerts`, `freshness`, `monitor`, `schedule` (catch-up / retry / runtime wiring),
   `run` (run alert dedup, Teams format, failed delivery), `rankings/expiry`; e2e: alerts panel off, `/api/status`. Docs:
   deploy (alerts, Teams how-to, status + monitoring), architecture § Monitoring and alerts. Publishing gates unchanged.
+  **Review fixes (2026-10-06)**: retry after a slot run now happens (next slot armed before the run); review mode — clean
+  waiting runs are not problem alerts, "N runs waiting for approval" at most daily and only with new data, `publishRun`
+  settles the alerts, freshness has no publication-age rule (performance threshold 15 business days, NAV = oldest class);
+  `/api/status` public payload reduced to ok / verdict / checkedAt / lastPublishAt / stale codes / per-fund as-of of
+  shown blocks (ops details on the dashboard; strict 503 no-store); hidden blocks skipped; "Resolved" after 2 clean runs;
+  dry runs ignored by the catch-up, second check ~35 min after boot; Toronto date for rankings expiry; RBC alertedFor
+  only on delivery; test alert one attempt, outside the queue, one a minute; https webhooks only; environment label in
+  titles; Teams Markdown escaped; hosts stripped from alert lines.
 
 - 2026-10-05 (sub-agent, branch `feat/collapsible-disclosures` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
   request "all the disclosure in the websites … smaller divs that have a fade out towards the end and a static arrow that shows

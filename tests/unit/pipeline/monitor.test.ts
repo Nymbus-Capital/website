@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runMonitor, siteStatus } from "../../../src/lib/pipeline/monitor.ts";
+import { oldestNavDate, publicStatus, runMonitor, siteStatus } from "../../../src/lib/pipeline/monitor.ts";
 import { ALERT_DELIVERY, readAlertState } from "../../../src/lib/pipeline/alerts.ts";
 
 let dir = "";
@@ -39,33 +39,43 @@ async function publish(at: string, o: { perf?: string; nav?: string } = {}): Pro
 
 const NOW = new Date("2026-10-07T14:00:00Z");
 
-test("status: fresh data → ok; reports last run, publication, as-of per fund; no issue text, source detail or hostname", async () => {
+test("status: fresh data → ok; the public projection holds only publication time, verdict and as-of dates", async () => {
   await publish("2026-10-06T22:46:00Z");
   const s = await siteStatus(NOW, { PIPELINE_SCHEDULE: "06:45,12:45,18:45" });
   assert.equal(s.ok, true, s.reasons.join("; "));
-  assert.equal(s.verdict, "ok");
-  assert.deepEqual(s.lastRun, { startedAt: "2026-10-06T22:45:00Z", finishedAt: "2026-10-06T22:46:00Z", status: "published", trigger: "schedule" });
-  assert.equal(s.lastPublishAt, "2026-10-06T22:46:00Z");
-  assert.equal(s.funds["monthly-income"].navAsOf, "2026-10-06");
+  assert.equal(s.lastRun!.status, "published", "the ops view has the run");
   assert.equal(s.funds["global-minimum-volatility"].navLagBusinessDays, null, "managed accounts: no NAV expected");
-  assert.equal(s.scheduler.active, false, "no scheduler in this process");
   assert.deepEqual(s.scheduler.schedule, ["06:45", "12:45", "18:45"]);
-  const body = JSON.stringify(s);
-  for (const leak of ["internal-host", "secret.issue", "dataplatform", "http"]) assert.ok(!body.includes(leak), leak);
+  const p = publicStatus(s);
+  assert.deepEqual(Object.keys(p).sort(), ["checkedAt", "funds", "lastPublishAt", "ok", "stale", "verdict"]);
+  assert.equal(p.lastPublishAt, "2026-10-06T22:46:00Z");
+  assert.deepEqual(p.funds["monthly-income"], { performanceAsOf: "2026-08-31", navAsOf: "2026-10-06", verdict: "ok" });
+  assert.deepEqual(p.funds["global-minimum-volatility"], { performanceAsOf: "2026-08-31", verdict: "ok" }, "no NAV field for a strategy");
+  const body = JSON.stringify(p);
+  for (const leak of ["internal-host", "secret.issue", "dataplatform", "http", "published\"", "blocked", "pending", "schedule", "running", "retry"]) assert.ok(!body.includes(leak), leak);
 });
 
-test("status: stale (old NAV, old publication); a fund hidden by the admin is not reported; no data → stale", async () => {
+test("status: old NAV → stale (no publication-age rule); hidden fund / hidden blocks not reported nor checked; no data → stale", async () => {
   await publish("2026-10-01T22:46:00Z", { nav: "2026-09-29" });
-  await put(["content", "site-content.json"], { funds: { "multi-strategy": { hidden: true } } });
+  await put(["content", "site-content.json"], { funds: { "multi-strategy": { hidden: true }, "sustainable-enhanced-bonds": { hide: { nav: true, performance: true } } } });
   const s = await siteStatus(NOW, {});
   assert.equal(s.ok, false);
-  assert.ok(s.stale.includes("publish") && s.stale.includes("monthly-income:nav"));
+  assert.deepEqual(s.stale, ["monthly-income:nav"]);
   assert.equal(s.funds["multi-strategy"], undefined);
+  assert.equal(s.funds["sustainable-enhanced-bonds"].verdict, "ok");
+  assert.deepEqual(publicStatus(s).funds["sustainable-enhanced-bonds"], { verdict: "ok" }, "hidden blocks left out of the public payload");
   await rm(path.join(dir, "published"), { recursive: true, force: true });
+  await rm(path.join(dir, "content"), { recursive: true, force: true });
   const none = await siteStatus(NOW, {});
   assert.equal(none.ok, false);
-  assert.ok(none.reasons.includes("never published"));
   assert.ok(none.stale.includes("monthly-income:performance"));
+  assert.equal(none.lastPublishAt, null);
+});
+
+test("NAV freshness uses the fund's oldest class with a NAV", () => {
+  assert.equal(oldestNavDate({ asOf: "2026-10-06", classes: [{ nav: 10, date: "2026-10-06" }, { nav: 11, date: "2026-09-25" }, { nav: null, date: "2026-01-01" }] } as never), "2026-09-25");
+  assert.equal(oldestNavDate({ asOf: "2026-10-06", classes: [] } as never), "2026-10-06");
+  assert.equal(oldestNavDate(null), null);
 });
 
 test("stale-data alert: posted when it turns stale, not again, reminded daily, re-posted when what is stale changes, resolved once", async () => {
@@ -87,7 +97,7 @@ test("stale-data alert: posted when it turns stale, not again, reminded daily, r
   await publish("2026-10-08T10:46:00Z", { nav: "2026-09-29" });
   await runMonitor({ fetchImpl, env, now: at(24) });
   assert.equal(posted.length, 2);
-  assert.match(posted[1].title, /^Reminder \(daily, since 2026-10-07 14:00 UTC\)/);
+  assert.match(posted[1].title, /^\[www\.example\.test\] Reminder \(daily, since 2026-10-07 14:00 UTC\)/);
   // another fund turns stale: what is stale changed → posted
   await publish("2026-10-08T10:46:00Z", { nav: "2026-09-29", perf: "2026-07-31" });
   await runMonitor({ fetchImpl, env, now: at(25) });
@@ -98,6 +108,6 @@ test("stale-data alert: posted when it turns stale, not again, reminded daily, r
   await runMonitor({ fetchImpl, env, now: at(34) });
   await runMonitor({ fetchImpl, env, now: at(35) });
   assert.equal(posted.length, 4);
-  assert.match(posted[3].title, /^Resolved: .*fresh again/);
+  assert.match(posted[3].title, /Resolved: .*fresh again/);
   assert.deepEqual((await readAlertState()).open, {});
 });

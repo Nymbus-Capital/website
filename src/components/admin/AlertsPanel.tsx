@@ -10,7 +10,9 @@ import { api, useToast } from "./client";
 import { Pill } from "./Head";
 import { when } from "./format";
 
-export function AlertsPanel({ status }: { status: AlertChannelStatus | null }) {
+export interface FreshnessView { verdict: "ok" | "stale"; reasons: string[]; retryAt: string | null }
+
+export function AlertsPanel({ status, freshness }: { status: AlertChannelStatus | null; freshness?: FreshnessView | null }) {
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const router = useRouter();
@@ -50,6 +52,12 @@ export function AlertsPanel({ status }: { status: AlertChannelStatus | null }) {
             : "Nothing sent yet. Use the button to check the channel."}
         </div>
       )}
+      {freshness ? (
+        <div className={`adm-alert${freshness.verdict === "stale" ? " warn" : " ok"}`} data-testid="alerts-freshness" style={{ marginTop: 8 }}>
+          public data: {freshness.verdict}{freshness.reasons.length ? ` — ${freshness.reasons.join("; ")}` : " (what /api/status reports)"}
+          {freshness.retryAt ? ` · a source was unavailable: retry run at ${when(freshness.retryAt)}` : ""}
+        </div>
+      ) : null}
       {status.open.length ? (
         <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0, display: "grid", gap: 6 }} data-testid="alerts-open">
           {status.open.map((o) => (

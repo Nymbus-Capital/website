@@ -84,7 +84,8 @@ repository settings once the new address is live.
 
 - Schedule: 06:45, 12:45, 18:45 America/Toronto (NAVs final the next morning, factsheets early month). After a restart
   or a redeploy that skipped a slot, the service runs once about 90 s after boot (not when a run started less than an
-  hour before, nor when the next slot is less than 45 min away). A run that failed or was blocked while a source was
+  hour before, nor when the next slot is less than 45 min away; dry runs do not count), and checks again ~35 min after
+  boot (a run killed by the restart holds the lock until it goes stale). A run that failed or was blocked while a source was
   unavailable (HTTP 5xx / 429 / timeout / network) is retried once about 30 min later — never for an approval gate
   (class change, unconfirmed month: an admin decides).
 - A run that blocks a fund keeps its last validated figures and posts an alert.
@@ -99,16 +100,20 @@ alerts):
 
 | Alert | When | Repeats |
 | --- | --- | --- |
-| Run failed / blocked / waiting for approval | when a run first needs attention, and when the problem changes (status, set of errors, funds to review, class changes) | one reminder a day while it lasts; "Resolved" once when a run publishes cleanly |
+| Run failed / blocked / approval gate (class change, unconfirmed month) | when a run first needs attention, and when the problem changes (status, set of errors, funds to review, class changes) | one reminder a day while it lasts; "Resolved" once after **two** clean runs in a row (a flapping source does not post every run); an admin publishing the newest run settles it silently |
+| Review mode: runs waiting for approval | "N runs waiting for approval" when a run holds data the site does not show yet | at most once a day, only while such a run waits; publishing settles it |
 | Non-blocking notice (source defects to report) | when a notice first appears | never |
 | Public data **stale** (see `/api/status`) | when the verdict turns stale, or what is stale changes | one reminder a day; "fresh again" once |
 | Rankings about to be hidden | 30 days before an entry's last day, and when it is hidden | once per entry, edition and phase |
 | New RBC pooled fund survey edition | once per edition | never |
 
-Each message says what to do and links the admin page (absolute when `PUBLIC_URL` is set). Delivery is retried 3 times
+Each message says what to do and links the admin page (absolute when `PUBLIC_URL` is set); titles start with the host of
+`PUBLIC_URL` (e.g. `[www.nymbus.ca]`) so a staging alert is never taken for production; hosts in issue texts are
+removed (`HTTP 503 on /api/…`). The webhook must be `https://`. Delivery is retried 3 times
 (2 s, 8 s, 30 s; a 429 `Retry-After` up to 60 s is honoured); a message not delivered is posted again at the next
 evaluation. **Admin → dashboard → alerts** shows whether the channel is configured, the last delivery result and the
-open alerts, with a "send a test alert" button. No email is sent: the site has no mail path (contact is `mailto:`), and
+open alerts, the public-data verdict with its reasons and a pending retry, with a "send a test alert" button (one
+attempt, at most one a minute). No email is sent: the site has no mail path (contact is `mailto:`), and
 the Graph app only reads SharePoint.
 
 **Teams how-to** (either works; the payload is an Adaptive Card, accepted by both):
@@ -125,16 +130,22 @@ works with the default generic format.
 
 ### Status endpoint and monitoring (`/api/status`)
 
-`GET /api/status` is public (no secrets, no issue texts, no hostnames) and cacheable for 60 s: last run (time, status,
-trigger), last publication, performance and NAV as-of per fund, next scheduled run (and a pending retry), and a
-freshness verdict. It answers **HTTP 200 always**, with `"ok": true|false` and `"verdict": "ok"|"stale"`;
-`/api/status?strict=1` answers **503** when stale. Stale when:
+`GET /api/status` is public and cacheable for 60 s. It holds only what the site already shows: `ok`, `verdict`
+(`ok` / `stale`), `checkedAt`, `lastPublishAt`, `stale` (codes such as `monthly-income:nav`) and, per fund, the as-of
+dates of the blocks the site shows (`performanceAsOf`, `navAsOf`) with the fund's verdict — no run status, schedule,
+issue text or hostname (those are on the admin dashboard). It answers **HTTP 200 always**; `/api/status?strict=1`
+answers **503** (`Cache-Control: no-store`) when stale. Stale when, for a fund the site shows:
 
-- no publication for more than **36 hours counted on business days** (TSX days, Toronto; weekends and holidays do not
-  count), or never published;
-- a fund's performance does not include the last closed month **10 business days** after that month ended;
-- a fund's NAV is more than **4 business days** old (funds only; Global Minimum Volatility has no NAV);
-- a fund shown on the site has no performance (funds hidden in the admin are not reported).
+- its performance does not include the last closed month **15 business days** after that month ended (month-end NAVs
+  are final the next business day; the administrator's month-end package and the factsheet archive that confirms a new
+  month come within about two weeks — 15 leaves a margin, so it does not fire every month, and still flags a missed
+  month well before the next month-end);
+- the NAV of its **oldest** class is more than **4 business days** old (funds only; Global Minimum Volatility has no NAV);
+- it shows no performance at all.
+
+Business days = TSX days in Toronto. Blocks the admin hides (performance, NAV) and hidden funds are neither reported nor
+checked. There is deliberately **no "time since the last publication" rule**: in review mode the site is fresh as long
+as its figures are, whether or not each run is approved, so an uptime monitor does not page in normal operation.
 
 Monitoring:
 

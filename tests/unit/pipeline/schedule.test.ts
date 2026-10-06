@@ -1,6 +1,6 @@
-import { test } from "node:test";
+import { mock, test } from "node:test";
 import assert from "node:assert/strict";
-import { catchUpDue, nextRun, parseSchedule, previousRun, retryWanted, schedulerState, startScheduler, stopScheduler, zonedToUtc } from "../../../src/lib/pipeline/schedule.ts";
+import { catchUpDue, newestRunStart, nextRun, parseSchedule, previousRun, retryWanted, schedulerState, startScheduler, stopScheduler, zonedToUtc } from "../../../src/lib/pipeline/schedule.ts";
 import type { RunReport } from "../../../src/lib/pipeline/run.ts";
 
 const DEF = parseSchedule(undefined);
@@ -140,4 +140,44 @@ test("runtime: a missed slot is caught up after boot, a source outage is retried
   assert.deepEqual(calls, []);
   assert.equal(monitors, 1);
   stopScheduler();
+});
+
+test("a scheduled slot run that a source outage blocked is retried once ~30 min later (the next slot is armed first)", async () => {
+  stopScheduler();
+  mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: Date.parse("2026-07-15T16:00:00Z") }); // 12:00 EDT
+  const flush = async (): Promise<void> => {
+    for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r));
+  };
+  try {
+    const calls: string[] = [];
+    startScheduler({
+      schedule: "12:45", log: () => undefined, bootDelayMs: 10 * 60_000,
+      deps: {
+        runPipeline: async ({ by }) => (calls.push(by), report({ id: by, sources: [{ name: "dataplatform unitholders/aum", ok: false, detail: "HTTP 503 on /api/unitholders/aum" }] })),
+        lastStartedAt: async () => new Date(Date.now() - 60_000).toISOString(),
+        running: async () => false,
+        monitor: async () => undefined,
+      },
+    });
+    mock.timers.tick(45 * 60_000); // 12:45 EDT slot
+    await flush();
+    assert.deepEqual(calls, ["scheduler"]);
+    assert.equal(iso(schedulerState()!.next), "2026-07-16T16:45:00.000Z", "next slot armed before the run");
+    assert.equal(iso(schedulerState()!.retryAt ?? null), "2026-07-15T17:15:00.000Z");
+    mock.timers.tick(30 * 60_000);
+    await flush();
+    assert.deepEqual(calls, ["scheduler", "scheduler (retry: source unavailable)"]);
+    mock.timers.tick(60 * 60_000);
+    await flush();
+    assert.equal(calls.length, 2, "one retry only");
+  } finally {
+    stopScheduler();
+    mock.timers.reset();
+  }
+});
+
+test("dry runs do not count as the last run for the catch-up", () => {
+  assert.equal(newestRunStart([{ status: "dry-run", startedAt: "2026-07-15T17:00:00Z" }, { status: "blocked", startedAt: "2026-07-15T10:45:00Z" }]), "2026-07-15T10:45:00Z");
+  assert.equal(newestRunStart([{ status: "dry-run", startedAt: "x" }]), null);
+  assert.equal(newestRunStart([]), null);
 });

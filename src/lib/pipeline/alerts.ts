@@ -36,6 +36,8 @@ export interface OpenAlert {
   since: string;
   lastSentAt: string;
   reminders?: number;
+  /** consecutive clean evaluations since the condition was last seen (the run alert resolves after 2) */
+  clean?: number;
 }
 
 export interface AlertState {
@@ -44,6 +46,8 @@ export interface AlertState {
   lastDelivery?: { at: string; ok: boolean; attempts: number; status?: number; error?: string; title: string };
   lastSuccessAt?: string;
   open: Record<string, OpenAlert>;
+  /** last time each key was posted, kept after it is resolved (rate limits such as the review-mode reminder) */
+  sentAt?: Record<string, string>;
 }
 
 export const ALERT_STATE_PATH = ["alerts", "state.json"];
@@ -57,7 +61,8 @@ type Env = Record<string, string | undefined>;
 
 export const webhookUrl = (env: Env = process.env): string | null => {
   const u = (env.PIPELINE_ALERT_WEBHOOK ?? "").trim();
-  return /^https?:\/\/\S+$/i.test(u) ? u : null;
+  // https only: the URL carries its own secret, it must never travel in clear
+  return /^https:\/\/\S+$/i.test(u) ? u : null;
 };
 
 const TEAMS_HOSTS = [/(^|\.)webhook\.office\.com$/i, /(^|\.)logic\.azure\.com$/i, /(^|\.)powerplatform\.com$/i, /(^|\.)powerautomate\.com$/i];
@@ -88,12 +93,43 @@ export function adminUrl(path: string | undefined, env: Env = process.env): stri
 
 const clip = (s: string): string => (s.length > MAX_LINE ? `${s.slice(0, MAX_LINE - 1)}…` : s);
 
+/**
+ * Remove hosts from a line (issue texts can carry internal service URLs): "HTTP 503 on http://svc:8000/api/x" →
+ * "HTTP 503 on /api/x"; a bare "host:port" → "<host>".
+ */
+export function scrubHosts(s: string): string {
+  return s
+    .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s/?#]+/gi, "")
+    // a host starts with a letter (never a clock time such as 14:00)
+    .replace(/\b[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)*:\d{2,5}\b/gi, "<host>");
+}
+
+/** Environment label: the host of PUBLIC_URL (e.g. "www.nymbus.ca"), so a staging alert is never taken for production. */
+export function envLabel(env: Env = process.env): string | null {
+  try {
+    const u = (env.PUBLIC_URL ?? "").trim();
+    return u ? new URL(u).host || null : null;
+  } catch {
+    return null;
+  }
+}
+
+function prepared(msg: AlertMessage, env: Env): { title: string; lines: string[]; link: string | null } {
+  const label = envLabel(env);
+  const lines = msg.lines.slice(0, MAX_LINES).map((l) => clip(scrubHosts(l)));
+  if (msg.lines.length > MAX_LINES) lines.push(`… ${msg.lines.length - MAX_LINES} more`);
+  return { title: `${label ? `[${label}] ` : ""}${scrubHosts(msg.title)}`, lines, link: adminUrl(msg.adminPath, env) };
+}
+
 /** The text lines of a message (title first, then the lines, then the admin link). */
 export function messageText(msg: AlertMessage, env: Env = process.env): string {
-  const link = adminUrl(msg.adminPath, env);
-  const lines = msg.lines.slice(0, MAX_LINES).map(clip);
-  if (msg.lines.length > MAX_LINES) lines.push(`… ${msg.lines.length - MAX_LINES} more`);
-  return [msg.title, ...lines, ...(link ? [`Admin: ${link}`] : [])].join("\n");
+  const { title, lines, link } = prepared(msg, env);
+  return [title, ...lines, ...(link ? [`Admin: ${link}`] : [])].join("\n");
+}
+
+/** Adaptive Card TextBlocks render Markdown: escape what would format (emphasis, links, code, headings, lists). */
+export function escapeTeamsMarkdown(s: string): string {
+  return s.replace(/[\\`*_[\]~]/g, "\\$&").replace(/^(\s*)([#+-]|\d+\.)(\s)/, "$1\\$2$3");
 }
 
 const TEAMS_COLOR: Record<AlertSeverity, string> = { error: "Attention", warn: "Warning", info: "Accent", ok: "Good" };
@@ -103,11 +139,9 @@ const TEAMS_COLOR: Record<AlertSeverity, string> = { error: "Attention", warn: "
  * Teams Workflows "post to a channel when a webhook request is received" template.
  */
 export function alertPayload(msg: AlertMessage, format: AlertFormat, env: Env = process.env): unknown {
-  const link = adminUrl(msg.adminPath, env);
-  const lines = msg.lines.slice(0, MAX_LINES).map(clip);
-  if (msg.lines.length > MAX_LINES) lines.push(`… ${msg.lines.length - MAX_LINES} more`);
+  const { title, lines, link } = prepared(msg, env);
   if (format === "json") {
-    return { text: messageText(msg, env), title: msg.title, severity: msg.severity, lines, ...(link ? { adminUrl: link } : {}) };
+    return { text: messageText(msg, env), title, severity: msg.severity, lines, ...(link ? { adminUrl: link } : {}) };
   }
   const absolute = !!link && /^https?:\/\//i.test(link);
   return {
@@ -121,9 +155,9 @@ export function alertPayload(msg: AlertMessage, format: AlertFormat, env: Env = 
         version: "1.4",
         msteams: { width: "Full" },
         body: [
-          { type: "TextBlock", text: msg.title, weight: "Bolder", size: "Medium", wrap: true, color: TEAMS_COLOR[msg.severity] },
-          ...lines.map((l) => ({ type: "TextBlock", text: l, wrap: true, spacing: "Small" })),
-          ...(link && !absolute ? [{ type: "TextBlock", text: `Admin: ${link}`, wrap: true, isSubtle: true }] : []),
+          { type: "TextBlock", text: escapeTeamsMarkdown(title), weight: "Bolder", size: "Medium", wrap: true, color: TEAMS_COLOR[msg.severity] },
+          ...lines.map((l) => ({ type: "TextBlock", text: escapeTeamsMarkdown(l), wrap: true, spacing: "Small" })),
+          ...(link && !absolute ? [{ type: "TextBlock", text: escapeTeamsMarkdown(`Admin: ${link}`), wrap: true, isSubtle: true }] : []),
         ],
         ...(absolute ? { actions: [{ type: "Action.OpenUrl", title: "Open the admin", url: link }] } : {}),
       },
@@ -232,6 +266,7 @@ export function withAlerts<T>(fn: (ctx: AlertCtx) => Promise<T>, opts: AlertOpts
 export function markSent(state: AlertState, key: string, fingerprint: string, title: string, now: Date, kind: "new" | "changed" | "reminder"): void {
   const prev = state.open[key];
   const at = now.toISOString();
+  state.sentAt = { ...(state.sentAt ?? {}), [key]: at };
   state.open[key] = kind === "reminder" && prev
     ? { ...prev, lastSentAt: at, reminders: (prev.reminders ?? 0) + 1 }
     : { fingerprint, title: title.slice(0, 200), since: kind === "changed" && prev ? prev.since : at, lastSentAt: at };
@@ -325,6 +360,34 @@ export function fingerprintList(fp: string | undefined): string[] {
 export function sendAlertNow(msg: AlertMessage, opts: AlertOpts = {}): Promise<"sent" | "failed" | "off"> {
   return withAlerts(async (ctx) => (!ctx.configured ? "off" : (await ctx.send(msg)) ? "sent" : "failed"), opts);
 }
+
+const T = globalThis as typeof globalThis & { __nymbusAlertTestAt?: number };
+export const TEST_ALERT_COOLDOWN_MS = 60_000;
+
+/**
+ * Test message from the admin: delivered at once (one attempt, 8 s timeout), not queued behind other alerts and their
+ * retries; the result is recorded in the state afterwards. One per minute per process ("cooldown").
+ */
+export async function sendTestAlert(msg: AlertMessage, opts: AlertOpts = {}): Promise<"sent" | "failed" | "off" | "cooldown"> {
+  const env = opts.env ?? process.env;
+  const url = webhookUrl(env);
+  if (!url) return "off";
+  const now = Date.now();
+  if (T.__nymbusAlertTestAt && now - T.__nymbusAlertTestAt < TEST_ALERT_COOLDOWN_MS) return "cooldown";
+  T.__nymbusAlertTestAt = now;
+  const r = await deliverWebhook(url, alertPayload(msg, alertFormat(url, env).format, env), { fetchImpl: opts.fetchImpl, delays: [], timeoutMs: 8_000 });
+  const at = new Date().toISOString();
+  void withAlerts(async (ctx) => {
+    ctx.state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: msg.title.slice(0, 200) };
+    if (r.ok) ctx.state.lastSuccessAt = at;
+  }, opts).catch(() => undefined);
+  return r.ok ? "sent" : "failed";
+}
+
+/** test hook: forget the test-message cooldown */
+export const resetTestAlertCooldown = (): void => {
+  T.__nymbusAlertTestAt = undefined;
+};
 
 /* ------------------------------------------------------------------ admin view */
 

@@ -366,41 +366,49 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
 
 ## Monitoring and alerts (`src/lib/pipeline/{alerts,freshness,monitor,schedule}.ts`, `src/lib/rankings/expiry-alert.ts`)
 
-- **Alerts** (`alerts.ts`): one channel, `PIPELINE_ALERT_WEBHOOK`. Payload = Teams Adaptive Card (`type: "message"`,
-  accepted by Teams Workflows and incoming webhooks) or generic JSON `{ text, title, severity, lines, adminUrl }`,
-  chosen by `PIPELINE_ALERT_FORMAT` or the URL host (`*.webhook.office.com`, `*.logic.azure.com`, `*.powerplatform.com`,
-  `*.powerautomate.com` → Teams). Delivery: 4 attempts (2 s, 8 s, 30 s backoff; network errors, timeouts, 408, 429 with
-  `Retry-After` ≤ 60 s, 5xx), never on another 4xx. Dedup state on the volume (`alerts/state.json`: open conditions by
-  key with fingerprint, first / last posted, plus the last delivery result — never the URL), updated in-process under a
-  promise-chain mutex (single instance). A condition is recorded only once delivered, so a failed or unconfigured
-  delivery is posted at the next evaluation.
-- **Run alert** (`run.ts` `notifyRun`, key `pipeline.run`): a run needs attention when `failed`, `blocked` or
-  `pending-review` (review mode, unconfirmed months). Fingerprint = status + error issues (key and message, digits
-  masked) + funds to review + class changes: posted when new or changed, one reminder a day while unchanged, "Resolved"
-  when a later run needs no attention. Non-blocking notices (`pipeline.advisories`) are posted once, when they first
-  appear, in the same message. Dry runs post nothing. Each message says what the admin must do and links
-  `/admin/runs/<id>`.
-- **Scheduler** (`schedule.ts`): besides the slots, (1) **catch-up** ~90 s after boot when a slot passed since the
-  newest run (any trigger) started, no run holds the lock, that run started ≥ 1 h ago and the next slot is ≥ 45 min
-  away (`catchUpDue`; a volume with no run gets one); (2) **one retry** 30 min after a scheduled / catch-up run that
-  failed or was blocked with a source unavailable (`retryWanted`: a source error matching HTTP 5xx / 429 / 408 / timeout /
-  network), never when the run has class changes or unconfirmed months, never after a crash, and not when the next slot
-  is within 45 min of the retry; a slot cancels a pending retry; (3) the **freshness monitor** after every run and every
-  30 min. All runs go through `runPipeline` (same lock, same gates: nothing is auto-approved).
-- **Freshness** (`freshness.ts`, pure; `monitor.ts` reads the volume): stale when no publication for > 36 business-day
-  hours (TSX days in Toronto, 24 h each), when a fund's performance lacks the last month-end closed for > 10 business
-  days, when a fund's NAV is > 4 business days old (fund vehicles), or when a shown fund has no performance; hidden funds
-  are skipped. `GET /api/status` serves it (public, 60 s in-process memo + `Cache-Control: public, max-age=60`, always
-  200 with `ok`; `?strict=1` → 503 when stale) with the last run (time, status, trigger), last publication, as-of dates
-  and the scheduler's next run — no issue text, source detail or hostname. Stale-data alert key `data.freshness`
-  (fingerprint = stale codes, daily reminder, "fresh again" once). `/api/health` stays a bare liveness probe.
+- **Alerts** (`alerts.ts`): one channel, `PIPELINE_ALERT_WEBHOOK` (https only). Payload = Teams Adaptive Card
+  (`type: "message"`, accepted by Teams Workflows and incoming webhooks; TextBlock Markdown escaped) or generic JSON
+  `{ text, title, severity, lines, adminUrl }`, chosen by `PIPELINE_ALERT_FORMAT` or the URL host (`*.webhook.office.com`,
+  `*.logic.azure.com`, `*.powerplatform.com`, `*.powerautomate.com` → Teams). Titles carry the host of `PUBLIC_URL`
+  (environment label); hosts are stripped from every line (`scrubHosts`: `http://svc:8000/api/x` → `/api/x`). Delivery:
+  4 attempts (2 s, 8 s, 30 s; network errors, timeouts, 408, 429 with `Retry-After` ≤ 60 s, 5xx), never on another 4xx.
+  Dedup state on the volume (`alerts/state.json`: open conditions by key with fingerprint, first / last posted, clean-run
+  count; `sentAt` per key; the last delivery result — never the URL), updated in-process under a promise-chain mutex
+  (single instance). A condition is recorded only once delivered, so a failed or unconfigured delivery is posted at the
+  next evaluation. The admin test message (`sendTestAlert`) is one attempt, 8 s, outside the queue, one a minute.
+- **Run alert** (`run.ts` `notifyRun`, key `pipeline.run`): a run needs attention when `failed`, `blocked`, or
+  `pending-review` behind an approval gate (unconfirmed months, class changes). Fingerprint = status + error issues (key
+  and message, digits masked) + funds to review + class changes: posted when new or changed, one reminder a day while
+  unchanged, "Resolved" after 2 consecutive runs needing no attention (`RESOLVE_AFTER_CLEAN_RUNS`; a clean run in between
+  resets nothing visible — no flapping). `publishRun` of the newest run settles `pipeline.run` / `pipeline.review`
+  silently. Review mode: a clean waiting run (`isReviewWait`) is not a problem; when it holds data the live publication
+  does not (`RunReport.newData`, digest of as-of dates + funds), "N runs waiting for approval" (`pipeline.review`) is
+  posted at most once a day. Non-blocking notices (`pipeline.advisories`) are posted once, when they first appear. Dry
+  runs post nothing.
+- **Scheduler** (`schedule.ts`): besides the slots, (1) **catch-up** ~90 s and again ~35 min after boot when a slot
+  passed since the newest non-dry run started, no run holds the lock, that run started ≥ 1 h ago and the next slot is
+  ≥ 45 min away (`catchUpDue`; a volume with no run gets one); (2) **one retry** 30 min after a scheduled / catch-up run
+  that failed or was blocked with a source unavailable (`retryWanted`: a source error matching HTTP 5xx / 429 / 408 /
+  timeout / network), never when the run has class changes or unconfirmed months, never after a crash, and not when the
+  next slot is within 45 min of the retry (the next slot is armed before the run, so a slot run is compared with the
+  following slot); a slot cancels a pending retry; (3) the **freshness monitor** after every run and every 30 min. All
+  runs go through `runPipeline` (same lock, same gates: nothing is auto-approved).
+- **Freshness** (`freshness.ts`, pure; `monitor.ts` reads the volume): per fund the site shows — performance lacking the
+  last month-end closed for > 15 business days, the oldest class's NAV > 4 business days old (fund vehicles), or no
+  performance; blocks hidden by the admin (`hide.performance`, `hide.nav`) and hidden funds are skipped. No
+  publication-age rule (review mode would make it fire between approvals). `GET /api/status` serves `publicStatus`
+  (`ok`, `verdict`, `checkedAt`, `lastPublishAt`, `stale` codes, per-fund as-of of the shown blocks; 60 s memo +
+  `Cache-Control: public, max-age=60`; always 200; `?strict=1` → 503 `no-store` when stale). Run status, schedule,
+  reasons and retry are admin-only (`siteStatus`, dashboard). Stale-data alert key `data.freshness` (fingerprint = stale
+  codes, daily reminder, "fresh again" once). `/api/health` stays a bare liveness probe.
 - **Rankings expiry** (`rankings/issues.ts` `rankingExpiries`, `expiry-alert.ts`): a shown ranking whose last day
-  (`lastShowDay`) is within 30 days → dashboard warn issue and one webhook message (key `rankings.expiry`, each entry /
-  as-of / phase once); a complete entry hidden within the last 30 days → one "now hidden" message. Run every 6 h by the
-  rankings tick (`RANKINGS_CHECK=off` disables it with the RBC check).
+  (`lastShowDay`) is within 30 days (Toronto date) → dashboard warn issue and one webhook message (key `rankings.expiry`,
+  each entry / as-of / phase once); a complete entry hidden within the last 30 days → one "now hidden" message. Run every
+  6 h by the rankings tick (`RANKINGS_CHECK=off` disables it with the RBC check). The RBC edition alert is marked as sent
+  only once delivered (without a webhook it is posted when one is configured).
 - **Admin**: the dashboard's *alerts* panel (above the pipeline when alerts are off or the last delivery failed) shows
-  configured / format / webhook host, last delivery, open alerts and a "send a test alert" button
-  (`POST /api/admin/alerts/test`, audited).
+  configured / format / webhook host, last delivery, open alerts, the public-data verdict with reasons and a pending
+  retry, and a "send a test alert" button (`POST /api/admin/alerts/test`, audited, 429 within a minute).
 
 ## Conventions
 

@@ -86,6 +86,13 @@ export interface RankingExpiry {
 }
 
 const dayNum = (d: string): number => Math.round(Date.parse(`${d}T00:00:00Z`) / 86_400_000);
+const TORONTO_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" });
+/** calendar date in Toronto (the firm's day), YYYY-MM-DD */
+const torontoDate = (t: Date): string => {
+  const o: Record<string, string> = {};
+  for (const p of TORONTO_DAY.formatToParts(t)) if (p.type !== "literal") o[p.type] = p.value;
+  return `${o.year}-${o.month}-${o.day}`;
+};
 
 /**
  * Entries shown today whose last day is within `warnDays` ("expiring"), and complete entries the staleness limit hid
@@ -96,7 +103,7 @@ export function rankingExpiries(
   opts: { now: Date; months: number; warnDays?: number; classes?: Partial<Record<FundKey, { fundserv: string }[]>> },
 ): RankingExpiry[] {
   const warn = opts.warnDays ?? EXPIRY_WARN_DAYS;
-  const today = dayNum(opts.now.toISOString().slice(0, 10));
+  const today = dayNum(torontoDate(opts.now));
   const out: RankingExpiry[] = [];
   const consider = (fund: FundKey, kind: RankingExpiry["kind"], index: number, label: string, asOf: string, status: string): void => {
     if (status !== "shown" && status !== "stale") return;
