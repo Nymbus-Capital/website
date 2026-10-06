@@ -6,8 +6,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  adjustmentDays, computeFundClasses, crossClassFailures, currentRun, expectedReturn, fitClass, hasMinHistory, minHistoryDate, monthsFromInception, spikeMonths,
+  adjustmentDays, computeFundClasses, crossClassFailures, currentRun, hasMinHistory, minHistoryDate, monthsFromInception, spikeMonths,
 } from "../../../src/lib/pipeline/class-returns.ts";
+import { expectedReturn, fitClass } from "../../../src/lib/pipeline/class-fit.ts";
 import { CLASS_CHECKS } from "../../../src/lib/pipeline/config.ts";
 import { tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
 import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
@@ -114,24 +115,33 @@ test("fit per class: a fee-free class scaling with the median is expected (no br
   assert.equal(f.bUp, 1.4);
   assert.equal(f.bDown, 1.4);
   assert.equal(f.a, 0.003);
-  assert.deepEqual(fitClass(pts.slice(0, 11), CLASS_CHECKS), { a: 0, bUp: 1, bDown: 1, n: 11, fallback: true, piecewise: false });
+  assert.deepEqual(fitClass(pts.slice(0, 11), CLASS_CHECKS), { a: 0, bUp: 1, bDown: 1, n: 11, fallback: true, up: "unit", down: "unit" });
 });
 
-test("fit per class: separate up / down slopes (performance fee in up months only); one line when a side is short", () => {
+test("fit per class: separate up / down slopes (performance fee in up months only); a short side is never pooled", () => {
   // a fee-free class against fee-paying ones: 1.25 × an up month, 1 × a down month, +0.05 % a month
   const ms = MONTHS.map((_, i) => fundPath(i));
   const pts = ms.map((m) => ({ m, r: 0.0005 + 1.25 * Math.max(m, 0) + Math.min(m, 0) }));
   const down = pts.filter((p) => p.m <= 0).length;
   assert.ok(down >= CLASS_CHECKS.fitSideMinMonths && pts.length - down >= CLASS_CHECKS.fitSideMinMonths);
   const f = fitClass(pts, CLASS_CHECKS);
-  assert.ok(f.piecewise && Math.abs(f.bUp - 1.25) < 1e-9 && Math.abs(f.bDown - 1) < 1e-9 && Math.abs(f.a - 0.0005) < 1e-9, JSON.stringify(f));
+  assert.ok(f.up === "fit" && f.down === "fit" && Math.abs(f.bUp - 1.25) < 1e-9 && Math.abs(f.bDown - 1) < 1e-9 && Math.abs(f.a - 0.0005) < 1e-9, JSON.stringify(f));
   // continuous at 0: the expected return at m = 0 is a on both sides
   assert.ok(Math.abs(expectedReturn(f, 0) - 0.0005) < 1e-12 && Math.abs(expectedReturn(f, 0.02) - 0.0255) < 1e-9 && Math.abs(expectedReturn(f, -0.02) + 0.0195) < 1e-9);
-  // fewer than fitSideMinMonths down months: one Theil–Sen line over every month (both slopes equal)
+  // fewer than fitSideMinMonths down months: the fee-free class's up slope (1.25) is not ≈ 1 → its down side is uncheckable
   const ups = pts.filter((p) => p.m > 0);
   const few = [...ups, ...pts.filter((p) => p.m <= 0).slice(0, CLASS_CHECKS.fitSideMinMonths - 1)];
   const g = fitClass(few, CLASS_CHECKS);
-  assert.ok(!g.piecewise && !g.fallback && g.bUp === g.bDown, JSON.stringify(g));
+  assert.ok(g.up === "fit" && g.down === "uncheckable" && Math.abs(g.bUp - 1.25) < 1e-9, JSON.stringify(g));
+  // … a fee-paying class (up slope ≈ 1) takes slope 1 on its short side
+  const fee = few.map((p) => ({ m: p.m, r: p.m - 0.0008 }));
+  const h = fitClass(fee, CLASS_CHECKS);
+  assert.ok(h.up === "fit" && h.down === "unit" && h.bDown === 1 && Math.abs(h.a + 0.0008) < 1e-9, JSON.stringify(h));
+  // the side kinds of the full sample are kept in a leave-one-out fit, even when it leaves a side short
+  const six = [...ups, ...pts.filter((p) => p.m <= 0).slice(0, CLASS_CHECKS.fitSideMinMonths)];
+  const full = fitClass(six, CLASS_CHECKS);
+  const loo = fitClass(six.filter((p) => p !== six.at(-1)), CLASS_CHECKS, full);
+  assert.ok(full.down === "fit" && loo.down === "fit" && Math.abs(loo.bDown - 1) < 1e-9, JSON.stringify(loo));
 });
 
 test("cross-class: a single outlier with no adjustment day → that class only; with an adjustment day → every class; two breaching → every class", () => {
@@ -404,7 +414,7 @@ test("Multi-Strategy-like fund: a 20 % performance fee in up months only is an e
   const clean = run(null, null, 0);
   assert.equal(clean.fundMonths.size, 0);
   assert.equal(clean.fails.size, 0, JSON.stringify([...clean.fails].map(([k, v]) => [k, [...v.keys()]])));
-  assert.ok(clean.fits.I.piecewise && Math.abs(clean.fits.I.bUp - 1.25) < 0.03 && Math.abs(clean.fits.I.bDown - 1) < 0.03, JSON.stringify(clean.fits.I));
+  assert.ok(clean.fits.I.up === "fit" && clean.fits.I.down === "fit" && Math.abs(clean.fits.I.bUp - 1.25) < 0.03 && Math.abs(clean.fits.I.bDown - 1) < 0.03, JSON.stringify(clean.fits.I));
   for (const c of ["F", "J", "A"]) assert.ok(Math.abs(clean.fits[c].bUp - 1) < 0.03 && Math.abs(clean.fits[c].bDown - 1) < 0.03, `${c} ${JSON.stringify(clean.fits[c])}`);
   const at = (x: number): string => ms[gross.indexOf(x)];
   const months: [string, string][] = [
@@ -419,6 +429,76 @@ test("Multi-Strategy-like fund: a 20 % performance fee in up months only is an e
     assert.deepEqual([...out.fails.keys()], [c], what);
     assert.deepEqual([...out.fails.get(c)!.keys()], [month], what);
   }
+});
+
+/** SYNTHETIC fund of 30 months with exactly `down` down months: I fee-free, F / J / A with a 20 % fee on up months */
+function feePanel(down: number, bad: string | null = null, month: string | null = null, err = 0) {
+  const ms = Array.from({ length: 30 }, (_, i) => addMonths("2023-01-31", i));
+  const size = ms.map((_, i) => 0.004 + 0.03 * Math.abs(Math.sin(i * 1.9 + 0.4)));
+  const downIdx = new Set(ms.map((_, i) => i).sort((a, b) => ((a * 7) % 30) - ((b * 7) % 30)).slice(0, down));
+  const gross = size.map((g, i) => (downIdx.has(i) ? -g : g));
+  const fee: Record<string, number> = { I: 0.0006, F: 0.0008, J: 0.0007, A: 0.0016 };
+  const p = panel(Object.fromEntries(Object.keys(fee).map((c, k) => [c, Object.fromEntries(ms.map((d, i) => {
+    const net = (c !== "I" && gross[i] > 0 ? 0.8 * gross[i] : gross[i]) - fee[c] + 0.0002 * Math.sin(i * 7.1 + k * 3.3);
+    return [d, net + (c === bad && d === month ? err : 0)];
+  }))])));
+  return { ms, gross, downMonths: ms.filter((_, i) => downIdx.has(i)), p };
+}
+const failMap = (o: ReturnType<typeof crossClassFailures>) => Object.fromEntries([...o.fails].map(([k, v]) => [k, [...v.keys()].sort()]));
+
+test("side counts: a fee-free class with exactly 6 down months keeps its own down slope in every leave-one-out fit", () => {
+  const clean = feePanel(6);
+  const o = crossClassFailures(clean.p.months, clean.p.daily, CLASS_CHECKS);
+  assert.equal(o.fundMonths.size, 0);
+  assert.deepEqual(failMap(o), {});
+  assert.ok(o.fits.I.down === "fit" && Math.abs(o.fits.I.bDown - 1) < 0.05 && Math.abs(o.fits.I.bUp - 1.25) < 0.05, JSON.stringify(o.fits.I));
+  // an error in a down month (the deepest and another one), on the fee-free class and on a fee class: that class-month only
+  const deepest = clean.downMonths.reduce((a, b) => (clean.gross[clean.ms.indexOf(b)] < clean.gross[clean.ms.indexOf(a)] ? b : a));
+  for (const month of [deepest, clean.downMonths[0]]) for (const [bad, err] of [["I", -0.01], ["I", 0.008], ["F", 0.008], ["A", -0.008]] as const) {
+    const { p } = feePanel(6, bad, month, err);
+    const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+    const what = `${bad} ${err} in ${month}: ${JSON.stringify(failMap(out))} ${[...out.fundMonths.keys()]}`;
+    assert.equal(out.fundMonths.size, 0, what);
+    assert.deepEqual(failMap(out), { [bad]: [month] }, what);
+  }
+});
+
+test("side counts: with 3–5 down months the fee-free class's down months are withheld (not checkable), the fee classes checked at slope 1", () => {
+  for (const down of [3, 4, 5]) {
+    const clean = feePanel(down);
+    const o = crossClassFailures(clean.p.months, clean.p.daily, CLASS_CHECKS);
+    assert.equal(o.fundMonths.size, 0, `${down}`);
+    assert.deepEqual(failMap(o), { I: [...clean.downMonths].sort() }, `${down} down months, clean`);
+    assert.match(o.fails.get("I")!.get(clean.downMonths[0])!, /not checkable: too few down months/);
+    assert.ok(o.fits.I.down === "uncheckable" && o.fits.F.down === "unit" && o.fits.J.down === "unit", JSON.stringify(o.fits));
+    // a fee class's error in a down month is still caught (the three fee classes compare at slope 1); the fee-free class's
+    // down months stay withheld whatever they hold
+    const month = clean.downMonths[1];
+    for (const [bad, err] of [["F", 0.008], ["J", -0.008], ["I", 0.01]] as const) {
+      const { p } = feePanel(down, bad, month, err);
+      const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+      const what = `${down} down, ${bad} ${err}: ${JSON.stringify(failMap(out))} ${[...out.fundMonths.keys()]}`;
+      const want: Record<string, string[]> = { I: [...clean.downMonths].sort() };
+      if (bad !== "I") want[bad] = [month];
+      // the reference of a fee class then has only the two other fee classes: a large error may withhold the month for the
+      // whole fund instead (no consistent majority) — never a wrong number
+      if (out.fundMonths.size) assert.deepEqual([...out.fundMonths.keys()], [month], what);
+      else assert.deepEqual(failMap(out), want, what);
+      assert.ok(out.fails.get("I")?.has(month) || out.fundMonths.has(month), what);
+    }
+  }
+});
+
+test("convergence: the fits settle (same result for any round cap above the rounds needed); unsettled → every checked month for the fund", () => {
+  const { p } = feePanel(9, "F", addMonths("2023-01-31", 4), 0.008);
+  const runs = [40, 100, 400].map((fitMaxRounds) => crossClassFailures(p.months, p.daily, { ...CLASS_CHECKS, fitMaxRounds }));
+  for (const r of runs.slice(1)) {
+    assert.deepEqual(r.fits, runs[0].fits);
+    assert.deepEqual(failMap(r), failMap(runs[0]));
+  }
+  const capped = crossClassFailures(p.months, p.daily, { ...CLASS_CHECKS, fitMaxRounds: 1 });
+  assert.equal(capped.fundMonths.size, 30);
+  assert.match([...capped.fundMonths.values()][0], /did not settle in 1 rounds/);
 });
 
 test("a class without a fit, next to fitted classes, is never checked at slope 1: its months wait for a fit of its own", () => {

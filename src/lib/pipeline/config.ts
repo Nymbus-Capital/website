@@ -108,9 +108,8 @@ export const CLASS_CHECKS = {
    * a + b⁺ × max(m, 0) + b⁻ × min(m, 0), m = the other classes' reference for the month: a class without a performance fee
    * legitimately beats the others by a share of an UP month only (the fee is charged in up months), so up and down months
    * get their own slope. a, b⁺, b⁻ are fitted per class by Theil–Sen over the months where ≥ 3 classes are complete,
-   * LEAVING OUT the month under test (each slope clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month; one
-   * slope for both sides when either side has fewer than fitSideMinMonths months; a = 0, slope 1 with fewer than
-   * fitMinMonths months). A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a
+   * LEAVING OUT the month under test (each slope clipped to [fitSlopeMin, fitSlopeMax], a to ±fitInterceptMax a month; a
+   * short side: fitSideMinMonths; a = 0, slope 1 with fewer than fitMinMonths months). A residual beyond residualMax is a breach. A breach of a fitted class in a month holding a
    * distribution / price-adjustment day (a class's stored return differing from its NAV ratio − 1 by more than
    * adjustmentMin) withholds the month for EVERY class (the majority of classes can be the wrong side); otherwise one
    * breaching class whose ≥ 2 other complete classes agree is withheld alone, anything else withholds every class. A class
@@ -119,8 +118,31 @@ export const CLASS_CHECKS = {
   residualMax: 0.004,
   adjustmentMin: 0.001,
   fitMinMonths: 12,
-  /** fewest up (or down) months for that side to get its own slope; below it one straight line over every month */
+  /**
+   * fewest up (or down) months — counted on the class's full sample, kept in every leave-one-out fit — for that side to get
+   * its own slope. A shorter side is never fitted with the other side's months: it takes slope 1 when the other side's
+   * slope is within fitUnitSlopeTolerance of 1, else its months are withheld for that class ("not checkable")
+   */
   fitSideMinMonths: 6,
+  fitUnitSlopeTolerance: 0.1,
+  /**
+   * the fits and the references are iterated until no class's expected return moves by more than fitTolerance (for a
+   * fund month within ±fitToleranceRange), at most fitMaxRounds rounds. Each round moves fitDamping of the way to the new
+   * fits (two classes that are each other's reference would otherwise swap their spreads forever), divided by 2, 3, …
+   * after every fitDampingDecayRounds rounds (Theil–Sen medians jump between neighbouring pair slopes, so the plain map can
+   * cycle near its fixed point), and is normalised (median a → 0, median own slopes → 1). Not settled → every month
+   * checked against a fit is withheld for the fund
+   */
+  fitTolerance: 0.0001,
+  fitToleranceRange: 0.1,
+  fitMaxRounds: 400,
+  fitDamping: 0.5,
+  fitDampingDecayRounds: 20,
+  /**
+   * a class-month is tested against a fit that also leaves out the class's other breaching months of a first pass (one
+   * wrong month must not bend the test of the others), as long as each of its own sides keeps this many months
+   */
+  fitSuspectMinSide: 4,
   fitSlopeMin: 0.6,
   fitSlopeMax: 1.4,
   fitInterceptMax: 0.003,
