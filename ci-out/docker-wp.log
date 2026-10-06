@@ -1,0 +1,60 @@
+#6 extracting sha256:939b6a903c8c5e6cc654209cf59ae5906a913da6e1e32bff11e4cc300735bcbb 0.4s done
+#6 extracting sha256:cee74a811685e5c97835fb778de4fb387c8b02cf46df16915638838e7e2cfcab done
+#6 extracting sha256:8cc2cf73ae722feafbaa14ddbc885f5a69491c5ddd146abf360430c731e1f1f3 done
+#6 extracting sha256:eaf03d4653271605c25bba12908d738e145248e3e6d0a53d1c69084126370e4f
+#6 extracting sha256:eaf03d4653271605c25bba12908d738e145248e3e6d0a53d1c69084126370e4f done
+#6 extracting sha256:05daf697fe842e5f4d9b36fb804a9a2f11807baac7db0626bdf854a75c5308a3 done
+#6 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+#6 extracting sha256:7e53fa36fae39c039077cbf155e318cf9ff5b5429b2d2c8ad63909ca8addcca0
+#6 extracting sha256:7e53fa36fae39c039077cbf155e318cf9ff5b5429b2d2c8ad63909ca8addcca0 0.7s done
+#6 extracting sha256:65c501a09a561119fcb03f45f76551c6e3a7a30734c29d97e6e7dcd7a5bcca6a
+#6 extracting sha256:65c501a09a561119fcb03f45f76551c6e3a7a30734c29d97e6e7dcd7a5bcca6a 0.6s done
+#6 extracting sha256:e3c548d5e2290af7059de336f0880deb18a30d2aebfc11c47d6d169e407e0c90 done
+#6 extracting sha256:5222003f21904f955c10be4d069a83f8228c72571ec35117290ea110d0eca25d done
+#6 extracting sha256:20e7336a861f3e66ceee7c8465def3df25154d3798f3f361b7de43ca77241b51
+#6 extracting sha256:20e7336a861f3e66ceee7c8465def3df25154d3798f3f361b7de43ca77241b51 done
+#6 extracting sha256:2db70f489b30eb957f8c9566b5a190a99637f5b97f510ec1adbb464b9473c9a6 0.1s
+#6 extracting sha256:2db70f489b30eb957f8c9566b5a190a99637f5b97f510ec1adbb464b9473c9a6 1.3s done
+#6 extracting sha256:94e766ec480dd410103db1a9dbe219329623945e517e2c480332e87cf4def29b
+#6 extracting sha256:94e766ec480dd410103db1a9dbe219329623945e517e2c480332e87cf4def29b done
+#6 extracting sha256:e8108ec3166a88d113b8fd3c81c705a95675af2078ef37b376a96e9dfa0aa278 done
+#6 extracting sha256:ce313706054b1d20486fe5018f517341174a7e493a26a2d5925a845ee1246b5f done
+#6 DONE 9.0s
+
+#7 [ 2/10] RUN set -eu;     cd /tmp; bad=0;     fetch() {       slug="$1"; main="$2"; ver="$3"; sum="$4";       if ! curl -fsSL --retry 3 --retry-delay 5 -o "$slug.zip" "https://downloads.wordpress.org/plugin/$slug.$ver.zip"; then echo "DOWNLOAD FAILED $slug $ver" >&2; bad=1; return 0; fi;       got="$(sha256sum "$slug.zip" | cut -d' ' -f1)";       if [ "$got" != "$sum" ]; then echo "CHECKSUM MISMATCH $slug $ver: expected $sum got $got" >&2; bad=1; return 0; fi;       php -r '$z = new ZipArchive(); if ($z->open($argv[1]) !== true || !$z->extractTo($argv[2])) { fwrite(STDERR, "cannot unzip\n"); exit(1); }' "$slug.zip" /usr/src/wordpress/wp-content/plugins;       grep -Eq "^[[:space:]*]*Version:[[:space:]]*$ver[[:space:]]*$" "/usr/src/wordpress/wp-content/plugins/$slug/$main";       rm -f "$slug.zip";     };     fetch limit-login-attempts-reloaded limit-login-attempts-reloaded.php "3.3.10" "9125ac1bc06c876326802ff1b9783ef0081749d0025e578c6b355d65622abb3f";     fetch daggerhart-openid-connect-generic openid-connect-generic.php "3.11.3" "81c009fe8f8f1504b329656d5a41176b5de09febfca4574393889c46387f8a97";     [ "$bad" = 0 ];     chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins
+#7 DONE 1.9s
+
+#8 [ 3/10] RUN set -eu;     curl -fsSL --retry 3 --retry-delay 5 -o /usr/local/lib/wp-cli.phar "https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar";     echo "ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c  /usr/local/lib/wp-cli.phar" | sha256sum -c -;     chmod 0644 /usr/local/lib/wp-cli.phar
+#8 0.407 /usr/local/lib/wp-cli.phar: OK
+#8 DONE 0.4s
+
+#9 [ 4/10] COPY docker/wp /usr/local/bin/wp
+#9 DONE 0.0s
+
+#10 [ 5/10] COPY plugins/nymbus-site-content /usr/src/wordpress/wp-content/plugins/nymbus-site-content
+#10 DONE 0.0s
+
+#11 [ 6/10] COPY mu-plugins /usr/src/wordpress/wp-content/mu-plugins
+#11 DONE 0.0s
+
+#12 [ 7/10] COPY docker/apache-security.conf /etc/apache2/conf-available/nymbus-security.conf
+#12 DONE 0.0s
+
+#13 [ 8/10] RUN a2enconf nymbus-security  && { echo "expose_php = Off"; echo "upload_max_filesize = 8M"; echo "post_max_size = 10M"; echo "max_file_uploads = 10"; } > /usr/local/etc/php/conf.d/nymbus.ini
+#13 0.147 Enabling conf nymbus-security.
+#13 0.152 To activate the new configuration, you need to run:
+#13 0.152   service apache2 reload
+#13 DONE 0.2s
+
+#14 [ 9/10] COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
+#14 DONE 0.0s
+
+#15 [10/10] RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh /usr/local/bin/wp
+#15 DONE 0.1s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 2.5s done
+#16 writing image sha256:e6581b3802442e61a6693044d05ea0632b7f9934e730ee252209aeeab945ee39 done
+#16 naming to docker.io/library/nymbus-wp:ci done
+#16 DONE 2.5s
