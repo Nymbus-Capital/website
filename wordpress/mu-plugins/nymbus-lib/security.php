@@ -36,32 +36,6 @@ function nymbus_is_guid( $s ) {
 }
 
 /**
- * The visitor's IP behind the platform's load balancer(s). Proxies APPEND to X-Forwarded-For, so the entries a client
- * can forge are on the LEFT: the address added by the first trusted proxy is the `$hops`-th from the right. Without a
- * usable header (or with hops = 0) the socket address is used.
- *
- * @param string|null $xff    X-Forwarded-For header.
- * @param string      $remote REMOTE_ADDR.
- * @param int         $hops   Number of trusted proxies in front of WordPress (0 = trust no header).
- * @return string A valid IP, or '' when none.
- */
-function nymbus_client_ip( $xff, $remote, $hops ) {
-	$remote = is_string( $remote ) && false !== filter_var( trim( $remote ), FILTER_VALIDATE_IP ) ? trim( $remote ) : '';
-	$hops   = max( 0, min( 5, (int) $hops ) );
-	if ( 0 === $hops || ! is_string( $xff ) || '' === trim( $xff ) || strlen( $xff ) > 2000 ) {
-		return $remote;
-	}
-	$parts = array_values( array_filter( array_map( 'trim', explode( ',', $xff ) ), 'strlen' ) );
-	$idx   = count( $parts ) - $hops;
-	if ( $idx < 0 ) {
-		$idx = 0; // fewer entries than proxies: the left-most one is the closest we have
-	}
-	$ip = isset( $parts[ $idx ] ) ? preg_replace( '/^(\d+\.\d+\.\d+\.\d+):\d+$/', '$1', $parts[ $idx ] ) : '';
-	$ip = is_string( $ip ) ? trim( $ip, '[] ' ) : '';
-	return false !== filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : $remote;
-}
-
-/**
  * Microsoft Entra single sign-on settings from the environment, or null when it is not (fully, validly) configured.
  * Returns the OIDC_* constants of the "OpenID Connect Generic Client" plugin plus our own policy values.
  *

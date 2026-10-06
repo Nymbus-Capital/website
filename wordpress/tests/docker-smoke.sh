@@ -4,8 +4,8 @@
 # Starts the image with a throw-away MariaDB, installs WordPress with wp-cli, then checks over HTTP: the hardening
 # (no PHP from uploads, no file mods / auto-updates, upload limit), the bundled plugins (active, pinned versions),
 # Microsoft sign-in configured from env (dummy ids: only the configuration is checked, no real Entra round trip),
-# password sign-in reserved to the emergency account, the brute-force limiter (spoofed X-Forwarded-For does not
-# help) and the content endpoint. Only throw-away test values here.
+# password sign-in reserved to the emergency account, the brute-force limiter (a forged X-Forwarded-For does not
+# help), the content endpoint and `wp nymbus import`. Only throw-away test values here.
 set -euo pipefail
 
 IMG="${1:-nymbus-wp:ci}"
@@ -40,6 +40,7 @@ for p in nymbus-site-content limit-login-attempts-reloaded daggerhart-openid-con
   check "plugin $p baked in" "docker run --rm --entrypoint test '$IMG' -d /usr/src/wordpress/wp-content/plugins/$p"
 done
 check "WP-CLI baked in (pinned)" "docker run --rm --entrypoint wp '$IMG' --version | grep -q \"WP-CLI \$(sed -n 's/^ARG WPCLI_VERSION=//p' '$HERE/../Dockerfile')\""
+check "Apache takes the visitor IP from the right of X-Forwarded-For (mod_remoteip)" "docker run --rm --entrypoint sh '$IMG' -c 'grep -q \"^RemoteIPHeader X-Forwarded-For\" /etc/apache2/conf-enabled/remoteip.conf'"
 check "must-use plugins baked in" "docker run --rm --entrypoint test '$IMG' -f /usr/src/wordpress/wp-content/mu-plugins/nymbus-security.php"
 
 echo "# start"
@@ -53,7 +54,6 @@ docker run -d --name "$WP" --network "$NET" -p "127.0.0.1:$PORT:80" \
   -e NYMBUS_SSO_CLIENT_ID=00000000-0000-4000-8000-000000000002 \
   -e NYMBUS_SSO_CLIENT_SECRET=smoke-not-a-secret \
   -e NYMBUS_EMERGENCY_ADMIN=smoke-admin \
-  -e NYMBUS_TRUSTED_PROXY_HOPS=0 \
   "$IMG" >/dev/null
 
 for i in $(seq 1 60); do
@@ -123,11 +123,13 @@ check "import creates every news item ($NNEWS)" "[ \"\$(count nymbus_news)\" = '
 check "a second import skips what exists" "wpcli nymbus import /tmp/nywp-import.json | grep -q '0 created, 0 updated, $((NNEWS + NTEAM)) skipped'"
 check "imported team served by the endpoint" "curl -s '$BASE/?rest_route=/nymbus/v1/site-content' | grep -q '\"id\":\"jean-turmel\"'"
 
-echo "# brute force (last: it locks the test IP out)"
-for i in 1 2 3 4 5; do login smoke-admin "wrong-$i" "203.0.113.$i" >/dev/null; done
-check "after repeated failures even the right password is refused, whatever X-Forwarded-For says" \
-  "[ \"\$(login smoke-admin '$ADMIN_PW' 198.51.100.7)\" = 200 ] && grep -q 'Too many failed login attempts' /tmp/nywp-login.html"
-
+echo "# brute force (last: it locks the test client out)"
+# the load balancer APPENDS the visitor address to X-Forwarded-For; an attacker controls only what is to its left
+VISITOR="198.51.100.50" # what the balancer appends: the real visitor
+for i in 1 2 3 4 5; do login smoke-admin "wrong-$i" "203.0.113.$i, $VISITOR" >/dev/null; done
+check "after repeated failures even the right password is refused, whatever the forged part of X-Forwarded-For says" \
+  "[ \"\$(login smoke-admin '$ADMIN_PW' '198.51.100.7, 10.0.0.9, $VISITOR')\" = 200 ] && grep -q 'Too many failed login attempts' /tmp/nywp-login.html"
+check "another visitor is not locked out by it" "[ \"\$(login smoke-admin '$ADMIN_PW' '198.51.100.99')\" = 302 ]"
 echo
 if [ "$FAILS" -ne 0 ]; then echo "$FAILS check(s) failed" >&2; exit 1; fi
 echo "all checks passed"

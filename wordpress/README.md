@@ -187,9 +187,11 @@ the sample content with
   Editor, never Administrator). Once SSO is configured, **passwords work only for `NYMBUS_EMERGENCY_ADMIN`** (and
   password reset only for that account); XML-RPC and application passwords are off.
 - **Brute force**: **Limit Login Attempts Reloaded** (wordpress.org, pinned): 4 wrong passwords = 20 min lockout (its
-  defaults; *Settings → Limit Login Attempts*). Behind the load balancer every request comes from the balancer's
-  address, so the visitor IP is taken from the right end of `X-Forwarded-For` (`NYMBUS_TRUSTED_PROXY_HOPS`, default 1):
-  a forged header cannot hand out fresh IPs. The plugin's "trusted IP origins" setting is forced to that value.
+  defaults; *Settings → Limit Login Attempts*). Behind the load balancer, Apache (`mod_remoteip`, set up by the
+  official image) takes the visitor address from the right of `X-Forwarded-For` (what the balancer appended); the
+  limiter counts that address only (its "trusted IP origins" setting is forced), so a forged header cannot hand out
+  fresh IPs. Should the balancer ever reach WordPress from a public address, every visitor would share one address:
+  only the emergency password account could then be locked out (Microsoft sign-in does not go through it).
 - **Plugins stay active**: the bundled plugins are activated on the first admin page view and cannot be deactivated
   from the Plugins screen.
 
@@ -229,7 +231,6 @@ ones with a password manager or `openssl rand -base64 48`):
 | `NYMBUS_SSO_ALLOWED_DOMAINS` | optional, default `nymbus.ca` |
 | `NYMBUS_SSO_DEFAULT_ROLE` | optional, default `editor` (`author`, `contributor`, `subscriber` also accepted; never administrator) |
 | `NYMBUS_SSO_LINK_EXISTING_USERS` | optional, `1` = a Microsoft sign-in takes over an existing account with the same e-mail / login (default off) |
-| `NYMBUS_TRUSTED_PROXY_HOPS` | optional, default `1` (the Northflank load balancer); `2` if a CDN is put in front later |
 
 **Emergency administrator**: created once at install, with a long random password kept in the company password
 manager and an e-mail address that is **not** anyone's Microsoft sign-in (e.g. a shared mailbox), so no SSO account can

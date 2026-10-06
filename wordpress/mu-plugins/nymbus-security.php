@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Nymbus Sign-in Security (must-use)
- * Description: Microsoft Entra sign-in (configures the bundled "OpenID Connect Generic Client" plugin from environment variables, nymbus.ca accounts of our tenant only), password sign-in kept for the emergency administrator only, the real visitor IP for the bundled "Limit Login Attempts Reloaded" plugin, and the bundled plugins kept active.
+ * Description: Microsoft Entra sign-in (configures the bundled "OpenID Connect Generic Client" plugin from environment variables, nymbus.ca accounts of our tenant only), password sign-in kept for the emergency administrator only, the bundled "Limit Login Attempts Reloaded" plugin counting the visitor address (never a forgeable header), and the bundled plugins kept active.
  * Version:     1.0.0
  *
  * Environment variables (nothing secret lives in the repository; see wordpress/README.md):
@@ -10,7 +10,6 @@
  *   NYMBUS_SSO_DEFAULT_ROLE        role of a first Microsoft sign-in: editor (default), author, contributor, subscriber
  *   NYMBUS_SSO_LINK_EXISTING_USERS 1 = a Microsoft sign-in takes over an existing account with the same e-mail / login
  *   NYMBUS_EMERGENCY_ADMIN         login(s) that may still sign in with a password once SSO is on
- *   NYMBUS_TRUSTED_PROXY_HOPS      proxies in front of WordPress (default 1: the Northflank load balancer)
  *
  * @package NymbusHeadless
  */
@@ -28,19 +27,14 @@ function nymbus_env( $name ) {
 	return is_string( $v ) ? trim( $v ) : '';
 }
 
-/* ---- real visitor IP for the login limiter -------------------------------------------------------------------- */
+/* ---- visitor IP for the login limiter ------------------------------------------------------------------------- */
 
-$nymbus_hops = nymbus_env( 'NYMBUS_TRUSTED_PROXY_HOPS' );
-$_SERVER['HTTP_X_NYMBUS_CLIENT_IP'] = nymbus_client_ip(
-	isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ? (string) $_SERVER['HTTP_X_FORWARDED_FOR'] : null, // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- validated as an IP by nymbus_client_ip().
-	isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '', // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	'' === $nymbus_hops ? 1 : (int) $nymbus_hops
-);
-unset( $nymbus_hops );
-// Limit Login Attempts Reloaded reads the address from the "trusted IP origins" list; ours is computed above from the
-// RIGHT end of X-Forwarded-For (the left end is what an attacker writes). Forced here: the setting screen cannot change it.
+// The official WordPress image enables Apache mod_remoteip (RemoteIPHeader X-Forwarded-For, private ranges as internal
+// proxies): behind the load balancer REMOTE_ADDR is already the visitor, taken from the RIGHT of X-Forwarded-For (what
+// the balancer appended); the left part of that header is attacker-written. So Limit Login Attempts Reloaded must count
+// REMOTE_ADDR only, never a raw header: forced here, the plugin's "trusted IP origins" setting cannot change it.
 add_filter( 'pre_option_limit_login_trusted_ip_origins', function () {
-	return array( 'HTTP_X_NYMBUS_CLIENT_IP' );
+	return array( 'REMOTE_ADDR' );
 } );
 
 /* ---- Microsoft Entra sign-in ---------------------------------------------------------------------------------- */

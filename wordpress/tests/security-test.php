@@ -22,21 +22,6 @@ function check( $name, $actual, $expected ) {
 $tenant = '11111111-2222-4333-8444-555555555555';
 $client = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
-// --- client IP behind the load balancer -------------------------------------------------------------------------
-check( 'no header: socket address', nymbus_client_ip( null, '10.0.0.5', 1 ), '10.0.0.5' );
-check( 'one proxy: right-most entry', nymbus_client_ip( '198.51.100.9', '10.0.0.5', 1 ), '198.51.100.9' );
-check( 'forged left entries ignored', nymbus_client_ip( '1.2.3.4, 5.6.7.8, 198.51.100.9', '10.0.0.5', 1 ), '198.51.100.9' );
-check( 'two proxies: second from the right', nymbus_client_ip( '1.2.3.4, 198.51.100.9, 172.16.0.1', '10.0.0.5', 2 ), '198.51.100.9' );
-check( 'hops 0: header ignored', nymbus_client_ip( '198.51.100.9', '10.0.0.5', 0 ), '10.0.0.5' );
-check( 'fewer entries than hops: left-most', nymbus_client_ip( '198.51.100.9', '10.0.0.5', 3 ), '198.51.100.9' );
-check( 'garbage entry: socket address', nymbus_client_ip( 'not-an-ip', '10.0.0.5', 1 ), '10.0.0.5' );
-check( 'port stripped', nymbus_client_ip( '198.51.100.9:4711', '10.0.0.5', 1 ), '198.51.100.9' );
-check( 'ipv6', nymbus_client_ip( '2001:db8::1', '10.0.0.5', 1 ), '2001:db8::1' );
-check( 'bracketed ipv6', nymbus_client_ip( '[2001:db8::1]', '10.0.0.5', 1 ), '2001:db8::1' );
-check( 'empty entries skipped', nymbus_client_ip( '198.51.100.9, ,', '10.0.0.5', 1 ), '198.51.100.9' );
-check( 'oversized header ignored', nymbus_client_ip( str_repeat( '1.1.1.1,', 400 ), '10.0.0.5', 1 ), '10.0.0.5' );
-check( 'bad socket address', nymbus_client_ip( null, 'x', 1 ), '' );
-
 // --- SSO settings from the environment --------------------------------------------------------------------------
 check( 'not configured', nymbus_sso_settings( array() ), null );
 check( 'missing secret', nymbus_sso_settings( array( 'NYMBUS_SSO_TENANT_ID' => $tenant, 'NYMBUS_SSO_CLIENT_ID' => $client ) ), null );
