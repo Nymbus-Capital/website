@@ -4,8 +4,9 @@ This file lets any Claude session (Gabriel's home or office machine) pick up exa
 one stopped. **Read it fully before working; update it before you stop.**
 
 - Owner: Gabriel Cefaloni (gcefaloni@nymbus.ca), Nymbus Capital.
-- Working branch: `redesign/v3-keynote-live-data` → PR https://github.com/Nymbus-Capital/website/pull/1
-- Last updated: 2026-09-29 by the home session (cloud workspace).
+- Working branch: `redesign/v3-keynote-live-data` (Northflank continuous deployment from this branch).
+- Live: https://p01--website--ddyc4hjyxx82.code.run (Northflank project `etl`, service `website`).
+- Last updated: 2026-10-06 by the home session (cloud workspace): §3 and §5 rewritten, every feature branch merged.
 
 ## 1. Protocol for two sessions
 
@@ -71,20 +72,19 @@ Commit trailers used so far (keep them):
   `docs/api/openapi.json`; its CLAUDE.md governs that repo), `Nymbus-Capital/factsheet-generator`
   (monthly factsheet archives format).
 
-## 3. Current state (2026-09-29)
+## 3. Current state (2026-10-06)
 
-Everything below is on the PR branch, CI green (183 unit tests, 119 e2e, Docker build).
-Not yet run against live data, not deployed.
+Everything is merged on `redesign/v3-keynote-live-data` and live. No feature branch is pending.
 
 | Area | Where | State |
 | --- | --- | --- |
-| Design system (v3 keynote) | `src/app/globals.css`, `src/components/v3/motion.tsx` | done, reviewed twice (design/a11y) |
-| Public pages | `src/app/(site)/**`, `src/components/site/**` | home keynote (bond-universe canvas, overlay story), strategies, approach, sustainability, team, contact (mailto only, no email backend), solutions, legal, privacy, 404 |
-| Fund pages | `src/app/(site)/strategies/[slug]`, `src/components/fund/**` | 4 funds: monthly-income, sustainable-enhanced-bonds, multi-strategy, global-minimum-volatility (gross, managed accounts) |
-| Data pipeline | `src/lib/pipeline/**`, scheduler `src/instrumentation.ts` | analytics history + dataplatform (ready months, NAV, AUM, FTSE) + factsheet archives; gates, snapshots, review/auto publish, rollback, pins, alerts |
-| Admin | `src/app/admin/**`, `src/app/api/admin/**`, `src/lib/auth/**`, `src/proxy.ts` | Entra OIDC (tenant, member-only `acct`, @nymbus.ca sign-in name, optional role), sessions 4 h revocable, nonce CSP, documents, content, runs, compliance banner, audit |
-| Disclaimers | `src/content/disclaimers.ts`, `docs/compliance-review.md` | boilerplate EN/FR, **needs compliance review** (banner in admin until marked reviewed) |
-| Deployment | `Dockerfile`, `deploy/northflank/provision.mjs`, `.github/workflows/northflank-provision.yml`, `docs/deploy.md` | provisioning script written + unit-tested against a mock API; **never run against real Northflank** |
+| Public pages | `src/app/(site)/**`, `src/components/site/**` | home (Science at scale, engines band), strategies, core concepts, approach, sustainability, team, solutions, contact (mailto), legal, privacy, 404; EN/FR |
+| Fund pages | `src/app/(site)/strategies/[slug]`, `src/components/fund/**` | 4 funds; every active CAD series with its own returns (§ 5 B1 for Multi-Strategy), awards (Morningstar, Fundata, RBC), disclosures last and collapsed (performance qualifiers visible) |
+| Data pipeline | `src/lib/pipeline/**`, scheduler `src/instrumentation.ts` | dataplatform main endpoints only (+ analytics history, factsheet archives); runs 06:45 / 12:45 / 18:45 Toronto with catch-up and one retry; publish mode **review** |
+| Monitoring | `src/lib/pipeline/{alerts,monitor,freshness}.ts`, `GET /api/status` | deduped Teams / JSON alerts — **no webhook configured yet** (§ 5 A2) |
+| Admin | `src/app/admin/**`, `src/lib/auth/**` | Entra sign-in (nymbus.ca), runs, approve & publish, content, documents, alerts, audit |
+| WordPress (editors) | `wordpress/**`, `src/lib/cms/**` | hardened image built and CI-tested, **not deployed** (§ 5 A3); without `WP_BASE_URL` the site uses its coded content |
+| Code quality | `eslint.config.mjs`, `.prettierrc`, `e2e/visual-baseline.spec.ts`, `scripts/visual-diff.mjs` | lint blocking (warnings ratchet), visual baseline diff for no-change refactors |
 
 ## 4. Decisions already taken by Gabriel (do not reopen)
 
@@ -116,136 +116,51 @@ Not yet run against live data, not deployed.
 
 ## 5. Open items (claim before starting)
 
-1. **Merge PR #1** — Gabriel.
-2. **Northflank provisioning** — [in progress — home session, 2026-09-29] done through the Northflank UI
-   with Gabriel's approval: service `website` (ETL project, branch `redesign/v3-keynote-live-data`,
-   nf-compute-50, public `https://p01--website--ddyc4hjyxx82.code.run`) and volume `website-data`
-   (4 GB SSD at `/data`) created. Still to do: secret group `website-secrets` (restricted to `website`,
-   runtime), health check `/api/health` on port 3000, switch branch to `main` after the PR merge, then
-   Gabriel pastes credentials. (The original plan was the script below:) Gabriel runs it (steps in `docs/deploy.md` §1: API role + token,
-   protected `production` environment, dry run, apply). Then paste credentials (§2). If the workflow
-   fails, the Actions log shows the Northflank API error message; fix `provision.mjs` field names
-   accordingly (the API body shapes were written from docs/conventions, not tested live).
-3. **Entra app registration for the website admin** — mostly done 2026-09-29 (home session, via the
-   built-in browser): app "Nymbus website admin" (single tenant, Web redirect `<PUBLIC_URL>/api/auth/callback`),
-   ID-token optional claims `acct`, `email`, `upn` (+ Graph `email`/`profile`), enterprise app
-   "Assignment required = Yes". Tenant and client IDs typed into the Northflank `website-secrets` form.
-   **Gabriel still to do**: assign himself (and anyone else) under Enterprise apps → Nymbus website admin →
-   Users and groups; create the client secret and paste it into `AZURE_CLIENT_SECRET`; then create the secret group.
-   If first sign-in asks for consent and users can't consent, grant admin consent on API permissions.
-4. **Dataplatform access decision** — the dataplatform's CLAUDE.md requires an authentication /
-   authorization decision for a new consumer. The website service reads, read-only and from inside the
-   `etl` project: `/api/performance/monthly-net-returns`, `/api/performance/nav-timeseries`,
-   `/api/apex/funds`, `/api/unitholders/funds`, `/api/unitholders/aum` (fund totals only),
-   `/api/ftse/index-summary` (+ `/short-names`), and (branch `feat/api-portfolio-distributions`)
-   `/api/apex/fund-portfolio`, `/api/performance/distributions`. Gabriel to confirm; record the decision in the
-   dataplatform repo if required there.
-5. **First live runs in review mode** — compare every figure with the latest factsheet; expect
-   index differences before May 2026 (factsheets used XSB/XBB ETFs then).
-6. **Compliance review of disclaimers** — `docs/compliance-review.md`; then "mark as reviewed" in admin.
-7. **Custom domain** `www.nymbus.ca` when approved (`docs/deploy.md`), then disable GitHub Pages.
-8. **Superseded 2026-10-02 by `feat/dp-only-data`** (portfolio computed by the website from main endpoints; dataplatform
-   PRs **#621, #626 and #631 are no longer needed** by the website). Remaining no-workaround gaps on main endpoints:
-   distributions (no endpoint), Monthly Income `short_corp` benchmark before 2024-12 (only in the bbg2 mirror / B2),
-   GMV live variants (bbg2 mirror only: factsheet stays the GMV source), months of a class before its first NAV (SEB F
-   before 2023-07), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield (latest prices
-   only). Old text: **Daily portfolio + distributions** (branch `feat/api-portfolio-distributions`, based on the PR #1 branch): the
-   website consumes the two new dataplatform endpoints (contract of 2026-09-30, `docs/architecture.md` § Sources).
-   Until the **dataplatform PR** implementing `/api/apex/fund-portfolio` and `/api/performance/distributions` is
-   deployed, they answer 404: one info issue per run, the site behaves as before. After deployment: run in review
-   mode, compare the Portfolio tab (daily) with the month-end factsheet (the cross-check issues in the run say where
-   they differ), check the distributions per series against the administrator's records, then merge this branch.
-9. **Coverage follow-up**: the daily book is used only when priced ≥ 90 % and resolved ≥ 95 % of the bond weight (and
-   each characteristic ≥ 90 %). Watch the `funds.<fund>.portfolio` warn issues on the first live runs (the
-   multi-strategy fund may stay on the factsheet); raise coverage in the instrument master / market data rather than
-   lowering the thresholds. Distribution yields and types are not in the source (documented gap).
-10. Nice to have: contact form backend (currently mailto), fund inception dates for funds other than
-   Monthly Income (`FUND_INCEPTION` in `src/content/disclaimers.ts`), holiday calendar for FTSE
-   month-ends (currently weekdays).
-11. **Superseded 2026-10-02** (class series computed by the website from `nav-timeseries`; PR #626 not needed). On the
-   first live runs of `feat/dp-only-data` in review mode, check SEB F (LDM201) and Monthly Income F (LDM081) against the
-   administrator and watch the `navchain` / `classes` issues. Old text: **Class series at the dataplatform** (PR #626 `feat/monthly-net-returns-class`, open): deploy it, then run in review mode
-   and check that SEB F (LDM201), SEB H (LDM202), Multi-Strategy F and Monthly Income FP match the administrator. Until then the
-   endpoint ignores `class_code`: the pipeline treats it as "not served" (info issue) and SEB shows its H series labelled H.
-   **Monthly Income F (LDM081) has no class series** (dataplatform `STRATEGY` for SEST is FP): the page opens on "coming soon"
-   for F. Needs a dataplatform change (class mapping for SEST F) and a `classSeries` entry in `fund-sources.ts`.
-   The home page (other agent) reads the top-level `performance`: for Monthly Income that is still FP's, for SEB it becomes F's.
-12. **Rankings / awards** — branch `feat/awards-v2` (not merged): Morningstar 5 stars (Class F, as of 2026-10-01, stated by
-   Nymbus) on the bond funds' Overview + awards tab; RBC pooled fund survey / eVestment / LSEG Lipper / GMR entries
-   (admin-editable, hidden until confirmed with URL + date); staleness limit in settings (default 6 months, all providers);
-   weekly RBC survey check (admin issue + webhook, never hides data); AdvisorRankings on /solutions. **Gabriel to do**:
-   (a) *(done 2026-10-03, `feat/awards-assets`)* provide the **official Morningstar files** (`public/brand/third-party/morningstar-logo.svg|png` and
-   `morningstar-stars-5.svg|png`, or upload them in *Admin → Settings → third-party brand assets*) — until then the rating is
-   text and the admin shows "official Morningstar assets missing"; (b) *(done 2026-10-03: Q2 2026 seeded, confirmed)* enter the **RBC survey percentiles** per period from
-   the Q2 2026 PDF (drafts pre-filled with 1st percentile; add class, peer group, quarter end 2026-06-30, PDF URL, tick
-   confirmed); (c) enter eVestment / LSEG Lipper / GMR figures with their source links; (d) compliance rows W1–W7
-   (`docs/compliance-review.md`), incl. Morningstar "out of N funds". French category names are our translation (row F6).
-13. **Admin to fill** (shown only when filled): class types for classes other than LDM081 / LDM001, minimum subsequent
-   investment, RSP eligibility, liquidity, CIFSC category, portfolio managers, management fee / MER; upload factsheet / fund
-   facts / prospectus / proxy-voting / tax-factor documents. Compliance: `docs/compliance-review.md` § Fund pages v2.
+History of the items closed before 2026-10-06: § 6 and `git log`.
 
-11. **Headless WordPress editor backend** (branch `feat/wp-cms`, based on the PR branch, not merged): built, CI-tested,
-   **nothing deployed**. Gabriel's manual steps: `docs/deploy.md` §5 / `wordpress/README.md` (MySQL addon, uploads volume,
-   secret group, service `wordpress`, install + activate plugin, permalinks, connect the website with `WP_BASE_URL` +
-   secrets, **Microsoft SSO for WordPress login: done on `feat/wp-ready`, item 20**). Follow-ups: import the current team/news into WordPress (`wp nymbus import`, item 20)
-   (photos are on www.nymbus.ca, not imported), render `linkedin` in the team modal (`TeamMember.linkedin`), fund pages
-   still read managers from `src/data/team.ts`, add News to the nav/footer if wanted, independent adversarial review
-   (could not be spawned in the building session).
+### A. Gabriel (needs an account, a credential or a decision)
 
-14. **Content v3** (branch `feat/content-v3`, from `redesign/v3-keynote-live-data`, **not merged**): built, CI-tested. To do:
-   independent adversarial review, compliance rows V1–V12 (`docs/compliance-review.md` § Content v3), Gabriel to confirm the
-   decks titles (V6), the asset-class list of the multi-strategy diagram and the "liquid alternative" term (V3), the
-   Tobacco-Free pledge scope (V11); the awards work wires `<AdvisorRankings />` (`src/components/site/pages/AdvisorRankings.tsx`).
-   WordPress team entries have no years of experience: with the CMS on, the band hides that counter.
+1. **Compliance review** of `docs/compliance-review.md`, then "mark as reviewed" in admin. Priorities: P1 ("protective"
+   overlays), P3 (Morningstar disclosure behind an info note) and Morningstar "out of N funds", RBC gross-of-fees basis,
+   D1 (collapsed disclosures), AC1–AC6 (series figures, "—" months, 12-month minimum), CC / V rows.
+2. **Alerts**: Teams channel webhook (Workflows "Post to a channel when a webhook request is received") into
+   `PIPELINE_ALERT_WEBHOOK` (`website-secrets`), restart, "send a test alert"; an external uptime monitor on
+   `<PUBLIC_URL>/api/status?strict=1` (`docs/deploy.md` § Alerts).
+3. **WordPress deployment**: `docs/deploy.md` §5 steps 1–8 (MySQL addon, uploads volume, Entra app "Nymbus WordPress",
+   secret group, service, install + emergency admin, editors, connect the website). Claude then does steps A–C (checks,
+   `wp nymbus import`, verify) and the first real Entra round trip; check that Apache logs the visitor address.
+4. **Dataplatform team** (the coordinator holds the details, not kept in this public repository): source defects listed
+   by the runs (month-end bad prints, inconsistent distribution adjustments between series, duplicate Apex records and a
+   NAV seam at the switch to Apex, missing valuation days); a
+   distributions endpoint on main (USD series, distribution yields); `nav-timeseries` loads the whole legacy table per
+   call (the 4 GB service ran out of memory under ~20 parallel calls — the website now calls one at a time); record
+   the website as a read-only consumer (dataplatform CLAUDE.md).
+5. **Custom domain** `www.nymbus.ca` (`docs/deploy.md`), then switch off GitHub Pages.
+6. **Admin to fill** (shown only when filled): minimum investments, RSP eligibility, CIFSC category, managers, fees /
+   MER, documents (fund facts, prospectus, proxy voting, tax factors); rankings: eVestment / LSEG Lipper / GMR figures
+   with their sources.
+7. **Repository chores** the sandbox cannot do: commit a lockfile from a green CI run (`package-lock` artifact); delete
+   the old `ci/run-*` branches (`git push origin --delete …`, keep the last ten).
 
-15. **Critical concepts** (branch `feat/critical-concepts`, from `redesign/v3-keynote-live-data`, **not merged**): page
-   `/critical-concepts` built and CI-tested. To do: independent adversarial review (design / a11y / compliance), compliance
-   rows CC1–CC4, Gabriel to confirm the $200 MM liquidity filter (the explainer deck says 175 M$) and the "≈10%" deposit.
-   Still frames of every step: `e2e/screenshots/concepts-*` on the `ci/run-*` branches.
-   **v5 (branch `feat/concepts-v5`, not merged)**: overlay driven by volatility (vega) with a calm/volatile strip, sector
-   analysts and sector clusters, concept 3 renamed "Ultra-micro analysis, at scale" (anchor `#ultra-micro-analysis`,
-   alias `#coverage`). Compliance rows CC6–CC8 to review.
+### B. Development (Claude or a developer)
 
-16. **Core concepts** (branch `feat/core-concepts`, from `redesign/v3-keynote-live-data`, **not merged**): rename to
-   "Core concepts" at `/core-concepts` (old URL redirects), "protective overlays" with the qualifier, futures slowed down,
-   concept 3 as a VS comparison. Compliance rows CC9–CC12 to review; independent adversarial review still to run.
-
-17. **Concepts v6** (branch `feat/concepts-v6`, from `redesign/v3-keynote-live-data`, **not merged**): futures 3.75 s a day;
-   concept 3 back to one large shared graphic as a two-act comparison (methods column with VS, active method highlighted).
-   Compliance rows CC13–CC14 to review; independent adversarial review still to run.
-
-18. **Site v5** (branch `feat/site-v5`, not merged): independent adversarial review (design / a11y of the info note,
-   compliance), compliance rows P1–P8 (`docs/compliance-review.md`), in particular **P3** (Morningstar disclosure behind an
-   info note) and **P1** ("protective" as a name). Merge after the concepts branch to avoid copy conflicts.
-   **WordPress**: Xavier Girard and Jean-Philippe Lejeune were removed from `src/data/team.ts` only; if the CMS is enabled
-   (`WP_BASE_URL`), remove them from the WordPress team too (WordPress wins over the static list).
-
-19. **Every series' returns** (branch `feat/all-classes`, from `redesign/v3-keynote-live-data`, **not merged**): every active register
-   class of the three funds gets its own monthly returns from its own `nav-timeseries` chain since its inception (first price of its
-   current run); defect months withheld ("—", figures over them "—"), 12-month minimum, a USD series without figures. To do:
-   (a) **first live run** (review mode, or auto: the fund then stays at its previous publication): in *Admin → Runs* the run is
-   `pending-review` with "class changes" = every series published for the first time (and a fund's default series if it
-   changes); read the `funds.<fund>.performance.classes*` issues (inceptions, relaunches, coverage gaps, withheld months and why),
-   the `funds.<fund>.performance` warnings (months withheld for every class that the track record takes from another source, or
-   withholds from its own NAV chain) and the non-blocking notice "month(s) withheld for every class of the fund", then press
-   **"approve class change & publish"** once (one approval publishes every class of every fund of that run; later runs are not
-   gated again until a new series appears, e.g. a series reaching its 12 months). The coordinator holds the list of months the
-   live data is expected to withhold and the expected inceptions (not kept in this public repository): compare. Tune
-   `CLASS_CHECKS` (`src/lib/pipeline/config.ts`) only with evidence; (b) **report to the dataplatform team** the source defects
-   the run lists (month-end bad prints, inconsistent distribution adjustments between classes) and ask for a **distributions
-   endpoint** on main (total returns of a USD series); (c) compliance rows AC1–AC6 (`docs/compliance-review.md`), in particular
-   AC3 (some standard periods shown while others are "—"); (d) a second independent review of the 2026-10-05 fixes before merging.
-
-20. **Automation / monitoring** (branch `feat/automation`, from `redesign/v3-keynote-live-data`, **not merged**): deduped
-   alerts (Teams / JSON, retries, daily reminders, resolved), catch-up of a missed slot after boot, one retry after a source
-   outage, public `GET /api/status` (+ `?strict=1` 503 when stale), stale-data alert, rankings expiry alert 30 days ahead,
-   alerts panel on the dashboard. **Gabriel to do**: (a) create the Teams channel webhook (Workflows template "Post to a
-   channel when a webhook request is received") and paste it into `PIPELINE_ALERT_WEBHOOK` in `website-secrets`, restart,
-   press "send a test alert" (`docs/deploy.md` § Alerts); (b) point an external uptime monitor at
-   `<PUBLIC_URL>/api/status?strict=1` (keep the Northflank health check on `/api/health`); (c) independent adversarial review
-   before merging.
+1. **Multi-Strategy series checks**: its series carry a performance fee charged in up months only, so the linear
+   cross-class fit (`src/lib/pipeline/class-returns.ts`) withholds too many months; fit separate up / down slopes.
+2. **Readability**: split `src/lib/pipeline/build.ts` (≈ 1 650 lines) and the other files above ~500 lines by
+   responsibility; run Prettier once over the repository (separate commit, visual diff byte-identical); Contact.tsx still
+   imports the shim `src/components/v3/motion.ts`, `copy-contact.ts` → `contact.copy.ts`.
+3. **React Compiler readiness**: the 25 lint warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`);
+   lower the `--max-warnings` cap as they go.
+4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
+   variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
+5. Nice to have: contact form backend (mailto today), team LinkedIn in the WordPress team modal, fund managers from
+   WordPress, News in the navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (home session): feat/cleanup, feat/automation, feat/wp-ready merged and pushed (CI green on each,
+  reviewed); §3 / §5 rewritten (every branch listed as "not merged" was merged); merged local branches and worktrees
+  deleted.
 
 - 2026-10-05 (sub-agent, branch `feat/cleanup` from `redesign/v3-keynote-live-data`; **not merged**): code cleanup with no
   rendered change ("keep the looks and feel … beautiful code that's easy to read"), proven by the visual diff (every page
@@ -300,24 +215,6 @@ Not yet run against live data, not deployed.
   dry runs ignored by the catch-up, second check ~35 min after boot; Toronto date for rankings expiry; RBC alertedFor
   only on delivery; test alert one attempt, outside the queue, one a minute; https webhooks only; environment label in
   titles; Teams Markdown escaped; hosts stripped from alert lines.
-
-20. **WordPress ready for deployment** (branch `feat/wp-ready`, from `redesign/v3-keynote-live-data`, **not merged**;
-   supersedes the SSO TODO of item 11): hardened image (WordPress 7.1.2-php8.3-apache pinned; Limit Login Attempts
-   Reloaded 3.3.10 + OpenID Connect Generic Client 3.11.3 from wordpress.org with pinned SHA-256; WP-CLI 2.12.0; no file
-   mods / auto-updates; no PHP in uploads; 8 MB uploads; XML-RPC and application passwords off), **Sign in with
-   Microsoft** from env (`NYMBUS_SSO_*`, tenant + member + @nymbus.ca, first sign-in = Editor) with password sign-in only
-   for `NYMBUS_EMERGENCY_ADMIN`; contact details (footer + /contact) and **page intros** (approach, solutions,
-   sustainability headline only, team) wired from WordPress with the coded copy as default; `wp nymbus import` +
-   `wordpress/scripts/import-from-site.mjs`. CI smoke test of the image (`wordpress/tests/docker-smoke.sh`).
-   **Gabriel**: `docs/deploy.md` §5 steps 1–8 (MySQL addon, uploads volume, Entra app "Nymbus WordPress", secret group,
-   service, install + emergency admin, editors, connect the website). **Claude**: §5 steps A–C (checks, import, verify).
-   To do: independent adversarial review (security of the mu-plugin / OIDC configuration in particular); first real
-   Entra round trip (CI checks only the configuration). Security review of f77883e fixed on the branch (M1 no raw
-   HTML / pictures-only uploads / sandboxed uploads, m1 SSO opens only accounts it created (tid/oid + sub), never the
-   emergency admin, m2 idp/oid checks, m3–m7). After deployment check in the Apache log that the visitor
-   address (not the balancer's) is logged — Apache `mod_remoteip` of the official image trusts private ranges only.
-
-## 6. Session log
 
 - 2026-10-05 (sub-agent, branch `feat/wp-ready` from `redesign/v3-keynote-live-data`; **not merged**): WordPress side made
   deployable (open item 20). `wordpress/Dockerfile` pinned + checksummed downloads, `docker/apache-security.conf`,
