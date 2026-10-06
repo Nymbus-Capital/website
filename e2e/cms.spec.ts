@@ -72,7 +72,7 @@ test("home: three latest CMS news, link to all news, banner and AUM label from W
 const heroTitle = (page: import("@playwright/test").Page) => page.locator("h1.reveal-title").first();
 const heroLead = (page: import("@playwright/test").Page) => page.locator("header .lead").first();
 
-test("footer and contact page: address, phone and e-mail from WordPress; toll-free and form recipient stay built-in", async ({ page }) => {
+test("footer and contact page: address, phone and e-mail from WordPress; toll-free and the form endpoint stay built-in", async ({ page }) => {
   await page.goto("/contact");
   const footer = page.getByTestId("site-footer");
   await expect(footer.locator('a[href="mailto:info@example.org"]')).toHaveText("info@example.org");
@@ -86,7 +86,8 @@ test("footer and contact page: address, phone and e-mail from WordPress; toll-fr
   await expect(main.locator(".ct-office")).toContainText("1 CMS Test Street, Suite 100");
   await expect(main.locator(".ct-office a.link").first()).toHaveAttribute("href", /1%20CMS%20Test%20Street|1\+CMS\+Test\+Street/);
   await expect(main).not.toContainText("1002 Sherbrooke");
-  await expect(page.getByTestId("contact-form")).toHaveAttribute("action", "mailto:info@nymbus.ca");
+  // the form posts to the site whatever WordPress says (no e-mail recipient to override)
+  await expect(page.getByTestId("contact-form")).toHaveAttribute("action", "/api/contact");
 });
 
 test("page intros: WordPress headline / lead where filled, built-in copy elsewhere; Sustainability lead stays built-in", async ({ page, context }) => {

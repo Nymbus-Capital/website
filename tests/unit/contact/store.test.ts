@@ -9,16 +9,24 @@ process.env.SITE_DATA_DIR = dir;
 delete process.env.PIPELINE_ALERT_WEBHOOK;
 
 const store = await import("../../../src/lib/contact/store.ts");
+const { csvCell, inquiriesCsv, CSV_COLUMNS } = await import("../../../src/lib/contact/csv.ts");
 const { inquiryAlert, notifyInquiry } = await import("../../../src/lib/contact/notify.ts");
 const { alertPayload } = await import("../../../src/lib/pipeline/alerts.ts");
 
 after(() => rmSync(dir, { recursive: true, force: true }));
 
+/** save and return the stored record (asserting it is not a duplicate) */
+async function save(v: Parameters<typeof store.saveInquiry>[0], now?: Date, max?: number) {
+  const r = await store.saveInquiry(v, now, max);
+  assert.equal(r.duplicate, false);
+  return r.record;
+}
+
 const V = { profile: "Family office" as const, interests: ["General inquiry"], name: "Test Person", email: "test@example.com", message: "Hello <b>there</b>", lang: "en" as const };
 
 test("store: save, list newest first, get, ids are validated", async () => {
-  const a = await store.saveInquiry(V, new Date("2026-10-01T10:00:00Z"));
-  const b = await store.saveInquiry({ ...V, name: "Second Person" }, new Date("2026-10-02T10:00:00Z"));
+  const a = await save(V, new Date("2026-10-01T10:00:00Z"));
+  const b = await save({ ...V, name: "Second Person" }, new Date("2026-10-02T10:00:00Z"));
   assert.ok(store.isInquiryId(a.id));
   assert.equal(a.handled, null);
   assert.deepEqual(a.consent, { at: "2026-10-01T10:00:00.000Z", version: store.CONSENT_VERSION });
@@ -36,7 +44,7 @@ test("store: save, list newest first, get, ids are validated", async () => {
 });
 
 test("store: mark handled / open again, delete; a deleted inquiry is never brought back", async () => {
-  const r = await store.saveInquiry(V);
+  const r = await save(V);
   const h = await store.setInquiryHandled(r.id, true, "alice@nymbus.ca", new Date("2026-10-03T00:00:00Z"));
   assert.deepEqual(h?.handled, { at: "2026-10-03T00:00:00.000Z", by: "alice@nymbus.ca" });
   assert.equal((await store.setInquiryHandled(r.id, false, "alice@nymbus.ca"))?.handled, null);
@@ -49,8 +57,8 @@ test("store: mark handled / open again, delete; a deleted inquiry is never broug
 
 test("retention: inquiries older than 12 months are purged, damaged files too (by the date in their id)", async () => {
   const now = new Date("2027-10-06T12:00:00Z");
-  const old = await store.saveInquiry(V, new Date("2026-10-05T12:00:00Z"));
-  const recent = await store.saveInquiry(V, new Date("2026-10-07T12:00:00Z"));
+  const old = await save(V, new Date("2026-10-05T12:00:00Z"));
+  const recent = await save(V, new Date("2026-10-07T12:00:00Z"));
   mkdirSync(path.join(dir, "inquiries"), { recursive: true });
   writeFileSync(path.join(dir, "inquiries", "20250101T000000-0123abcd.json"), "{ damaged");
   writeFileSync(path.join(dir, "inquiries", "notes.txt"), "not an inquiry");
@@ -63,9 +71,9 @@ test("retention: inquiries older than 12 months are purged, damaged files too (b
 });
 
 test("alert: only the name and investor type, a link to the admin; off without a webhook", async () => {
-  const r = await store.saveInquiry({ ...V, phone: "514 555 0100", company: "Secret Co" });
+  const r = await save({ ...V, phone: "514 555 0100", company: "Secret Co" });
   const msg = inquiryAlert(r);
-  assert.equal(msg.title, "New website inquiry from Test Person (Family office)");
+  assert.equal(msg.title, "New website message from Test Person (Family office)");
   assert.equal(msg.adminPath, "/admin/inquiries");
   const body = JSON.stringify([alertPayload(msg, "teams", { PUBLIC_URL: "https://www.nymbus.ca" }), alertPayload(msg, "json", {})]);
   for (const secret of ["test@example.com", "Hello", "514 555 0100", "Secret Co", "General inquiry"]) assert.ok(!body.includes(secret), secret);
@@ -79,11 +87,46 @@ test("alert: only the name and investor type, a link to the admin; off without a
 });
 
 test("store: refuses new inquiries past the hard cap", async () => {
-  const a = await store.saveInquiry(V, new Date(), 2);
-  const b = await store.saveInquiry(V, new Date(), 2);
-  await assert.rejects(store.saveInquiry(V, new Date(), 2), store.InquiryStoreFullError);
+  const a = await save({ ...V, name: "Cap One" }, new Date(), 2);
+  const b = await save({ ...V, name: "Cap Two" }, new Date(), 2);
+  await assert.rejects(store.saveInquiry({ ...V, name: "Cap Three" }, new Date(), 2), store.InquiryStoreFullError);
   assert.equal((await store.listInquiries()).length, 2);
   assert.ok(store.MAX_STORED >= 1000);
   await store.deleteInquiry(a.id);
   await store.deleteInquiry(b.id);
+});
+
+test("store: an identical inquiry within 24 hours is not stored again; a changed one or a later one is", async () => {
+  const t0 = new Date("2026-10-06T10:00:00Z");
+  const a = await save(V, t0);
+  const again = await store.saveInquiry({ ...V, email: "TEST@example.com", interests: [...V.interests] }, new Date(t0.getTime() + 60_000));
+  assert.equal(again.duplicate, true);
+  assert.equal(again.record.id, a.id);
+  // concurrent double submit: one stored
+  const both = await Promise.all([store.saveInquiry({ ...V, name: "Twin" }, t0), store.saveInquiry({ ...V, name: "Twin" }, t0)]);
+  assert.deepEqual(both.map((r) => r.duplicate).sort(), [false, true]);
+  const changed = await save({ ...V, message: "Hello again" }, new Date(t0.getTime() + 60_000));
+  const later = await save(V, new Date(t0.getTime() + store.DUPLICATE_WINDOW_MS + 1000));
+  assert.equal((await store.listInquiries()).length, 4);
+  assert.equal(await store.openInquiryCount(), 4);
+  await store.setInquiryHandled(a.id, true, "alice@nymbus.ca");
+  assert.equal(await store.openInquiryCount(), 3);
+  for (const r of [a, changed, later, ...both.filter((x) => !x.duplicate).map((x) => x.record)]) await store.deleteInquiry(r.id);
+  assert.equal((await store.listInquiries()).length, 0);
+});
+
+test("csv: header, quoting, formula cells neutralised, BOM", () => {
+  assert.equal(csvCell("plain"), "plain");
+  assert.equal(csvCell('say "hi", ok'), '"say ""hi"", ok"');
+  assert.equal(csvCell("a\nb"), '"a\nb"');
+  for (const f of ["=SUM(A1)", "+1", "-1", "@x", "\tx"]) assert.ok(csvCell(f).replace(/^"/, "").startsWith("'"), f);
+  assert.equal(csvCell(undefined), "");
+  const rec = { id: "20261006T100000-0123abcd", receivedAt: "2026-10-06T10:00:00.000Z", ...V, company: "=HYPERLINK(\"x\")", consent: { at: "2026-10-06T10:00:00.000Z", version: "v" }, handled: { at: "2026-10-07T00:00:00.000Z", by: "alice@nymbus.ca" } };
+  const out = inquiriesCsv([rec]);
+  assert.ok(out.startsWith("\uFEFF" + CSV_COLUMNS.join(",") + "\r\n"));
+  const row = out.split("\r\n")[1];
+  assert.ok(row.startsWith("20261006T100000-0123abcd,2026-10-06T10:00:00.000Z,handled,2026-10-07T00:00:00.000Z,alice@nymbus.ca,Test Person,test@example.com,,"));
+  assert.ok(row.includes(`"'=HYPERLINK(""x"")"`));
+  assert.ok(row.includes("Hello <b>there</b>"));
+  assert.equal(inquiriesCsv([]), "\uFEFF" + CSV_COLUMNS.join(",") + "\r\n");
 });

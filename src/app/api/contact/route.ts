@@ -6,7 +6,8 @@
  * Guards, in order: same origin (Origin, else Referer = PUBLIC_URL; Sec-Fetch-Site same-origin), per-client attempt limit
  * (5 / 15 min, rightmost X-Forwarded-For), content type, 16 KB body cap, honeypot field and form timing token (bots get a
  * fake success and nothing is stored), field validation (src/lib/contact/validate.ts), a site-wide limit on stored
- * inquiries (40 / hour) and a hard cap on the volume. The inquiry is then stored (src/lib/contact/store.ts) and, when a
+ * inquiries (40 / hour) and a hard cap on the volume. The inquiry is then stored (an identical one received in the last
+ * 24 hours is not stored again nor alerted: double clicks, reloads) (src/lib/contact/store.ts) and, when a
  * webhook is configured, an alert naming only the sender and investor type is posted after the response.
  * Logs never carry the submitted fields.
  */
@@ -89,7 +90,11 @@ export async function POST(req: NextRequest) {
     return fail("busy");
   }
   try {
-    const rec = await saveInquiry(v.value);
+    const { record: rec, duplicate } = await saveInquiry(v.value);
+    if (duplicate) {
+      console.log("[contact] duplicate submission not stored again");
+      return done();
+    }
     after(() => notifyInquiry(rec).then(
       (r) => { if (r === "failed") console.error("[contact] inquiry alert not delivered"); },
       () => console.error("[contact] inquiry alert crashed"),

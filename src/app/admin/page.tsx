@@ -4,6 +4,7 @@ import { FUNDS } from "@/config/funds";
 import { getContent } from "@/lib/data/content";
 import { getSiteData } from "@/lib/data/site";
 import { listDocuments } from "@/lib/data/documents";
+import { openInquiryCount } from "@/lib/contact/store";
 import { Head, Pill } from "@/components/admin/Head";
 import { PipelinePanel } from "@/components/admin/runs";
 import { ComplianceBanner, type BannerText } from "@/components/admin/ComplianceBanner";
@@ -22,6 +23,7 @@ export default async function AdminDashboard() {
   await requireAdminPage("/admin"); // defence in depth: every page re-verifies the session (not only the layout)
   const [status, runs, content, site, docs, alerts] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments(), safeAlerts()]);
   const freshness = await safeFreshness();
+  const openMessages = await openInquiryCount().catch(() => null);
   const published = docs.filter((d) => d.published).length;
   const rk = await rankingsAdmin(content);
   const comp = complianceState(content);
@@ -48,6 +50,11 @@ export default async function AdminDashboard() {
       <Head title="dashboard" lead="Pipeline health, what the public site shows right now, and shortcuts to the content you manage.">
         <Pill tone={content.pipeline.publishMode === "auto" ? "ok" : "info"}>publish mode: {content.pipeline.publishMode}</Pill>
         {site?.mode === "sample" ? <Pill tone="warn">sample data</Pill> : null}
+        {openMessages !== null ? (
+          <Link href="/admin/inquiries" data-testid="dashboard-messages" style={{ textDecoration: "none" }}>
+            <Pill tone={openMessages ? "info" : "mute"}>{openMessages} open message{openMessages === 1 ? "" : "s"}</Pill>
+          </Link>
+        ) : null}
       </Head>
 
       <ComplianceBanner

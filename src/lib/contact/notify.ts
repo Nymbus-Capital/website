@@ -8,8 +8,8 @@ import type { InquiryRecord } from "./store.ts";
 
 export function inquiryAlert(r: Pick<InquiryRecord, "name" | "profile">): AlertMessage {
   return {
-    title: `New website inquiry from ${r.name} (${r.profile})`,
-    lines: ["Open the admin to read and answer it."],
+    title: `New website message from ${r.name} (${r.profile})`,
+    lines: ["Open the admin (messages) to read and answer it."],
     severity: "info",
     adminPath: "/admin/inquiries",
   };

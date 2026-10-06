@@ -127,6 +127,7 @@ test.describe("API guards", () => {
     ["GET", "/api/admin/documents"],
     ["GET", "/api/admin/audit"],
     ["GET", "/api/admin/inquiries"],
+    ["GET", "/api/admin/inquiries/export"],
     ["PATCH", "/api/admin/inquiries/20261006T120000-0123abcd"],
     ["DELETE", "/api/admin/inquiries/20261006T120000-0123abcd"],
     ["POST", "/api/admin/pipeline/run"],
@@ -223,6 +224,9 @@ test.describe("admin flows", () => {
     await expect(page.getByTestId("alerts-off")).toBeVisible();
     await expect(page.getByTestId("alerts-test")).toBeDisabled();
     await expect(page.locator(".adm-user")).toContainText("alice@nymbus.ca");
+    // website messages: open count, link to the messages page
+    await expect(page.getByTestId("dashboard-messages")).toHaveAttribute("href", "/admin/inquiries");
+    await expect(page.getByTestId("dashboard-messages")).toContainText(/\d+ open messages?/);
     // the GMV returns row names its downside volatility variant
     await expect(page.getByTestId("admin-variant-global-minimum-volatility")).toHaveText("6% downside volatility");
     await shot(page, "dashboard", info.project.name);
@@ -573,16 +577,18 @@ test.describe("admin flows", () => {
     const t = /name="t" value="(v1\.[^"]+)"/.exec(html)![1];
     await page.waitForTimeout(3200);
     const name = `E2E Admin ${info.project.name}`;
-    const posted = await request.post("/api/contact", {
+    const post = () => request.post("/api/contact", {
       headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a::2" : "2001:db8:a::1" },
-      data: JSON.stringify({ profile: "Institutional investor", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
+      data: JSON.stringify({ profile: "Institutional investor", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "=E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
     });
-    expect(posted.status()).toBe(200);
+    expect((await post()).status()).toBe(200);
+    // the same message sent again (double click, reload) answers OK but is stored once (checked below: one card)
+    expect((await post()).status()).toBe(200);
 
     const dialogs: string[] = [];
     page.on("dialog", (d) => { dialogs.push(d.message()); void d.dismiss(); });
     expect((await page.goto("/admin/inquiries"))?.status()).toBe(200);
-    await expect(page.getByRole("heading", { level: 1, name: "inquiries" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "messages" })).toBeVisible();
     const list = page.getByTestId("inquiries");
     await list.getByLabel("filter by status").selectOption("all");
     // the public tests' inquiries are there (with and without JavaScript), the bots' never are
@@ -596,6 +602,19 @@ test.describe("admin flows", () => {
     await expect(card).toContainText("E2E Pension");
     await expect(card).toContainText("français");
     await shot(page, "inquiries", info.project.name);
+
+    // CSV export: admin only, formula-like cells neutralised, audited
+    expect((await request.get("/api/admin/inquiries/export")).status()).toBe(401);
+    await expect(list.getByTestId("inquiries-export")).toHaveAttribute("href", "/api/admin/inquiries/export");
+    const csv = await request.get("/api/admin/inquiries/export", { headers: adminHeaders(token, false) });
+    expect(csv.status()).toBe(200);
+    expect(csv.headers()["content-type"]).toMatch(/^text\/csv/);
+    expect(csv.headers()["content-disposition"]).toMatch(/^attachment; filename="nymbus-website-messages-\d{4}-\d{2}-\d{2}\.csv"$/);
+    const csvText = await csv.text();
+    expect(csvText.split("\r\n")[0]).toContain("id,received_at,status");
+    expect(csvText).toContain(name);
+    expect(csvText).toContain("'=E2E Pension");
+    expect(csvText).not.toContain(",=E2E Pension");
 
     await card.getByTestId("inquiry-handled").click();
     await expect(card.getByTestId("inquiry-reopen")).toBeVisible();
@@ -617,7 +636,7 @@ test.describe("admin flows", () => {
 
     await page.goto("/admin/audit");
     const audit = page.getByTestId("audit-table");
-    for (const a of ["inquiries.view", "inquiry.handled", "inquiry.delete"]) await expect(audit).toContainText(a);
+    for (const a of ["inquiries.view", "inquiries.export", "inquiry.handled", "inquiry.delete"]) await expect(audit).toContainText(a);
     await expect(audit).toContainText(id!);
     for (const pii of ["admin-test@example.com", name, "E2E Pension", "Line one"]) await expect(audit).not.toContainText(pii);
   });

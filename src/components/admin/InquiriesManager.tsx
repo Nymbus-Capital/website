@@ -1,10 +1,11 @@
 "use client";
 /**
- * Admin list of the website inquiries (contact form): newest first, filter open / handled, mark handled, delete.
+ * Admin list of the website inquiries ("messages", contact form): newest first, filter open / handled, mark handled,
+ * delete, CSV export.
  * Every text is rendered as plain text by React (escaped); the e-mail link is built from an address validated on receipt.
  */
 import { useMemo, useState } from "react";
-import { Check, Mail, RotateCcw, Trash2 } from "lucide-react";
+import { Check, Download, Mail, RotateCcw, Trash2 } from "lucide-react";
 import type { InquiryRecord } from "@/lib/contact/store";
 import { api, useConfirm, useToast } from "./client";
 import { Pill } from "./Head";
@@ -36,7 +37,7 @@ export function InquiriesManager({ initial }: { initial: InquiryRecord[] }) {
   };
 
   const remove = async (r: InquiryRecord) => {
-    const yes = await confirm({ title: "delete this inquiry?", body: `The message from ${r.name} (${when(r.receivedAt)}) will be deleted. This cannot be undone.`, action: "delete", danger: true });
+    const yes = await confirm({ title: "delete this message?", body: `The message from ${r.name} (${when(r.receivedAt)}) will be deleted. This cannot be undone.`, action: "delete", danger: true });
     if (!yes) return;
     setBusy(r.id);
     try {
@@ -63,6 +64,10 @@ export function InquiriesManager({ initial }: { initial: InquiryRecord[] }) {
             <option value="handled">handled</option>
             <option value="all">all</option>
           </select>
+          <span className="sp" />
+          {items.length ? (
+            <a className="adm-btn ghost xs" href="/api/admin/inquiries/export" download data-testid="inquiries-export"><Download aria-hidden="true" /> export CSV</a>
+          ) : null}
         </div>
         <div style={{ display: "grid", gap: 14 }}>
           {shown.map((r) => (
@@ -100,12 +105,12 @@ export function InquiriesManager({ initial }: { initial: InquiryRecord[] }) {
                 ) : (
                   <button type="button" className="adm-btn xs" disabled={busy === r.id} onClick={() => setHandled(r, true)} data-testid="inquiry-handled"><Check aria-hidden="true" /> mark handled</button>
                 )}
-                <button type="button" className="adm-btn ghost xs" disabled={busy === r.id} onClick={() => remove(r)} aria-label={`delete the inquiry from ${r.name}`} data-testid="inquiry-delete"><Trash2 aria-hidden="true" /></button>
+                <button type="button" className="adm-btn ghost xs" disabled={busy === r.id} onClick={() => remove(r)} aria-label={`delete the message from ${r.name}`} data-testid="inquiry-delete"><Trash2 aria-hidden="true" /></button>
               </div>
             </article>
           ))}
         </div>
-        {!shown.length ? <div className="adm-empty">{items.length ? "No inquiry matches the filter." : "No inquiry yet."}</div> : null}
+        {!shown.length ? <div className="adm-empty">{items.length ? "No message matches the filter." : "No message yet."}</div> : null}
       </section>
       {dialog}
     </>

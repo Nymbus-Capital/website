@@ -8,7 +8,7 @@ const ITEMS = [
   { href: "/admin/runs", label: "pipeline runs", icon: Activity },
   { href: "/admin/funds", label: "funds", icon: Wallet },
   { href: "/admin/documents", label: "documents", icon: FileText },
-  { href: "/admin/inquiries", label: "inquiries", icon: Inbox },
+  { href: "/admin/inquiries", label: "messages", icon: Inbox },
   { href: "/admin/settings", label: "site settings", icon: Settings },
   { href: "/admin/audit", label: "audit log", icon: History },
 ];

@@ -60,6 +60,7 @@ test("contact: three steps validated, consent required, sent to the site (EN)", 
   await send.click();
   await expect(form.getByText("Please enter a valid email address.")).toBeVisible();
   await expect(form.getByText("Please give your consent.")).toBeVisible();
+  await expect(page.getByLabel("Full name")).toBeFocused(); // focus goes to the first field to fix
   await expect(form.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "/privacy");
   await page.getByLabel("Full name").fill(`E2E Visitor ${info.project.name}`);
   await page.getByLabel("Email address").fill("visitor@example.com");
@@ -113,6 +114,16 @@ test("contact: French form, server-side field errors shown at their step", async
   await expect(fail.getByRole("link")).toHaveAttribute("href", /^mailto:info@nymbus\.ca\?subject=Demande%20du%20site%20Web/);
   await expect(page.getByLabel("Nom complet")).toHaveValue(`E2E Visiteur ${info.project.name}`);
   await page.getByTestId("contact-form").screenshot({ path: `${SHOTS}/contact-fail-fr-${info.project.name}.png` });
+  // once the server answers again, the same form is sent (French success state)
+  await page.unroute("**/api/contact");
+  await page.waitForTimeout(3200); // the timing token: no post within 3 s of the page render
+  const posted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+  await form.getByRole("button", { name: /envoyer mon message/i }).click();
+  expect((await posted).status()).toBe(200);
+  const sent = page.getByTestId("contact-sent");
+  await expect(sent).toContainText("Message envoyé");
+  await expect(sent.getByText("Message envoyé", { exact: true })).toBeFocused();
+  await page.locator(".ct-card").screenshot({ path: `${SHOTS}/contact-sent-fr-${info.project.name}.png` });
 });
 
 test("contact: works without JavaScript (native post, redirect back with the result)", async ({ browser }, info) => {
@@ -177,15 +188,16 @@ test.describe("POST /api/contact guards", () => {
   test("per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address", async ({ request }) => {
     const addr = ip();
     const h = { origin: BASE, "content-type": "application/json" };
+    // no timing token: answered like a success and dropped (bot path), but every attempt counts against the client
     const body = JSON.stringify({ name: "x" });
     for (let i = 0; i < 5; i++) {
       // a forged left part does not change the client: always the same bucket
       const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
-      expect(r.status(), `attempt ${i + 1}`).toBe(400);
+      expect(r.status(), `attempt ${i + 1}`).toBe(200);
     }
     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
     expect(limited.status()).toBe(429);
     expect(limited.headers()["retry-after"]).toBe("900");
-    expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: body })).status()).toBe(400);
+    expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: body })).status()).toBe(200);
   });
 });

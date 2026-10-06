@@ -584,7 +584,7 @@ arrow that shows that this box can be expanded". Component `src/components/site/
 ## Contact form backend (branch `feat/contact-form`, 2026-10-06) — to review
 
 The /contact form no longer prepares an e-mail in the visitor's mail app: it sends the inquiry to the website, where the
-team reads it in the admin (`docs/admin.md` § Inquiries).
+team reads it in the admin (`docs/admin.md` § Messages).
 
 | # | What | Where | Question |
 | --- | --- | --- | --- |
@@ -592,3 +592,4 @@ team reads it in the admin (`docs/admin.md` § Inquiries).
 | CF2 | **New privacy policy section 11 "Contact form on this website"**: data collected; used only to answer the request, never for marketing, not sold; read by authorised staff only; a notice with the name and investor type may be posted in the internal messaging tool (Teams); kept with the website hosting provider (3.3) and deleted 12 months after receipt or sooner on request; IP address used briefly against abuse, not kept. Marked for review in the page data (`review`). | `/privacy#privacy-contact-form` | Entire text, EN and FR. Is 12 months the right retention (vs. the firm's record-keeping rules for client communications, e.g. if an inquiry becomes a client relationship it must be filed elsewhere)? Is naming Teams as "internal messaging tool" enough? Hosting location (Northflank region) to be confirmed if the policy must state it. |
 | CF3 | **Form note** shortened to "Please do not include account numbers or other sensitive information." (the old note said the form sends and stores nothing, which is no longer true). | /contact | None expected. |
 | CF4 | WP2 above said the form's recipient (info@nymbus.ca) stays in code: the form now has no e-mail recipient; info@nymbus.ca remains the "email us instead" fallback and the hero / office e-mail. | /contact | Who in the firm reads `/admin/inquiries` (admin access = every allowed nymbus.ca account)? Should inquiries be restricted to a group? |
+| CF5 | **CSV export** of the messages in the admin (every stored message, all fields; audited with the count). | `/admin/inquiries` | Is an export allowed at all, and where may the file be kept (e.g. the CRM or a restricted SharePoint folder)? Should it be limited to a group? |

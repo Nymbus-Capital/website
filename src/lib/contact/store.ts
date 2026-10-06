@@ -57,12 +57,37 @@ function isRecord(r: unknown): r is InquiryRecord {
   return !!x && typeof x === "object" && isInquiryId(x.id) && typeof x.receivedAt === "string" && typeof x.name === "string" && typeof x.email === "string";
 }
 
-export async function saveInquiry(v: CleanInquiry, now = new Date(), max = MAX_STORED): Promise<InquiryRecord> {
-  if ((await ids()).length >= max) throw new InquiryStoreFullError();
-  const at = now.toISOString();
-  const rec: InquiryRecord = { id: newId(), receivedAt: at, ...v, consent: { at, version: CONSENT_VERSION }, handled: null };
-  await writeJson(file(rec.id), rec);
-  return rec;
+/** a resubmission of the same inquiry within this window is not stored again (double click, reload, retry) */
+export const DUPLICATE_WINDOW_MS = 24 * 3_600_000;
+
+/** The fields that make two inquiries "the same" (the sender's e-mail case-insensitively). */
+function sameInquiry(a: CleanInquiry, b: CleanInquiry): boolean {
+  const key = (q: CleanInquiry) =>
+    JSON.stringify([q.email.toLowerCase(), q.name, q.profile, [...q.interests].sort(), q.phone ?? "", q.company ?? "", q.message ?? ""]);
+  return key(a) === key(b);
+}
+
+/**
+ * Store an inquiry (under the lock: the cap and the duplicate check see every concurrent save). An identical inquiry
+ * received within DUPLICATE_WINDOW_MS is returned instead, with `duplicate: true`, and nothing is written.
+ */
+export function saveInquiry(v: CleanInquiry, now = new Date(), max = MAX_STORED): Promise<{ record: InquiryRecord; duplicate: boolean }> {
+  return locked(async () => {
+    const existing = await listInquiries();
+    const t = now.getTime();
+    const dup = existing.find((r) => Math.abs(t - Date.parse(r.receivedAt)) < DUPLICATE_WINDOW_MS && sameInquiry(r, v));
+    if (dup) return { record: dup, duplicate: true };
+    if ((await ids()).length >= max) throw new InquiryStoreFullError();
+    const at = now.toISOString();
+    const record: InquiryRecord = { id: newId(), receivedAt: at, ...v, consent: { at, version: CONSENT_VERSION }, handled: null };
+    await writeJson(file(record.id), record);
+    return { record, duplicate: false };
+  });
+}
+
+/** Number of inquiries not yet marked handled (admin dashboard). */
+export async function openInquiryCount(): Promise<number> {
+  return (await listInquiries()).filter((r) => !r.handled).length;
 }
 
 export async function getInquiry(id: string): Promise<InquiryRecord | null> {

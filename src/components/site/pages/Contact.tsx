@@ -56,6 +56,16 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
   useEffect(() => {
     if (sent && moved.current) sentRef.current?.focus();
   }, [sent]);
+  // after a refused step or submission: focus the first field to fix (declared after the step effect, so it wins)
+  const errFocus = useRef(false);
+  useEffect(() => {
+    if (!errFocus.current) return;
+    errFocus.current = false;
+    const fs = stepRefs[step - 1].current;
+    (fs?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? fs?.querySelector<HTMLElement>("input:not([type=hidden]), textarea"))?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errs, step]);
+  const showErrs = (e: InquiryErrors) => { errFocus.current = Object.keys(e).length > 0; setErrs(e); };
 
   const interests = [...visibleFunds(PUBLIC_FUNDS, hiddenFunds).map((f) => ({ v: f.short.en, t: f.short })), { v: "Custom mandate", t: F.custom }, { v: "General inquiry", t: F.general }];
   const set = <K extends keyof Inquiry>(k: K, v: Inquiry[K]) => {
@@ -66,7 +76,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
   const go = (s: 1 | 2 | 3) => { moved.current = true; setStep(s); };
   const next = () => {
     const e = validateInquiry(q, step);
-    setErrs(e);
+    showErrs(e);
     if (Object.keys(e).length) return;
     if (step < 3) go((step + 1) as 2 | 3);
   };
@@ -74,7 +84,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
     ev.preventDefault();
     if (sending) return;
     const bad = firstInvalidStep(q);
-    if (bad) { setErrs(validateInquiry(q, bad)); if (bad !== step) go(bad); return; }
+    if (bad) { showErrs(validateInquiry(q, bad)); if (bad !== step) go(bad); return; }
     const hp = new FormData(ev.currentTarget).get("website");
     setSending(true);
     setFail(null);
@@ -94,7 +104,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
       const data = (await res.json().catch(() => ({}))) as { error?: string; fields?: unknown };
       const fields = Array.isArray(data.fields) ? data.fields.filter((f): f is InquiryField => typeof f === "string" && Object.hasOwn(FIELD_STEP, f)) : [];
       if (data.error === "invalid_input" && fields.length) {
-        setErrs(Object.fromEntries(fields.map((f) => [f, true])) as InquiryErrors);
+        showErrs(Object.fromEntries(fields.map((f) => [f, true])) as InquiryErrors);
         const first = Math.min(...fields.map((f) => FIELD_STEP[f])) as 1 | 2 | 3;
         if (first !== step) go(first);
         return;

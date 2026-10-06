@@ -540,7 +540,8 @@ The /contact form (three steps: investor type, interests, contact details + cons
 JSON from the page with JavaScript, a native urlencoded form post without it (answered with a 303 to
 `/contact?sent=1` or `/contact?error=<code>`). No e-mail service and no new credential: each inquiry is a JSON file on
 the data volume (`inquiries/<id>.json`, atomic write), read and answered from the admin (`/admin/inquiries`: newest
-first, mark handled, delete; every view and change audited with the id only).
+first, mark handled, delete, CSV export; every view, export and change audited with the id or the count only; the admin
+dashboard shows the number of open messages).
 
 - **Guards** (`guards.ts`, `token.ts`, `validate.ts`): same origin (`Origin`, else `Referer` = `PUBLIC_URL`;
   `Sec-Fetch-Site` same-origin; no `PUBLIC_URL` → 503), 5 attempts / 15 min per client (rightmost non-internal
@@ -548,15 +549,28 @@ first, mark handled, delete; every view and change audited with the id only).
   with the browser (no zod: the module is unit tested under plain Node), honeypot field and a signed form timing token
   (HMAC of the render time, key derived from `AUTH_SECRET`; a post < 3 s after render or with a forged / missing token is
   answered as a success and dropped; a page older than 7 days asks for a reload), 40 stored inquiries / hour site-wide,
-  hard cap of 5 000 stored.
+  hard cap of 5 000 stored. The per-client limit is in memory, like the CMS revalidation limiter: enough for the single
+  instance (`docs/deploy.md`); a restart resets it, the site-wide and volume caps still hold.
+- **Duplicates**: an inquiry identical to one received in the last 24 hours (same e-mail, case-insensitive, name, type,
+  interests, phone, organisation and message) is answered OK but not stored again nor alerted (double click, reload,
+  retry). The check and the cap run under the `inquiries` lock with the write, so concurrent posts cannot both pass.
 - **Stored**: investor type, interests, name, e-mail, optional phone / organisation / message, language, consent time
   and version (`CONSENT_VERSION`); never the IP address or user agent. Plain text (control and bidi-override characters
   removed), rendered escaped by React.
 - **Retention**: deleted 12 months after receipt (`RETENTION_DAYS`), by a 12-hour timer started in
   `src/instrumentation.ts` and on every admin listing. Privacy policy § 11 says so (pending compliance review).
-- **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website inquiry from <name> (<investor type>)" with a link to
+- **CSV export** (`GET /api/admin/inquiries/export`, `csv.ts`): UTF-8 with BOM, RFC 4180 quoting, cells starting with
+  `= + - @` / tab / CR prefixed with `'` (no formula injection in Excel).
+- **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website message from <name> (<investor type>)" with a link to
   the admin, after the response (`notify.ts`); never the e-mail, phone, organisation or message. Otherwise just stored.
 - Logs carry outcomes and error codes only, never a submitted field.
+- **Accessibility / no JavaScript**: labelled fields, errors as `role="alert"` next to their field (`aria-invalid`,
+  `aria-describedby`), focus moved to the first field to fix (or to the step / result heading), an `aria-live` status
+  for sending / sent. Without JavaScript the three steps are shown at once and the browser posts the form natively (same
+  endpoint, same guards, result shown after the redirect): the form works, it is not a "JavaScript required" message.
+- **Validation without zod** (judgement call): the API's admin routes use zod via `_lib/http.ts`, but the contact rules
+  are shared with the browser bundle and unit tested under plain Node (`npm test` has no install step), so they are a
+  dependency-free module; the body cap reuses `readBodyCapped` from the same `_lib`.
 
 ## Environment
 

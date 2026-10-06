@@ -15,9 +15,9 @@ export default async function InquiriesPage() {
   return (
     <>
       <Head
-        crumb="admin / inquiries"
-        title="inquiries"
-        lead="Messages sent with the /contact form, newest first. Answer from your own mailbox, then mark them handled. Use them only to answer the request (no marketing); each one is deleted automatically 12 months after it was received."
+        crumb="admin / messages"
+        title="messages"
+        lead="Messages sent with the /contact form, newest first. Answer from your own mailbox, then mark them handled; export them as CSV if needed (the file then holds personal information: keep it out of shared folders and delete it after use). Use them only to answer the request (no marketing); each one is deleted automatically 12 months after it was received."
       />
       <InquiriesManager initial={inquiries} />
     </>

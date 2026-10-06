@@ -69,16 +69,17 @@ the e2e tests and a localhost `PUBLIC_URL` in production are refused.
 - Uploaded files: PDF only (`%PDF-` magic bytes), ≤ 25 MB, sanitised names; served only while published, as
   `application/pdf` + `nosniff`, `Cache-Control: public, no-cache` + ETag.
 
-## Inquiries (contact form)
+## Messages (contact form)
 
-*Admin → inquiries* (`/admin/inquiries`) lists the messages sent with the public /contact form, newest first (filter
+*Admin → messages* (`/admin/inquiries`; the dashboard header shows the number of open messages) lists the messages sent with the public /contact form, newest first (filter
 open / handled / all): name, e-mail (reply link), phone, organisation, investor type, interests, language, consent time
 and message. Reply from your own mailbox, then **mark handled** (records who and when; "mark open" undoes it) or
-**delete** (confirm dialog, cannot be undone).
+**delete** (confirm dialog, cannot be undone). **Export CSV** downloads every stored message (the file then holds
+personal information: keep it out of shared folders and delete it after use).
 
 - Same protections as every admin page and API: Entra session re-verified by the proxy and by each page / route
-  (`GET /api/admin/inquiries`, `PATCH|DELETE /api/admin/inquiries/<id>`), CSRF rules on the mutations, strict ids.
-- Audit log: `inquiries.view` (count only) on every listing, `inquiry.handled` / `inquiry.reopened` / `inquiry.delete`
+  (`GET /api/admin/inquiries`, `GET /api/admin/inquiries/export`, `PATCH|DELETE /api/admin/inquiries/<id>`), CSRF rules on the mutations, strict ids.
+- Audit log: `inquiries.view` (count only) on every listing, `inquiries.export` (count only), `inquiry.handled` / `inquiry.reopened` / `inquiry.delete`
   with the inquiry id. The sender's details never go to the audit log, the server logs or the alerts channel (the Teams /
   JSON alert, when `PIPELINE_ALERT_WEBHOOK` is set, names the sender and investor type only).
 - Use: only to answer the request, never for marketing (privacy policy § 11). Each inquiry is deleted automatically 12

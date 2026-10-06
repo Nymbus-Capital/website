@@ -56,8 +56,8 @@ Commit trailers used so far (keep them):
   `--out` writes red masks of the changed pixels). **Refactor proofs use `--max-ratio=0`** (the default): two runs of the
   same commit are byte-identical, so any reported pixel is a real change.
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
-- **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 0 since § 5 B3: no warning may be added).
-  Fixing warnings → lower the cap in the same commit; never raise it.
+- **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 25 today: the React Compiler readiness
+  warnings). Fixing warnings → lower the cap in the same commit; never raise it.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
   the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
@@ -78,7 +78,7 @@ Everything is merged on `redesign/v3-keynote-live-data` and live. No feature bra
 
 | Area | Where | State |
 | --- | --- | --- |
-| Public pages | `src/app/(site)/**`, `src/components/site/**` | home (Science at scale, engines band), strategies, core concepts, approach, sustainability, team, solutions, contact (mailto), legal, privacy, 404; EN/FR |
+| Public pages | `src/app/(site)/**`, `src/components/site/**` | home (Science at scale, engines band), strategies, core concepts, approach, sustainability, team, solutions, contact (form sent to the site on branch `feat/contact-form`, mailto on the main branch until merged), legal, privacy, 404; EN/FR |
 | Fund pages | `src/app/(site)/strategies/[slug]`, `src/components/fund/**` | 4 funds; every active CAD series with its own returns (§ 5 B1 for Multi-Strategy), awards (Morningstar, Fundata, RBC), disclosures last and collapsed (performance qualifiers visible) |
 | Data pipeline | `src/lib/pipeline/**`, scheduler `src/instrumentation.ts` | dataplatform main endpoints only (+ analytics history, factsheet archives); runs 06:45 / 12:45 / 18:45 Toronto with catch-up and one retry; publish mode **review** |
 | Monitoring | `src/lib/pipeline/{alerts,monitor,freshness}.ts`, `GET /api/status` | deduped Teams / JSON alerts — **no webhook configured yet** (§ 5 A2) |
@@ -159,26 +159,40 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    (≈ 500 lines) left whole while B1 changes it; `fund.copy.ts` and `data/types.ts` (≈ 530 lines each) are copy / the
    data contract and read best in one file; references to `build.ts` in `config.ts` comments left (CLASS_CHECKS is being
    changed on another branch).
-3. **React Compiler readiness** — done on branch `chore/react-compiler-warnings` (not merged, 2026-10-06): the 25 lint
-   warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`) fixed with no rendered change, CI cap 25 → 0.
-   Patterns: values derived during render (Breakdowns arc starts, Nav closes on a path change, Tip keeps the last tip,
-   Odometer decides its roll once), browser values read after hydration through `useMountValue` /
-   `useNoObserver` (`useSyncExternalStore`, `components/motion/motion.tsx`), language refs synced in a layout effect
-   (ConceptPanel, overlay), no ref written during render (Team bio, Contact steps, chart `hostRef`). The frozen
-   AnalysisScan still writes its language ref during render: one `eslint-disable react-hooks/refs` line right before
-   `export function AnalysisScan()` (outside the hashed slice, covers only the panel to the end of fx.tsx).
+3. **React Compiler readiness**: the 25 lint warnings (`react-hooks/refs`, `set-state-in-effect`, `immutability`);
+   lower the `--max-warnings` cap as they go.
 4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
    variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
-5. Nice to have: contact form backend (mailto today), team LinkedIn in the WordPress team modal, fund managers from
-   WordPress, News in the navigation.
+5. Nice to have: ~~contact form backend~~ [done 2026-10-06, branch `feat/contact-form`, not merged: `POST /api/contact`
+   (JS + no-JS), messages on the data volume, `/admin/inquiries` (messages: mark handled, delete, CSV export, open count
+   on the dashboard), duplicate suppression, 12-month retention, Teams alert with name + investor type only; privacy § 11
+   and `docs/compliance-review.md` CF1–CF5 to review], ~~team LinkedIn in the team modal~~
+   (already rendered from `team.ts` / WordPress `linkedin`, e2e-tested), fund managers from WordPress, News in the
+   navigation.
 
 ## 6. Session log
 
-- 2026-10-06 (sub-agent, branch `chore/react-compiler-warnings`, **not merged**): § 5 B3 — lint warnings 25 → 0, CI
-  `--max-warnings=0`; the frozen AnalysisScan keeps its render-time language ref under a region disable placed outside
-  the hashed slice. Visual proof: baseline run 264 (empty `[ci-logs]` commit on `5b2f067`) vs the final run,
-  `scripts/visual-diff.mjs --max-ratio=0` vs run 268 (`7787479`): visual 44, visual-fr 6, visual-motion 10 images,
-  all byte-identical (0 changed).
+- 2026-10-06 (sub-agent, branch `feat/contact-form`; **not merged**): § 5 B5 contact form backend, no e-mail service and
+  no new credential or env var. The three-step form (unchanged design) now posts to `POST /api/contact` (JSON with
+  JavaScript; native urlencoded post + 303 back to `/contact?sent=1|error=<code>` without), with a required consent tile
+  (link to /privacy), sending / sent / error states (error keeps the form and offers a prepared mailto:), an aria-live
+  status and focus on the result. Guards (`src/lib/contact/`): same origin (Origin/Referer = `PUBLIC_URL`,
+  Sec-Fetch-Site), 5 attempts / 15 min per client (rightmost non-internal X-Forwarded-For), 16 KB, strict shared field
+  rules (pure module, no zod, so `npm test` stays install-free), honeypot + HMAC form timing token (≥ 3 s, ≤ 7 days;
+  bots get a fake 200), 40 stored / hour site-wide, 5 000 cap. One JSON file per inquiry (`inquiries/<id>.json`), no IP
+  kept, purged 12 months after receipt (12-hour timer + every admin listing). Admin `/admin/inquiries` (rail item):
+  newest first, filter, mark handled / open, delete; audit `inquiries.view` (count), `inquiry.handled|reopened|delete`
+  (id only). Privacy policy § 11 added (flagged for review), compliance CF1–CF4. Team LinkedIn: already in the bio
+  dialog, nothing to do. Word budget for /contact 295 → 305 (consent + states). Second pass (same day, sub-agent): an
+  identical message within 24 h is answered OK but stored / alerted once (check + cap + write under the `inquiries`
+  lock); admin renamed "messages" (route unchanged), CSV export (`/api/admin/inquiries/export`, formula cells
+  neutralised, audited `inquiries.export`), open-message count on the dashboard, alert "New website message from …";
+  focus moves to the first field to fix; e2e: French success, focus, duplicate, CSV; `docs/deploy.md` § Contact form
+  (nothing to configure), compliance CF5 (export). Judgement calls: no zod (shared browser / plain-Node module), "I am"
+  kept as the page's four investor types (individuals under "Other"), in-memory per-client limit (single instance).
+  Independent adversarial review by separate reviewer agents still to run (none available to the sub-agent; self-review
+  only).
+
 - 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
   a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
   independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
