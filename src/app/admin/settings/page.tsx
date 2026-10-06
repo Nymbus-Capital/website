@@ -6,6 +6,7 @@ import { when } from "@/components/admin/format";
 import { BrandAssetsManager } from "@/components/admin/BrandAssetsManager";
 import { policyMonths } from "@/lib/rankings/policy";
 import { brandRows } from "../_lib/rankings";
+import { retentionDaysOf } from "@/lib/contact/store";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function SettingsPage() {
   return (
     <>
       <Head crumb="admin / settings" title="site settings" lead={<>Firm-wide texts and how pipeline runs reach the site. Content v{c.version}{c.version ? `, last saved ${when(c.updatedAt)} by ${c.updatedBy}` : ""}.</>} />
-      <SettingsForm key={c.version} version={c.version} firm={c.firm} publishMode={c.pipeline.publishMode} maxAgeMonths={policyMonths(c)} />
+      <SettingsForm key={c.version} version={c.version} firm={c.firm} publishMode={c.pipeline.publishMode} maxAgeMonths={policyMonths(c)} retentionDays={retentionDaysOf(c)} />
       <BrandAssetsManager rows={rows} />
     </>
   );

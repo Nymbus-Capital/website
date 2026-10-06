@@ -579,7 +579,7 @@ test.describe("admin flows", () => {
     const name = `E2E Admin ${info.project.name}`;
     const post = () => request.post("/api/contact", {
       headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a::2" : "2001:db8:a::1" },
-      data: JSON.stringify({ profile: "Institutional investor", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "=E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
+      data: JSON.stringify({ profile: "Institution", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "=E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
     });
     expect((await post()).status()).toBe(200);
     // the same message sent again (double click, reload) answers OK but is stored once (checked below: one card)
@@ -589,6 +589,7 @@ test.describe("admin flows", () => {
     page.on("dialog", (d) => { dialogs.push(d.message()); void d.dismiss(); });
     expect((await page.goto("/admin/inquiries"))?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: "messages" })).toBeVisible();
+    await expect(page.locator("#admin-main")).toContainText("deleted automatically 180 days after it was received");
     const list = page.getByTestId("inquiries");
     await list.getByLabel("filter by status").selectOption("all");
     // the public tests' inquiries are there (with and without JavaScript), the bots' never are

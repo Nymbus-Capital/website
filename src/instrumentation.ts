@@ -29,7 +29,7 @@ export async function register(): Promise<void> {
       } catch (e: unknown) {
         console.log(`[rankings] freshness check not started: ${(e as Error)?.message ?? e}`);
       }
-      // website inquiries (contact form): deleted 12 months after receipt
+      // website inquiries (contact form): deleted after the configured retention (default 180 days)
       try {
         const { startInquiryRetention } = await import("./lib/contact/retention.ts");
         startInquiryRetention();

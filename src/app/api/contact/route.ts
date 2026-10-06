@@ -8,13 +8,13 @@
  * fake success and nothing is stored), field validation (src/lib/contact/validate.ts), a site-wide limit on stored
  * inquiries (40 / hour) and a hard cap on the volume. The inquiry is then stored (an identical one received in the last
  * 24 hours is not stored again nor alerted: double clicks, reloads) (src/lib/contact/store.ts) and, when a
- * webhook is configured, an alert naming only the sender and investor type is posted after the response.
+ * webhook is configured, an alert naming only the sender's first name and profile is posted after the response.
  * Logs never carry the submitted fields.
  */
 import { after, type NextRequest } from "next/server";
 import { PUBLIC_FUNDS } from "@/config/funds-public";
 import { checkSameOrigin, clientKey, contactLimiter } from "@/lib/contact/guards";
-import { checkFormToken } from "@/lib/contact/token";
+import { screenSubmission } from "@/lib/contact/token";
 import { EXTRA_INTERESTS, fromForm, fromJson, validateSubmission, type InquiryField, type RawSubmission } from "@/lib/contact/validate";
 import { InquiryStoreFullError, saveInquiry } from "@/lib/contact/store";
 import { notifyInquiry } from "@/lib/contact/notify";
@@ -71,17 +71,14 @@ export async function POST(req: NextRequest) {
   }
   if (!raw) return fail("invalid_input");
 
-  // automated submissions: answered like a success so the script learns nothing; nothing stored or sent
-  if (raw.honeypot.trim()) {
-    console.log("[contact] submission filtered (honeypot)");
+  // automated submissions (honeypot, forged or too fast timing token): answered like a success so the script learns
+  // nothing; nothing stored or sent
+  const screen = screenSubmission(raw);
+  if (screen === "bot") {
+    console.log("[contact] submission filtered (honeypot or timing token)");
     return done();
   }
-  const timing = checkFormToken(raw.token);
-  if (timing === "invalid" || timing === "too-fast") {
-    console.log(`[contact] submission filtered (token ${timing})`);
-    return done();
-  }
-  if (timing === "expired") return fail("expired");
+  if (screen === "expired") return fail("expired");
 
   const v = validateSubmission(raw, ALLOWED_INTERESTS);
   if (!v.ok) return fail("invalid_input", v.fields);

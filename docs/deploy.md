@@ -132,11 +132,11 @@ works with the default generic format.
 
 **Nothing to configure.** The form needs only what the site already has: `PUBLIC_URL` (same-origin check; without it
 the form answers 503 and the page offers the e-mail address instead), `AUTH_SECRET` (or the volume secret that replaces
-it: key of the form timing token) and the data volume (one JSON file per message under `inquiries/`, deleted 12 months
-after receipt). There is no e-mail service, SMTP account or third-party anti-spam service.
+it: key of the form timing token) and the data volume (one JSON file per message under `inquiries/`, deleted 180 days
+after receipt by default — *Admin → settings*, 30 to 180). There is no e-mail service, SMTP account or third-party anti-spam service.
 
-- *Optional*: with `PIPELINE_ALERT_WEBHOOK` set (above), each new message posts "New website message from <name>
-  (<investor type>)" with a link to `/admin/inquiries`, never the e-mail address, phone, organisation or message.
+- *Optional*: with `PIPELINE_ALERT_WEBHOOK` set (above), each new message posts "New website inquiry: <first name>
+  (<profile>)" with a link to `/admin/inquiries`, never the last name, e-mail address, phone, organisation or message.
   Without it nothing is sent: the dashboard shows the number of open messages.
 - The per-client rate limit (5 attempts / 15 min) is kept in memory: right for the **one instance** above (a restart
   resets it; the site-wide cap of 40 stored messages / hour and the 5 000-message hard cap still bound a flood).

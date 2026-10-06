@@ -47,7 +47,7 @@ test("people: initials never carry a numeric suffix (the old site showed 'JL2')"
 
 /* ------------------------------------------------------------------ contact form */
 
-const OK: Inquiry = { profile: "Family office", interests: ["Monthly Income"], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
+const OK: Inquiry = { profile: "Individual investor", interests: ["Monthly Income"], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
 
 test("inquiry: each step validates its own fields", () => {
   const empty: Inquiry = { profile: "", interests: [], name: "", email: "" };
@@ -71,8 +71,8 @@ test("inquiry: email pattern", () => {
 
 test("inquiry: prepared email in the visitor's language, optional lines omitted", () => {
   const en = inquiryEmail(OK, "en");
-  assert.equal(en.subject, "Website inquiry · Family office · Test Person");
-  assert.match(en.body, /^Hello\n\n—\nName: Test Person\nEmail: test@example.com\nInvestor profile: Family office\nInterested in: Monthly Income$/);
+  assert.equal(en.subject, "Website inquiry · Individual investor · Test Person");
+  assert.match(en.body, /^Hello\n\n—\nName: Test Person\nEmail: test@example.com\nInvestor profile: Individual investor\nInterested in: Monthly Income$/);
   assert.ok(!/Phone|Organization/.test(en.body));
   const fr = inquiryEmail({ ...OK, company: "ACME" }, "fr");
   assert.match(fr.subject, /^Demande du site Web/);

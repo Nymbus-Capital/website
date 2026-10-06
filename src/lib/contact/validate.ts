@@ -6,7 +6,8 @@
  * interpreted as HTML (the admin renders them through React, which escapes them; the Teams alert escapes Markdown).
  */
 
-export const PROFILE_VALUES = ["Institutional investor", "Family office", "Financial advisor", "Other"] as const;
+/** "I am": financial advisor, institution (family offices included), individual investor, other. Stored in English. */
+export const PROFILE_VALUES = ["Financial advisor", "Institution", "Individual investor", "Other"] as const;
 export type Profile = (typeof PROFILE_VALUES)[number];
 
 /** interests that are not a fund (the fund names come from the public fund list) */

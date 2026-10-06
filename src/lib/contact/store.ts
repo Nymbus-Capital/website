@@ -4,15 +4,33 @@
  *   inquiries/<id>.json      InquiryRecord (id = store.newId(): `20261006T143000-1a2b3c4d`, sortable by time)
  *
  * Written atomically (temp file + rename). Mark handled / delete / retention purge run under one lock so a delete is never
- * undone by a concurrent "mark handled". Retention: RETENTION_DAYS after receipt the file is deleted (purge on a daily
- * timer, see retention.ts, and whenever the admin lists them). No IP address, user agent or tracking data is kept.
+ * undone by a concurrent "mark handled". Retention: the admin setting `inquiryPolicy.retentionDays` (default 180, between
+ * RETENTION_MIN_DAYS and RETENTION_MAX_DAYS; the privacy policy states the maximum) after receipt the file is deleted
+ * (purge on a 12-hour timer, see retention.ts, and whenever the admin lists them). No IP address, user agent or tracking data is kept.
  * Dependency-free (Node built-ins + relative `.ts` imports), unit tested under plain Node.
  */
 import { listDir, newId, readJson, removePath, withLock, writeJson } from "../data/store.ts";
 import type { CleanInquiry } from "./validate.ts";
 
 export const INQUIRY_DIR = "inquiries";
-export const RETENTION_DAYS = 365;
+/** default retention, and its bounds: the privacy policy (section 11) promises deletion within RETENTION_MAX_DAYS */
+export const RETENTION_DAYS = 180;
+export const RETENTION_MIN_DAYS = 30;
+export const RETENTION_MAX_DAYS = 180;
+const CONTENT_FILE = ["content", "site-content.json"];
+
+/** Retention in days from the stored settings: the default when unset, clamped to the bounds. */
+export function retentionDaysOf(content: { inquiryPolicy?: { retentionDays?: unknown } } | null | undefined): number {
+  const d = content?.inquiryPolicy?.retentionDays;
+  if (typeof d !== "number" || !Number.isFinite(d)) return RETENTION_DAYS;
+  return Math.min(RETENTION_MAX_DAYS, Math.max(RETENTION_MIN_DAYS, Math.trunc(d)));
+}
+
+/** The configured retention (admin settings on the volume; the default when unreadable). */
+export async function configuredRetentionDays(): Promise<number> {
+  const c = await readJson<{ inquiryPolicy?: { retentionDays?: unknown } } | null>(CONTENT_FILE, null).catch(() => null);
+  return retentionDaysOf(c);
+}
 /** hard cap of stored inquiries (a flood cannot fill the volume); new ones are refused past it */
 export const MAX_STORED = 5000;
 /** version of the consent sentence shown next to the checkbox (contact.copy.ts `consent`) */
@@ -129,8 +147,9 @@ function receivedMs(id: string, rec: InquiryRecord | null): number {
   return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
 }
 
-/** Delete inquiries received more than RETENTION_DAYS ago; returns how many were deleted. */
-export function purgeExpiredInquiries(now = new Date(), days = RETENTION_DAYS): Promise<number> {
+/** Delete inquiries received more than `days` ago (default: the configured retention); returns how many were deleted. */
+export async function purgeExpiredInquiries(now = new Date(), days?: number): Promise<number> {
+  if (days === undefined) days = await configuredRetentionDays();
   return locked(async () => {
     const limit = now.getTime() - days * 86_400_000;
     let n = 0;

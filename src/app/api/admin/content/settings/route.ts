@@ -1,4 +1,4 @@
-/** PUT /api/admin/content/settings { version, firm, publishMode, rankingPolicy? } — firm-wide texts, the pipeline publish mode, the rankings staleness limit. */
+/** PUT /api/admin/content/settings { version, firm, publishMode, rankingPolicy?, inquiryPolicy? } — firm-wide texts, the pipeline publish mode, the rankings staleness limit, the contact messages' retention. */
 import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
 import { updateContent } from "@/lib/data/content";
@@ -27,12 +27,12 @@ export async function PUT(request: NextRequest) {
     const saved = await updateContent(
       body.version,
       (cur) => {
-        before = { firm: cur.firm, pipeline: cur.pipeline, rankingPolicy: cur.rankingPolicy };
-        return { ...cur, firm, pipeline: { ...cur.pipeline, publishMode: body.publishMode }, ...(body.rankingPolicy ? { rankingPolicy: body.rankingPolicy } : {}) };
+        before = { firm: cur.firm, pipeline: cur.pipeline, rankingPolicy: cur.rankingPolicy, inquiryPolicy: cur.inquiryPolicy };
+        return { ...cur, firm, pipeline: { ...cur.pipeline, publishMode: body.publishMode }, ...(body.rankingPolicy ? { rankingPolicy: body.rankingPolicy } : {}), ...(body.inquiryPolicy ? { inquiryPolicy: body.inquiryPolicy } : {}) };
       },
       user.email,
     );
-    await audit({ by: user.email, action: "content.settings.save", detail: { version: saved.version, before, after: { firm, pipeline: saved.pipeline, rankingPolicy: saved.rankingPolicy } } });
+    await audit({ by: user.email, action: "content.settings.save", detail: { version: saved.version, before, after: { firm, pipeline: saved.pipeline, rankingPolicy: saved.rankingPolicy, inquiryPolicy: saved.inquiryPolicy } } });
     return ok({ content: saved });
   } catch (e) {
     return contentError("content.settings", e);

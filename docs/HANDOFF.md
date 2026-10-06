@@ -165,12 +165,25 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
 5. Nice to have: ~~contact form backend~~ [done 2026-10-06, branch `feat/contact-form`, not merged: `POST /api/contact`
    (JS + no-JS), messages on the data volume, `/admin/inquiries` (messages: mark handled, delete, CSV export, open count
-   on the dashboard), duplicate suppression, 12-month retention, Teams alert with name + investor type only; privacy § 11
-   and `docs/compliance-review.md` CF1–CF5 to review], ~~team LinkedIn in the team modal~~
+   on the dashboard), duplicate suppression, retention set in admin settings (default 180 days, 30–180), Teams alert with
+   first name + profile only; "I am" = advisor / institution / individual investor / other; privacy § 11 and
+   `docs/compliance-review.md` CF1–CF8 to review], ~~team LinkedIn in the team modal~~
    (already rendered from `team.ts` / WordPress `linkedin`, e2e-tested), fund managers from WordPress, News in the
    navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (sub-agent, branch `feat/contact-form`, third pass; **not merged**): contact form brought to the brief.
+  "I am" choices = financial advisor / institution (family offices in its description) / individual investor / other
+  (step "Profile"); the Teams / JSON notice carries the **first name** and profile only ("New website inquiry: <first
+  name> (<profile>)" + admin link); retention is an admin setting `inquiryPolicy.retentionDays` (default **180**, clamped
+  30–180 because privacy § 11 now says "no later than 180 days"), purged by the existing 12-hour retention timer (kept
+  separate from the pipeline scheduler, which `PIPELINE_SCHEDULE=off` stops) and on every admin listing; honeypot /
+  timing screen extracted to `screenSubmission` (unit-tested). Privacy § 11 EN/FR updated (first name, profile list,
+  180 days); compliance CF2 amended, CF6 (individual investors), CF7 (Teams notice), CF8 (retention) added. Decisions
+  kept from the earlier passes: no zod in the shared rule module (plain-Node tests, browser bundle), native no-JS post
+  with 303 back (mailto stays as the alternative and as the fallback on failure), in-memory per-client limiter (single
+  instance).
 
 - 2026-10-06 (sub-agent, branch `feat/contact-form`; **not merged**): § 5 B5 contact form backend, no e-mail service and
   no new credential or env var. The three-step form (unchanged design) now posts to `POST /api/contact` (JSON with

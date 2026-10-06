@@ -22,7 +22,7 @@ async function save(v: Parameters<typeof store.saveInquiry>[0], now?: Date, max?
   return r.record;
 }
 
-const V = { profile: "Family office" as const, interests: ["General inquiry"], name: "Test Person", email: "test@example.com", message: "Hello <b>there</b>", lang: "en" as const };
+const V = { profile: "Individual investor" as const, interests: ["General inquiry"], name: "Test Person", email: "test@example.com", message: "Hello <b>there</b>", lang: "en" as const };
 
 test("store: save, list newest first, get, ids are validated", async () => {
   const a = await save(V, new Date("2026-10-01T10:00:00Z"));
@@ -55,34 +55,53 @@ test("store: mark handled / open again, delete; a deleted inquiry is never broug
   assert.equal(await store.deleteInquiry(r.id), null);
 });
 
-test("retention: inquiries older than 12 months are purged, damaged files too (by the date in their id)", async () => {
-  const now = new Date("2027-10-06T12:00:00Z");
-  const old = await save(V, new Date("2026-10-05T12:00:00Z"));
-  const recent = await save(V, new Date("2026-10-07T12:00:00Z"));
+test("retention: inquiries older than 180 days (default) are purged, damaged files too (by the date in their id)", async () => {
+  const now = new Date("2027-04-04T12:00:00Z");
+  const old = await save(V, new Date("2026-10-05T12:00:00Z")); // 181 days before
+  const recent = await save(V, new Date("2026-10-07T12:00:00Z")); // 179 days before
   mkdirSync(path.join(dir, "inquiries"), { recursive: true });
   writeFileSync(path.join(dir, "inquiries", "20250101T000000-0123abcd.json"), "{ damaged");
   writeFileSync(path.join(dir, "inquiries", "notes.txt"), "not an inquiry");
+  assert.equal(store.RETENTION_DAYS, 180);
+  assert.equal(await store.configuredRetentionDays(), 180, "no settings stored: the default");
   assert.equal(await store.purgeExpiredInquiries(now), 2);
   assert.equal(await store.getInquiry(old.id), null);
   assert.ok(await store.getInquiry(recent.id));
-  assert.equal(store.RETENTION_DAYS, 365);
   assert.equal(await store.purgeExpiredInquiries(now), 0);
-  await store.deleteInquiry(recent.id);
+  // a shorter retention set in the admin settings applies on the next purge
+  mkdirSync(path.join(dir, "content"), { recursive: true });
+  writeFileSync(path.join(dir, "content", "site-content.json"), JSON.stringify({ version: 1, inquiryPolicy: { retentionDays: 30 } }));
+  assert.equal(await store.configuredRetentionDays(), 30);
+  assert.equal(await store.purgeExpiredInquiries(now), 1);
+  assert.equal(await store.getInquiry(recent.id), null);
+  rmSync(path.join(dir, "content"), { recursive: true, force: true });
 });
 
-test("alert: only the name and investor type, a link to the admin; off without a webhook", async () => {
-  const r = await save({ ...V, phone: "514 555 0100", company: "Secret Co" });
+test("retention: the setting is clamped to 30-180 days (the privacy policy promises at most 180)", () => {
+  assert.equal(store.retentionDaysOf(null), 180);
+  assert.equal(store.retentionDaysOf({}), 180);
+  assert.equal(store.retentionDaysOf({ inquiryPolicy: { retentionDays: 90 } }), 90);
+  assert.equal(store.retentionDaysOf({ inquiryPolicy: { retentionDays: 365 } }), 180);
+  assert.equal(store.retentionDaysOf({ inquiryPolicy: { retentionDays: 1 } }), 30);
+  assert.equal(store.retentionDaysOf({ inquiryPolicy: { retentionDays: "10" } }), 180);
+  assert.equal(store.retentionDaysOf({ inquiryPolicy: { retentionDays: Number.NaN } }), 180);
+  assert.equal(store.RETENTION_MAX_DAYS, 180);
+});
+
+test("alert: only the first name and profile, a link to the admin; off without a webhook", async () => {
+  const r = await save({ ...V, name: "Test Person-Surname", phone: "514 555 0100", company: "Secret Co" });
   const msg = inquiryAlert(r);
-  assert.equal(msg.title, "New website message from Test Person (Family office)");
+  assert.equal(msg.title, "New website inquiry: Test (Individual investor)");
   assert.equal(msg.adminPath, "/admin/inquiries");
   const body = JSON.stringify([alertPayload(msg, "teams", { PUBLIC_URL: "https://www.nymbus.ca" }), alertPayload(msg, "json", {})]);
-  for (const secret of ["test@example.com", "Hello", "514 555 0100", "Secret Co", "General inquiry"]) assert.ok(!body.includes(secret), secret);
+  for (const secret of ["test@example.com", "Hello", "there", "514 555 0100", "Secret Co", "General inquiry", "Person"]) assert.ok(!body.includes(secret), secret);
   assert.equal(await notifyInquiry(r, { env: {} }), "off");
   let posted: unknown = null;
   const fetchImpl = (async (_u: string, init: { body: string }) => { posted = JSON.parse(init.body); return new Response(null, { status: 200 }); }) as unknown as typeof fetch;
   assert.equal(await notifyInquiry(r, { env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" }, fetchImpl, delays: [] }), "sent");
-  assert.ok(JSON.stringify(posted).includes("Test Person"));
-  assert.ok(!JSON.stringify(posted).includes("test@example.com"));
+  const sent = JSON.stringify(posted);
+  assert.ok(sent.includes("Test") && sent.includes("/admin/inquiries"));
+  for (const secret of ["test@example.com", "Hello", "Person", "Secret Co", "514 555 0100"]) assert.ok(!sent.includes(secret), secret);
   await store.deleteInquiry(r.id);
 });
 

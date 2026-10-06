@@ -72,7 +72,7 @@ the e2e tests and a localhost `PUBLIC_URL` in production are refused.
 ## Messages (contact form)
 
 *Admin → messages* (`/admin/inquiries`; the dashboard header shows the number of open messages) lists the messages sent with the public /contact form, newest first (filter
-open / handled / all): name, e-mail (reply link), phone, organisation, investor type, interests, language, consent time
+open / handled / all; an open message is the "unread" marker): name, e-mail (reply link), phone, organisation, profile (financial advisor / institution / individual investor / other), interests, language, consent time
 and message. Reply from your own mailbox, then **mark handled** (records who and when; "mark open" undoes it) or
 **delete** (confirm dialog, cannot be undone). **Export CSV** downloads every stored message (the file then holds
 personal information: keep it out of shared folders and delete it after use).
@@ -81,7 +81,8 @@ personal information: keep it out of shared folders and delete it after use).
   (`GET /api/admin/inquiries`, `GET /api/admin/inquiries/export`, `PATCH|DELETE /api/admin/inquiries/<id>`), CSRF rules on the mutations, strict ids.
 - Audit log: `inquiries.view` (count only) on every listing, `inquiries.export` (count only), `inquiry.handled` / `inquiry.reopened` / `inquiry.delete`
   with the inquiry id. The sender's details never go to the audit log, the server logs or the alerts channel (the Teams /
-  JSON alert, when `PIPELINE_ALERT_WEBHOOK` is set, names the sender and investor type only).
-- Use: only to answer the request, never for marketing (privacy policy § 11). Each inquiry is deleted automatically 12
-  months after it was received.
+  JSON alert, when `PIPELINE_ALERT_WEBHOOK` is set, names the sender's first name and profile only, with a link here).
+- Use: only to answer the request, never for marketing (privacy policy § 11). Each inquiry is deleted automatically
+  after the retention set in *Admin → settings* ("delete contact messages after (days)": default 180, between 30 and
+  180, because the privacy policy promises deletion within 180 days; a longer period needs a policy change first).
 - Storage, guards and retention: `docs/architecture.md` § Contact form.

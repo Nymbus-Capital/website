@@ -82,7 +82,7 @@ export function InquiriesManager({ initial }: { initial: InquiryRecord[] }) {
                 <dd><a className="adm-link" href={`mailto:${r.email}`}>{r.email}</a></dd>
                 {r.phone ? <><dt>phone</dt><dd>{r.phone}</dd></> : null}
                 {r.company ? <><dt>organisation</dt><dd>{r.company}</dd></> : null}
-                <dt>investor type</dt>
+                <dt>profile</dt>
                 <dd>{r.profile}</dd>
                 <dt>interests</dt>
                 <dd>{r.interests.join(", ")}</dd>

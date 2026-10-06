@@ -5,7 +5,7 @@ import { CT } from "../../../src/components/site/pages/contact.copy.ts";
 import { PUBLIC_FUNDS } from "../../../src/config/funds-public.ts";
 
 const ALLOWED = [...PUBLIC_FUNDS.map((f) => f.short.en), ...EXTRA_INTERESTS];
-const OK = { profile: "Family office", interests: [ALLOWED[0]], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
+const OK = { profile: "Individual investor", interests: [ALLOWED[0]], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
 const raw = (o: Partial<typeof OK> = {}, extra: Partial<RawSubmission> = {}): RawSubmission => ({ input: { ...OK, ...o }, honeypot: "", token: "", lang: "en", ...extra });
 
 test("contact: the page's investor types and interests are the ones the server accepts", () => {

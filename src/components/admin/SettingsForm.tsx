@@ -8,7 +8,7 @@ import type { L } from "@/lib/i18n/config";
 
 const E: L = { en: "", fr: "" };
 
-export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths: m0 = 6 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review"; maxAgeMonths?: number }) {
+export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths: m0 = 6, retentionDays: r0 = 180 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review"; maxAgeMonths?: number; retentionDays?: number }) {
   const [version, setVersion] = useState(v0);
   const [aumLabel, setAum] = useState<L>(firm.aumLabel ?? E);
   const [bannerOn, setBannerOn] = useState(!!firm.announcement);
@@ -16,6 +16,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
   const [disclaimer, setDisc] = useState<L>(firm.disclaimer ?? E);
   const [publishMode, setPm] = useState(pm0);
   const [maxAge, setMaxAge] = useState(String(m0));
+  const [retention, setRetention] = useState(String(r0));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
@@ -28,7 +29,7 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
     try {
       const r = await api<{ content: { version: number } }>("/api/admin/content/settings", {
         method: "PUT",
-        json: { version, firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer }, publishMode, rankingPolicy: { maxAgeMonths: Math.min(24, Math.max(1, Math.trunc(Number(maxAge)) || 6)) } },
+        json: { version, firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer }, publishMode, rankingPolicy: { maxAgeMonths: Math.min(24, Math.max(1, Math.trunc(Number(maxAge)) || 6)) }, inquiryPolicy: { retentionDays: Math.min(180, Math.max(30, Math.trunc(Number(retention)) || 180)) } },
       });
       setVersion(r.content.version);
       toast("ok", `Saved (content v${r.content.version}).`);
@@ -70,6 +71,11 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
           <span>hide third-party rankings older than (months)</span>
           <input className="adm-input" type="number" min={1} max={24} step={1} value={maxAge} onChange={(e) => setMaxAge(e.target.value)} data-testid="rankings-max-age" />
           <span className="adm-small">Morningstar, Fundata, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.</span>
+        </label>
+        <label className="adm-field">
+          <span>delete contact messages after (days)</span>
+          <input className="adm-input" type="number" min={30} max={180} step={1} value={retention} onChange={(e) => setRetention(e.target.value)} data-testid="inquiry-retention" />
+          <span className="adm-small">Messages sent with the /contact form are deleted automatically this many days after they were received (default 180, between 30 and 180: the privacy policy promises at most 180).</span>
         </label>
         <div className="adm-actions">
           <span className="adm-small">v{version}</span>

@@ -27,7 +27,7 @@ async function token(request: import("@playwright/test").APIRequestContext): Pro
 async function fillSteps(page: Page, name: string, fr = false) {
   const form = page.getByTestId("contact-form");
   const next = form.getByRole("button", { name: fr ? /^continuer/i : /^continue/i });
-  await form.getByText(fr ? "Bureau de gestion familiale" : "Family office", { exact: true }).click();
+  await form.getByText(fr ? "Particulier" : "Individual investor", { exact: true }).click();
   await next.click();
   await form.getByText(fr ? "Demande générale" : "General inquiry", { exact: true }).click();
   await next.click();
@@ -44,10 +44,10 @@ test("contact: three steps validated, consent required, sent to the site (EN)", 
   const form = page.getByTestId("contact-form");
   await form.scrollIntoViewIfNeeded();
   await expect(form).toHaveAttribute("data-live", "");
-  // step 1: an investor type is required
+  // step 1: a profile is required
   await form.getByRole("button", { name: /^continue/i }).click();
-  await expect(form.getByText("Please choose an investor type.")).toBeVisible();
-  await form.getByText("Family office", { exact: true }).click();
+  await expect(form.getByText("Please choose a profile.")).toBeVisible();
+  await form.getByText("Individual investor", { exact: true }).click();
   await form.getByRole("button", { name: /^continue/i }).click();
   // step 2: at least one interest
   await expect(form.getByRole("group", { name: /what are you interested in/i })).toBeVisible();

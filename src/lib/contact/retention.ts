@@ -1,8 +1,9 @@
 /**
- * Retention of the website inquiries: started by src/instrumentation.ts, deletes the inquiries older than
- * RETENTION_DAYS two minutes after start and then every 12 hours (the admin list purges too). Logs counts only.
+ * Retention of the website inquiries: started by src/instrumentation.ts, deletes the inquiries older than the configured
+ * retention (admin settings, default 180 days) two minutes after start and then every 12 hours (the admin list purges
+ * too). Its own timer, not the pipeline scheduler's: the purge must run even with PIPELINE_SCHEDULE=off. Logs counts only.
  */
-import { purgeExpiredInquiries, RETENTION_DAYS } from "./store.ts";
+import { purgeExpiredInquiries } from "./store.ts";
 
 const G = globalThis as typeof globalThis & { __nymbusInquiryRetention?: ReturnType<typeof setInterval> };
 
@@ -10,7 +11,7 @@ export function startInquiryRetention(log: (m: string) => void = (m) => console.
   if (G.__nymbusInquiryRetention) return;
   const tick = (): void => {
     purgeExpiredInquiries().then(
-      (n) => { if (n) log(`deleted ${n} inquir${n === 1 ? "y" : "ies"} older than ${RETENTION_DAYS} days`); },
+      (n) => { if (n) log(`deleted ${n} expired inquir${n === 1 ? "y" : "ies"}`); },
       (e: unknown) => log(`retention purge failed: ${(e as Error)?.message ?? e}`),
     );
   };

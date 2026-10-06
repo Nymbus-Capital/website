@@ -536,7 +536,7 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 
 ## Contact form (`src/lib/contact/`, `POST /api/contact`, `/admin/inquiries`)
 
-The /contact form (three steps: investor type, interests, contact details + consent) posts to `POST /api/contact`:
+The /contact form (three steps: profile — financial advisor, institution (family offices included), individual investor or other —, interests, contact details + consent) posts to `POST /api/contact`:
 JSON from the page with JavaScript, a native urlencoded form post without it (answered with a 303 to
 `/contact?sent=1` or `/contact?error=<code>`). No e-mail service and no new credential: each inquiry is a JSON file on
 the data volume (`inquiries/<id>.json`, atomic write), read and answered from the admin (`/admin/inquiries`: newest
@@ -554,15 +554,20 @@ dashboard shows the number of open messages).
 - **Duplicates**: an inquiry identical to one received in the last 24 hours (same e-mail, case-insensitive, name, type,
   interests, phone, organisation and message) is answered OK but not stored again nor alerted (double click, reload,
   retry). The check and the cap run under the `inquiries` lock with the write, so concurrent posts cannot both pass.
-- **Stored**: investor type, interests, name, e-mail, optional phone / organisation / message, language, consent time
+- **Stored**: profile, interests, name, e-mail, optional phone / organisation / message, language, consent time
   and version (`CONSENT_VERSION`); never the IP address or user agent. Plain text (control and bidi-override characters
   removed), rendered escaped by React.
-- **Retention**: deleted 12 months after receipt (`RETENTION_DAYS`), by a 12-hour timer started in
-  `src/instrumentation.ts` and on every admin listing. Privacy policy § 11 says so (pending compliance review).
+- **Retention**: deleted `inquiryPolicy.retentionDays` after receipt (admin settings; default 180, clamped to 30–180
+  because privacy policy § 11 promises deletion within 180 days — pending compliance review), by a 12-hour timer started
+  in `src/instrumentation.ts` (`retention.ts`) and on every admin listing. Its own timer rather than the pipeline
+  scheduler's tick: the scheduler is switched off by `PIPELINE_SCHEDULE=off`, and the deletion promised in the privacy
+  policy must not depend on the data pipeline being on.
 - **CSV export** (`GET /api/admin/inquiries/export`, `csv.ts`): UTF-8 with BOM, RFC 4180 quoting, cells starting with
   `= + - @` / tab / CR prefixed with `'` (no formula injection in Excel).
-- **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website message from <name> (<investor type>)" with a link to
-  the admin, after the response (`notify.ts`); never the e-mail, phone, organisation or message. Otherwise just stored.
+- **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website inquiry: <first name> (<profile>)" with a link to
+  `/admin/inquiries`, after the response (`notify.ts`, through `sendAlertNow` of the pipeline alerts: same Teams / JSON
+  format detection and retries); never the last name, e-mail, phone, organisation, interests or message (a Teams channel
+  keeps its history). Otherwise nothing is sent and the admin dashboard shows the open count.
 - Logs carry outcomes and error codes only, never a submitted field.
 - **Accessibility / no JavaScript**: labelled fields, errors as `role="alert"` next to their field (`aria-invalid`,
   `aria-describedby`), focus moved to the first field to fix (or to the step / result heading), an `aria-live` status

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import { checkFormToken, formKey, issueFormToken, MAX_AGE_MS, MIN_FILL_MS } from "../../../src/lib/contact/token.ts";
+import { checkFormToken, formKey, issueFormToken, MAX_AGE_MS, MIN_FILL_MS, screenSubmission } from "../../../src/lib/contact/token.ts";
 import { checkSameOrigin, clientKey, contactLimiter, isInternalAddress } from "../../../src/lib/contact/guards.ts";
 
 const KEY = crypto.randomBytes(32);
@@ -73,4 +73,17 @@ test("rate limit: per client within its window, site-wide on stored inquiries, b
   assert.ok(lim.takeGlobal(0) && lim.takeGlobal(1));
   assert.equal(lim.takeGlobal(2), false);
   assert.ok(lim.takeGlobal(5001));
+});
+
+test("screen: honeypot, forged or too fast token = bot (fake success); old page = expired; else ok", () => {
+  const t0 = Date.UTC(2026, 9, 6, 12);
+  const token = issueFormToken(t0, KEY);
+  const later = t0 + 20_000;
+  assert.equal(screenSubmission({ honeypot: "", token }, later, KEY), "ok");
+  assert.equal(screenSubmission({ honeypot: "  ", token }, later, KEY), "ok", "whitespace only is not a filled honeypot");
+  assert.equal(screenSubmission({ honeypot: "https://spam.example", token }, later, KEY), "bot");
+  assert.equal(screenSubmission({ honeypot: "", token }, t0 + 1_000, KEY), "bot", "faster than a person");
+  assert.equal(screenSubmission({ honeypot: "", token: "v1.abc.forged" }, later, KEY), "bot");
+  assert.equal(screenSubmission({ honeypot: "", token: "" }, later, KEY), "bot");
+  assert.equal(screenSubmission({ honeypot: "", token }, t0 + MAX_AGE_MS + 1, KEY), "expired");
 });

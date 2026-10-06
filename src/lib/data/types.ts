@@ -530,4 +530,6 @@ export interface SiteContent {
   compliance?: { approvedAt: string; approvedBy: string; textsHash: string } | null;
   /** third-party rankings: an entry whose as-of date is older than `maxAgeMonths` is hidden (default 6) */
   rankingPolicy?: { maxAgeMonths: number };
+  /** contact form messages: deleted `retentionDays` after receipt (default 180, 30-180; src/lib/contact/store.ts) */
+  inquiryPolicy?: { retentionDays: number };
 }
