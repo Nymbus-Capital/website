@@ -12,9 +12,8 @@ export default defineConfig([
       "no-control-regex": "error",
       // `_`-prefixed names are deliberately unused (destructuring something away, placeholder parameters)
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
-      // React Compiler readiness rules: the compiler is not enabled. The flagged patterns are deliberate (window state read
-      // after hydration in an effect, the last shown value kept in a ref, chart hosts measured by a hook) and are kept as
-      // warnings until a refactor can prove the same rendering
+      // React Compiler readiness rules: the compiler is not enabled. Warnings, not errors, only for the one left in the frozen
+      // Science at scale panel (fx.tsx AnalysisScan: the language ref written during render; tests/unit/site/scan-frozen.test.ts)
       "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/immutability": "warn",

@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
-import { useInView } from "@/components/motion/motion";
+import { useInView, useMountValue } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
@@ -29,18 +29,16 @@ const EMPTY: Inquiry = { profile: "", interests: [], name: "", email: "", phone:
 function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
   const { locale, pick } = useTranslation();
   const F = CT.form;
-  const [live, setLive] = useState(false);
+  const live = useMountValue(() => true, false); // the steps show one at a time once the script runs
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [q, setQ] = useState<Inquiry>(EMPTY);
   const [errs, setErrs] = useState<InquiryErrors>({});
   const [ready, setReady] = useState<string | null>(null);
-  const stepRefs = [useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null)];
+  const step1Ref = useRef<HTMLFieldSetElement>(null), step2Ref = useRef<HTMLFieldSetElement>(null), step3Ref = useRef<HTMLFieldSetElement>(null);
   const moved = useRef(false);
-  useEffect(() => { setLive(true); }, []);
   useEffect(() => {
     if (!moved.current) return;
-    stepRefs[step - 1].current?.focus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step1Ref, step2Ref, step3Ref][step - 1].current?.focus();
   }, [step]);
 
   const interests = [...visibleFunds(PUBLIC_FUNDS, hiddenFunds).map((f) => ({ v: f.short.en, t: f.short })), { v: "Custom mandate", t: F.custom }, { v: "General inquiry", t: F.general }];
@@ -99,7 +97,7 @@ function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
         })}
       </ol>
 
-      <fieldset ref={stepRefs[0]} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
+      <fieldset ref={step1Ref} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
         <legend className="ct-q">{pick(F.q1)}</legend>
         <div className="ct-opts">
           {F.profiles.map((p) => (
@@ -119,7 +117,7 @@ function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
         </div>
       </fieldset>
 
-      <fieldset ref={stepRefs[1]} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
+      <fieldset ref={step2Ref} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
         <legend className="ct-q">{pick(F.q2)}</legend>
         <p id="ct-h-interests" className="small">{pick(F.q2hint)}</p>
         <div className="ct-opts ct-opts-s">
@@ -138,7 +136,7 @@ function InquiryForm({ hiddenFunds }: { hiddenFunds: string[] }) {
         </div>
       </fieldset>
 
-      <fieldset ref={stepRefs[2]} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
+      <fieldset ref={step3Ref} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
         <legend className="ct-q">{pick(F.q3)}</legend>
         <div className="ct-fields">
           <div className="ct-field">

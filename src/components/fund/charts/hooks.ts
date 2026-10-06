@@ -6,7 +6,7 @@
  * prefers-reduced-motion.
  */
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
-import { EASE, reducedMotion } from "@/components/motion/motion";
+import { EASE, reducedMotion, useNoObserver } from "@/components/motion/motion";
 
 const BACK = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const SWAP = "cubic-bezier(0.65, 0, 0.35, 1)";
@@ -41,17 +41,18 @@ export function useWidth<T extends HTMLElement>() {
  */
 export function useNear<T extends Element>(margin = "400px 0px") {
   const ref = useRef<T>(null);
-  const [near, setNear] = useState(false);
-  const [seen, setSeen] = useState(false);
+  const [isNear, setNear] = useState(false);
+  const [isSeen, setSeen] = useState(false);
+  const noObserver = useNoObserver();
+  const near = isNear || noObserver, seen = isSeen || noObserver;
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") { setNear(true); setSeen(true); return; }
+    if (!el || noObserver) return;
     const a = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setNear(true); a.disconnect(); } }, { rootMargin: margin });
     const b = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); b.disconnect(); } }, { rootMargin: "0px 0px -15% 0px", threshold: 0.15 });
     a.observe(el); b.observe(el);
     return () => { a.disconnect(); b.disconnect(); };
-  }, [margin]);
+  }, [margin, noObserver]);
   return [ref, near, seen] as const;
 }
 

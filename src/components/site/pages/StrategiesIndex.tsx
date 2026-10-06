@@ -5,7 +5,8 @@
  * from the published data; a missing one is "figures coming soon" on a card and an em dash in the table.
  */
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMountValue } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
 import type { HomeData } from "../home/data";
@@ -18,15 +19,17 @@ import { HL } from "../home/labels";
 import "../home/home.css";
 
 const FILTERS: Filter[] = ["all", "fixed-income", "alternatives"];
+const linkedFilter = (): Filter => {
+  const h = window.location.hash.slice(1) as Filter;
+  return FILTERS.includes(h) ? h : "all";
+};
 
 export function StrategiesIndex({ data }: { data: HomeData }) {
   const { locale, pick } = useTranslation();
-  const [filter, setFilter] = useState<Filter>("all");
   // the filter survives a reload / can be linked (#fixed-income, #alternatives)
-  useEffect(() => {
-    const h = window.location.hash.slice(1) as Filter;
-    if (FILTERS.includes(h)) setFilter(h);
-  }, []);
+  const linked = useMountValue(linkedFilter, "all");
+  const [chosen, setFilter] = useState<Filter | null>(null);
+  const filter = chosen ?? linked;
   const choose = (f: Filter) => {
     setFilter(f);
     history.replaceState(null, "", f === "all" ? window.location.pathname : `#${f}`);

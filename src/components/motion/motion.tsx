@@ -6,7 +6,7 @@
  *  - figures count up
  * All of it is skipped under prefers-reduced-motion, and content stays visible without JS (html.js gate).
  */
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { fmt } from "@/components/fund/lib/format";
 
 export const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
@@ -14,6 +14,19 @@ const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 
 export const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const noSubscribe = () => () => {};
+/**
+ * A browser value read once on the client, right after hydration (the server and the hydration render use `server`;
+ * a client-side mount reads it straight away). Never re-read: later changes are ignored.
+ */
+export function useMountValue<T>(read: () => T, server: T): T {
+  const [once] = useState(() => { let v: { t: T } | null = null; return () => (v ??= { t: read() }).t; });
+  return useSyncExternalStore(noSubscribe, once, () => server);
+}
+const noObserver = () => typeof IntersectionObserver === "undefined";
+/** True on a client without IntersectionObserver: whatever waits for the viewport shows at once. */
+export const useNoObserver = () => useMountValue(noObserver, false);
 
 /* ------------------------------------------------------------------ one shared scroll loop
  * Every scroll-linked effect (screen swap, iris, light-trail scrub, useScrub) subscribes here: one passive
@@ -55,11 +68,12 @@ export function onScrollFrame(fn: FrameFn): () => void {
  */
 export function useInView<T extends Element>(opts: { margin?: string; threshold?: number } = {}) {
   const ref = useRef<T>(null);
-  const [seen, setSeen] = useState(false);
+  const [entered, setSeen] = useState(false);
+  const noObserver = useNoObserver();
+  const seen = entered || noObserver;
   useEffect(() => {
     const el = ref.current;
     if (!el || seen) return;
-    if (typeof IntersectionObserver === "undefined") { setSeen(true); return; }
     const t = opts.threshold ?? 0.12;
     const io = new IntersectionObserver(
       (entries) => {
@@ -193,8 +207,10 @@ export function Odometer({
 }) {
   const [ref, seen] = useInView<HTMLSpanElement>();
   const final = fmt(value, { decimals, pct, sign, prefix, suffix, lang });
-  const [roll, setRoll] = useState(false);
-  useLayoutEffect(() => { if (seen && !reducedMotion()) setRoll(true); }, [seen]);
+  // decided once, when it scrolls into view (client only: `seen` is false on the server and at hydration)
+  const [rolls, setRolls] = useState<boolean | null>(null);
+  if (seen && rolls === null) setRolls(!reducedMotion());
+  const roll = rolls === true;
   const chars = Array.from(final);
   let digitIndex = 0;
   const nDigits = chars.filter((c) => /\d/.test(c)).length;
