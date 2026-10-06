@@ -10,6 +10,7 @@
  *   documents/index.json            document metadata
  *   documents/files/<id>            uploaded files (served through /api/documents/<id>)
  *   audit/audit.jsonl               who changed what
+ *   inquiries/<id>.json             website inquiries (contact form, src/lib/contact/store.ts)
  *   locks/                          cross-process locks (pipeline runs)
  *
  * Writes are atomic (temp file + rename) so a reader never sees a half-written JSON.
