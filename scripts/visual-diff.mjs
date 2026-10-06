@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // visual-diff.mjs — compare two folders of PNG screenshots pixel by pixel (no dependencies).
 //
-// Usage: node scripts/visual-diff.mjs <before-dir> <after-dir> [--max-ratio=0.001] [--tolerance=0] [--out=<dir>]
-//   --max-ratio  share of changed pixels allowed per image before it counts as changed (default 0.1 %)
+// Usage: node scripts/visual-diff.mjs <before-dir> <after-dir> [--max-ratio=0] [--tolerance=0] [--out=<dir>]
+//   --max-ratio  share of changed pixels (0-1) allowed per image before it counts as changed (default 0: any pixel;
+//                refactor proofs use 0)
 //   --tolerance  per-channel difference (0-255) ignored when comparing two pixels (default 0: exact)
 //   --out        write a diff mask (changed pixels in red over a faded copy) per changed image
-// Exit code 1 when an image changed beyond --max-ratio, has a different size, or exists on one side only.
+// Exit code 1 when an image changed beyond --max-ratio, has a different size, or exists on one side only; 2 on bad usage.
 import { readdirSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 import { inflateSync, deflateSync } from "node:zlib";
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -29,7 +31,10 @@ export function decodePng(buf) {
       colorType = data[9];
       interlace = data[12];
     } else if (type === "PLTE") palette = data;
-    else if (type === "tRNS") alpha = data;
+    else if (type === "tRNS") {
+      if (colorType !== 3) throw new Error(`unsupported PNG (tRNS transparency key on colour type ${colorType})`);
+      alpha = data;
+    }
     else if (type === "IDAT") idat.push(data);
     else if (type === "IEND") break;
     at += 12 + len;
@@ -43,6 +48,7 @@ export function decodePng(buf) {
   const px = Buffer.alloc(stride * height);
   for (let y = 0; y < height; y++) {
     const filter = raw[y * (stride + 1)];
+    if (filter > 4) throw new Error(`corrupt PNG (filter type ${filter} on row ${y})`);
     const src = y * (stride + 1) + 1;
     const dst = y * stride;
     for (let x = 0; x < stride; x++) {
@@ -78,7 +84,7 @@ export function decodePng(buf) {
 }
 
 /** Encode RGBA pixels as a PNG (used for the diff masks). */
-function encodePng({ width, height, rgba }) {
+export function encodePng({ width, height, rgba }) {
   const crcTable = Array.from({ length: 256 }, (_, n) => {
     let c = n;
     for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
@@ -136,15 +142,24 @@ function pngFiles(dir) {
   return out.sort();
 }
 
-function main(argv) {
-  const flags = Object.fromEntries(argv.filter((a) => a.startsWith("--")).map((a) => a.slice(2).split("=")));
+export function main(argv) {
+  const flagArgs = argv.filter((a) => a.startsWith("--"));
+  const flags = Object.fromEntries(flagArgs.map((a) => (a.includes("=") ? [a.slice(2, a.indexOf("=")), a.slice(a.indexOf("=") + 1)] : [a.slice(2), ""])));
   const [before, after] = argv.filter((a) => !a.startsWith("--"));
   if (!before || !after) {
-    console.error("usage: node scripts/visual-diff.mjs <before-dir> <after-dir> [--max-ratio=0.001] [--tolerance=0] [--out=<dir>]");
+    console.error("usage: node scripts/visual-diff.mjs <before-dir> <after-dir> [--max-ratio=0] [--tolerance=0] [--out=<dir>]");
     return 2;
   }
-  const maxRatio = Number(flags["max-ratio"] ?? 0.001);
-  const tolerance = Number(flags.tolerance ?? 0);
+  const num = (v, dflt) => (v === undefined ? dflt : v === "" ? NaN : Number(v));
+  const maxRatio = num(flags["max-ratio"], 0);
+  const tolerance = num(flags.tolerance, 0);
+  const known = new Set(["max-ratio", "tolerance", "out"]);
+  const unknown = Object.keys(flags).filter((k) => !known.has(k));
+  if (unknown.length || !Number.isFinite(maxRatio) || maxRatio < 0 || maxRatio > 1 || !Number.isInteger(tolerance) || tolerance < 0 || tolerance > 255
+    || ("out" in flags && !flags.out)) {
+    console.error(`invalid options${unknown.length ? ` (unknown: ${unknown.join(", ")})` : ""}: --max-ratio is 0-1, --tolerance an integer 0-255, --out a directory`);
+    return 2;
+  }
   const a = new Set(pngFiles(before));
   const b = new Set(pngFiles(after));
   let failures = 0;
@@ -178,8 +193,8 @@ function main(argv) {
   }
   const width = Math.max(...rows.map((r) => r[0].length), 10);
   for (const [name, verdict] of rows) console.log(`${name.padEnd(width)}  ${verdict}`);
-  console.log(`\n${rows.length} image(s), ${failures} changed beyond ${(maxRatio * 100).toFixed(2)} % (tolerance ${tolerance})`);
+  console.log(`\n${rows.length} image(s), ${failures} changed beyond ${maxRatio * 100} % (tolerance ${tolerance})`);
   return failures ? 1 : 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) process.exitCode = main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) process.exitCode = main(process.argv.slice(2));

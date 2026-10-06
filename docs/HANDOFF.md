@@ -46,9 +46,10 @@ Commit trailers used so far (keep them):
   page full / top / bottom; desktop + mobile; English, reduced motion, animations finished, caret hidden, fonts loaded,
   off-site requests aborted) to `e2e/screenshots/visual/<page>[-top|-bottom]-<project>.png`. Before a "no visual change"
   refactor: push the base commit with `[ci-logs]`, then the work with `[ci-logs]`, fetch both `ci/run-<n>` branches and run
-  `node scripts/visual-diff.mjs <before>/screenshots/visual <after>/screenshots/visual [--max-ratio=0.001] [--tolerance=0]
-  [--out=<dir>]` (no dependencies; exit 1 on any image changed beyond the ratio, resized or missing; `--out` writes red
-  masks of the changed pixels). Two runs of the same commit are byte-identical, so any reported pixel is a real change.
+  `node scripts/visual-diff.mjs <before>/screenshots/visual <after>/screenshots/visual [--max-ratio=0] [--tolerance=0]
+  [--out=<dir>]` (no dependencies; exit 1 on any image changed beyond the ratio, resized or missing, 2 on invalid options;
+  `--out` writes red masks of the changed pixels). **Refactor proofs use `--max-ratio=0`** (the default): two runs of the
+  same commit are byte-identical, so any reported pixel is a real change.
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
