@@ -229,7 +229,7 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     months, every class of the fund. Checked over every row fetched (to the run day), so a print on the newest month's last
     day reversed on the next valuation day is seen; the newest month of a class waits ("—") until one later valuation day
     exists;
-  - cross-class consistency of a COMPLETE month, on the published monthly values. Each class c has a fit
+  - cross-class consistency of a COMPLETE month, on the published monthly values (`class-fit.ts`). Each class c has a fit
     E_c(m) = a_c + b⁺_c · max(m, 0) + b⁻_c · min(m, 0) — separate slopes for up and down months, continuous at 0, because
     a performance fee is charged in up months only (a fee-free class beats the fee-paying ones by a share of an up month
     and roughly equals them, less management-fee spreads, in a down month; one straight line cannot hold both). Each class
@@ -238,10 +238,27 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     and a correct class with a different slope (e.g. without a performance fee) is never made the outlier by another
     class's error. b⁺_c is fitted by Theil–Sen (median of pairwise slopes) over the up months (m > 0), b⁻_c over the
     others, a_c = median of r − b⁺·max(m, 0) − b⁻·min(m, 0), on that reference over the months where c and ≥ 2 other
-    fitted classes are complete, LEAVING OUT the month under test; the fits and references are iterated a few rounds from
-    a = 0, slope 1; each slope clipped to [0.6, 1.4], a to ±0.30 % a month. When either side has fewer than 6 months
-    (`fitSideMinMonths`) one Theil–Sen line serves both sides (b⁺ = b⁻). A class is fitted when it has 12 such months
-    (`fitMinMonths`); young classes never enter another class's reference and are only ever withheld themselves.
+    fitted classes are complete; each slope clipped to [0.6, 1.4], a to ±0.30 % a month. A class is fitted when it has
+    12 such months (`fitMinMonths`); young classes never enter another class's reference and are only ever withheld
+    themselves.
+    - **Sides**: decided once per class on its FULL sample and kept in every leave-one-out fit. A side with ≥ 6 months
+      (`fitSideMinMonths`) gets its own slope. A shorter side is never fitted with the other side's months: slope 1 when
+      the other side's slope is within 0.10 of 1 (`fitUnitSlopeTolerance`: a class charged like the reference), else the
+      side is **not checkable** — its months are withheld for that class ("too few down months to fit the series'
+      spread": a fee-free class in a fund with few down months) and it is left out of the other classes' references in
+      those months.
+    - **Fixed point**: the fits and the references depend on each other. From a = 0, slope 1 they are iterated, each round
+      damped (half-way to the new fits, the step divided by 2, 3, … every 20 rounds: two classes that are each other's
+      reference would otherwise swap their spreads forever, and Theil–Sen medians jump between neighbouring pair slopes)
+      and normalised (median a of the fitted classes → 0, median own up slope and down slope → 1), until no class's
+      expected return moves by more than 0.01 % for a fund month within ±10 % (`fitTolerance`, `fitToleranceRange`), at
+      most 400 rounds (`fitMaxRounds`). Not settled → every month checked against a fit is withheld for EVERY class.
+    - **Leave-out**: each class-month is tested against a fit made without that month (an error in the fund's strongest
+      month cannot bend its own expectation) and, in a second pass, also without the class's other months that breached in
+      a first pass (when each own side keeps ≥ 4 months, `fitSuspectMinSide`), so one wrong month does not drag a correct
+      month of the same class out of tolerance. A first-pass breach the second pass clears stands unless the second pass
+      still flags another month of that class (the month that bent the fit). With 6–8 months on a side an error can still,
+      rarely, withhold a second correct month of the same class (never a wrong number).
     Residual = r_c − E_c(m₋c); above `residualMax` (0.40 %) it is a breach. For the fitted classes:
     - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
       distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
@@ -257,6 +274,9 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     Note: in a fund distributing every month, every month holds an adjustment day: any fitted breach then withholds the
     month for every class. A class without a fit of its own (fewer than 12 complete months next to two other classes)
     in a fund whose other classes are fitted is never checked at slope 1: its months are withheld until it has a fit.
+    Note: a fund with three fitted classes (or four, one of them not checkable on that side) has a reference of two
+    classes; a large error in one class then pulls the others' reference half-way and the month is usually withheld for
+    every class (no consistent majority) — conservative.
     Limit: with only two classes no fit is possible; each class is then compared with the other's plain value at slope 1,
     which withholds both in strong months when their spread is legitimate AND can let an error pass when it cancels a
     legitimate spread (different slopes, e.g. a fee-free class) — a wrong value is possible. None of the three funds is in

@@ -145,7 +145,9 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 ### B. Development (Claude or a developer)
 
 1. [done 2026-10-06, branch `feat/multi-fee-fit`, not merged] **Multi-Strategy series checks**: the cross-class fit has
-   separate up / down slopes (`fitSideMinMonths`, docs/architecture.md); check the live Multi-Strategy months after the merge.
+   separate up / down slopes (`src/lib/pipeline/class-fit.ts`, docs/architecture.md: sides decided on the full sample, a
+   short side at slope 1 or not checkable, a damped / normalised fixed point that must settle). After the merge, check the
+   live Multi-Strategy months in admin (a fee-free class with fewer than 6 down months has its down months withheld).
 2. **Readability** — split done on branch `refactor/split-modules` (not merged, 2026-10-06): `build.ts` →
    `src/lib/pipeline/build/` (entry `index.ts`; `context`, `helpers`, `factsheets`, `register`, `series`, `track-record`,
    `benchmark`, `performance`, `net-performance`, `factsheet-performance`, `nav`, `factsheet-parts`, `daily-book`,
@@ -167,10 +169,15 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 ## 6. Session log
 
 - 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
-  a + b⁺·max(m, 0) + b⁻·min(m, 0) (Theil–Sen per side, leave-one-out, each slope clipped to [0.6, 1.4]; one line when a
-  side has fewer than 6 months, a = 0 / slope 1 under 12): a performance fee charged in up months only is an expected
-  spread. Tests: synthetic Multi-like fund (20 % fee in up months, no error → nothing withheld; ±0.6 % errors on I/F/J/A in
-  the strongest / weakest / calm month → that class only), I-class errors and two strong months with the same error added.
+  a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
+  independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
+  never pooled with the other — slope 1 when the other side is within 0.10 of 1, else its months are withheld ("not
+  checkable"); fits iterated to a fixed point (damped, decaying step, normalised median a → 0 / slopes → 1, tolerance 0.01 %
+  at ±10 %, ≤ 400 rounds; unsettled → checked months withheld for the fund); second leave-out pass without the class's
+  other first-pass breaches. Reviewer's stress scripts (20 random 30-month funds per row, ±0.6/0.8/1.0 % errors on 4
+  classes in 5 months): misses 0 / 0 / 4 / 2 / 0 / 2 of 2 400 at 3 / 5 / 6 / 7 / 8 / 11 down months (all ±0.6 % in deep down
+  months, at the residual tolerance's noise floor), no unsettled fit, extra correct months 93 / 5 / 0 / 0 at 6 / 7 / 8 / 11.
+  Sample data messages regenerated (same withheld months).
 - 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
   behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
   through `build/index.ts` and `validate/index.ts`, pipeline output on the fixtures byte-identical, `npm test` green;
