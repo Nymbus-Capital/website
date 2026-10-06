@@ -1,0 +1,3 @@
+#!/bin/sh
+# no-op: lets docker-entrypoint.sh prepare /var/www/html without starting Apache (see nymbus-entrypoint.sh)
+exit 0

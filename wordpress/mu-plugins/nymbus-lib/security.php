@@ -104,6 +104,14 @@ function nymbus_sso_claim_allowed( $claim, $tenant, array $domains ) {
 	if ( isset( $claim['acct'] ) && 0 !== (int) $claim['acct'] ) {
 		return false;
 	}
+	// a guest (B2B, personal Microsoft account) carries `idp` = its home issuer; our own members carry none or ours
+	if ( isset( $claim['idp'] ) && ( ! is_string( $claim['idp'] ) || strtolower( $claim['idp'] ) !== 'https://sts.windows.net/' . strtolower( (string) $tenant ) . '/' ) ) {
+		return false;
+	}
+	// a stable, tenant-scoped identity is required (users are identified by tid + oid, never by e-mail)
+	if ( ! isset( $claim['oid'], $claim['sub'] ) || ! nymbus_is_guid( $claim['oid'] ) || ! is_string( $claim['sub'] ) || '' === $claim['sub'] ) {
+		return false;
+	}
 	$account = nymbus_sso_account( $claim );
 	// guests invited into our tenant carry our tid and a "...#EXT#@<tenant domain>" sign-in name
 	if ( '' === $account || 1 !== substr_count( $account, '@' ) || false !== strpos( $account, '#ext#' ) ) {
@@ -132,4 +140,61 @@ function nymbus_password_login_allowed( $login, $is_admin, $sso_on, $emergency )
 		return (bool) $is_admin;
 	}
 	return is_string( $login ) && in_array( strtolower( $login ), $list, true );
+}
+
+/** The identity marker stored on accounts created by a Microsoft sign-in: "<tid>/<oid>" (lower case), or ''. */
+function nymbus_sso_identity( $claim ) {
+	if ( ! is_array( $claim ) || ! isset( $claim['tid'], $claim['oid'] ) || ! nymbus_is_guid( $claim['tid'] ) || ! nymbus_is_guid( $claim['oid'] ) ) {
+		return '';
+	}
+	return strtolower( $claim['tid'] . '/' . $claim['oid'] );
+}
+
+/**
+ * Whether a Microsoft sign-in may open the WordPress account the OIDC plugin resolved. Never the emergency account(s).
+ * Unless linking is explicitly on, only an account that this sign-in itself created: its stored subject equals the
+ * token's `sub` AND its identity marker equals the token's tid/oid. So an existing (password) account, an
+ * administrator, or an account matched by e-mail is never taken over.
+ *
+ * @param string $login           user_login of the resolved account.
+ * @param string $stored_subject  its `openid-connect-generic-subject-identity` user option ('' when none).
+ * @param string $stored_identity its `nymbus_sso_identity` user meta ('' when none).
+ * @param array  $claim           the verified ID token claims.
+ * @param bool   $link_on         NYMBUS_SSO_LINK_EXISTING_USERS = 1.
+ * @param string $emergency       NYMBUS_EMERGENCY_ADMIN.
+ */
+function nymbus_sso_account_allowed( $login, $stored_subject, $stored_identity, $claim, $link_on, $emergency ) {
+	if ( ! is_string( $login ) || '' === $login || in_array( strtolower( $login ), nymbus_csv_list( $emergency ), true ) ) {
+		return false;
+	}
+	$identity = nymbus_sso_identity( $claim );
+	if ( '' === $identity || ! isset( $claim['sub'] ) || ! is_string( $claim['sub'] ) ) {
+		return false;
+	}
+	if ( $link_on ) {
+		return true;
+	}
+	return is_string( $stored_subject ) && '' !== $stored_subject && hash_equals( $stored_subject, $claim['sub'] )
+		&& is_string( $stored_identity ) && hash_equals( $identity, strtolower( $stored_identity ) );
+}
+
+/** Upload types editors may add (web pictures only; documents are handled in the website admin). */
+function nymbus_upload_mimes() {
+	return array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'gif'          => 'image/gif',
+		'webp'         => 'image/webp',
+	);
+}
+
+/** `pre_update_option_active_plugins` body: the required plugins (present on disk) can never leave the active list. */
+function nymbus_keep_required_active( $new, array $required, array $present ) {
+	$new = is_array( $new ) ? array_values( $new ) : array();
+	foreach ( $required as $p ) {
+		if ( in_array( $p, $present, true ) && ! in_array( $p, $new, true ) ) {
+			$new[] = $p;
+		}
+	}
+	return $new;
 }

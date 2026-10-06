@@ -105,7 +105,8 @@ function biIfAny(v: unknown, max: number): Bi | undefined {
   return (b.en || b.fr) && !isSample(b) ? b : undefined;
 }
 
-const EMAIL = /^[^\s@<>"'()[\]\\,;:]+@[^\s@<>"'()[\]\\,;:]+\.[A-Za-z]{2,}$/;
+/** strict on purpose (same pattern in the plugin's normalize.php): any domain, but only plain characters in a mailto: */
+const EMAIL = /^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PHONE = /^[+0-9][0-9 ().\-]{3,30}$/;
 
 function parseIntros(v: unknown): CmsTexts["pageIntros"] {

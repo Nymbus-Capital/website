@@ -47,7 +47,8 @@ check( 'subscriber allowed', $s3['role'], 'subscriber' );
 
 // --- which Entra accounts may sign in ---------------------------------------------------------------------------
 $d    = array( 'nymbus.ca' );
-$good = array( 'tid' => $tenant, 'preferred_username' => 'Jane.Doe@Nymbus.ca', 'sub' => 'x' );
+$oid  = '0f0f0f0f-1111-4222-8333-444444444444';
+$good = array( 'tid' => $tenant, 'oid' => $oid, 'preferred_username' => 'Jane.Doe@Nymbus.ca', 'sub' => 'x' );
 check( 'member of our tenant, our domain', nymbus_sso_claim_allowed( $good, $tenant, $d ), true );
 check( 'other tenant', nymbus_sso_claim_allowed( array_merge( $good, array( 'tid' => '99999999-2222-4333-8444-555555555555' ) ), $tenant, $d ), false );
 check( 'no tid', nymbus_sso_claim_allowed( array( 'preferred_username' => 'jane@nymbus.ca' ), $tenant, $d ), false );
@@ -58,9 +59,32 @@ check( 'look-alike domain', nymbus_sso_claim_allowed( array_merge( $good, array(
 check( 'sub-domain trick', nymbus_sso_claim_allowed( array_merge( $good, array( 'preferred_username' => 'jane@nymbus.ca.evil.com' ) ), $tenant, $d ), false );
 check( 'guest UPN shape refused', nymbus_sso_claim_allowed( array_merge( $good, array( 'preferred_username' => 'jane_gmail.com#EXT#@nymbus.ca' ) ), $tenant, $d ), false );
 check( 'two @ refused', nymbus_sso_claim_allowed( array_merge( $good, array( 'preferred_username' => 'a@b@nymbus.ca' ) ), $tenant, $d ), false );
-check( 'email used when no preferred_username', nymbus_sso_claim_allowed( array( 'tid' => $tenant, 'email' => 'jane@nymbus.ca' ), $tenant, $d ), true );
+check( 'email used when no preferred_username', nymbus_sso_claim_allowed( array( 'tid' => $tenant, 'oid' => $oid, 'sub' => 'x', 'email' => 'jane@nymbus.ca' ), $tenant, $d ), true );
+check( 'no oid refused', nymbus_sso_claim_allowed( array( 'tid' => $tenant, 'sub' => 'x', 'preferred_username' => 'jane@nymbus.ca' ), $tenant, $d ), false );
+check( 'no sub refused', nymbus_sso_claim_allowed( array( 'tid' => $tenant, 'oid' => $oid, 'preferred_username' => 'jane@nymbus.ca' ), $tenant, $d ), false );
+check( 'guest from another tenant (idp) refused', nymbus_sso_claim_allowed( array_merge( $good, array( 'idp' => 'https://sts.windows.net/99999999-2222-4333-8444-555555555555/' ) ), $tenant, $d ), false );
+check( 'personal Microsoft account (idp live.com) refused', nymbus_sso_claim_allowed( array_merge( $good, array( 'idp' => 'live.com' ) ), $tenant, $d ), false );
+check( 'idp = our own tenant accepted', nymbus_sso_claim_allowed( array_merge( $good, array( 'idp' => "https://sts.windows.net/$tenant/" ) ), $tenant, $d ), true );
 check( 'not an array', nymbus_sso_claim_allowed( 'x', $tenant, $d ), false );
 check( 'account name lower-cased', nymbus_sso_account( $good ), 'jane.doe@nymbus.ca' );
+
+// --- which WordPress account a Microsoft sign-in may open --------------------------------------------------------
+$ident = "$tenant/$oid";
+check( 'identity marker', nymbus_sso_identity( $good ), $ident );
+check( 'own SSO account (same sub + tid/oid)', nymbus_sso_account_allowed( 'jane', 'x', $ident, $good, false, 'nymbus-emergency' ), true );
+check( 'emergency account never, even with linking', nymbus_sso_account_allowed( 'Nymbus-Emergency', 'x', $ident, $good, true, 'nymbus-emergency' ), false );
+check( 'existing account without marker refused (no takeover)', nymbus_sso_account_allowed( 'old-admin', 'x', '', $good, false, '' ), false );
+check( 'account with another sub refused', nymbus_sso_account_allowed( 'jane', 'y', $ident, $good, false, '' ), false );
+check( 'account of another oid refused', nymbus_sso_account_allowed( 'jane', 'x', "$tenant/0f0f0f0f-1111-4222-8333-999999999999", $good, false, '' ), false );
+check( 'linking explicitly on: existing account allowed', nymbus_sso_account_allowed( 'old-editor', '', '', $good, true, 'nymbus-emergency' ), true );
+check( 'claims without oid refused', nymbus_sso_account_allowed( 'jane', 'x', $ident, array( 'tid' => $tenant, 'sub' => 'x' ), true, '' ), false );
+
+// --- uploads, required plugins ---------------------------------------------------------------------------------
+check( 'pictures only', array_values( nymbus_upload_mimes() ), array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' ) );
+$req = array( 'a/a.php', 'b/b.php' );
+check( 'deactivation undone', nymbus_keep_required_active( array( 'c/c.php' ), $req, $req ), array( 'c/c.php', 'a/a.php', 'b/b.php' ) );
+check( 'missing plugin not forced', nymbus_keep_required_active( array(), $req, array( 'a/a.php' ) ), array( 'a/a.php' ) );
+check( 'bad value', nymbus_keep_required_active( 'x', $req, array() ), array() );
 
 // --- password sign-in policy ------------------------------------------------------------------------------------
 check( 'SSO off: anyone', nymbus_password_login_allowed( 'editor1', false, false, '' ), true );

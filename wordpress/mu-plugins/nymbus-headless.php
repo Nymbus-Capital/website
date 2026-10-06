@@ -37,6 +37,19 @@ add_filter( 'auto_update_plugin', '__return_false' );
 add_filter( 'auto_update_theme', '__return_false' );
 add_filter( 'auto_update_translation', '__return_false' );
 
+// Nobody (Editors included) may post raw HTML / scripts: an uploaded or saved script would run on the wp-admin origin.
+if ( ! defined( 'DISALLOW_UNFILTERED_HTML' ) ) {
+	define( 'DISALLOW_UNFILTERED_HTML', true );
+}
+add_filter( 'map_meta_cap', function ( $caps, $cap ) {
+	return 'unfiltered_html' === $cap || 'unfiltered_upload' === $cap ? array( 'do_not_allow' ) : $caps;
+}, 10, 2 );
+
+// Uploads: web pictures only (jpg, png, gif, webp) — no HTML, SVG, scripts, documents. (Apache refuses the rest too.)
+add_filter( 'upload_mimes', function () {
+	return function_exists( 'nymbus_upload_mimes' ) ? nymbus_upload_mimes() : array( 'jpg|jpeg|jpe' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp' );
+}, 999 );
+
 // No application passwords (nothing uses them; they would bypass the Microsoft sign-in and the login limiter).
 add_filter( 'wp_is_application_passwords_available', '__return_false' );
 

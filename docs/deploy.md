@@ -102,8 +102,9 @@ provisioning script does not cover it). Variable names, security model, updating
    (the editors' pictures exist nowhere else).
 3. **Entra app registration "Nymbus WordPress"** (*App registrations → New registration*): single tenant; platform
    **Web**, redirect URI `https://<wordpress address>/wp-admin/admin-ajax.php?action=openid-connect-authorize`; no
-   implicit / hybrid flow. *Token configuration → optional claims (ID token)*: `email`, `acct` (members only; guests
-   are refused either way). *Certificates & secrets* → new client secret (note the expiry, set a reminder to rotate).
+   implicit / hybrid flow. *Token configuration → optional claims (ID token)*: `email`, **`acct`** (members only; guests
+   are also refused by their `idp` claim and `#EXT#` name). Allowed sign-in domains (`NYMBUS_SSO_ALLOWED_DOMAINS`,
+   default `nymbus.ca`) must be domains **verified** in the tenant. *Certificates & secrets* → new client secret (note the expiry, set a reminder to rotate).
    *Enterprise applications → Nymbus WordPress → Properties → **Assignment required = Yes***, then *Users and groups* →
    assign the editors (a group is easiest). If the first sign-in asks for consent and users cannot give it: *API
    permissions → Grant admin consent*.
@@ -111,7 +112,8 @@ provisioning script does not cover it). Variable names, security model, updating
    `wordpress/README.md` → *Deploying on Northflank*: database (addon), eight keys / salts (random, fixed),
    `WORDPRESS_CONFIG_EXTRA`, `NYMBUS_CONTENT_SECRET`, `NYMBUS_REVALIDATE_URL`, `NYMBUS_REVALIDATE_SECRET`,
    `NYMBUS_SSO_TENANT_ID`, `NYMBUS_SSO_CLIENT_ID`, `NYMBUS_SSO_CLIENT_SECRET`, `NYMBUS_EMERGENCY_ADMIN` (the login you
-   will create in step 6, e.g. `nymbus-emergency`).
+   will create in step 6: **hard to guess**, e.g. `nyx-` + random letters; never `admin`). Leave
+   `NYMBUS_SSO_LINK_EXISTING_USERS` unset.
 5. **Service** `wordpress` (combined, this repository, branch `main`): Dockerfile `wordpress/Dockerfile`, build context
    `wordpress`, **one instance** (single-attach volume; never scale up), the volume of step 2 mounted, port 80 HTTP
    public (a `*.code.run` address first, `cms.<domain>` later — then update the Entra redirect URI and `WP_HOME`),
@@ -130,7 +132,8 @@ provisioning script does not cover it). Variable names, security model, updating
 
 **Claude** (with Gabriel's go-ahead; nothing secret involved):
 
-- A. Check the service: `/wp-login.php` shows *Sign in with Microsoft*, `/wp-content/uploads/x.php` is refused,
+- A. Check the service: the Apache log shows visitors' addresses (not the balancer's; else the login limiter counts
+  everyone as one), `/wp-login.php` shows *Sign in with Microsoft*, `/wp-content/uploads/x.php` is refused,
   `/wp-json/nymbus/v1/site-content` answers 401 without the secret and a JSON document with it:
   `curl -s -H "X-Nymbus-Content-Secret: $SECRET" https://<wordpress address>/wp-json/nymbus/v1/site-content | head -c 300`.
 - B. **Import the current team and news** (photos downloaded from the running website):

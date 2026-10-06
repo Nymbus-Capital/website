@@ -144,7 +144,9 @@ class Nymbus_SC_CLI {
 	 * : Only list what would be created / updated / skipped. Changes nothing.
 	 *
 	 * [--update]
-	 * : Overwrite the fields of items that exist already (default: leave them as they are).
+	 * : Overwrite the fields the file carries on items that exist already (default: leave them as they are). Never
+	 *   changes their status (draft / published), their date or "Hide from the website", never clears a field the
+	 *   file does not carry.
 	 *
 	 * [--status=<status>]
 	 * : publish (default) or draft.
@@ -221,11 +223,13 @@ class Nymbus_SC_CLI {
 					$post = array(
 						'ID'          => $exists,
 						'post_type'   => $type,
-						'post_status' => $status,
 						'post_title'  => $e['title'],
 						'post_name'   => $e['slug'],
 					);
-					if ( '' !== $e['date'] ) {
+					if ( ! $exists ) {
+						$post['post_status'] = $status; // an update never publishes, unpublishes or un-hides an item
+					}
+					if ( '' !== $e['date'] && ! $exists ) {
 						$post['post_date'] = $e['date'] . ' 09:00:00';
 					}
 					$post_id = wp_insert_post( wp_slash( $post ), true );
@@ -246,6 +250,9 @@ class Nymbus_SC_CLI {
 							$value = nymbus_sc_sanitize_field( $f, $e['input'][ $mk ] );
 							update_post_meta( $post_id, $mk, wp_slash( is_array( $value ) ? implode( ',', $value ) : $value ) );
 						}
+					}
+					if ( ! $exists && 'nymbus_team' === $type ) {
+						update_post_meta( $post_id, nymbus_sc_meta_key( 'hidden' ), '' );
 					}
 					update_post_meta( $post_id, '_nymbus_imported', '1' );
 				}

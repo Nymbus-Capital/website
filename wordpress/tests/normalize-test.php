@@ -103,6 +103,8 @@ check( 'phone', $texts['contactPhone'], '+1 514 555 0100' );
 check( 'address keeps its line breaks', nymbus_sc_shape_texts( array( 'contact_address_en' => "1 Test Street<br>\r\n\r\nMontreal  QC" ) )['contactAddress'], array( 'en' => "1 Test Street\nMontreal QC", 'fr' => '' ) );
 check( 'address at most 4 lines', substr_count( nymbus_sc_shape_texts( array( 'contact_address_fr' => "a\nb\nc\nd\ne\nf" ) )['contactAddress']['fr'], "\n" ), 3 );
 check( 'banner off: absent', isset( nymbus_sc_shape_texts( array( 'banner_enabled' => '', 'banner_en' => 'x' ) )['banner'] ), false );
+check( 'quoted local part refused', isset( nymbus_sc_shape_texts( array( 'contact_email' => '"a b"@example.org' ) )['contactEmail'] ), false );
+check( 'IP literal refused', isset( nymbus_sc_shape_texts( array( 'contact_email' => 'a@[127.0.0.1]' ) )['contactEmail'] ), false );
 check( 'bad email dropped', isset( nymbus_sc_shape_texts( array( 'contact_email' => 'not an email' ) )['contactEmail'] ), false );
 check( 'markup stripped from an email', nymbus_sc_shape_texts( array( 'contact_email' => 'x@example.org<script>' ) )['contactEmail'], 'x@example.org' );
 
@@ -142,6 +144,10 @@ check( 'import news: date', $impn['date'], '2025-01-28' );
 check( 'import news: french title as meta', $impn['input']['nymbus_title_fr'], 'TF' );
 check( 'import news: no date refused', nymbus_sc_import_entry( 'nymbus_news', array( 'slug' => 'a', 'title' => array( 'en' => 'T' ) ) ), null );
 check( 'import: bad slug refused', nymbus_sc_import_entry( 'nymbus_news', array( 'slug' => 'Bad Slug!', 'date' => '2025-01-01', 'title' => array( 'en' => 'T' ) ) ), null );
+$sparse = nymbus_sc_import_entry( 'nymbus_team', array( 'slug' => 'x', 'name' => 'X', 'department' => 'Board', 'role' => array( 'en' => 'Director' ) ) );
+check( 'import: absent fields are not cleared', array_keys( $sparse['input'] ), array( 'nymbus_department', 'nymbus_role_en' ) );
+check( 'import: hidden never imported', isset( $imp['input']['nymbus_hidden'] ), false );
+check( 'import: news absent link not cleared', isset( $impn['input']['nymbus_link'] ), false );
 check( 'import: unknown type', nymbus_sc_import_entry( 'post', array( 'slug' => 'a' ) ), null );
 check( 'import: not an array', nymbus_sc_import_entry( 'nymbus_news', 'x' ), null );
 

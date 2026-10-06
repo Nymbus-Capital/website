@@ -106,6 +106,38 @@ check "the login page says passwords are for the emergency administrator" "grep 
 : > "$JAR"
 check "an editor cannot sign in with a password once SSO is on" "[ \"\$(login smoke-editor '$EDITOR_PW')\" = 200 ] && ! grep -q wordpress_logged_in '$JAR'"
 
+TID=00000000-0000-4000-8000-000000000001
+OID=0f0f0f0f-1111-4222-8333-444444444444
+ssocheck() { wpcli eval "echo is_wp_error( nymbus_sso_user_check( get_user_by( 'login', '$1' ), array( 'tid' => '$TID', 'oid' => '$OID', 'sub' => 'smoke-sub' ) ) ) ? 'refused' : 'allowed';"; }
+check "a Microsoft sign-in never opens the emergency administrator" "[ \"\$(ssocheck smoke-admin)\" = refused ]"
+check "a Microsoft sign-in never takes over an existing account (no SSO marker)" "[ \"\$(ssocheck smoke-editor)\" = refused ]"
+wpcli user meta update smoke-editor openid-connect-generic-subject-identity smoke-sub >/dev/null
+wpcli user meta update smoke-editor nymbus_sso_identity "$TID/$OID" >/dev/null
+check "a Microsoft sign-in opens the account it created (same sub + tid/oid)" "[ \"\$(ssocheck smoke-editor)\" = allowed ]"
+wpcli user meta delete smoke-editor nymbus_sso_identity >/dev/null
+check "forced OIDC settings apply even before the settings are saved" "[ \"\$(wpcli eval 'echo (int) get_option( \"openid_connect_generic_settings\", array( \"no_sslverify\" => 1 ) )[\"no_sslverify\"];')\" = 0 ]"
+check "password sessions were ended when Microsoft sign-in was switched on" "[ -n \"\$(wpcli option get nymbus_sso_sessions_reset 2>/dev/null)\" ]"
+wpcli plugin deactivate limit-login-attempts-reloaded >/dev/null 2>&1 || true
+check "the login limiter cannot be deactivated (WP-CLI / bulk / screen)" "wpcli plugin is-active limit-login-attempts-reloaded"
+
+echo "# raw HTML / uploads"
+check "editors have no unfiltered_html" "[ \"\$(wpcli eval 'echo user_can( get_user_by( \"login\", \"smoke-editor\" ), \"unfiltered_html\" ) ? \"yes\" : \"no\";')\" = no ]"
+check "administrators have no unfiltered_html either" "[ \"\$(wpcli eval 'echo user_can( get_user_by( \"login\", \"smoke-admin\" ), \"unfiltered_html\" ) ? \"yes\" : \"no\";')\" = no ]"
+docker exec "$WP" sh -c 'printf "<script>alert(1)</script>" > /tmp/evil.html; printf "alert(1)" > /tmp/evil.js; php -r "file_put_contents(\"/tmp/ok.png\", base64_decode(\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\"));"; chmod 644 /tmp/evil.html /tmp/evil.js /tmp/ok.png'
+check "an editor cannot upload an .html file" "! wpcli media import /tmp/evil.html --user=smoke-editor >/dev/null 2>&1"
+check "an editor cannot upload a .js file" "! wpcli media import /tmp/evil.js --user=smoke-editor >/dev/null 2>&1"
+PNGID="$(wpcli media import /tmp/ok.png --user=smoke-editor --porcelain 2>/dev/null || true)"
+check "an editor can upload a picture" "[ -n '$PNGID' ]"
+PNGURL="$(wpcli post get "${PNGID:-0}" --field=guid 2>/dev/null || true)"
+check "uploaded pictures are served, never MIME-sniffed, sandboxed" "curl -s -D - -o /dev/null '$PNGURL' | tr -d '\r' | grep -qi '^x-content-type-options: nosniff' && curl -s -D - -o /dev/null '$PNGURL' | tr -d '\r' | grep -qi '^content-security-policy: sandbox'"
+docker exec "$WP" sh -c 'cp /tmp/evil.html /tmp/evil.js wp-content/uploads/2026/10/ && printf "<svg onload=alert(1)/>" > wp-content/uploads/2026/10/evil.svg'
+for f in evil.html evil.js evil.svg; do
+  check "a $f in uploads is refused (403)" "[ \"\$(code '$BASE/wp-content/uploads/2026/10/$f')\" = 403 ]"
+done
+check "WordPress code is root-owned" "[ \"\$(docker exec '$WP' stat -c %U /var/www/html/wp-includes/version.php)\" = root ] && [ \"\$(docker exec '$WP' stat -c %U /var/www/html/wp-content/plugins/nymbus-site-content/nymbus-site-content.php)\" = root ]"
+check "the web server cannot rewrite WordPress code" "! docker exec -u www-data '$WP' sh -c 'echo x >> /var/www/html/wp-includes/version.php' 2>/dev/null && ! docker exec -u www-data '$WP' touch /var/www/html/wp-content/plugins/x.php 2>/dev/null"
+check "the web server can write uploads" "docker exec -u www-data '$WP' touch /var/www/html/wp-content/uploads/smoke-write"
+
 echo "# content endpoint"
 check "content document served" "curl -s '$BASE/?rest_route=/nymbus/v1/site-content' | grep -q '\"schemaVersion\":1'"
 

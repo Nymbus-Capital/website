@@ -80,7 +80,7 @@ they chose on the website. If a French text is missing, the English one is shown
 the website's built-in text. If the same text was also saved in the website's own admin (`/admin`), **that value wins**:
 the website admin takes precedence over WordPress for the assets label and the banner.
 
-- **Contact details**: e-mail, phone and office address (one line per row, as on an envelope) shown in the footer of
+- **Contact details**: e-mail (letters, digits and `. _ + -` only), phone and office address (one line per row, as on an envelope) shown in the footer of
   every page and on the Contact page. The toll-free number and the address the contact form writes to stay as they are.
 - **Page intros**: the big title (*headline*), a few words shown in colour right after it (*highlighted ending*,
   optional) and the sentence under it (*lead*) of the Approach, Solutions, Sustainability and Team pages. Each language
@@ -177,15 +177,31 @@ the sample content with
 
 - **Immutable**: WordPress core (`FROM wordpress:<exact version>`), the plugins and WP-CLI are baked in at build time.
   `DISALLOW_FILE_MODS` and `file_mod_allowed` = no install / update / delete of code from wp-admin; automatic updates off.
-- **Uploads**: no script ever runs from `wp-content/uploads` (Apache refuses `.php` and friends, the PHP engine is off
-  there, `.htaccess` files there are ignored); uploads up to **8 MB** (`docker/` + `Dockerfile`: raise
-  `upload_max_filesize` / `post_max_size` if a PDF ever needs more).
+  At start-up the entrypoint makes all code and `wp-config.php` root-owned and read-only for the web server; only the
+  uploads folder is writable. (So *Settings → Permalinks → Save* cannot write `.htaccess`: the image's default one already
+  has the rewrite rules, nothing to do.)
+- **No raw HTML**: `DISALLOW_UNFILTERED_HTML` (plus a capability filter): nobody, Editors and Administrators included, can
+  save scripts or upload HTML; anything an editor types stays plain text.
+- **Uploads**: pictures only (**jpg, png, gif, webp**; the `upload_mimes` filter — documents such as factsheets live in
+  the website /admin, not here). Apache also refuses anything a browser would run or render as a page on this origin
+  (`.php` and friends, `.html`, `.svg`, `.xml`, `.js`, `.css`, `.pdf`…), switches the PHP engine off there, ignores
+  `.htaccess` files there, and sends every upload with `X-Content-Type-Options: nosniff` and
+  `Content-Security-Policy: sandbox`. Up to **8 MB** per file (`docker/` + `Dockerfile`).
 - **Sign-in**: *Sign in with Microsoft* through **OpenID Connect Generic Client** (wordpress.org, pinned), configured by
   `mu-plugins/nymbus-security.php` from the `NYMBUS_SSO_*` variables: our tenant only (endpoints and issuer built from
   the tenant id), the ID token's signature checked against the tenant keys, member accounts only (no guests), sign-in
   name in `NYMBUS_SSO_ALLOWED_DOMAINS` (default `nymbus.ca`), first sign-in = `NYMBUS_SSO_DEFAULT_ROLE` (default
-  Editor, never Administrator). Once SSO is configured, **passwords work only for `NYMBUS_EMERGENCY_ADMIN`** (and
-  password reset only for that account); XML-RPC and application passwords are off.
+  Editor, never Administrator). Guests are refused three ways: `acct` (optional claim, must be 0 when present), `idp`
+  (present for guests and personal accounts: must be our tenant when present) and `#EXT#` sign-in names.
+  **`NYMBUS_SSO_ALLOWED_DOMAINS` must only list domains verified in our tenant** (Entra → *Custom domain names*).
+  Accounts are identified by tenant + object id (`tid`/`oid`, stored on the account) and the token subject, **never by
+  e-mail**: a Microsoft sign-in opens only an account that a Microsoft sign-in created (checked by the plugin's subject
+  AND our tid/oid marker, before the session cookie is issued), never an existing password account, never the emergency
+  administrator — unless `NYMBUS_SSO_LINK_EXISTING_USERS=1`, which links existing accounts by e-mail (leave it off).
+  (Source check of the plugin, 3.11.3: with linking off it never matches an account by e-mail; creating a user whose
+  e-mail is already taken simply fails.) Once SSO is configured, **passwords work only for `NYMBUS_EMERGENCY_ADMIN`**
+  (and password reset only for that account), and every session opened before (with a password) is ended once, the
+  first time WordPress runs with SSO on; XML-RPC and application passwords are off.
 - **Brute force**: **Limit Login Attempts Reloaded** (wordpress.org, pinned): 4 wrong passwords = 20 min lockout (its
   defaults; *Settings → Limit Login Attempts*). Behind the load balancer, Apache (`mod_remoteip`, set up by the
   official image) takes the visitor address from the right of `X-Forwarded-For` (what the balancer appended); the
@@ -193,7 +209,10 @@ the sample content with
   fresh IPs. Should the balancer ever reach WordPress from a public address, every visitor would share one address:
   only the emergency password account could then be locked out (Microsoft sign-in does not go through it).
 - **Plugins stay active**: the bundled plugins are activated on the first admin page view and cannot be deactivated
-  from the Plugins screen.
+  (Plugins screen, bulk action or WP-CLI: the active list always keeps them).
+- **After deploying, check once** that Apache logs the visitor's address and not the balancer's (Northflank → service
+  → logs: the first field of each request line). If it shows a balancer address for everyone, tell the developers:
+  the login limiter would then count all visitors as one.
 
 ### Updating WordPress (and the plugins)
 
@@ -232,9 +251,10 @@ ones with a password manager or `openssl rand -base64 48`):
 | `NYMBUS_SSO_DEFAULT_ROLE` | optional, default `editor` (`author`, `contributor`, `subscriber` also accepted; never administrator) |
 | `NYMBUS_SSO_LINK_EXISTING_USERS` | optional, `1` = a Microsoft sign-in takes over an existing account with the same e-mail / login (default off) |
 
-**Emergency administrator**: created once at install, with a long random password kept in the company password
-manager and an e-mail address that is **not** anyone's Microsoft sign-in (e.g. a shared mailbox), so no SSO account can
-collide with it. Use it only when Microsoft sign-in is broken (expired client secret, Entra outage).
+**Emergency administrator**: created once at install, with a **hard-to-guess login** (not `admin`, not a name: e.g.
+`nyx-` followed by random letters), a long random password, both kept in the company password manager, and an e-mail
+address that is **not** anyone's Microsoft sign-in (e.g. a shared mailbox). Use it only when Microsoft sign-in is broken
+(expired client secret, Entra outage).
 
 ### Roles
 

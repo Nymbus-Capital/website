@@ -90,8 +90,28 @@ if ( nymbus_sso_on() ) {
 		return $data;
 	} );
 
-	// settings the OIDC screen would let an administrator weaken: forced to the safe values
-	add_filter( 'option_openid_connect_generic_settings', function ( $v ) {
+	// an account created by a Microsoft sign-in carries its tid/oid: the only accounts SSO may open (below)
+	add_action( 'openid-connect-generic-user-create', function ( $user, $claim ) {
+		if ( $user instanceof WP_User && '' !== nymbus_sso_identity( $claim ) ) {
+			update_user_meta( $user->ID, 'nymbus_sso_identity', nymbus_sso_identity( $claim ) );
+		}
+	}, 10, 2 );
+
+	// runs before the session cookie is issued (and on token refresh): refuse an account this sign-in may not open
+	add_action( 'openid-connect-generic-update-user-using-current-claim', function ( $user, $claim ) {
+		$ok = nymbus_sso_user_check( $user, $claim );
+		if ( is_wp_error( $ok ) ) {
+			if ( is_user_logged_in() ) { // token refresh of a session that should not exist
+				wp_destroy_current_session();
+				wp_clear_auth_cookie();
+			}
+			wp_safe_redirect( add_query_arg( 'login-error', 'nymbus-sso-account', wp_login_url() ) );
+			exit;
+		}
+	}, 1, 2 );
+
+	// settings the OIDC screen would let an administrator weaken: forced to the safe values (stored or not)
+	$nymbus_force = function ( $v ) {
 		return array_merge(
 			is_array( $v ) ? $v : array(),
 			array(
@@ -104,7 +124,10 @@ if ( nymbus_sso_on() ) {
 				'identify_with_username' => false,
 			)
 		);
-	} );
+	};
+	add_filter( 'option_openid_connect_generic_settings', $nymbus_force );
+	add_filter( 'default_option_openid_connect_generic_settings', $nymbus_force );
+	unset( $nymbus_force );
 
 	// the login limiter replaces every sign-in error by "Incorrect username or password": say it on the page instead
 	add_filter( 'login_message', function ( $message ) {
@@ -114,6 +137,22 @@ if ( nymbus_sso_on() ) {
 	add_filter( 'openid-connect-generic-login-button-text', function () {
 		return __( 'Sign in with Microsoft', 'nymbus-site-content' );
 	} );
+}
+
+/** True, or a WP_Error when a Microsoft sign-in resolved to an account it may not open (see nymbus_sso_account_allowed). */
+function nymbus_sso_user_check( $user, $claim ) {
+	if ( ! $user instanceof WP_User ) {
+		return new WP_Error( 'nymbus_sso_account', 'no account' );
+	}
+	$ok = nymbus_sso_account_allowed(
+		$user->user_login,
+		(string) get_user_option( 'openid-connect-generic-subject-identity', $user->ID ),
+		(string) get_user_meta( $user->ID, 'nymbus_sso_identity', true ),
+		$claim,
+		is_array( $GLOBALS['nymbus_sso'] ) && 1 === $GLOBALS['nymbus_sso']['constants']['OIDC_LINK_EXISTING_USERS'],
+		nymbus_env( 'NYMBUS_EMERGENCY_ADMIN' )
+	);
+	return $ok ? true : new WP_Error( 'nymbus_sso_account', 'This Microsoft account may not open this WordPress account.' );
 }
 
 /* ---- password sign-in: emergency administrator only once SSO is on -------------------------------------------- */
@@ -130,6 +169,25 @@ add_filter( 'allow_password_reset', function ( $allow, $user_id ) {
 	$u = get_userdata( $user_id );
 	return $allow && $u && nymbus_password_login_allowed( $u->user_login, user_can( $u, 'manage_options' ), nymbus_sso_on(), nymbus_env( 'NYMBUS_EMERGENCY_ADMIN' ) );
 }, 10, 2 );
+
+/* ---- sessions opened with a password end when Microsoft sign-in is switched on --------------------------------- */
+
+add_action( 'init', function () {
+	if ( ! nymbus_sso_on() || wp_installing() ) {
+		return;
+	}
+	$key = md5( $GLOBALS['nymbus_sso']['tenant'] . '/' . $GLOBALS['nymbus_sso']['constants']['OIDC_CLIENT_ID'] );
+	if ( get_option( 'nymbus_sso_sessions_reset' ) === $key ) {
+		return;
+	}
+	$emergency = nymbus_csv_list( nymbus_env( 'NYMBUS_EMERGENCY_ADMIN' ) );
+	foreach ( get_users( array( 'fields' => array( 'ID', 'user_login' ), 'meta_key' => 'session_tokens', 'meta_compare' => 'EXISTS' ) ) as $u ) {
+		if ( ! in_array( strtolower( $u->user_login ), $emergency, true ) ) {
+			WP_Session_Tokens::get_instance( (int) $u->ID )->destroy_all();
+		}
+	}
+	update_option( 'nymbus_sso_sessions_reset', $key, false );
+} );
 
 /* ---- bundled plugins stay active ------------------------------------------------------------------------------ */
 
@@ -152,6 +210,17 @@ add_action( 'admin_init', function () {
 			activate_plugin( $p );
 		}
 	}
+} );
+
+// whatever does the deactivating (Plugins screen, bulk action, WP-CLI), the required plugins stay in the active list
+add_filter( 'pre_update_option_active_plugins', function ( $new ) {
+	$present = array();
+	foreach ( nymbus_required_plugins() as $p ) {
+		if ( defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . '/' . $p ) ) {
+			$present[] = $p;
+		}
+	}
+	return nymbus_keep_required_active( $new, nymbus_required_plugins(), $present );
 } );
 
 add_filter( 'plugin_action_links', function ( $links, $file ) {

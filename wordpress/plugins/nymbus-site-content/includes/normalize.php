@@ -310,7 +310,8 @@ function nymbus_sc_shape_texts( array $t ) {
 		$out['pageIntros'] = $intros;
 	}
 	$email = nymbus_sc_plain( isset( $t['contact_email'] ) ? $t['contact_email'] : '', 120 );
-	if ( '' !== $email && false !== filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
+	// strict, same pattern as src/lib/cms/validate.ts (no quotes, no IP literals, no exotic characters in a mailto:)
+	if ( '' !== $email && 1 === preg_match( '/^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/', $email ) ) {
 		$out['contactEmail'] = $email;
 	}
 	$phone = nymbus_sc_plain( isset( $t['contact_phone'] ) ? $t['contact_phone'] : '', 40 );
@@ -366,7 +367,8 @@ function nymbus_sc_build_document( array $news_rows, array $team_rows, array $te
 /**
  * One entry of an import file (wordpress/scripts/import-from-site.mjs) → the post fields and the RAW editor input
  * (meta key => value) that the import command then passes through the editor's own sanitiser, exactly like a save.
- * Returns null for an entry that cannot be imported. Pure (unit-tested).
+ * Only fields PRESENT in the entry are in `input` (an update never clears a field the file does not carry); `hidden`
+ * is never part of it. Returns null for an entry that cannot be imported. Pure (unit-tested).
  *
  * @param string $type nymbus_news | nymbus_team.
  * @param mixed  $row  Decoded JSON object.
@@ -380,28 +382,44 @@ function nymbus_sc_import_entry( $type, $row ) {
 	$s    = function ( $v ) {
 		return is_string( $v ) ? $v : '';
 	};
-	$bi   = function ( $v, $lang ) use ( $s ) {
-		return is_array( $v ) && isset( $v[ $lang ] ) ? $s( $v[ $lang ] ) : '';
+	$in   = array();
+	// a scalar field, when the entry has it
+	$one  = function ( $json, $field, $fn = null ) use ( $row, &$in, $s ) {
+		if ( array_key_exists( $json, $row ) ) {
+			$in[ nymbus_sc_meta_key( $field ) ] = $fn ? $fn( $row[ $json ] ) : $s( $row[ $json ] );
+		}
+	};
+	// a bilingual field, per language present
+	$two  = function ( $json, $field, $lines = false ) use ( $row, &$in, $s ) {
+		if ( ! isset( $row[ $json ] ) || ! is_array( $row[ $json ] ) ) {
+			return;
+		}
+		foreach ( array( 'en', 'fr' ) as $l ) {
+			if ( array_key_exists( $l, $row[ $json ] ) ) {
+				$v = $row[ $json ][ $l ];
+				$in[ nymbus_sc_meta_key( $field, $l ) ] = $lines ? ( is_array( $v ) ? implode( "\n", array_filter( $v, 'is_string' ) ) : '' ) : $s( $v );
+			}
+		}
 	};
 	$lst  = function ( $v ) {
 		return is_array( $v ) ? implode( "\n", array_filter( $v, 'is_string' ) ) : '';
 	};
-	$k    = 'nymbus_sc_meta_key';
+	$int  = function ( $v ) {
+		return is_int( $v ) ? (string) $v : '';
+	};
 	if ( 'nymbus_news' === $type ) {
-		$title = nymbus_sc_plain( $bi( isset( $row['title'] ) ? $row['title'] : null, 'en' ), 200 );
+		$title = nymbus_sc_plain( isset( $row['title'] ) && is_array( $row['title'] ) && isset( $row['title']['en'] ) ? $s( $row['title']['en'] ) : '', 200 );
 		$date  = nymbus_sc_date( $s( isset( $row['date'] ) ? $row['date'] : '' ) );
 		if ( '' === $slug || '' === $title || '' === $date ) {
 			return null;
 		}
-		$in = array(
-			$k( 'title', 'fr' )   => $bi( $row['title'], 'fr' ),
-			$k( 'summary', 'en' ) => $bi( isset( $row['summary'] ) ? $row['summary'] : null, 'en' ),
-			$k( 'summary', 'fr' ) => $bi( isset( $row['summary'] ) ? $row['summary'] : null, 'fr' ),
-			$k( 'body', 'en' )    => $bi( isset( $row['body'] ) ? $row['body'] : null, 'en' ),
-			$k( 'body', 'fr' )    => $bi( isset( $row['body'] ) ? $row['body'] : null, 'fr' ),
-			$k( 'category' )      => $s( isset( $row['category'] ) ? $row['category'] : '' ),
-			$k( 'link' )          => $s( isset( $row['link'] ) ? $row['link'] : '' ),
-		);
+		if ( isset( $row['title'] ) && is_array( $row['title'] ) && array_key_exists( 'fr', $row['title'] ) ) {
+			$in[ nymbus_sc_meta_key( 'title', 'fr' ) ] = $s( $row['title']['fr'] );
+		}
+		$two( 'summary', 'summary' );
+		$two( 'body', 'body' );
+		$one( 'category', 'category' );
+		$one( 'link', 'link' );
 		return array( 'slug' => $slug, 'title' => $title, 'date' => $date, 'photo' => nymbus_sc_https_url( isset( $row['image'] ) ? $row['image'] : '' ), 'input' => $in );
 	}
 	if ( 'nymbus_team' === $type ) {
@@ -410,23 +428,18 @@ function nymbus_sc_import_entry( $type, $row ) {
 		if ( '' === $slug || '' === $name || ! in_array( $dept, nymbus_sc_departments(), true ) ) {
 			return null;
 		}
-		$pr = isset( $row['previousRoles'] ) && is_array( $row['previousRoles'] ) ? $row['previousRoles'] : array();
-		$in = array(
-			$k( 'department' )             => $dept,
-			$k( 'additional_departments' ) => isset( $row['additionalDepartments'] ) && is_array( $row['additionalDepartments'] ) ? array_values( array_filter( $row['additionalDepartments'], 'is_string' ) ) : array(),
-			$k( 'order' )                  => isset( $row['order'] ) && is_int( $row['order'] ) ? (string) $row['order'] : '',
-			$k( 'hidden' )                 => '',
-			$k( 'linkedin' )               => $s( isset( $row['linkedin'] ) ? $row['linkedin'] : '' ),
-			$k( 'year_joined' )            => isset( $row['yearJoined'] ) && is_int( $row['yearJoined'] ) ? (string) $row['yearJoined'] : '',
-			$k( 'role', 'en' )             => $bi( isset( $row['role'] ) ? $row['role'] : null, 'en' ),
-			$k( 'role', 'fr' )             => $bi( isset( $row['role'] ) ? $row['role'] : null, 'fr' ),
-			$k( 'bio', 'en' )              => $bi( isset( $row['bio'] ) ? $row['bio'] : null, 'en' ),
-			$k( 'bio', 'fr' )              => $bi( isset( $row['bio'] ) ? $row['bio'] : null, 'fr' ),
-			$k( 'previous_roles', 'en' )   => $lst( isset( $pr['en'] ) ? $pr['en'] : null ),
-			$k( 'previous_roles', 'fr' )   => $lst( isset( $pr['fr'] ) ? $pr['fr'] : null ),
-			$k( 'designations' )           => $lst( isset( $row['designations'] ) ? $row['designations'] : null ),
-			$k( 'education' )              => $lst( isset( $row['education'] ) ? $row['education'] : null ),
-		);
+		$in[ nymbus_sc_meta_key( 'department' ) ] = $dept;
+		$one( 'additionalDepartments', 'additional_departments', function ( $v ) {
+			return is_array( $v ) ? array_values( array_filter( $v, 'is_string' ) ) : array();
+		} );
+		$one( 'order', 'order', $int );
+		$one( 'linkedin', 'linkedin' );
+		$one( 'yearJoined', 'year_joined', $int );
+		$two( 'role', 'role' );
+		$two( 'bio', 'bio' );
+		$two( 'previousRoles', 'previous_roles', true );
+		$one( 'designations', 'designations', $lst );
+		$one( 'education', 'education', $lst );
 		return array( 'slug' => $slug, 'title' => $name, 'date' => '', 'photo' => nymbus_sc_https_url( isset( $row['photo'] ) ? $row['photo'] : '' ), 'input' => $in );
 	}
 	return null;

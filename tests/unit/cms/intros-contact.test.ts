@@ -95,3 +95,10 @@ test("one-line address for the map link matches the coded one", () => {
   assert.equal(oneLine(CT.office.address.en), "1002 Sherbrooke Street West, Suite 1900, Montreal, Quebec H3A 3L6");
   assert.equal(oneLine("A\n\n  B  \nC"), "A, B, C");
 });
+
+test("contact e-mail: strict pattern (same as the plugin)", () => {
+  assert.equal(parseTexts({ contactEmail: "info@nymbus.ca" }).contactEmail, "info@nymbus.ca");
+  for (const bad of ['"a b"@example.org', "a@[127.0.0.1]", "a@b", "a%b@example.org", "a@b.c", "a@exa_mple.org"]) {
+    assert.equal(parseTexts({ contactEmail: bad }).contactEmail, undefined, bad);
+  }
+});

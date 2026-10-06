@@ -53,11 +53,13 @@ VOLUME ["/var/www/html/wp-content/uploads"]
 # file: refused, and the PHP engine is off there; .htaccess files in uploads are ignored).
 # PHP: uploads up to 8 MB (web images: about 1600 px wide is a few hundred KB; raise both values here if a PDF needs more).
 COPY docker/apache-security.conf /etc/apache2/conf-available/nymbus-security.conf
-RUN a2enconf nymbus-security \
+RUN a2enmod headers \
+ && a2enconf nymbus-security \
  && { echo "expose_php = Off"; echo "upload_max_filesize = 8M"; echo "post_max_size = 10M"; echo "max_file_uploads = 10"; } > /usr/local/etc/php/conf.d/nymbus.ini
 
 COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
-RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh /usr/local/bin/wp
+COPY docker/apache2-nymbus-prepare /usr/local/bin/apache2-nymbus-prepare
+RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh /usr/local/bin/apache2-nymbus-prepare /usr/local/bin/wp
 ENTRYPOINT ["nymbus-entrypoint.sh"]
 CMD ["apache2-foreground"]
 

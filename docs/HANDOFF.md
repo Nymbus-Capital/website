@@ -228,7 +228,9 @@ Not yet run against live data, not deployed.
    **Gabriel**: `docs/deploy.md` §5 steps 1–8 (MySQL addon, uploads volume, Entra app "Nymbus WordPress", secret group,
    service, install + emergency admin, editors, connect the website). **Claude**: §5 steps A–C (checks, import, verify).
    To do: independent adversarial review (security of the mu-plugin / OIDC configuration in particular); first real
-   Entra round trip (CI checks only the configuration); after deployment check in the Apache log that the visitor
+   Entra round trip (CI checks only the configuration). Security review of f77883e fixed on the branch (M1 no raw
+   HTML / pictures-only uploads / sandboxed uploads, m1 SSO opens only accounts it created (tid/oid + sub), never the
+   emergency admin, m2 idp/oid checks, m3–m7). After deployment check in the Apache log that the visitor
    address (not the balancer's) is logged — Apache `mod_remoteip` of the official image trusts private ranges only.
 
 ## 6. Session log
