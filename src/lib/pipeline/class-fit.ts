@@ -12,8 +12,11 @@
  */
 export type SideKind = "fit" | "unit" | "uncheckable";
 
+/** the side kinds of a class, decided once on its full sample */
+export type Sides = { up: SideKind; down: SideKind };
+
 /** a class's spread to the fund; `fallback`: no fit (a = 0, slope 1) */
-export interface ClassFit { a: number; bUp: number; bDown: number; n: number; fallback: boolean; up: SideKind; down: SideKind }
+export interface ClassFit extends Sides { a: number; bUp: number; bDown: number; n: number; fallback: boolean }
 
 export interface FitCfg {
   fitMinMonths: number;
@@ -23,13 +26,16 @@ export interface FitCfg {
   fitSlopeMax: number;
   fitInterceptMax: number;
   fitTolerance: number;
-  fitToleranceRange: number;
   fitMaxRounds: number;
   fitDamping: number;
-  fitDampingDecayRounds: number;
 }
 
 export type FitPoint = { m: number; r: number };
+
+/** the iteration's step is divided by 2, 3, … after every this many rounds (Theil–Sen medians can make it cycle) */
+const DAMPING_DECAY_ROUNDS = 20;
+/** a round's step is measured on the expected return of a fund month within ± this */
+const TOLERANCE_RANGE = 0.1;
 
 /** no fit: the class is expected to earn the fund's return (a = 0, slope 1 both sides) */
 export const IDENTITY: ClassFit = { a: 0, bUp: 1, bDown: 1, n: 0, fallback: true, up: "unit", down: "unit" };
@@ -40,6 +46,8 @@ export function median(xs: number[]): number {
 }
 
 const clip = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
+const upMonths = (pts: FitPoint[]): FitPoint[] => pts.filter((p) => p.m > 0);
+const downMonths = (pts: FitPoint[]): FitPoint[] => pts.filter((p) => p.m <= 0);
 
 /** Theil–Sen slope (median of the pairwise slopes; 1 without a pair of distinct m), clipped to [fitSlopeMin, fitSlopeMax] */
 function theilSenSlope(pts: FitPoint[], cfg: FitCfg): number {
@@ -68,27 +76,31 @@ export function referenceOf(f: ClassFit, r: number): number | null {
   return sideOf(f, m) === "uncheckable" ? null : m;
 }
 
+/** side kinds from a class's full sample: "fit" with ≥ fitSideMinMonths months, else "unit" or "uncheckable" (SideKind) */
+export function decideSides(pts: FitPoint[], cfg: FitCfg): Sides {
+  const up = upMonths(pts);
+  const down = downMonths(pts);
+  const own = (side: FitPoint[]): boolean => side.length >= cfg.fitSideMinMonths;
+  const short = (other: FitPoint[]): SideKind => (own(other) && Math.abs(theilSenSlope(other, cfg) - 1) <= cfg.fitUnitSlopeTolerance ? "unit" : "uncheckable");
+  return { up: own(up) ? "fit" : short(down), down: own(down) ? "fit" : short(up) };
+}
+
 /**
- * Robust fit of one class: b⁺ by Theil–Sen over its up months, b⁻ over its down months, a = median residual (clipped to
- * ±fitInterceptMax) over the months of its checkable sides. A side with fewer than fitSideMinMonths months is "unit" or
- * "uncheckable" (SideKind), never a line pooled with the other side. Fewer than fitMinMonths months → `fallback`.
- * `fixed`: the side kinds decided on the class's full sample, kept as they are (leave-one-out fits).
+ * Fit of a class on given side kinds: its own Theil–Sen slope on a "fit" side, slope 1 elsewhere; a = median residual
+ * (clipped to ±fitInterceptMax) over the months of its checkable sides.
  */
-export function fitClass(pts: FitPoint[], cfg: FitCfg, fixed?: Pick<ClassFit, "up" | "down">): ClassFit {
-  if (!fixed && pts.length < cfg.fitMinMonths) return { ...IDENTITY, n: pts.length };
-  const up = pts.filter((p) => p.m > 0);
-  const down = pts.filter((p) => p.m <= 0);
-  const own = (kind: SideKind | undefined, n: number): boolean => (kind ? kind === "fit" : n >= cfg.fitSideMinMonths);
-  const bUpFit = own(fixed?.up, up.length) ? theilSenSlope(up, cfg) : null;
-  const bDownFit = own(fixed?.down, down.length) ? theilSenSlope(down, cfg) : null;
-  const short = (other: number | null): SideKind => (other !== null && Math.abs(other - 1) <= cfg.fitUnitSlopeTolerance ? "unit" : "uncheckable");
-  const upKind: SideKind = bUpFit !== null ? "fit" : fixed?.up ?? short(bDownFit);
-  const downKind: SideKind = bDownFit !== null ? "fit" : fixed?.down ?? short(bUpFit);
-  const bUp = bUpFit ?? 1;
-  const bDown = bDownFit ?? 1;
-  const usable = pts.filter((p) => (p.m > 0 ? upKind : downKind) !== "uncheckable");
+export function fitWithSides(pts: FitPoint[], sides: Sides, cfg: FitCfg): ClassFit {
+  const bUp = sides.up === "fit" ? theilSenSlope(upMonths(pts), cfg) : 1;
+  const bDown = sides.down === "fit" ? theilSenSlope(downMonths(pts), cfg) : 1;
+  const usable = pts.filter((p) => (p.m > 0 ? sides.up : sides.down) !== "uncheckable");
   const a = usable.length ? clip(median(usable.map((p) => p.r - bUp * Math.max(p.m, 0) - bDown * Math.min(p.m, 0))), -cfg.fitInterceptMax, cfg.fitInterceptMax) : 0;
-  return { a, bUp, bDown, n: pts.length, fallback: false, up: upKind, down: downKind };
+  return { a, bUp, bDown, n: pts.length, fallback: false, up: sides.up, down: sides.down };
+}
+
+/** full-sample fit of a class: sides decided on its months, then fitted; fewer than fitMinMonths months → `fallback` */
+export function fitClass(pts: FitPoint[], cfg: FitCfg): ClassFit {
+  if (pts.length < cfg.fitMinMonths) return { ...IDENTITY, n: pts.length };
+  return fitWithSides(pts, decideSides(pts, cfg), cfg);
 }
 
 /**
@@ -118,26 +130,23 @@ function blend(prev: Record<string, ClassFit>, next: Record<string, ClassFit>, d
   }));
 }
 
-/**
- * largest change of a class's expected return, for a fund month within ±`range`, between two sets of fits (Infinity when
- * a side kind or a fallback changed)
- */
-function fitChange(x: Record<string, ClassFit>, y: Record<string, ClassFit>, range: number): number {
+/** a round's step: the largest change of a class's expected return within ±TOLERANCE_RANGE (Infinity on a kind change) */
+function stepSize(x: Record<string, ClassFit>, y: Record<string, ClassFit>): number {
   let d = 0;
   for (const [c, f] of Object.entries(y)) {
     const g = x[c];
     if (!g || g.fallback !== f.fallback || g.up !== f.up || g.down !== f.down) return Infinity;
-    d = Math.max(d, Math.abs(f.a - g.a) + range * Math.max(Math.abs(f.bUp - g.bUp), Math.abs(f.bDown - g.bDown)));
+    d = Math.max(d, Math.abs(f.a - g.a) + TOLERANCE_RANGE * Math.max(Math.abs(f.bUp - g.bUp), Math.abs(f.bDown - g.bDown)));
   }
   return d;
 }
 
 /**
- * The fits and the references they are fitted on depend on each other: iterate from a = 0, slope 1 (damped — two classes
- * that are each other's reference would otherwise swap their spreads every round — and normalised) until no class's
- * expected return moves by more than fitTolerance (for a fund month within ±fitToleranceRange), at most fitMaxRounds
- * rounds. `pointsOf(c, fits)`: class c's (month, reference m, return r) points under `fits`. Returns the fits, the points
- * under them and whether they settled.
+ * The fits and the references they are fitted on depend on each other: iterate from a = 0, slope 1 — damped (two classes
+ * that are each other's reference would otherwise swap their spreads every round), the step shrinking every
+ * DAMPING_DECAY_ROUNDS rounds, normalised — until a round's step is at most fitTolerance (a step size, not a distance to
+ * the exact fixed point), at most fitMaxRounds rounds. `pointsOf(c, fits)`: class c's (month, reference m, return r)
+ * points under `fits`. Returns the fits, the points under them and whether they settled.
  */
 export function solveFits<P extends FitPoint>(
   classes: string[], fittable: Set<string>, pointsOf: (c: string, fits: Record<string, ClassFit>) => P[], cfg: FitCfg,
@@ -146,13 +155,49 @@ export function solveFits<P extends FitPoint>(
   let fits: Record<string, ClassFit> = Object.fromEntries(classes.map((c) => [c, { ...IDENTITY, fallback: !fittable.has(c) }]));
   for (let round = 1; round <= cfg.fitMaxRounds; round++) {
     const points = pointsUnder(fits);
-    // Theil–Sen medians jump between neighbouring pair slopes, so the map can cycle near its fixed point: the step shrinks
-    // every fitDampingDecayRounds rounds until the cycle is within the tolerance
-    const damping = cfg.fitDamping / Math.ceil(round / cfg.fitDampingDecayRounds);
+    const damping = cfg.fitDamping / Math.ceil(round / DAMPING_DECAY_ROUNDS);
     const next = normaliseFits(blend(fits, Object.fromEntries(classes.map((c) => [c, fittable.has(c) ? fitClass(points[c], cfg) : IDENTITY])), damping));
-    const change = fitChange(fits, next, cfg.fitToleranceRange);
+    const step = stepSize(fits, next);
     fits = next;
-    if (change <= cfg.fitTolerance) return { fits, points: pointsUnder(fits), converged: true, rounds: round };
+    if (step <= cfg.fitTolerance) return { fits, points: pointsUnder(fits), converged: true, rounds: round };
   }
   return { fits, points: pointsUnder(fits), converged: false, rounds: cfg.fitMaxRounds };
+}
+
+/** one class's residual in one month; `m`: the fund's reference return that month (its sign gives the side) */
+export interface Residual { fsv: string; m: number; e: number }
+
+/**
+ * Residuals of every class-month, robust to a class's own wrong months: pass 1 tests each month against a fit without it,
+ * pass 2 also without the class's other pass-1 breaches (when `canLeaveOut` allows). Stability rule: a class keeps its
+ * pass-2 verdicts only if pass 2 flags no month pass 1 did not, and a pass-1 breach that pass 2 clears stands unless
+ * pass 2 confirms another breach of that class on the same (up / down) side.
+ */
+export function robustResiduals<R extends Residual>(
+  months: string[],
+  assess: (month: string, leaveOut: (fsv: string) => Set<string>) => R[],
+  canLeaveOut: (fsv: string, months: Set<string>) => boolean,
+  breaches: (e: number) => boolean,
+): Map<string, R[]> {
+  const run = (leaveOut: (fsv: string) => Set<string>): Map<string, R[]> => new Map(months.map((m): [string, R[]] => [m, assess(m, leaveOut)]));
+  // class → its breaching months → whether each is an up month
+  const flagged = (pass: Map<string, R[]>): Map<string, Map<string, boolean>> => {
+    const out = new Map<string, Map<string, boolean>>();
+    for (const [month, res] of pass) for (const x of res) if (breaches(x.e)) out.set(x.fsv, (out.get(x.fsv) ?? new Map()).set(month, x.m > 0));
+    return out;
+  };
+  const first = run(() => new Set());
+  const suspects = flagged(first);
+  const second = run((c) => {
+    const s = new Set(suspects.get(c)?.keys() ?? []);
+    return s.size && canLeaveOut(c, s) ? s : new Set();
+  });
+  const confirmed = flagged(second);
+  const unstable = (c: string): boolean => [...(confirmed.get(c)?.keys() ?? [])].some((m) => !suspects.get(c)?.has(m));
+  return new Map(months.map((month): [string, R[]] => [month, second.get(month)!.map((x) => {
+    const p1 = first.get(month)!.find((y) => y.fsv === x.fsv)!;
+    if (unstable(x.fsv)) return p1;
+    const explained = [...(confirmed.get(x.fsv) ?? [])].some(([m, up]) => m !== month && up === x.m > 0);
+    return breaches(p1.e) && !breaches(x.e) && !explained ? p1 : x;
+  })]));
 }

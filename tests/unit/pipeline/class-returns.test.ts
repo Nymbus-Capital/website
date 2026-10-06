@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import {
   adjustmentDays, computeFundClasses, crossClassFailures, currentRun, hasMinHistory, minHistoryDate, monthsFromInception, spikeMonths,
 } from "../../../src/lib/pipeline/class-returns.ts";
-import { expectedReturn, fitClass } from "../../../src/lib/pipeline/class-fit.ts";
+import { expectedReturn, fitClass, fitWithSides } from "../../../src/lib/pipeline/class-fit.ts";
 import { CLASS_CHECKS } from "../../../src/lib/pipeline/config.ts";
 import { tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
 import { addMonths } from "../../../src/lib/pipeline/metrics.ts";
@@ -140,7 +140,7 @@ test("fit per class: separate up / down slopes (performance fee in up months onl
   // the side kinds of the full sample are kept in a leave-one-out fit, even when it leaves a side short
   const six = [...ups, ...pts.filter((p) => p.m <= 0).slice(0, CLASS_CHECKS.fitSideMinMonths)];
   const full = fitClass(six, CLASS_CHECKS);
-  const loo = fitClass(six.filter((p) => p !== six.at(-1)), CLASS_CHECKS, full);
+  const loo = fitWithSides(six.filter((p) => p !== six.at(-1)), full, CLASS_CHECKS);
   assert.ok(full.down === "fit" && loo.down === "fit" && Math.abs(loo.bDown - 1) < 1e-9, JSON.stringify(loo));
 });
 
@@ -499,6 +499,50 @@ test("convergence: the fits settle (same result for any round cap above the roun
   const capped = crossClassFailures(p.months, p.daily, { ...CLASS_CHECKS, fitMaxRounds: 1 });
   assert.equal(capped.fundMonths.size, 30);
   assert.match([...capped.fundMonths.values()][0], /did not settle in 1 rounds/);
+});
+
+/** SYNTHETIC random fund (deterministic LCG): 30 months from 2022-01 with `down` down months, I fee-free, F / J / A 20 % fee */
+function randomFeeFund(trial: number, down: number) {
+  let seed = 1;
+  const rnd = (): number => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const gauss = (): number => { let s = 0; for (let k = 0; k < 6; k++) s += rnd(); return (s - 3) / Math.sqrt(0.5); };
+  const ms = Array.from({ length: 30 }, (_, i) => addMonths("2022-01-31", i));
+  let base: Record<string, number[]> = {};
+  for (let t = 0; t <= trial; t++) {
+    const gross = ms.map(() => Math.abs(0.008 + 0.025 * gauss()) + 0.002);
+    for (const i of [...gross.keys()].sort(() => rnd() - 0.5).slice(0, down)) gross[i] = -gross[i];
+    const mgmt = ["I", "F", "J", "A"].map(() => 0.0004 + 0.0012 * rnd());
+    base = {};
+    ["I", "F", "J", "A"].forEach((c, k) => { base[c] = gross.map((g) => (c !== "I" && g > 0 ? 0.8 * g : g) - mgmt[k] + 0.0002 * gauss()); });
+  }
+  return (errs: Record<string, number>, bad = "F") => panel(Object.fromEntries(Object.entries(base).map(([c, rs]) => [c, Object.fromEntries(ms.map((d, i) => [d, rs[i] + (c === bad ? errs[d] ?? 0 : 0)]))])));
+}
+
+test("second leave-out pass: a real breach is never cleared (unstable class → first-pass verdicts; explained only on the same side)", () => {
+  const fund = randomFeeFund(7, 7);
+  const clean = fund({});
+  const c = crossClassFailures(clean.months, clean.daily, CLASS_CHECKS);
+  assert.equal(c.fails.size + c.fundMonths.size, 0);
+  for (const errs of [{ "2022-12-31": -0.008 }, { "2022-01-31": -0.008 }, { "2022-12-31": -0.008, "2024-02-29": -0.008 }, { "2022-01-31": -0.008, "2024-02-29": -0.008 }]) {
+    const p = fund(errs);
+    const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+    const what = `${JSON.stringify(errs)}: ${JSON.stringify(failMap(out))}`;
+    assert.equal(out.fundMonths.size, 0, what);
+    assert.deepEqual(Object.keys(failMap(out)), ["F"], what);
+    for (const m of Object.keys(errs)) assert.ok(out.fails.get("F")!.has(m), `${m} published — ${what}`);
+  }
+});
+
+test("a class whose other classes are all not checkable on that side this month is not checkable either (never slope 1)", () => {
+  // F alone with I in its deep down months (J, A missing there); I has too few down months for a down slope of its own
+  const ms = Array.from({ length: 30 }, (_, i) => addMonths("2022-01-31", i));
+  const g = ms.map((_, i) => ([3, 8, 13, 19, 25].includes(i) ? -0.06 + 0.0004 * i : 0.01 + 0.02 * Math.sin(i * 1.7) ** 2));
+  for (const err of [-0.008, -0.01, 0]) {
+    const series = (fee: boolean, spread: number, gap: boolean, errAt25 = 0) => Object.fromEntries(ms.flatMap((d, i) => (gap && i === 25 ? [] : [[d, (fee ? (g[i] > 0 ? 0.8 * g[i] : g[i]) : g[i] > 0 ? g[i] : 1.15 * g[i]) - spread + (i === 25 ? errAt25 : 0)]])));
+    const p = panel({ F: series(true, 0.0008, false, err), J: series(true, 0.0007, true), A: series(true, 0.0012, true), I: series(false, 0.0005, false) });
+    const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
+    assert.match(out.fails.get("F")?.get(ms[25]) ?? out.fundMonths.get(ms[25]) ?? "published", /not checkable: no other class with a fitted spread on that side/, `F ${err}`);
+  }
 });
 
 test("a class without a fit, next to fitted classes, is never checked at slope 1: its months wait for a fit of its own", () => {
