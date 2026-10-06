@@ -16,7 +16,7 @@
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
-import { useInView } from "@/components/motion/motion";
+import { useInView, useMountValue } from "@/components/motion/motion";
 import { useTranslation } from "@/lib/i18n";
 import { PUBLIC_FUNDS, visibleFunds } from "@/config/funds-public";
 import { CardGrid, PageHero, Reveal, Section, SectionHead } from "../kit";
@@ -37,21 +37,19 @@ const isFailure = (c: unknown): c is ContactFailure => typeof c === "string" && 
 function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: string[]; token: string; initialStatus: ContactStatus }) {
   const { locale, pick } = useTranslation();
   const F = CT.form;
-  const [live, setLive] = useState(false);
+  const live = useMountValue(() => true, false); // the steps show one at a time once the script runs
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [q, setQ] = useState<Inquiry>(EMPTY);
   const [errs, setErrs] = useState<InquiryErrors>({});
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(initialStatus === "sent");
   const [fail, setFail] = useState<ContactFailure | null>(initialStatus && initialStatus !== "sent" ? initialStatus : null);
-  const stepRefs = [useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null), useRef<HTMLFieldSetElement>(null)];
+  const step1Ref = useRef<HTMLFieldSetElement>(null), step2Ref = useRef<HTMLFieldSetElement>(null), step3Ref = useRef<HTMLFieldSetElement>(null);
   const sentRef = useRef<HTMLParagraphElement>(null);
   const moved = useRef(false);
-  useEffect(() => { setLive(true); }, []);
   useEffect(() => {
     if (!moved.current) return;
-    stepRefs[step - 1].current?.focus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step1Ref, step2Ref, step3Ref][step - 1].current?.focus();
   }, [step]);
   useEffect(() => {
     if (sent && moved.current) sentRef.current?.focus();
@@ -61,9 +59,8 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
   useEffect(() => {
     if (!errFocus.current) return;
     errFocus.current = false;
-    const fs = stepRefs[step - 1].current;
+    const fs = [step1Ref, step2Ref, step3Ref][step - 1].current;
     (fs?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? fs?.querySelector<HTMLElement>("input:not([type=hidden]), textarea"))?.focus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [errs, step]);
   const showErrs = (e: InquiryErrors) => { errFocus.current = Object.keys(e).length > 0; setErrs(e); };
 
@@ -167,7 +164,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
             })}
           </ol>
 
-          <fieldset ref={stepRefs[0]} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
+          <fieldset ref={step1Ref} tabIndex={-1} className="ct-step" hidden={!shown(1)} aria-describedby={errs.profile ? "ct-e-profile" : undefined}>
             <legend className="ct-q">{pick(F.q1)}</legend>
             <div className="ct-opts">
               {F.profiles.map((p) => (
@@ -187,7 +184,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
             </div>
           </fieldset>
 
-          <fieldset ref={stepRefs[1]} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
+          <fieldset ref={step2Ref} tabIndex={-1} className="ct-step" hidden={!shown(2)} aria-describedby={errs.interests ? "ct-e-interests" : "ct-h-interests"}>
             <legend className="ct-q">{pick(F.q2)}</legend>
             <p id="ct-h-interests" className="small">{pick(F.q2hint)}</p>
             <div className="ct-opts ct-opts-s">
@@ -206,7 +203,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
             </div>
           </fieldset>
 
-          <fieldset ref={stepRefs[2]} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
+          <fieldset ref={step3Ref} tabIndex={-1} className="ct-step" hidden={!shown(3)}>
             <legend className="ct-q">{pick(F.q3)}</legend>
             <div className="ct-fields">
               <div className="ct-field">
