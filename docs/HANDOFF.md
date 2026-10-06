@@ -168,7 +168,7 @@ Not yet run against live data, not deployed.
 11. **Headless WordPress editor backend** (branch `feat/wp-cms`, based on the PR branch, not merged): built, CI-tested,
    **nothing deployed**. Gabriel's manual steps: `docs/deploy.md` §5 / `wordpress/README.md` (MySQL addon, uploads volume,
    secret group, service `wordpress`, install + activate plugin, permalinks, connect the website with `WP_BASE_URL` +
-   secrets, **Microsoft SSO for WordPress login = TODO**). Follow-ups: import the current team/news into WordPress
+   secrets, **Microsoft SSO for WordPress login: done on `feat/wp-ready`, item 20**). Follow-ups: import the current team/news into WordPress (`wp nymbus import`, item 20)
    (photos are on www.nymbus.ca, not imported), render `linkedin` in the team modal (`TeamMember.linkedin`), fund pages
    still read managers from `src/data/team.ts`, add News to the nav/footer if wanted, independent adversarial review
    (could not be spawned in the building session).
@@ -217,7 +217,35 @@ Not yet run against live data, not deployed.
    endpoint** on main (total returns of a USD series); (c) compliance rows AC1–AC6 (`docs/compliance-review.md`), in particular
    AC3 (some standard periods shown while others are "—"); (d) a second independent review of the 2026-10-05 fixes before merging.
 
+20. **WordPress ready for deployment** (branch `feat/wp-ready`, from `redesign/v3-keynote-live-data`, **not merged**;
+   supersedes the SSO TODO of item 11): hardened image (WordPress 7.1.2-php8.3-apache pinned; Limit Login Attempts
+   Reloaded 3.3.10 + OpenID Connect Generic Client 3.11.3 from wordpress.org with pinned SHA-256; WP-CLI 2.12.0; no file
+   mods / auto-updates; no PHP in uploads; 8 MB uploads; XML-RPC and application passwords off), **Sign in with
+   Microsoft** from env (`NYMBUS_SSO_*`, tenant + member + @nymbus.ca, first sign-in = Editor) with password sign-in only
+   for `NYMBUS_EMERGENCY_ADMIN`; contact details (footer + /contact) and **page intros** (approach, solutions,
+   sustainability headline only, team) wired from WordPress with the coded copy as default; `wp nymbus import` +
+   `wordpress/scripts/import-from-site.mjs`. CI smoke test of the image (`wordpress/tests/docker-smoke.sh`).
+   **Gabriel**: `docs/deploy.md` §5 steps 1–8 (MySQL addon, uploads volume, Entra app "Nymbus WordPress", secret group,
+   service, install + emergency admin, editors, connect the website). **Claude**: §5 steps A–C (checks, import, verify).
+   To do: independent adversarial review (security of the mu-plugin / OIDC configuration in particular); first real
+   Entra round trip (CI checks only the configuration); confirm Northflank appends the client IP to `X-Forwarded-For`
+   (else set `NYMBUS_TRUSTED_PROXY_HOPS=0`: the login limiter then counts per balancer address).
+
 ## 6. Session log
+
+- 2026-10-05 (sub-agent, branch `feat/wp-ready` from `redesign/v3-keynote-live-data`; **not merged**): WordPress side made
+  deployable (open item 20). `wordpress/Dockerfile` pinned + checksummed downloads, `docker/apache-security.conf`,
+  `docker/wp` (WP-CLI as www-data), `mu-plugins/nymbus-security.php` + `nymbus-lib/security.php` (pure, tested by
+  `wordpress/tests/security-test.php`), `nymbus-headless.php` (file mods / updates / app passwords off). Plugin 1.1.0:
+  Site texts gain section headings, multi-line address (`lines`), "Page intros" (`intro_<page>_headline|highlight|lead`,
+  Sustainability lead locked: ESG scope qualifier), `wp nymbus import <file|https URL|->` (`--dry-run`, `--update`,
+  `--status`, `--photos`; never deletes; editor sanitiser). Website: `src/lib/cms` `pageIntros` (types / validate),
+  `contactOverrides`, `telHref`, `oneLine`, `introCopy` (per language; no intro = the coded object itself); Footer,
+  SiteShell, layout, /contact, Approach, Solutions, Sustainability, Team take optional props. Tests: unit
+  `tests/unit/cms/intros-contact.test.ts`, `import-export.test.ts`; PHP checks; e2e `cms.spec.ts` (WordPress values +
+  "without WP_BASE_URL exactly as before"); CI step "WordPress image smoke test". Docs: `wordpress/README.md` (security,
+  updating, who edits what, how to add a field, env table), `docs/deploy.md` §5 (who does what), `docs/architecture.md`.
+  Not done: independent adversarial review (no sub-agents available in this session).
 
 - 2026-10-05 (sub-agent, branch `feat/collapsible-disclosures` from `redesign/v3-keynote-live-data`; **not merged**): Gabriel's
   request "all the disclosure in the websites … smaller divs that have a fade out towards the end and a static arrow that shows

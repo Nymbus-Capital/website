@@ -201,7 +201,7 @@ Nothing updates itself. About once a month, or the day a security release is ann
    https://hub.docker.com/_/wordpress/tags?name=php8.3-apache; keep `-php8.3-apache` unless you also test a PHP bump).
 2. **A plugin**: change `LLAR_VERSION` / `OIDC_VERSION` and its `*_SHA256`. Get the checksum from the official zip:
    `curl -fsSL https://downloads.wordpress.org/plugin/<slug>.<version>.zip | sha256sum` (slugs
-   `limit-login-attempts-reloaded`, `openid-connect-generic`). A wrong checksum fails the build on purpose.
+   `limit-login-attempts-reloaded`, `daggerhart-openid-connect-generic`). A wrong checksum fails the build on purpose.
    **WP-CLI**: `WPCLI_VERSION` / `WPCLI_SHA256` (the `.sha256` file next to the release on GitHub).
 3. Push: CI builds the image and runs `tests/docker-smoke.sh` (hardening, sign-in, plugins, import). Merge, then
    Northflank rebuilds the `wordpress` service. If WordPress asks for a database update, open `/wp-admin` once (or run

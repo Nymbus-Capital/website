@@ -96,6 +96,27 @@ if ( nymbus_sso_on() ) {
 		return $data;
 	} );
 
+	// settings the OIDC screen would let an administrator weaken: forced to the safe values
+	add_filter( 'option_openid_connect_generic_settings', function ( $v ) {
+		return array_merge(
+			is_array( $v ) ? $v : array(),
+			array(
+				'no_sslverify'           => 0,
+				'allow_internal_idp'     => 0,
+				'alternate_redirect_uri' => 0,
+				'identity_key'           => 'preferred_username',
+				'nickname_key'           => 'preferred_username',
+				'email_format'           => '{email}',
+				'identify_with_username' => false,
+			)
+		);
+	} );
+
+	// the login limiter replaces every sign-in error by "Incorrect username or password": say it on the page instead
+	add_filter( 'login_message', function ( $message ) {
+		return $message . '<p class="message">' . esc_html__( 'Nymbus staff: please use "Sign in with Microsoft". Password sign-in is reserved for the emergency administrator.', 'nymbus-site-content' ) . '</p>';
+	} );
+
 	add_filter( 'openid-connect-generic-login-button-text', function () {
 		return __( 'Sign in with Microsoft', 'nymbus-site-content' );
 	} );
@@ -122,7 +143,7 @@ add_filter( 'allow_password_reset', function ( $allow, $user_id ) {
 function nymbus_required_plugins() {
 	$list = array( 'nymbus-site-content/nymbus-site-content.php', 'limit-login-attempts-reloaded/limit-login-attempts-reloaded.php' );
 	if ( nymbus_sso_on() ) {
-		$list[] = 'openid-connect-generic/openid-connect-generic.php';
+		$list[] = 'daggerhart-openid-connect-generic/openid-connect-generic.php';
 	}
 	return $list;
 }

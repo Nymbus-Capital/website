@@ -10,26 +10,29 @@ FROM wordpress:7.1.2-php8.3-apache
 # Third-party plugins from wordpress.org, pinned to a version AND to the SHA-256 of that exact zip: a changed or
 # tampered download fails the build instead of reaching production.
 #   Limit Login Attempts Reloaded: brute-force protection of /wp-login.php (the emergency password account).
-#   OpenID Connect Generic Client: "Sign in with Microsoft" (Entra ID), configured from env by mu-plugins/nymbus-security.php.
+#   OpenID Connect Generic Client (wordpress.org slug daggerhart-openid-connect-generic): "Sign in with Microsoft"
+#   (Entra ID), configured from env by mu-plugins/nymbus-security.php.
 ARG LLAR_VERSION=3.3.10
 ARG LLAR_SHA256=9125ac1bc06c876326802ff1b9783ef0081749d0025e578c6b355d65622abb3f
 ARG OIDC_VERSION=3.11.3
 ARG OIDC_SHA256=0000000000000000000000000000000000000000000000000000000000000000
 
+# TEMPORARY probe (removed once the checksum is pinned)
+RUN for v in 3.11.3 3.11.2 3.11.1 3.11.0 3.10.2 3.10.1 3.10.0; do s="$(curl -fsSL "https://downloads.wordpress.org/plugin/daggerhart-openid-connect-generic.$v.zip" | sha256sum | cut -d' ' -f1)"; echo "PROBE daggerhart-openid-connect-generic $v $s"; done; true
 RUN set -eu; \
-    cd /tmp; \
+    cd /tmp; bad=0; \
     fetch() { \
-      slug="$1"; ver="$2"; sum="$3"; \
-      curl -fsSL --retry 3 --retry-delay 5 -o "$slug.zip" "https://downloads.wordpress.org/plugin/$slug.$ver.zip"; \
+      slug="$1"; main="$2"; ver="$3"; sum="$4"; \
+      if ! curl -fsSL --retry 3 --retry-delay 5 -o "$slug.zip" "https://downloads.wordpress.org/plugin/$slug.$ver.zip"; then echo "DOWNLOAD FAILED $slug $ver" >&2; bad=1; return 0; fi; \
       got="$(sha256sum "$slug.zip" | cut -d' ' -f1)"; \
-      if [ "$got" != "$sum" ]; then echo "CHECKSUM MISMATCH $slug $ver: expected $sum got $got" >&2; exit 1; fi; \
+      if [ "$got" != "$sum" ]; then echo "CHECKSUM MISMATCH $slug $ver: expected $sum got $got" >&2; bad=1; return 0; fi; \
       php -r '$z = new ZipArchive(); if ($z->open($argv[1]) !== true || !$z->extractTo($argv[2])) { fwrite(STDERR, "cannot unzip\n"); exit(1); }' "$slug.zip" /usr/src/wordpress/wp-content/plugins; \
-      test -f "/usr/src/wordpress/wp-content/plugins/$slug/$slug.php"; \
-      grep -Eq "^[[:space:]*]*Version:[[:space:]]*$ver[[:space:]]*$" "/usr/src/wordpress/wp-content/plugins/$slug/$slug.php"; \
+      grep -Eq "^[[:space:]*]*Version:[[:space:]]*$ver[[:space:]]*$" "/usr/src/wordpress/wp-content/plugins/$slug/$main"; \
       rm -f "$slug.zip"; \
     }; \
-    fetch limit-login-attempts-reloaded "$LLAR_VERSION" "$LLAR_SHA256"; \
-    fetch openid-connect-generic "$OIDC_VERSION" "$OIDC_SHA256"; \
+    fetch limit-login-attempts-reloaded limit-login-attempts-reloaded.php "$LLAR_VERSION" "$LLAR_SHA256"; \
+    fetch daggerhart-openid-connect-generic openid-connect-generic.php "$OIDC_VERSION" "$OIDC_SHA256"; \
+    [ "$bad" = 0 ]; \
     chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins
 
 # WP-CLI (pinned + checksum of the official release) for operations from the Northflank shell: `wp nymbus import`,

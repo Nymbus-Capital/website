@@ -36,7 +36,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 echo "# static checks"
 check "apache configuration is valid" "docker run --rm --entrypoint apache2ctl '$IMG' -t >/dev/null 2>&1"
 check "upload limit is 8M" "[ \"\$(docker run --rm --entrypoint php '$IMG' -r 'echo ini_get(\"upload_max_filesize\");')\" = 8M ]"
-for p in nymbus-site-content limit-login-attempts-reloaded openid-connect-generic; do
+for p in nymbus-site-content limit-login-attempts-reloaded daggerhart-openid-connect-generic; do
   check "plugin $p baked in" "docker run --rm --entrypoint test '$IMG' -d /usr/src/wordpress/wp-content/plugins/$p"
 done
 check "WP-CLI baked in (pinned)" "docker run --rm --entrypoint wp '$IMG' --version | grep -q \"WP-CLI \$(sed -n 's/^ARG WPCLI_VERSION=//p' '$HERE/../Dockerfile')\""
@@ -77,7 +77,7 @@ check "PHP in uploads never runs" "! curl -s '$BASE/wp-content/uploads/2026/10/p
 check "a .htaccess in uploads cannot turn PHP on" "! curl -s '$BASE/wp-content/uploads/2026/10/probe.jpg' | grep -q EXECUTED"
 check "dot files in uploads are refused" "[ \"\$(code '$BASE/wp-content/uploads/2026/10/.htaccess')\" = 403 ]"
 check "no file mods (installs / updates) from wp-admin" "[ \"\$(wpcli eval 'echo wp_is_file_mod_allowed(\"smoke\") ? \"yes\" : \"no\";')\" = no ]"
-check "automatic updates off" "[ \"\$(wpcli eval 'echo ( new WP_Automatic_Updater() )->is_disabled() ? \"off\" : \"on\";')\" = off ]"
+check "automatic updates off" "[ \"\$(wpcli eval 'echo ( apply_filters( \"automatic_updater_disabled\", false ) && AUTOMATIC_UPDATER_DISABLED && ! apply_filters( \"auto_update_core\", true, null ) ) ? \"off\" : \"on\";')\" = off ]"
 check "application passwords off" "[ \"\$(wpcli eval 'echo wp_is_application_passwords_available() ? \"on\" : \"off\";')\" = off ]"
 check "XML-RPC refused (403)" "[ \"\$(code -d x '$BASE/xmlrpc.php')\" = 403 ]"
 
@@ -90,10 +90,10 @@ login() { # $1 user $2 password [$3 X-Forwarded-For]; prints the HTTP status (30
 check "emergency administrator signs in with a password" "[ \"\$(login smoke-admin '$ADMIN_PW')\" = 302 ]"
 curl -s -o /dev/null -b "$JAR" "$BASE/wp-admin/" # first admin page view activates the bundled plugins
 ACTIVE="$(wpcli plugin list --status=active --field=name)"
-for p in nymbus-site-content limit-login-attempts-reloaded openid-connect-generic; do
+for p in nymbus-site-content limit-login-attempts-reloaded daggerhart-openid-connect-generic; do
   check "plugin $p active" "grep -qx '$p' <<<\"\$ACTIVE\""
 done
-for pair in "limit-login-attempts-reloaded LLAR_VERSION" "openid-connect-generic OIDC_VERSION"; do
+for pair in "limit-login-attempts-reloaded LLAR_VERSION" "daggerhart-openid-connect-generic OIDC_VERSION"; do
   set -- $pair
   want="$(sed -n "s/^ARG $2=//p" "$HERE/../Dockerfile")"
   check "plugin $1 is the pinned version $want" "[ \"\$(wpcli plugin get $1 --field=version)\" = '$want' ]"
@@ -102,7 +102,9 @@ check "login page offers Sign in with Microsoft" "curl -s '$BASE/wp-login.php' |
 curl -s "$BASE/wp-login.php" > /tmp/nywp-form.html
 check "Microsoft sign-in points at our tenant" "grep -q 'https://login.microsoftonline.com/00000000-0000-4000-8000-000000000001/oauth2/v2.0/authorize' /tmp/nywp-form.html"
 check "Microsoft sign-in uses our client id" "grep -q 'client_id=00000000-0000-4000-8000-000000000002' /tmp/nywp-form.html"
-check "an editor cannot sign in with a password once SSO is on" "[ \"\$(login smoke-editor '$EDITOR_PW')\" = 200 ] && grep -q 'reserved for the emergency administrator' /tmp/nywp-login.html"
+check "the login page says passwords are for the emergency administrator" "grep -q 'reserved for the emergency administrator' /tmp/nywp-form.html"
+: > "$JAR"
+check "an editor cannot sign in with a password once SSO is on" "[ \"\$(login smoke-editor '$EDITOR_PW')\" = 200 ] && ! grep -q wordpress_logged_in '$JAR'"
 
 echo "# content endpoint"
 check "content document served" "curl -s '$BASE/?rest_route=/nymbus/v1/site-content' | grep -q '\"schemaVersion\":1'"
