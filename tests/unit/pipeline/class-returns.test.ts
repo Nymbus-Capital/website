@@ -523,7 +523,8 @@ test("second leave-out pass: a real breach is never cleared (unstable class → 
   const clean = fund({});
   const c = crossClassFailures(clean.months, clean.daily, CLASS_CHECKS);
   assert.equal(c.fails.size + c.fundMonths.size, 0);
-  for (const errs of [{ "2022-12-31": -0.008 }, { "2022-01-31": -0.008 }, { "2022-12-31": -0.008, "2024-02-29": -0.008 }, { "2022-01-31": -0.008, "2024-02-29": -0.008 }]) {
+  const cases: Record<string, number>[] = [{ "2022-12-31": -0.008 }, { "2022-01-31": -0.008 }, { "2022-12-31": -0.008, "2024-02-29": -0.008 }, { "2022-01-31": -0.008, "2024-02-29": -0.008 }];
+  for (const errs of cases) {
     const p = fund(errs);
     const out = crossClassFailures(p.months, p.daily, CLASS_CHECKS);
     const what = `${JSON.stringify(errs)}: ${JSON.stringify(failMap(out))}`;
