@@ -728,6 +728,9 @@ export function crossCheck(fund: PeriodMap, fs: TrailingTable): { period: string
 
 const cut = (s: Series, end: string): Series => Object.fromEntries(sortedKeys(s).filter((m) => m <= end).map((m) => [m, s[m]]));
 
+/** Fewer than 12 monthly returns from `firstMonth` to `asOf` (both month-ends, inclusive). */
+export const isShortRecord = (firstMonth: string, asOf: string): boolean => monthsBetween(firstMonth, asOf) < 12;
+
 function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string, opts: BuildOptions, defects?: Map<string, string>): PerfBuild | null {
   const { fs: fsr, cand } = fundSeries(raw, spec, c, base, defects);
   if (!fsr) return null;
@@ -913,7 +916,7 @@ function buildNetPerformance(raw: RawPayloads, spec: FundSpec, prev: FundData | 
     classCode: fsr.classCode, returnClass: shown!, returnClassLabel: `Series ${shown}`,
   };
   // less than 12 monthly returns: the page says "since class inception" (same flag as the per-class series)
-  if (monthsBetween(firstMonth, asOf) + 1 < 12) performance.shortRecord = true;
+  if (isShortRecord(firstMonth, asOf)) performance.shortRecord = true;
   if (indexName) performance.indexName = indexName;
   return {
     performance, risk, risk3Y, trailingSource: "computed", fsTrailing, fsFile: fsBlock?.name ?? null, held: asOf < fsr.last ? fsr.last : undefined, alerts, unconfirmed,

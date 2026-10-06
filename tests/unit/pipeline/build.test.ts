@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildSiteData, navChange, revisions, type BuildResult } from "../../../src/lib/pipeline/build.ts";
+import { buildSiteData, isShortRecord, navChange, revisions, type BuildResult } from "../../../src/lib/pipeline/build.ts";
 import { ftseFamily } from "../../../src/lib/pipeline/metrics.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import type { NavPoint, RawPayloads } from "../../../src/lib/pipeline/raw.ts";
@@ -550,4 +550,11 @@ test("FTSE for all benchmarks: a period FTSE does not cover is null with an issu
 
 test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
   assertConfigUntouched();
+});
+
+test("short record: fewer than 12 monthly returns (inclusive count, no double +1)", () => {
+  assert.equal(isShortRecord("2025-09-30", "2026-08-31"), false, "12 months is a full year");
+  assert.equal(isShortRecord("2025-10-31", "2026-08-31"), true, "11 months");
+  assert.equal(isShortRecord("2025-11-30", "2026-08-31"), true, "10 months (flagged before the fix too)");
+  assert.equal(isShortRecord("2026-08-31", "2026-08-31"), true, "1 month");
 });
