@@ -144,8 +144,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ### B. Development (Claude or a developer)
 
-1. [in progress — sub-agent, 2026-10-06, branch `feat/multi-fee-fit`] **Multi-Strategy series checks**: its series carry a performance fee charged in up months only, so the linear
-   cross-class fit (`src/lib/pipeline/class-returns.ts`) withholds too many months; fit separate up / down slopes.
+1. [done 2026-10-06, branch `feat/multi-fee-fit`, not merged] **Multi-Strategy series checks**: the cross-class fit has
+   separate up / down slopes (`fitSideMinMonths`, docs/architecture.md); check the live Multi-Strategy months after the merge.
 2. **Readability** — split done on branch `refactor/split-modules` (not merged, 2026-10-06): `build.ts` →
    `src/lib/pipeline/build/` (entry `index.ts`; `context`, `helpers`, `factsheets`, `register`, `series`, `track-record`,
    `benchmark`, `performance`, `net-performance`, `factsheet-performance`, `nav`, `factsheet-parts`, `daily-book`,
@@ -166,6 +166,11 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ## 6. Session log
 
+- 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
+  a + b⁺·max(m, 0) + b⁻·min(m, 0) (Theil–Sen per side, leave-one-out, each slope clipped to [0.6, 1.4]; one line when a
+  side has fewer than 6 months, a = 0 / slope 1 under 12): a performance fee charged in up months only is an expected
+  spread. Tests: synthetic Multi-like fund (20 % fee in up months, no error → nothing withheld; ±0.6 % errors on I/F/J/A in
+  the strongest / weakest / calm month → that class only), I-class errors and two strong months with the same error added.
 - 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
   behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
   through `build/index.ts` and `validate/index.ts`, pipeline output on the fixtures byte-identical, `npm test` green;

@@ -229,15 +229,20 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
     months, every class of the fund. Checked over every row fetched (to the run day), so a print on the newest month's last
     day reversed on the next valuation day is seen; the newest month of a class waits ("—") until one later valuation day
     exists;
-  - cross-class consistency of a COMPLETE month, on the published monthly values. Each class c is compared with a
-    LEAVE-CLASS-OUT reference m₋c = median over the OTHER fitted complete classes d of (r_d − a_d) / b_d (each mapped back
-    to the fund's common return through its own fit), so an error in c never moves its own reference and a correct class
-    with a different slope (e.g. without a performance fee) is never made the outlier by another class's error. a_c, b_c
-    are fitted by Theil–Sen (median of pairwise slopes; intercept = median of r − b·m) on that reference over the months
-    where c and ≥ 2 other fitted classes are complete, LEAVING OUT the month under test; the fits and references are
-    iterated a few rounds from a = 0, b = 1; b clipped to [0.6, 1.4], a to ±0.30 % a month. A class is fitted when it has
-    12 such months (`fitMinMonths`); young classes never enter another class's reference and are only ever withheld
-    themselves. Residual = r_c − (a_c + b_c · m₋c); above `residualMax` (0.40 %) it is a breach. For the fitted classes:
+  - cross-class consistency of a COMPLETE month, on the published monthly values. Each class c has a fit
+    E_c(m) = a_c + b⁺_c · max(m, 0) + b⁻_c · min(m, 0) — separate slopes for up and down months, continuous at 0, because
+    a performance fee is charged in up months only (a fee-free class beats the fee-paying ones by a share of an up month
+    and roughly equals them, less management-fee spreads, in a down month; one straight line cannot hold both). Each class
+    c is compared with a LEAVE-CLASS-OUT reference m₋c = median over the OTHER fitted complete classes d of E_d⁻¹(r_d)
+    (each mapped back to the fund's common return through its own fit), so an error in c never moves its own reference
+    and a correct class with a different slope (e.g. without a performance fee) is never made the outlier by another
+    class's error. b⁺_c is fitted by Theil–Sen (median of pairwise slopes) over the up months (m > 0), b⁻_c over the
+    others, a_c = median of r − b⁺·max(m, 0) − b⁻·min(m, 0), on that reference over the months where c and ≥ 2 other
+    fitted classes are complete, LEAVING OUT the month under test; the fits and references are iterated a few rounds from
+    a = 0, slope 1; each slope clipped to [0.6, 1.4], a to ±0.30 % a month. When either side has fewer than 6 months
+    (`fitSideMinMonths`) one Theil–Sen line serves both sides (b⁺ = b⁻). A class is fitted when it has 12 such months
+    (`fitMinMonths`); young classes never enter another class's reference and are only ever withheld themselves.
+    Residual = r_c − E_c(m₋c); above `residualMax` (0.40 %) it is a breach. For the fitted classes:
     - the month holds a **distribution / price-adjustment day** in any class of the fund (a day whose stored or
       distribution-aware return differs from the NAV-per-unit ratio − 1 by more than `adjustmentMin`, 0.10 %) → the month
       is withheld for EVERY class: which side is right cannot be told (on a distribution day the majority of classes
