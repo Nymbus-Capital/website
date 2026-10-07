@@ -30,7 +30,10 @@ export const NEWS: NewsItem[] = [
     id: "mageska",
     date: "2025-01-28",
     category: "partnership",
-    title: l("Mageska Capital and Nymbus Capital announce a partnership", "Mageska Capital et Nymbus Capital annoncent un partenariat"),
+    title: l(
+      "Mageska Capital and Nymbus Capital announce a partnership",
+      "Mageska Capital et Nymbus Capital annoncent un partenariat",
+    ),
     summary: l(
       "Part of the Mageska Fund, managed with a portable alpha strategy.",
       "Une partie du Fonds Mageska, gérée selon une stratégie d’alpha portable.",
@@ -44,7 +47,10 @@ export const NEWS: NewsItem[] = [
     id: "tobacco-free",
     date: "2024-04-23",
     category: "esg",
-    title: l("Nymbus becomes a signatory of the Tobacco-Free Finance Pledge", "Nymbus devient signataire de l’Engagement pour une finance sans tabac"),
+    title: l(
+      "Nymbus becomes a signatory of the Tobacco-Free Finance Pledge",
+      "Nymbus devient signataire de l’Engagement pour une finance sans tabac",
+    ),
     summary: l(
       "A firm-level signature of an initiative of Tobacco Free Portfolios, hosted with UNEP FI.",
       "Une signature de la firme, pour une initiative de Tobacco Free Portfolios menée avec l’IF du PNUE.",

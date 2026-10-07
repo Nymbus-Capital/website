@@ -24,7 +24,8 @@ export const fr: Record<DictKey, string> = {
 
   // footer
   "footer.tagline": "Investissement scientifique",
-  "footer.description": "Gestionnaire de portefeuille établi à Montréal, qui conçoit des stratégies systématiques de revenu fixe et alternatives.",
+  "footer.description":
+    "Gestionnaire de portefeuille établi à Montréal, qui conçoit des stratégies systématiques de revenu fixe et alternatives.",
   "footer.about": "À propos et équipe",
   "footer.strategies": "Stratégies",
   "footer.firm": "Entreprise",

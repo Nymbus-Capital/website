@@ -7,8 +7,16 @@
  * Numbers may arrive as JSON numbers or numeric strings (decimal serialisers); anything else is not a number.
  */
 import type {
-  BreakdownKey, ClassDistributions, DistributionClassSummary, DistributionRow, DistributionYear, FundPortfolio, PortfolioHoldingRow,
-  PortfolioMeasure, PortfolioMeasureKey, WeightRow,
+  BreakdownKey,
+  ClassDistributions,
+  DistributionClassSummary,
+  DistributionRow,
+  DistributionYear,
+  FundPortfolio,
+  PortfolioHoldingRow,
+  PortfolioMeasure,
+  PortfolioMeasureKey,
+  WeightRow,
 } from "../raw.ts";
 import { BREAKDOWN_KEYS, PORTFOLIO_MEASURES } from "../raw.ts";
 
@@ -28,7 +36,8 @@ const count = (v: unknown): number | null => {
   return n !== null && Number.isInteger(n) && n >= 0 ? n : null;
 };
 
-const text = (v: unknown, max = 200): string | null => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
+const text = (v: unknown, max = 200): string | null =>
+  typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
 
 /** `YYYY-MM-DD` (a datetime is cut to its date); null for anything else. */
 export function isoDate(v: unknown): string | null {
@@ -39,7 +48,13 @@ export function isoDate(v: unknown): string | null {
   return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === d ? d : null;
 }
 
-const strings = (v: unknown, max = 20): string[] => (Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, max).map((x) => (x as string).slice(0, 300)) : []);
+const strings = (v: unknown, max = 20): string[] =>
+  Array.isArray(v)
+    ? v
+        .filter((x) => typeof x === "string")
+        .slice(0, max)
+        .map((x) => (x as string).slice(0, 300))
+    : [];
 
 /* ------------------------------------------------------------------ A. fund portfolio */
 
@@ -47,7 +62,8 @@ function measure(v: unknown): PortfolioMeasure | null {
   if (!isObj(v)) return null;
   // a number (or numeric string), else a letter notch such as "A-" (average rating)
   const n = num(v.value);
-  const value = n ?? (typeof v.value === "string" && /^[A-Za-z]{1,4}[+-]?$/.test(v.value.trim()) ? v.value.trim() : null);
+  const value =
+    n ?? (typeof v.value === "string" && /^[A-Za-z]{1,4}[+-]?$/.test(v.value.trim()) ? v.value.trim() : null);
   if (value === null) return null;
   const coverage = num(v.coverage);
   return { value, coverage };
@@ -74,7 +90,8 @@ function holding(v: unknown): PortfolioHoldingRow | null {
   const weight = num(v.weight);
   if (name === null || weight === null) return null;
   return {
-    name, weight,
+    name,
+    weight,
     issuer: text(v.issuer, 160),
     coupon: num(v.coupon),
     maturity: isoDate(v.maturity),
@@ -114,16 +131,23 @@ export function parseFundPortfolio(body: unknown): FundPortfolio | null {
   const totals = isObj(body.totals) ? body.totals : {};
   const coverage = isObj(body.coverage) ? body.coverage : {};
   const method: Record<string, string> = {};
-  if (isObj(body.method)) for (const [k, v] of Object.entries(body.method)) if (typeof v === "string") method[k] = v.slice(0, 300);
+  if (isObj(body.method))
+    for (const [k, v] of Object.entries(body.method)) if (typeof v === "string") method[k] = v.slice(0, 300);
   return {
-    fund, as_of: asOf,
+    fund,
+    as_of: asOf,
     currency: text(body.currency, 8),
     net_assets_cad: num(body.net_assets_cad),
     totals: {
-      holdings_count: count(totals.holdings_count), bonds_count: count(totals.bonds_count), cash_weight: num(totals.cash_weight),
-      derivatives_count: count(totals.derivatives_count), other_weight: num(totals.other_weight),
+      holdings_count: count(totals.holdings_count),
+      bonds_count: count(totals.bonds_count),
+      cash_weight: num(totals.cash_weight),
+      derivatives_count: count(totals.derivatives_count),
+      other_weight: num(totals.other_weight),
     },
-    characteristics, breakdowns, top_holdings: top,
+    characteristics,
+    breakdowns,
+    top_holdings: top,
     green_bonds_weight: num(body.green_bonds_weight),
     coverage: { resolved_weight: num(coverage.resolved_weight), priced_weight: num(coverage.priced_weight) },
     method,
@@ -140,7 +164,13 @@ function distRow(v: unknown): DistributionRow | null {
   const fundserv = text(v.fundserv, 20);
   const amount = num(v.amount_per_unit);
   if (!date || !fundserv || amount === null) return null;
-  return { date, fundserv, class_display: text(v.class_display, 40), currency: text(v.currency, 8), amount_per_unit: amount };
+  return {
+    date,
+    fundserv,
+    class_display: text(v.class_display, 40),
+    currency: text(v.currency, 8),
+    amount_per_unit: amount,
+  };
 }
 
 function year(v: unknown): DistributionYear | null {
@@ -148,7 +178,9 @@ function year(v: unknown): DistributionYear | null {
   const y = count(v.year);
   const perUnit = num(v.per_unit);
   const n = count(v.count);
-  return y !== null && y >= 1900 && y <= 2200 && perUnit !== null && n !== null ? { year: y, per_unit: perUnit, count: n } : null;
+  return y !== null && y >= 1900 && y <= 2200 && perUnit !== null && n !== null
+    ? { year: y, per_unit: perUnit, count: n }
+    : null;
 }
 
 function classSummary(v: unknown, notes: string[]): DistributionClassSummary | null {
@@ -195,7 +227,8 @@ export function parseDistributions(body: unknown): ClassDistributions | null {
     start_date: isoDate(body.start_date),
     end_date: isoDate(body.end_date),
     method: text(body.method, 400),
-    rows, classes,
+    rows,
+    classes,
     warnings: strings(body.warnings),
     notes: [...new Set(notes)],
   };

@@ -6,7 +6,22 @@
  * page (no hidden panels), so it reads without JavaScript.
  */
 import Link from "next/link";
-import { ArrowDown, ArrowRight, Briefcase, Building2, Check, FileText, Gauge, Landmark, Layers, PiggyBank, Shield, Shuffle, Users, Wallet } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  Briefcase,
+  Building2,
+  Check,
+  FileText,
+  Gauge,
+  Landmark,
+  Layers,
+  PiggyBank,
+  Shield,
+  Shuffle,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import type { FundKey } from "@/lib/data/types";
 import { ButtonLink, CtaBand, Reveal, Section, SectionHead } from "../kit";
@@ -34,14 +49,35 @@ function FundLink({ f }: { f: FundCard }) {
         <span className="sl-fund-n">
           <b>{pick(f.short)}</b>
           <span>{pick(f.assetClass)}</span>
-          {f.minInvestment ? <span>{pick(S.minimum)}{locale === "fr" ? "\u00a0: " : ": "}{f.minInvestment}</span> : null}
+          {f.minInvestment ? (
+            <span>
+              {pick(S.minimum)}
+              {locale === "fr" ? "\u00a0: " : ": "}
+              {f.minInvestment}
+            </span>
+          ) : null}
         </span>
         {si ? (
           <span className="sl-fund-f">
             <b className="tabnum">{si}</b>
-            <span>{pick(f.siAnnualized ? F.siAnn : F.siCumShort)}{f.basis === "gross" ? <> · <abbr title={pick(HL.grossLong)} data-testid="gross-marker">{pick(HL.gross)}</abbr></> : null}</span>
+            <span>
+              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)}
+              {f.basis === "gross" ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
+                    {pick(HL.gross)}
+                  </abbr>
+                </>
+              ) : null}
+            </span>
             {/* each fund has its own as-of month: never one date for several funds */}
-            {f.asOf ? <span data-testid={`solution-asof-${f.key}`}>{pick(F.asOf)} {monthText(f.asOf, locale)}</span> : null}
+            {f.asOf ? (
+              <span data-testid={`solution-asof-${f.key}`}>
+                {pick(F.asOf)} {monthText(f.asOf, locale)}
+              </span>
+            ) : null}
             {f.perfVariant ? <span data-testid={`solution-variant-${f.key}`}>{pick(f.perfVariant)}</span> : null}
           </span>
         ) : null}
@@ -62,7 +98,13 @@ function UseCase({ a }: { a: AudienceCopy }) {
   const { pick } = useTranslation();
   const icons = CASE_ICONS[a.key];
   return (
-    <Reveal self kind="pop" className="card sl-case" data-testid={`use-case-${a.key}`} style={{ ["--bc" as string]: TONE[a.key] }}>
+    <Reveal
+      self
+      kind="pop"
+      className="card sl-case"
+      data-testid={`use-case-${a.key}`}
+      style={{ ["--bc" as string]: TONE[a.key] }}
+    >
       <p className="sl-case-k">{pick(S.useCase)}</p>
       <h3 className="h4 sl-case-t">{pick(a.useCase.title)}</h3>
       <Reveal as="ol" stagger={140} className="sl-case-steps">
@@ -70,8 +112,16 @@ function UseCase({ a }: { a: AudienceCopy }) {
           const Icon = icons[i] ?? Check;
           return (
             <li key={i}>
-              <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "44px" }}><Icon /></span>
-              <span className="sl-case-n tabnum" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <span
+                className="bubble"
+                aria-hidden="true"
+                style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "44px" }}
+              >
+                <Icon />
+              </span>
+              <span className="sl-case-n tabnum" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
               <span className="sl-case-d">{pick(st)}</span>
             </li>
           );
@@ -85,7 +135,17 @@ function UseCase({ a }: { a: AudienceCopy }) {
   );
 }
 
-function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: Map<FundKey, FundCard>; sample: boolean; tone: "white" | "tint" }) {
+function AudienceSection({
+  a,
+  funds,
+  sample,
+  tone,
+}: {
+  a: AudienceCopy;
+  funds: Map<FundKey, FundCard>;
+  sample: boolean;
+  tone: "white" | "tint";
+}) {
   const { pick } = useTranslation();
   const I = ICON[a.key];
   const list = a.funds.map((k) => funds.get(k)).filter((f): f is FundCard => !!f);
@@ -95,26 +155,54 @@ function AudienceSection({ a, funds, sample, tone }: { a: AudienceCopy; funds: M
       <div className="sl-aud-grid">
         <div>
           <Reveal self>
-            <span className="bubble sl-bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "64px" }}><I /></span>
+            <span
+              className="bubble sl-bubble"
+              aria-hidden="true"
+              style={{ ["--bc" as string]: TONE[a.key], ["--size" as string]: "64px" }}
+            >
+              <I />
+            </span>
           </Reveal>
           <SectionHead title={pick(a.name)} lead={pick(a.intro)} id={`${a.key}-t`} />
-          <Reveal self delay={120}><p className="sl-who">{pick(a.who)}</p></Reveal>
+          <Reveal self delay={120}>
+            <p className="sl-who">{pick(a.who)}</p>
+          </Reveal>
           <Reveal self delay={200} className="card flat sl-benefits">
             <h3 className="h4">{pick(S.benefits)}</h3>
-            <ul>{a.benefits.map((b, i) => <li key={i}><Check aria-hidden="true" />{pick(b)}</li>)}</ul>
+            <ul>
+              {a.benefits.map((b, i) => (
+                <li key={i}>
+                  <Check aria-hidden="true" />
+                  {pick(b)}
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
         <div className="sl-side">
           <Reveal self kind="pop" className="card sl-block">
             <h3 className="h4">{pick(S.vehicles)}</h3>
             <dl className="sl-veh">
-              {a.vehicles.map((v, i) => <div key={i}><dt>{pick(v.name)}</dt><dd>{pick(v.text)}</dd></div>)}
+              {a.vehicles.map((v, i) => (
+                <div key={i}>
+                  <dt>{pick(v.name)}</dt>
+                  <dd>{pick(v.text)}</dd>
+                </div>
+              ))}
             </dl>
           </Reveal>
           <Reveal self kind="pop" delay={140} className="card sl-block">
             <h3 className="h4">{pick(S.suitable)}</h3>
-            <ul className="sl-funds">{list.map((f) => <FundLink key={f.key} f={f} />)}</ul>
-            {sample && anySi ? <p className="sl-asof"><SampleTag /></p> : null}
+            <ul className="sl-funds">
+              {list.map((f) => (
+                <FundLink key={f.key} f={f} />
+              ))}
+            </ul>
+            {sample && anySi ? (
+              <p className="sl-asof">
+                <SampleTag />
+              </p>
+            ) : null}
           </Reveal>
         </div>
       </div>
@@ -134,23 +222,39 @@ export function Solutions({ data, intro }: { data: HomeData; intro?: CmsPageIntr
     <div className="hm">
       <Intro
         crumbs={[{ href: "/", label: pick(S.home) }, { label: pick(S.crumb) }]}
-        eyebrow={pick(S.eyebrow)} title={pick(hero.title)} accent={pick(hero.accent)} lead={pick(hero.lead)} id="solutions-t"
+        eyebrow={pick(S.eyebrow)}
+        title={pick(hero.title)}
+        accent={pick(hero.accent)}
+        lead={pick(hero.lead)}
+        id="solutions-t"
       >
         <ButtonLink href="/contact">{pick(S.talk)}</ButtonLink>
-        <ButtonLink href="/strategies" variant="ghost">{pick(S.strategies)}</ButtonLink>
+        <ButtonLink href="/strategies" variant="ghost">
+          {pick(S.strategies)}
+        </ButtonLink>
       </Intro>
 
       <Section labelledBy="who-t" glow="tr" className="sl-who-s">
-        <SectionHead eyebrow={pick(S.whoEyebrow)} title={pick(S.whoTitle)} accent={pick(S.whoAccent)} id="who-t" center />
+        <SectionHead
+          eyebrow={pick(S.whoEyebrow)}
+          title={pick(S.whoTitle)}
+          accent={pick(S.whoAccent)}
+          id="who-t"
+          center
+        />
         <Reveal kind="pop" stagger={110} className="sl-types">
           {AUDIENCES.map((a) => {
             const I = ICON[a.key];
             return (
               <a key={a.key} href={`#${a.key}`} className="card ring sl-type" data-testid={`audience-${a.key}`}>
-                <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key] }}><I /></span>
+                <span className="bubble" aria-hidden="true" style={{ ["--bc" as string]: TONE[a.key] }}>
+                  <I />
+                </span>
                 <span className="h4 sl-type-n">{pick(a.name)}</span>
                 <span className="sl-type-d">{pick(a.who)}</span>
-                <span className="link">{pick(S.see)} <ArrowDown aria-hidden="true" /></span>
+                <span className="link">
+                  {pick(S.see)} <ArrowDown aria-hidden="true" />
+                </span>
               </a>
             );
           })}
@@ -163,7 +267,12 @@ export function Solutions({ data, intro }: { data: HomeData; intro?: CmsPageIntr
 
       <Section tight className="sl-notes">
         <p className="fine">{pick(S.minNote)}</p>
-        {anyFig ? <p className="fine">{pick(F.perfNote)}{anyGross ? ` ${pick(F.grossNote)}` : ""}</p> : null}
+        {anyFig ? (
+          <p className="fine">
+            {pick(F.perfNote)}
+            {anyGross ? ` ${pick(F.grossNote)}` : ""}
+          </p>
+        ) : null}
       </Section>
 
       <CtaBand title={pick(S.ctaTitle)} accent={pick(S.ctaAccent)} text={pick(S.ctaText)}>

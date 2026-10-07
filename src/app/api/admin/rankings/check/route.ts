@@ -14,7 +14,11 @@ export async function POST(request: NextRequest) {
   try {
     const state = await runRbcSurveyCheck({ content: await getContent() });
     if ("locked" in state) return fail(409, "busy", "A rankings check is already running; try again in a minute.");
-    await audit({ by: user.email, action: "rankings.check", detail: { ok: state.ok, latest: state.latest?.label ?? null } });
+    await audit({
+      by: user.email,
+      action: "rankings.check",
+      detail: { ok: state.ok, latest: state.latest?.label ?? null },
+    });
     return ok({ state });
   } catch (e) {
     return internalError("rankings.check", e);

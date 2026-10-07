@@ -22,8 +22,22 @@ export interface ImportPerson {
   linkedin: string | null;
   photo: string | null;
 }
-export interface ImportNews { slug: string; date: string; category: CmsNewsCategory; title: Bi; summary: Bi; body: Bi; link: null; image: null }
-export interface ImportDocument { format: "nymbus-site-import"; version: 1; news: ImportNews[]; team: ImportPerson[] }
+export interface ImportNews {
+  slug: string;
+  date: string;
+  category: CmsNewsCategory;
+  title: Bi;
+  summary: Bi;
+  body: Bi;
+  link: null;
+  image: null;
+}
+export interface ImportDocument {
+  format: "nymbus-site-import";
+  version: 1;
+  news: ImportNews[];
+  team: ImportPerson[];
+}
 
 /** "Léana D’Imperio" → "leana-d-imperio" (the WordPress slug). */
 export function slugOf(name: string): string {
@@ -60,7 +74,9 @@ export function buildImport(team: TeamMember[], news: NewsItem[], siteUrl: strin
       slug: slugOf(m.name),
       name: m.name,
       department: m.department,
-      additionalDepartments: (m.additionalDepartments ?? []).filter((d): d is CmsDepartment => isDept(d) && d !== m.department),
+      additionalDepartments: (m.additionalDepartments ?? []).filter(
+        (d): d is CmsDepartment => isDept(d) && d !== m.department,
+      ),
       order: (i + 1) * 10,
       role: { en: m.title ?? "", fr: m.titleFr ?? "" },
       bio: { en: m.bio ?? "", fr: m.bioFr ?? "" },
@@ -72,6 +88,15 @@ export function buildImport(team: TeamMember[], news: NewsItem[], siteUrl: strin
       photo: photoUrl(m.photo, siteUrl),
     };
   });
-  const items = news.map((n): ImportNews => ({ slug: n.id, date: n.date, category: n.category, title: n.title, summary: n.summary, body: n.body, link: null, image: null }));
+  const items = news.map((n): ImportNews => ({
+    slug: n.id,
+    date: n.date,
+    category: n.category,
+    title: n.title,
+    summary: n.summary,
+    body: n.body,
+    link: null,
+    image: null,
+  }));
   return { format: "nymbus-site-import", version: 1, news: items, team: people };
 }

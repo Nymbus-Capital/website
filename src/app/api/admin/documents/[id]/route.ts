@@ -25,8 +25,23 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     if (!before) return fail(404, "not_found", "No such document.");
     const doc = await updateDocument(id, patch);
     if (!doc) return fail(404, "not_found", "No such document.");
-    const changed = Object.fromEntries(Object.keys(patch).map((k) => [k, { before: before[k as keyof typeof before], after: doc[k as keyof typeof doc] }]));
-    await audit({ by: user.email, action: patch.published !== undefined && Object.keys(patch).length === 1 ? (patch.published ? "document.publish" : "document.unpublish") : "document.update", target: id, detail: changed });
+    const changed = Object.fromEntries(
+      Object.keys(patch).map((k) => [
+        k,
+        { before: before[k as keyof typeof before], after: doc[k as keyof typeof doc] },
+      ]),
+    );
+    await audit({
+      by: user.email,
+      action:
+        patch.published !== undefined && Object.keys(patch).length === 1
+          ? patch.published
+            ? "document.publish"
+            : "document.unpublish"
+          : "document.update",
+      target: id,
+      detail: changed,
+    });
     return ok({ document: { ...doc, url: documentUrl(doc) } });
   } catch (e) {
     return internalError("document.update", e);
@@ -41,7 +56,12 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   try {
     const d = await deleteDocument(id);
     if (!d) return fail(404, "not_found", "No such document.");
-    await audit({ by: user.email, action: "document.delete", target: id, detail: { fileName: d.fileName, sha256: d.sha256, scope: d.scope, title: d.title } });
+    await audit({
+      by: user.email,
+      action: "document.delete",
+      target: id,
+      detail: { fileName: d.fileName, sha256: d.sha256, scope: d.scope, title: d.title },
+    });
     return ok({ deleted: id });
   } catch (e) {
     return internalError("document.delete", e);

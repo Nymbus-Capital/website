@@ -27,11 +27,20 @@ export async function POST(request: NextRequest) {
           console.warn("[admin] manual run skipped: another run holds the lock");
           return;
         }
-        await audit({ by: user.email, action: "pipeline.run.finished", target: r.id, detail: { status: r.status } }).catch(() => undefined);
+        await audit({
+          by: user.email,
+          action: "pipeline.run.finished",
+          target: r.id,
+          detail: { status: r.status },
+        }).catch(() => undefined);
       })
       .catch((e: unknown) => {
         console.error("[admin] manual pipeline run failed:", e instanceof Error ? e.message : e);
-        void audit({ by: user.email, action: "pipeline.run.crashed", detail: { error: e instanceof Error ? e.message.slice(0, 300) : "unknown" } }).catch(() => undefined);
+        void audit({
+          by: user.email,
+          action: "pipeline.run.crashed",
+          detail: { error: e instanceof Error ? e.message.slice(0, 300) : "unknown" },
+        }).catch(() => undefined);
       });
     return ok({ started: true, dryRun: body.dryRun }, 202);
   } catch (e) {

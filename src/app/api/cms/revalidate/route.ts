@@ -15,9 +15,16 @@ const limiter = keyedFailureLimiter();
 export async function POST(req: Request) {
   const c = cmsSource();
   if (!c) return Response.json({ error: "not_found" }, { status: 404, headers: H });
-  if (!c.cfg.revalidateSecret) return Response.json({ error: "revalidation_not_configured" }, { status: 503, headers: H });
-  const d = revalidateDecision(bearerToken(req.headers.get("authorization")), c.cfg.revalidateSecret, sourceKey(req.headers.get("x-forwarded-for")), limiter);
-  if (d === "limited") return Response.json({ error: "too_many_attempts" }, { status: 429, headers: { ...H, "Retry-After": "60" } });
+  if (!c.cfg.revalidateSecret)
+    return Response.json({ error: "revalidation_not_configured" }, { status: 503, headers: H });
+  const d = revalidateDecision(
+    bearerToken(req.headers.get("authorization")),
+    c.cfg.revalidateSecret,
+    sourceKey(req.headers.get("x-forwarded-for")),
+    limiter,
+  );
+  if (d === "limited")
+    return Response.json({ error: "too_many_attempts" }, { status: 429, headers: { ...H, "Retry-After": "60" } });
   if (d === "unauthorized") return Response.json({ error: "unauthorized" }, { status: 401, headers: H });
   const r = await c.source.revalidate();
   return Response.json({ ok: r.ok, source: r.origin }, { headers: H });

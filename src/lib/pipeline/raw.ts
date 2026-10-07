@@ -66,9 +66,21 @@ export interface NavHistory {
 }
 
 /** `aggregates`: the dataplatform's STRATEGY / STRATEGY_H rows (no FundServ code), kept for their return_source_count only */
-export interface NavSeriesResponse { rows: NavPoint[]; warnings?: string[]; sources?: string[]; aggregates?: { date: string; class_code: string; return_source_count: number | null }[]; [k: string]: unknown }
+export interface NavSeriesResponse {
+  rows: NavPoint[];
+  warnings?: string[];
+  sources?: string[];
+  aggregates?: { date: string; class_code: string; return_source_count: number | null }[];
+  [k: string]: unknown;
+}
 
-interface RegisteredShareClass { fundserv: string; display: string; currency: string; status: string; [k: string]: unknown }
+interface RegisteredShareClass {
+  fundserv: string;
+  display: string;
+  currency: string;
+  status: string;
+  [k: string]: unknown;
+}
 export interface RegisteredFund {
   key: string;
   name: string;
@@ -78,24 +90,67 @@ export interface RegisteredFund {
   inception?: string | null;
   classes: RegisteredShareClass[];
 }
-export interface FundRef { short_name: string; name: string; apex_account?: string | null; cibc_account?: string | null }
+export interface FundRef {
+  short_name: string;
+  name: string;
+  apex_account?: string | null;
+  cibc_account?: string | null;
+}
 
 /** AUM reduced to fund-level totals (the only thing ever stored or published). */
-export interface AumTotals { snapshot_date: string | null; warningCount: number; totals: Record<string, number> }
+export interface AumTotals {
+  snapshot_date: string | null;
+  warningCount: number;
+  totals: Record<string, number>;
+}
 
 /** a held bond's FTSE constituent analytics: latest constituent row on or before the book date */
-export interface FtseBondPoint { date: string; ytm: number | null; dur: number | null; index: string; cusip: string | null }
-export interface FtseBondAnalytics { date: string; byIsin: Record<string, FtseBondPoint>; byCusip: Record<string, FtseBondPoint>; rows: number }
+export interface FtseBondPoint {
+  date: string;
+  ytm: number | null;
+  dur: number | null;
+  index: string;
+  cusip: string | null;
+}
+export interface FtseBondAnalytics {
+  date: string;
+  byIsin: Record<string, FtseBondPoint>;
+  byCusip: Record<string, FtseBondPoint>;
+  rows: number;
+}
 
 export interface FtseLevels {
-  levels: Record<string, number>; rowCount: number; first: string | null; last: string | null; joined?: string[];
+  levels: Record<string, number>;
+  rowCount: number;
+  first: string | null;
+  last: string | null;
+  joined?: string[];
   /** how each earlier name was linked (overlap of equal daily returns, or a verified one-day gap with its check) */
-  links?: { name: string; kind: "overlap" | "gap"; link: string; from: string; gap?: { last: string; first: string; implied: number; estimate: number; residual: number; threshold: number; p95: number; samples: number } }[];
+  links?: {
+    name: string;
+    kind: "overlap" | "gap";
+    link: string;
+    from: string;
+    gap?: {
+      last: string;
+      first: string;
+      implied: number;
+      estimate: number;
+      residual: number;
+      threshold: number;
+      p95: number;
+      samples: number;
+    };
+  }[];
   /** published index name (/api/ftse/index-summary/short-names) */ indexName?: string | null;
 }
 
 /** analytics repo fund_returns.json, reduced to the series the website uses */
-export interface AnalyticsReturns { dates: string[]; returns: Record<string, (number | null)[]>; where: string }
+export interface AnalyticsReturns {
+  dates: string[];
+  returns: Record<string, (number | null)[]>;
+  where: string;
+}
 
 export interface FactsheetFiles {
   /** file name (e.g. `bonds_data_2026-08.json`) -> parsed JSON */
@@ -146,7 +201,9 @@ export interface RawPayloads {
    * last closed month (factsheet cross-check; null when the latest book is in that month). The website computes the
    * portfolio analytics from them (fund-portfolio.ts). Optional (older snapshots)
    */
-  holdings?: Partial<Record<DpShort, { latest: SourceResult<HoldingsBook>; monthEnd: SourceResult<HoldingsBook> | null }>>;
+  holdings?: Partial<
+    Record<DpShort, { latest: SourceResult<HoldingsBook>; monthEnd: SourceResult<HoldingsBook> | null }>
+  >;
   /** instrument master references of the held securities (/api/instruments/batch + bond universe pages); optional */
   instruments?: SourceResult<InstrumentRefs>;
   /**
@@ -165,25 +222,64 @@ export interface RawPayloads {
 
 /** /api/apex/holdings position, reduced */
 export interface HoldingsPosition {
-  date: string; bloomberg_id: string | null; isin: string | null; cusip: string | null; sedol: string | null; security_id: string | null;
-  description: string | null; security_type: string | null; sector: string | null; country: string | null; currency: string | null;
-  quantity: number | null; market_value_cad: number | null;
+  date: string;
+  bloomberg_id: string | null;
+  isin: string | null;
+  cusip: string | null;
+  sedol: string | null;
+  security_id: string | null;
+  description: string | null;
+  security_type: string | null;
+  sector: string | null;
+  country: string | null;
+  currency: string | null;
+  quantity: number | null;
+  market_value_cad: number | null;
 }
 /** /api/apex/holdings bank / broker balance line, reduced */
-interface HoldingsCash { date: string; currency: string | null; glc_description: string | null; closing_bal_cad: number | null }
+interface HoldingsCash {
+  date: string;
+  currency: string | null;
+  glc_description: string | null;
+  closing_bal_cad: number | null;
+}
 /** one fund's Apex FINAL_NAV book of one valuation day */
-export interface HoldingsBook { fund: string; date: string; positions: HoldingsPosition[]; cash: HoldingsCash[]; warnings: string[] }
+export interface HoldingsBook {
+  fund: string;
+  date: string;
+  positions: HoldingsPosition[];
+  cash: HoldingsCash[];
+  warnings: string[];
+}
 
 /** an instrument as the website needs it: batch detail (ratings, reference, classification, latest price) + universe terms */
 export interface InstrumentRef {
   nymbus_instrument_id: number;
-  isin: string | null; cusip: string | null; figi: string | null; name: string | null; asset_class: string | null; security_type: string | null;
+  isin: string | null;
+  cusip: string | null;
+  figi: string | null;
+  name: string | null;
+  asset_class: string | null;
+  security_type: string | null;
   ratings: { agency: string; rating: string; source?: string | null }[];
   reference: { is_green_bond?: boolean | null } | null;
-  classification: { industry_sector?: string | null; country_of_risk?: string | null; market_sector?: string | null } | null;
-  latest_price: { price_date?: string | null; modified_duration?: number | null; yield_to_maturity?: number | null } | null;
+  classification: {
+    industry_sector?: string | null;
+    country_of_risk?: string | null;
+    market_sector?: string | null;
+  } | null;
+  latest_price: {
+    price_date?: string | null;
+    modified_duration?: number | null;
+    yield_to_maturity?: number | null;
+  } | null;
   /** from the bond universe (/api/instruments): coupon rate in percent, maturity, issuer, Bloomberg sector / country / market sector */
-  coupon_rate?: number | string | null; maturity_date?: string | null; issuer?: string | null; sector?: string | null; country_of_risk?: string | null; market_sector?: string | null;
+  coupon_rate?: number | string | null;
+  maturity_date?: string | null;
+  issuer?: string | null;
+  sector?: string | null;
+  country_of_risk?: string | null;
+  market_sector?: string | null;
 }
 export interface InstrumentRefs {
   refs: InstrumentRef[];
@@ -197,18 +293,39 @@ export interface InstrumentRefs {
 
 /* ------------------------------------------------------------------ fund portfolio (dataplatform contract A) */
 
-export type PortfolioMeasureKey = "modified_duration" | "yield_to_maturity" | "coupon" | "average_maturity" | "average_rating";
-export const PORTFOLIO_MEASURES: readonly PortfolioMeasureKey[] = ["modified_duration", "yield_to_maturity", "coupon", "average_maturity", "average_rating"];
+export type PortfolioMeasureKey =
+  "modified_duration" | "yield_to_maturity" | "coupon" | "average_maturity" | "average_rating";
+export const PORTFOLIO_MEASURES: readonly PortfolioMeasureKey[] = [
+  "modified_duration",
+  "yield_to_maturity",
+  "coupon",
+  "average_maturity",
+  "average_rating",
+];
 export type BreakdownKey = "sector" | "rating" | "term" | "country" | "asset_type";
 export const BREAKDOWN_KEYS: readonly BreakdownKey[] = ["sector", "rating", "term", "country", "asset_type"];
 
 /** one characteristic: value (number, or a rating notch), and the share of the bond weight that had an input */
 /** `scope: "bond_holdings"`: the figure covers the bond holdings only (open futures not included) */
-export interface PortfolioMeasure { value: number | string; coverage: number | null; scope?: "bond_holdings" }
-export interface WeightRow { label: string; weight: number; count: number | null }
+export interface PortfolioMeasure {
+  value: number | string;
+  coverage: number | null;
+  scope?: "bond_holdings";
+}
+export interface WeightRow {
+  label: string;
+  weight: number;
+  count: number | null;
+}
 export interface PortfolioHoldingRow {
-  name: string; issuer: string | null; weight: number; coupon: number | null; maturity: string | null;
-  rating: string | null; sector: string | null; green_bond: boolean | null;
+  name: string;
+  issuer: string | null;
+  weight: number;
+  coupon: number | null;
+  maturity: string | null;
+  rating: string | null;
+  sector: string | null;
+  green_bond: boolean | null;
 }
 
 /** FundPortfolioResponse, parsed tolerantly (sources/contracts.ts): invalid rows and fields are dropped and noted */
@@ -217,7 +334,13 @@ export interface FundPortfolio {
   as_of: string;
   currency: string | null;
   net_assets_cad: number | null;
-  totals: { holdings_count: number | null; bonds_count: number | null; cash_weight: number | null; derivatives_count: number | null; other_weight: number | null };
+  totals: {
+    holdings_count: number | null;
+    bonds_count: number | null;
+    cash_weight: number | null;
+    derivatives_count: number | null;
+    other_weight: number | null;
+  };
   characteristics: Partial<Record<PortfolioMeasureKey, PortfolioMeasure>>;
   breakdowns: Partial<Record<BreakdownKey, WeightRow[]>>;
   top_holdings: PortfolioHoldingRow[];
@@ -232,11 +355,27 @@ export interface FundPortfolio {
 
 /* ------------------------------------------------------------------ class distributions (dataplatform contract B) */
 
-export interface DistributionRow { date: string; fundserv: string; class_display: string | null; currency: string | null; amount_per_unit: number }
-export interface DistributionYear { year: number; per_unit: number; count: number }
+export interface DistributionRow {
+  date: string;
+  fundserv: string;
+  class_display: string | null;
+  currency: string | null;
+  amount_per_unit: number;
+}
+export interface DistributionYear {
+  year: number;
+  per_unit: number;
+  count: number;
+}
 export interface DistributionClassSummary {
-  fundserv: string; class_display: string | null; currency: string | null; frequency_observed: string | null;
-  last_date: string | null; last_amount_per_unit: number | null; trailing_12m_per_unit: number | null; calendar_years: DistributionYear[];
+  fundserv: string;
+  class_display: string | null;
+  currency: string | null;
+  frequency_observed: string | null;
+  last_date: string | null;
+  last_amount_per_unit: number | null;
+  trailing_12m_per_unit: number | null;
+  calendar_years: DistributionYear[];
 }
 export interface ClassDistributions {
   short_name: string;

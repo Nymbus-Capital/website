@@ -6,7 +6,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const fr = (await getLocale()) === "fr";
   return {
     title: fr ? "Juridique" : "Legal",
-    description: fr ? "Politique de traitement des plaintes et code d’éthique de Nymbus Capital Inc." : "Complaints policy and code of ethics of Nymbus Capital Inc.",
+    description: fr
+      ? "Politique de traitement des plaintes et code d’éthique de Nymbus Capital Inc."
+      : "Complaints policy and code of ethics of Nymbus Capital Inc.",
     alternates: { canonical: "/legal" },
   };
 }

@@ -11,13 +11,22 @@ export const T = {
   crumbs: { home: l("Home", "Accueil"), strategies: l("Strategies", "Stratégies") },
   sample: {
     ribbon: l("Sample data", "Données fictives"),
-    note: l("Illustrative figures only, not actual performance", "Chiffres illustratifs seulement, pas des rendements réels"),
+    note: l(
+      "Illustrative figures only, not actual performance",
+      "Chiffres illustratifs seulement, pas des rendements réels",
+    ),
   },
   header: {
     vehicleFund: l("Mutual fund", "Organisme de placement collectif"),
     vehicleStrategy: l("Managed accounts", "Comptes gérés"),
     risk: l("Risk", "Risque"),
-    levels: [l("Low", "Faible"), l("Low to medium", "Faible à moyen"), l("Medium", "Moyen"), l("Medium to high", "Moyen à élevé"), l("High", "Élevé")],
+    levels: [
+      l("Low", "Faible"),
+      l("Low to medium", "Faible à moyen"),
+      l("Medium", "Moyen"),
+      l("Medium to high", "Moyen à élevé"),
+      l("High", "Élevé"),
+    ],
     contact: l("Contact us", "Nous joindre"),
     documents: l("Fund documents", "Documents du fonds"),
     strategyDocuments: l("Documentation", "Documentation"),
@@ -37,10 +46,16 @@ export const T = {
     managementFee: l("Management fee", "Frais de gestion"),
     benchmark: l("Benchmark", "Indice de référence"),
     aum: l("Fund assets", "Actif du fonds"),
-    none: l("Net asset values will appear here once published.", "Les valeurs liquidatives apparaîtront ici une fois publiées."),
+    none: l(
+      "Net asset values will appear here once published.",
+      "Les valeurs liquidatives apparaîtront ici une fois publiées.",
+    ),
     // strategy card (managed accounts, no NAV)
     strategyTitle: l("Strategy at a glance", "La stratégie en bref"),
-    siGross: l("Annualized return since inception, gross of fees", "Rendement annualisé depuis la création, avant déduction des frais"),
+    siGross: l(
+      "Annualized return since inception, gross of fees",
+      "Rendement annualisé depuis la création, avant déduction des frais",
+    ),
     siGrossCum: l("Return since inception, gross of fees", "Rendement depuis la création, avant déduction des frais"),
     vehicle: l("Vehicle", "Véhicule"),
     vehicleAccounts: l("Separately managed accounts", "Comptes gérés distincts"),
@@ -66,17 +81,32 @@ export const T = {
   classes: {
     prospectus: l("Prospectus class", "Série à prospectus"),
     om: l("Offering memorandum class", "Série à notice d’offre"),
-    prospectusNote: l("This series is offered under the simplified prospectus.", "Cette série est offerte aux termes du prospectus simplifié."),
-    omNote: l("This series is offered by offering memorandum, to eligible investors only.", "Cette série est offerte par notice d’offre, aux investisseurs admissibles seulement."),
+    prospectusNote: l(
+      "This series is offered under the simplified prospectus.",
+      "Cette série est offerte aux termes du prospectus simplifié.",
+    ),
+    omNote: l(
+      "This series is offered by offering memorandum, to eligible investors only.",
+      "Cette série est offerte par notice d’offre, aux investisseurs admissibles seulement.",
+    ),
     type: l("Offered under", "Offerte aux termes"),
-    soon: l("Performance figures for series {x} coming soon.", "Les rendements de la série {x} seront bientôt publiés."),
-    since: l("Since series inception ({date}): only the periods this series has completed are shown.", "Depuis la création de la série ({date})\u00a0: seules les périodes complétées par la série sont présentées."),
+    soon: l(
+      "Performance figures for series {x} coming soon.",
+      "Les rendements de la série {x} seront bientôt publiés.",
+    ),
+    since: l(
+      "Since series inception ({date}): only the periods this series has completed are shown.",
+      "Depuis la création de la série ({date})\u00a0: seules les périodes complétées par la série sont présentées.",
+    ),
     siShort: l("Since series inception", "Depuis la création de la série"),
     inception: l("Series inception", "Création de la série"),
     launch: l("Series launch", "Lancement de la série"),
     siTrack: l("Since track-record start ({month})", "Depuis le début de l’historique ({month})"),
     riskFrom: l("From {month}", "Depuis {month}"),
-    partialMonth: l("Partial month: from the series inception on {date}", "Mois partiel : depuis la création de la série, le {date}"),
+    partialMonth: l(
+      "Partial month: from the series inception on {date}",
+      "Mois partiel : depuis la création de la série, le {date}",
+    ),
     young: l(
       "Series {x} launched on {date}. Performance will be shown once the series has {n} months of history.",
       "La série {x} a été lancée le {date}. Les rendements seront présentés lorsque la série aura {n}\u00a0mois d’historique.",
@@ -89,11 +119,20 @@ export const T = {
       "“—”: figure not shown because a month in its period could not be verified.",
       "«\u00a0—\u00a0»\u00a0: chiffre non présenté parce qu’un mois de sa période n’a pas pu être vérifié.",
     ),
-    withheldMonth: l("Return not shown: this month could not be verified", "Rendement non présenté\u00a0: ce mois n’a pas pu être vérifié"),
+    withheldMonth: l(
+      "Return not shown: this month could not be verified",
+      "Rendement non présenté\u00a0: ce mois n’a pas pu être vérifié",
+    ),
     growthFromInception: l("Starts at the series inception, {date}.", "Débute à la création de la série, le {date}."),
-    growthFromAfter: l("Starts on {date}, after the last month whose return could not be verified.", "Débute le {date}, après le dernier mois dont le rendement n’a pas pu être vérifié."),
+    growthFromAfter: l(
+      "Starts on {date}, after the last month whose return could not be verified.",
+      "Débute le {date}, après le dernier mois dont le rendement n’a pas pu être vérifié.",
+    ),
     rangeFrom: l("From {date}", "Depuis le {date}"),
-    partialFirst: l("The first month runs from the series inception on {date}.", "Le premier mois court à partir de la création de la série, le {date}."),
+    partialFirst: l(
+      "The first month runs from the series inception on {date}.",
+      "Le premier mois court à partir de la création de la série, le {date}.",
+    ),
   },
   variants: {
     label: l("Target downside volatility", "Volatilité à la baisse cible"),
@@ -101,7 +140,10 @@ export const T = {
     note: l("Figures follow the variant selected.", "Les chiffres suivent la variante sélectionnée."),
   },
   awards: {
-    intro: l("Independent rankings and ratings of the series listed, as at the date given.", "Classements et cotes indépendants des séries indiquées, à la date indiquée."),
+    intro: l(
+      "Independent rankings and ratings of the series listed, as at the date given.",
+      "Classements et cotes indépendants des séries indiquées, à la date indiquée.",
+    ),
     category: l("Category", "Catégorie"),
     asAt: l("As at", "Au"),
     period: l("Period", "Période"),
@@ -129,14 +171,26 @@ export const T = {
     facts: l("Key facts", "Caractéristiques du fonds"),
     strategyFacts: l("Key facts", "Caractéristiques de la stratégie"),
     fees: l("Fees and expenses", "Frais et charges"),
-    feesNone: l("Fees and expenses are set out in the fund facts and the simplified prospectus.", "Les frais et charges sont présentés dans l’aperçu du fonds et le prospectus simplifié."),
-    feesNoneStrategy: l("Fees are set out in each client’s investment management agreement.", "Les frais sont précisés dans la convention de gestion de chaque client."),
+    feesNone: l(
+      "Fees and expenses are set out in the fund facts and the simplified prospectus.",
+      "Les frais et charges sont présentés dans l’aperçu du fonds et le prospectus simplifié.",
+    ),
+    feesNoneStrategy: l(
+      "Fees are set out in each client’s investment management agreement.",
+      "Les frais sont précisés dans la convention de gestion de chaque client.",
+    ),
     returns: l("Returns", "Rendements"),
     returnsMore: l("See all performance", "Voir tous les rendements"),
     series: l("Series and Fundserv codes", "Séries et codes Fundserv"),
     team: l("Investment team", "Équipe de placement"),
-    teamGeneric: l("The fund is managed by the Nymbus Capital investment team.", "Le fonds est géré par l’équipe de placement de Nymbus Capital."),
-    teamGenericStrategy: l("The strategy is managed by the Nymbus Capital investment team.", "La stratégie est gérée par l’équipe de placement de Nymbus Capital."),
+    teamGeneric: l(
+      "The fund is managed by the Nymbus Capital investment team.",
+      "Le fonds est géré par l’équipe de placement de Nymbus Capital.",
+    ),
+    teamGenericStrategy: l(
+      "The strategy is managed by the Nymbus Capital investment team.",
+      "La stratégie est gérée par l’équipe de placement de Nymbus Capital.",
+    ),
     teamLink: l("Meet the team", "Découvrir l’équipe"),
     manager: l("Portfolio manager", "Gestionnaire de portefeuille"),
   },
@@ -175,16 +229,30 @@ export const T = {
     classShown: l("Performance shown", "Rendements présentés"),
     asOf: l("as of", "au"),
     growth: l("Growth of $10,000", "Croissance de 10 000 $"),
-    growthLead: l("A hypothetical $10,000 investment, distributions reinvested.", "Un placement hypothétique de 10 000 $, distributions réinvesties."),
-    growthLeadGross: l("A hypothetical $10,000 invested in the strategy. Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.", "Un placement hypothétique de 10 000 $ dans la stratégie. Les rendements sont arithmétiques (sommes simples des rendements mensuels sur l’exposition notionnelle, non composés) et avant déduction des frais; le graphique de croissance est illustratif."),
+    growthLead: l(
+      "A hypothetical $10,000 investment, distributions reinvested.",
+      "Un placement hypothétique de 10 000 $, distributions réinvesties.",
+    ),
+    growthLeadGross: l(
+      "A hypothetical $10,000 invested in the strategy. Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.",
+      "Un placement hypothétique de 10 000 $ dans la stratégie. Les rendements sont arithmétiques (sommes simples des rendements mensuels sur l’exposition notionnelle, non composés) et avant déduction des frais; le graphique de croissance est illustratif.",
+    ),
     range: l("Period", "Période"),
-    ranges: { "1Y": l("1Y", "1 an"), "3Y": l("3Y", "3 ans"), "5Y": l("5Y", "5 ans"), SI: l("Since inception", "Depuis la création") },
+    ranges: {
+      "1Y": l("1Y", "1 an"),
+      "3Y": l("3Y", "3 ans"),
+      "5Y": l("5Y", "5 ans"),
+      SI: l("Since inception", "Depuis la création"),
+    },
     rebased: l("Rebased to $10,000 at the start of the period.", "Ramené à 10 000 $ au début de la période."),
     keys: l("Use the arrow keys to move through the months.", "Utilisez les flèches pour parcourir les mois."),
     trailing: l("Annualized and trailing returns", "Rendements annualisés et sur périodes mobiles"),
     calendar: l("Calendar-year returns", "Rendements par année civile"),
     monthly: l("Monthly returns", "Rendements mensuels"),
-    monthlyLead: l("Every month since the start of the track record; the last column is the calendar-year return.", "Chaque mois depuis le début de l’historique; la dernière colonne est le rendement de l’année civile."),
+    monthlyLead: l(
+      "Every month since the start of the track record; the last column is the calendar-year return.",
+      "Chaque mois depuis le début de l’historique; la dernière colonne est le rendement de l’année civile.",
+    ),
     risk: l("Risk statistics", "Statistiques de risque"),
     riskLead: l("Annualized, from monthly returns.", "Annualisées, à partir des rendements mensuels."),
     notes: l("Performance notes", "Notes sur les rendements"),
@@ -201,12 +269,26 @@ export const T = {
     positive: l("Positive", "Positif"),
     none: l("Performance figures coming soon.", "Les rendements seront bientôt publiés."),
     periods: {
-      "1M": l("1M", "1 m"), "3M": l("3M", "3 m"), YTD: l("YTD", "DDA"), "1Y": l("1Y", "1 an"), "2Y": l("2Y", "2 ans"), "3Y": l("3Y", "3 ans"),
-      "5Y": l("5Y", "5 ans"), "10Y": l("10Y", "10 ans"), SI: l("SI", "DC"),
+      "1M": l("1M", "1 m"),
+      "3M": l("3M", "3 m"),
+      YTD: l("YTD", "DDA"),
+      "1Y": l("1Y", "1 an"),
+      "2Y": l("2Y", "2 ans"),
+      "3Y": l("3Y", "3 ans"),
+      "5Y": l("5Y", "5 ans"),
+      "10Y": l("10Y", "10 ans"),
+      SI: l("SI", "DC"),
     } as Record<Period, L>,
     periodsLong: {
-      "1M": l("1 month", "1 mois"), "3M": l("3 months", "3 mois"), YTD: l("Year to date", "Depuis le début de l’année"), "1Y": l("1 year", "1 an"),
-      "2Y": l("2 years", "2 ans"), "3Y": l("3 years", "3 ans"), "5Y": l("5 years", "5 ans"), "10Y": l("10 years", "10 ans"), SI: l("Since inception", "Depuis la création"),
+      "1M": l("1 month", "1 mois"),
+      "3M": l("3 months", "3 mois"),
+      YTD: l("Year to date", "Depuis le début de l’année"),
+      "1Y": l("1 year", "1 an"),
+      "2Y": l("2 years", "2 ans"),
+      "3Y": l("3 years", "3 ans"),
+      "5Y": l("5 years", "5 ans"),
+      "10Y": l("10 years", "10 ans"),
+      SI: l("Since inception", "Depuis la création"),
     } as Record<Period, L>,
     windows: { SI: l("Since inception", "Depuis la création"), "3Y": l("Last 3 years", "3 dernières années") },
     annReturn: l("Annualized return", "Rendement annualisé"),
@@ -239,7 +321,10 @@ export const T = {
     esg: l("Sustainability metrics", "Indicateurs de durabilité"),
     esgLead: l("The portfolio compared with its index.", "Le portefeuille comparé à son indice."),
     metric: l("Metric", "Indicateur"),
-    none: l("Portfolio data will appear here once the monthly factsheet is published.", "Les données du portefeuille apparaîtront ici une fois la fiche mensuelle publiée."),
+    none: l(
+      "Portfolio data will appear here once the monthly factsheet is published.",
+      "Les données du portefeuille apparaîtront ici une fois la fiche mensuelle publiée.",
+    ),
     /* daily portfolio (data platform book) */
     daily: l("Daily portfolio data", "Données quotidiennes du portefeuille"),
     dailyAsOf: l("as of", "au"),
@@ -252,7 +337,10 @@ export const T = {
       rating: l("Average credit rating", "Cote de crédit moyenne"),
     },
     years: l("years", "ans"),
-    bondHoldingsOnly: l("bond holdings only, excluding futures", "obligations détenues seulement, hors contrats à terme"),
+    bondHoldingsOnly: l(
+      "bond holdings only, excluding futures",
+      "obligations détenues seulement, hors contrats à terme",
+    ),
     securities: l("Securities held", "Titres détenus"),
     coverage: l(
       "Computed only over the bonds for which the input is available (share of the bond holdings, by market value): {x}.",
@@ -287,9 +375,18 @@ export const T = {
   dist: {
     title: l("Distributions", "Distributions"),
     policy: l("Distribution policy", "Politique de distribution"),
-    none: l("Distribution details are set out in the fund’s offering documents. Contact us for the latest distribution information.", "Les modalités de distribution sont présentées dans les documents de placement du fonds. Communiquez avec nous pour obtenir les plus récents renseignements sur les distributions."),
-    noneStrategy: l("The strategy is offered through managed accounts: it does not make distributions of its own. Income and gains are credited to each client account.", "La stratégie est offerte au moyen de comptes gérés : elle ne verse pas de distributions. Les revenus et les gains sont portés au crédit de chaque compte client."),
-    reinvest: l("Returns shown on this page assume that all distributions are reinvested.", "Les rendements présentés sur cette page supposent le réinvestissement de toutes les distributions."),
+    none: l(
+      "Distribution details are set out in the fund’s offering documents. Contact us for the latest distribution information.",
+      "Les modalités de distribution sont présentées dans les documents de placement du fonds. Communiquez avec nous pour obtenir les plus récents renseignements sur les distributions.",
+    ),
+    noneStrategy: l(
+      "The strategy is offered through managed accounts: it does not make distributions of its own. Income and gains are credited to each client account.",
+      "La stratégie est offerte au moyen de comptes gérés : elle ne verse pas de distributions. Les revenus et les gains sont portés au crédit de chaque compte client.",
+    ),
+    reinvest: l(
+      "Returns shown on this page assume that all distributions are reinvested.",
+      "Les rendements présentés sur cette page supposent le réinvestissement de toutes les distributions.",
+    ),
     ask: l("Ask about distributions", "Se renseigner sur les distributions"),
     /* per-series distributions (data platform) */
     recent: l("Recent distributions", "Distributions récentes"),
@@ -302,7 +399,10 @@ export const T = {
     t12mLong: l("Total per unit over the trailing 12 months", "Total par part des 12 derniers mois"),
     /* the window ends at the day the data were read, not at the last distribution ("Data as of") */
     t12mTo: l("12 months to {date}", "12 mois au {date}"),
-    t12mToLong: l("Total per unit of the distributions paid in the 12 months to {date}", "Total par part des distributions versées au cours des 12 mois terminés le {date}"),
+    t12mToLong: l(
+      "Total per unit of the distributions paid in the 12 months to {date}",
+      "Total par part des distributions versées au cours des 12 mois terminés le {date}",
+    ),
     frequency: l("Frequency", "Fréquence"),
     frequencies: {
       monthly: l("Monthly", "Mensuelle"),
@@ -334,8 +434,14 @@ export const T = {
     download: l("Download", "Télécharger"),
     onRequest: l("Available on request", "Disponible sur demande"),
     request: l("Request", "Demander"),
-    regulatoryLead: l("The regulatory documents of the fund are available on request. Please read them before investing.", "Les documents réglementaires du fonds sont disponibles sur demande. Veuillez les lire avant d’investir."),
-    strategyNote: l("Documents are provided directly to mandate holders. Please contact us for details.", "Les documents sont remis directement aux titulaires de mandat. Communiquez avec nous pour en savoir plus."),
+    regulatoryLead: l(
+      "The regulatory documents of the fund are available on request. Please read them before investing.",
+      "Les documents réglementaires du fonds sont disponibles sur demande. Veuillez les lire avant d’investir.",
+    ),
+    strategyNote: l(
+      "Documents are provided directly to mandate holders. Please contact us for details.",
+      "Les documents sont remis directement aux titulaires de mandat. Communiquez avec nous pour en savoir plus.",
+    ),
     types: {
       factsheet: l("Factsheets", "Fiches mensuelles"),
       "fund-facts": l("Fund facts", "Aperçus du fonds"),
@@ -365,11 +471,26 @@ export const T = {
       other: l("Document", "Document"),
     } as Record<DocType, L>,
     regulatoryText: {
-      "fund-facts": l("A short summary of the fund: its investments, risk, past performance and costs.", "Un résumé du fonds : placements, risque, rendement passé et coûts."),
-      prospectus: l("The offering document that describes the fund, its risks and investors’ rights.", "Le document de placement qui décrit le fonds, ses risques et les droits des investisseurs."),
-      "annual-report": l("Audited financial statements for the fiscal year.", "États financiers audités de l’exercice."),
-      "interim-report": l("Unaudited financial statements for the first six months of the fiscal year.", "États financiers non audités des six premiers mois de l’exercice."),
-      mrfp: l("Management’s discussion of the fund’s results, annual and interim.", "L’analyse par la direction des résultats du fonds, annuelle et intermédiaire."),
+      "fund-facts": l(
+        "A short summary of the fund: its investments, risk, past performance and costs.",
+        "Un résumé du fonds : placements, risque, rendement passé et coûts.",
+      ),
+      prospectus: l(
+        "The offering document that describes the fund, its risks and investors’ rights.",
+        "Le document de placement qui décrit le fonds, ses risques et les droits des investisseurs.",
+      ),
+      "annual-report": l(
+        "Audited financial statements for the fiscal year.",
+        "États financiers audités de l’exercice.",
+      ),
+      "interim-report": l(
+        "Unaudited financial statements for the first six months of the fiscal year.",
+        "États financiers non audités des six premiers mois de l’exercice.",
+      ),
+      mrfp: l(
+        "Management’s discussion of the fund’s results, annual and interim.",
+        "L’analyse par la direction des résultats du fonds, annuelle et intermédiaire.",
+      ),
     } as Partial<Record<DocType, L>>,
   },
   disclosure: {
@@ -398,8 +519,14 @@ export const T = {
   cta: {
     title: l("Interested in the fund?", "Le fonds vous intéresse?"),
     titleStrategy: l("Interested in the strategy?", "La stratégie vous intéresse?"),
-    text: l("Our team can walk you through the fund, its series and how to invest.", "Notre équipe peut vous présenter le fonds, ses séries et la façon d’investir."),
-    textStrategy: l("Our team can explain how the protective overlay works and how it could fit your portfolio.", "Notre équipe peut vous expliquer le fonctionnement de la stratégie et sa place dans votre portefeuille."),
+    text: l(
+      "Our team can walk you through the fund, its series and how to invest.",
+      "Notre équipe peut vous présenter le fonds, ses séries et la façon d’investir.",
+    ),
+    textStrategy: l(
+      "Our team can explain how the protective overlay works and how it could fit your portfolio.",
+      "Notre équipe peut vous expliquer le fonctionnement de la stratégie et sa place dans votre portefeuille.",
+    ),
     contact: l("Contact our team", "Communiquer avec notre équipe"),
     all: l("All strategies", "Toutes les stratégies"),
   },
@@ -423,10 +550,30 @@ interface FundTexts {
   focus: L[];
   /** risk disclosure shown under the approach bullets (regulatory wording, kept verbatim) */
   note?: L;
-  feature: { eyebrow: L; title: L; lead: L; cards: { icon: FeatureIcon; title: L; text: L; needs?: "esg" | "portfolio" }[]; link?: { href: string; label: L } };
+  feature: {
+    eyebrow: L;
+    title: L;
+    lead: L;
+    cards: { icon: FeatureIcon; title: L; text: L; needs?: "esg" | "portfolio" }[];
+    link?: { href: string; label: L };
+  };
 }
 
-export type FeatureIcon = "calendar" | "timer" | "scan" | "shield" | "leaf" | "filter" | "gauge" | "sprout" | "layers" | "trend" | "repeat" | "umbrella" | "stack" | "waves";
+export type FeatureIcon =
+  | "calendar"
+  | "timer"
+  | "scan"
+  | "shield"
+  | "leaf"
+  | "filter"
+  | "gauge"
+  | "sprout"
+  | "layers"
+  | "trend"
+  | "repeat"
+  | "umbrella"
+  | "stack"
+  | "waves";
 
 /* risk disclosures of the futures overlay (compliance-reviewed wording, verbatim) */
 const LOW_CORR = l(
@@ -447,13 +594,19 @@ const join = (...xs: L[]): L => ({ en: xs.map((x) => x.en).join(" "), fr: xs.map
 export const FUND_TEXTS: Record<FundKey, FundTexts> = {
   "monthly-income": {
     summary: join(
-      l("Monthly income from short-term Canadian corporate bonds, with low rate sensitivity.", "Un revenu mensuel tiré d’obligations de sociétés canadiennes à court terme, peu sensible aux taux."),
+      l(
+        "Monthly income from short-term Canadian corporate bonds, with low rate sensitivity.",
+        "Un revenu mensuel tiré d’obligations de sociétés canadiennes à court terme, peu sensible aux taux.",
+      ),
       DIST,
     ),
     focus: [
       l("Mainly short-term Canadian corporate bonds", "Surtout des obligations de sociétés canadiennes à court terme"),
       l("Selected by our two-system process", "Sélectionnées par notre processus à deux systèmes"),
-      l("Credit risk and relative value, bond by bond", "Risque de crédit et valeur relative, obligation par obligation"),
+      l(
+        "Credit risk and relative value, bond by bond",
+        "Risque de crédit et valeur relative, obligation par obligation",
+      ),
     ],
     note: join(l("The protective overlay is", "La superposition protectrice est"), LOW_CORR, OVERLAY_EXPOSURE),
     feature: {
@@ -461,10 +614,32 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       title: l("Built for monthly income", "Conçu pour un revenu mensuel"),
       lead: l("What shapes the fund.", "Ce qui définit le fonds."),
       cards: [
-        { icon: "calendar", title: l("Monthly distributions", "Distributions mensuelles"), text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST) },
-        { icon: "timer", title: l("Short maturities", "Échéances courtes"), text: l("Low rate sensitivity. Current duration: Portfolio tab.", "Faible sensibilité aux taux. Durée actuelle : onglet Portefeuille.") },
-        { icon: "scan", title: l("Systematic credit selection", "Sélection systématique du crédit"), text: l("Credit risk weighed against yield, issuer by issuer.", "Risque de crédit contre rendement, émetteur par émetteur.") },
-        { icon: "shield", title: l("Protective overlay", "Superposition protectrice"), text: join(l("A protective overlay", "Une superposition protectrice"), LOW_CORR, OVERLAY_EXPOSURE) },
+        {
+          icon: "calendar",
+          title: l("Monthly distributions", "Distributions mensuelles"),
+          text: join(l("Designed to pay every month.", "Conçu pour verser une distribution chaque mois."), DIST),
+        },
+        {
+          icon: "timer",
+          title: l("Short maturities", "Échéances courtes"),
+          text: l(
+            "Low rate sensitivity. Current duration: Portfolio tab.",
+            "Faible sensibilité aux taux. Durée actuelle : onglet Portefeuille.",
+          ),
+        },
+        {
+          icon: "scan",
+          title: l("Systematic credit selection", "Sélection systématique du crédit"),
+          text: l(
+            "Credit risk weighed against yield, issuer by issuer.",
+            "Risque de crédit contre rendement, émetteur par émetteur.",
+          ),
+        },
+        {
+          icon: "shield",
+          title: l("Protective overlay", "Superposition protectrice"),
+          text: join(l("A protective overlay", "Une superposition protectrice"), LOW_CORR, OVERLAY_EXPOSURE),
+        },
       ],
     },
   },
@@ -476,18 +651,53 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     focus: [
       l("Federal, provincial and corporate issuers", "Émetteurs fédéraux, provinciaux et de sociétés"),
       l("Built with our quantitative models", "Construit à l’aide de nos modèles quantitatifs"),
-      l("ESG data weighed with credit quality and valuation", "Données ESG prises en compte avec la qualité du crédit et l’évaluation"),
+      l(
+        "ESG data weighed with credit quality and valuation",
+        "Données ESG prises en compte avec la qualité du crédit et l’évaluation",
+      ),
     ],
     note: join(l("The protective overlay is", "La superposition protectrice est"), LOW_CORR, OVERLAY_EXPOSURE),
     feature: {
       eyebrow: l("Sustainable Enhanced Bonds Fund", "Fonds Obligations Durables Bonifiées"),
       title: l("Sustainability, integrated", "La durabilité, intégrée"),
-      lead: l("Criteria at every step of bond selection. They do not apply to the futures overlay, which holds no securities of individual issuers.", "Des critères à chaque étape de la sélection des obligations. Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels."),
+      lead: l(
+        "Criteria at every step of bond selection. They do not apply to the futures overlay, which holds no securities of individual issuers.",
+        "Des critères à chaque étape de la sélection des obligations. Ils ne visent pas la stratégie de superposition, qui ne détient aucun titre d’émetteurs individuels.",
+      ),
       cards: [
-        { icon: "filter", title: l("Exclusion screens", "Filtres d’exclusion"), text: l("Issuers in conflict with the fund’s criteria are excluded.", "Les émetteurs contraires aux critères du fonds sont exclus.") },
-        { icon: "leaf", title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"), text: l("ESG data weighed with credit and valuation, issuer by issuer.", "Données ESG prises en compte avec le crédit et l’évaluation, émetteur par émetteur.") },
-        { icon: "sprout", title: l("Green bonds", "Obligations vertes"), text: l("The fund can hold bonds financing environmental projects.", "Le fonds peut détenir des obligations qui financent des projets environnementaux.") },
-        { icon: "gauge", title: l("Measured every month", "Mesurée chaque mois"), text: l("Metrics such as carbon intensity, monthly, for the portfolio and its index.", "Des indicateurs comme l’intensité carbone, chaque mois, pour le portefeuille et son indice."), needs: "esg" },
+        {
+          icon: "filter",
+          title: l("Exclusion screens", "Filtres d’exclusion"),
+          text: l(
+            "Issuers in conflict with the fund’s criteria are excluded.",
+            "Les émetteurs contraires aux critères du fonds sont exclus.",
+          ),
+        },
+        {
+          icon: "leaf",
+          title: l("ESG in issuer selection", "ESG dans la sélection des émetteurs"),
+          text: l(
+            "ESG data weighed with credit and valuation, issuer by issuer.",
+            "Données ESG prises en compte avec le crédit et l’évaluation, émetteur par émetteur.",
+          ),
+        },
+        {
+          icon: "sprout",
+          title: l("Green bonds", "Obligations vertes"),
+          text: l(
+            "The fund can hold bonds financing environmental projects.",
+            "Le fonds peut détenir des obligations qui financent des projets environnementaux.",
+          ),
+        },
+        {
+          icon: "gauge",
+          title: l("Measured every month", "Mesurée chaque mois"),
+          text: l(
+            "Metrics such as carbon intensity, monthly, for the portfolio and its index.",
+            "Des indicateurs comme l’intensité carbone, chaque mois, pour le portefeuille et son indice.",
+          ),
+          needs: "esg",
+        },
       ],
       link: { href: "/sustainability", label: l("Our sustainability approach", "Notre approche de durabilité") },
     },
@@ -498,19 +708,53 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
       "Un fonds alternatif liquide de stratégies systématiques, conçues pour se comporter différemment des actions et des obligations.",
     ),
     focus: [
-      l("Low-volatility, directional, mean-reversion and hedging strategies", "Stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture"),
-      l("Each with its own rules, designed for a distinct role", "Chacune avec ses propres règles, conçue pour un rôle distinct"),
+      l(
+        "Low-volatility, directional, mean-reversion and hedging strategies",
+        "Stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture",
+      ),
+      l(
+        "Each with its own rules, designed for a distinct role",
+        "Chacune avec ses propres règles, conçue pour un rôle distinct",
+      ),
       l("Allocations managed systematically", "Répartition gérée de façon systématique"),
     ],
     feature: {
       eyebrow: l("Multi-Strategy Fund", "Fonds Multistratégies"),
       title: l("Four complementary strategies", "Quatre stratégies complémentaires"),
-      lead: l("Alternative Multi-Strategy category: distinct roles, diversified sources of return.", "Catégorie Multistratégies alternatives : des rôles distincts, des sources de rendement diversifiées."),
+      lead: l(
+        "Alternative Multi-Strategy category: distinct roles, diversified sources of return.",
+        "Catégorie Multistratégies alternatives : des rôles distincts, des sources de rendement diversifiées.",
+      ),
       cards: [
-        { icon: "waves", title: l("Low volatility", "Faible volatilité"), text: l("Seeks returns with lower volatility.", "Vise des rendements assortis d’une volatilité plus faible.") },
-        { icon: "trend", title: l("Directional", "Directionnelle"), text: l("Follows persistent trends, up or down.", "Suit les tendances persistantes, à la hausse comme à la baisse.") },
-        { icon: "repeat", title: l("Mean reversion", "Retour à la moyenne"), text: l("Positions for prices returning to usual levels.", "Se positionne pour un retour des prix vers leurs niveaux habituels.") },
-        { icon: "umbrella", title: l("Hedging", "Couverture"), text: l("Designed to gain in market stress and offset part of the other strategies’ losses; it may not do so.", "Conçue pour profiter des tensions de marché et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.") },
+        {
+          icon: "waves",
+          title: l("Low volatility", "Faible volatilité"),
+          text: l("Seeks returns with lower volatility.", "Vise des rendements assortis d’une volatilité plus faible."),
+        },
+        {
+          icon: "trend",
+          title: l("Directional", "Directionnelle"),
+          text: l(
+            "Follows persistent trends, up or down.",
+            "Suit les tendances persistantes, à la hausse comme à la baisse.",
+          ),
+        },
+        {
+          icon: "repeat",
+          title: l("Mean reversion", "Retour à la moyenne"),
+          text: l(
+            "Positions for prices returning to usual levels.",
+            "Se positionne pour un retour des prix vers leurs niveaux habituels.",
+          ),
+        },
+        {
+          icon: "umbrella",
+          title: l("Hedging", "Couverture"),
+          text: l(
+            "Designed to gain in market stress and offset part of the other strategies’ losses; it may not do so.",
+            "Conçue pour profiter des tensions de marché et compenser une partie des pertes des autres stratégies; elle peut ne pas y parvenir.",
+          ),
+        },
       ],
     },
   },
@@ -521,19 +765,53 @@ export const FUND_TEXTS: Record<FundKey, FundTexts> = {
     ),
     focus: [
       l("Added on top of an existing portfolio", "Ajoutée par-dessus un portefeuille existant"),
-      l("Most of the capital stays invested in the underlying portfolio", "La majeure partie du capital demeure investie dans le portefeuille sous-jacent"),
-      l("Liquid futures, sized to each client’s downside volatility target", "Des contrats à terme liquides, calibrés selon la cible de volatilité à la baisse de chaque client"),
+      l(
+        "Most of the capital stays invested in the underlying portfolio",
+        "La majeure partie du capital demeure investie dans le portefeuille sous-jacent",
+      ),
+      l(
+        "Liquid futures, sized to each client’s downside volatility target",
+        "Des contrats à terme liquides, calibrés selon la cible de volatilité à la baisse de chaque client",
+      ),
     ],
     note: OVERLAY_EXPOSURE,
     feature: {
       eyebrow: l("Global Minimum Volatility", "Global Minimum Volatility"),
       title: l("How the protective overlay works", "Le fonctionnement de la superposition protectrice"),
-      lead: l("Futures on top of the portfolio you already own.", "Des contrats à terme ajoutés au portefeuille que vous détenez déjà."),
+      lead: l(
+        "Futures on top of the portfolio you already own.",
+        "Des contrats à terme ajoutés au portefeuille que vous détenez déjà.",
+      ),
       cards: [
-        { icon: "stack", title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"), text: l("Most capital stays in your portfolio.", "L’essentiel du capital reste dans votre portefeuille.") },
-        { icon: "layers", title: l("Liquid futures", "Contrats à terme liquides"), text: join(l("Exchange-traded futures, which require a margin deposit.", "Des contrats à terme cotés, qui exigent un dépôt de garantie."), OVERLAY_EXPOSURE) },
-        { icon: "gauge", title: l("A volatility target", "Une cible de volatilité"), text: l("Sized to the downside volatility agreed with the client.", "Calibrée selon la volatilité à la baisse convenue avec le client.") },
-        { icon: "shield", title: l("Designed for low correlation", "Conçue pour une faible corrélation"), text: join(l("The overlay is", "La stratégie est"), LOW_CORR) },
+        {
+          icon: "stack",
+          title: l("Stacked on your portfolio", "Ajoutée à votre portefeuille"),
+          text: l("Most capital stays in your portfolio.", "L’essentiel du capital reste dans votre portefeuille."),
+        },
+        {
+          icon: "layers",
+          title: l("Liquid futures", "Contrats à terme liquides"),
+          text: join(
+            l(
+              "Exchange-traded futures, which require a margin deposit.",
+              "Des contrats à terme cotés, qui exigent un dépôt de garantie.",
+            ),
+            OVERLAY_EXPOSURE,
+          ),
+        },
+        {
+          icon: "gauge",
+          title: l("A volatility target", "Une cible de volatilité"),
+          text: l(
+            "Sized to the downside volatility agreed with the client.",
+            "Calibrée selon la volatilité à la baisse convenue avec le client.",
+          ),
+        },
+        {
+          icon: "shield",
+          title: l("Designed for low correlation", "Conçue pour une faible corrélation"),
+          text: join(l("The overlay is", "La stratégie est"), LOW_CORR),
+        },
       ],
     },
   },

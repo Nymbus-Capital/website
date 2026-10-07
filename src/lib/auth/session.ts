@@ -100,10 +100,19 @@ export async function verifySessionToken(token: string | undefined, cfg: AuthCon
   }
   const res: PolicyResult = evaluateSession(
     { sub: payload.sub, email: payload.email, name: payload.name, tid: payload.tid },
-    { tenantId: cfg.tenantId, allowedDomains: cfg.allowedDomains, allowedGroupIds: cfg.allowedGroupIds, requiredRole: cfg.requiredRole },
+    {
+      tenantId: cfg.tenantId,
+      allowedDomains: cfg.allowedDomains,
+      allowedGroupIds: cfg.allowedGroupIds,
+      requiredRole: cfg.requiredRole,
+    },
   );
   if (!res.ok) return { status: "denied", message: res.message };
-  return { status: "ok", user: { oid: res.oid, email: res.email, name: res.name, tid: res.tid }, session: { jti, exp } };
+  return {
+    status: "ok",
+    user: { oid: res.oid, email: res.email, name: res.name, tid: res.tid },
+    session: { jti, exp },
+  };
 }
 
 export async function checkRequestSession(req: NextRequest): Promise<SessionCheck> {

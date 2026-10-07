@@ -17,14 +17,26 @@ function LangToggle({ className }: { className?: string }) {
   const { locale, setLocale, t } = useTranslation();
   const next = locale === "en" ? "fr" : "en";
   return (
-    <button type="button" className={`lang-btn ${className ?? ""}`} onClick={() => setLocale(next)} aria-label={t("nav.langSwitch")} lang={next} data-testid="lang-toggle">
-      <span aria-hidden="true" className={locale === "en" ? "on" : ""}>en</span>
-      <span aria-hidden="true" className={locale === "fr" ? "on" : ""}>fr</span>
+    <button
+      type="button"
+      className={`lang-btn ${className ?? ""}`}
+      onClick={() => setLocale(next)}
+      aria-label={t("nav.langSwitch")}
+      lang={next}
+      data-testid="lang-toggle"
+    >
+      <span aria-hidden="true" className={locale === "en" ? "on" : ""}>
+        en
+      </span>
+      <span aria-hidden="true" className={locale === "fr" ? "on" : ""}>
+        fr
+      </span>
     </button>
   );
 }
 
-const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
+const isActive = (path: string, href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
 
 export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
   const { t, pick } = useTranslation();
@@ -50,13 +62,22 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   // a navigation closes the menu
   const [menuPath, setMenuPath] = useState(path);
-  if (menuPath !== path) { setMenuPath(path); setOpen(false); }
-  const close = useCallback(() => { setOpen(false); toggleRef.current?.focus(); }, []);
+  if (menuPath !== path) {
+    setMenuPath(path);
+    setOpen(false);
+  }
+  const close = useCallback(() => {
+    setOpen(false);
+    toggleRef.current?.focus();
+  }, []);
 
   // menu open: lock scroll, trap focus, Escape closes
   useEffect(() => {
@@ -66,24 +87,41 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
     const el = menuRef.current;
     el?.querySelector<HTMLElement>(".menu-links a")?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); close(); return; }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+        return;
+      }
       if (e.key !== "Tab" || !el) return;
       const items = Array.from(el.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
       if (!items.length) return;
-      const first = items[0], lastEl = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); lastEl.focus(); }
-      else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); first.focus(); }
+      const first = items[0],
+        lastEl = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => { root.classList.remove("menu-open"); document.removeEventListener("keydown", onKey); };
+    return () => {
+      root.classList.remove("menu-open");
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open, close]);
 
   return (
     <>
-      <a className="skip" href="#main">{t("nav.skip")}</a>
+      <a className="skip" href="#main">
+        {t("nav.skip")}
+      </a>
       <header className={`nav ${scrolled ? "is-scrolled" : ""}`} data-testid="site-nav">
         <div className="container nav-in">
-          <Link href="/" className="nav-logo" aria-label={t("nav.homeLink")}><Logo /></Link>
+          <Link href="/" className="nav-logo" aria-label={t("nav.homeLink")}>
+            <Logo />
+          </Link>
           <nav aria-label={t("nav.primary")} style={{ marginLeft: "auto" }}>
             <ul className="nav-links">
               {NAV_LINKS.map((l) => {
@@ -91,24 +129,38 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
                 if (l.href === "/strategies") {
                   return (
                     <li key={l.href} className="nav-drop">
-                      <Link href={l.href} className={on ? "on" : ""} aria-current={path === l.href ? "page" : undefined}>
+                      <Link
+                        href={l.href}
+                        className={on ? "on" : ""}
+                        aria-current={path === l.href ? "page" : undefined}
+                      >
                         {t(l.key)} <ChevronDown size={14} aria-hidden="true" style={{ marginLeft: 4 }} />
                       </Link>
                       <div className="nav-drop-panel">
                         {funds.map((f) => (
                           <Link key={f.href} href={f.href} aria-current={path === f.href ? "page" : undefined}>
-                            <i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />
-                            <span><b>{pick(f.short)}</b><small>{pick(f.tagline)}</small></span>
+                            <i
+                              style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }}
+                              aria-hidden="true"
+                            />
+                            <span>
+                              <b>{pick(f.short)}</b>
+                              <small>{pick(f.tagline)}</small>
+                            </span>
                           </Link>
                         ))}
-                        <Link href="/strategies" className="all">{t("nav.allStrategies")} →</Link>
+                        <Link href="/strategies" className="all">
+                          {t("nav.allStrategies")} →
+                        </Link>
                       </div>
                     </li>
                   );
                 }
                 return (
                   <li key={l.href}>
-                    <Link href={l.href} className={on ? "on" : ""} aria-current={on ? "page" : undefined}>{t(l.key)}</Link>
+                    <Link href={l.href} className={on ? "on" : ""} aria-current={on ? "page" : undefined}>
+                      {t(l.key)}
+                    </Link>
                   </li>
                 );
               })}
@@ -116,26 +168,63 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
           </nav>
           <div className="nav-tools">
             <LangToggle />
-            <button ref={toggleRef} type="button" className="icon-btn nav-burger" aria-expanded={open} aria-controls="site-menu"
-              aria-label={open ? t("nav.close") : t("nav.open")} onClick={() => setOpen((o) => !o)} data-testid="menu-toggle">
-              {open ? <X size={20} strokeWidth={1.8} aria-hidden="true" /> : <Menu size={20} strokeWidth={1.8} aria-hidden="true" />}
+            <button
+              ref={toggleRef}
+              type="button"
+              className="icon-btn nav-burger"
+              aria-expanded={open}
+              aria-controls="site-menu"
+              aria-label={open ? t("nav.close") : t("nav.open")}
+              onClick={() => setOpen((o) => !o)}
+              data-testid="menu-toggle"
+            >
+              {open ? (
+                <X size={20} strokeWidth={1.8} aria-hidden="true" />
+              ) : (
+                <Menu size={20} strokeWidth={1.8} aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
-        <div className="nav-progress" aria-hidden="true"><div ref={bar} /></div>
+        <div className="nav-progress" aria-hidden="true">
+          <div ref={bar} />
+        </div>
       </header>
 
-      <div id="site-menu" ref={menuRef} className="menu" role="dialog" aria-modal="true" aria-label={t("nav.menu")} hidden={!open} data-testid="mobile-menu">
+      <div
+        id="site-menu"
+        ref={menuRef}
+        className="menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("nav.menu")}
+        hidden={!open}
+        data-testid="mobile-menu"
+      >
         <div className="container">
           <div className="menu-head">
-            <Link href="/" className="nav-logo" aria-label={t("nav.homeLink")} onClick={() => setOpen(false)}><Logo /></Link>
-            <button type="button" className="icon-btn" aria-label={t("nav.close")} onClick={close}><X size={20} strokeWidth={1.8} aria-hidden="true" /></button>
+            <Link href="/" className="nav-logo" aria-label={t("nav.homeLink")} onClick={() => setOpen(false)}>
+              <Logo />
+            </Link>
+            <button type="button" className="icon-btn" aria-label={t("nav.close")} onClick={close}>
+              <X size={20} strokeWidth={1.8} aria-hidden="true" />
+            </button>
           </div>
           <ul className="menu-links">
-            <li style={{ ["--i" as string]: 0 }}><Link href="/" onClick={() => setOpen(false)} aria-current={path === "/" ? "page" : undefined}>{t("nav.home")}</Link></li>
+            <li style={{ ["--i" as string]: 0 }}>
+              <Link href="/" onClick={() => setOpen(false)} aria-current={path === "/" ? "page" : undefined}>
+                {t("nav.home")}
+              </Link>
+            </li>
             {NAV_LINKS.map((l, i) => (
               <li key={l.href} style={{ ["--i" as string]: i + 1 }}>
-                <Link href={l.href} onClick={() => setOpen(false)} aria-current={isActive(path, l.href) ? "page" : undefined}>{t(l.key)}</Link>
+                <Link
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={isActive(path, l.href) ? "page" : undefined}
+                >
+                  {t(l.key)}
+                </Link>
               </li>
             ))}
           </ul>
@@ -143,7 +232,10 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
             {funds.map((f) => (
               <li key={f.href}>
                 <Link href={f.href} onClick={() => setOpen(false)}>
-                  <i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />
+                  <i
+                    style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }}
+                    aria-hidden="true"
+                  />
                   {pick(f.short)}
                 </Link>
               </li>
@@ -151,7 +243,9 @@ export function Nav({ hiddenFunds = [] }: { hiddenFunds?: string[] }) {
           </ul>
           <div className="menu-foot" style={{ ["--i" as string]: NAV_LINKS.length + 2 }}>
             <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-            <a href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn <ArrowUpRight size={14} aria-hidden="true" /></a>
+            <a href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
+              LinkedIn <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
             <LangToggle />
           </div>
         </div>

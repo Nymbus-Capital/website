@@ -25,7 +25,14 @@ export const isDocumentId = (v: unknown): v is string => typeof v === "string" &
 
 /** `%PDF-` magic bytes at offset 0. */
 export function hasPdfMagic(bytes: Uint8Array): boolean {
-  return bytes.length >= 5 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
+  return (
+    bytes.length >= 5 &&
+    bytes[0] === 0x25 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x44 &&
+    bytes[3] === 0x46 &&
+    bytes[4] === 0x2d
+  );
 }
 
 /**
@@ -38,7 +45,10 @@ export function sanitizeFileName(raw: string): string {
   // eslint-disable-next-line no-control-regex
   n = n.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, "");
   n = n.replace(/[<>:"|?*;%#&=+$,'`{}^[\]~]/g, "_");
-  n = n.replace(/\s+/g, " ").trim().replace(/^[.\s_-]+/, "");
+  n = n
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[.\s_-]+/, "");
   n = n.replace(/\.pdf$/i, "").replace(/[.\s]+$/, "");
   if (n.length > 116) n = n.slice(0, 116).trim();
   if (!n) n = "document";
@@ -50,7 +60,12 @@ type UploadCheck = { ok: true } | { ok: false; status: 400 | 413 | 415; message:
 export function validateUpload(bytes: Uint8Array, declaredType?: string): UploadCheck {
   if (bytes.length === 0) return { ok: false, status: 400, message: "The file is empty." };
   if (bytes.length > MAX_DOCUMENT_BYTES) return { ok: false, status: 413, message: "The file is larger than 25 MB." };
-  if (declaredType && declaredType !== "application/pdf" && declaredType !== "application/octet-stream" && declaredType !== "") {
+  if (
+    declaredType &&
+    declaredType !== "application/pdf" &&
+    declaredType !== "application/octet-stream" &&
+    declaredType !== ""
+  ) {
     return { ok: false, status: 415, message: "Only PDF files can be uploaded." };
   }
   if (!hasPdfMagic(bytes)) return { ok: false, status: 415, message: "The file is not a PDF (missing %PDF- header)." };
@@ -81,15 +96,19 @@ export async function getDocument(id: string): Promise<DocumentMeta | null> {
   return (await listDocuments()).find((d) => d.id === id) ?? null;
 }
 
-const byDateDesc = (a: DocumentMeta, b: DocumentMeta) => b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt);
+const byDateDesc = (a: DocumentMeta, b: DocumentMeta) =>
+  b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt);
 
 /** Published documents, newest first; `scope` filters on a fund key or "firm". */
 export async function listPublishedDocuments(scope?: FundKey | "firm"): Promise<DocumentMeta[]> {
-  return (await listDocuments()).filter((d) => d.published && (scope === undefined || d.scope === scope)).sort(byDateDesc);
+  return (await listDocuments())
+    .filter((d) => d.published && (scope === undefined || d.scope === scope))
+    .sort(byDateDesc);
 }
 
 /** Public URL of a document (served only while published). */
-export const documentUrl = (d: Pick<DocumentMeta, "id" | "fileName">): string => `/api/documents/${encodeURIComponent(d.id)}/${encodeURIComponent(sanitizeFileName(d.fileName))}`;
+export const documentUrl = (d: Pick<DocumentMeta, "id" | "fileName">): string =>
+  `/api/documents/${encodeURIComponent(d.id)}/${encodeURIComponent(sanitizeFileName(d.fileName))}`;
 
 async function mutateIndex<T>(fn: (docs: DocumentMeta[]) => Promise<{ docs: DocumentMeta[]; result: T }>): Promise<T> {
   for (let attempt = 0; attempt < 40; attempt++) {
@@ -117,7 +136,12 @@ interface NewDocument {
   published: boolean;
 }
 
-export async function createDocument(meta: NewDocument, fileName: string, bytes: Uint8Array, by: string): Promise<DocumentMeta> {
+export async function createDocument(
+  meta: NewDocument,
+  fileName: string,
+  bytes: Uint8Array,
+  by: string,
+): Promise<DocumentMeta> {
   const check = validateUpload(bytes);
   if (!check.ok) throw new Error(check.message);
   const id = newId();
@@ -154,7 +178,12 @@ export async function updateDocument(id: string, patch: DocumentPatch): Promise<
   });
 }
 
-export async function replaceDocumentFile(id: string, fileName: string, bytes: Uint8Array, by: string): Promise<DocumentMeta | null> {
+export async function replaceDocumentFile(
+  id: string,
+  fileName: string,
+  bytes: Uint8Array,
+  by: string,
+): Promise<DocumentMeta | null> {
   if (!isDocumentId(id)) return null;
   const check = validateUpload(bytes);
   if (!check.ok) throw new Error(check.message);
@@ -202,7 +231,10 @@ export async function documentFileStat(id: string): Promise<{ path: string; size
  * Parse a `Range` header for a single byte range (RFC 9110 §14). Returns the inclusive range, "none" (no / ignored
  * header: serve the full body), or "unsatisfiable" (416). Multi-range requests are served in full (ignored).
  */
-export function parseRange(header: string | null, size: number): { start: number; end: number } | "none" | "unsatisfiable" {
+export function parseRange(
+  header: string | null,
+  size: number,
+): { start: number; end: number } | "none" | "unsatisfiable" {
   if (!header) return "none";
   const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
   if (!m) return "none";
@@ -238,7 +270,14 @@ export interface PublicDocument {
 }
 
 export const toPublicDocument = (d: DocumentMeta): PublicDocument => ({
-  id: d.id, scope: d.scope, type: d.type, lang: d.lang, title: d.title, date: d.date, fileName: sanitizeFileName(d.fileName), size: d.size,
+  id: d.id,
+  scope: d.scope,
+  type: d.type,
+  lang: d.lang,
+  title: d.title,
+  date: d.date,
+  fileName: sanitizeFileName(d.fileName),
+  size: d.size,
 });
 
 /** File bytes of a document, or null (bad id / missing file). */

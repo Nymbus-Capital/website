@@ -6,10 +6,23 @@
  * reset forces with !important), so without JavaScript all the information stays on the page, one panel after the
  * other; links such as <a href="#documents"> select a tab and scroll to it.
  */
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { reducedMotion } from "@/components/motion/motion";
 
-interface FundTab { id: string; label: string; content: ReactNode }
+interface FundTab {
+  id: string;
+  label: string;
+  content: ReactNode;
+}
 
 export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
   const ids = tabs.map((t) => t.id);
@@ -25,7 +38,8 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
     if (!root) return;
     const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h")) || 72;
     const top = root.getBoundingClientRect().top;
-    if (force || top < navH - 1) window.scrollTo({ top: window.scrollY + top - navH, behavior: reducedMotion() ? "auto" : "smooth" });
+    if (force || top < navH - 1)
+      window.scrollTo({ top: window.scrollY + top - navH, behavior: reducedMotion() ? "auto" : "smooth" });
   }, []);
 
   useEffect(() => {
@@ -45,7 +59,8 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
 
   // sliding underline under the selected tab
   useLayoutEffect(() => {
-    const list = listRef.current, bar = barRef.current;
+    const list = listRef.current,
+      bar = barRef.current;
     if (!list || !bar) return;
     const place = () => {
       const btn = list.querySelector<HTMLButtonElement>(`[data-tab="${active}"]`);
@@ -54,8 +69,10 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
       bar.style.transform = `translateX(${btn.offsetLeft + 14}px)`;
       bar.dataset.ready = "";
       // keep the selected tab visible in the scrollable bar (mobile)
-      const l = list.scrollLeft, r = l + list.clientWidth;
-      if (btn.offsetLeft < l || btn.offsetLeft + btn.offsetWidth > r) list.scrollTo({ left: btn.offsetLeft - 16, behavior: "smooth" });
+      const l = list.scrollLeft,
+        r = l + list.clientWidth;
+      if (btn.offsetLeft < l || btn.offsetLeft + btn.offsetWidth > r)
+        list.scrollTo({ left: btn.offsetLeft - 16, behavior: "smooth" });
     };
     place();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(place) : null;
@@ -72,9 +89,20 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
   };
   const onKey = (e: KeyboardEvent) => {
     const i = ids.indexOf(active);
-    const to = e.key === "ArrowRight" ? ids[(i + 1) % ids.length] : e.key === "ArrowLeft" ? ids[(i - 1 + ids.length) % ids.length]
-      : e.key === "Home" ? ids[0] : e.key === "End" ? ids[ids.length - 1] : null;
-    if (to) { e.preventDefault(); select(to, true); }
+    const to =
+      e.key === "ArrowRight"
+        ? ids[(i + 1) % ids.length]
+        : e.key === "ArrowLeft"
+          ? ids[(i - 1 + ids.length) % ids.length]
+          : e.key === "Home"
+            ? ids[0]
+            : e.key === "End"
+              ? ids[ids.length - 1]
+              : null;
+    if (to) {
+      e.preventDefault();
+      select(to, true);
+    }
   };
 
   return (
@@ -83,8 +111,18 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
         <div className="container">
           <div ref={listRef} className="ft-list" role="tablist" aria-label={label} onKeyDown={onKey}>
             {tabs.map((t) => (
-              <button key={t.id} id={`${uid}-tab-${t.id}`} type="button" role="tab" className="ft-tab" aria-selected={t.id === active}
-                aria-controls={`${uid}-panel-${t.id}`} tabIndex={t.id === active ? 0 : -1} onClick={() => select(t.id)} data-tab={t.id}>
+              <button
+                key={t.id}
+                id={`${uid}-tab-${t.id}`}
+                type="button"
+                role="tab"
+                className="ft-tab"
+                aria-selected={t.id === active}
+                aria-controls={`${uid}-panel-${t.id}`}
+                tabIndex={t.id === active ? 0 : -1}
+                onClick={() => select(t.id)}
+                data-tab={t.id}
+              >
                 {t.label}
               </button>
             ))}
@@ -93,8 +131,16 @@ export function FundTabs({ tabs, label }: { tabs: FundTab[]; label: string }) {
         </div>
       </div>
       {tabs.map((t) => (
-        <div key={t.id} id={`${uid}-panel-${t.id}`} role="tabpanel" aria-labelledby={`${uid}-tab-${t.id}`} className="ft-panel" data-panel={t.id}
-          data-off={t.id !== active ? "" : undefined} tabIndex={-1}>
+        <div
+          key={t.id}
+          id={`${uid}-panel-${t.id}`}
+          role="tabpanel"
+          aria-labelledby={`${uid}-tab-${t.id}`}
+          className="ft-panel"
+          data-panel={t.id}
+          data-off={t.id !== active ? "" : undefined}
+          tabIndex={-1}
+        >
           <h2 className="ft-panel-title">{t.label}</h2>
           {t.content}
         </div>

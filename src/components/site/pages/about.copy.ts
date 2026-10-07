@@ -49,14 +49,20 @@ export const AB = {
     eyebrow: l("Who we are", "Qui nous sommes"),
     title: l("A research-driven", "Une firme de gestion"),
     accent: l("investment firm", "axée sur la recherche"),
-    p1: l(
-      "Founded in 2013 by Marc Rivet and Gabriel Cefaloni.",
-      "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni.",
-    ),
+    p1: l("Founded in 2013 by Marc Rivet and Gabriel Cefaloni.", "Fondée en 2013 par Marc Rivet et Gabriel Cefaloni."),
     points: [
-      l("Two specialties: systematic fixed income and protective overlays", "Deux spécialités : revenu fixe systématique et superpositions protectrices"),
-      l("Bonds analyzed one by one; futures traded systematically", "Des obligations analysées une à une; des contrats à terme négociés systématiquement"),
-      l("Scientists, engineers and market veterans, side by side", "Scientifiques, développeurs et vétérans des marchés, côte à côte"),
+      l(
+        "Two specialties: systematic fixed income and protective overlays",
+        "Deux spécialités : revenu fixe systématique et superpositions protectrices",
+      ),
+      l(
+        "Bonds analyzed one by one; futures traded systematically",
+        "Des obligations analysées une à une; des contrats à terme négociés systématiquement",
+      ),
+      l(
+        "Scientists, engineers and market veterans, side by side",
+        "Scientifiques, développeurs et vétérans des marchés, côte à côte",
+      ),
     ] as L[],
     /** qualifier of the "protective" name (compliance: kept wherever the overlay is named) */
     overlayNote: l(
@@ -64,7 +70,10 @@ export const AB = {
       "Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir et peuvent subir des pertes.",
     ),
     office: l("Montreal office", "Bureau de Montréal"),
-    address: l("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6"),
+    address: l(
+      "1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6",
+      "1002, rue Sherbrooke Ouest, bureau 1900\nMontréal (Québec) H3A 3L6",
+    ),
     directions: l("Directions", "Itinéraire"),
     facts: [
       [l("Founded", "Fondation"), l("2013, Montreal", "2013, Montréal")],
@@ -76,11 +85,26 @@ export const AB = {
     title: l("What guides", "Ce qui guide"),
     accent: l("the way we work", "notre façon de travailler"),
     items: [
-      { t: l("Innovation", "Innovation"), d: l("We adopt what research supports.", "Nous adoptons ce que la recherche confirme.") },
-      { t: l("Agility", "Agilité"), d: l("Research reaches production quickly.", "La recherche passe vite en production.") },
-      { t: l("Accountability", "Responsabilité"), d: l("Transparent methods, fiduciary duty first.", "Méthodes transparentes, devoir fiduciaire d’abord.") },
+      {
+        t: l("Innovation", "Innovation"),
+        d: l("We adopt what research supports.", "Nous adoptons ce que la recherche confirme."),
+      },
+      {
+        t: l("Agility", "Agilité"),
+        d: l("Research reaches production quickly.", "La recherche passe vite en production."),
+      },
+      {
+        t: l("Accountability", "Responsabilité"),
+        d: l("Transparent methods, fiduciary duty first.", "Méthodes transparentes, devoir fiduciaire d’abord."),
+      },
       { t: l("Integrity", "Intégrité"), d: l("Clients’ interests first.", "L’intérêt des clients d’abord.") },
-      { t: l("Collaboration", "Collaboration"), d: l("Scientists and practitioners, challenging each other.", "Scientifiques et praticiens confrontent leurs idées.") },
+      {
+        t: l("Collaboration", "Collaboration"),
+        d: l(
+          "Scientists and practitioners, challenging each other.",
+          "Scientifiques et praticiens confrontent leurs idées.",
+        ),
+      },
     ],
   },
   milestones: {
@@ -91,9 +115,17 @@ export const AB = {
       { y: "2013", t: l("Nymbus is founded", "Fondation de Nymbus") },
       { y: "2018", t: l("PRI signatory", "Signataire des PRI") },
       { y: "2021", t: l("Monthly Income fund launched", "Lancement du Fonds Revenu Mensuel") },
-      { y: "2023", t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"), d: l("Support for youth at risk.", "Soutien aux jeunes à risque.") },
+      {
+        y: "2023",
+        t: l("Partnership with Dans la rue", "Partenariat avec Dans la rue"),
+        d: l("Support for youth at risk.", "Soutien aux jeunes à risque."),
+      },
       { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac") },
-      { y: "2025", t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"), d: l("A portable alpha strategy.", "Une stratégie d’alpha portable.") },
+      {
+        y: "2025",
+        t: l("Partnership with Mageska Capital", "Partenariat avec Mageska Capital"),
+        d: l("A portable alpha strategy.", "Une stratégie d’alpha portable."),
+      },
     ],
   },
   people: {

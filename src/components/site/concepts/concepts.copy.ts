@@ -12,8 +12,13 @@ export { OVERLAY_EXPOSURE };
 const NB = " ";
 
 interface ConceptCopy {
-  eyebrow: L; title: L; accent: L; lead: L;
-  panel: L; chip: L; alt: L;
+  eyebrow: L;
+  title: L;
+  accent: L;
+  lead: L;
+  panel: L;
+  chip: L;
+  alt: L;
   steps: L[];
   stats: { label: L; value: L }[];
   caption: L;
@@ -31,7 +36,10 @@ export const CC = {
     eyebrow: l("Core concepts", "Concepts de base"),
     title: l("Three ideas", "Trois idées"),
     accent: l("behind our funds", "derrière nos fonds"),
-    lead: l("Protective overlays, futures and ultra-micro analysis at scale, in motion.", "Superpositions protectrices, contrats à terme et analyse ultra-micro à grande échelle, en mouvement."),
+    lead: l(
+      "Protective overlays, futures and ultra-micro analysis at scale, in motion.",
+      "Superpositions protectrices, contrats à terme et analyse ultra-micro à grande échelle, en mouvement.",
+    ),
   },
   jump: l("Concepts on this page", "Concepts de cette page"),
   watermark: l("ILLUSTRATION · generated values", "ILLUSTRATION · valeurs générées"),
@@ -51,7 +59,10 @@ export const CC = {
       "Futures on top of a fully invested core, designed to offset part of bond losses; they may not do so.",
       "Des contrats à terme par-dessus une base investie, conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir.",
     ),
-    panel: l("Protective overlay · same capital, two sources of return", "Superposition protectrice · même capital, deux sources de rendement"),
+    panel: l(
+      "Protective overlay · same capital, two sources of return",
+      "Superposition protectrice · même capital, deux sources de rendement",
+    ),
     chip: l("Illustration", "Illustration"),
     alt: l(
       "Animated illustration: a core portfolio stays fully invested; a small deposit supports a protective futures overlay stacked on top, designed to offset part of losses (it may not); both return streams add up in the combined portfolio. Generated overlay returns are larger in volatile periods.",
@@ -92,7 +103,10 @@ export const CC = {
       loss: l("Overlay losses add up too", "Les pertes s’additionnent aussi"),
       calm: l("Calm", "Calme"),
       volatile: l("Volatile", "Agité"),
-      volNote: l("More volatility → overlay has historically tended to do better", "Plus de volatilité → la superposition a historiquement eu tendance à mieux se comporter"),
+      volNote: l(
+        "More volatility → overlay has historically tended to do better",
+        "Plus de volatilité → la superposition a historiquement eu tendance à mieux se comporter",
+      ),
     },
   },
 
@@ -143,8 +157,14 @@ export const CC = {
       volatile: l("Volatile: larger buffer", `Volatil${NB}: dépôt plus élevé`),
       settleRow: l("Daily cash settlements (long)", "Règlements quotidiens (acheteur)"),
       sum: l("Sum = total P&L", "Somme = résultat total"),
-      realized: l("Like realizing gains and losses daily (not a tax statement)", "Comme réaliser gains et pertes chaque jour (hors fiscalité)"),
-      formula: l("futures return ≈ underlying return − overnight rate", "rendement du contrat ≈ sous-jacent − taux à un jour"),
+      realized: l(
+        "Like realizing gains and losses daily (not a tax statement)",
+        "Comme réaliser gains et pertes chaque jour (hors fiscalité)",
+      ),
+      formula: l(
+        "futures return ≈ underlying return − overnight rate",
+        "rendement du contrat ≈ sous-jacent − taux à un jour",
+      ),
     },
   },
 
@@ -156,7 +176,10 @@ export const CC = {
       "A conventional team covers a fraction of the bond universe in depth. Our systems review every liquid bond, every day.",
       "Une équipe conventionnelle suit en profondeur une fraction de l’univers obligataire. Nos systèmes examinent chaque obligation liquide, chaque jour.",
     ),
-    panel: l("Ultra-micro analysis · Canadian investment-grade bonds", "Analyse ultra-micro · obligations canadiennes de qualité investissement"),
+    panel: l(
+      "Ultra-micro analysis · Canadian investment-grade bonds",
+      "Analyse ultra-micro · obligations canadiennes de qualité investissement",
+    ),
     chip: l("Illustrative estimates", "Estimations illustratives"),
     alt: l(
       "Animated illustration comparing two methods on the same 2,000 or so dots standing for the Canadian investment-grade bond index, grouped by sector: first, a conventional fundamental team (a portfolio manager and six sector analysts) lights about 180 of them; then our systems scan every liquid bond and keep layers of history in memory; last, both are compared.",
@@ -170,9 +193,18 @@ export const CC = {
     ],
     stats: [
       { label: l("Securities per analyst per year", "Titres par analyste par an"), value: l("≈30", `≈${NB}30`) },
-      { label: l("Covered by a team of 6 analysts", "Suivis par une équipe de 6 analystes"), value: l("≈180", `≈${NB}180`) },
-      { label: l("Bonds in the Canadian IG index", "Obligations de l’indice canadien"), value: l("≈2,000", `≈${NB}2${NB}000`) },
-      { label: l("Liquidity filter (outstanding)", "Seuil de liquidité (en circulation)"), value: l("≥ $200 MM", `≥${NB}200${NB}M$`) },
+      {
+        label: l("Covered by a team of 6 analysts", "Suivis par une équipe de 6 analystes"),
+        value: l("≈180", `≈${NB}180`),
+      },
+      {
+        label: l("Bonds in the Canadian IG index", "Obligations de l’indice canadien"),
+        value: l("≈2,000", `≈${NB}2${NB}000`),
+      },
+      {
+        label: l("Liquidity filter (outstanding)", "Seuil de liquidité (en circulation)"),
+        value: l("≥ $200 MM", `≥${NB}200${NB}M$`),
+      },
     ],
     note: l(
       "Bonds trade over the counter, where prices are scattered and opaque: doing this systematically is hard.",
@@ -205,9 +237,21 @@ export const CC = {
     /** the six analysts' sectors (illustrative split; analyst a covers sector a), in three lengths for the canvas */
     sectors: [
       { long: l("Financials", "Services financiers"), short: l("Financials", "Finance"), abbr: l("Fin.", "Fin.") },
-      { long: l("Technology & communications", "Technologies et communications"), short: l("Tech & comms", "Techno et comm."), abbr: l("Tech", "Tech.") },
-      { long: l("Consumer (discr. & staples)", "Consommation (disc. et base)"), short: l("Consumer", "Consommation"), abbr: l("Cons.", "Conso.") },
-      { long: l("Utilities & infrastructure", "Services publics et infrastructures"), short: l("Utilities & infra.", "Services publics"), abbr: l("Util.", "Infra.") },
+      {
+        long: l("Technology & communications", "Technologies et communications"),
+        short: l("Tech & comms", "Techno et comm."),
+        abbr: l("Tech", "Tech."),
+      },
+      {
+        long: l("Consumer (discr. & staples)", "Consommation (disc. et base)"),
+        short: l("Consumer", "Consommation"),
+        abbr: l("Cons.", "Conso."),
+      },
+      {
+        long: l("Utilities & infrastructure", "Services publics et infrastructures"),
+        short: l("Utilities & infra.", "Services publics"),
+        abbr: l("Util.", "Infra."),
+      },
       { long: l("Energy", "Énergie"), short: l("Energy", "Énergie"), abbr: l("Energy", "Énergie") },
       { long: l("Industrials", "Produits industriels"), short: l("Industrials", "Industrie"), abbr: l("Ind.", "Ind.") },
     ],
@@ -218,7 +262,12 @@ export const CC = {
  * The three concepts in page order: internal id (test ids, engines), page anchor, and the old anchors kept as aliases
  * (concept 3 was "Coverage at scale", #coverage, until 2026-10-03).
  */
-export const CONCEPTS: { id: "overlay" | "futures" | "coverage"; anchor: string; aliases: string[]; copy: ConceptCopy }[] = [
+export const CONCEPTS: {
+  id: "overlay" | "futures" | "coverage";
+  anchor: string;
+  aliases: string[];
+  copy: ConceptCopy;
+}[] = [
   { id: "overlay", anchor: "overlay", aliases: [], copy: CC.overlay },
   { id: "futures", anchor: "futures", aliases: [], copy: CC.futures },
   { id: "coverage", anchor: "ultra-micro-analysis", aliases: ["coverage"], copy: CC.coverage },

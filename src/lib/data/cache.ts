@@ -15,10 +15,18 @@
 import { promises as fs } from "node:fs";
 import { p, writeGeneration } from "./store.ts";
 
-interface Entry { sig: string; value: unknown; gen: number; checkedAt: number }
+interface Entry {
+  sig: string;
+  value: unknown;
+  gen: number;
+  checkedAt: number;
+}
 
 const KEY = Symbol.for("nymbus.data.cache");
-const g = globalThis as unknown as Record<symbol, { entries: Map<string, Entry>; loading: Map<string, Promise<Entry>> } | undefined>;
+const g = globalThis as unknown as Record<
+  symbol,
+  { entries: Map<string, Entry>; loading: Map<string, Promise<Entry>> } | undefined
+>;
 const state = (g[KEY] ??= { entries: new Map(), loading: new Map() });
 
 const DEFAULT_RECHECK_MS = 1000;
@@ -26,7 +34,8 @@ const DEFAULT_RECHECK_MS = 1000;
 export const MAX_SNAPSHOT_ENTRIES = 8;
 const ABSENT = "absent";
 
-const signature = (st: { ino: number | bigint; size: number | bigint; mtimeMs: number }): string => `${st.ino}:${st.size}:${st.mtimeMs}`;
+const signature = (st: { ino: number | bigint; size: number | bigint; mtimeMs: number }): string =>
+  `${st.ino}:${st.size}:${st.mtimeMs}`;
 
 function deepFreeze<T>(v: T): T {
   if (v && typeof v === "object" && !Object.isFrozen(v)) {
@@ -51,7 +60,8 @@ async function load(file: string, gen: number): Promise<Entry> {
   try {
     fh = await fs.open(file, "r");
   } catch (e: unknown) {
-    if ((e as NodeJS.ErrnoException).code === "ENOENT") return { sig: ABSENT, value: undefined, gen, checkedAt: Date.now() };
+    if ((e as NodeJS.ErrnoException).code === "ENOENT")
+      return { sig: ABSENT, value: undefined, gen, checkedAt: Date.now() };
     throw e;
   }
   try {

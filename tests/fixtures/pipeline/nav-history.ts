@@ -67,9 +67,16 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
   const row = (date: string, nav: number, ret: number, start: string | null): DailyRow & Record<string, unknown> => {
     const apex = date > cut;
     return {
-      date, source: apex ? "apex" : "cibc", fundserv: c.fundserv, currency: cur, nav_type: apex ? "FINAL_NAV" : null,
-      nav_per_share_cad: r10(nav), net_daily_return: ret, net_return_method: apex ? (cur === "CAD" ? "apex_distribution_aware" : "nav_price_ratio") : "legacy_stored",
-      return_start_date: apex ? start : null, return_source_count: apex ? 1 : null,
+      date,
+      source: apex ? "apex" : "cibc",
+      fundserv: c.fundserv,
+      currency: cur,
+      nav_type: apex ? "FINAL_NAV" : null,
+      nav_per_share_cad: r10(nav),
+      net_daily_return: ret,
+      net_return_method: apex ? (cur === "CAD" ? "apex_distribution_aware" : "nav_price_ratio") : "legacy_stored",
+      return_start_date: apex ? start : null,
+      return_source_count: apex ? 1 : null,
     };
   };
   if (c.priorFrom) {
@@ -86,13 +93,22 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
   const days = tradingDays(c.navStart, c.end);
   let nav = c.nav0;
   let pendingApexDist = 0;
-  for (let i = 0; i < days.length; ) {
+  for (let i = 0; i < days.length;) {
     const ym = days[i].slice(0, 7);
     const monthDays: string[] = [];
     while (i < days.length && days[i].slice(0, 7) === ym) monthDays.push(days[i++]);
     const m = toMonthEnd(ym);
-    const target = m in c.monthly && monthDays[0] === tradingDays(`${ym}-01`, m)[0] && monthDays[monthDays.length - 1] === tradingDays(`${ym}-01`, m).at(-1) ? c.monthly[m] : null;
-    let rs = monthDays.map((day) => (c.noiseSeed !== undefined ? 0.0016 * dayNoise(c.noiseSeed, day) : 0.0016 * (rnd() - 0.5)) + (c.shocks?.[day] ?? 0));
+    const target =
+      m in c.monthly &&
+      monthDays[0] === tradingDays(`${ym}-01`, m)[0] &&
+      monthDays[monthDays.length - 1] === tradingDays(`${ym}-01`, m).at(-1)
+        ? c.monthly[m]
+        : null;
+    let rs = monthDays.map(
+      (day) =>
+        (c.noiseSeed !== undefined ? 0.0016 * dayNoise(c.noiseSeed, day) : 0.0016 * (rnd() - 0.5)) +
+        (c.shocks?.[day] ?? 0),
+    );
     if (c.noiseSeed !== undefined && (target !== null || m in c.monthly)) {
       // uniform scaling over the month's days: (1 + r_d) × q, q chosen so the WHOLE month compounds exactly to the target;
       // a class launched within the month keeps the same daily returns as a class priced all month
@@ -122,7 +138,8 @@ export function synthClassRows(c: SynthClass): DailyRow[] {
       } else nav = nav * (1 + r);
       const last = k === monthDays.length - 1;
       if (last && d && target !== null) {
-        if (apex) pendingApexDist = d; // Apex month-end NAV is pre-distribution
+        if (apex)
+          pendingApexDist = d; // Apex month-end NAV is pre-distribution
         else nav -= d; // CIBC month-end NAV is post-distribution
       }
       out.push(row(day, nav, r, prev));

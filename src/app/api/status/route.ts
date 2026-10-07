@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
     return Response.json(s, { status: 200, headers: CACHE });
   } catch (e) {
     console.error("[status]", e instanceof Error ? e.message : e);
-    return Response.json({ ok: false, verdict: "unknown", error: "status unavailable" }, { status: strict ? 503 : 200, headers: NO_STORE });
+    return Response.json(
+      { ok: false, verdict: "unknown", error: "status unavailable" },
+      { status: strict ? 503 : 200, headers: NO_STORE },
+    );
   }
 }

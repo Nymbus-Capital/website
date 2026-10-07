@@ -33,7 +33,9 @@ export default async function NewsPage() {
       <Section tight>
         {news.length ? (
           <div className="cms-news-grid" data-testid="news-list">
-            {news.map((n) => <NewsCard key={n.id} n={n} locale={locale} />)}
+            {news.map((n) => (
+              <NewsCard key={n.id} n={n} locale={locale} />
+            ))}
           </div>
         ) : (
           <p className="cms-news-empty">{fr ? "Aucune actualité pour le moment." : "No news yet."}</p>

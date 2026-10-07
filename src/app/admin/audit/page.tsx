@@ -6,7 +6,13 @@ import { when } from "@/components/admin/format";
 export const dynamic = "force-dynamic";
 
 const tone = (a: string) =>
-  a.startsWith("auth.denied") || a.endsWith("crashed") || a.endsWith("delete") ? "err" : a.startsWith("pipeline") ? "info" : a.startsWith("auth") ? "mute" : "ok";
+  a.startsWith("auth.denied") || a.endsWith("crashed") || a.endsWith("delete")
+    ? "err"
+    : a.startsWith("pipeline")
+      ? "info"
+      : a.startsWith("auth")
+        ? "mute"
+        : "ok";
 
 function detail(d: unknown): string {
   if (d === undefined || d === null) return "";
@@ -23,15 +29,32 @@ export default async function AuditPage() {
       <section className="adm-panel">
         <div className="adm-scroll">
           <table className="adm-table" data-testid="audit-table">
-            <thead><tr><th>when</th><th>who</th><th>action</th><th>target</th><th>detail</th></tr></thead>
+            <thead>
+              <tr>
+                <th>when</th>
+                <th>who</th>
+                <th>action</th>
+                <th>target</th>
+                <th>detail</th>
+              </tr>
+            </thead>
             <tbody>
               {entries.map((e, i) => (
                 <tr key={`${e.at}-${i}`}>
                   <td className="tabnum">{when(e.at)}</td>
                   <td>{e.by}</td>
-                  <td><Pill tone={tone(e.action)} plain>{e.action}</Pill></td>
+                  <td>
+                    <Pill tone={tone(e.action)} plain>
+                      {e.action}
+                    </Pill>
+                  </td>
                   <td className="mono">{e.target ?? ""}</td>
-                  <td className="mono adm-muted" style={{ whiteSpace: "normal", wordBreak: "break-all", maxWidth: 520 }}>{detail(e.detail)}</td>
+                  <td
+                    className="mono adm-muted"
+                    style={{ whiteSpace: "normal", wordBreak: "break-all", maxWidth: 520 }}
+                  >
+                    {detail(e.detail)}
+                  </td>
                 </tr>
               ))}
             </tbody>

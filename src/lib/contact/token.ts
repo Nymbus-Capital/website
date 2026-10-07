@@ -26,7 +26,8 @@ export function formKey(env: Record<string, string | undefined> = process.env): 
   return processKey;
 }
 
-const sign = (issued: string, key: Buffer): string => crypto.createHmac("sha256", key).update(`contact.v1.${issued}`).digest("base64url").slice(0, 32);
+const sign = (issued: string, key: Buffer): string =>
+  crypto.createHmac("sha256", key).update(`contact.v1.${issued}`).digest("base64url").slice(0, 32);
 
 export function issueFormToken(now = Date.now(), key: Buffer = formKey()): string {
   const issued = Math.floor(now).toString(36);
@@ -53,7 +54,11 @@ export function checkFormToken(token: unknown, now = Date.now(), key: Buffer = f
  * Automated-submission screen of POST /api/contact: a filled honeypot field, a forged token or a post faster than
  * MIN_FILL_MS is "bot" (answered like a success, nothing stored); a page older than MAX_AGE_MS is "expired" (reload).
  */
-export function screenSubmission(s: { honeypot: string; token: string }, now = Date.now(), key: Buffer = formKey()): "ok" | "bot" | "expired" {
+export function screenSubmission(
+  s: { honeypot: string; token: string },
+  now = Date.now(),
+  key: Buffer = formKey(),
+): "ok" | "bot" | "expired" {
   if (s.honeypot.trim()) return "bot";
   const t = checkFormToken(s.token, now, key);
   return t === "ok" ? "ok" : t === "expired" ? "expired" : "bot";

@@ -37,22 +37,39 @@ export const CONTENT_SECRET_HEADER = "x-nymbus-content-secret";
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
-function origin(v: string | undefined, what: string, warn: (m: string) => void, requireSecure: boolean): { url: URL; loopback: boolean } | null {
+function origin(
+  v: string | undefined,
+  what: string,
+  warn: (m: string) => void,
+  requireSecure: boolean,
+): { url: URL; loopback: boolean } | null {
   const t = (v ?? "").trim();
   if (!t) return null;
   let u: URL;
-  try { u = new URL(t); } catch { warn(`${what} is not a valid URL: CMS disabled`); return null; }
-  if (u.username || u.password || u.search || u.hash) { warn(`${what} must not carry credentials, a query or a fragment`); return null; }
+  try {
+    u = new URL(t);
+  } catch {
+    warn(`${what} is not a valid URL: CMS disabled`);
+    return null;
+  }
+  if (u.username || u.password || u.search || u.hash) {
+    warn(`${what} must not carry credentials, a query or a fragment`);
+    return null;
+  }
   const loopback = isLoopbackHost(u.hostname);
   if (u.protocol === "https:") return { url: u, loopback };
   // an IPv6 literal other than ::1 is never a "private host name": plain http needs a name or loopback
   const ipv6 = u.hostname.startsWith("[");
-  if (u.protocol === "http:" && (loopback || (!requireSecure && !ipv6 && !u.hostname.includes(".")))) return { url: u, loopback };
+  if (u.protocol === "http:" && (loopback || (!requireSecure && !ipv6 && !u.hostname.includes("."))))
+    return { url: u, loopback };
   warn(`${what} must be https (http only for localhost or a private-network host name)`);
   return null;
 }
 
-export function loadCmsConfig(env: Record<string, string | undefined> = process.env, warn: (m: string) => void = (m) => console.warn(`[cms] ${m}`)): CmsConfig | null {
+export function loadCmsConfig(
+  env: Record<string, string | undefined> = process.env,
+  warn: (m: string) => void = (m) => console.warn(`[cms] ${m}`),
+): CmsConfig | null {
   const base = origin(env.WP_BASE_URL, "WP_BASE_URL", warn, false);
   if (!base) return null;
   const baseUrl = (base.url.origin + base.url.pathname).replace(/\/+$/, "");
@@ -61,8 +78,10 @@ export function loadCmsConfig(env: Record<string, string | undefined> = process.
   let mediaLoopback = false;
   if ((env.WP_MEDIA_ORIGIN ?? "").trim()) {
     const m = origin(env.WP_MEDIA_ORIGIN, "WP_MEDIA_ORIGIN", warn, true);
-    if (m && m.url.pathname.replace(/\/+$/, "") === "") { media = m.url.origin; mediaLoopback = m.loopback; }
-    else if (m) warn("WP_MEDIA_ORIGIN must be an origin without a path: images disabled");
+    if (m && m.url.pathname.replace(/\/+$/, "") === "") {
+      media = m.url.origin;
+      mediaLoopback = m.loopback;
+    } else if (m) warn("WP_MEDIA_ORIGIN must be an origin without a path: images disabled");
   } else if (base.url.protocol === "https:" || base.loopback) {
     media = base.url.origin;
     mediaLoopback = base.loopback;

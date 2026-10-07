@@ -20,4 +20,3 @@ form{display:inline}a.l{color:#6ea2ff;margin-left:14px}</style></head>
 <form method="post" action="/api/auth/logout"><button type="submit">sign out and use another account</button></form><a class="l" href="/">nymbus.ca</a></main></body></html>`;
   return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", ...NO_STORE } });
 }
-

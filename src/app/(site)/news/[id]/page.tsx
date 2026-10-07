@@ -25,7 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const [n, locale] = await Promise.all([find(id), getLocale()]);
   if (!n) return { title: "News" };
-  return { title: pickL(n.title, locale), description: pickL(n.summary, locale) || undefined, alternates: { canonical: `/news/${n.id}` } };
+  return {
+    title: pickL(n.title, locale),
+    description: pickL(n.summary, locale) || undefined,
+    alternates: { canonical: `/news/${n.id}` },
+  };
 }
 
 export default async function NewsArticle({ params }: Props) {
@@ -38,27 +42,47 @@ export default async function NewsArticle({ params }: Props) {
   return (
     <div className="pg">
       <Section>
-        <Crumbs items={[{ href: "/", label: fr ? "Accueil" : "Home" }, { href: "/news", label: fr ? "Actualités" : "News" }, { label: pickL(n.title, locale) }]} />
+        <Crumbs
+          items={[
+            { href: "/", label: fr ? "Accueil" : "Home" },
+            { href: "/news", label: fr ? "Actualités" : "News" },
+            { label: pickL(n.title, locale) },
+          ]}
+        />
         <article className="cms-article" data-testid="news-article">
           <p className="cms-news-meta">
             <span className="cms-news-chip">{pickL(NEWS_CATEGORY[n.category], locale)}</span>
             <time dateTime={n.date}>{dateLong(n.date, locale)}</time>
           </p>
-          <h1 className="h2" style={{ marginTop: 12 }}>{pickL(n.title, locale)}</h1>
+          <h1 className="h2" style={{ marginTop: 12 }}>
+            {pickL(n.title, locale)}
+          </h1>
           {n.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="cms-news-img" src={n.image} alt="" decoding="async" />
           ) : null}
           <div className="prose">
-            {summary ? <p className="lead" style={{ marginTop: 0 }}>{summary}</p> : null}
-            {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+            {summary ? (
+              <p className="lead" style={{ marginTop: 0 }}>
+                {summary}
+              </p>
+            ) : null}
+            {paragraphs.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
           </div>
           {n.link ? (
             <p style={{ marginTop: 24 }}>
-              <a className="link" href={n.link} target="_blank" rel="noopener noreferrer">{fr ? "En savoir plus" : "Learn more"} <ArrowUpRight aria-hidden="true" /></a>
+              <a className="link" href={n.link} target="_blank" rel="noopener noreferrer">
+                {fr ? "En savoir plus" : "Learn more"} <ArrowUpRight aria-hidden="true" />
+              </a>
             </p>
           ) : null}
-          <p style={{ marginTop: 32 }}><Link className="link" href="/news">{fr ? "Toutes les actualités" : "All news"}</Link></p>
+          <p style={{ marginTop: 32 }}>
+            <Link className="link" href="/news">
+              {fr ? "Toutes les actualités" : "All news"}
+            </Link>
+          </p>
         </article>
       </Section>
     </div>

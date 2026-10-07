@@ -72,7 +72,8 @@ export const sectorStart = (s: number): number => Math.ceil((s * UNIVERSE) / ANA
  * SECTOR_GAP cells. Returns each block's first column (in cells, gaps included), its column count, and the total width.
  */
 export function sectorBlocks(rows: number): { start: number[]; cols: number[]; width: number } {
-  const start: number[] = [], cols: number[] = [];
+  const start: number[] = [],
+    cols: number[] = [];
   let x = 0;
   for (let s = 0; s < ANALYSTS; s++) {
     const size = sectorStart(s + 1) - sectorStart(s);
@@ -94,19 +95,30 @@ export function gridFit(w: number, h: number): { rows: number; cols: number; cel
   return best;
 }
 
-export interface Rect { x: number; y: number; w: number; h: number }
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /**
  * Opacity of each method in the methods column, per step: [conventional team, our systems]. The universe step shows
  * both softly; each act highlights its method and fades the other (half strength); the compare step shows both fully.
  */
-const FOCUS: readonly (readonly [number, number])[] = [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1]];
+const FOCUS: readonly (readonly [number, number])[] = [
+  [0.6, 0.6],
+  [1, 0.5],
+  [0.5, 1],
+  [1, 1],
+];
 /** Share of a step over which the column's focus eases to that step's. */
 export const FOCUS_IN = 0.08;
 
 /** Opacity of [team, systems] at progress p of `step`, eased from `from` (the opacities last drawn). */
 export function focusFrom(from: readonly [number, number], step: number, p: number): [number, number] {
-  const to = FOCUS[step], k = ease(span(p, 0, FOCUS_IN));
+  const to = FOCUS[step],
+    k = ease(span(p, 0, FOCUS_IN));
   return [from[0] + (to[0] - from[0]) * k, from[1] + (to[1] - from[1]) * k];
 }
 
@@ -115,10 +127,16 @@ export function focusFrom(from: readonly [number, number], step: number, p: numb
  * jumped to with the step buttons, or restarted) it eases from whatever was last drawn, so the column never jumps.
  */
 export function focusTracker(): (step: number, p: number) => [number, number] {
-  let step = -1, lastP = 0, from: readonly [number, number] = FOCUS[0], last: [number, number] = [FOCUS[0][0], FOCUS[0][1]];
+  let step = -1,
+    lastP = 0,
+    from: readonly [number, number] = FOCUS[0],
+    last: [number, number] = [FOCUS[0][0], FOCUS[0][1]];
   return (s, p) => {
     // a new step, or the same step restarted (time went back): ease from what is on screen
-    if (s !== step || p < lastP - 1e-9) { from = last; step = s; }
+    if (s !== step || p < lastP - 1e-9) {
+      from = last;
+      step = s;
+    }
     lastP = p;
     last = focusFrom(from, s, p);
     return last;
@@ -129,11 +147,31 @@ export function focusTracker(): (step: number, p: number) => [number, number] {
 export const CARD_ROWS = {
   wide: {
     team: { title: 14, title2: 28, pm: 50, analysts: [74, 90, 106], perYear: 128, bar: 138, result: 166, bottom: 184 },
-    systems: { title: 14, title2: 28, scan: 50, bar: 66, scanned: 92, scanned2: 110, memory: 128, memory2: 142, bottom: 150 },
+    systems: {
+      title: 14,
+      title2: 28,
+      scan: 50,
+      bar: 66,
+      scanned: 92,
+      scanned2: 110,
+      memory: 128,
+      memory2: 142,
+      bottom: 150,
+    },
   },
   narrow: {
     team: { title: 13, title2: 26, crew: 45, result: 72, result2: 91, bottom: 100 },
-    systems: { title: 13, title2: 26, crew: 45, result: 72, result2: 87, result3a: 64, result3b: 78, result3c: 92, bottom: 100 },
+    systems: {
+      title: 13,
+      title2: 26,
+      crew: 45,
+      result: 72,
+      result2: 87,
+      result3a: 64,
+      result3b: 78,
+      result3c: 92,
+      bottom: 100,
+    },
   },
 } as const;
 
@@ -150,7 +188,8 @@ export function coverageLayout(W: number, H: number) {
   let team: Rect, systems: Rect, vs: { x: number; y: number; r: number }, area: Rect, column: Rect;
   if (!narrow) {
     const tw = Math.round(Math.max(196, Math.min(272, W * 0.23)));
-    const top = 14, bottom = H - foot - 8;
+    const top = 14,
+      bottom = H - foot - 8;
     column = { x: pad, y: top, w: tw, h: bottom - top };
     const gap = 54;
     const ch = Math.min(CARD_ROWS.wide.team.bottom + 18, column.h - gap - CARD_ROWS.wide.systems.bottom - 8);
@@ -162,7 +201,9 @@ export function coverageLayout(W: number, H: number) {
     vs = { x: pad + tw / 2, y: y0 + ch + gap / 2, r: 19 };
     area = { x: pad + tw + 32, y: 14, w: W - pad - (pad + tw + 32), h: H - foot - 14 - 6 };
   } else {
-    const gut = 38, top = 12, ch = CARD_ROWS.narrow.team.bottom + 6;
+    const gut = 38,
+      top = 12,
+      ch = CARD_ROWS.narrow.team.bottom + 6;
     const cw = (W - 2 * pad - gut) / 2;
     team = { x: pad, y: top, w: cw, h: ch };
     systems = { x: pad + cw + gut, y: top, w: cw, h: ch };
@@ -175,14 +216,41 @@ export function coverageLayout(W: number, H: number) {
   const titleY = area.y + 4;
   const legendH = 32;
   const top = narrow ? 30 : 18;
-  const depthX = narrow ? 22 : Math.round(Math.max(40, Math.min(96, area.w * 0.1))), depthY = narrow ? 10 : 30;
+  const depthX = narrow ? 22 : Math.round(Math.max(40, Math.min(96, area.w * 0.1))),
+    depthY = narrow ? 10 : 30;
   const gArea: Rect = { x: area.x, y: area.y + top, w: area.w, h: area.h - top - legendH };
   const fit = gridFit(gArea.w - depthX, gArea.h - depthY);
-  const cell = fit.cell, rows = fit.rows, cols = fit.cols;
-  const gw = cell * cols, gh = cell * rows;
-  const grid: Rect = { x: gArea.x + (gArea.w - depthX - gw) / 2, y: gArea.y + depthY + (gArea.h - depthY - gh) / 2, w: gw, h: gh };
+  const cell = fit.cell,
+    rows = fit.rows,
+    cols = fit.cols;
+  const gw = cell * cols,
+    gh = cell * rows;
+  const grid: Rect = {
+    x: gArea.x + (gArea.w - depthX - gw) / 2,
+    y: gArea.y + depthY + (gArea.h - depthY - gh) / 2,
+    w: gw,
+    h: gh,
+  };
   const legendY = grid.y + gh + 15;
-  return { narrow, pad, foot, column, team, systems, vs, area, grid, cell, cols, rows, depthX, depthY, titleY, legendY, legendH };
+  return {
+    narrow,
+    pad,
+    foot,
+    column,
+    team,
+    systems,
+    vs,
+    area,
+    grid,
+    cell,
+    cols,
+    rows,
+    depthX,
+    depthY,
+    titleY,
+    legendY,
+    legendH,
+  };
 }
 
 /** Boxes of the texts and shapes of the scene (unit-tested apart: they never overlap). */
@@ -202,8 +270,10 @@ export function coverageLabelBoxes(W: number, H: number): Record<string, Rect> {
 
 /** Cell centre of universe position i: column-major inside its sector's cluster. */
 export function cellOf(i: number, g: { grid: Rect; cell: number; rows: number }): { x: number; y: number } {
-  const s = sectorOf(i), j = i - sectorStart(s);
-  const c = sectorBlocks(g.rows).start[s] + Math.floor(j / g.rows), r = j % g.rows;
+  const s = sectorOf(i),
+    j = i - sectorStart(s);
+  const c = sectorBlocks(g.rows).start[s] + Math.floor(j / g.rows),
+    r = j % g.rows;
   return { x: g.grid.x + (c + 0.5) * g.cell, y: g.grid.y + (r + 0.5) * g.cell };
 }
 
@@ -214,12 +284,15 @@ export function sectorLabelBoxes(g: { grid: Rect; cell: number; rows: number }):
 }
 
 /** Font size of the sector names above the clusters: 10 px when the narrowest cluster has room, else 9 px. */
-export const sectorFont = (g: { cell: number; rows: number }): number => (Math.min(...sectorBlocks(g.rows).cols) * g.cell >= 44 ? 10 : 9);
+export const sectorFont = (g: { cell: number; rows: number }): number =>
+  Math.min(...sectorBlocks(g.rows).cols) * g.cell >= 44 ? 10 : 9;
 
 /** The portfolio manager's node in the team card (wide: its own row with the title; narrow: start of the crew row). */
 export function pmPos(L: { narrow: boolean; team: Rect }): { x: number; y: number } {
   const T = L.team;
-  return L.narrow ? { x: T.x + 16, y: T.y + CARD_ROWS.narrow.team.crew } : { x: T.x + 22, y: T.y + CARD_ROWS.wide.team.pm };
+  return L.narrow
+    ? { x: T.x + 16, y: T.y + CARD_ROWS.narrow.team.crew }
+    : { x: T.x + 22, y: T.y + CARD_ROWS.wide.team.pm };
 }
 
 /** Width of one analyst's slot: wide, a column of the 2 × 3 analyst list; narrow, a dot of the crew row. */
@@ -231,6 +304,7 @@ export function analystSlot(L: { narrow: boolean; team: Rect }): number {
 export function analystPos(L: { narrow: boolean; team: Rect }, a: number): { x: number; y: number } {
   const T = L.team;
   if (L.narrow) return { x: T.x + 30 + analystSlot(L) * (a + 0.5), y: T.y + CARD_ROWS.narrow.team.crew };
-  const col = a % 2, row = Math.floor(a / 2);
+  const col = a % 2,
+    row = Math.floor(a / 2);
   return { x: T.x + 18 + col * analystSlot(L), y: T.y + CARD_ROWS.wide.team.analysts[row] };
 }

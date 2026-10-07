@@ -23,12 +23,17 @@ const isClient = (code: string) => /^\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*\s*["
 /** Runtime (non type-only) module specifiers of a file: imports, re-exports, dynamic imports. */
 function runtimeImports(code: string): string[] {
   const out: string[] = [];
-  const re = /(?:^|\n)\s*(import|export)\s+(type\s+)?([^'";]*?)\s*from\s*["']([^"']+)["']|(?:^|\n)\s*import\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
+  const re =
+    /(?:^|\n)\s*(import|export)\s+(type\s+)?([^'";]*?)\s*from\s*["']([^"']+)["']|(?:^|\n)\s*import\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
   for (const m of code.matchAll(re)) {
     if (m[4]) {
       if (m[2]) continue; // import type / export type
       // `import { type A, type B } from` is erased too
-      const names = m[3].replace(/[{}]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+      const names = m[3]
+        .replace(/[{}]/g, "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
       if (names.length && names.every((n) => n.startsWith("type "))) continue;
       out.push(m[4]);
     } else if (m[5]) out.push(m[5]);
@@ -54,12 +59,20 @@ const FORBIDDEN = [join(SRC, "lib/pipeline/fund-sources.ts")];
 
 test("client components exist (sanity) and the scanner sees Nav, Footer, Contact", () => {
   const rel = CLIENT.map((f) => relative(SRC, f));
-  for (const f of ["components/site/Nav.tsx", "components/site/Footer.tsx", "components/site/pages/Contact.tsx"]) assert.ok(rel.includes(f), f);
+  for (const f of ["components/site/Nav.tsx", "components/site/Footer.tsx", "components/site/pages/Contact.tsx"])
+    assert.ok(rel.includes(f), f);
 });
 
 test("no client component imports the full fund registry (@/config/funds) directly", () => {
-  const bad = CLIENT.filter((f) => runtimeImports(readFileSync(f, "utf8")).some((s) => s === "@/config/funds" || /(^|\/)config\/funds(\.ts)?$/.test(s)));
-  assert.deepEqual(bad.map((f) => relative(SRC, f)), []);
+  const bad = CLIENT.filter((f) =>
+    runtimeImports(readFileSync(f, "utf8")).some(
+      (s) => s === "@/config/funds" || /(^|\/)config\/funds(\.ts)?$/.test(s),
+    ),
+  );
+  assert.deepEqual(
+    bad.map((f) => relative(SRC, f)),
+    [],
+  );
 });
 
 test("no client component reaches the internal fund sources or the pipeline, even transitively", () => {
@@ -85,7 +98,12 @@ test("no client component reaches the internal fund sources or the pipeline, eve
 });
 
 test("the scanner flags a client file importing the registry (self-check)", () => {
-  assert.deepEqual(runtimeImports(`"use client";\nimport { FUNDS } from "@/config/funds";\nimport type { X } from "./x";\nimport { type Y } from "./y";`), ["@/config/funds"]);
+  assert.deepEqual(
+    runtimeImports(
+      `"use client";\nimport { FUNDS } from "@/config/funds";\nimport type { X } from "./x";\nimport { type Y } from "./y";`,
+    ),
+    ["@/config/funds"],
+  );
   assert.ok(isClient(`/* banner */\n"use client";\nexport const a = 1;`));
   assert.ok(!isClient(`import "server-only";\n"use client";`));
 });
@@ -98,7 +116,16 @@ test("the public fund modules carry no internal source name or key", () => {
     }
   }
   for (const f of PUBLIC_FUNDS) {
-    assert.deepEqual(Object.keys(f).sort(), ["assetClass", "benchmark", "color", "key", "name", "short", "tagline", "vehicle"]);
+    assert.deepEqual(Object.keys(f).sort(), [
+      "assetClass",
+      "benchmark",
+      "color",
+      "key",
+      "name",
+      "short",
+      "tagline",
+      "vehicle",
+    ]);
   }
   for (const f of FUNDS) assert.deepEqual(Object.keys(f.sources), ["basis"]);
   // every registry fund has its sources entry
@@ -106,9 +133,18 @@ test("the public fund modules carry no internal source name or key", () => {
 });
 
 test("hidden funds: keys from the admin content, filtered out of lists", () => {
-  const hidden = hiddenFundKeys({ funds: { "multi-strategy": { hidden: true }, "monthly-income": { hidden: false }, "global-minimum-volatility": undefined } });
+  const hidden = hiddenFundKeys({
+    funds: {
+      "multi-strategy": { hidden: true },
+      "monthly-income": { hidden: false },
+      "global-minimum-volatility": undefined,
+    },
+  });
   assert.deepEqual(hidden, ["multi-strategy"]);
-  assert.deepEqual(visibleFunds(PUBLIC_FUNDS, hidden).map((f) => f.key), ["monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"]);
+  assert.deepEqual(
+    visibleFunds(PUBLIC_FUNDS, hidden).map((f) => f.key),
+    ["monthly-income", "sustainable-enhanced-bonds", "global-minimum-volatility"],
+  );
   assert.equal(visibleFunds(PUBLIC_FUNDS, null).length, PUBLIC_FUNDS.length);
   assert.deepEqual(hiddenFundKeys(null), []);
 });

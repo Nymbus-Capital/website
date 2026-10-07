@@ -36,7 +36,12 @@ async function main(argv) {
   const json = `${JSON.stringify(doc, null, 2)}\n`;
   if (out) writeFileSync(out, json);
   else process.stdout.write(json);
-  process.stderr.write(`${doc.team.length} team members, ${doc.news.length} news items${siteUrl ? `, photos from ${siteUrl}` : ", no photos (add --site-url)"}${out ? ` → ${out}` : ""}\n`);
+  process.stderr.write(
+    `${doc.team.length} team members, ${doc.news.length} news items${siteUrl ? `, photos from ${siteUrl}` : ", no photos (add --site-url)"}${out ? ` → ${out}` : ""}\n`,
+  );
 }
 
-main(process.argv.slice(2)).catch((e) => { process.stderr.write(`${e.message}\n`); process.exit(1); });
+main(process.argv.slice(2)).catch((e) => {
+  process.stderr.write(`${e.message}\n`);
+  process.exit(1);
+});

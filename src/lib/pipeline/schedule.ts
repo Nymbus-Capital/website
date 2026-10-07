@@ -6,28 +6,45 @@
 import { DEFAULT_SCHEDULE, TIMEZONE } from "./config.ts";
 import type { RunReport } from "./run.ts";
 
-export interface LocalTime { h: number; m: number }
+export interface LocalTime {
+  h: number;
+  m: number;
+}
 
 /** "06:45,12:45" -> sorted unique times; invalid entries throw. "off" / "" -> []. */
 export function parseSchedule(spec: string | undefined): LocalTime[] {
   const s = (spec ?? DEFAULT_SCHEDULE).trim();
   if (!s || s.toLowerCase() === "off") return [];
   const out = new Map<number, LocalTime>();
-  for (const part of s.split(",").map((x) => x.trim()).filter(Boolean)) {
+  for (const part of s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean)) {
     const m = part.match(/^(\d{1,2}):(\d{2})$/);
-    if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) throw new Error(`invalid PIPELINE_SCHEDULE entry "${part}" (expected HH:MM)`);
+    if (!m || Number(m[1]) > 23 || Number(m[2]) > 59)
+      throw new Error(`invalid PIPELINE_SCHEDULE entry "${part}" (expected HH:MM)`);
     out.set(Number(m[1]) * 60 + Number(m[2]), { h: Number(m[1]), m: Number(m[2]) });
   }
   return [...out.entries()].sort((a, b) => a[0] - b[0]).map(([, t]) => t);
 }
 
-export const formatSchedule = (ts: LocalTime[]): string[] => ts.map((t) => `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`);
+export const formatSchedule = (ts: LocalTime[]): string[] =>
+  ts.map((t) => `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`);
 
 const fmtCache = new Map<string, Intl.DateTimeFormat>();
 function parts(date: Date, tz: string): { y: number; mo: number; d: number; h: number; mi: number; s: number } {
   let f = fmtCache.get(tz);
   if (!f) {
-    f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    f = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
     fmtCache.set(tz, f);
   }
   const o: Record<string, number> = {};
@@ -50,7 +67,10 @@ export function zonedToUtc(y: number, mo: number, d: number, h: number, mi: numb
   const wall = Date.UTC(y, mo - 1, d, h, mi);
   // candidates with the offsets in force around that day; keep those that map back to the wall time
   const offs = new Set([tzOffsetMs(wall - 36e5 * 12, tz), tzOffsetMs(wall, tz), tzOffsetMs(wall + 36e5 * 12, tz)]);
-  const hits = [...offs].map((o) => wall - o).filter((t) => tzOffsetMs(t, tz) === wall - t).sort((a, b) => a - b);
+  const hits = [...offs]
+    .map((o) => wall - o)
+    .filter((t) => tzOffsetMs(t, tz) === wall - t)
+    .sort((a, b) => a - b);
   if (hits.length) return new Date(hits[0]);
   // in a gap: use the offset before the change
   return new Date(wall - Math.min(...offs));
@@ -95,7 +115,13 @@ export const RETRY_DELAY_MS = 30 * 60_000;
  * skips it), no run is in progress, the last run started at least an hour ago and the next slot is not about to run.
  * A volume with no run at all also gets one.
  */
-export function catchUpDue(o: { now: Date; times: LocalTime[]; lastStartedAt: string | null; running: boolean; tz?: string }): boolean {
+export function catchUpDue(o: {
+  now: Date;
+  times: LocalTime[];
+  lastStartedAt: string | null;
+  running: boolean;
+  tz?: string;
+}): boolean {
   if (o.running || !o.times.length) return false;
   const next = nextRun(o.now, o.times, o.tz);
   if (next && next.getTime() - o.now.getTime() < CATCH_UP_SLOT_MARGIN_MS) return false;
@@ -109,13 +135,16 @@ export function catchUpDue(o: { now: Date; times: LocalTime[]; lastStartedAt: st
 }
 
 /** source failures worth one retry: the source was unavailable (5xx, 429, 408, timeout, network), not refused */
-export const TRANSIENT_SOURCE_ERROR = /\bHTTP (?:5\d\d|429|408)\b|\btimeout\b|\btimed out\b|network error|fetch failed|ECONNRE(?:SET|FUSED)|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|socket hang up/i;
+export const TRANSIENT_SOURCE_ERROR =
+  /\bHTTP (?:5\d\d|429|408)\b|\btimeout\b|\btimed out\b|network error|fetch failed|ECONNRE(?:SET|FUSED)|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|socket hang up/i;
 
 /**
  * One retry about 30 minutes later for a run that failed or was blocked while a source was unavailable — never for the
  * approval gates (class changes, unconfirmed new months: an admin decides those) nor for a crash.
  */
-export function retryWanted(r: Pick<RunReport, "status" | "sources" | "classChanges" | "reviewNeeded" | "issues">): boolean {
+export function retryWanted(
+  r: Pick<RunReport, "status" | "sources" | "classChanges" | "reviewNeeded" | "issues">,
+): boolean {
   if (r.status !== "failed" && r.status !== "blocked") return false;
   if (r.classChanges?.length || r.reviewNeeded?.length) return false;
   if (r.issues.some((i) => i.key === "run" && /pipeline crashed|could not store the run/.test(i.message))) return false;
@@ -123,7 +152,8 @@ export function retryWanted(r: Pick<RunReport, "status" | "sources" | "classChan
 }
 
 /** start of the newest run that is not a dry run (newest first), null when none: a dry run publishes nothing */
-export const newestRunStart = (runs: Pick<RunReport, "status" | "startedAt">[]): string | null => runs.find((r) => r.status !== "dry-run")?.startedAt ?? null;
+export const newestRunStart = (runs: Pick<RunReport, "status" | "startedAt">[]): string | null =>
+  runs.find((r) => r.status !== "dry-run")?.startedAt ?? null;
 
 /* ------------------------------------------------------------------ runtime */
 
@@ -172,7 +202,17 @@ const defaultDeps = (): SchedulerDeps => ({
  * when a slot was missed (`catchUpDue`), one retry ~30 min after a run a source made fail (`retryWanted`), and the data
  * freshness monitor every 30 min.
  */
-export function startScheduler(opts: { schedule?: string; log?: (msg: string) => void; deps?: Partial<SchedulerDeps>; bootDelayMs?: number; secondCheckMs?: number; retryDelayMs?: number; monitorEveryMs?: number } = {}): SchedulerState | null {
+export function startScheduler(
+  opts: {
+    schedule?: string;
+    log?: (msg: string) => void;
+    deps?: Partial<SchedulerDeps>;
+    bootDelayMs?: number;
+    secondCheckMs?: number;
+    retryDelayMs?: number;
+    monitorEveryMs?: number;
+  } = {},
+): SchedulerState | null {
   const log = opts.log ?? ((m: string) => console.log(`[pipeline] ${m}`));
   if (G.__nymbusPipelineScheduler?.started) return G.__nymbusPipelineScheduler;
   let times: LocalTime[];
@@ -188,7 +228,16 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
   }
   const deps: SchedulerDeps = { ...defaultDeps(), ...opts.deps };
   const retryDelay = opts.retryDelayMs ?? RETRY_DELAY_MS;
-  const state: SchedulerState = { started: true, timer: null, next: null, times, catchUpTimer: null, retryTimer: null, retryAt: null, monitorTimer: null };
+  const state: SchedulerState = {
+    started: true,
+    timer: null,
+    next: null,
+    times,
+    catchUpTimer: null,
+    retryTimer: null,
+    retryAt: null,
+    monitorTimer: null,
+  };
   G.__nymbusPipelineScheduler = state;
   const live = (): boolean => G.__nymbusPipelineScheduler === state;
   const monitor = async (): Promise<void> => {
@@ -207,8 +256,10 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
         return;
       }
       log(`${label} ${r.id}: ${r.status}`);
-      for (const s of r.sources.filter((x) => !x.ok)) log(`  source ${s.name} failed: ${String(s.detail ?? "").slice(0, 300)}`);
-      for (const i of r.issues.filter((x) => x.level === "error").slice(0, 10)) log(`  ${i.key}: ${i.message.slice(0, 300)}`);
+      for (const s of r.sources.filter((x) => !x.ok))
+        log(`  source ${s.name} failed: ${String(s.detail ?? "").slice(0, 300)}`);
+      for (const i of r.issues.filter((x) => x.level === "error").slice(0, 10))
+        log(`  ${i.key}: ${i.message.slice(0, 300)}`);
       if (allowRetry && live() && retryWanted(r)) scheduleRetry();
     } catch (e: unknown) {
       log(`${label} crashed: ${(e as Error)?.message ?? e}`);
@@ -268,17 +319,22 @@ export function startScheduler(opts: { schedule?: string; log?: (msg: string) =>
     }
   };
   state.catchUpTimer = setTimeout(() => {
-    state.catchUpTimer = setTimeout(() => {
-      state.catchUpTimer = null;
-      void catchUpCheck();
-    }, Math.max(0, (opts.secondCheckMs ?? 35 * 60_000) - (opts.bootDelayMs ?? 90_000)));
+    state.catchUpTimer = setTimeout(
+      () => {
+        state.catchUpTimer = null;
+        void catchUpCheck();
+      },
+      Math.max(0, (opts.secondCheckMs ?? 35 * 60_000) - (opts.bootDelayMs ?? 90_000)),
+    );
     state.catchUpTimer.unref?.();
     void catchUpCheck();
   }, opts.bootDelayMs ?? 90_000);
   state.catchUpTimer.unref?.();
   state.monitorTimer = setInterval(() => void monitor(), opts.monitorEveryMs ?? 30 * 60_000);
   state.monitorTimer.unref?.();
-  log(`scheduler started (${formatSchedule(times).join(", ")} ${TIMEZONE}); next run ${state.next?.toISOString() ?? "none"}`);
+  log(
+    `scheduler started (${formatSchedule(times).join(", ")} ${TIMEZONE}); next run ${state.next?.toISOString() ?? "none"}`,
+  );
   return state;
 }
 

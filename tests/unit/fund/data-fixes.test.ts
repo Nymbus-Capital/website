@@ -2,7 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { growthMethod, growthRange } from "../../../src/components/fund/lib/growth.ts";
 import { heatmapGrid } from "../../../src/components/fund/lib/heatmap.ts";
-import { isAnnualized, partialKind, returnBadges, siAnnualized, trackMonths } from "../../../src/components/fund/lib/performance.ts";
+import {
+  isAnnualized,
+  partialKind,
+  returnBadges,
+  siAnnualized,
+  trackMonths,
+} from "../../../src/components/fund/lib/performance.ts";
 import { stripHidden, visibleBlocks } from "../../../src/components/fund/lib/visibility.ts";
 import { lastYears, navText } from "../../../src/components/site/home/figures.ts";
 import { toFundCard, toHomeData } from "../../../src/components/site/home/data.ts";
@@ -44,7 +50,10 @@ test("growthRange: a compounded series is rebased by ratio; SI is the published 
   close(s.fund[12], 10000 * Math.pow(1.01, 12), 1e-6); // 11 268.25
   close(s.change, Math.pow(1.01, 12) - 1);
   const si = growthRange(pts, "SI", "compounded");
-  assert.deepEqual(si.fund, pts.map((p) => p.fund));
+  assert.deepEqual(
+    si.fund,
+    pts.map((p) => p.fund),
+  );
   close(si.change, Math.pow(1.01, 15) - 1);
   const siA = growthRange(series("arithmetic"), "SI", "arithmetic");
   close(siA.fund[15], 11500, 1e-6);
@@ -73,16 +82,67 @@ test("growthMethod: the published method, else arithmetic for a gross series, el
 
 const full = (): Omit<FundData, "sourceName"> => ({
   key: "monthly-income",
-  performance: { returnClass: "F", returnClassLabel: "Series F",
-    asOf: "2026-08-31", basis: "net", method: "compounded", firstMonth: "2019-01-31",
-    monthly: [{ month: "2026-07-31", r: 0.004 }, { month: "2026-08-31", r: 0.01 }],
+  performance: {
+    returnClass: "F",
+    returnClassLabel: "Series F",
+    asOf: "2026-08-31",
+    basis: "net",
+    method: "compounded",
+    firstMonth: "2019-01-31",
+    monthly: [
+      { month: "2026-07-31", r: 0.004 },
+      { month: "2026-08-31", r: 0.01 },
+    ],
     trailing: { fund: { "1M": 0.01, YTD: 0.02, SI: 0.03 } },
-    calendar: [{ year: 2025, fund: 0.04 }, { year: 2026, fund: 0.02, partial: true }],
-    growth: [{ date: "2026-06-30", fund: 10000 }, { date: "2026-07-31", fund: 10040 }, { date: "2026-08-31", fund: 10140.4 }],
+    calendar: [
+      { year: 2025, fund: 0.04 },
+      { year: 2026, fund: 0.02, partial: true },
+    ],
+    growth: [
+      { date: "2026-06-30", fund: 10000 },
+      { date: "2026-07-31", fund: 10040 },
+      { date: "2026-08-31", fund: 10140.4 },
+    ],
   },
-  risk: { window: "SI", annReturn: 0.03, annVol: 0.02, downsideDev: null, sharpe: 1, sortino: null, maxDrawdown: -0.01, positiveMonths: 0.7, bestMonth: 0.01, worstMonth: -0.01 },
-  risk3Y: { window: "3Y", annReturn: 0.02, annVol: 0.02, downsideDev: null, sharpe: 1, sortino: null, maxDrawdown: -0.01, positiveMonths: 0.7, bestMonth: 0.01, worstMonth: -0.01 },
-  nav: { asOf: "2026-09-28", classes: [{ fundserv: "LDM001", display: "F", currency: "CAD", nav: 10.1905, date: "2026-09-28", prevNav: null, change: null, changePct: null }] },
+  risk: {
+    window: "SI",
+    annReturn: 0.03,
+    annVol: 0.02,
+    downsideDev: null,
+    sharpe: 1,
+    sortino: null,
+    maxDrawdown: -0.01,
+    positiveMonths: 0.7,
+    bestMonth: 0.01,
+    worstMonth: -0.01,
+  },
+  risk3Y: {
+    window: "3Y",
+    annReturn: 0.02,
+    annVol: 0.02,
+    downsideDev: null,
+    sharpe: 1,
+    sortino: null,
+    maxDrawdown: -0.01,
+    positiveMonths: 0.7,
+    bestMonth: 0.01,
+    worstMonth: -0.01,
+  },
+  nav: {
+    asOf: "2026-09-28",
+    classes: [
+      {
+        fundserv: "LDM001",
+        display: "F",
+        currency: "CAD",
+        nav: 10.1905,
+        date: "2026-09-28",
+        prevNav: null,
+        change: null,
+        changePct: null,
+      },
+    ],
+  },
   aum: { cad: 123_000_000, asOf: "2026-09-28" },
   characteristics: [{ id: "duration", label: { en: "Duration", fr: "Durée" }, fund: 2.1, unit: "num" }],
   breakdowns: { credit: [{ label: "A", fund: 0.5 }] },
@@ -93,7 +153,8 @@ const full = (): Omit<FundData, "sourceName"> => ({
 
 test("visibleBlocks: hide.performance hides every returns-derived block, the portfolio stays", () => {
   const all = visibleBlocks(full(), {}, 1);
-  for (const b of ["trailing", "growth", "calendar", "heatmap", "risk", "portfolio"] as const) assert.equal(all[b], true, b);
+  for (const b of ["trailing", "growth", "calendar", "heatmap", "risk", "portfolio"] as const)
+    assert.equal(all[b], true, b);
   const v = visibleBlocks(full(), { hide: { performance: true } }, 1);
   for (const b of ["trailing", "growth", "calendar", "heatmap", "risk"] as const) assert.equal(v[b], false, b);
   assert.equal(v.portfolio, true);
@@ -132,8 +193,12 @@ test("stripHidden: hidden blocks are removed from the data (not in the RSC props
   assert.deepEqual(g.performance?.calendar, []);
   assert.equal(g.performance?.trailing.fund.SI, 0.03);
   const r = stripHidden(src, { hide: { risk: true } })!;
-  assert.equal(r.risk, null); assert.equal(r.risk3Y, null); assert.ok(r.performance);
-  const n = stripHidden(src, { hide: { nav: true, characteristics: true, breakdowns: true, holdings: true, esg: true, aum: false } })!;
+  assert.equal(r.risk, null);
+  assert.equal(r.risk3Y, null);
+  assert.ok(r.performance);
+  const n = stripHidden(src, {
+    hide: { nav: true, characteristics: true, breakdowns: true, holdings: true, esg: true, aum: false },
+  })!;
   assert.equal(n.nav, null);
   assert.deepEqual([n.characteristics, n.breakdowns, n.topHoldings, n.esg], [[], {}, [], []]);
   assert.equal(n.aum?.cad, 123_000_000, "published only on hide.aum === false");
@@ -142,7 +207,12 @@ test("stripHidden: hidden blocks are removed from the data (not in the RSC props
 });
 
 const spec = FUNDS[0];
-const view = (content = {}) => ({ spec, content, data: { ...full(), sourceName: "internal" } as FundData, sample: false });
+const view = (content = {}) => ({
+  spec,
+  content,
+  data: { ...full(), sourceName: "internal" } as FundData,
+  sample: false,
+});
 
 test("home / strategies / solutions props: hidden blocks never reach the cards", () => {
   const c = toFundCard(view({ hide: { performance: true } }) as never);
@@ -156,17 +226,53 @@ test("home / strategies / solutions props: hidden blocks never reach the cards",
   assert.equal(nav.nav, null);
   // the class of the returns travels with them (never shown once performance is hidden)
   assert.equal(c.perfClass, null);
-  const labelled = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } } } as never);
+  const labelled = toFundCard({
+    ...view(),
+    data: {
+      ...full(),
+      sourceName: "x",
+      performance: { ...full().performance!, classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" },
+    },
+  } as never);
   // an H series next to the F headline class is never shown on the F tile
   assert.equal(labelled.perfClass, null);
-  assert.deepEqual([labelled.si, labelled.ytd, labelled.y1, labelled.asOf, labelled.calendar], [null, null, null, null, []]);
+  assert.deepEqual(
+    [labelled.si, labelled.ytd, labelled.y1, labelled.asOf, labelled.calendar],
+    [null, null, null, null, []],
+  );
   // ... but the headline class's own series is (by-class publication)
-  const byCls = { LDM081: { fundserv: "LDM081", display: "F", performance: full().performance!, risk: null, risk3Y: null } };
-  const ownSeries = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, returnClass: "H" }, performanceByClass: byCls } } as never);
-  assert.equal(ownSeries.perfClass, "F"); assert.equal(ownSeries.si, 0.03);
-  const noSeries = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performanceByClass: { LDM001: { ...byCls.LDM081, fundserv: "LDM001", display: "FP" } } } } as never);
-  assert.equal(noSeries.si, null); assert.equal(noSeries.perfClass, null);
-  const content = { version: 1, updatedAt: "", updatedBy: "", firm: {}, funds: {}, pipeline: { publishMode: "review" } } as unknown as SiteContent;
+  const byCls = {
+    LDM081: { fundserv: "LDM081", display: "F", performance: full().performance!, risk: null, risk3Y: null },
+  };
+  const ownSeries = toFundCard({
+    ...view(),
+    data: {
+      ...full(),
+      sourceName: "x",
+      performance: { ...full().performance!, returnClass: "H" },
+      performanceByClass: byCls,
+    },
+  } as never);
+  assert.equal(ownSeries.perfClass, "F");
+  assert.equal(ownSeries.si, 0.03);
+  const noSeries = toFundCard({
+    ...view(),
+    data: {
+      ...full(),
+      sourceName: "x",
+      performanceByClass: { LDM001: { ...byCls.LDM081, fundserv: "LDM001", display: "FP" } },
+    },
+  } as never);
+  assert.equal(noSeries.si, null);
+  assert.equal(noSeries.perfClass, null);
+  const content = {
+    version: 1,
+    updatedAt: "",
+    updatedBy: "",
+    firm: {},
+    funds: {},
+    pipeline: { publishMode: "review" },
+  } as unknown as SiteContent;
   const h = toHomeData([view({ hide: { performance: true } }) as never], content);
   assert.equal(h.perfAsOf, null);
   assert.ok(!JSON.stringify(h).includes("123000000"));
@@ -182,16 +288,50 @@ test("partialKind: YTD only for the as-of year, a partial inception year is 'lau
 });
 
 test("heatmap rows and mini bars carry the partial-year kind", () => {
-  const monthly = [{ month: "2019-03-31", r: 0.01 }, { month: "2019-12-31", r: 0.01 }, { month: "2026-01-31", r: 0.002 }, { month: "2026-08-31", r: 0.003 }];
-  const cal = [{ year: 2019, fund: 0.02, partial: true }, { year: 2026, fund: 0.005, partial: true }];
+  const monthly = [
+    { month: "2019-03-31", r: 0.01 },
+    { month: "2019-12-31", r: 0.01 },
+    { month: "2026-01-31", r: 0.002 },
+    { month: "2026-08-31", r: 0.003 },
+  ];
+  const cal = [
+    { year: 2019, fund: 0.02, partial: true },
+    { year: 2026, fund: 0.005, partial: true },
+  ];
   const g = heatmapGrid(monthly, cal, "2026-08-31");
-  assert.deepEqual(g.map((r) => [r.year, r.kind]), [[2026, "ytd"], [2019, "launch"]]);
+  assert.deepEqual(
+    g.map((r) => [r.year, r.kind]),
+    [
+      [2026, "ytd"],
+      [2019, "launch"],
+    ],
+  );
   // as-of defaults to the last published month
-  assert.deepEqual(heatmapGrid(monthly, cal).map((r) => r.kind), ["ytd", "launch"]);
-  const bars = lastYears([{ year: 2019, fund: 0.02, partial: true }, { year: 2020, fund: 0.03 }, { year: 2026, fund: 0.005, partial: true }], 6, "2026-08-31");
-  assert.deepEqual(bars.map((b) => b.kind), ["launch", null, "ytd"]);
-  const card = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, calendar: cal } } } as never);
-  assert.deepEqual(card.calendar.map((b) => b.kind), ["launch", "ytd"]);
+  assert.deepEqual(
+    heatmapGrid(monthly, cal).map((r) => r.kind),
+    ["ytd", "launch"],
+  );
+  const bars = lastYears(
+    [
+      { year: 2019, fund: 0.02, partial: true },
+      { year: 2020, fund: 0.03 },
+      { year: 2026, fund: 0.005, partial: true },
+    ],
+    6,
+    "2026-08-31",
+  );
+  assert.deepEqual(
+    bars.map((b) => b.kind),
+    ["launch", null, "ytd"],
+  );
+  const card = toFundCard({
+    ...view(),
+    data: { ...full(), sourceName: "x", performance: { ...full().performance!, calendar: cal } },
+  } as never);
+  assert.deepEqual(
+    card.calendar.map((b) => b.kind),
+    ["launch", "ytd"],
+  );
 });
 
 /* ------------------------------------------------------------------ 7. SI annualized threshold, NAV decimals */
@@ -201,7 +341,10 @@ test("SI is annualized from 12 monthly returns, like the pipeline (si.length >= 
   assert.equal(siAnnualized("2025-09-30", "2026-08-31"), true);
   assert.equal(siAnnualized("2025-10-31", "2026-08-31"), false);
   assert.equal(isAnnualized("SI", "2025-09-30", "2026-08-31"), true);
-  const c = toFundCard({ ...view(), data: { ...full(), sourceName: "x", performance: { ...full().performance!, firstMonth: "2025-09-30" } } } as never);
+  const c = toFundCard({
+    ...view(),
+    data: { ...full(), sourceName: "x", performance: { ...full().performance!, firstMonth: "2025-09-30" } },
+  } as never);
   assert.equal(c.siAnnualized, true);
   assert.equal(c.y1, null, "no published 1Y in this fixture");
 });

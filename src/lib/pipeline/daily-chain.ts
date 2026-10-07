@@ -66,7 +66,8 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
 
-const monthRows = (rows: DailyRow[], monthKey: string): DailyRow[] => rows.filter((r) => ym(r.date) === monthKey).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+const monthRows = (rows: DailyRow[], monthKey: string): DailyRow[] =>
+  rows.filter((r) => ym(r.date) === monthKey).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
 /**
  * CIBC holiday filler: the former administrator wrote a row on some market holidays (Labour Day, Thanksgiving, Christmas,
@@ -105,13 +106,27 @@ export function apexMonth(rows: DailyRow[], month: string): ChainMonth {
   const prior = priorTradingDay(first);
   const starts = [prior, ...expected.slice(0, -1)];
   if (new Set(days).size !== days.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
-  if (days.length !== expected.length || days.some((d, i) => d !== expected[i])) return { ...out, issue: "Incomplete Apex valuation-day coverage; no partial-month compounding" };
-  if (rs.some((r) => r.source !== "apex" || r.currency !== "CAD" || r.nav_type !== "FINAL_NAV" || r.net_return_method !== "apex_distribution_aware" || r.return_source_count !== 1 || !validReturn(r.net_daily_return))) {
+  if (days.length !== expected.length || days.some((d, i) => d !== expected[i]))
+    return { ...out, issue: "Incomplete Apex valuation-day coverage; no partial-month compounding" };
+  if (
+    rs.some(
+      (r) =>
+        r.source !== "apex" ||
+        r.currency !== "CAD" ||
+        r.nav_type !== "FINAL_NAV" ||
+        r.net_return_method !== "apex_distribution_aware" ||
+        r.return_source_count !== 1 ||
+        !validReturn(r.net_daily_return),
+    )
+  ) {
     return { ...out, issue: "A complete distribution-aware Apex net-return chain is unavailable" };
   }
-  if (rs.some((r, i) => r.return_start_date !== starts[i])) return { ...out, issue: "Apex return periods do not form a continuous month-end-to-month-end chain" };
+  if (rs.some((r, i) => r.return_start_date !== starts[i]))
+    return { ...out, issue: "Apex return periods do not form a continuous month-end-to-month-end chain" };
   const value = prod(rs.map((r) => r.net_daily_return as number)) - 1;
-  return validReturn(value) ? { ...out, status: "ready", r: value } : { ...out, issue: "Invalid compounded monthly return" };
+  return validReturn(value)
+    ? { ...out, status: "ready", r: value }
+    : { ...out, issue: "Invalid compounded monthly return" };
 }
 
 /** CIBC month: stored daily net returns compounded over a complete month of the class's own book. */
@@ -119,20 +134,37 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
   const monthKey = ym(month);
   const out: ChainMonth = { month, status: "unavailable", r: null, source: "cibc", issue: null };
   const expected = tradingDays(`${monthKey}-01`, month);
-  if (!expected.length || expected[0] < navStart) return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
+  if (!expected.length || expected[0] < navStart)
+    return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
   const rs = monthRows(dropHolidayFiller(rows), monthKey);
   const days = rs.map((r) => r.date);
   if (new Set(days).size !== days.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
   const have = new Set(days);
   const missing = expected.filter((d) => !have.has(d));
-  if (missing.length) return { ...out, issue: `Incomplete CIBC valuation-day coverage (missing ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ", …" : ""}); no partial-month compounding` };
-  const bad = rs.find((r) => r.source !== "cibc" || r.currency !== "CAD" || r.net_return_method !== "legacy_stored" || !validReturn(r.net_daily_return));
-  if (bad) return { ...out, issue: `${bad.date}: ${bad.source !== "cibc" ? `source ${bad.source ?? "unknown"}` : bad.currency !== "CAD" ? `currency ${bad.currency ?? "unknown"} (CAD expected)` : bad.net_return_method !== "legacy_stored" ? `return method ${bad.net_return_method ?? "unknown"} (not the stored CIBC net return)` : "no valid daily net return"}` };
+  if (missing.length)
+    return {
+      ...out,
+      issue: `Incomplete CIBC valuation-day coverage (missing ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ", …" : ""}); no partial-month compounding`,
+    };
+  const bad = rs.find(
+    (r) =>
+      r.source !== "cibc" ||
+      r.currency !== "CAD" ||
+      r.net_return_method !== "legacy_stored" ||
+      !validReturn(r.net_daily_return),
+  );
+  if (bad)
+    return {
+      ...out,
+      issue: `${bad.date}: ${bad.source !== "cibc" ? `source ${bad.source ?? "unknown"}` : bad.currency !== "CAD" ? `currency ${bad.currency ?? "unknown"} (CAD expected)` : bad.net_return_method !== "legacy_stored" ? `return method ${bad.net_return_method ?? "unknown"} (not the stored CIBC net return)` : "no valid daily net return"}`,
+    };
   const value = prod(rs.map((r) => r.net_daily_return as number)) - 1;
   if (!validReturn(value)) return { ...out, issue: "Invalid compounded monthly return" };
   // diagnostics: chain vs NAV per unit ratio from the previous month-end (a gap is a distribution, or a missed day)
   const prevYm = ym(addMonths(month, -1));
-  const prevRows = monthRows(rows, prevYm).filter((r) => finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0);
+  const prevRows = monthRows(rows, prevYm).filter(
+    (r) => finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0,
+  );
   const base = prevRows[prevRows.length - 1]?.nav_per_share_cad ?? null;
   const end = rs[rs.length - 1].nav_per_share_cad;
   const navGap = finite(base) && finite(end) && end > 0 ? (1 + value) / (end / base) - 1 : null;
@@ -149,39 +181,68 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   const prevYm = ym(addMonths(month, -1));
   const prior = monthRows(rows, prevYm).filter((r) => r.source === "cibc" && finite(r.nav_per_share_cad));
   const priorDay = prior.length ? prior[prior.length - 1] : null;
-  if (priorDay && priorDay.currency !== "CAD") return fail(`CIBC month-end NAV per unit of ${priorDay.date} is not in CAD (${priorDay.currency ?? "unknown"})`);
+  if (priorDay && priorDay.currency !== "CAD")
+    return fail(`CIBC month-end NAV per unit of ${priorDay.date} is not in CAD (${priorDay.currency ?? "unknown"})`);
   const day = prior.length ? prior[prior.length - 1].date : null;
   const base = prior.filter((r) => r.date === day);
   const apex = monthRows(rows, monthKey).filter((r) => r.source === "apex");
   const firstApex = apex[0]?.date ?? month;
   const cibcJuly = monthRows(rows, monthKey).filter((r) => r.source === "cibc" && r.date < firstApex);
   if (!base.length || !priorEnd || day! < priorEnd) return fail("No CIBC month-end NAV per unit before the cut-over");
-  if (new Set(base.map((r) => r.nav_per_share_cad)).size > 1) return fail("Conflicting CIBC month-end NAV per unit", "conflict");
+  if (new Set(base.map((r) => r.nav_per_share_cad)).size > 1)
+    return fail("Conflicting CIBC month-end NAV per unit", "conflict");
   const baseNav = base[0].nav_per_share_cad as number;
   if (!(baseNav > 0)) return fail("Invalid CIBC month-end NAV per unit");
   if (!apex.length || apex[0].date <= cutover) return fail("No Apex valuation days after the cut-over");
   const cibcDays = cibcJuly.map((r) => r.date);
   const apexDays = apex.map((r) => r.date);
-  if (new Set(cibcDays).size !== cibcDays.length || new Set(apexDays).size !== apexDays.length) return fail("Duplicate daily observations", "conflict");
+  if (new Set(cibcDays).size !== cibcDays.length || new Set(apexDays).size !== apexDays.length)
+    return fail("Duplicate daily observations", "conflict");
   const wantCibc = july.filter((d) => d < firstApex);
   const wantApex = july.filter((d) => d >= firstApex);
-  if (cibcDays.length !== wantCibc.length || cibcDays.some((d, i) => d !== wantCibc[i])) return fail("Incomplete CIBC valuation-day coverage before the first Apex day");
-  if (apexDays.length !== wantApex.length || apexDays.some((d, i) => d !== wantApex[i])) return fail("Incomplete Apex valuation-day coverage after the cut-over");
-  if (cibcJuly.some((r) => r.currency !== "CAD")) return fail("CIBC daily rows before the first Apex day are not in CAD");
-  if (cibcJuly.some((r) => !(finite(r.nav_per_share_cad) && r.nav_per_share_cad > 0) || !validReturn(r.net_daily_return) || r.net_return_method !== "legacy_stored")) {
+  if (cibcDays.length !== wantCibc.length || cibcDays.some((d, i) => d !== wantCibc[i]))
+    return fail("Incomplete CIBC valuation-day coverage before the first Apex day");
+  if (apexDays.length !== wantApex.length || apexDays.some((d, i) => d !== wantApex[i]))
+    return fail("Incomplete Apex valuation-day coverage after the cut-over");
+  if (cibcJuly.some((r) => r.currency !== "CAD"))
+    return fail("CIBC daily rows before the first Apex day are not in CAD");
+  if (
+    cibcJuly.some(
+      (r) =>
+        !(finite(r.nav_per_share_cad) && r.nav_per_share_cad > 0) ||
+        !validReturn(r.net_daily_return) ||
+        r.net_return_method !== "legacy_stored",
+    )
+  ) {
     return fail("CIBC daily NAV per unit or stored return is unavailable before the first Apex day");
   }
-  if (apex.some((r) => r.currency !== "CAD" || r.nav_type !== "FINAL_NAV" || !(finite(r.nav_per_share_cad) && r.nav_per_share_cad > 0))) return fail("Apex FINAL_NAV per unit is unavailable after the cut-over");
-  if (apex[apex.length - 1].return_source_count !== 1) return fail("Apex month-end NAV per unit does not come from a single class row");
+  if (
+    apex.some(
+      (r) =>
+        r.currency !== "CAD" || r.nav_type !== "FINAL_NAV" || !(finite(r.nav_per_share_cad) && r.nav_per_share_cad > 0),
+    )
+  )
+    return fail("Apex FINAL_NAV per unit is unavailable after the cut-over");
+  if (apex[apex.length - 1].return_source_count !== 1)
+    return fail("Apex month-end NAV per unit does not come from a single class row");
   for (let i = 1; i < apex.length; i++) {
     const r = apex[i];
-    if (r.net_return_method !== "apex_distribution_aware" || !validReturn(r.net_daily_return) || r.return_start_date !== apex[i - 1].date) {
+    if (
+      r.net_return_method !== "apex_distribution_aware" ||
+      !validReturn(r.net_daily_return) ||
+      r.return_start_date !== apex[i - 1].date
+    ) {
       return fail("A complete distribution-aware Apex net-return chain is unavailable after the cut-over");
     }
   }
-  const drifts = (rs: DailyRow[], start: number): boolean => Math.abs((prod(rs.map((r) => r.net_daily_return as number)) * start) / (rs[rs.length - 1].nav_per_share_cad as number) - 1) > BRIDGE_TOLERANCE;
-  if (cibcJuly.length && drifts(cibcJuly, baseNav)) return fail("CIBC daily returns disagree with its NAV per unit (distribution before the switch?)");
-  if (apex.length > 1 && drifts(apex.slice(1), apex[0].nav_per_share_cad as number)) return fail("Apex daily returns disagree with its NAV per unit (distribution before month-end?)");
+  const drifts = (rs: DailyRow[], start: number): boolean =>
+    Math.abs(
+      (prod(rs.map((r) => r.net_daily_return as number)) * start) / (rs[rs.length - 1].nav_per_share_cad as number) - 1,
+    ) > BRIDGE_TOLERANCE;
+  if (cibcJuly.length && drifts(cibcJuly, baseNav))
+    return fail("CIBC daily returns disagree with its NAV per unit (distribution before the switch?)");
+  if (apex.length > 1 && drifts(apex.slice(1), apex[0].nav_per_share_cad as number))
+    return fail("Apex daily returns disagree with its NAV per unit (distribution before month-end?)");
   // seam continuity: when the first Apex day's return starts on the last CIBC day, the CIBC NAV per unit carried by that
   // return must give the first Apex NAV per unit (a different unit value or an unbooked distribution at the switch)
   const lastCibc = cibcJuly.length ? cibcJuly[cibcJuly.length - 1] : base[0];
@@ -189,7 +250,9 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   if (a0.return_start_date === lastCibc.date && validReturn(a0.net_daily_return)) {
     const carried = (lastCibc.nav_per_share_cad as number) * (1 + a0.net_daily_return);
     if (Math.abs(carried / (a0.nav_per_share_cad as number) - 1) > BRIDGE_TOLERANCE) {
-      return fail(`seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`);
+      return fail(
+        `seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`,
+      );
     }
   }
   const value = (apex[apex.length - 1].nav_per_share_cad as number) / baseNav - 1;

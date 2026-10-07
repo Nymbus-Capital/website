@@ -10,7 +10,10 @@ export const NO_STORE = { "Cache-Control": "no-store" } as const;
 export const ok = (body: unknown, status = 200) => Response.json(body, { status, headers: NO_STORE });
 
 export const fail = (status: number, error: string, message: string, details?: unknown) =>
-  Response.json(details === undefined ? { error, message } : { error, message, details }, { status, headers: NO_STORE });
+  Response.json(details === undefined ? { error, message } : { error, message, details }, {
+    status,
+    headers: NO_STORE,
+  });
 
 /** Read at most `max` bytes of the request body; null when larger (without buffering the rest). */
 export async function readBodyCapped(req: Request, max: number): Promise<Uint8Array | null> {
@@ -40,7 +43,11 @@ export async function readBodyCapped(req: Request, max: number): Promise<Uint8Ar
 }
 
 /** Parse a JSON body (application/json, ≤ max bytes) against a zod schema. Returns the data or an error Response. */
-export async function parseJson<S extends z.ZodType>(req: NextRequest, schema: S, max = 256 * 1024): Promise<z.infer<S> | Response> {
+export async function parseJson<S extends z.ZodType>(
+  req: NextRequest,
+  schema: S,
+  max = 256 * 1024,
+): Promise<z.infer<S> | Response> {
   const ct = (req.headers.get("content-type") || "").split(";", 1)[0].trim().toLowerCase();
   if (ct !== "application/json") return fail(415, "unsupported_media_type", "Expected application/json.");
   const buf = await readBodyCapped(req, max);
@@ -57,8 +64,15 @@ export async function parseJson<S extends z.ZodType>(req: NextRequest, schema: S
 export function validate<S extends z.ZodType>(schema: S, raw: unknown): z.infer<S> | Response {
   const r = schema.safeParse(raw);
   if (!r.success) {
-    const details = r.error.issues.slice(0, 20).map((i) => ({ path: i.path.map(String).join("."), message: i.message }));
-    return fail(400, "invalid_input", details.map((d) => (d.path ? `${d.path}: ${d.message}` : d.message)).join("; "), details);
+    const details = r.error.issues
+      .slice(0, 20)
+      .map((i) => ({ path: i.path.map(String).join("."), message: i.message }));
+    return fail(
+      400,
+      "invalid_input",
+      details.map((d) => (d.path ? `${d.path}: ${d.message}` : d.message)).join("; "),
+      details,
+    );
   }
   return r.data as z.infer<S>;
 }

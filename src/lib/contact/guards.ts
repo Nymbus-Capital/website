@@ -26,17 +26,30 @@ export function checkSameOrigin(h: Headers, publicUrl: string | undefined): Orig
   const site = h.get("sec-fetch-site");
   if (site && site !== "same-origin") return "cross-origin";
   const origin = h.get("origin");
-  if (origin !== null) return origin !== "null" && originOf(origin) === expected && origin.replace(/\/$/, "") === expected ? "ok" : "cross-origin";
+  if (origin !== null)
+    return origin !== "null" && originOf(origin) === expected && origin.replace(/\/$/, "") === expected
+      ? "ok"
+      : "cross-origin";
   return originOf(h.get("referer")) === expected ? "ok" : "cross-origin";
 }
 
 /** loopback, private (RFC 1918), link-local, CGNAT and IPv6 unique-local addresses: the platform's own proxies */
 export function isInternalAddress(a: string): boolean {
-  const v = a.toLowerCase().replace(/^\[|\]$/g, "").replace(/^::ffff:/, "");
+  const v = a
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/^::ffff:/, "");
   const m = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(v);
   if (m) {
     const [x, y] = [Number(m[1]), Number(m[2])];
-    return x === 10 || x === 127 || (x === 172 && y >= 16 && y <= 31) || (x === 192 && y === 168) || (x === 169 && y === 254) || (x === 100 && y >= 64 && y <= 127);
+    return (
+      x === 10 ||
+      x === 127 ||
+      (x === 172 && y >= 16 && y <= 31) ||
+      (x === 192 && y === 168) ||
+      (x === 169 && y === 254) ||
+      (x === 100 && y >= 64 && y <= 127)
+    );
   }
   return v === "::1" || /^f[cd][0-9a-f]{0,2}:/.test(v) || /^fe[89ab][0-9a-f]?:/.test(v);
 }
@@ -48,7 +61,10 @@ export function isInternalAddress(a: string): boolean {
  * ranges as internal proxies, wordpress/README.md). "unknown" when absent (local runs): those requests share one bucket.
  */
 export function clientKey(forwardedFor: string | null | undefined): string {
-  const parts = (forwardedFor ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = (forwardedFor ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   for (let i = parts.length - 1; i >= 0; i--) {
     const a = parts[i];
     if (!/^[0-9A-Za-z:.\-[\]]{1,64}$/.test(a)) return "unknown";
@@ -63,7 +79,10 @@ export function clientKey(forwardedFor: string | null | undefined): string {
  * v4 / v6), never an address. Lets ops confirm on the platform that the rightmost public hop is the visitor.
  */
 export function forwardedShape(forwardedFor: string | null | undefined): string {
-  const parts = (forwardedFor ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const parts = (forwardedFor ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
   const cls = (a: string): string => {
     const v = a.replace(/^\[|\]$/g, "");
     const fam = /^\d{1,3}(\.\d{1,3}){3}$/.test(v) ? "v4" : expandIPv6(v) ? "v6" : null;
@@ -74,7 +93,10 @@ export function forwardedShape(forwardedFor: string | null | undefined): string 
 
 /** Full 8-group form of an IPv6 address (lower case, no zero compression), or null when it is not one. */
 export function expandIPv6(a: string): string[] | null {
-  let v = a.toLowerCase().replace(/^\[|\]$/g, "").replace(/%.*$/, "");
+  let v = a
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/%.*$/, "");
   const v4 = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
   if (v4) {
     const n = v4.slice(1).map(Number);
@@ -102,7 +124,8 @@ export function limiterKey(addr: string): string {
   const g = expandIPv6(a);
   if (!g) return a;
   if (g.slice(0, 5).every((x) => x === "0") && g[5] === "ffff") {
-    const n = parseInt(g[6], 16), m = parseInt(g[7], 16);
+    const n = parseInt(g[6], 16),
+      m = parseInt(g[7], 16);
     return `${n >> 8}.${n & 255}.${m >> 8}.${m & 255}`;
   }
   return `${g.slice(0, 4).join(":")}::/64`;
@@ -119,7 +142,13 @@ export interface ContactLimits {
   maxClients: number;
 }
 
-export const CONTACT_LIMITS: ContactLimits = { perClient: 5, perClientWindowMs: 15 * 60_000, global: 40, globalWindowMs: 60 * 60_000, maxClients: 5000 };
+export const CONTACT_LIMITS: ContactLimits = {
+  perClient: 5,
+  perClientWindowMs: 15 * 60_000,
+  global: 40,
+  globalWindowMs: 60 * 60_000,
+  maxClients: 5000,
+};
 
 export interface ContactLimiter {
   /** count an attempt of `key` (an address: bucketed by limiterKey); false when over budget (the refused attempt is not counted) */

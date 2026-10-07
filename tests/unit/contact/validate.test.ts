@@ -1,20 +1,56 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanLine, cleanText, EMAIL_RE, EXTRA_INTERESTS, fromForm, fromJson, inquiryFieldErrors, LIMITS, PROFILE_VALUES, validateSubmission, type RawSubmission } from "../../../src/lib/contact/validate.ts";
+import {
+  cleanLine,
+  cleanText,
+  EMAIL_RE,
+  EXTRA_INTERESTS,
+  fromForm,
+  fromJson,
+  inquiryFieldErrors,
+  LIMITS,
+  PROFILE_VALUES,
+  validateSubmission,
+  type RawSubmission,
+} from "../../../src/lib/contact/validate.ts";
 import { CT } from "../../../src/components/site/pages/contact.copy.ts";
 import { PUBLIC_FUNDS } from "../../../src/config/funds-public.ts";
 
 const ALLOWED = [...PUBLIC_FUNDS.map((f) => f.short.en), ...EXTRA_INTERESTS];
-const OK = { profile: "Individual investor", interests: [ALLOWED[0]], name: "Test Person", email: "test@example.com", phone: "", company: "", message: "Hello", consent: true };
-const raw = (o: Partial<typeof OK> = {}, extra: Partial<RawSubmission> = {}): RawSubmission => ({ input: { ...OK, ...o }, honeypot: "", token: "", lang: "en", ...extra });
+const OK = {
+  profile: "Individual investor",
+  interests: [ALLOWED[0]],
+  name: "Test Person",
+  email: "test@example.com",
+  phone: "",
+  company: "",
+  message: "Hello",
+  consent: true,
+};
+const raw = (o: Partial<typeof OK> = {}, extra: Partial<RawSubmission> = {}): RawSubmission => ({
+  input: { ...OK, ...o },
+  honeypot: "",
+  token: "",
+  lang: "en",
+  ...extra,
+});
 
 test("contact: the page's investor types and interests are the ones the server accepts", () => {
-  assert.deepEqual(CT.form.profiles.map((p) => p.v), [...PROFILE_VALUES]);
+  assert.deepEqual(
+    CT.form.profiles.map((p) => p.v),
+    [...PROFILE_VALUES],
+  );
   assert.deepEqual([CT.form.custom.en, CT.form.general.en], [...EXTRA_INTERESTS]);
 });
 
 test("contact: a complete inquiry is accepted and cleaned", () => {
-  const r = validateSubmission(raw({ name: "  Jean-Luc  O’Neil ", message: "Line 1\r\n\r\n\r\n\r\nLine 2‮  ", company: " A/B Capital " }, { lang: "fr" }), ALLOWED);
+  const r = validateSubmission(
+    raw(
+      { name: "  Jean-Luc  O’Neil ", message: "Line 1\r\n\r\n\r\n\r\nLine 2‮  ", company: " A/B Capital " },
+      { lang: "fr" },
+    ),
+    ALLOWED,
+  );
   assert.ok(r.ok);
   if (!r.ok) return;
   assert.equal(r.value.name, "Jean-Luc O’Neil");
@@ -51,8 +87,22 @@ test("contact: each field is checked", () => {
 });
 
 test("contact: email pattern (safe in a mailto: link)", () => {
-  for (const good of ["a.b@nymbus.ca", "first+tag@sub.example.co", "o'neil@example.com"]) assert.ok(EMAIL_RE.test(good), good);
-  for (const bad of ["", "a@b", "a b@c.de", "@c.de", "a@b.c", "a@b.com?cc=x", "a&b@c.de", "a%b@c.de", "a@-b.com", "a@b-.com", "\"a\"@b.com"]) assert.ok(!EMAIL_RE.test(bad), bad);
+  for (const good of ["a.b@nymbus.ca", "first+tag@sub.example.co", "o'neil@example.com"])
+    assert.ok(EMAIL_RE.test(good), good);
+  for (const bad of [
+    "",
+    "a@b",
+    "a b@c.de",
+    "@c.de",
+    "a@b.c",
+    "a@b.com?cc=x",
+    "a&b@c.de",
+    "a%b@c.de",
+    "a@-b.com",
+    "a@b-.com",
+    '"a"@b.com',
+  ])
+    assert.ok(!EMAIL_RE.test(bad), bad);
 });
 
 test("contact: text cleaning removes control, invisible and bidi-override characters", () => {
@@ -73,7 +123,11 @@ test("contact: JSON and form bodies", () => {
   assert.equal(fromJson([]), null);
   assert.equal(fromJson(null), null);
   assert.equal(fromJson({ ...OK, lang: "de" })!.lang, "en");
-  const f = fromForm(new URLSearchParams("profile=Other&interests=A&interests=B&name=N%20N&email=a%40b.co&consent=on&website=&t=x&lang=fr"));
+  const f = fromForm(
+    new URLSearchParams(
+      "profile=Other&interests=A&interests=B&name=N%20N&email=a%40b.co&consent=on&website=&t=x&lang=fr",
+    ),
+  );
   assert.deepEqual(f.input.interests, ["A", "B"]);
   assert.equal(f.input.consent, true);
   assert.equal(f.lang, "fr");

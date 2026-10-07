@@ -21,13 +21,27 @@ export function HomeHero() {
       <div className="container">
         <div className="hm-hero-grid">
           <div className="hm-hero-main">
-            <Reveal self><Eyebrow>{pick(C.hero.eyebrow)}</Eyebrow></Reveal>
-            <RevealTitle as="h1" id="hero-t" text={pick(C.hero.title)} accent={pick(C.hero.accent)} className="display" step={110} breakBeforeAccent />
-            <Reveal self delay={260}><p className="lead">{pick(C.hero.lead)}</p></Reveal>
+            <Reveal self>
+              <Eyebrow>{pick(C.hero.eyebrow)}</Eyebrow>
+            </Reveal>
+            <RevealTitle
+              as="h1"
+              id="hero-t"
+              text={pick(C.hero.title)}
+              accent={pick(C.hero.accent)}
+              className="display"
+              step={110}
+              breakBeforeAccent
+            />
+            <Reveal self delay={260}>
+              <p className="lead">{pick(C.hero.lead)}</p>
+            </Reveal>
             <Reveal self delay={380}>
               <div className="actions">
                 <ButtonLink href="/strategies">{pick(C.hero.cta1)}</ButtonLink>
-                <ButtonLink href="/solutions" variant="ghost">{pick(C.hero.cta2)}</ButtonLink>
+                <ButtonLink href="/solutions" variant="ghost">
+                  {pick(C.hero.cta2)}
+                </ButtonLink>
               </div>
             </Reveal>
           </div>

@@ -21,9 +21,20 @@ export function Portrait({ m, size = "m", className }: { m: TeamMember; size?: "
   return (
     <span className={`pg-pt pg-pt-${size} ${className ?? ""}`} style={{ ["--pc" as string]: m.color }}>
       {m.photo && !broken ? (
-        <img ref={img} src={m.photo} alt="" width={PX[size]} height={PX[size]} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+        <img
+          ref={img}
+          src={m.photo}
+          alt=""
+          width={PX[size]}
+          height={PX[size]}
+          loading="lazy"
+          decoding="async"
+          onError={() => setBroken(true)}
+        />
       ) : (
-        <span className="pg-pt-i" aria-hidden="true">{initialsOf(m)}</span>
+        <span className="pg-pt-i" aria-hidden="true">
+          {initialsOf(m)}
+        </span>
       )}
     </span>
   );

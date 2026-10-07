@@ -3,7 +3,16 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { decodeEntities, plainLines, plainParagraphs, plainText, safeHttpUrl, safeImageUrl, safeLinkedIn, stripTags } from "../../../src/lib/cms/sanitize.ts";
+import {
+  decodeEntities,
+  plainLines,
+  plainParagraphs,
+  plainText,
+  safeHttpUrl,
+  safeImageUrl,
+  safeLinkedIn,
+  stripTags,
+} from "../../../src/lib/cms/sanitize.ts";
 
 test("tags are stripped, including script bodies, comments and rebuilt tags", () => {
   assert.equal(plainText("Hello <b>world</b>", 100), "Hello world");
@@ -47,12 +56,28 @@ test("lines: one entry per non-empty line, bounded", () => {
 });
 
 test("stripTags never leaves a tag behind on nested input", () => {
-  for (const s of ["<scr<script>ipt>alert(1)</scr</script>ipt>", "<<a>a href=x>", "<a<b>>"]) assert.doesNotMatch(stripTags(s), /<[a-z]/i, s);
+  for (const s of ["<scr<script>ipt>alert(1)</scr</script>ipt>", "<<a>a href=x>", "<a<b>>"])
+    assert.doesNotMatch(stripTags(s), /<[a-z]/i, s);
 });
 
 test("URLs: https only, no credentials, no control characters", () => {
   assert.equal(safeHttpUrl("https://example.org/a?b=1"), "https://example.org/a?b=1");
-  for (const bad of ["http://example.org", "javascript:alert(1)", "data:text/html,x", "//example.org", "https://u:p@example.org", "https://", "ftp://example.org", "https://exa mple.org", "https://example.org/\u0000", "", "  ", 5, null, "https://" + "a".repeat(3000) + ".org"]) {
+  for (const bad of [
+    "http://example.org",
+    "javascript:alert(1)",
+    "data:text/html,x",
+    "//example.org",
+    "https://u:p@example.org",
+    "https://",
+    "ftp://example.org",
+    "https://exa mple.org",
+    "https://example.org/\u0000",
+    "",
+    "  ",
+    5,
+    null,
+    "https://" + "a".repeat(3000) + ".org",
+  ]) {
     assert.equal(safeHttpUrl(bad), null, String(bad).slice(0, 40));
   }
   assert.equal(safeHttpUrl("http://localhost:3199/x"), null, "http is refused unless loopback is allowed");
@@ -62,8 +87,19 @@ test("URLs: https only, no credentials, no control characters", () => {
 
 test("images: only the exact media origin (scheme, host, port)", () => {
   const origin = "https://cms.example.org";
-  assert.equal(safeImageUrl("https://cms.example.org/wp-content/uploads/a.jpg", origin), "https://cms.example.org/wp-content/uploads/a.jpg");
-  for (const bad of ["https://evil.example/a.jpg", "https://cms.example.org.evil.example/a.jpg", "https://cms.example.org:8443/a.jpg", "http://cms.example.org/a.jpg", "https://cms.example.org@evil.example/a.jpg", "data:image/png;base64,AAAA", "https://cms.example.org/a.jpg#x"]) {
+  assert.equal(
+    safeImageUrl("https://cms.example.org/wp-content/uploads/a.jpg", origin),
+    "https://cms.example.org/wp-content/uploads/a.jpg",
+  );
+  for (const bad of [
+    "https://evil.example/a.jpg",
+    "https://cms.example.org.evil.example/a.jpg",
+    "https://cms.example.org:8443/a.jpg",
+    "http://cms.example.org/a.jpg",
+    "https://cms.example.org@evil.example/a.jpg",
+    "data:image/png;base64,AAAA",
+    "https://cms.example.org/a.jpg#x",
+  ]) {
     assert.equal(safeImageUrl(bad, origin), null, bad);
   }
   assert.equal(safeImageUrl("https://cms.example.org/a.jpg", null), null, "no media origin: no image");
@@ -71,10 +107,21 @@ test("images: only the exact media origin (scheme, host, port)", () => {
 
 test("images: only under /wp-content/uploads/ (no other page, script or endpoint of the WordPress site)", () => {
   const origin = "https://cms.example.org";
-  for (const bad of ["https://cms.example.org/a.jpg", "https://cms.example.org/wp-json/nymbus/v1/site-content", "https://cms.example.org/wp-content/plugins/x/a.png", "https://cms.example.org/wp-content/uploads/../plugins/a.png", "https://cms.example.org/wp-content/uploads/%2e%2e/a.png", "https://cms.example.org/wp-content/uploads%2f..%2fa.png", "https://cms.example.org/wp-content/uploadsx/a.png"]) {
+  for (const bad of [
+    "https://cms.example.org/a.jpg",
+    "https://cms.example.org/wp-json/nymbus/v1/site-content",
+    "https://cms.example.org/wp-content/plugins/x/a.png",
+    "https://cms.example.org/wp-content/uploads/../plugins/a.png",
+    "https://cms.example.org/wp-content/uploads/%2e%2e/a.png",
+    "https://cms.example.org/wp-content/uploads%2f..%2fa.png",
+    "https://cms.example.org/wp-content/uploadsx/a.png",
+  ]) {
     assert.equal(safeImageUrl(bad, origin), null, bad);
   }
-  assert.equal(safeImageUrl("https://cms.example.org/wp-content/uploads/2026/09/a.webp", origin), "https://cms.example.org/wp-content/uploads/2026/09/a.webp");
+  assert.equal(
+    safeImageUrl("https://cms.example.org/wp-content/uploads/2026/09/a.webp", origin),
+    "https://cms.example.org/wp-content/uploads/2026/09/a.webp",
+  );
 });
 
 test("LinkedIn links: linkedin.com over https only", () => {

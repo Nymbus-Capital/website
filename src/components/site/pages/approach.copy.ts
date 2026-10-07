@@ -28,18 +28,38 @@ export const AP = {
     eyebrow: l("Risk first", "Le risque d’abord"),
     title: l("Every strategy starts", "Chaque stratégie part"),
     accent: l("with risk", "du risque"),
-    lead: l(
-      "Ultra-micro analysis, at scale.",
-      "Une analyse ultra-micro, à grande échelle.",
-    ),
+    lead: l("Ultra-micro analysis, at scale.", "Une analyse ultra-micro, à grande échelle."),
     items: [
-      { t: l("Ultra-micro analysis", "Analyse ultra-micro"), d: l("Each bond on its own, across entire universes.", "Chaque obligation, dans des univers entiers.") },
-      { t: l("Systematic scans", "Balayages systématiques"), d: l("Seeking the most attractive assets for their risk.", "À la recherche des actifs les plus attrayants compte tenu de leur risque.") },
-      { t: l("Protective overlays", "Superpositions protectrices"), d: l("Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).", "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).") },
+      {
+        t: l("Ultra-micro analysis", "Analyse ultra-micro"),
+        d: l("Each bond on its own, across entire universes.", "Chaque obligation, dans des univers entiers."),
+      },
+      {
+        t: l("Systematic scans", "Balayages systématiques"),
+        d: l(
+          "Seeking the most attractive assets for their risk.",
+          "À la recherche des actifs les plus attrayants compte tenu de leur risque.",
+        ),
+      },
+      {
+        t: l("Protective overlays", "Superpositions protectrices"),
+        d: l(
+          "Designed to offset part of bond losses, with low correlation with bonds in down months (risks below).",
+          "Conçues pour compenser une partie des pertes obligataires, avec une faible corrélation avec les obligations lors des mois de baisse (risques ci-dessous).",
+        ),
+      },
     ],
-    viz: l("Illustration: a bond universe, scanned bond by bond", "Illustration : un univers obligataire, balayé obligation par obligation"),
+    viz: l(
+      "Illustration: a bond universe, scanned bond by bond",
+      "Illustration : un univers obligataire, balayé obligation par obligation",
+    ),
     illus: l("Illustration only", "Illustration seulement"),
-    metrics: [l("Yield", "Rendement"), l("Credit", "Crédit"), l("Duration", "Durée"), l("Risk-adjusted score", "Score ajusté au risque")],
+    metrics: [
+      l("Yield", "Rendement"),
+      l("Credit", "Crédit"),
+      l("Duration", "Durée"),
+      l("Risk-adjusted score", "Score ajusté au risque"),
+    ],
   },
   pipe: {
     eyebrow: l("Investment methodology", "Méthodologie de placement"),
@@ -85,7 +105,10 @@ export const AP = {
       bullets: [
         l("Value at risk and stress testing", "Valeur à risque et tests de résistance"),
         l("Duration and credit hedging", "Couverture de la durée et du crédit"),
-        l("Overlays sized to a downside-volatility target", "Superpositions calibrées selon une cible de volatilité à la baisse"),
+        l(
+          "Overlays sized to a downside-volatility target",
+          "Superpositions calibrées selon une cible de volatilité à la baisse",
+        ),
       ],
       note: l(
         "Hedging seeks to limit losses in adverse conditions; it does not eliminate the risk of loss.",
@@ -101,7 +124,10 @@ export const AP = {
       {
         tag: l("System 1 · macro", "Système 1 · macro"),
         name: l("Portfolio positioning", "Positionnement du portefeuille"),
-        role: l("Systematizes a portfolio manager’s experience", "Systématise l’expérience d’un gestionnaire de portefeuille"),
+        role: l(
+          "Systematizes a portfolio manager’s experience",
+          "Systématise l’expérience d’un gestionnaire de portefeuille",
+        ),
         facts: [
           [l("Method", "Méthode"), l("Systematic", "Systématique")],
           [l("View", "Angle"), l("Macro, top-down", "Macro, descendant")],
@@ -122,7 +148,10 @@ export const AP = {
           [l("Rebalancing", "Rééquilibrage"), l("Continuous, on alerts", "Continu, sur alertes")],
         ] as [L, L][],
         steps: [
-          l("Rank each cell’s bonds by yield and risk", "Classer les obligations de chaque cellule selon le rendement et le risque"),
+          l(
+            "Rank each cell’s bonds by yield and risk",
+            "Classer les obligations de chaque cellule selon le rendement et le risque",
+          ),
           l("Select the final securities", "Sélectionner les titres finaux"),
         ],
       },
@@ -137,7 +166,11 @@ export const AP = {
       "Les obligations souffrent généralement quand la volatilité monte.",
     ),
     suffer: l("Bonds suffer when…", "Les obligations souffrent lorsque…"),
-    risks: [l("rates rise", "les taux montent"), l("inflation spikes", "l’inflation grimpe"), l("spreads widen", "les écarts s’élargissent")],
+    risks: [
+      l("rates rise", "les taux montent"),
+      l("inflation spikes", "l’inflation grimpe"),
+      l("spreads widen", "les écarts s’élargissent"),
+    ],
     common: l("The common thread", "Le point commun"),
     vol: l("Elevated volatility", "Une volatilité élevée"),
     solution: l("Our response", "Notre réponse"),
@@ -172,19 +205,54 @@ export const AP = {
       "A liquid alternative across asset classes, designed to have low correlation with stocks and bonds in down months.",
       "Une solution alternative liquide, multi-actifs, conçue pour avoir une faible corrélation avec les actions et les obligations lors des mois de baisse.",
     ),
-    strategies: [l("Low volatility", "Faible volatilité"), l("Directional", "Directionnelle"), l("Mean reversion", "Retour à la moyenne"), l("Hedging", "Couverture")],
-    assets: [l("Rates", "Taux"), l("Credit", "Crédit"), l("Equity indices", "Indices boursiers"), l("Currencies", "Devises"), l("Commodities", "Matières premières")],
-    overlay: l("Protective overlay · designed to offset part of bond losses", "Superposition protectrice · conçue pour compenser une partie des pertes obligataires"),
+    strategies: [
+      l("Low volatility", "Faible volatilité"),
+      l("Directional", "Directionnelle"),
+      l("Mean reversion", "Retour à la moyenne"),
+      l("Hedging", "Couverture"),
+    ],
+    assets: [
+      l("Rates", "Taux"),
+      l("Credit", "Crédit"),
+      l("Equity indices", "Indices boursiers"),
+      l("Currencies", "Devises"),
+      l("Commodities", "Matières premières"),
+    ],
+    overlay: l(
+      "Protective overlay · designed to offset part of bond losses",
+      "Superposition protectrice · conçue pour compenser une partie des pertes obligataires",
+    ),
     strategiesK: l("Strategies", "Stratégies"),
     assetsK: l("Asset classes", "Catégories d’actifs"),
     offersT: l("Three ways to access it", "Trois façons d’y accéder"),
     offers: [
-      { t: l("Bond funds with a protective overlay", "Fonds obligataires avec superposition protectrice"), d: l("Both use the protective overlay.", "Les deux utilisent la superposition protectrice."), links: [
-        { href: "/strategies/monthly-income", label: l("Monthly Income", "Revenu Mensuel") },
-        { href: "/strategies/sustainable-enhanced-bonds", label: l("Sustainable Enhanced Bonds", "Obligations Durables Bonifiées") },
-      ] },
-      { t: l("Multi-Strategy Fund", "Fonds Multistratégies"), d: l("A liquid alternative, Alternative Multi-Strategy category.", "Une solution alternative liquide, catégorie Multistratégies alternatives."), links: [{ href: "/strategies/multi-strategy" }] },
-      { t: l("Global Minimum Volatility", "Global Minimum Volatility"), d: l("The protective overlay alone, on top of your portfolio.", "La superposition protectrice seule, ajoutée à votre portefeuille."), links: [{ href: "/strategies/global-minimum-volatility" }] },
+      {
+        t: l("Bond funds with a protective overlay", "Fonds obligataires avec superposition protectrice"),
+        d: l("Both use the protective overlay.", "Les deux utilisent la superposition protectrice."),
+        links: [
+          { href: "/strategies/monthly-income", label: l("Monthly Income", "Revenu Mensuel") },
+          {
+            href: "/strategies/sustainable-enhanced-bonds",
+            label: l("Sustainable Enhanced Bonds", "Obligations Durables Bonifiées"),
+          },
+        ],
+      },
+      {
+        t: l("Multi-Strategy Fund", "Fonds Multistratégies"),
+        d: l(
+          "A liquid alternative, Alternative Multi-Strategy category.",
+          "Une solution alternative liquide, catégorie Multistratégies alternatives.",
+        ),
+        links: [{ href: "/strategies/multi-strategy" }],
+      },
+      {
+        t: l("Global Minimum Volatility", "Global Minimum Volatility"),
+        d: l(
+          "The protective overlay alone, on top of your portfolio.",
+          "La superposition protectrice seule, ajoutée à votre portefeuille.",
+        ),
+        links: [{ href: "/strategies/global-minimum-volatility" }],
+      },
     ],
     note: l(
       "Illustration only: allocations change and not every strategy trades every asset class. Low correlation is an objective, not a guarantee. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",

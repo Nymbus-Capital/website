@@ -6,7 +6,9 @@ import { expect, test } from "@playwright/test";
  * /sustainability, and Global Minimum Volatility figures named by their downside-volatility variant.
  */
 
-test("approach: risk-first section and the multi-strategy diagram, with links to the three ways in", async ({ page }) => {
+test("approach: risk-first section and the multi-strategy diagram, with links to the three ways in", async ({
+  page,
+}) => {
   await page.goto("/approach");
   await expect(page.getByRole("heading", { level: 2, name: /every strategy starts with risk/i })).toBeVisible();
   const um = page.getByTestId("ultra-micro");
@@ -25,7 +27,9 @@ test("approach: risk-first section and the multi-strategy diagram, with links to
     await expect(page.locator(`.ap-ms-offers a[href="/strategies/${key}"]`)).toHaveCount(1);
   }
   // the diagram fits the viewport (no horizontal page scroll on mobile)
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
@@ -33,10 +37,15 @@ test("approach (fr): the new sections are translated", async ({ page, baseURL })
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto("/approach");
   await expect(page.getByRole("heading", { level: 2, name: /chaque stratégie part du risque/i })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: /plusieurs stratégies, dans plusieurs catégories d’actifs/i })).toBeAttached();
+  await expect(
+    page.getByRole("heading", { level: 2, name: /plusieurs stratégies, dans plusieurs catégories d’actifs/i }),
+  ).toBeAttached();
 });
 
-test("team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio", async ({ page, request }) => {
+test("team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio", async ({
+  page,
+  request,
+}) => {
   await page.goto("/team");
   const band = page.getByTestId("credentials");
   await band.scrollIntoViewIfNeeded();
@@ -73,35 +82,53 @@ test("solutions: three illustrative use cases, overlay disclosures, no ranking c
     await expect(uc).toContainText(/illustrative only: not a client testimonial/i);
     await expect(uc.locator(".sl-case-steps > li")).toHaveCount(3);
   }
-  await expect(page.getByTestId("use-case-institutional")).toContainText("The overlay adds futures exposure on top of the underlying portfolio");
+  await expect(page.getByTestId("use-case-institutional")).toContainText(
+    "The overlay adds futures exposure on top of the underlying portfolio",
+  );
   await expect(page.getByTestId("use-case-family")).toContainText(/collateral/);
   // no ranking anywhere on /solutions (the "Third-party rankings" section was removed on 2026-10-04)
-  await expect(page.getByTestId("use-case-advisor").locator(".sl-case-steps")).not.toContainText(/percentile|quartile|eVestment|Lipper/i);
+  await expect(page.getByTestId("use-case-advisor").locator(".sl-case-steps")).not.toContainText(
+    /percentile|quartile|eVestment|Lipper/i,
+  );
   await expect(page.getByTestId("advisor-rankings")).toHaveCount(0);
   await expect(page.locator("#advisor-rankings")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Third-party rankings" })).toHaveCount(0);
 });
 
-test("GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant", async ({ page }) => {
+test("GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant", async ({
+  page,
+}) => {
   await page.goto("/");
   const tile = page.getByTestId("strategy-global-minimum-volatility");
   await tile.scrollIntoViewIfNeeded();
   if (!(await tile.getByTestId("fund-figure").count())) test.skip(true, "no published GMV figures in this environment");
   await expect(tile.getByTestId("perf-variant")).toHaveText("6% downside volatility");
   await page.goto("/strategies");
-  await expect(page.getByTestId("compare-table").locator('tr:has(a[href="/strategies/global-minimum-volatility"])').getByTestId("perf-variant")).toHaveText("6% downside volatility");
+  await expect(
+    page
+      .getByTestId("compare-table")
+      .locator('tr:has(a[href="/strategies/global-minimum-volatility"])')
+      .getByTestId("perf-variant"),
+  ).toHaveText("6% downside volatility");
   await page.goto("/solutions");
   const fam = page.locator("section#family").getByTestId("solution-fund-global-minimum-volatility");
   await fam.scrollIntoViewIfNeeded();
   await expect(fam.getByTestId("solution-variant-global-minimum-volatility")).toHaveText("6% downside volatility");
 });
 
-test("sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only", async ({ page, baseURL }) => {
+test("sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only", async ({
+  page,
+  baseURL,
+}) => {
   await page.goto("/sustainability");
-  await expect(page.locator("main")).toContainText("The ESG criteria and exclusions on this page are those of the Sustainable Enhanced Bonds Fund");
+  await expect(page.locator("main")).toContainText(
+    "The ESG criteria and exclusions on this page are those of the Sustainable Enhanced Bonds Fund",
+  );
   const ex = page.locator("section#exclusions");
   await ex.scrollIntoViewIfNeeded();
-  await expect(ex).toContainText("The ESG criteria and exclusions below are those of the Sustainable Enhanced Bonds Fund");
+  await expect(ex).toContainText(
+    "The ESG criteria and exclusions below are those of the Sustainable Enhanced Bonds Fund",
+  );
   await expect(page.locator("main")).not.toContainText(/other funds and strategies/i);
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto("/sustainability");

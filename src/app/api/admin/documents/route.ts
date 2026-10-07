@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
   const user = await requireAdmin(request);
   if (user instanceof Response) return user;
   try {
-    const docs = (await listDocuments()).sort((a, b) => b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt));
+    const docs = (await listDocuments()).sort(
+      (a, b) => b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt),
+    );
     return ok({ documents: docs.map((d) => ({ ...d, url: documentUrl(d) })) });
   } catch (e) {
     return internalError("documents", e);

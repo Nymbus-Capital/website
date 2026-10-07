@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
       adminPath: "/admin",
       lines: [`Sent from the admin dashboard by ${user.email}. Pipeline, stale-data and rankings alerts arrive here.`],
     });
-    if (result === "cooldown") return fail(429, "cooldown", "A test alert was sent less than a minute ago; try again shortly.");
+    if (result === "cooldown")
+      return fail(429, "cooldown", "A test alert was sent less than a minute ago; try again shortly.");
     await audit({ by: user.email, action: "alerts.test", detail: { result } });
     return ok({ result });
   } catch (e) {

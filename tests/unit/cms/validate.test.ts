@@ -7,7 +7,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { CmsInvalidError, LIMITS, parseCmsDocument } from "../../../src/lib/cms/validate.ts";
 
-const fixture = JSON.parse(readFileSync(resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8"));
+const fixture = JSON.parse(
+  readFileSync(resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8"),
+);
 const OPTS = { mediaOrigin: "http://localhost:3199", allowLoopbackHttp: true };
 const clone = <T>(x: T): T => structuredClone(x);
 
@@ -15,12 +17,21 @@ test("the fixture parses: markup stripped, images on the media origin kept, newe
   const { doc, dropped } = parseCmsDocument(fixture, OPTS);
   assert.deepEqual(dropped, []);
   assert.equal(doc.schemaVersion, 1);
-  assert.deepEqual(doc.news.map((n) => n.id), ["cms-test-launch", "cms-test-second", "cms-test-third", "cms-test-fourth"]);
+  assert.deepEqual(
+    doc.news.map((n) => n.id),
+    ["cms-test-launch", "cms-test-second", "cms-test-third", "cms-test-fourth"],
+  );
   assert.equal(doc.news[0].summary.en, "Summary with markup that must be stripped.");
-  assert.equal(doc.news[0].body.en, "First paragraph of the test article.\n\nSecond paragraph, with a script that must vanish.");
+  assert.equal(
+    doc.news[0].body.en,
+    "First paragraph of the test article.\n\nSecond paragraph, with a script that must vanish.",
+  );
   assert.equal(doc.news[0].image, "http://localhost:3199/wp-content/uploads/test.png");
   assert.equal(doc.news[0].link, "https://example.org/press");
-  assert.deepEqual(doc.team.map((m) => m.id), ["sample-person-one", "sample-person-two", "sample-person-three"]);
+  assert.deepEqual(
+    doc.team.map((m) => m.id),
+    ["sample-person-one", "sample-person-two", "sample-person-three"],
+  );
   assert.equal(doc.team[0].linkedin, "https://www.linkedin.com/in/sample-person-one");
   assert.deepEqual(doc.team[0].additionalDepartments, ["Board"]);
   assert.equal(doc.texts.aumLabel?.en, "$9.9B+ (CMS test)");
@@ -72,14 +83,29 @@ test("invalid items are dropped and reported, the rest survives", () => {
   raw.team[1].department = "Marketing";
   raw.team[2].name = "   ";
   const { doc, dropped } = parseCmsDocument(raw, OPTS);
-  assert.deepEqual(doc.news.map((n) => n.id), ["cms-test-launch"]);
-  assert.deepEqual(doc.team.map((m) => m.id), ["sample-person-one"]);
+  assert.deepEqual(
+    doc.news.map((n) => n.id),
+    ["cms-test-launch"],
+  );
+  assert.deepEqual(
+    doc.team.map((m) => m.id),
+    ["sample-person-one"],
+  );
   assert.equal(dropped.length, 7);
   assert.ok(dropped.some((d) => d.includes("duplicate")));
 });
 
 test("an unsupported or malformed document is rejected as a whole", () => {
-  for (const bad of [null, [], "x", 5, {}, { schemaVersion: 2, news: [], team: [] }, { schemaVersion: 1, news: {}, team: [] }, { schemaVersion: 1, news: [] }]) {
+  for (const bad of [
+    null,
+    [],
+    "x",
+    5,
+    {},
+    { schemaVersion: 2, news: [], team: [] },
+    { schemaVersion: 1, news: {}, team: [] },
+    { schemaVersion: 1, news: [] },
+  ]) {
     assert.throws(() => parseCmsDocument(bad, OPTS), CmsInvalidError);
   }
 });
@@ -116,9 +142,14 @@ test("category falls back to community; order, year and departments are normalis
 
 test("the team is ordered by `order`, then name", () => {
   const raw = clone(fixture);
-  raw.team[0].order = 5; raw.team[1].order = 5; raw.team[2].order = 1;
+  raw.team[0].order = 5;
+  raw.team[1].order = 5;
+  raw.team[2].order = 1;
   const { doc } = parseCmsDocument(raw, OPTS);
-  assert.deepEqual(doc.team.map((m) => m.id), ["sample-person-three", "sample-person-one", "sample-person-two"]);
+  assert.deepEqual(
+    doc.team.map((m) => m.id),
+    ["sample-person-three", "sample-person-one", "sample-person-two"],
+  );
 });
 
 test("placeholder content ([Sample] / [Exemple], as created by `wp nymbus seed`) is never published", () => {

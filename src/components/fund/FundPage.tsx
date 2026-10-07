@@ -26,11 +26,24 @@ import type { FundPageProps } from "./types";
 import "./fund.css";
 import { tr, type Locale } from "@/lib/i18n/config";
 
-export function FundPage({ spec, content, data: published, sample, docs, funds, firmDisclaimer, brand }: FundPageProps) {
+export function FundPage({
+  spec,
+  content,
+  data: published,
+  sample,
+  docs,
+  funds,
+  firmDisclaimer,
+  brand,
+}: FundPageProps) {
   const { locale } = useTranslation();
   const lang: Locale = locale === "fr" ? "fr" : "en";
   const isFund = spec.vehicle === "fund";
-  const style = { "--fund-from": spec.color.from, "--fund-to": spec.color.to, "--fund": spec.color.solid } as CSSProperties;
+  const style = {
+    "--fund-from": spec.color.from,
+    "--fund-to": spec.color.to,
+    "--fund": spec.color.solid,
+  } as CSSProperties;
   const [sel, setSel] = useState<Selection>(() => initialSelection(published, spec, content));
   // class / variant first (their own series, or none), then what the admin hid: hidden figures never reach a block
   const picked = useMemo(() => pickData(published, spec, content, sel), [published, spec, content, sel]);
@@ -45,7 +58,9 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     shortRecord: picked.shortRecord,
     notice: picked.notice ?? null,
     // the series' own inception next to its figures only when they start there (never next to the track record)
-    inception: picked.data?.performance ? picked.data.performance.inception ?? null : classInfoOf(published, sel.classCode)?.inception ?? null,
+    inception: picked.data?.performance
+      ? (picked.data.performance.inception ?? null)
+      : (classInfoOf(published, sel.classCode)?.inception ?? null),
   };
   const props = { spec, content, data, lang, ctx };
   const hasAwards = !!rankingsToShow(content, spec.classes);
@@ -54,13 +69,37 @@ export function FundPage({ spec, content, data: published, sample, docs, funds, 
     { id: "performance", label: tr(T.tabs.performance, lang), content: <PerformanceTab {...props} /> },
     { id: "portfolio", label: tr(T.tabs.portfolio, lang), content: <PortfolioTab {...props} /> },
     // managed accounts (no fund units) make no distributions
-    ...(isFund ? [{ id: "distributions", label: tr(T.tabs.distributions, lang), content: <DistributionsTab spec={spec} content={content} data={data} lang={lang} /> }] : []),
-    ...(hasAwards ? [{ id: "awards", label: tr(T.tabs.awards, lang), content: <AwardsTab spec={spec} content={content} lang={lang} brand={brand} /> }] : []),
-    { id: "documents", label: tr(T.tabs.documents, lang), content: <DocumentsTab spec={spec} docs={docs} lang={lang} /> },
+    ...(isFund
+      ? [
+          {
+            id: "distributions",
+            label: tr(T.tabs.distributions, lang),
+            content: <DistributionsTab spec={spec} content={content} data={data} lang={lang} />,
+          },
+        ]
+      : []),
+    ...(hasAwards
+      ? [
+          {
+            id: "awards",
+            label: tr(T.tabs.awards, lang),
+            content: <AwardsTab spec={spec} content={content} lang={lang} brand={brand} />,
+          },
+        ]
+      : []),
+    {
+      id: "documents",
+      label: tr(T.tabs.documents, lang),
+      content: <DocumentsTab spec={spec} docs={docs} lang={lang} />,
+    },
   ];
   return (
     <div className="fund-page" style={style} data-fund={spec.key} lang={lang}>
-      {sample ? <div className="fx-ribbon" aria-hidden="true">{tr(T.sample.ribbon, lang)}</div> : null}
+      {sample ? (
+        <div className="fx-ribbon" aria-hidden="true">
+          {tr(T.sample.ribbon, lang)}
+        </div>
+      ) : null}
       <FundHeader {...props} sample={sample} docs={docs} />
       <ReturnStrip {...props} />
       <FundTabs tabs={tabs} label={tr(isFund ? T.tabs.label : T.tabs.labelStrategy, lang)} />

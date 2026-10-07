@@ -22,7 +22,14 @@ async function save(v: Parameters<typeof store.saveInquiry>[0], now?: Date, max?
   return r.record;
 }
 
-const V = { profile: "Individual investor" as const, interests: ["General inquiry"], name: "Test Person", email: "test@example.com", message: "Hello <b>there</b>", lang: "en" as const };
+const V = {
+  profile: "Individual investor" as const,
+  interests: ["General inquiry"],
+  name: "Test Person",
+  email: "test@example.com",
+  message: "Hello <b>there</b>",
+  lang: "en" as const,
+};
 
 test("store: save, list newest first, get, ids are validated", async () => {
   const a = await save(V, new Date("2026-10-01T10:00:00Z"));
@@ -31,14 +38,28 @@ test("store: save, list newest first, get, ids are validated", async () => {
   assert.equal(a.handled, null);
   assert.deepEqual(a.consent, { at: "2026-10-01T10:00:00.000Z", version: store.CONSENT_VERSION });
   const list = await store.listInquiries();
-  assert.deepEqual(list.map((r) => r.id), [b.id, a.id]);
+  assert.deepEqual(
+    list.map((r) => r.id),
+    [b.id, a.id],
+  );
   assert.equal((await store.getInquiry(a.id))?.message, "Hello <b>there</b>", "stored as plain text, verbatim");
-  for (const bad of ["../content/site-content", "x", "20260101T000000-zzzzzzzz", ""]) assert.equal(await store.getInquiry(bad), null);
+  for (const bad of ["../content/site-content", "x", "20260101T000000-zzzzzzzz", ""])
+    assert.equal(await store.getInquiry(bad), null);
   // one JSON file per inquiry, nothing else (no temp files left)
   assert.deepEqual(readdirSync(path.join(dir, "inquiries")).sort(), [`${a.id}.json`, `${b.id}.json`].sort());
   // no IP address or other request data in the record
-  assert.deepEqual(Object.keys(JSON.parse(readFileSync(path.join(dir, "inquiries", `${a.id}.json`), "utf8"))).sort(),
-    ["consent", "email", "handled", "id", "interests", "lang", "message", "name", "profile", "receivedAt"]);
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(path.join(dir, "inquiries", `${a.id}.json`), "utf8"))).sort(), [
+    "consent",
+    "email",
+    "handled",
+    "id",
+    "interests",
+    "lang",
+    "message",
+    "name",
+    "profile",
+    "receivedAt",
+  ]);
   await store.deleteInquiry(a.id);
   await store.deleteInquiry(b.id);
 });
@@ -82,7 +103,10 @@ test("retention: deleted no later than 180 days (default) after receipt, damaged
   assert.equal(await store.purgeExpiredInquiries(now), 0);
   // a shorter retention set in the admin settings applies on the next purge
   mkdirSync(path.join(dir, "content"), { recursive: true });
-  writeFileSync(path.join(dir, "content", "site-content.json"), JSON.stringify({ version: 1, inquiryPolicy: { retentionDays: 30 } }));
+  writeFileSync(
+    path.join(dir, "content", "site-content.json"),
+    JSON.stringify({ version: 1, inquiryPolicy: { retentionDays: 30 } }),
+  );
   assert.equal(await store.configuredRetentionDays(), 30);
   assert.equal(await store.purgeExpiredInquiries(now), 1);
   assert.equal(await store.getInquiry(recent.id), null);
@@ -106,15 +130,30 @@ test("alert: only the first name and profile, a link to the admin; off without a
   const msg = inquiryAlert(r);
   assert.equal(msg.title, "New website inquiry: Test (Individual investor)");
   assert.equal(msg.adminPath, "/admin/inquiries");
-  const body = JSON.stringify([alertPayload(msg, "teams", { PUBLIC_URL: "https://www.nymbus.ca" }), alertPayload(msg, "json", {})]);
-  for (const secret of ["test@example.com", "Hello", "there", "514 555 0100", "Secret Co", "General inquiry", "Person"]) assert.ok(!body.includes(secret), secret);
+  const body = JSON.stringify([
+    alertPayload(msg, "teams", { PUBLIC_URL: "https://www.nymbus.ca" }),
+    alertPayload(msg, "json", {}),
+  ]);
+  for (const secret of ["test@example.com", "Hello", "there", "514 555 0100", "Secret Co", "General inquiry", "Person"])
+    assert.ok(!body.includes(secret), secret);
   assert.equal(await notifyInquiry(r, { env: {} }), "off");
   let posted: unknown = null;
-  const fetchImpl = (async (_u: string, init: { body: string }) => { posted = JSON.parse(init.body); return new Response(null, { status: 200 }); }) as unknown as typeof fetch;
-  assert.equal(await notifyInquiry(r, { env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" }, fetchImpl, delays: [] }), "sent");
+  const fetchImpl = (async (_u: string, init: { body: string }) => {
+    posted = JSON.parse(init.body);
+    return new Response(null, { status: 200 });
+  }) as unknown as typeof fetch;
+  assert.equal(
+    await notifyInquiry(r, {
+      env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" },
+      fetchImpl,
+      delays: [],
+    }),
+    "sent",
+  );
   const sent = JSON.stringify(posted);
   assert.ok(sent.includes("Test") && sent.includes("/admin/inquiries"));
-  for (const secret of ["test@example.com", "Hello", "Person", "Secret Co", "514 555 0100"]) assert.ok(!sent.includes(secret), secret);
+  for (const secret of ["test@example.com", "Hello", "Person", "Secret Co", "514 555 0100"])
+    assert.ok(!sent.includes(secret), secret);
   await store.deleteInquiry(r.id);
 });
 
@@ -122,7 +161,13 @@ test("alert: a failed delivery logs and stores the redacted title only (no first
   const r = await save({ ...V, name: "Zelda Person", message: "Failure case" });
   const logs: string[] = [];
   const failing = (async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
-  const out = await notifyInquiry(r, { env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" }, fetchImpl: failing, delays: [], sleep: async () => {}, log: (m) => logs.push(m) });
+  const out = await notifyInquiry(r, {
+    env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" },
+    fetchImpl: failing,
+    delays: [],
+    sleep: async () => {},
+    log: (m) => logs.push(m),
+  });
   assert.equal(out, "failed");
   assert.ok(logs.length > 0);
   const state = readFileSync(path.join(dir, "alerts", "state.json"), "utf8");
@@ -144,11 +189,17 @@ test("store: refuses new inquiries past the hard cap", async () => {
 test("store: an identical inquiry within 24 hours is not stored again; a changed one or a later one is", async () => {
   const t0 = new Date("2026-10-06T10:00:00Z");
   const a = await save(V, t0);
-  const again = await store.saveInquiry({ ...V, email: "TEST@example.com", interests: [...V.interests] }, new Date(t0.getTime() + 60_000));
+  const again = await store.saveInquiry(
+    { ...V, email: "TEST@example.com", interests: [...V.interests] },
+    new Date(t0.getTime() + 60_000),
+  );
   assert.equal(again.duplicate, true);
   assert.equal(again.record.id, a.id);
   // concurrent double submit: one stored
-  const both = await Promise.all([store.saveInquiry({ ...V, name: "Twin" }, t0), store.saveInquiry({ ...V, name: "Twin" }, t0)]);
+  const both = await Promise.all([
+    store.saveInquiry({ ...V, name: "Twin" }, t0),
+    store.saveInquiry({ ...V, name: "Twin" }, t0),
+  ]);
   assert.deepEqual(both.map((r) => r.duplicate).sort(), [false, true]);
   const changed = await save({ ...V, message: "Hello again" }, new Date(t0.getTime() + 60_000));
   const later = await save(V, new Date(t0.getTime() + store.DUPLICATE_WINDOW_MS + 1000));
@@ -156,7 +207,8 @@ test("store: an identical inquiry within 24 hours is not stored again; a changed
   assert.equal(await store.openInquiryCount(), 4);
   await store.setInquiryHandled(a.id, true, "alice@nymbus.ca");
   assert.equal(await store.openInquiryCount(), 3);
-  for (const r of [a, changed, later, ...both.filter((x) => !x.duplicate).map((x) => x.record)]) await store.deleteInquiry(r.id);
+  for (const r of [a, changed, later, ...both.filter((x) => !x.duplicate).map((x) => x.record)])
+    await store.deleteInquiry(r.id);
   assert.equal((await store.listInquiries()).length, 0);
 });
 
@@ -166,11 +218,22 @@ test("csv: header, quoting, formula cells neutralised, BOM", () => {
   assert.equal(csvCell("a\nb"), '"a\nb"');
   for (const f of ["=SUM(A1)", "+1", "-1", "@x", "\tx"]) assert.ok(csvCell(f).replace(/^"/, "").startsWith("'"), f);
   assert.equal(csvCell(undefined), "");
-  const rec = { id: "20261006T100000-0123abcd", receivedAt: "2026-10-06T10:00:00.000Z", ...V, company: "=HYPERLINK(\"x\")", consent: { at: "2026-10-06T10:00:00.000Z", version: "v" }, handled: { at: "2026-10-07T00:00:00.000Z", by: "alice@nymbus.ca" } };
+  const rec = {
+    id: "20261006T100000-0123abcd",
+    receivedAt: "2026-10-06T10:00:00.000Z",
+    ...V,
+    company: '=HYPERLINK("x")',
+    consent: { at: "2026-10-06T10:00:00.000Z", version: "v" },
+    handled: { at: "2026-10-07T00:00:00.000Z", by: "alice@nymbus.ca" },
+  };
   const out = inquiriesCsv([rec]);
   assert.ok(out.startsWith("\uFEFF" + CSV_COLUMNS.join(",") + "\r\n"));
   const row = out.split("\r\n")[1];
-  assert.ok(row.startsWith("20261006T100000-0123abcd,2026-10-06T10:00:00.000Z,handled,2026-10-07T00:00:00.000Z,alice@nymbus.ca,Test Person,test@example.com,,"));
+  assert.ok(
+    row.startsWith(
+      "20261006T100000-0123abcd,2026-10-06T10:00:00.000Z,handled,2026-10-07T00:00:00.000Z,alice@nymbus.ca,Test Person,test@example.com,,",
+    ),
+  );
   assert.ok(row.includes(`"'=HYPERLINK(""x"")"`));
   assert.ok(row.includes("Hello <b>there</b>"));
   assert.equal(inquiriesCsv([]), "\uFEFF" + CSV_COLUMNS.join(",") + "\r\n");

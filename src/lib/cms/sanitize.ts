@@ -7,8 +7,21 @@
  */
 
 const NAMED: Record<string, string> = {
-  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“",
-  ndash: "–", mdash: "—", hellip: "…", laquo: "«", raquo: "»",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  rsquo: "’",
+  lsquo: "‘",
+  rdquo: "”",
+  ldquo: "“",
+  ndash: "–",
+  mdash: "—",
+  hellip: "…",
+  laquo: "«",
+  raquo: "»",
 };
 
 /** Decodes the common HTML entities ONCE (never repeatedly: `&amp;lt;` stays the text `&lt;`). */
@@ -16,7 +29,8 @@ export function decodeEntities(s: string): string {
   return s.replace(/&(#x[0-9a-f]{1,6}|#\d{1,7}|[a-z]{2,8});/gi, (m, e: string) => {
     if (e[0] === "#") {
       const cp = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
-      if (!Number.isFinite(cp) || (cp < 0x20 && cp !== 10) || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) return "";
+      if (!Number.isFinite(cp) || (cp < 0x20 && cp !== 10) || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff))
+        return "";
       return String.fromCodePoint(cp);
     }
     return NAMED[e.toLowerCase()] ?? m;
@@ -50,7 +64,12 @@ export function plainParagraphs(v: unknown, max: number): string {
   const s = stripTags(decodeEntities(v)).replace(/\r\n?/g, "\n").replace(CONTROL, "");
   const paras = s
     .split(/\n{2,}/)
-    .map((p) => p.replace(/[ \t\f\v]*\n[ \t\f\v]*/g, " ").replace(/[ \t\f\v]+/g, " ").trim())
+    .map((p) =>
+      p
+        .replace(/[ \t\f\v]*\n[ \t\f\v]*/g, " ")
+        .replace(/[ \t\f\v]+/g, " ")
+        .trim(),
+    )
     .filter(Boolean);
   const joined = paras.join("\n\n");
   return joined.length > max ? joined.slice(0, max).trimEnd() : joined;
@@ -77,7 +96,11 @@ export function safeHttpUrl(v: unknown, opts: { allowLoopbackHttp?: boolean } = 
   // eslint-disable-next-line no-control-regex
   if (!t || /[\u0000- \u007f]/.test(t)) return null;
   let u: URL;
-  try { u = new URL(t); } catch { return null; }
+  try {
+    u = new URL(t);
+  } catch {
+    return null;
+  }
   if (u.username || u.password || !u.hostname) return null;
   if (u.protocol === "https:") return u.href;
   if (u.protocol === "http:" && opts.allowLoopbackHttp && isLoopbackHost(u.hostname)) return u.href;
@@ -87,7 +110,11 @@ export function safeHttpUrl(v: unknown, opts: { allowLoopbackHttp?: boolean } = 
 export const UPLOADS_PATH = "/wp-content/uploads/";
 
 /** An image URL, accepted only on exactly the configured media origin (same scheme, host and port), under /wp-content/uploads/. */
-export function safeImageUrl(v: unknown, mediaOrigin: string | null, opts: { allowLoopbackHttp?: boolean } = {}): string | null {
+export function safeImageUrl(
+  v: unknown,
+  mediaOrigin: string | null,
+  opts: { allowLoopbackHttp?: boolean } = {},
+): string | null {
   if (!mediaOrigin) return null;
   const href = safeHttpUrl(v, opts);
   if (!href) return null;

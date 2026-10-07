@@ -11,7 +11,10 @@ export default defineConfig([
       // regexes that strip or refuse control characters say so with a disable comment
       "no-control-regex": "error",
       // `_`-prefixed names are deliberately unused (destructuring something away, placeholder parameters)
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
       // React Compiler readiness rules: the compiler is not enabled; no warning left (CI caps warnings at 0). The frozen Science
       // at scale panel (fx.tsx AnalysisScan, hashed by tests/unit/site/scan-frozen.test.ts) disables `refs` for its own region
       "react-hooks/refs": "warn",

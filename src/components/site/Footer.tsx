@@ -13,7 +13,15 @@ import { Logo } from "./Logo";
 import type { CmsContact } from "@/lib/cms/map";
 import { CONTACT, FUND_LINKS } from "./links";
 
-export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }: { firmDisclaimer?: { en: string; fr: string } | null; hiddenFunds?: string[]; contact?: CmsContact }) {
+export function Footer({
+  firmDisclaimer = null,
+  hiddenFunds = [],
+  contact = {},
+}: {
+  firmDisclaimer?: { en: string; fr: string } | null;
+  hiddenFunds?: string[];
+  contact?: CmsContact;
+}) {
   const { t, pick } = useTranslation();
   const year = new Date().getFullYear();
   const texts = footerDisclaimers(firmDisclaimer, hiddenFunds);
@@ -22,10 +30,14 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <Link href="/" aria-label={t("nav.homeLink")}><Logo /></Link>
+            <Link href="/" aria-label={t("nav.homeLink")}>
+              <Logo />
+            </Link>
             <p>{t("footer.description")}</p>
             <address>
-              <span style={{ whiteSpace: "pre-line" }}>{contact.address ? pick(contact.address) : t("footer.address")}</span>
+              <span style={{ whiteSpace: "pre-line" }}>
+                {contact.address ? pick(contact.address) : t("footer.address")}
+              </span>
               <a href={`tel:${contact.phone?.tel ?? CONTACT.phone}`}>{contact.phone?.display ?? t("footer.phone")}</a>
               <span>{t("footer.tollFree")}</span>
               <a href={`mailto:${contact.email ?? CONTACT.email}`}>{contact.email ?? CONTACT.email}</a>
@@ -36,7 +48,13 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }
             <ul>
               {FUND_LINKS.filter((f) => !hiddenFunds.includes(f.key)).map((f) => (
                 <li key={f.href}>
-                  <Link href={f.href}><i style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }} aria-hidden="true" />{pick(f.short)}</Link>
+                  <Link href={f.href}>
+                    <i
+                      style={{ background: `linear-gradient(135deg, ${f.color.from}, ${f.color.to})` }}
+                      aria-hidden="true"
+                    />
+                    {pick(f.short)}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -44,20 +62,40 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }
           <div className="footer-col">
             <h2>{t("footer.firm")}</h2>
             <ul>
-              <li><Link href="/team">{t("footer.about")}</Link></li>
-              <li><Link href="/approach">{t("nav.approach")}</Link></li>
-              <li><Link href="/core-concepts">{t("nav.concepts")}</Link></li>
-              <li><Link href="/sustainability">{t("nav.sustainability")}</Link></li>
-              <li><Link href="/solutions">{t("nav.solutions")}</Link></li>
+              <li>
+                <Link href="/team">{t("footer.about")}</Link>
+              </li>
+              <li>
+                <Link href="/approach">{t("nav.approach")}</Link>
+              </li>
+              <li>
+                <Link href="/core-concepts">{t("nav.concepts")}</Link>
+              </li>
+              <li>
+                <Link href="/sustainability">{t("nav.sustainability")}</Link>
+              </li>
+              <li>
+                <Link href="/solutions">{t("nav.solutions")}</Link>
+              </li>
             </ul>
           </div>
           <div className="footer-col">
             <h2>{t("footer.legal")}</h2>
             <ul>
-              <li><Link href="/contact">{t("nav.contact")}</Link></li>
-              <li><Link href="/privacy">{t("footer.privacy")}</Link></li>
-              <li><Link href="/legal">{t("footer.legalPage")}</Link></li>
-              <li><a href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">{t("footer.linkedin")} <ArrowUpRight size={13} aria-hidden="true" /></a></li>
+              <li>
+                <Link href="/contact">{t("nav.contact")}</Link>
+              </li>
+              <li>
+                <Link href="/privacy">{t("footer.privacy")}</Link>
+              </li>
+              <li>
+                <Link href="/legal">{t("footer.legalPage")}</Link>
+              </li>
+              <li>
+                <a href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
+                  {t("footer.linkedin")} <ArrowUpRight size={13} aria-hidden="true" />
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -65,12 +103,21 @@ export function Footer({ firmDisclaimer = null, hiddenFunds = [], contact = {} }
         {/* regulatory boilerplate: src/content/disclaimers.ts (compliance review); firm text overridable in the admin */}
         <div className="footer-disc" id="disclaimers" data-testid="footer-disclaimers">
           {/* collapsed to its first lines with a fade; the full text stays in the DOM, "#disclaimers" opens it */}
-          <Disclosure anchors={["disclaimers"]} className="footer-disc-body" testId="footer-disclosure" en={texts.map((d) => d.en || d.fr)}>
-            {texts.map((d, i) => <p key={i}>{pick(d)}</p>)}
+          <Disclosure
+            anchors={["disclaimers"]}
+            className="footer-disc-body"
+            testId="footer-disclosure"
+            en={texts.map((d) => d.en || d.fr)}
+          >
+            {texts.map((d, i) => (
+              <p key={i}>{pick(d)}</p>
+            ))}
           </Disclosure>
         </div>
         <div className="footer-bottom">
-          <span>© {year} {t("footer.rights")}</span>
+          <span>
+            © {year} {t("footer.rights")}
+          </span>
           <span>{t("footer.pri")}</span>
         </div>
       </div>

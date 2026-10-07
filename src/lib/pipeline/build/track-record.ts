@@ -35,14 +35,27 @@ interface Candidate {
 
 const readyRows = (res: MnrResult): { month: string; r: number; source?: string | null }[] =>
   res?.ok && res.data
-    ? res.data.rows.filter((r) => r.status === "ready" && typeof r.net_return === "number" && Number.isFinite(r.net_return)).map((r) => ({ month: toMonthEnd(String(r.month)), r: r.net_return as number, source: r.source }))
+    ? res.data.rows
+        .filter((r) => r.status === "ready" && typeof r.net_return === "number" && Number.isFinite(r.net_return))
+        .map((r) => ({ month: toMonthEnd(String(r.month)), r: r.net_return as number, source: r.source }))
     : [];
 
 /** the dataplatform's aggregate row of a class code built from more than one Apex class during `month` (latest NAV window), or null */
-function multiClassAggregate(raw: RawPayloads, short: DpShort, code: string, month: string): { count: number; date: string } | null {
+function multiClassAggregate(
+  raw: RawPayloads,
+  short: DpShort,
+  code: string,
+  month: string,
+): { count: number; date: string } | null {
   const res = raw.nav[short];
   if (!res?.ok || !res.data) return null;
-  const hit = (res.data.aggregates ?? []).find((r) => r.class_code === code && ym(r.date) === ym(month) && typeof r.return_source_count === "number" && r.return_source_count > 1);
+  const hit = (res.data.aggregates ?? []).find(
+    (r) =>
+      r.class_code === code &&
+      ym(r.date) === ym(month) &&
+      typeof r.return_source_count === "number" &&
+      r.return_source_count > 1,
+  );
   return hit ? { count: hit.return_source_count as number, date: hit.date } : null;
 }
 
@@ -51,8 +64,12 @@ function payloadIdentityProblem(spec: FundSpec, res: MnrResult, code: string): s
   const d = res?.ok ? res.data : null;
   if (!d) return null;
   if (d.class_code !== code) return `class_code ${d.class_code ?? "missing"} instead of ${code}`;
-  const want = { display: classLabel(spec.key, code), fundserv: (FUND_SOURCES[spec.key].classFundserv as Record<string, string | undefined>)[code] ?? null };
-  if (d.class_display != null && d.class_display !== want.display) return `class_display ${d.class_display} instead of ${want.display}`;
+  const want = {
+    display: classLabel(spec.key, code),
+    fundserv: (FUND_SOURCES[spec.key].classFundserv as Record<string, string | undefined>)[code] ?? null,
+  };
+  if (d.class_display != null && d.class_display !== want.display)
+    return `class_display ${d.class_display} instead of ${want.display}`;
   if (d.fundserv != null && d.fundserv !== want.fundserv) return `fundserv ${d.fundserv} instead of ${want.fundserv}`;
   return null;
 }
@@ -69,7 +86,12 @@ function payloadIdentityProblem(spec: FundSpec, res: MnrResult, code: string): s
  *  - Months before the class's own NAV history (the strategy's track record since 2019, stored by the dataplatform as
  *    monthly figures that no endpoint serves): the analytics history. Gaps: the same-class factsheet monthly table.
  */
-function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, defects?: Map<string, string>): Candidate {
+function trackRecordCandidate(
+  raw: RawPayloads,
+  spec: FundSpec,
+  base: string,
+  defects?: Map<string, string>,
+): Candidate {
   const c = new Ctx();
   const key = `${base}.performance`;
   const src = FUND_SOURCES[spec.key];
@@ -112,10 +134,15 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
     c.error(key, `dataplatform monthly net returns ${short} ${code}: ${idp}: performance withheld`);
     return { fs: null, sourceMonths: {}, issues: c.issues, verify, analyticsMonths, alerts };
   }
-  const mnrReady = new Map(readyRows(dp).filter((r) => r.month <= target).map((r) => [r.month, r.r]));
+  const mnrReady = new Map(
+    readyRows(dp)
+      .filter((r) => r.month <= target)
+      .map((r) => [r.month, r.r]),
+  );
   if (dp?.ok && dp.data) {
     for (const [m, r] of mnrReady) {
-      if (m in s && Math.abs(s[m] - r) > TOL.analyticsVsDataplatform) c.warn(key, `${ym(m)}: analytics ${pct4(s[m])} vs dataplatform ${pct4(r)} (dataplatform used)`);
+      if (m in s && Math.abs(s[m] - r) > TOL.analyticsVsDataplatform)
+        c.warn(key, `${ym(m)}: analytics ${pct4(s[m])} vs dataplatform ${pct4(r)} (dataplatform used)`);
       set(m, r, "dataplatform");
     }
   } else c.warn(key, `dataplatform monthly net returns unavailable (${dp?.error ?? "not fetched"})`);
@@ -126,7 +153,11 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
   if (fsv && src.navStart) {
     const ch = classChain(raw, spec, fsv);
     const lbl = `class ${classLabel(spec.key, code) ?? "?"} (${fsv})`;
-    if (ch.error) c.warn(key, `daily NAV chain of ${lbl} unavailable (${ch.error}): months before the Apex ones from the analytics history`);
+    if (ch.error)
+      c.warn(
+        key,
+        `daily NAV chain of ${lbl} unavailable (${ch.error}): months before the Apex ones from the analytics history`,
+      );
     else {
       const ready = ch.months.filter((m) => m.status === "ready" && m.r !== null && m.month <= target);
       const mnrRows = dp?.ok && dp.data ? new Map(dp.data.rows.map((r) => [toMonthEnd(String(r.month)), r])) : null;
@@ -136,7 +167,10 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
         const v = mnrReady.get(m.month);
         if (v !== undefined) {
           if (Math.abs(v - (m.r as number)) > TOL.chainVsDataplatform) {
-            c.error(key, `${ym(m.month)}: daily NAV chain ${pct4(m.r as number)} vs monthly-net-returns ${pct4(v)}: two dataplatform views of the same days disagree; month withheld`);
+            c.error(
+              key,
+              `${ym(m.month)}: daily NAV chain ${pct4(m.r as number)} vs monthly-net-returns ${pct4(v)}: two dataplatform views of the same days disagree; month withheld`,
+            );
             delete s[m.month];
             withheld.add(m.month);
           }
@@ -148,7 +182,10 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
           continue;
         }
         const row = mnrRows.get(m.month);
-        c.warn(key, `${ym(m.month)}: daily NAV chain complete, monthly-net-returns says ${row ? `${row.status}${row.issue ? ` (${row.issue})` : ""}` : "nothing"}: month not used`);
+        c.warn(
+          key,
+          `${ym(m.month)}: daily NAV chain complete, monthly-net-returns says ${row ? `${row.status}${row.issue ? ` (${row.issue})` : ""}` : "nothing"}: month not used`,
+        );
         // the dataplatform aggregates its STRATEGY / STRATEGY_H row from every Apex class carrying the class's NAV token:
         // with two such classes (return_source_count > 1) monthly-net-returns can never compound the month
         const multi = multiClassAggregate(raw, short, code, m.month);
@@ -158,17 +195,31 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
           alerts.push(why);
         }
       }
-      if (!mnrRows && used.length) c.warn(key, `monthly-net-returns unavailable: Apex month(s) ${monthRanges(used)} compounded from the daily NAV chain (same rule)`);
+      if (!mnrRows && used.length)
+        c.warn(
+          key,
+          `monthly-net-returns unavailable: Apex month(s) ${monthRanges(used)} compounded from the daily NAV chain (same rule)`,
+        );
       // CIBC months: all or nothing, verified on every month the analytics history also has
       const cibc = ready.filter((x) => x.source === "cibc");
       const common = cibc.filter((m) => m.month in analyticsMonths);
       const off = common.filter((m) => Math.abs((m.r as number) - analyticsMonths[m.month]) > TOL.chainVsAnalytics);
       if (cibc.length) {
         if (off.length) {
-          const worst = off.reduce((a, m) => (Math.abs((m.r as number) - analyticsMonths[m.month]) > Math.abs((a.r as number) - analyticsMonths[a.month]) ? m : a));
-          c.warn(key, `stored CIBC daily returns of ${lbl} do not reproduce the analytics history on ${off.length} of ${common.length} month(s) (beyond ${(TOL.chainVsAnalytics * 10_000).toFixed(1)} bp; largest ${ym(worst.month)}: chain ${pct4(worst.r as number)} vs analytics ${pct4(analyticsMonths[worst.month])}): the fund's CIBC months are not taken from the dataplatform (analytics kept; no other class can use them)`);
+          const worst = off.reduce((a, m) =>
+            Math.abs((m.r as number) - analyticsMonths[m.month]) > Math.abs((a.r as number) - analyticsMonths[a.month])
+              ? m
+              : a,
+          );
+          c.warn(
+            key,
+            `stored CIBC daily returns of ${lbl} do not reproduce the analytics history on ${off.length} of ${common.length} month(s) (beyond ${(TOL.chainVsAnalytics * 10_000).toFixed(1)} bp; largest ${ym(worst.month)}: chain ${pct4(worst.r as number)} vs analytics ${pct4(analyticsMonths[worst.month])}): the fund's CIBC months are not taken from the dataplatform (analytics kept; no other class can use them)`,
+          );
         } else if (common.length < CHAIN.minVerifiedMonths) {
-          c.info(key, `stored CIBC daily returns of ${lbl}: only ${common.length} month(s) in common with the analytics history (${CHAIN.minVerifiedMonths} needed to verify them): CIBC months not taken from the dataplatform`);
+          c.info(
+            key,
+            `stored CIBC daily returns of ${lbl}: only ${common.length} month(s) in common with the analytics history (${CHAIN.minVerifiedMonths} needed to verify them): CIBC months not taken from the dataplatform`,
+          );
         } else {
           verify.cibc = true;
           const maxDiff = Math.max(...common.map((m) => Math.abs((m.r as number) - analyticsMonths[m.month])));
@@ -176,27 +227,44 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
             set(m.month, m.r as number, "navchain");
             used.push(m.month);
           }
-          c.info(key, `stored CIBC daily returns of ${lbl} reproduce the analytics history on ${common.length} month(s) (largest difference ${(maxDiff * 10_000).toFixed(3)} bp): ${monthRanges(cibc.map((m) => m.month))} taken from the dataplatform daily NAV chain`);
+          c.info(
+            key,
+            `stored CIBC daily returns of ${lbl} reproduce the analytics history on ${common.length} month(s) (largest difference ${(maxDiff * 10_000).toFixed(3)} bp): ${monthRanges(cibc.map((m) => m.month))} taken from the dataplatform daily NAV chain`,
+          );
         }
       }
       // the cut-over month
       const br = ch.months.find((x) => x.source === "bridge" && x.month <= target);
-      if (br && br.status !== "ready") c.info(key, `cut-over month ${ym(br.month)}: NAV bridge of ${lbl} unavailable (${br.issue})`);
+      if (br && br.status !== "ready")
+        c.info(key, `cut-over month ${ym(br.month)}: NAV bridge of ${lbl} unavailable (${br.issue})`);
       else if (br && br.r !== null) {
         const a = analyticsMonths[br.month];
         // without an analytics month, the bridge needs an independent confirmation: a same-class factsheet monthly table
         // printing the cut-over month within its precision
         const fsv2 = a === undefined && !mnrReady.has(br.month) ? factsheetMonthValue(raw, spec, code, br.month) : null;
         if (a !== undefined && Math.abs(br.r - a) > TOL.chainVsAnalytics) {
-          c.warn(key, `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs analytics ${pct4(a)}: bridge not used (analytics kept)`);
+          c.warn(
+            key,
+            `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs analytics ${pct4(a)}: bridge not used (analytics kept)`,
+          );
         } else if (a === undefined && !mnrReady.has(br.month) && !fsv2) {
-          c.warn(key, `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} has no independent confirmation (no analytics month, no same-class factsheet printing ${ym(br.month)}): bridge not used`);
+          c.warn(
+            key,
+            `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} has no independent confirmation (no analytics month, no same-class factsheet printing ${ym(br.month)}): bridge not used`,
+          );
         } else if (fsv2 && Math.abs(br.r - fsv2.value) > fsv2.tol) {
-          c.warn(key, `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs factsheet ${fsv2.name} ${pct4(fsv2.value)} (beyond print precision): month withheld (neither is used)`);
+          c.warn(
+            key,
+            `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs factsheet ${fsv2.name} ${pct4(fsv2.value)} (beyond print precision): month withheld (neither is used)`,
+          );
           withheld.add(br.month);
         } else if (mnrReady.has(br.month)) {
           const v = mnrReady.get(br.month)!;
-          if (Math.abs(br.r - v) > TOL.chainVsAnalytics) c.warn(key, `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs monthly-net-returns ${pct4(v)} (monthly-net-returns used)`);
+          if (Math.abs(br.r - v) > TOL.chainVsAnalytics)
+            c.warn(
+              key,
+              `cut-over month ${ym(br.month)}: NAV bridge ${pct4(br.r)} vs monthly-net-returns ${pct4(v)} (monthly-net-returns used)`,
+            );
         } else {
           verify.bridge = true;
           set(br.month, br.r, "navchain");
@@ -213,21 +281,44 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
     for (const [m, why] of [...defects].sort(([a], [b]) => (a < b ? -1 : 1))) {
       if (!(m in s)) continue;
       if (origin[m] === "navchain" || origin[m] === "dataplatform") {
-        const from = origin[m] === "navchain" ? "its own daily NAV chain" : "monthly-net-returns (the same Apex NAVs as the class chain)";
+        const from =
+          origin[m] === "navchain"
+            ? "its own daily NAV chain"
+            : "monthly-net-returns (the same Apex NAVs as the class chain)";
         if (m in analyticsMonths) {
           set(m, analyticsMonths[m], "analytics");
           kept.push(`${ym(m)} (official figure of the analytics history, instead of ${from})`);
         } else {
-          c.warn(key, `${ym(m)}: withheld from the track record (taken from ${from}, which failed the class checks: ${why})`);
+          c.warn(
+            key,
+            `${ym(m)}: withheld from the track record (taken from ${from}, which failed the class checks: ${why})`,
+          );
           delete s[m];
           withheld.add(m);
         }
       } else kept.push(`${ym(m)} (${origin[m]}: official figure)`);
     }
-    if (kept.length) c.warn(key, `month(s) failing the class checks kept in the track record with an official figure (not an independent check of the class NAV data): ${kept.join(", ")}`);
+    if (kept.length)
+      c.warn(
+        key,
+        `month(s) failing the class checks kept in the track record with an official figure (not an independent check of the class NAV data): ${kept.join(", ")}`,
+      );
   }
-  const sourceMonths: Series = Object.fromEntries(Object.entries(s).filter(([m]) => klass[m] === code && origin[m] !== "factsheet"));
-  const fs = finishSeries(raw, spec, c, base, { s, origin, klass, classCode: code, dp, fill: true, chainSource, analyticsName: name, mandatoryTable: true, withheld });
+  const sourceMonths: Series = Object.fromEntries(
+    Object.entries(s).filter(([m]) => klass[m] === code && origin[m] !== "factsheet"),
+  );
+  const fs = finishSeries(raw, spec, c, base, {
+    s,
+    origin,
+    klass,
+    classCode: code,
+    dp,
+    fill: true,
+    chainSource,
+    analyticsName: name,
+    mandatoryTable: true,
+    withheld,
+  });
   return { fs, sourceMonths, issues: c.issues, verify, analyticsMonths, alerts };
 }
 
@@ -236,7 +327,13 @@ function trackRecordCandidate(raw: RawPayloads, spec: FundSpec, base: string, de
  * of ONE class (a series mixing classes is never built: finishSeries). The fund's other classes are built from their own
  * daily NAV chains next to it (buildClasses).
  */
-export function fundSeries(raw: RawPayloads, spec: FundSpec, c: Ctx, base: string, defects?: Map<string, string>): { fs: FundSeries | null; cand: Candidate } {
+export function fundSeries(
+  raw: RawPayloads,
+  spec: FundSpec,
+  c: Ctx,
+  base: string,
+  defects?: Map<string, string>,
+): { fs: FundSeries | null; cand: Candidate } {
   const cand = trackRecordCandidate(raw, spec, base, defects);
   c.issues.push(...cand.issues);
   return { fs: cand.fs, cand };

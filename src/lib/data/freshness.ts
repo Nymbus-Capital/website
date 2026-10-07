@@ -33,7 +33,10 @@ export const isFreshBook = (asOf: string, now: Date): boolean => bookAgeProblem(
  * an old snapshot, a pipeline that stopped): the page then shows the month-end factsheet figures, never a stale book
  * labelled "daily". Pure; returns the input itself when nothing changes (cached values are frozen).
  */
-export function dropStalePortfolio<D extends { portfolio?: PortfolioData | null }>(data: D | null | undefined, now: Date): D | null {
+export function dropStalePortfolio<D extends { portfolio?: PortfolioData | null }>(
+  data: D | null | undefined,
+  now: Date,
+): D | null {
   if (!data) return null;
   if (!data.portfolio || isFreshBook(data.portfolio.asOf, now)) return data;
   return { ...data, portfolio: null };

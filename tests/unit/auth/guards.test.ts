@@ -2,7 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
-  checkCsrf, sanitizeReturnTo, serializeCookie, sessionCookieSpec, timingSafeEqualStr, SESSION_COOKIE, SESSION_COOKIE_INSECURE,
+  checkCsrf,
+  sanitizeReturnTo,
+  serializeCookie,
+  sessionCookieSpec,
+  timingSafeEqualStr,
+  SESSION_COOKIE,
+  SESSION_COOKIE_INSECURE,
 } from "../../../src/lib/auth/guards.ts";
 import { loadAuthConfig } from "../../../src/lib/auth/config.ts";
 import { isValidVerifier, pkceChallenge, randomToken } from "../../../src/lib/auth/pkce.ts";
@@ -15,10 +21,37 @@ test("returnTo: same-site admin paths are kept", () => {
 
 test("returnTo: open redirect attempts fall back to /admin", () => {
   for (const bad of [
-    "https://evil.com", "http://evil.com/admin", "//evil.com", "//evil.com/admin", "/\\evil.com", "\\\\evil.com", "/admin\\..\\x",
-    "javascript:alert(1)", "data:text/html,x", "admin", "", " /admin", "/admin\n", "/admin\t", "/%2F%2Fevil.com", "/admin/%2e%2e/x",
-    "/admin/../api/x", "/admin/./x", "/%5Cevil.com", "/administrator", "/", "/strategies", "/api/admin/status", "/admin%00", "x".repeat(600),
-    "/ admin", "/%E0%A4%A", null, undefined, 42, ["/admin"],
+    "https://evil.com",
+    "http://evil.com/admin",
+    "//evil.com",
+    "//evil.com/admin",
+    "/\\evil.com",
+    "\\\\evil.com",
+    "/admin\\..\\x",
+    "javascript:alert(1)",
+    "data:text/html,x",
+    "admin",
+    "",
+    " /admin",
+    "/admin\n",
+    "/admin\t",
+    "/%2F%2Fevil.com",
+    "/admin/%2e%2e/x",
+    "/admin/../api/x",
+    "/admin/./x",
+    "/%5Cevil.com",
+    "/administrator",
+    "/",
+    "/strategies",
+    "/api/admin/status",
+    "/admin%00",
+    "x".repeat(600),
+    "/ admin",
+    "/%E0%A4%A",
+    null,
+    undefined,
+    42,
+    ["/admin"],
   ]) {
     assert.equal(sanitizeReturnTo(bad as unknown), "/admin", `accepted: ${JSON.stringify(bad)}`);
   }
@@ -64,7 +97,10 @@ test("serializeCookie includes the security attributes", () => {
   assert.doesNotMatch(c, /Domain=/);
 });
 
-const req = (method: string, h: Record<string, string>) => ({ method, headers: { get: (n: string) => h[n.toLowerCase()] ?? null } });
+const req = (method: string, h: Record<string, string>) => ({
+  method,
+  headers: { get: (n: string) => h[n.toLowerCase()] ?? null },
+});
 const PUB = "https://www.nymbus.ca";
 
 test("CSRF: safe methods pass", () => {
@@ -75,19 +111,31 @@ test("CSRF: safe methods pass", () => {
 test("CSRF: mutations need a matching Origin and the custom header or JSON", () => {
   assert.equal(checkCsrf(req("POST", { origin: PUB, "x-nymbus-admin": "1" }), PUB).ok, true);
   assert.equal(checkCsrf(req("PUT", { origin: PUB, "content-type": "application/json; charset=utf-8" }), PUB).ok, true);
-  assert.equal(checkCsrf(req("DELETE", { origin: PUB, "x-nymbus-admin": "1", "sec-fetch-site": "same-origin" }), PUB).ok, true);
+  assert.equal(
+    checkCsrf(req("DELETE", { origin: PUB, "x-nymbus-admin": "1", "sec-fetch-site": "same-origin" }), PUB).ok,
+    true,
+  );
 
   assert.equal(checkCsrf(req("POST", { "x-nymbus-admin": "1" }), PUB).ok, false, "missing origin");
   assert.equal(checkCsrf(req("POST", { origin: "null", "x-nymbus-admin": "1" }), PUB).ok, false);
   assert.equal(checkCsrf(req("POST", { origin: "https://evil.com", "x-nymbus-admin": "1" }), PUB).ok, false);
-  assert.equal(checkCsrf(req("POST", { origin: "https://www.nymbus.ca.evil.com", "x-nymbus-admin": "1" }), PUB).ok, false);
+  assert.equal(
+    checkCsrf(req("POST", { origin: "https://www.nymbus.ca.evil.com", "x-nymbus-admin": "1" }), PUB).ok,
+    false,
+  );
   assert.equal(checkCsrf(req("POST", { origin: "http://www.nymbus.ca", "x-nymbus-admin": "1" }), PUB).ok, false);
   assert.equal(checkCsrf(req("POST", { origin: "https://www.nymbus.ca:8443", "x-nymbus-admin": "1" }), PUB).ok, false);
   assert.equal(checkCsrf(req("POST", { origin: PUB }), PUB).ok, false, "no custom header");
   assert.equal(checkCsrf(req("POST", { origin: PUB, "content-type": "text/plain" }), PUB).ok, false);
-  assert.equal(checkCsrf(req("POST", { origin: PUB, "content-type": "multipart/form-data; boundary=x" }), PUB).ok, false);
+  assert.equal(
+    checkCsrf(req("POST", { origin: PUB, "content-type": "multipart/form-data; boundary=x" }), PUB).ok,
+    false,
+  );
   assert.equal(checkCsrf(req("POST", { origin: PUB, "x-nymbus-admin": "0" }), PUB).ok, false);
-  assert.equal(checkCsrf(req("POST", { origin: PUB, "x-nymbus-admin": "1", "sec-fetch-site": "cross-site" }), PUB).ok, false);
+  assert.equal(
+    checkCsrf(req("POST", { origin: PUB, "x-nymbus-admin": "1", "sec-fetch-site": "cross-site" }), PUB).ok,
+    false,
+  );
   assert.equal(checkCsrf(req("PATCH", { origin: PUB, "x-nymbus-admin": "1" }), undefined).ok, false, "no PUBLIC_URL");
 });
 
@@ -146,10 +194,27 @@ test("auth config: endpoints derived from the tenant, fails closed on weak / mis
 test("auth config: the committed e2e secret and a localhost PUBLIC_URL are refused outside the e2e setup", () => {
   const E2E_SECRET = "e2e-auth-secret-0123456789abcdef0123456789abcdef";
   assert.equal(loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET }).ok, false);
-  assert.equal(loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET, AUTH_INSECURE_COOKIES_FOR_LOCALHOST: "1" }).ok, false, "https PUBLIC_URL");
-  assert.equal(loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET, PUBLIC_URL: "http://localhost:3100" }).ok, false, "no opt-in");
+  assert.equal(
+    loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET, AUTH_INSECURE_COOKIES_FOR_LOCALHOST: "1" }).ok,
+    false,
+    "https PUBLIC_URL",
+  );
+  assert.equal(
+    loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET, PUBLIC_URL: "http://localhost:3100" }).ok,
+    false,
+    "no opt-in",
+  );
   // the e2e server: localhost + opt-in, even with NODE_ENV=production (next start)
-  assert.equal(loadAuthConfig({ ...GOOD_ENV, AUTH_SECRET: E2E_SECRET, PUBLIC_URL: "http://localhost:3100", AUTH_INSECURE_COOKIES_FOR_LOCALHOST: "1", NODE_ENV: "production" }).ok, true);
+  assert.equal(
+    loadAuthConfig({
+      ...GOOD_ENV,
+      AUTH_SECRET: E2E_SECRET,
+      PUBLIC_URL: "http://localhost:3100",
+      AUTH_INSECURE_COOKIES_FOR_LOCALHOST: "1",
+      NODE_ENV: "production",
+    }).ok,
+    true,
+  );
   assert.equal(loadAuthConfig({ ...GOOD_ENV, PUBLIC_URL: "http://localhost:3100", NODE_ENV: "production" }).ok, false);
   assert.equal(loadAuthConfig({ ...GOOD_ENV, PUBLIC_URL: "https://127.0.0.1", NODE_ENV: "production" }).ok, false);
   assert.equal(loadAuthConfig({ ...GOOD_ENV, NODE_ENV: "production" }).ok, true);

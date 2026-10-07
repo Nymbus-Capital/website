@@ -12,7 +12,14 @@ export const NAV_LINKS: { href: string; key: DictKey }[] = [
   { href: "/contact", key: "nav.contact" },
 ];
 
-export const FUND_LINKS = PUBLIC_FUNDS.map((f) => ({ key: f.key, href: `/strategies/${f.key}`, name: f.name, short: f.short, tagline: f.tagline, color: f.color }));
+export const FUND_LINKS = PUBLIC_FUNDS.map((f) => ({
+  key: f.key,
+  href: `/strategies/${f.key}`,
+  name: f.name,
+  short: f.short,
+  tagline: f.tagline,
+  color: f.color,
+}));
 
 export const CONTACT = {
   email: "info@nymbus.ca",

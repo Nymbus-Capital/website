@@ -37,5 +37,8 @@ test("official provider logos shipped (Fundata, RBC Investor Services) beside th
   for (const name of ["morningstar-logo.png", "morningstar-stars-5.png", "fundata-logo.png", "rbc-logo.png"]) {
     assert.ok(existsSync(path.join(DIR, name)), `${name} shipped`);
   }
-  assert.ok(!existsSync(path.join(DIR, "fundlibrary-logo.png")) && !existsSync(path.join(DIR, "fundlibrary-logo.svg")), "former slot name not shipped");
+  assert.ok(
+    !existsSync(path.join(DIR, "fundlibrary-logo.png")) && !existsSync(path.join(DIR, "fundlibrary-logo.svg")),
+    "former slot name not shipped",
+  );
 });

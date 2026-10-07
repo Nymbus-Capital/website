@@ -12,7 +12,8 @@ const dir = mkdtempSync(path.join(tmpdir(), "nymbus-cms-"));
 process.env.SITE_DATA_DIR = dir;
 after(() => rmSync(dir, { recursive: true, force: true }));
 
-const { createCmsSource, LAST_GOOD, LAST_GOOD_PREV, LAST_GOOD_META, FAIL_BACKOFF_MS, MIN_FETCH_GAP_MS, shrinkProblem } = await import("../../../src/lib/cms/source.ts");
+const { createCmsSource, LAST_GOOD, LAST_GOOD_PREV, LAST_GOOD_META, FAIL_BACKOFF_MS, MIN_FETCH_GAP_MS, shrinkProblem } =
+  await import("../../../src/lib/cms/source.ts");
 const { loadCmsConfig } = await import("../../../src/lib/cms/config.ts");
 
 const fixture = readFileSync(path.resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8");
@@ -26,12 +27,29 @@ function harness(handler: () => Response | Promise<Response>) {
   let calls = 0;
   const logs: string[] = [];
   const mode = { fn: handler };
-  const src = createCmsSource(cfg, { fetchImpl: async () => { calls++; return mode.fn(); }, now: () => t, log: (m) => logs.push(m) });
-  return { src, mode, logs, calls: () => calls, advance: (ms: number) => { t += ms; } };
+  const src = createCmsSource(cfg, {
+    fetchImpl: async () => {
+      calls++;
+      return mode.fn();
+    },
+    now: () => t,
+    log: (m) => logs.push(m),
+  });
+  return {
+    src,
+    mode,
+    logs,
+    calls: () => calls,
+    advance: (ms: number) => {
+      t += ms;
+    },
+  };
 }
 const tick = () => new Promise((r) => setTimeout(r, 50));
 
-beforeEach(() => { rmSync(path.join(dir, "cms"), { recursive: true, force: true }); });
+beforeEach(() => {
+  rmSync(path.join(dir, "cms"), { recursive: true, force: true });
+});
 
 test("first request fetches, validates and stores the last good copy", async () => {
   const h = harness(() => ok());
@@ -50,7 +68,10 @@ test("within the TTL nothing is refetched; after it the stale copy is served whi
   assert.equal(h.calls(), 1);
   h.advance(31_000);
   let release: (r: Response) => void = () => undefined;
-  h.mode.fn = () => new Promise<Response>((res) => { release = res; });
+  h.mode.fn = () =>
+    new Promise<Response>((res) => {
+      release = res;
+    });
   const [a, b, c] = await Promise.all([h.src.get(), h.src.get(), h.src.get()]);
   assert.equal(a!.origin, "live");
   assert.equal(a, b);
@@ -61,11 +82,17 @@ test("within the TTL nothing is refetched; after it the stale copy is served whi
   for (let i = 0; i < 100 && (await h.src.get())!.doc.news.length !== 3; i++) await tick();
   assert.equal((await h.src.get())!.doc.news.length, 3, "the refreshed document replaces the stale one");
   for (let i = 0; i < 100 && !existsSync(path.join(dir, ...LAST_GOOD_PREV)); i++) await tick();
-  assert.equal(JSON.parse(readFileSync(path.join(dir, ...LAST_GOOD_PREV), "utf8")).news.length, 4, "the replaced copy is kept as last-good.prev.json");
+  assert.equal(
+    JSON.parse(readFileSync(path.join(dir, ...LAST_GOOD_PREV), "utf8")).news.length,
+    4,
+    "the replaced copy is kept as last-good.prev.json",
+  );
 });
 
 test("WordPress down on a cold start with an empty volume: null (callers use the static sources)", async () => {
-  const h = harness(() => { throw new TypeError("fetch failed"); });
+  const h = harness(() => {
+    throw new TypeError("fetch failed");
+  });
   assert.equal(await h.src.get(), null);
   assert.equal(existsSync(lastGoodFile), false);
   assert.match(h.logs[0], /not used/);
@@ -102,7 +129,10 @@ test("a damaged or hostile last good file is ignored", async () => {
   // images of a file written under another media origin are dropped on read
   writeFileSync(lastGoodFile, fixture);
   writeFileSync(path.join(dir, ...LAST_GOOD_META), JSON.stringify({ at: Date.now() }));
-  const other = createCmsSource(loadCmsConfig({ WP_BASE_URL: "https://cms.example.org" }, () => undefined)!, { fetchImpl: async () => new Response("x", { status: 500 }), log: () => undefined });
+  const other = createCmsSource(
+    loadCmsConfig({ WP_BASE_URL: "https://cms.example.org" }, () => undefined)!,
+    { fetchImpl: async () => new Response("x", { status: 500 }), log: () => undefined },
+  );
   const s = await other.get();
   assert.equal(s!.origin, "last-good");
   assert.equal(s!.doc.news[0].image, null);
@@ -112,7 +142,11 @@ test("a bad response (wrong schema, hostile or oversized) never replaces a good 
   const h = harness(() => ok());
   await h.src.get();
   const before = readFileSync(lastGoodFile, "utf8");
-  for (const bad of [() => ok(JSON.stringify({ schemaVersion: 2, news: [], team: [] })), () => ok("<html>login</html>"), () => new Response(fixture, { status: 200, headers: { "content-type": "text/html" } })]) {
+  for (const bad of [
+    () => ok(JSON.stringify({ schemaVersion: 2, news: [], team: [] })),
+    () => ok("<html>login</html>"),
+    () => new Response(fixture, { status: 200, headers: { "content-type": "text/html" } }),
+  ]) {
     h.advance(61_000 + FAIL_BACKOFF_MS);
     h.mode.fn = bad;
     const s = await h.src.get();
@@ -152,16 +186,26 @@ test("revalidate forces a refetch, coalesces concurrent calls and is rate limite
 });
 
 test("log lines never contain the content secret", async () => {
-  const secretCfg = loadCmsConfig({ WP_BASE_URL: "http://localhost:3199", WP_CONTENT_SECRET: "sekrit-value" }, () => undefined)!;
+  const secretCfg = loadCmsConfig(
+    { WP_BASE_URL: "http://localhost:3199", WP_CONTENT_SECRET: "sekrit-value" },
+    () => undefined,
+  )!;
   const logs: string[] = [];
-  const src = createCmsSource(secretCfg, { fetchImpl: async () => { throw new TypeError("fetch failed sekrit-value"); }, log: (m) => logs.push(m) });
+  const src = createCmsSource(secretCfg, {
+    fetchImpl: async () => {
+      throw new TypeError("fetch failed sekrit-value");
+    },
+    log: (m) => logs.push(m),
+  });
   await src.get();
   assert.ok(logs.length > 0);
   assert.ok(logs.every((l) => !l.includes("sekrit-value")));
 });
 
 test("inside the back-off with nothing in memory (no volume copy) the source answers null at once, without a request", async () => {
-  const h = harness(() => { throw new TypeError("fetch failed"); });
+  const h = harness(() => {
+    throw new TypeError("fetch failed");
+  });
   assert.equal(await h.src.get(), null);
   assert.equal(h.calls(), 1);
   h.advance(FAIL_BACKOFF_MS - 1000);

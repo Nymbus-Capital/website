@@ -22,7 +22,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="adm" data-admin>
       <Rail email={user.email} name={user.name} />
       <AdminShellClient>
-        <div className="adm-main" id="admin-main">{children}</div>
+        <div className="adm-main" id="admin-main">
+          {children}
+        </div>
       </AdminShellClient>
     </div>
   );

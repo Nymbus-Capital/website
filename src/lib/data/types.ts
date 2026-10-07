@@ -23,9 +23,22 @@ export interface Issue {
   message: string;
 }
 
-export interface MonthlyPoint { month: string; r: number }
-export interface GrowthPoint { date: string; fund: number; index?: number | null }
-export interface CalendarRow { year: number; fund: number | null; index?: number | null; va?: number | null; partial?: boolean }
+export interface MonthlyPoint {
+  month: string;
+  r: number;
+}
+export interface GrowthPoint {
+  date: string;
+  fund: number;
+  index?: number | null;
+}
+export interface CalendarRow {
+  year: number;
+  fund: number | null;
+  index?: number | null;
+  va?: number | null;
+  partial?: boolean;
+}
 
 export interface Trailing {
   fund: PeriodMap;
@@ -99,7 +112,20 @@ export interface RiskStats {
    * when a value is a published figure (factsheet string), the number of decimals it was published with,
    * in display units (percent points for percentages): render at that precision. Optional.
    */
-  decimals?: Partial<Record<"annReturn" | "annVol" | "downsideDev" | "sharpe" | "sortino" | "maxDrawdown" | "positiveMonths" | "bestMonth" | "worstMonth", number>>;
+  decimals?: Partial<
+    Record<
+      | "annReturn"
+      | "annVol"
+      | "downsideDev"
+      | "sharpe"
+      | "sortino"
+      | "maxDrawdown"
+      | "positiveMonths"
+      | "bestMonth"
+      | "worstMonth",
+      number
+    >
+  >;
 }
 
 export interface NavClass {
@@ -123,8 +149,15 @@ export interface NavClass {
   changePct: number | null;
 }
 
-export interface Bucket { label: string; fund: number | null; index?: number | null }
-export interface Holding { name: string; weight: number }
+export interface Bucket {
+  label: string;
+  fund: number | null;
+  index?: number | null;
+}
+export interface Holding {
+  name: string;
+  weight: number;
+}
 
 export interface Characteristic {
   /** stable id, e.g. `portfolioYield`, `duration`, `creditQuality` */
@@ -153,7 +186,11 @@ export interface PortfolioMetric {
   scope?: "bondHoldings";
 }
 
-export interface WeightBucket { label: string; weight: number; count?: number | null }
+export interface WeightBucket {
+  label: string;
+  weight: number;
+  count?: number | null;
+}
 
 export interface PortfolioHolding {
   name: string;
@@ -187,7 +224,12 @@ export interface PortfolioData {
   topHoldings: PortfolioHolding[];
   /** weight of green bonds (fraction); null when unknown or not shown for this fund */
   greenBondsWeight: number | null;
-  totals: { holdings: number | null; bonds: number | null; cashWeight: number | null; derivatives: number | null } | null;
+  totals: {
+    holdings: number | null;
+    bonds: number | null;
+    cashWeight: number | null;
+    derivatives: number | null;
+  } | null;
   /** share of the bond weight resolved to the instrument master / priced on the book date */
   coverage: { resolved: number | null; priced: number | null } | null;
 }
@@ -340,8 +382,18 @@ export interface SiteData {
 /* ------------------------------------------------------------------ admin-managed content */
 
 export type DocType =
-  | "factsheet" | "fund-facts" | "prospectus" | "annual-report" | "interim-report"
-  | "mrfp" | "proxy-voting" | "tax-factors" | "commentary" | "presentation" | "esg" | "other";
+  | "factsheet"
+  | "fund-facts"
+  | "prospectus"
+  | "annual-report"
+  | "interim-report"
+  | "mrfp"
+  | "proxy-voting"
+  | "tax-factors"
+  | "commentary"
+  | "presentation"
+  | "esg"
+  | "other";
 
 export interface DocumentMeta {
   id: string;
@@ -361,7 +413,20 @@ export interface DocumentMeta {
 }
 
 /** Blocks an admin can hide on a fund page (`characteristics`, `breakdowns`, `holdings` apply to the daily portfolio too). */
-export const HIDE_BLOCKS = ["performance", "calendar", "growth", "risk", "nav", "aum", "characteristics", "breakdowns", "holdings", "esg", "distributions", "rankings"] as const;
+export const HIDE_BLOCKS = [
+  "performance",
+  "calendar",
+  "growth",
+  "risk",
+  "nav",
+  "aum",
+  "characteristics",
+  "breakdowns",
+  "holdings",
+  "esg",
+  "distributions",
+  "rankings",
+] as const;
 type HideBlock = (typeof HIDE_BLOCKS)[number];
 
 export type ClassType = "prospectus" | "om" | "none";
@@ -514,7 +579,7 @@ export interface SiteContent {
   updatedAt: string;
   updatedBy: string;
   firm: {
-    aumLabel?: L;          // e.g. "$1.9B" (firm AUM incl. mandates is not in the dataplatform)
+    aumLabel?: L; // e.g. "$1.9B" (firm AUM incl. mandates is not in the dataplatform)
     announcement?: L | null;
     disclaimer?: L;
   };

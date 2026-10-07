@@ -3,7 +3,9 @@
  * diagonal sweep and a lift under the pointer. Canvas 2D, dots batched by alpha bucket, ~24 fps, DPR ≤ 1.5,
  * paused off-screen and while the tab is hidden, one still frame under reduced motion. Framework-free, lazily imported.
  */
-export interface DataField { destroy(): void }
+export interface DataField {
+  destroy(): void;
+}
 
 interface DataFieldOptions {
   still?: boolean;
@@ -23,9 +25,20 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
   if (!ctx) return { destroy() {} };
   const strength = opts.strength ?? 1;
   const minGap = 1000 / Math.max(5, Math.min(60, opts.maxFps ?? 26)) - 2;
-  let W = 0, H = 0, dpr = 1, gap = 28, cols = 0, rows = 0;
-  let raf = 0, running = false, onscreen = false, visible = document.visibilityState === "visible";
-  let clock = 0, last = 0, frames = 0, nextPulse = 0;
+  let W = 0,
+    H = 0,
+    dpr = 1,
+    gap = 28,
+    cols = 0,
+    rows = 0;
+  let raf = 0,
+    running = false,
+    onscreen = false,
+    visible = document.visibilityState === "visible";
+  let clock = 0,
+    last = 0,
+    frames = 0,
+    nextPulse = 0;
   const pulses: { x: number; y: number; t0: number }[] = [];
   const pointer = { x: -1e4, y: -1e4, a: 0, ta: 0 };
   const lists: Uint32Array[] = [];
@@ -33,10 +46,13 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
   function resize() {
     const r = canvas.getBoundingClientRect();
     dpr = Math.min(1.5, window.devicePixelRatio || 1);
-    W = Math.max(1, r.width); H = Math.max(1, r.height);
-    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
     gap = opts.gap ?? (W < 600 ? 32 : 28);
-    cols = Math.ceil(W / gap) + 1; rows = Math.ceil(H / gap) + 1;
+    cols = Math.ceil(W / gap) + 1;
+    rows = Math.ceil(H / gap) + 1;
     const n = cols * rows;
     for (let b = 0; b < BUCKETS; b++) lists[b] = new Uint32Array(n);
   }
@@ -50,7 +66,8 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
     pointer.a += (pointer.ta - pointer.a) * 0.08;
     for (let j = 0; j < rows; j++) {
       for (let i = 0; i < cols; i++) {
-        const x = i * gap, y = j * gap;
+        const x = i * gap,
+          y = j * gap;
         let v = 0.16;
         for (const p of pulses) {
           const age = (t - p.t0) / 1000;
@@ -67,7 +84,7 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
           v += Math.exp(-d2) * 0.8 * pointer.a;
         }
         // a quiet twinkle so the lattice is never still
-        v += 0.05 * Math.sin(t * 0.0011 + (i * 12.9898 + j * 78.233) % 6.283);
+        v += 0.05 * Math.sin(t * 0.0011 + ((i * 12.9898 + j * 78.233) % 6.283));
         const b = Math.max(0, Math.min(BUCKETS - 1, Math.floor(v * strength * BUCKETS * 0.75)));
         lists[b][counts[b]++] = j * cols + i;
       }
@@ -76,11 +93,13 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
       if (!counts[b]) continue;
       const k = b / (BUCKETS - 1);
       const size = 1.5 + 2.1 * k;
-      ctx!.fillStyle = k > 0.7 ? `rgba(0,163,224,${(0.35 + 0.5 * k).toFixed(2)})` : `rgba(26,115,232,${(0.09 + 0.4 * k).toFixed(2)})`;
+      ctx!.fillStyle =
+        k > 0.7 ? `rgba(0,163,224,${(0.35 + 0.5 * k).toFixed(2)})` : `rgba(26,115,232,${(0.09 + 0.4 * k).toFixed(2)})`;
       const list = lists[b];
       for (let m = 0; m < counts[b]; m++) {
         const idx = list[m];
-        const x = (idx % cols) * gap, y = Math.floor(idx / cols) * gap;
+        const x = (idx % cols) * gap,
+          y = Math.floor(idx / cols) * gap;
         ctx!.fillRect(x - size / 2, y - size / 2, size, size);
       }
     }
@@ -101,7 +120,10 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
     raf = 0;
     if (!running) return;
     const dt = last ? Math.min(100, now - last) : 16;
-    if (last && dt < minGap) { raf = requestAnimationFrame(loop); return; }
+    if (last && dt < minGap) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
     last = now;
     clock += dt;
     frame();
@@ -109,7 +131,8 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
   };
   const start = () => {
     if (running || opts.still || !visible || !onscreen) return;
-    running = true; last = 0;
+    running = true;
+    last = 0;
     host.setAttribute("data-running", "true");
     raf = requestAnimationFrame(loop);
   };
@@ -133,22 +156,47 @@ export function createDataField(canvas: HTMLCanvasElement, opts: DataFieldOption
     frame();
   }
 
-  const ro = typeof ResizeObserver !== "undefined"
-    ? new ResizeObserver(() => { resize(); if (opts.still) draw(1200); else if (!running) draw(clock); })
-    : null;
+  const ro =
+    typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => {
+          resize();
+          if (opts.still) draw(1200);
+          else if (!running) draw(clock);
+        })
+      : null;
   ro?.observe(canvas);
-  const io = typeof IntersectionObserver !== "undefined"
-    ? new IntersectionObserver((es) => { onscreen = es.some((e) => e.isIntersecting); if (onscreen) start(); else stop(); }, { threshold: 0 })
-    : null;
-  if (io) io.observe(canvas); else { onscreen = true; start(); }
-  const onVis = () => { visible = document.visibilityState === "visible"; if (visible) start(); else stop(); };
+  const io =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(
+          (es) => {
+            onscreen = es.some((e) => e.isIntersecting);
+            if (onscreen) start();
+            else stop();
+          },
+          { threshold: 0 },
+        )
+      : null;
+  if (io) io.observe(canvas);
+  else {
+    onscreen = true;
+    start();
+  }
+  const onVis = () => {
+    visible = document.visibilityState === "visible";
+    if (visible) start();
+    else stop();
+  };
   document.addEventListener("visibilitychange", onVis);
   const onMove = (e: PointerEvent) => {
     if (e.pointerType === "touch") return;
     const r = canvas.getBoundingClientRect();
-    pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.ta = 1;
+    pointer.x = e.clientX - r.left;
+    pointer.y = e.clientY - r.top;
+    pointer.ta = 1;
   };
-  const onLeave = () => { pointer.ta = 0; };
+  const onLeave = () => {
+    pointer.ta = 0;
+  };
   // the canvas sits behind the content: listen on the section that hosts it
   const track = (canvas.closest("header, section") as HTMLElement | null) ?? host;
   if (!opts.still) {

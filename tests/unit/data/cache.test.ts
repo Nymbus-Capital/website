@@ -22,8 +22,16 @@ beforeEach(async () => {
 function countOpens(): { n: () => number; restore: () => void } {
   const orig = fsp.open;
   let n = 0;
-  (fsp as { open: typeof fsp.open }).open = (async (...a: Parameters<typeof fsp.open>) => { n++; return orig(...a); }) as typeof fsp.open;
-  return { n: () => n, restore: () => { (fsp as { open: typeof fsp.open }).open = orig; } };
+  (fsp as { open: typeof fsp.open }).open = (async (...a: Parameters<typeof fsp.open>) => {
+    n++;
+    return orig(...a);
+  }) as typeof fsp.open;
+  return {
+    n: () => n,
+    restore: () => {
+      (fsp as { open: typeof fsp.open }).open = orig;
+    },
+  };
 }
 
 /** another process replacing the file (temp + rename, like the store): the write generation of this process does not move */
@@ -54,8 +62,13 @@ test("cache: a missing file gives the fallback; the file is parsed once and reus
 
 test("cache: values are frozen (callers cannot corrupt what the next request sees)", async () => {
   await writeJson(["content", "site-content.json"], { funds: { a: { hide: { nav: true } } } });
-  const v = (await readJsonCached<{ funds: { a: { hide: { nav: boolean } } } } | null>(["content", "site-content.json"], null))!;
-  assert.throws(() => { v.funds.a.hide.nav = false; }, TypeError);
+  const v = (await readJsonCached<{ funds: { a: { hide: { nav: boolean } } } } | null>(
+    ["content", "site-content.json"],
+    null,
+  ))!;
+  assert.throws(() => {
+    v.funds.a.hide.nav = false;
+  }, TypeError);
 });
 
 test("cache: a publish / rollback / content save through the store invalidates immediately (even within the re-check window)", async () => {
@@ -71,8 +84,16 @@ test("cache: a write by another process is seen at the next re-check, not before
   await writeJson(["published", "site-data.json"], { runId: "A" });
   await readJsonCached(["published", "site-data.json"], null, { recheckMs: 60_000 });
   await externalWrite(["published", "site-data.json"], { runId: "CLI" });
-  assert.deepEqual(await readJsonCached(["published", "site-data.json"], null, { recheckMs: 60_000 }), { runId: "A" }, "within the window: cached");
-  assert.deepEqual(await readJsonCached(["published", "site-data.json"], null, { recheckMs: 0 }), { runId: "CLI" }, "re-checked: new file seen");
+  assert.deepEqual(
+    await readJsonCached(["published", "site-data.json"], null, { recheckMs: 60_000 }),
+    { runId: "A" },
+    "within the window: cached",
+  );
+  assert.deepEqual(
+    await readJsonCached(["published", "site-data.json"], null, { recheckMs: 0 }),
+    { runId: "CLI" },
+    "re-checked: new file seen",
+  );
   // same size, same content length, written in the same millisecond: the inode differs (atomic replace)
   await externalWrite(["published", "site-data.json"], { runId: "CLJ" });
   assert.deepEqual(await readJsonCached(["published", "site-data.json"], null, { recheckMs: 0 }), { runId: "CLJ" });
@@ -83,7 +104,9 @@ test("cache: concurrent requests share one load and all see the same value", asy
   clearDataCache();
   const opens = countOpens();
   try {
-    const all = await Promise.all(Array.from({ length: 25 }, () => readJsonCached<{ big: number[] } | null>(["published", "site-data.json"], null)));
+    const all = await Promise.all(
+      Array.from({ length: 25 }, () => readJsonCached<{ big: number[] } | null>(["published", "site-data.json"], null)),
+    );
     assert.equal(opens.n(), 1);
     assert.ok(all.every((x) => x === all[0]));
   } finally {
@@ -99,7 +122,11 @@ test("cache: a request after a write never gets the value of a load started befo
   const second = await readJsonCached(["published", "site-data.json"], null);
   assert.deepEqual(second, { runId: "new" });
   assert.ok(["old", "new"].includes(((await first) as unknown as { runId: string }).runId));
-  assert.deepEqual(await readJsonCached(["published", "site-data.json"], null), { runId: "new" }, "the older load did not overwrite the newer entry");
+  assert.deepEqual(
+    await readJsonCached(["published", "site-data.json"], null),
+    { runId: "new" },
+    "the older load did not overwrite the newer entry",
+  );
   assert.equal(JSON.parse(await readFile(path.join(dir, "published", "site-data.json"), "utf8")).runId, "new");
 });
 

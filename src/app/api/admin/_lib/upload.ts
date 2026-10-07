@@ -15,7 +15,8 @@ interface ParsedUpload {
 
 export async function parseUpload(request: Request): Promise<ParsedUpload | Response> {
   const ct = request.headers.get("content-type") || "";
-  if (!/^multipart\/form-data;\s*boundary=/i.test(ct)) return fail(415, "unsupported_media_type", "Expected multipart/form-data.");
+  if (!/^multipart\/form-data;\s*boundary=/i.test(ct))
+    return fail(415, "unsupported_media_type", "Expected multipart/form-data.");
   const buf = await readBodyCapped(request, MAX_DOCUMENT_BYTES + FORM_OVERHEAD);
   if (!buf) return fail(413, "too_large", "The file is larger than 25 MB.");
   let form: FormData;
@@ -28,6 +29,11 @@ export async function parseUpload(request: Request): Promise<ParsedUpload | Resp
   if (!file || typeof file === "string") return fail(400, "invalid_input", "file: a PDF file is required.");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const check = validateUpload(bytes, file.type);
-  if (!check.ok) return fail(check.status, check.status === 413 ? "too_large" : check.status === 415 ? "not_pdf" : "invalid_input", check.message);
+  if (!check.ok)
+    return fail(
+      check.status,
+      check.status === 413 ? "too_large" : check.status === 415 ? "not_pdf" : "invalid_input",
+      check.message,
+    );
   return { form, fileName: file.name || "document.pdf", bytes };
 }

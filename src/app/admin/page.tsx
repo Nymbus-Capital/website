@@ -21,38 +21,72 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   await requireAdminPage("/admin"); // defence in depth: every page re-verifies the session (not only the layout)
-  const [status, runs, content, site, docs, alerts] = await Promise.all([safeStatus(), safeRuns(12), getContent(), getSiteData(), listDocuments(), safeAlerts()]);
+  const [status, runs, content, site, docs, alerts] = await Promise.all([
+    safeStatus(),
+    safeRuns(12),
+    getContent(),
+    getSiteData(),
+    listDocuments(),
+    safeAlerts(),
+  ]);
   const freshness = await safeFreshness();
   const openMessages = await openInquiryCount().catch(() => null);
   const published = docs.filter((d) => d.published).length;
   const rk = await rankingsAdmin(content);
   const comp = complianceState(content);
-  const texts: BannerText[] = DISCLAIMERS.map((d) => ({ id: d.id, label: d.label, en: d.text.en, fr: d.text.fr, where: d.where, review: d.review }));
+  const texts: BannerText[] = DISCLAIMERS.map((d) => ({
+    id: d.id,
+    label: d.label,
+    en: d.text.en,
+    fr: d.text.fr,
+    where: d.where,
+    review: d.review,
+  }));
   // admin overrides are part of what compliance approves
   if (content.firm.disclaimer && (content.firm.disclaimer.en || content.firm.disclaimer.fr)) {
     texts.unshift({
-      id: "firmOverride", label: "Firm disclaimer — ADMIN OVERRIDE (replaces the boilerplate firm text)", en: content.firm.disclaimer.en, fr: content.firm.disclaimer.fr,
-      where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "edit in site settings", href: "/admin/settings" }], review: ["Entire text (written in the admin)."],
+      id: "firmOverride",
+      label: "Firm disclaimer — ADMIN OVERRIDE (replaces the boilerplate firm text)",
+      en: content.firm.disclaimer.en,
+      fr: content.firm.disclaimer.fr,
+      where: [
+        { label: "footer of every public page", href: "/#disclaimers" },
+        { label: "edit in site settings", href: "/admin/settings" },
+      ],
+      review: ["Entire text (written in the admin)."],
     });
   }
   for (const f of FUNDS) {
     const n = content.funds[f.key]?.performanceNote;
     if (n && (n.en || n.fr)) {
       texts.push({
-        id: `perfNote-${f.key}`, label: `Performance note — ${f.short.en} — ADMIN OVERRIDE`, en: n.en, fr: n.fr,
-        where: [{ label: `${f.short.en} page, disclosure`, href: `/strategies/${f.key}#disclosure` }, { label: "edit fund", href: `/admin/funds/${f.key}` }],
+        id: `perfNote-${f.key}`,
+        label: `Performance note — ${f.short.en} — ADMIN OVERRIDE`,
+        en: n.en,
+        fr: n.fr,
+        where: [
+          { label: `${f.short.en} page, disclosure`, href: `/strategies/${f.key}#disclosure` },
+          { label: "edit fund", href: `/admin/funds/${f.key}` },
+        ],
         review: ["Entire text (written in the admin); it replaces the pre-launch boilerplate for this fund, if any."],
       });
     }
   }
   return (
     <>
-      <Head title="dashboard" lead="Pipeline health, what the public site shows right now, and shortcuts to the content you manage.">
-        <Pill tone={content.pipeline.publishMode === "auto" ? "ok" : "info"}>publish mode: {content.pipeline.publishMode}</Pill>
+      <Head
+        title="dashboard"
+        lead="Pipeline health, what the public site shows right now, and shortcuts to the content you manage."
+      >
+        <Pill tone={content.pipeline.publishMode === "auto" ? "ok" : "info"}>
+          publish mode: {content.pipeline.publishMode}
+        </Pill>
         {site?.mode === "sample" ? <Pill tone="warn">sample data</Pill> : null}
         {openMessages !== null ? (
           <Link href="/admin/inquiries" data-testid="dashboard-messages" style={{ textDecoration: "none" }}>
-            <Pill tone={openMessages ? "info" : "mute"}>{openMessages} open message{openMessages === 1 ? "" : "s"}</Pill>
+            <Pill tone={openMessages ? "info" : "mute"}>
+              {openMessages} open message{openMessages === 1 ? "" : "s"}
+            </Pill>
           </Link>
         ) : null}
       </Head>
@@ -67,13 +101,22 @@ export default async function AdminDashboard() {
       />
 
       {/* alerts off or failing: shown above the pipeline so it is seen at once */}
-      {!alerts?.configured || alerts.lastDelivery?.ok === false ? <AlertsPanel status={alerts} freshness={freshness} /> : null}
+      {!alerts?.configured || alerts.lastDelivery?.ok === false ? (
+        <AlertsPanel status={alerts} freshness={freshness} />
+      ) : null}
 
       <PipelinePanel initialStatus={status} initialRuns={runs} />
 
-      {alerts?.configured && alerts.lastDelivery?.ok !== false ? <AlertsPanel status={alerts} freshness={freshness} /> : null}
+      {alerts?.configured && alerts.lastDelivery?.ok !== false ? (
+        <AlertsPanel status={alerts} freshness={freshness} />
+      ) : null}
 
-      <RankingsPanel issues={rk.issues} months={rk.months} rbc={rk.rbc ? { checkedAt: rk.rbc.checkedAt, ok: rk.rbc.ok, latest: rk.latest } : null} latest={rk.latest} />
+      <RankingsPanel
+        issues={rk.issues}
+        months={rk.months}
+        rbc={rk.rbc ? { checkedAt: rk.rbc.checkedAt, ok: rk.rbc.ok, latest: rk.latest } : null}
+        latest={rk.latest}
+      />
 
       <section className="adm-panel" aria-labelledby="live-title">
         <h2 id="live-title" className="adm-h2">
@@ -106,7 +149,11 @@ export default async function AdminDashboard() {
                         <span className="adm-swatch" style={{ background: f.color.solid }} />
                         {f.short.en}
                       </span>
-                      {s.variant ? <div className="adm-small adm-muted" data-testid={`admin-variant-${f.key}`}>{s.variant}</div> : null}
+                      {s.variant ? (
+                        <div className="adm-small adm-muted" data-testid={`admin-variant-${f.key}`}>
+                          {s.variant}
+                        </div>
+                      ) : null}
                     </td>
                     <td>{fc.hidden ? <Pill tone="warn">hidden</Pill> : <Pill tone="ok">visible</Pill>}</td>
                     <td className="tabnum">{s.performanceAsOf ?? "—"}</td>
@@ -116,7 +163,11 @@ export default async function AdminDashboard() {
                     <td className="num">{pct(s.rSI)}</td>
                     <td className="num">{money(s.aumCad)}</td>
                     <td className="mono">{fc.pinnedSnapshot ?? "—"}</td>
-                    <td className="num"><Link className="adm-link" href={`/admin/funds/${f.key}`}>edit →</Link></td>
+                    <td className="num">
+                      <Link className="adm-link" href={`/admin/funds/${f.key}`}>
+                        edit →
+                      </Link>
+                    </td>
                   </tr>
                 );
               })}
@@ -129,7 +180,9 @@ export default async function AdminDashboard() {
         <Link href="/admin/documents" className="adm-panel adm-kpi">
           <span className="k">documents</span>
           <span className="v grad">{docs.length}</span>
-          <span className="s">{published} published · {docs.length - published} draft</span>
+          <span className="s">
+            {published} published · {docs.length - published} draft
+          </span>
         </Link>
         <Link href="/admin/settings" className="adm-panel adm-kpi">
           <span className="k">announcement banner</span>
@@ -139,7 +192,9 @@ export default async function AdminDashboard() {
         <Link href="/admin/audit" className="adm-panel adm-kpi">
           <span className="k">content version</span>
           <span className="v">v{content.version}</span>
-          <span className="s">{content.version ? `${when(content.updatedAt)} · ${content.updatedBy}` : "defaults"}</span>
+          <span className="s">
+            {content.version ? `${when(content.updatedAt)} · ${content.updatedBy}` : "defaults"}
+          </span>
         </Link>
       </div>
     </>

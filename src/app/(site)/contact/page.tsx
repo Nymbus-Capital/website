@@ -13,7 +13,11 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: CT.meta.title[locale], description: CT.meta.description[locale], alternates: { canonical: "/contact" } };
+  return {
+    title: CT.meta.title[locale],
+    description: CT.meta.description[locale],
+    alternates: { canonical: "/contact" },
+  };
 }
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
@@ -37,5 +41,13 @@ export default async function Page({ searchParams }: { searchParams: Search }) {
   const [content, texts, sp] = await Promise.all([getContent().catch(() => null), getSiteTexts(), searchParams]);
   const hiddenFunds = hiddenFundKeys(content);
   // address, phone and e-mail from WordPress where set, else the built-in ones; the form timing token is issued per render
-  return <Contact hiddenFunds={hiddenFunds} contact={contactOverrides(texts)} formToken={issueFormToken()} initialStatus={statusOf(sp)} initialFields={fieldsOf(sp)} />;
+  return (
+    <Contact
+      hiddenFunds={hiddenFunds}
+      contact={contactOverrides(texts)}
+      formToken={issueFormToken()}
+      initialStatus={statusOf(sp)}
+      initialFields={fieldsOf(sp)}
+    />
+  );
 }

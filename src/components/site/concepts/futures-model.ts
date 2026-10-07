@@ -19,7 +19,8 @@ export const DAY_MS = 3750;
  */
 export const SETTLE_SHARE = 0.25;
 /** Fade-in / fade-out shares of the day for the settlement message (it is fully shown in between). */
-const RULE_IN = 0.04, RULE_OUT = 0.06;
+const RULE_IN = 0.04,
+  RULE_OUT = 0.06;
 /** Ms a reader needs per word of the settlement message (≈ 300 words a minute: short, repeated phrases). */
 export const READ_MS_PER_WORD = 200;
 /** Comfort margin over one read of the settlement message (it must be on screen ≥ this many reading times). */
@@ -68,11 +69,12 @@ export function futuresLoop(loop: number, seed = 0): Day[] {
   for (let d = 0; d < DAYS; d++) {
     const sigma = sigmaOf(d);
     let move = gauss(d, 7 + loop * 3, seed) * sigma;
-    if (d >= DAYS - 3) move -= (p - START_PRICE) / (DAYS - d) * 0.6;
+    if (d >= DAYS - 3) move -= ((p - START_PRICE) / (DAYS - d)) * 0.6;
     // a visible move every day (flat days teach nothing), never beyond the cap
     if (Math.abs(move) < 0.25 * sigma) move = (hash01(d, loop, seed) < 0.5 ? -1 : 1) * 0.35 * sigma;
     move = clamp(move, -MOVE_CAP * sigma, MOVE_CAP * sigma);
-    const open = p, close = p + move;
+    const open = p,
+      close = p + move;
     out.push({ d, sigma, open, close, move, long: move, short: -move, margin: marginFor(sigma) });
     p = close;
   }
@@ -93,7 +95,11 @@ export function settledThrough(days: Day[], k: number): number {
 export function intraday(day: Day, u: number, seed = 0): number {
   const x = clamp(u);
   const shape = x * x * (3 - 2 * x);
-  const w = Math.sin(Math.PI * x) * (Math.sin(x * 9 + day.d * 1.7 + seed) * 0.5 + Math.sin(x * 23 + day.d) * 0.22) * day.sigma * 0.6;
+  const w =
+    Math.sin(Math.PI * x) *
+    (Math.sin(x * 9 + day.d * 1.7 + seed) * 0.5 + Math.sin(x * 23 + day.d) * 0.22) *
+    day.sigma *
+    0.6;
   return day.open + day.move * shape + w;
 }
 
@@ -109,7 +115,12 @@ export const RULE_FULL_MS = DAY_MS * (1 - RULE_IN - RULE_OUT);
 /** Unsettled P&L of the long at fraction u of day d (only today's move is ever open). */
 export const unsettled = (day: Day, u: number, seed = 0): number => intraday(day, u, seed) - day.open;
 
-export interface Rect { x: number; y: number; w: number; h: number }
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /** Layout: price chart and settlement row on the left (top on narrow screens), long/short and buffers beside (below). */
 export function futuresLayout(W: number, H: number) {
@@ -118,7 +129,8 @@ export function futuresLayout(W: number, H: number) {
   const foot = 26;
   if (!narrow) {
     const leftW = Math.round(W * 0.58);
-    const top = 18, bottom = H - foot - 8;
+    const top = 18,
+      bottom = H - foot - 8;
     const priceH = Math.round((bottom - top) * 0.6);
     const price: Rect = { x: pad, y: top, w: leftW - pad, h: priceH };
     const settle: Rect = { x: pad, y: top + priceH + 16, w: leftW - pad, h: bottom - (top + priceH + 16) };
@@ -126,9 +138,11 @@ export function futuresLayout(W: number, H: number) {
     const parties: Rect = { x: rx, y: top, w: W - pad - rx, h: bottom - top };
     return { narrow, pad, foot, price, settle, parties };
   }
-  const top = 12, bottom = H - foot - 8;
+  const top = 12,
+    bottom = H - foot - 8;
   const avail = bottom - top;
-  const priceH = Math.round(avail * 0.36), settleH = Math.round(avail * 0.2);
+  const priceH = Math.round(avail * 0.36),
+    settleH = Math.round(avail * 0.2);
   const price: Rect = { x: pad, y: top, w: W - 2 * pad, h: priceH };
   const settle: Rect = { x: pad, y: top + priceH + 12, w: W - 2 * pad, h: settleH };
   const py = settle.y + settleH + 16;

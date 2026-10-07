@@ -19,9 +19,14 @@ export async function POST(request: NextRequest) {
   if (origin && origin !== cfg.origin) return NextResponse.json({ error: "csrf" }, { status: 403 });
 
   const ct = request.headers.get("content-type") || "";
-  const wantsJson = (request.headers.get("accept") || "").includes("application/json") && !ct.startsWith("application/x-www-form-urlencoded");
+  const wantsJson =
+    (request.headers.get("accept") || "").includes("application/json") &&
+    !ct.startsWith("application/x-www-form-urlencoded");
   const clear = <R extends NextResponse | Response>(res: R): R => {
-    res.headers.append("Set-Cookie", `${cfg.cookie.name}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${cfg.cookie.secure ? "; Secure" : ""}`);
+    res.headers.append(
+      "Set-Cookie",
+      `${cfg.cookie.name}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${cfg.cookie.secure ? "; Secure" : ""}`,
+    );
     res.headers.set("Cache-Control", "no-store");
     return res;
   };
@@ -34,8 +39,13 @@ export async function POST(request: NextRequest) {
       await revokeSession(s.session.jti, s.session.exp);
     } catch (e: unknown) {
       console.error("[auth] revocation failed:", e instanceof Error ? e.message : e);
-      const msg = "Sign-out could not be completed on the server. Your browser session was cleared, but please sign in and sign out again, or contact an administrator.";
-      return clear(wantsJson ? NextResponse.json({ ok: false, error: "revocation_failed", message: msg }, { status: 500 }) : denyPage(500, "sign-out incomplete", msg));
+      const msg =
+        "Sign-out could not be completed on the server. Your browser session was cleared, but please sign in and sign out again, or contact an administrator.";
+      return clear(
+        wantsJson
+          ? NextResponse.json({ ok: false, error: "revocation_failed", message: msg }, { status: 500 })
+          : denyPage(500, "sign-out incomplete", msg),
+      );
     }
     await audit({ by: s.user.email, action: "auth.logout" }).catch(() => undefined);
   }
@@ -51,5 +61,7 @@ export async function POST(request: NextRequest) {
     u.searchParams.set("post_logout_redirect_uri", `${cfg.origin}/`);
     target = u.toString();
   }
-  return clear(wantsJson ? NextResponse.json({ ok: true, redirect: target }) : NextResponse.redirect(target, { status: 303 }));
+  return clear(
+    wantsJson ? NextResponse.json({ ok: true, redirect: target }) : NextResponse.redirect(target, { status: 303 }),
+  );
 }

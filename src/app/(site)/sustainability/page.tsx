@@ -6,7 +6,11 @@ import { getSiteTexts } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: SU.meta.title[locale], description: SU.meta.description[locale], alternates: { canonical: "/sustainability" } };
+  return {
+    title: SU.meta.title[locale],
+    description: SU.meta.description[locale],
+    alternates: { canonical: "/sustainability" },
+  };
 }
 
 export default async function Page() {

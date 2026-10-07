@@ -10,9 +10,34 @@
  * NAV to the fields used.
  */
 import type { FtseBondAnalytics, FtseBondPoint } from "../raw.ts";
-import type { AumTotals, ClassDistributions, DpShort, FtseLevels, FundPortfolio, FundRef, HoldingsBook, HoldingsPosition, InstrumentRef, InstrumentRefs, MonthlyNetReturnsResponse, NavHistory, NavPoint, NavSeriesResponse, RegisteredFund, SourceResult } from "../raw.ts";
+import type {
+  AumTotals,
+  ClassDistributions,
+  DpShort,
+  FtseLevels,
+  FundPortfolio,
+  FundRef,
+  HoldingsBook,
+  HoldingsPosition,
+  InstrumentRef,
+  InstrumentRefs,
+  MonthlyNetReturnsResponse,
+  NavHistory,
+  NavPoint,
+  NavSeriesResponse,
+  RegisteredFund,
+  SourceResult,
+} from "../raw.ts";
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
-import { ftseDaily, ftseFamily, ftseGroupingSummary, joinFtseHistory, type FtseCandidate, type FtseDay, type FtseRow } from "../index-levels.ts";
+import {
+  ftseDaily,
+  ftseFamily,
+  ftseGroupingSummary,
+  joinFtseHistory,
+  type FtseCandidate,
+  type FtseDay,
+  type FtseRow,
+} from "../index-levels.ts";
 import { errMsg, fetchRetry, readJsonBody, retryBaseMs, type FetchImpl } from "./http.ts";
 
 interface DpClient {
@@ -28,9 +53,16 @@ export function dpClient(fetchImpl: FetchImpl, env: Record<string, string | unde
   if (!base) return null;
   const headers: Record<string, string> = { Accept: "application/json", "User-Agent": "nymbus-web-pipeline/1.0" };
   if (env.DATAPLATFORM_TOKEN) headers.Authorization = `Bearer ${env.DATAPLATFORM_TOKEN}`;
-  else if (env.DATAPLATFORM_USERNAME) headers.Authorization = `Basic ${Buffer.from(`${env.DATAPLATFORM_USERNAME}:${env.DATAPLATFORM_PASSWORD ?? ""}`).toString("base64")}`;
+  else if (env.DATAPLATFORM_USERNAME)
+    headers.Authorization = `Basic ${Buffer.from(`${env.DATAPLATFORM_USERNAME}:${env.DATAPLATFORM_PASSWORD ?? ""}`).toString("base64")}`;
   const t = Number(env.DATAPLATFORM_TIMEOUT_MS);
-  return { base, headers, fetchImpl, timeoutMs: Number.isFinite(t) && t > 0 ? t : 120_000, backoffMs: retryBaseMs(env) };
+  return {
+    base,
+    headers,
+    fetchImpl,
+    timeoutMs: Number.isFinite(t) && t > 0 ? t : 120_000,
+    backoffMs: retryBaseMs(env),
+  };
 }
 
 type Params = Record<string, string | number | boolean | string[] | undefined>;
@@ -43,7 +75,12 @@ async function get(c: DpClient, path: string, params: Params): Promise<{ status:
     else qs.append(k, String(v));
   }
   const url = `${c.base}${path}${qs.size ? `?${qs}` : ""}`;
-  const res = await fetchRetry(c.fetchImpl, url, { headers: c.headers }, { timeoutMs: c.timeoutMs, backoffMs: c.backoffMs });
+  const res = await fetchRetry(
+    c.fetchImpl,
+    url,
+    { headers: c.headers },
+    { timeoutMs: c.timeoutMs, backoffMs: c.backoffMs },
+  );
   let body: unknown = null;
   if (res.status === 200) body = await readJsonBody(res, url);
   else {
@@ -75,37 +112,89 @@ async function guarded<T>(label: string, fn: () => Promise<SourceResult<T>>): Pr
  * `classCode` / `history` are sent when given; a server that predates them ignores them, so the caller must check the
  * response's own `class_code` / `history` / rows before trusting that it got what it asked for.
  */
-export function fetchMonthlyNetReturns(c: DpClient, short: DpShort, endMonth: string, opts: { classCode?: string | null; history?: "full" } = {}): Promise<SourceResult<MonthlyNetReturnsResponse>> {
+export function fetchMonthlyNetReturns(
+  c: DpClient,
+  short: DpShort,
+  endMonth: string,
+  opts: { classCode?: string | null; history?: "full" } = {},
+): Promise<SourceResult<MonthlyNetReturnsResponse>> {
   const label = `monthly-net-returns ${short}${opts.classCode ? ` ${opts.classCode}` : ""}${opts.history ? ` history=${opts.history}` : ""}`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/performance/monthly-net-returns", { short_name: short, start_date: "2019-01-01", end_date: endMonth, class_code: opts.classCode ?? undefined, history: opts.history });
+    const { status, body } = await get(c, "/api/performance/monthly-net-returns", {
+      short_name: short,
+      start_date: "2019-01-01",
+      end_date: endMonth,
+      class_code: opts.classCode ?? undefined,
+      history: opts.history,
+    });
     if (status === 422) return fail(`${label}: no closed month available (HTTP 422${body ? `: ${body}` : ""})`);
     if (status !== 200) return fail(`${label}: HTTP ${status}`);
     const j = body as MonthlyNetReturnsResponse;
     if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
     const rows = j.rows.map((r) => ({
-      month: String(r.month).slice(0, 10), net_return: typeof r.net_return === "number" ? r.net_return : null, status: String(r.status), issue: r.issue ?? null,
+      month: String(r.month).slice(0, 10),
+      net_return: typeof r.net_return === "number" ? r.net_return : null,
+      status: String(r.status),
+      issue: r.issue ?? null,
       ...(typeof r.source === "string" ? { source: r.source } : {}),
     }));
     const ready = rows.filter((r) => r.status === "ready" && r.net_return !== null);
     const data: MonthlyNetReturnsResponse = {
-      short_name: j.short_name ?? short, as_of: j.as_of, class_code: j.class_code, ...(typeof j.history === "string" ? { history: j.history } : {}),
-      ...(typeof j.class_display === "string" ? { class_display: j.class_display } : {}), ...(typeof j.fundserv === "string" ? { fundserv: j.fundserv } : {}), currency: j.currency,
-      return_basis: j.return_basis, methodology_version: j.methodology_version, row_count: rows.length, rows,
+      short_name: j.short_name ?? short,
+      as_of: j.as_of,
+      class_code: j.class_code,
+      ...(typeof j.history === "string" ? { history: j.history } : {}),
+      ...(typeof j.class_display === "string" ? { class_display: j.class_display } : {}),
+      ...(typeof j.fundserv === "string" ? { fundserv: j.fundserv } : {}),
+      currency: j.currency,
+      return_basis: j.return_basis,
+      methodology_version: j.methodology_version,
+      row_count: rows.length,
+      rows,
     };
-    return { ok: true, data, detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}` };
+    return {
+      ok: true,
+      data,
+      detail: `${ready.length} ready month(s)${ready.length ? `, last ${ready[ready.length - 1].month}` : ""}`,
+    };
   });
 }
 
-const NAV_FIELDS = ["date", "source", "fundserv", "class_display", "class_code", "currency", "nav_per_share_local", "nav_per_share_cad", "net_daily_return", "net_return_method", "return_start_date", "return_source_count", "nav_type", "short_name", "net_asset_value_cad"] as const;
+const NAV_FIELDS = [
+  "date",
+  "source",
+  "fundserv",
+  "class_display",
+  "class_code",
+  "currency",
+  "nav_per_share_local",
+  "nav_per_share_cad",
+  "net_daily_return",
+  "net_return_method",
+  "return_start_date",
+  "return_source_count",
+  "nav_type",
+  "short_name",
+  "net_asset_value_cad",
+] as const;
 
 /** the last weeks of every class: long enough to reach the previous month-end (month-end book date and net assets) */
-export function fetchNav(c: DpClient, short: DpShort, now: Date, lookbackDays = 45): Promise<SourceResult<NavSeriesResponse>> {
+export function fetchNav(
+  c: DpClient,
+  short: DpShort,
+  now: Date,
+  lookbackDays = 45,
+): Promise<SourceResult<NavSeriesResponse>> {
   const label = `nav-timeseries ${short}`;
   return guarded(label, async () => {
     const end = now.toISOString().slice(0, 10);
     const start = new Date(now.getTime() - lookbackDays * 86_400_000).toISOString().slice(0, 10);
-    const { status, body } = await get(c, "/api/performance/nav-timeseries", { short_name: short, start_date: start, end_date: end, nav_type: "FINAL_NAV" });
+    const { status, body } = await get(c, "/api/performance/nav-timeseries", {
+      short_name: short,
+      start_date: start,
+      end_date: end,
+      nav_type: "FINAL_NAV",
+    });
     if (status !== 200) return fail(`${label}: HTTP ${status}`);
     const j = body as NavSeriesResponse;
     if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
@@ -121,36 +210,80 @@ export function fetchNav(c: DpClient, short: DpShort, now: Date, lookbackDays = 
     // the STRATEGY / STRATEGY_H aggregate rows: how many Apex classes the dataplatform folded into them (diagnostics)
     const aggregates = j.rows
       .filter((r) => r && !r.fundserv && (r.class_code === "STRATEGY" || r.class_code === "STRATEGY_H"))
-      .map((r) => ({ date: String(r.date).slice(0, 10), class_code: String(r.class_code), return_source_count: typeof r.return_source_count === "number" ? r.return_source_count : null }));
-    return { ok: true, data: { rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [], aggregates }, detail: `${rows.length} class row(s) since ${start}` };
+      .map((r) => ({
+        date: String(r.date).slice(0, 10),
+        class_code: String(r.class_code),
+        return_source_count: typeof r.return_source_count === "number" ? r.return_source_count : null,
+      }));
+    return {
+      ok: true,
+      data: { rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [], aggregates },
+      detail: `${rows.length} class row(s) since ${start}`,
+    };
   });
 }
 
-const HISTORY_FIELDS = ["date", "source", "fundserv", "currency", "nav_type", "nav_per_share_cad", "net_daily_return", "net_return_method", "return_start_date", "return_source_count"] as const;
+const HISTORY_FIELDS = [
+  "date",
+  "source",
+  "fundserv",
+  "currency",
+  "nav_type",
+  "nav_per_share_cad",
+  "net_daily_return",
+  "net_return_method",
+  "return_start_date",
+  "return_source_count",
+] as const;
 
 /**
  * Daily rows of ONE class (FundServ code) from `start` to `end` (the union of the frozen CIBC history and the live Apex
  * book, deduplicated at the 2026-07-05 cut-over by the dataplatform), reduced to what the monthly chain needs. A row of
  * another class or fund in the answer is a failure (never compounded into this class).
  */
-export function fetchNavHistory(c: DpClient, short: DpShort, fundserv: string, start: string, end: string): Promise<SourceResult<NavHistory>> {
+export function fetchNavHistory(
+  c: DpClient,
+  short: DpShort,
+  fundserv: string,
+  start: string,
+  end: string,
+): Promise<SourceResult<NavHistory>> {
   const label = `nav-timeseries ${short} ${fundserv} history`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/performance/nav-timeseries", { short_name: short, fundserv, start_date: start, end_date: end, nav_type: "FINAL_NAV", include_unmapped: false });
+    const { status, body } = await get(c, "/api/performance/nav-timeseries", {
+      short_name: short,
+      fundserv,
+      start_date: start,
+      end_date: end,
+      nav_type: "FINAL_NAV",
+      include_unmapped: false,
+    });
     if (status !== 200) return fail(`${label}: HTTP ${status}`);
     const j = body as NavSeriesResponse;
     if (!j || !Array.isArray(j.rows)) return fail(`${label}: unexpected payload`);
     const other = j.rows.find((r) => r?.fundserv !== fundserv || (r.short_name != null && r.short_name !== short));
-    if (other) return fail(`${label}: payload has a row of ${other?.short_name ?? "?"} ${other?.fundserv ?? "no class"}`);
-    const rows = j.rows.map((r) => {
-      const o: Record<string, unknown> = {};
-      for (const k of HISTORY_FIELDS) o[k] = (r as NavPoint)[k] ?? null;
-      o.date = String(r.date).slice(0, 10);
-      if (typeof o.return_start_date === "string") o.return_start_date = o.return_start_date.slice(0, 10);
-      return o as unknown as NavHistory["rows"][number];
-    }).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    if (other)
+      return fail(`${label}: payload has a row of ${other?.short_name ?? "?"} ${other?.fundserv ?? "no class"}`);
+    const rows = j.rows
+      .map((r) => {
+        const o: Record<string, unknown> = {};
+        for (const k of HISTORY_FIELDS) o[k] = (r as NavPoint)[k] ?? null;
+        o.date = String(r.date).slice(0, 10);
+        if (typeof o.return_start_date === "string") o.return_start_date = o.return_start_date.slice(0, 10);
+        return o as unknown as NavHistory["rows"][number];
+      })
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     const sources = [...new Set(rows.map((r) => r.source ?? "?"))].sort().join("/");
-    return { ok: true, data: { fundserv, from: start, rows, warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [] }, detail: `${rows.length} daily row(s)${rows.length ? `, ${rows[0].date} to ${rows[rows.length - 1].date} (${sources})` : ""}` };
+    return {
+      ok: true,
+      data: {
+        fundserv,
+        from: start,
+        rows,
+        warnings: Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [],
+      },
+      detail: `${rows.length} daily row(s)${rows.length ? `, ${rows[0].date} to ${rows[rows.length - 1].date} (${sources})` : ""}`,
+    };
   });
 }
 
@@ -160,8 +293,18 @@ export function fetchApexFunds(c: DpClient): Promise<SourceResult<RegisteredFund
     if (status !== 200) return fail(`apex/funds: HTTP ${status}`);
     if (!Array.isArray(body)) return fail("apex/funds: unexpected payload");
     const data = (body as RegisteredFund[]).map((f) => ({
-      key: f.key, name: f.name, status: f.status, apex_account: f.apex_account ?? null, cibc_short: f.cibc_short ?? null, inception: f.inception ?? null,
-      classes: (f.classes ?? []).map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency, status: k.status })),
+      key: f.key,
+      name: f.name,
+      status: f.status,
+      apex_account: f.apex_account ?? null,
+      cibc_short: f.cibc_short ?? null,
+      inception: f.inception ?? null,
+      classes: (f.classes ?? []).map((k) => ({
+        fundserv: k.fundserv,
+        display: k.display,
+        currency: k.currency,
+        status: k.status,
+      })),
     }));
     return { ok: true, data, detail: `${data.length} fund(s)` };
   });
@@ -172,7 +315,11 @@ export function fetchUnitholderFunds(c: DpClient): Promise<SourceResult<FundRef[
     const { status, body } = await get(c, "/api/unitholders/funds", {});
     if (status !== 200) return fail(`unitholders/funds: HTTP ${status}`);
     if (!Array.isArray(body)) return fail("unitholders/funds: unexpected payload");
-    const data = (body as FundRef[]).map((f) => ({ short_name: f.short_name, name: f.name, apex_account: f.apex_account ?? null }));
+    const data = (body as FundRef[]).map((f) => ({
+      short_name: f.short_name,
+      name: f.name,
+      apex_account: f.apex_account ?? null,
+    }));
     return { ok: true, data, detail: `${data.length} fund(s)` };
   });
 }
@@ -208,7 +355,11 @@ export function fetchAum(c: DpClient): Promise<SourceResult<AumTotals>> {
     if (status !== 200) return fail(`unitholders/aum: HTTP ${status}`);
     const data = reduceAum(body);
     if (!data) return fail("unitholders/aum: unexpected payload");
-    return { ok: true, data, detail: `snapshot ${data.snapshot_date ?? "?"}, ${Object.keys(data.totals).length} fund total(s)` };
+    return {
+      ok: true,
+      data,
+      detail: `snapshot ${data.snapshot_date ?? "?"}, ${Object.keys(data.totals).length} fund total(s)`,
+    };
   });
 }
 
@@ -217,7 +368,9 @@ export function fetchAum(c: DpClient): Promise<SourceResult<AumTotals>> {
  * no data on or before the date asked. Either way the caller falls back (factsheet / policy text): `absent`.
  */
 const absent = <T>(label: string, body: unknown): SourceResult<T> => ({
-  ok: false, data: null, absent: true,
+  ok: false,
+  data: null,
+  absent: true,
   error: `${label}: HTTP 404 (${body === "Not Found" || body == null ? "endpoint not deployed yet" : body})`,
 });
 
@@ -234,9 +387,14 @@ export function fetchFundPortfolio(c: DpClient, short: DpShort, date?: string): 
     const data = parseFundPortfolio(body);
     if (!data) return fail(`${label}: unexpected payload`);
     // the answer must be the book that was asked for: another fund's figures are never published under this one
-    if (data.fund.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${data.fund}", not ${short}`);
+    if (data.fund.toUpperCase() !== short.toUpperCase())
+      return fail(`${label}: payload is for fund "${data.fund}", not ${short}`);
     const cov = data.coverage;
-    return { ok: true, data, detail: `book ${data.as_of}, ${data.top_holdings.length} top holding(s), priced ${cov.priced_weight ?? "?"}, resolved ${cov.resolved_weight ?? "?"}${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
+    return {
+      ok: true,
+      data,
+      detail: `book ${data.as_of}, ${data.top_holdings.length} top holding(s), priced ${cov.priced_weight ?? "?"}, resolved ${cov.resolved_weight ?? "?"}${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}`,
+    };
   });
 }
 
@@ -249,14 +407,33 @@ export function fetchDistributions(c: DpClient, short: DpShort): Promise<SourceR
     if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
     const data = parseDistributions(body);
     if (!data) return fail(`${label}: unexpected payload`);
-    if (data.short_name.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${data.short_name || "(none)"}", not ${short}`);
-    return { ok: true, data, detail: `${data.rows.length} row(s), ${data.classes.length} class(es)${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}` };
+    if (data.short_name.toUpperCase() !== short.toUpperCase())
+      return fail(`${label}: payload is for fund "${data.short_name || "(none)"}", not ${short}`);
+    return {
+      ok: true,
+      data,
+      detail: `${data.rows.length} row(s), ${data.classes.length} class(es)${data.notes.length ? `; ${data.notes.length} parser note(s)` : ""}`,
+    };
   });
 }
 
 /* ------------------------------------------------------------------ Apex holdings and instrument master */
 
-const HOLDING_FIELDS = ["date", "bloomberg_id", "isin", "cusip", "sedol", "security_id", "description", "security_type", "sector", "country", "currency", "quantity", "market_value_cad"] as const;
+const HOLDING_FIELDS = [
+  "date",
+  "bloomberg_id",
+  "isin",
+  "cusip",
+  "sedol",
+  "security_id",
+  "description",
+  "security_type",
+  "sector",
+  "country",
+  "currency",
+  "quantity",
+  "market_value_cad",
+] as const;
 
 /**
  * One fund's Apex FINAL_NAV book of one valuation day (/api/apex/holdings, positions + bank and broker balances), reduced
@@ -265,24 +442,40 @@ const HOLDING_FIELDS = ["date", "bloomberg_id", "isin", "cusip", "sedol", "secur
 export function fetchHoldings(c: DpClient, short: DpShort, date: string): Promise<SourceResult<HoldingsBook>> {
   const label = `apex/holdings ${short} ${date}`;
   return guarded(label, async () => {
-    const { status, body } = await get(c, "/api/apex/holdings", { fund: short, date, nav_type: "FINAL_NAV", include_unrealised_pl: false });
+    const { status, body } = await get(c, "/api/apex/holdings", {
+      fund: short,
+      date,
+      nav_type: "FINAL_NAV",
+      include_unrealised_pl: false,
+    });
     if (status !== 200) return fail(`${label}: HTTP ${status}${typeof body === "string" ? ` (${body})` : ""}`);
     const j = body as { fund_short_name?: unknown; positions?: unknown; cash?: unknown; warnings?: unknown };
     if (!j || !Array.isArray(j.positions) || !Array.isArray(j.cash)) return fail(`${label}: unexpected payload`);
-    if (typeof j.fund_short_name === "string" && j.fund_short_name.toUpperCase() !== short.toUpperCase()) return fail(`${label}: payload is for fund "${j.fund_short_name}", not ${short}`);
+    if (typeof j.fund_short_name === "string" && j.fund_short_name.toUpperCase() !== short.toUpperCase())
+      return fail(`${label}: payload is for fund "${j.fund_short_name}", not ${short}`);
     const day = (v: unknown): string => String(v ?? "").slice(0, 10);
-    const positions = (j.positions as Record<string, unknown>[]).filter((p) => p && day(p.date) === date).map((p) => {
-      const o: Record<string, unknown> = {};
-      for (const k of HOLDING_FIELDS) o[k] = p[k] ?? null;
-      o.date = day(p.date);
-      return o as unknown as HoldingsPosition;
-    });
-    const cash = (j.cash as Record<string, unknown>[]).filter((x) => x && day(x.date) === date).map((x) => ({
-      date: day(x.date), currency: typeof x.currency === "string" ? x.currency : null, glc_description: typeof x.glc_description === "string" ? x.glc_description : null,
-      closing_bal_cad: typeof x.closing_bal_cad === "number" ? x.closing_bal_cad : null,
-    }));
+    const positions = (j.positions as Record<string, unknown>[])
+      .filter((p) => p && day(p.date) === date)
+      .map((p) => {
+        const o: Record<string, unknown> = {};
+        for (const k of HOLDING_FIELDS) o[k] = p[k] ?? null;
+        o.date = day(p.date);
+        return o as unknown as HoldingsPosition;
+      });
+    const cash = (j.cash as Record<string, unknown>[])
+      .filter((x) => x && day(x.date) === date)
+      .map((x) => ({
+        date: day(x.date),
+        currency: typeof x.currency === "string" ? x.currency : null,
+        glc_description: typeof x.glc_description === "string" ? x.glc_description : null,
+        closing_bal_cad: typeof x.closing_bal_cad === "number" ? x.closing_bal_cad : null,
+      }));
     const warnings = Array.isArray(j.warnings) ? j.warnings.map(String).slice(0, 20) : [];
-    return { ok: true, data: { fund: short, date, positions, cash, warnings }, detail: `${positions.length} position(s), ${cash.length} cash line(s)` };
+    return {
+      ok: true,
+      data: { fund: short, date, positions, cash, warnings },
+      detail: `${positions.length} position(s), ${cash.length} cash line(s)`,
+    };
   });
 }
 
@@ -301,16 +494,39 @@ const n = (v: unknown): number | null => {
 function toRef(d: Detail): InstrumentRef | null {
   const id = n(d.nymbus_instrument_id);
   if (id === null) return null;
-  const obj = (v: unknown): Record<string, unknown> | null => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
+  const obj = (v: unknown): Record<string, unknown> | null =>
+    v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
   const ref = obj(d.reference);
   const cls = obj(d.classification);
   const price = obj(d.latest_price);
   return {
-    nymbus_instrument_id: id, isin: s(d.isin), cusip: s(d.cusip), figi: s(d.figi), name: s(d.name), asset_class: s(d.asset_class), security_type: s(d.security_type),
-    ratings: Array.isArray(d.ratings) ? (d.ratings as Detail[]).filter((r) => r && typeof r.agency === "string" && typeof r.rating === "string").map((r) => ({ agency: r.agency as string, rating: r.rating as string, source: s(r.source) })) : [],
+    nymbus_instrument_id: id,
+    isin: s(d.isin),
+    cusip: s(d.cusip),
+    figi: s(d.figi),
+    name: s(d.name),
+    asset_class: s(d.asset_class),
+    security_type: s(d.security_type),
+    ratings: Array.isArray(d.ratings)
+      ? (d.ratings as Detail[])
+          .filter((r) => r && typeof r.agency === "string" && typeof r.rating === "string")
+          .map((r) => ({ agency: r.agency as string, rating: r.rating as string, source: s(r.source) }))
+      : [],
     reference: ref ? { is_green_bond: typeof ref.is_green_bond === "boolean" ? ref.is_green_bond : null } : null,
-    classification: cls ? { industry_sector: s(cls.industry_sector), country_of_risk: s(cls.country_of_risk), market_sector: s(cls.market_sector) } : null,
-    latest_price: price ? { price_date: s(price.price_date)?.slice(0, 10) ?? null, modified_duration: n(price.modified_duration), yield_to_maturity: n(price.yield_to_maturity) } : null,
+    classification: cls
+      ? {
+          industry_sector: s(cls.industry_sector),
+          country_of_risk: s(cls.country_of_risk),
+          market_sector: s(cls.market_sector),
+        }
+      : null,
+    latest_price: price
+      ? {
+          price_date: s(price.price_date)?.slice(0, 10) ?? null,
+          modified_duration: n(price.modified_duration),
+          yield_to_maturity: n(price.yield_to_maturity),
+        }
+      : null,
   };
 }
 
@@ -321,24 +537,46 @@ function toRef(d: Detail): InstrumentRef | null {
  * the batch detail does not carry. Pages are read until a short page (at most UNIVERSE_MAX_PAGES); an incomplete read
  * leaves those terms unknown (their coverage drops, the gates decide).
  */
-export function fetchInstruments(c: DpClient, securities: { isin?: string | null; cusip?: string | null; figi?: string | null }[], maturityAfter: string): Promise<SourceResult<InstrumentRefs>> {
+export function fetchInstruments(
+  c: DpClient,
+  securities: { isin?: string | null; cusip?: string | null; figi?: string | null }[],
+  maturityAfter: string,
+): Promise<SourceResult<InstrumentRefs>> {
   const label = "instruments";
   return guarded(label, async () => {
     const refs = new Map<number, InstrumentRef>();
     const asked: Record<string, number> = {};
     const matched = { isin: new Set<string>(), cusip: new Set<string>(), figi: new Set<string>() };
     const seen = (r: InstrumentRef): void => {
-      for (const k of ["isin", "cusip", "figi"] as const) { const v = r[k]?.toUpperCase(); if (v) matched[k].add(v); }
+      for (const k of ["isin", "cusip", "figi"] as const) {
+        const v = r[k]?.toUpperCase();
+        if (v) matched[k].add(v);
+      }
     };
     const order: ("isin" | "cusip" | "figi")[] = ["isin", "cusip", "figi"];
-    const up = (v: string | null | undefined): string | null => (typeof v === "string" && v.trim() ? v.trim().toUpperCase() : null);
-    const isMatched = (x: (typeof securities)[number]): boolean => order.some((t) => { const v = up(x[t]); return !!v && matched[t].has(v); });
+    const up = (v: string | null | undefined): string | null =>
+      typeof v === "string" && v.trim() ? v.trim().toUpperCase() : null;
+    const isMatched = (x: (typeof securities)[number]): boolean =>
+      order.some((t) => {
+        const v = up(x[t]);
+        return !!v && matched[t].has(v);
+      });
     for (const type of order) {
       // only the securities not matched yet by a previous identifier type
-      const values = [...new Set(securities.filter((x) => !isMatched(x)).map((x) => up(x[type])).filter((v): v is string => !!v && (type !== "figi" || FIGI_RE.test(v))))].sort();
+      const values = [
+        ...new Set(
+          securities
+            .filter((x) => !isMatched(x))
+            .map((x) => up(x[type]))
+            .filter((v): v is string => !!v && (type !== "figi" || FIGI_RE.test(v))),
+        ),
+      ].sort();
       asked[type] = values.length;
       for (let i = 0; i < values.length; i += BATCH_SIZE) {
-        const { status, body } = await get(c, "/api/instruments/batch", { identifier_type: type, values: values.slice(i, i + BATCH_SIZE) });
+        const { status, body } = await get(c, "/api/instruments/batch", {
+          identifier_type: type,
+          values: values.slice(i, i + BATCH_SIZE),
+        });
         if (status !== 200) return fail(`${label}: /api/instruments/batch ${type}: HTTP ${status}`);
         if (!Array.isArray(body)) return fail(`${label}: /api/instruments/batch ${type}: unexpected payload`);
         for (const d of body as Detail[]) {
@@ -349,11 +587,20 @@ export function fetchInstruments(c: DpClient, securities: { isin?: string | null
         }
       }
     }
-    const bondIds = new Set([...refs.values()].filter((r) => (r.asset_class ?? "").toUpperCase() === "BOND").map((r) => r.nymbus_instrument_id));
+    const bondIds = new Set(
+      [...refs.values()]
+        .filter((r) => (r.asset_class ?? "").toUpperCase() === "BOND")
+        .map((r) => r.nymbus_instrument_id),
+    );
     let rows = 0;
     let complete = !bondIds.size;
     for (let page = 0; bondIds.size && page < UNIVERSE_MAX_PAGES; page++) {
-      const { status, body } = await get(c, "/api/instruments", { asset_class: "BOND", maturity_after: maturityAfter, offset: page * UNIVERSE_PAGE, limit: UNIVERSE_PAGE });
+      const { status, body } = await get(c, "/api/instruments", {
+        asset_class: "BOND",
+        maturity_after: maturityAfter,
+        offset: page * UNIVERSE_PAGE,
+        limit: UNIVERSE_PAGE,
+      });
       if (status !== 200) return fail(`${label}: /api/instruments (bond universe page ${page + 1}): HTTP ${status}`);
       if (!Array.isArray(body)) return fail(`${label}: /api/instruments: unexpected payload`);
       rows += body.length;
@@ -361,12 +608,36 @@ export function fetchInstruments(c: DpClient, securities: { isin?: string | null
         const id = n(u.nymbus_instrument_id);
         const r = id !== null ? refs.get(id) : undefined;
         if (!r) continue;
-        Object.assign(r, { coupon_rate: n(u.coupon_rate), maturity_date: s(u.maturity_date)?.slice(0, 10) ?? null, issuer: s(u.issuer), sector: s(u.sector), country_of_risk: s(u.country_of_risk), market_sector: s(u.market_sector) });
+        Object.assign(r, {
+          coupon_rate: n(u.coupon_rate),
+          maturity_date: s(u.maturity_date)?.slice(0, 10) ?? null,
+          issuer: s(u.issuer),
+          sector: s(u.sector),
+          country_of_risk: s(u.country_of_risk),
+          market_sector: s(u.market_sector),
+        });
       }
-      if (body.length < UNIVERSE_PAGE) { complete = true; break; }
+      if (body.length < UNIVERSE_PAGE) {
+        complete = true;
+        break;
+      }
     }
-    const data: InstrumentRefs = { refs: [...refs.values()].sort((a, b) => a.nymbus_instrument_id - b.nymbus_instrument_id), asked, matched: refs.size, universeRows: rows, universeComplete: complete };
-    return { ok: true, data, detail: `${refs.size} instrument(s) matched (asked ${Object.entries(asked).map(([k, v]) => `${v} ${k}`).join(", ")}); bond universe ${rows} row(s)${complete ? "" : " (incomplete: coupon / maturity of some bonds unknown)"}` };
+    const data: InstrumentRefs = {
+      refs: [...refs.values()].sort((a, b) => a.nymbus_instrument_id - b.nymbus_instrument_id),
+      asked,
+      matched: refs.size,
+      universeRows: rows,
+      universeComplete: complete,
+    };
+    return {
+      ok: true,
+      data,
+      detail: `${refs.size} instrument(s) matched (asked ${Object.entries(asked)
+        .map(([k, v]) => `${v} ${k}`)
+        .join(
+          ", ",
+        )}); bond universe ${rows} row(s)${complete ? "" : " (incomplete: coupon / maturity of some bonds unknown)"}`,
+    };
   });
 }
 
@@ -375,7 +646,12 @@ export function fetchInstruments(c: DpClient, securities: { isin?: string | null
  * up to `date`: per ISIN (and CUSIP) the latest row on or before `date` with its yield (percent) and modified duration.
  * Only the held bonds are kept.
  */
-export function fetchFtseBondAnalytics(c: DpClient, date: string, isins: string[], cusips: string[]): Promise<SourceResult<FtseBondAnalytics>> {
+export function fetchFtseBondAnalytics(
+  c: DpClient,
+  date: string,
+  isins: string[],
+  cusips: string[],
+): Promise<SourceResult<FtseBondAnalytics>> {
   const label = `ftse index-constituents ${date}`;
   return guarded(label, async () => {
     const start = new Date(Date.parse(`${date}T00:00:00Z`) - 6 * 86_400_000).toISOString().slice(0, 10);
@@ -385,7 +661,11 @@ export function fetchFtseBondAnalytics(c: DpClient, date: string, isins: string[
     const byCusip: Record<string, FtseBondPoint> = {};
     let rows = 0;
     for (const index of ["univ", "short_corp"]) {
-      const { status, body } = await get(c, "/api/ftse/index-constituents", { index, start_date: start, end_date: date });
+      const { status, body } = await get(c, "/api/ftse/index-constituents", {
+        index,
+        start_date: start,
+        end_date: date,
+      });
       if (status !== 200) return fail(`${label}: ${index}: HTTP ${status}`);
       if (!Array.isArray(body)) return fail(`${label}: ${index}: unexpected payload`);
       for (const r of body as Record<string, unknown>[]) {
@@ -399,7 +679,11 @@ export function fetchFtseBondAnalytics(c: DpClient, date: string, isins: string[
         if (cusip && (!byCusip[cusip] || byCusip[cusip].date < d)) byCusip[cusip] = pt;
       }
     }
-    return { ok: true, data: { date, byIsin, byCusip, rows }, detail: `${Object.keys(byIsin).length} held bond(s) among the univ / short_corp constituents of ${start} to ${date}` };
+    return {
+      ok: true,
+      data: { date, byIsin, byCusip, rows },
+      detail: `${Object.keys(byIsin).length} held bond(s) among the univ / short_corp constituents of ${start} to ${date}`,
+    };
   });
 }
 
@@ -419,13 +703,23 @@ const FTSE_LISTED_LOOSE = 10;
  * (index-levels.ts ftseGapCheck). The detail lists what was joined, the gap verification, the loose name matches and why
  * every other candidate was not.
  */
-export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: string[] = []): Promise<SourceResult<FtseLevels>> {
+export function fetchFtse(
+  c: DpClient,
+  short: string,
+  endDate: string,
+  aliases: string[] = [],
+): Promise<SourceResult<FtseLevels>> {
   const label = `ftse index-summary ${short}`;
   return guarded(label, async () => {
     let lastRows: FtseRow[] = [];
-    const levelsOf = (d: Record<string, FtseDay>): Record<string, number> => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, v.level]));
+    const levelsOf = (d: Record<string, FtseDay>): Record<string, number> =>
+      Object.fromEntries(Object.entries(d).map(([k, v]) => [k, v.level]));
     const rowsOf = async (name: string): Promise<Record<string, FtseDay>> => {
-      const { status, body } = await get(c, "/api/ftse/index-summary", { short_name: name, start_date: FTSE_START, end_date: endDate });
+      const { status, body } = await get(c, "/api/ftse/index-summary", {
+        short_name: name,
+        start_date: FTSE_START,
+        end_date: endDate,
+      });
       if (status !== 200) throw new Error(`${name}: HTTP ${status}`);
       if (!Array.isArray(body)) throw new Error(`${name}: unexpected payload`);
       if (name === short) lastRows = body as FtseRow[];
@@ -433,7 +727,8 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     };
     const curDaily = await rowsOf(short);
     const cur = levelsOf(curDaily);
-    if (!Object.keys(cur).length) return fail(`${label}: no aggregate total-return level (${ftseGroupingSummary(lastRows)})`);
+    if (!Object.keys(cur).length)
+      return fail(`${label}: no aggregate total-return level (${ftseGroupingSummary(lastRows)})`);
     const notes: string[] = [];
     let names: { short_name: string; index_id?: number | null; index_name?: string | null }[] = [];
     try {
@@ -449,13 +744,23 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     for (const a of aliases) if (a !== short) why.set(a, { why: "configured earlier name", strict: true });
     for (const n of names) {
       if (n.short_name === short || why.has(n.short_name)) continue;
-      if (me?.index_id != null && n.index_id === me.index_id) why.set(n.short_name, { why: `same index_id ${me.index_id}`, strict: true });
-      else if (family && ftseFamily(n.index_name) === family) why.set(n.short_name, { why: `same index family "${family}" (${n.index_name})`, strict: true });
+      if (me?.index_id != null && n.index_id === me.index_id)
+        why.set(n.short_name, { why: `same index_id ${me.index_id}`, strict: true });
+      else if (family && ftseFamily(n.index_name) === family)
+        why.set(n.short_name, { why: `same index family "${family}" (${n.index_name})`, strict: true });
     }
     // loose matches: every word of the family in the published name (e.g. "short" and "corp"); overlap links only
     const words = family.split(" ").filter(Boolean);
-    const loose = words.length ? names.filter((n) => n.short_name !== short && !why.has(n.short_name) && words.every((w) => ftseFamily(n.index_name).split(" ").includes(w))) : [];
-    for (const n of loose) why.set(n.short_name, { why: `name contains "${words.join(" ")}" (${n.index_name})`, strict: false });
+    const loose = words.length
+      ? names.filter(
+          (n) =>
+            n.short_name !== short &&
+            !why.has(n.short_name) &&
+            words.every((w) => ftseFamily(n.index_name).split(" ").includes(w)),
+        )
+      : [];
+    for (const n of loose)
+      why.set(n.short_name, { why: `name contains "${words.join(" ")}" (${n.index_name})`, strict: false });
     const cands: FtseCandidate[] = [];
     const skipped: string[] = [];
     for (const [name, w] of [...why].slice(0, FTSE_MAX_CANDIDATES)) {
@@ -463,7 +768,8 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
         const daily = await rowsOf(name);
         // a test / synthetic series is never gap-linked
         const synthetic = /synthetic/i.test(`${name} ${names.find((x) => x.short_name === name)?.index_name ?? ""}`);
-        if (Object.keys(daily).length) cands.push({ name, levels: levelsOf(daily), why: w.why, daily, gapOk: w.strict && !synthetic });
+        if (Object.keys(daily).length)
+          cands.push({ name, levels: levelsOf(daily), why: w.why, daily, gapOk: w.strict && !synthetic });
         else skipped.push(`${name} (no aggregate level)`);
       } catch (e: unknown) {
         skipped.push(`${name} (${errMsg(e)})`);
@@ -474,18 +780,49 @@ export function fetchFtse(c: DpClient, short: string, endDate: string, aliases: 
     const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
     let detail = `${days.length} day(s), ${days[0]} to ${days[days.length - 1]}`;
     if (j.used.length) {
-      detail += `; earlier days under ${j.used.map((u) => u.kind === "gap" && u.gap
-        ? `${u.name} from ${u.from} (${u.why}; gap link ${u.gap.last} → ${u.gap.first}: implied return ${bp(u.gap.implied)}, estimate ${bp(u.gap.estimate)}, residual ${bp(u.gap.residual)} within ${bp(u.gap.threshold)} (3 × p95 of ${u.gap.samples} daily residuals, between 2 and 5 bp))`
-        : `${u.name} from ${u.from} (${u.why}; linked at ${u.link} on ${u.checked} equal daily return(s))`).join(", ")}`;
+      detail += `; earlier days under ${j.used
+        .map((u) =>
+          u.kind === "gap" && u.gap
+            ? `${u.name} from ${u.from} (${u.why}; gap link ${u.gap.last} → ${u.gap.first}: implied return ${bp(u.gap.implied)}, estimate ${bp(u.gap.estimate)}, residual ${bp(u.gap.residual)} within ${bp(u.gap.threshold)} (3 × p95 of ${u.gap.samples} daily residuals, between 2 and 5 bp))`
+            : `${u.name} from ${u.from} (${u.why}; linked at ${u.link} on ${u.checked} equal daily return(s))`,
+        )
+        .join(", ")}`;
     }
     const allSkipped = [...skipped, ...j.skipped];
     if (allSkipped.length) detail += `; not joined: ${allSkipped.join(", ")}`;
-    else if (!j.used.length) detail += `; no earlier name found (${names.length ? `none with index_id ${me?.index_id ?? "?"} or family "${family || "?"}" among ${names.length} short-names` : "short-names unavailable"})`;
+    else if (!j.used.length)
+      detail += `; no earlier name found (${names.length ? `none with index_id ${me?.index_id ?? "?"} or family "${family || "?"}" among ${names.length} short-names` : "short-names unavailable"})`;
     // for the admin: names that look like an earlier generation (loose word match), whether tried or not
-    const listed = names.filter((n) => n.short_name !== short && words.length && words.every((w) => ftseFamily(n.index_name).split(" ").includes(w) || n.short_name.toLowerCase().includes(w))).slice(0, FTSE_LISTED_LOOSE);
-    if (listed.length) detail += `; short-names whose name contains "${words.join(" ")}": ${listed.map((n) => `${n.short_name} (${n.index_name ?? "?"}${n.index_id != null ? `, index_id ${n.index_id}` : ""})`).join(", ")}`;
+    const listed = names
+      .filter(
+        (n) =>
+          n.short_name !== short &&
+          words.length &&
+          words.every((w) => ftseFamily(n.index_name).split(" ").includes(w) || n.short_name.toLowerCase().includes(w)),
+      )
+      .slice(0, FTSE_LISTED_LOOSE);
+    if (listed.length)
+      detail += `; short-names whose name contains "${words.join(" ")}": ${listed.map((n) => `${n.short_name} (${n.index_name ?? "?"}${n.index_id != null ? `, index_id ${n.index_id}` : ""})`).join(", ")}`;
     if (notes.length) detail += `; ${notes.join("; ")}`;
-    const links = j.used.map((u) => ({ name: u.name, kind: u.kind, link: u.link, from: u.from, ...(u.gap ? { gap: u.gap } : {}) }));
-    return { ok: true, data: { levels: j.levels, rowCount: days.length, first: days[0], last: days[days.length - 1], joined: j.used.map((u) => u.name), links, indexName: me?.index_name ?? null }, detail };
+    const links = j.used.map((u) => ({
+      name: u.name,
+      kind: u.kind,
+      link: u.link,
+      from: u.from,
+      ...(u.gap ? { gap: u.gap } : {}),
+    }));
+    return {
+      ok: true,
+      data: {
+        levels: j.levels,
+        rowCount: days.length,
+        first: days[0],
+        last: days[days.length - 1],
+        joined: j.used.map((u) => u.name),
+        links,
+        indexName: me?.index_name ?? null,
+      },
+      detail,
+    };
   });
 }

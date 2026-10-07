@@ -7,14 +7,30 @@ import { buildFund } from "./fund.ts";
 
 /** One info issue per run for an endpoint that is not deployed yet (404), instead of one per fund. */
 function absentEndpoints(c: Ctx, raw: RawPayloads): void {
-  if (c.absent.portfolio.length) c.info("sources.fund-portfolio", `dataplatform /api/apex/fund-portfolio not available (HTTP 404, not deployed yet?) for ${c.absent.portfolio.join(", ")}: month-end factsheet figures shown`);
-  if (!raw.distributions) c.info("sources.distributions", "no distributions endpoint on the dataplatform main branch (PR #621 not merged) and no exact way to derive them from nav-timeseries: distribution policy text only");
-  if (c.absent.distributions.length) c.info("sources.distributions", `dataplatform /api/performance/distributions not available (HTTP 404, not deployed yet?) for ${c.absent.distributions.join(", ")}: distribution policy text only`);
+  if (c.absent.portfolio.length)
+    c.info(
+      "sources.fund-portfolio",
+      `dataplatform /api/apex/fund-portfolio not available (HTTP 404, not deployed yet?) for ${c.absent.portfolio.join(", ")}: month-end factsheet figures shown`,
+    );
+  if (!raw.distributions)
+    c.info(
+      "sources.distributions",
+      "no distributions endpoint on the dataplatform main branch (PR #621 not merged) and no exact way to derive them from nav-timeseries: distribution policy text only",
+    );
+  if (c.absent.distributions.length)
+    c.info(
+      "sources.distributions",
+      `dataplatform /api/performance/distributions not available (HTTP 404, not deployed yet?) for ${c.absent.distributions.join(", ")}: distribution policy text only`,
+    );
 }
 
 /** Newest as-of date of each part across the funds. */
 export function computeAsOf(funds: SiteData["funds"]): SiteData["asOf"] {
-  const max = (xs: (string | null | undefined)[]): string | null => xs.filter((x): x is string => !!x).sort().pop() ?? null;
+  const max = (xs: (string | null | undefined)[]): string | null =>
+    xs
+      .filter((x): x is string => !!x)
+      .sort()
+      .pop() ?? null;
   const fs = Object.values(funds).filter((f): f is FundData => !!f);
   return {
     performance: max(fs.map((f) => f.performance?.asOf)),
@@ -25,7 +41,12 @@ export function computeAsOf(funds: SiteData["funds"]): SiteData["asOf"] {
 }
 
 /** Raw payloads (+ the previous live publication) → SiteData and the per-fund context for validate.ts. */
-export function buildSiteData(raw: RawPayloads, previous: SiteData | null, now: Date, opts: BuildOptions = {}): BuildResult {
+export function buildSiteData(
+  raw: RawPayloads,
+  previous: SiteData | null,
+  now: Date,
+  opts: BuildOptions = {},
+): BuildResult {
   const o: BuildOptions = { requireFactsheetForNewMonth: false, ...opts };
   // never carry over illustrative data into a live dataset
   const prev = previous && previous.mode === "live" ? previous : null;

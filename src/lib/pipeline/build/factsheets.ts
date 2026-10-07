@@ -5,7 +5,10 @@ import { fundMonthlyTableKey, isObj, parseMonthlyTable, type Obj } from "../pars
 import type { RawPayloads } from "../raw.ts";
 
 /** factsheet archive file name -> parsed month-keyed view, newest first */
-export function factsheetFilesFor(raw: RawPayloads, file: "bonds_data" | "factsheet_data"): { name: string; month: string; data: Obj }[] {
+export function factsheetFilesFor(
+  raw: RawPayloads,
+  file: "bonds_data" | "factsheet_data",
+): { name: string; month: string; data: Obj }[] {
   const out: { name: string; month: string; data: Obj }[] = [];
   const files = raw.factsheets.ok && raw.factsheets.data ? raw.factsheets.data.files : {};
   for (const [name, data] of Object.entries(files)) {
@@ -17,7 +20,12 @@ export function factsheetFilesFor(raw: RawPayloads, file: "bonds_data" | "factsh
 }
 
 /** Newest archive block of the fund (or of `key`), optionally of one archive month. */
-export function factsheetBlock(raw: RawPayloads, spec: FundSpec, month?: string, key?: string): { name: string; month: string; block: Obj } | null {
+export function factsheetBlock(
+  raw: RawPayloads,
+  spec: FundSpec,
+  month?: string,
+  key?: string,
+): { name: string; month: string; block: Obj } | null {
   const fs = FUND_SOURCES[spec.key].factsheet;
   if (!fs) return null;
   for (const f of factsheetFilesFor(raw, fs.file)) {
@@ -29,18 +37,28 @@ export function factsheetBlock(raw: RawPayloads, spec: FundSpec, month?: string,
 }
 
 /** newest factsheet archive having the fund whose published class is `classCode` (other classes are never used) */
-export function sameClassArchive(raw: RawPayloads, spec: FundSpec, classCode: string): { name: string; month: string; block: Obj } | null {
+export function sameClassArchive(
+  raw: RawPayloads,
+  spec: FundSpec,
+  classCode: string,
+): { name: string; month: string; block: Obj } | null {
   const fs = FUND_SOURCES[spec.key].factsheet;
   if (!fs) return null;
   for (const f of factsheetFilesFor(raw, fs.file)) {
     const block = f.data[fs.key];
-    if (isObj(block) && factsheetClassAt(spec.key, f.month) === classCode) return { name: f.name, month: f.month, block };
+    if (isObj(block) && factsheetClassAt(spec.key, f.month) === classCode)
+      return { name: f.name, month: f.month, block };
   }
   return null;
 }
 
 /** a same-class factsheet monthly table's printed return for `month`, with its print tolerance, or null */
-export function factsheetMonthValue(raw: RawPayloads, spec: FundSpec, classCode: string, month: string): { value: number; tol: number; name: string } | null {
+export function factsheetMonthValue(
+  raw: RawPayloads,
+  spec: FundSpec,
+  classCode: string,
+  month: string,
+): { value: number; tol: number; name: string } | null {
   const fsb = sameClassArchive(raw, spec, classCode);
   const tk = fsb ? fundMonthlyTableKey(fsb.block, "Net") : null;
   if (!fsb || !tk) return null;

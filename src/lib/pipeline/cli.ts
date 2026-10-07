@@ -47,7 +47,9 @@ async function main(argv: string[]): Promise<number> {
     case "sample": {
       const { writeSample, SAMPLE_PATH } = await import("./sample.ts");
       const d = await writeSample();
-      console.log(`sample written to ${SAMPLE_PATH} (${Object.keys(d.funds).length} funds, as of ${JSON.stringify(d.asOf)})`);
+      console.log(
+        `sample written to ${SAMPLE_PATH} (${Object.keys(d.funds).length} funds, as of ${JSON.stringify(d.asOf)})`,
+      );
       return 0;
     }
     default:

@@ -16,7 +16,14 @@ import { after, type NextRequest } from "next/server";
 import { PUBLIC_FUNDS } from "@/config/funds-public";
 import { checkSameOrigin, clientKey, contactLimiter, forwardedShape } from "@/lib/contact/guards";
 import { screenSubmission } from "@/lib/contact/token";
-import { EXTRA_INTERESTS, fromForm, fromJson, validateSubmission, type InquiryField, type RawSubmission } from "@/lib/contact/validate";
+import {
+  EXTRA_INTERESTS,
+  fromForm,
+  fromJson,
+  validateSubmission,
+  type InquiryField,
+  type RawSubmission,
+} from "@/lib/contact/validate";
 import { InquiryStoreFullError, saveInquiry } from "@/lib/contact/store";
 import { notifyInquiry } from "@/lib/contact/notify";
 import { readBodyCapped } from "../admin/_lib/http";
@@ -31,8 +38,27 @@ const XFF_DIAGNOSTIC_REQUESTS = 10;
 let xffLogged = 0;
 const ALLOWED_INTERESTS: readonly string[] = [...PUBLIC_FUNDS.map((f) => f.short.en), ...EXTRA_INTERESTS];
 
-type Code = "forbidden" | "unavailable" | "rate_limited" | "unsupported" | "too_large" | "invalid_input" | "expired" | "busy" | "error";
-const STATUS: Record<Code, number> = { forbidden: 403, unavailable: 503, rate_limited: 429, unsupported: 415, too_large: 413, invalid_input: 400, expired: 400, busy: 429, error: 500 };
+type Code =
+  | "forbidden"
+  | "unavailable"
+  | "rate_limited"
+  | "unsupported"
+  | "too_large"
+  | "invalid_input"
+  | "expired"
+  | "busy"
+  | "error";
+const STATUS: Record<Code, number> = {
+  forbidden: 403,
+  unavailable: 503,
+  rate_limited: 429,
+  unsupported: 415,
+  too_large: 413,
+  invalid_input: 400,
+  expired: 400,
+  busy: 429,
+  error: 500,
+};
 
 function publicOrigin(): string | null {
   try {
@@ -48,14 +74,19 @@ export async function POST(req: NextRequest) {
   const origin = publicOrigin();
 
   const done = (): Response =>
-    native && origin ? Response.redirect(`${origin}/contact?sent=1#contact-form`, 303) : Response.json({ ok: true }, { headers: H });
+    native && origin
+      ? Response.redirect(`${origin}/contact?sent=1#contact-form`, 303)
+      : Response.json({ ok: true }, { headers: H });
   const fail = (code: Code, fields?: InquiryField[]): Response => {
     // without JavaScript: back to the page with the error code and the field codes to fix (never a submitted value)
     if (native && origin && code !== "forbidden") {
       const f = fields?.length ? `&fields=${fields.join(",")}` : "";
       return Response.redirect(`${origin}/contact?error=${code}${f}#contact-form`, 303);
     }
-    const headers: Record<string, string> = { ...H, ...(code === "rate_limited" || code === "busy" ? { "Retry-After": "900" } : {}) };
+    const headers: Record<string, string> = {
+      ...H,
+      ...(code === "rate_limited" || code === "busy" ? { "Retry-After": "900" } : {}),
+    };
     return Response.json(fields ? { error: code, fields } : { error: code }, { status: STATUS[code], headers });
   };
 
@@ -106,10 +137,14 @@ export async function POST(req: NextRequest) {
       console.log("[contact] duplicate submission not stored again");
       return done();
     }
-    after(() => notifyInquiry(rec).then(
-      (r) => { if (r === "failed") console.error("[contact] inquiry alert not delivered"); },
-      () => console.error("[contact] inquiry alert crashed"),
-    ));
+    after(() =>
+      notifyInquiry(rec).then(
+        (r) => {
+          if (r === "failed") console.error("[contact] inquiry alert not delivered");
+        },
+        () => console.error("[contact] inquiry alert crashed"),
+      ),
+    );
   } catch (e) {
     limiter.refundGlobal();
     if (e instanceof InquiryStoreFullError) {

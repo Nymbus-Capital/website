@@ -6,7 +6,15 @@
  * viewport, the loop pauses off screen / in a hidden tab, one still frame per step under reduced motion (live) or
  * Data Saver, 15 fps on coarse pointers; test hooks data-frames / data-running / data-step on the canvas host.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+} from "react";
 import { recoverFromChunkError } from "../fx/chunk-recover";
 import { Pause, Play } from "lucide-react";
 import { reducedMotion } from "@/components/motion/motion";
@@ -27,30 +35,45 @@ const subscribeMotion = (cb: () => void) => {
 function useReducedMotion(): boolean {
   return useSyncExternalStore(subscribeMotion, reducedMotion, () => false);
 }
-const saveData = (): boolean => (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+const saveData = (): boolean =>
+  (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
 const coarsePointer = (): boolean => window.matchMedia("(pointer: coarse)").matches;
 
 const pickAll = <T extends Record<string, { en: string; fr: string }>>(o: T, k: Locale) =>
   Object.fromEntries(Object.entries(o).map(([key, v]) => [key, v[k]])) as { [K in keyof T]: string };
 
 /** Creates the engine of a concept (each engine is its own lazily loaded chunk). */
-async function createEngine(id: ConceptId, canvas: HTMLCanvasElement, o: { still: boolean; maxFps?: number; lang: () => Locale; onReady: () => void; onStep: (s: number) => void }): Promise<Runner> {
+async function createEngine(
+  id: ConceptId,
+  canvas: HTMLCanvasElement,
+  o: { still: boolean; maxFps?: number; lang: () => Locale; onReady: () => void; onStep: (s: number) => void },
+): Promise<Runner> {
   const base = { still: o.still, maxFps: o.maxFps, onReady: o.onReady, onStep: o.onStep };
   const mark = () => CC.watermark[o.lang()];
   if (id === "overlay") {
     const m = await import("./overlay-stack-engine");
-    return m.createOverlayStack(canvas, { ...base, labels: () => ({ ...pickAll(CC.overlay.canvas, o.lang()), watermark: mark() }) });
+    return m.createOverlayStack(canvas, {
+      ...base,
+      labels: () => ({ ...pickAll(CC.overlay.canvas, o.lang()), watermark: mark() }),
+    });
   }
   if (id === "futures") {
     const m = await import("./futures-engine");
-    return m.createFutures(canvas, { ...base, labels: () => ({ ...pickAll(CC.futures.canvas, o.lang()), watermark: mark() }) });
+    return m.createFutures(canvas, {
+      ...base,
+      labels: () => ({ ...pickAll(CC.futures.canvas, o.lang()), watermark: mark() }),
+    });
   }
   const m = await import("./coverage-engine");
   return m.createCoverage(canvas, {
     ...base,
     labels: () => {
       const k = o.lang();
-      return { ...pickAll(CC.coverage.canvas, k), watermark: mark(), sectors: CC.coverage.sectors.map((s) => pickAll(s, k)) };
+      return {
+        ...pickAll(CC.coverage.canvas, k),
+        watermark: mark(),
+        sectors: CC.coverage.sectors.map((s) => pickAll(s, k)),
+      };
     },
   });
 }
@@ -68,7 +91,9 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
   const [playing, setPlaying] = useState(true);
   const [still, setStill] = useState(false);
   const reduced = useReducedMotion();
-  useLayoutEffect(() => { lang.current = locale; }, [locale]); // engines read the language on each frame
+  useLayoutEffect(() => {
+    lang.current = locale;
+  }, [locale]); // engines read the language on each frame
 
   useEffect(() => {
     const c = canvas.current;
@@ -84,19 +109,46 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
         lang: () => lang.current,
         onReady: () => setReady(true),
         onStep: (s) => setStep(s),
-      }).then((r) => {
-        if (dead) { r.destroy(); return; }
-        engine = r;
-        runner.current = r;
-        if (!playingRef.current) r.setPlaying(false);
-      }).catch((e) => recoverFromChunkError(e, "concept " + id));
+      })
+        .then((r) => {
+          if (dead) {
+            r.destroy();
+            return;
+          }
+          engine = r;
+          runner.current = r;
+          if (!playingRef.current) r.setPlaying(false);
+        })
+        .catch((e) => recoverFromChunkError(e, "concept " + id));
     };
-    if (typeof IntersectionObserver === "undefined") { boot(); return () => { dead = true; engine?.destroy(); runner.current = null; }; }
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); boot(); } }, { rootMargin: "300px" });
+    if (typeof IntersectionObserver === "undefined") {
+      boot();
+      return () => {
+        dead = true;
+        engine?.destroy();
+        runner.current = null;
+      };
+    }
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          boot();
+        }
+      },
+      { rootMargin: "300px" },
+    );
     io.observe(c);
-    return () => { dead = true; io.disconnect(); engine?.destroy(); runner.current = null; };
+    return () => {
+      dead = true;
+      io.disconnect();
+      engine?.destroy();
+      runner.current = null;
+    };
   }, [reduced, id]);
-  useEffect(() => { runner.current?.redraw(); }, [locale]);
+  useEffect(() => {
+    runner.current?.redraw();
+  }, [locale]);
 
   const toggle = useCallback(() => {
     const next = !playingRef.current;
@@ -104,11 +156,14 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
     setPlaying(next);
     runner.current?.setPlaying(next);
   }, []);
-  const go = useCallback((s: number) => {
-    const k = Math.max(0, Math.min(copy.steps.length - 1, s));
-    setStep(k);
-    runner.current?.goto(k);
-  }, [copy.steps.length]);
+  const go = useCallback(
+    (s: number) => {
+      const k = Math.max(0, Math.min(copy.steps.length - 1, s));
+      setStep(k);
+      runner.current?.goto(k);
+    },
+    [copy.steps.length],
+  );
   const onKey = (e: KeyboardEvent<HTMLOListElement>) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
     e.preventDefault();
@@ -123,26 +178,51 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
     <figure className="sc-fig cc-fig" data-testid={`concept-${id}`}>
       <div className={`sc-panel cc-panel ${ready ? "on" : ""}`} data-testid={`${id}-panel`}>
         <div className="sc-bar" aria-hidden="true">
-          <span className="sc-dots"><i /><i /><i /></span>
+          <span className="sc-dots">
+            <i />
+            <i />
+            <i />
+          </span>
           <span className="sc-title">{pick(copy.panel)}</span>
           <span className="sc-chip">{pick(copy.chip)}</span>
         </div>
         {/* only the drawing is an image: controls and figures stay readable */}
         <div className="sc-body" data-testid={`${id}-host`} role="img" aria-label={pick(copy.alt)}>
-          <canvas ref={canvas} className={`cc-canvas cc-canvas-${id}`} aria-hidden="true" data-testid={`${id}-canvas`} />
+          <canvas
+            ref={canvas}
+            className={`cc-canvas cc-canvas-${id}`}
+            aria-hidden="true"
+            data-testid={`${id}-canvas`}
+          />
         </div>
         <div className="cc-ctrl" role="group" aria-label={`${pick(CC.controls.group)} · ${pick(copy.panel)}`}>
           {still ? null : (
-            <button type="button" className="cc-play" onClick={toggle} aria-label={pick(playing ? CC.controls.pause : CC.controls.play)} data-testid={`${id}-play`}>
+            <button
+              type="button"
+              className="cc-play"
+              onClick={toggle}
+              aria-label={pick(playing ? CC.controls.pause : CC.controls.play)}
+              data-testid={`${id}-play`}
+            >
               {playing ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
             </button>
           )}
           <ol className="cc-steps" ref={steps} onKeyDown={onKey}>
             {copy.steps.map((s, i) => (
               <li key={i}>
-                <button type="button" onClick={() => go(i)} aria-current={i === step ? "step" : undefined} tabIndex={i === step ? 0 : -1} data-testid={`${id}-step-${i}`}>
-                  <span className="n" aria-hidden="true">{i + 1}</span>
-                  <span className="sr-only">{pick(CC.controls.step)} {i + 1}, </span>
+                <button
+                  type="button"
+                  onClick={() => go(i)}
+                  aria-current={i === step ? "step" : undefined}
+                  tabIndex={i === step ? 0 : -1}
+                  data-testid={`${id}-step-${i}`}
+                >
+                  <span className="n" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <span className="sr-only">
+                    {pick(CC.controls.step)} {i + 1},{" "}
+                  </span>
                   <span className="t">{pick(s)}</span>
                 </button>
               </li>
@@ -151,11 +231,16 @@ export function ConceptPanel({ id }: { id: ConceptId }) {
         </div>
         <dl className={`sc-stats cc-stats ${statCls}`}>
           {copy.stats.map((s, i) => (
-            <div className="sc-stat" key={i}><dt>{pick(s.label)}</dt><dd className="tabnum">{pick(s.value)}</dd></div>
+            <div className="sc-stat" key={i}>
+              <dt>{pick(s.label)}</dt>
+              <dd className="tabnum">{pick(s.value)}</dd>
+            </div>
           ))}
         </dl>
       </div>
-      <figcaption className="fine sc-cap" data-testid={`${id}-caption`}>{pick(copy.caption)}</figcaption>
+      <figcaption className="fine sc-cap" data-testid={`${id}-caption`}>
+        {pick(copy.caption)}
+      </figcaption>
     </figure>
   );
 }

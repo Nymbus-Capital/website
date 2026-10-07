@@ -44,7 +44,11 @@ async function adminGate(request: NextRequest, isApi: boolean): Promise<Response
       : denyPage(503, "admin unavailable", s.message);
   }
   if (s.status === "none") {
-    if (isApi) return NextResponse.json({ error: "unauthenticated", message: "Sign in required." }, { status: 401, headers: NO_STORE });
+    if (isApi)
+      return NextResponse.json(
+        { error: "unauthenticated", message: "Sign in required." },
+        { status: 401, headers: NO_STORE },
+      );
     // absolute URL on the public origin (behind a reverse proxy nextUrl.origin can be the internal address)
     const c = authConfig();
     const login = new URL("/api/auth/login", c.ok ? c.config.origin : request.nextUrl.origin);
@@ -59,7 +63,11 @@ async function adminGate(request: NextRequest, isApi: boolean): Promise<Response
   if (isApi) {
     const c = authConfig();
     const csrf = checkCsrf(request, c.ok ? c.config.origin : undefined);
-    if (!csrf.ok) return NextResponse.json({ error: "csrf", message: `Request rejected: ${csrf.reason}.` }, { status: 403, headers: NO_STORE });
+    if (!csrf.ok)
+      return NextResponse.json(
+        { error: "csrf", message: `Request rejected: ${csrf.reason}.` },
+        { status: 403, headers: NO_STORE },
+      );
   }
   return null;
 }
@@ -68,7 +76,11 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const nonce = makeNonce();
   const publicUrl = process.env.PUBLIC_URL || "";
-  const csp = buildCsp(nonce, { dev: process.env.NODE_ENV === "development", upgradeInsecure: publicUrl.startsWith("https://"), imgOrigins: [cmsImageOrigin()] });
+  const csp = buildCsp(nonce, {
+    dev: process.env.NODE_ENV === "development",
+    upgradeInsecure: publicUrl.startsWith("https://"),
+    imgOrigins: [cmsImageOrigin()],
+  });
 
   const adminPage = isAdminPath(pathname);
   const adminApi = isAdminApi(pathname);

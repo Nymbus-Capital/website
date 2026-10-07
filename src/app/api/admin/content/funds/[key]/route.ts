@@ -31,9 +31,14 @@ export async function PUT(request: NextRequest, ctx: { params: Promise<{ key: st
     const run = await getRun(fund.pinnedSnapshot).catch(() => null);
     if (!run) return fail(400, "invalid_input", "fund.pinnedSnapshot: no such run.");
     if (!isPinnable(run.report, run.data)) {
-      return fail(400, "invalid_input", "fund.pinnedSnapshot: only runs that were published (live data) can be pinned.");
+      return fail(
+        400,
+        "invalid_input",
+        "fund.pinnedSnapshot: only runs that were published (live data) can be pinned.",
+      );
     }
-    if (!run.data.funds?.[key]) return fail(400, "invalid_input", "fund.pinnedSnapshot: this run has no data for the fund.");
+    if (!run.data.funds?.[key])
+      return fail(400, "invalid_input", "fund.pinnedSnapshot: this run has no data for the fund.");
   } else {
     delete fund.pinnedSnapshot;
   }
@@ -47,7 +52,12 @@ export async function PUT(request: NextRequest, ctx: { params: Promise<{ key: st
       },
       user.email,
     );
-    await audit({ by: user.email, action: "content.fund.save", target: key, detail: { version: saved.version, before: previous ?? null, after: fund } });
+    await audit({
+      by: user.email,
+      action: "content.fund.save",
+      target: key,
+      detail: { version: saved.version, before: previous ?? null, after: fund },
+    });
     return ok({ content: saved });
   } catch (e) {
     return contentError("content.fund", e);

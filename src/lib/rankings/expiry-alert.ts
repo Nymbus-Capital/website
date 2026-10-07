@@ -17,21 +17,25 @@ export function alertRankingExpiries(
   const months = policyMonths(content);
   const items = rankingExpiries(content, { now, months, classes: opts.classes }).map((x) => ({
     id: x.id,
-    line: x.phase === "expiring"
-      ? `• ${x.fund}: ${x.label} as of ${x.asOf} — hidden after ${x.lastShowDay} (${x.daysLeft} day${x.daysLeft === 1 ? "" : "s"} left)`
-      : `• ${x.fund}: ${x.label} as of ${x.asOf} — now HIDDEN (older than ${months} months since ${x.lastShowDay})`,
+    line:
+      x.phase === "expiring"
+        ? `• ${x.fund}: ${x.label} as of ${x.asOf} — hidden after ${x.lastShowDay} (${x.daysLeft} day${x.daysLeft === 1 ? "" : "s"} left)`
+        : `• ${x.fund}: ${x.label} as of ${x.asOf} — now HIDDEN (older than ${months} months since ${x.lastShowDay})`,
   }));
-  return announceNew({
-    key: EXPIRY_ALERT_KEY,
-    items,
-    message: (fresh) => ({
-      title: "Nymbus website: third-party rankings about to be hidden (or just hidden)",
-      severity: "warn",
-      adminPath: "/admin/funds",
-      lines: [
-        ...fresh.map((f) => f.line),
-        `What to do: in /admin/funds → the fund → rankings, enter the newer edition (or re-confirm the entry with the source's newer as-of date). Entries older than ${months} months are hidden from the public pages (limit in /admin/settings).`,
-      ],
-    }),
-  }, { ...opts, now });
+  return announceNew(
+    {
+      key: EXPIRY_ALERT_KEY,
+      items,
+      message: (fresh) => ({
+        title: "Nymbus website: third-party rankings about to be hidden (or just hidden)",
+        severity: "warn",
+        adminPath: "/admin/funds",
+        lines: [
+          ...fresh.map((f) => f.line),
+          `What to do: in /admin/funds → the fund → rankings, enter the newer edition (or re-confirm the entry with the source's newer as-of date). Entries older than ${months} months are hidden from the public pages (limit in /admin/settings).`,
+        ],
+      }),
+    },
+    { ...opts, now },
+  );
 }

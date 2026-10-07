@@ -5,7 +5,9 @@ import { expect, test, type Page } from "@playwright/test";
  * page scroll locked while open, focus kept inside, Escape and backdrop close them, nothing overflows on a phone.
  */
 async function settled(page: Page, testId: string) {
-  await page.getByTestId(testId).evaluate((d) => Promise.all(d.getAnimations().map((a) => a.finished.catch(() => null))));
+  await page
+    .getByTestId(testId)
+    .evaluate((d) => Promise.all(d.getAnimations().map((a) => a.finished.catch(() => null))));
 }
 
 async function expectCentred(page: Page, testId: string) {
@@ -14,8 +16,18 @@ async function expectCentred(page: Page, testId: string) {
     const el = document.querySelector<HTMLElement>(`[data-testid="${id}"]`)!;
     const b = el.getBoundingClientRect();
     // the layout viewport (without the reserved scrollbar gutter) is what a fixed, inset:0 dialog centres in
-    const w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
-    return { cx: b.left + b.width / 2, cy: b.top + b.height / 2, w, h, left: b.left, right: b.right, top: b.top, bottom: b.bottom };
+    const w = document.documentElement.clientWidth,
+      h = document.documentElement.clientHeight;
+    return {
+      cx: b.left + b.width / 2,
+      cy: b.top + b.height / 2,
+      w,
+      h,
+      left: b.left,
+      right: b.right,
+      top: b.top,
+      bottom: b.bottom,
+    };
   }, testId);
   expect(Math.abs(r.cx - r.w / 2), `horizontal centre ${r.cx} vs ${r.w / 2}`).toBeLessThanOrEqual(2);
   expect(Math.abs(r.cy - r.h / 2), `vertical centre ${r.cy} vs ${r.h / 2}`).toBeLessThanOrEqual(2);
@@ -41,7 +53,12 @@ test("team: the bio dialog is centred in the viewport, locks the page scroll and
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press("Tab");
     // inside the dialog, or nowhere (body: focus handed to the browser UI); never on the inert page behind it
-    expect(await page.evaluate(() => { const a = document.activeElement; return !a || a === document.body || !!a.closest("dialog"); })).toBe(true);
+    expect(
+      await page.evaluate(() => {
+        const a = document.activeElement;
+        return !a || a === document.body || !!a.closest("dialog");
+      }),
+    ).toBe(true);
   }
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();

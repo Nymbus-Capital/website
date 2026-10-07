@@ -4,7 +4,9 @@
  * RANKINGS_CHECK_DAYS (default 7), so restarts neither skip nor repeat it; each tick also posts the rankings about to be
  * hidden (expiry-alert.ts, once per entry). RANKINGS_CHECK=off disables both.
  */
-const G = globalThis as typeof globalThis & { __nymbusRankingsCheck?: { timer: ReturnType<typeof setInterval> | null } };
+const G = globalThis as typeof globalThis & {
+  __nymbusRankingsCheck?: { timer: ReturnType<typeof setInterval> | null };
+};
 
 export function checkIntervalDays(env: Record<string, string | undefined> = process.env): number {
   const n = Number(env.RANKINGS_CHECK_DAYS);
@@ -35,7 +37,10 @@ export function startRankingsCheck(opts: { log?: (m: string) => void } = {}): bo
       const content = await getContent();
       // rankings about to be hidden (30 days ahead) or just hidden: webhook, once per entry and phase
       try {
-        const [{ alertRankingExpiries }, { FUNDS }] = await Promise.all([import("./expiry-alert.ts"), import("../../config/funds.ts")]);
+        const [{ alertRankingExpiries }, { FUNDS }] = await Promise.all([
+          import("./expiry-alert.ts"),
+          import("../../config/funds.ts"),
+        ]);
         await alertRankingExpiries(content, { classes: Object.fromEntries(FUNDS.map((f) => [f.key, f.classes])) });
       } catch (e: unknown) {
         log(`expiry alert failed: ${(e as Error)?.message ?? e}`);

@@ -4,7 +4,9 @@ const KEY = "nymbus-chunk-reload";
 /** True for the errors a stale page gets when its chunk files were replaced by a new deployment. */
 function isChunkError(e: unknown): boolean {
   const msg = e instanceof Error ? `${e.name} ${e.message}` : String(e);
-  return /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|error loading dynamically/i.test(msg);
+  return /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|error loading dynamically/i.test(
+    msg,
+  );
 }
 
 /** Logs an animation start failure; on a stale chunk, reloads the page once per session to pick up the new build. */

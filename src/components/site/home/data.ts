@@ -42,7 +42,14 @@ export interface FundCard {
   firstMonth: string | null;
   /** minimum investment as entered in the admin (free text), null when not provided */
   minInvestment: string | null;
-  nav: { code: string; display: string; currency: string; nav: number; changePct: number | null; date: string | null } | null;
+  nav: {
+    code: string;
+    display: string;
+    currency: string;
+    nav: number;
+    changePct: number | null;
+    date: string | null;
+  } | null;
   /** class of the published returns ("F", "H", "FP"), derived from the class of their data; null when none */
   perfClass: string | null;
   /** the strategy variant of the returns shown (Global Minimum Volatility: "6% downside volatility"); null without variants */
@@ -85,7 +92,9 @@ export function toFundCard(v: FundView): FundCard {
   const perfData = variantId
     ? pickData(data, spec, content, { classCode: null, variant: variantId }).data
     : data && spec.classes?.length
-      ? (head ? pickData(data, spec, content, { classCode: head, variant: null }).data : { ...data, performance: null, risk: null, risk3Y: null })
+      ? head
+        ? pickData(data, spec, content, { classCode: head, variant: null }).data
+        : { ...data, performance: null, risk: null, risk3Y: null }
       : data;
   const perf = perfData?.performance ?? null;
   const si = perf?.trailing.fund.SI;
@@ -114,16 +123,28 @@ export function toFundCard(v: FundView): FundCard {
     asOf: perf?.asOf ?? null,
     firstMonth: perf?.firstMonth ?? null,
     minInvestment: content.minInvestment?.trim() || null,
-    nav: cls && isNum(cls.nav)
-      ? { code: cls.fundserv, display: cls.display, currency: cls.currency, nav: cls.nav, changePct: isNum(cls.changePct) ? cls.changePct : null, date: cls.date }
-      : null,
+    nav:
+      cls && isNum(cls.nav)
+        ? {
+            code: cls.fundserv,
+            display: cls.display,
+            currency: cls.currency,
+            nav: cls.nav,
+            changePct: isNum(cls.changePct) ? cls.changePct : null,
+            date: cls.date,
+          }
+        : null,
     perfClass: perf?.returnClass ?? null,
     // the published returns of a strategy with variants are its default variant's (the figures above): always named
-    perfVariant: perf && variantId ? shownVariant(spec, variantId)?.name ?? null : null,
+    perfVariant: perf && variantId ? (shownVariant(spec, variantId)?.name ?? null) : null,
   };
 }
 
-export function toHomeData(views: FundView[], content: SiteContent, extras: { teamSize?: number | null; phdCount?: number | null } = {}): HomeData {
+export function toHomeData(
+  views: FundView[],
+  content: SiteContent,
+  extras: { teamSize?: number | null; phdCount?: number | null } = {},
+): HomeData {
   const funds = views.map(toFundCard);
   const label = content.firm.aumLabel;
   return {

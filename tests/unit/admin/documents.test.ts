@@ -70,14 +70,30 @@ test("content disposition is inline with an RFC 5987 name", () => {
 
 test("document ids reject traversal and garbage", () => {
   assert.equal(isDocumentId("20260929T043000-1a2b3c4d"), true);
-  for (const bad of ["../index.json", "..", "index.json", "20260929T043000-1a2b3c4d/../../x", "20260929T043000-1A2B3C4D", "", "files", "%2e%2e"]) {
+  for (const bad of [
+    "../index.json",
+    "..",
+    "index.json",
+    "20260929T043000-1a2b3c4d/../../x",
+    "20260929T043000-1A2B3C4D",
+    "",
+    "files",
+    "%2e%2e",
+  ]) {
     assert.equal(isDocumentId(bad), false, bad);
   }
 });
 
 test("create, publish filter, update, replace, delete", async () => {
   const d = await docs.createDocument(
-    { scope: "monthly-income", type: "fund-facts", lang: "both", title: { en: "Fund facts", fr: "Aperçu" }, date: "2026-09-01", published: false },
+    {
+      scope: "monthly-income",
+      type: "fund-facts",
+      lang: "both",
+      title: { en: "Fund facts", fr: "Aperçu" },
+      date: "2026-09-01",
+      published: false,
+    },
     "../x/Fund facts.pdf",
     PDF,
     "alice@nymbus.ca",
@@ -110,7 +126,14 @@ test("create, publish filter, update, replace, delete", async () => {
 });
 
 test("concurrent creates do not lose index entries", async () => {
-  const base = { scope: "firm" as const, type: "other" as const, lang: "en" as const, title: { en: "t", fr: "" }, date: "2026-01-01", published: true };
+  const base = {
+    scope: "firm" as const,
+    type: "other" as const,
+    lang: "en" as const,
+    title: { en: "t", fr: "" },
+    date: "2026-01-01",
+    published: true,
+  };
   await Promise.all(Array.from({ length: 8 }, (_, i) => docs.createDocument(base, `f${i}.pdf`, PDF, "x@nymbus.ca")));
   assert.equal((await docs.listPublishedDocuments("firm")).length, 8);
 });
@@ -134,8 +157,18 @@ test("single byte-range parsing", () => {
 
 test("public DTO drops internal fields", async () => {
   const full = {
-    id: "20260929T043000-1a2b3c4d", scope: "firm" as const, type: "other" as const, lang: "en" as const, title: { en: "t", fr: "" },
-    date: "2026-01-01", fileName: "a.pdf", size: 3, sha256: "x".repeat(64), published: true, uploadedBy: "alice@nymbus.ca", uploadedAt: "2026-01-01T00:00:00Z",
+    id: "20260929T043000-1a2b3c4d",
+    scope: "firm" as const,
+    type: "other" as const,
+    lang: "en" as const,
+    title: { en: "t", fr: "" },
+    date: "2026-01-01",
+    fileName: "a.pdf",
+    size: 3,
+    sha256: "x".repeat(64),
+    published: true,
+    uploadedBy: "alice@nymbus.ca",
+    uploadedAt: "2026-01-01T00:00:00Z",
   };
   const pub = docs.toPublicDocument(full);
   assert.deepEqual(Object.keys(pub).sort(), ["date", "fileName", "id", "lang", "scope", "size", "title", "type"]);
@@ -145,7 +178,10 @@ test("public DTO drops internal fields", async () => {
 
 test("file stat for streaming", async () => {
   const d = await docs.createDocument(
-    { scope: "firm", type: "other", lang: "en", title: { en: "s", fr: "" }, date: "2026-01-01", published: true }, "s.pdf", PDF, "x@nymbus.ca",
+    { scope: "firm", type: "other", lang: "en", title: { en: "s", fr: "" }, date: "2026-01-01", published: true },
+    "s.pdf",
+    PDF,
+    "x@nymbus.ca",
   );
   const st = await docs.documentFileStat(d.id);
   assert.equal(st?.size, PDF.length);

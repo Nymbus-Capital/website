@@ -10,8 +10,12 @@ import { buildFactsheetParts, type FsParts } from "./factsheet-parts.ts";
 
 /** Variants of a strategy (GMV): one factsheet block each; the default variant's data is the fund's own. */
 export function buildVariants(
-  raw: RawPayloads, spec: FundSpec, prev: FundData | undefined,
-  own: { performance: Performance | null; risk: RiskStats | null; risk3Y: RiskStats | null; fp: FsParts }, c: Ctx, base: string,
+  raw: RawPayloads,
+  spec: FundSpec,
+  prev: FundData | undefined,
+  own: { performance: Performance | null; risk: RiskStats | null; risk3Y: RiskStats | null; fp: FsParts },
+  c: Ctx,
+  base: string,
 ): Record<string, VariantData> | undefined {
   const defs = FUND_SOURCES[spec.key].variants;
   if (!defs?.length) return undefined;
@@ -27,8 +31,15 @@ export function buildVariants(
     if (!pb?.performance) {
       if (old) {
         out[v.id] = old;
-        c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance ? ym(old.performance.asOf) : "?"})`);
-      } else c.warn(`${vb}.performance`, `variant ${v.id} %: no usable factsheet block "${v.key}"; the variant is not shown`);
+        c.warn(
+          `${vb}.performance`,
+          `variant ${v.id} %: no usable factsheet block "${v.key}"; previous publication kept (as of ${old.performance ? ym(old.performance.asOf) : "?"})`,
+        );
+      } else
+        c.warn(
+          `${vb}.performance`,
+          `variant ${v.id} %: no usable factsheet block "${v.key}"; the variant is not shown`,
+        );
       return;
     }
     const fp = buildFactsheetParts(raw, spec, old, pb.performance.asOf, c, vb, v.key);

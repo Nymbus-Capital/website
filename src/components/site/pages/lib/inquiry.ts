@@ -25,12 +25,22 @@ export interface Inquiry {
 export type InquiryErrors = Partial<Record<InquiryField, true>>;
 
 /** The step (1-3) where a field is entered. */
-export const FIELD_STEP: Record<InquiryField, 1 | 2 | 3> = { profile: 1, interests: 2, name: 3, email: 3, phone: 3, company: 3, message: 3, consent: 3 };
+export const FIELD_STEP: Record<InquiryField, 1 | 2 | 3> = {
+  profile: 1,
+  interests: 2,
+  name: 3,
+  email: 3,
+  phone: 3,
+  company: 3,
+  message: 3,
+  consent: 3,
+};
 
 /** Errors of one step (1: profile, 2: interests, 3: details and consent) or of every step (0). */
 export function validateInquiry(q: Inquiry, step: 0 | 1 | 2 | 3 = 0): InquiryErrors {
   const e: InquiryErrors = {};
-  for (const f of inquiryFieldErrors({ ...q, interests: q.interests ?? [] })) if (step === 0 || FIELD_STEP[f] === step) e[f] = true;
+  for (const f of inquiryFieldErrors({ ...q, interests: q.interests ?? [] }))
+    if (step === 0 || FIELD_STEP[f] === step) e[f] = true;
   return e;
 }
 
@@ -40,9 +50,39 @@ export function firstInvalidStep(q: Inquiry): 0 | 1 | 2 | 3 {
   return 0;
 }
 
-const LABELS: Record<Locale, { subject: string; profile: string; interests: string; name: string; email: string; phone: string; company: string; message: string }> = {
-  en: { subject: "Website inquiry", profile: "Investor profile", interests: "Interested in", name: "Name", email: "Email", phone: "Phone", company: "Organization", message: "Message" },
-  fr: { subject: "Demande du site Web", profile: "Profil d’investisseur", interests: "Intérêts", name: "Nom", email: "Courriel", phone: "Téléphone", company: "Organisation", message: "Message" },
+const LABELS: Record<
+  Locale,
+  {
+    subject: string;
+    profile: string;
+    interests: string;
+    name: string;
+    email: string;
+    phone: string;
+    company: string;
+    message: string;
+  }
+> = {
+  en: {
+    subject: "Website inquiry",
+    profile: "Investor profile",
+    interests: "Interested in",
+    name: "Name",
+    email: "Email",
+    phone: "Phone",
+    company: "Organization",
+    message: "Message",
+  },
+  fr: {
+    subject: "Demande du site Web",
+    profile: "Profil d’investisseur",
+    interests: "Intérêts",
+    name: "Nom",
+    email: "Courriel",
+    phone: "Téléphone",
+    company: "Organisation",
+    message: "Message",
+  },
 };
 
 const clip = (s: string | undefined, n: number) => (s ?? "").trim().replace(/\s+\n/g, "\n").slice(0, n);
@@ -63,13 +103,18 @@ export function inquiryEmail(q: Inquiry, lang: Locale = "en"): { subject: string
     `${L.profile}: ${clip(q.profile, 60)}`,
     `${L.interests}: ${q.interests.map((i) => clip(i, 60)).join(", ")}`,
   ];
-  const body = lines.filter((x, i) => i < 3 || x).join("\n").replace(/^\n+/, "");
+  const body = lines
+    .filter((x, i) => i < 3 || x)
+    .join("\n")
+    .replace(/^\n+/, "");
   return { subject, body };
 }
 
 /** mailto: link (RFC 6068: subject and body percent-encoded, spaces as %20). */
 export function mailto(to: string, subject?: string, body?: string): string {
-  const q = [subject ? `subject=${encodeURIComponent(subject)}` : "", body ? `body=${encodeURIComponent(body)}` : ""].filter(Boolean).join("&");
+  const q = [subject ? `subject=${encodeURIComponent(subject)}` : "", body ? `body=${encodeURIComponent(body)}` : ""]
+    .filter(Boolean)
+    .join("&");
   return `mailto:${to}${q ? `?${q}` : ""}`;
 }
 
@@ -79,4 +124,5 @@ export function inquiryMailto(q: Inquiry, lang: Locale = "en", to = INQUIRY_TO):
 }
 
 /** Google Maps search link for an address (a link, not an embed: the CSP allows no third-party frames). */
-export const mapsLink = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+export const mapsLink = (address: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;

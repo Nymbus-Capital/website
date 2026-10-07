@@ -27,7 +27,12 @@ interface FundClassSpec {
  * a strategy variant: `label` is the selector button ("6%"), `name` names the variant wherever its figures are shown;
  * `default` marks the variant selected when nothing else is (the list itself is in display order)
  */
-interface VariantSpec { id: string; label: L; name: L; default?: true }
+interface VariantSpec {
+  id: string;
+  label: L;
+  name: L;
+  default?: true;
+}
 
 /** Global Minimum Volatility variants are named by their target downside volatility, everywhere a figure is shown. */
 const gmvVariant = (pct: number, isDefault = false): VariantSpec => ({
@@ -81,7 +86,10 @@ export const FUNDS: FundSpec[] = [
     color: { solid: "#1a73e8", from: "#6ea8ff", to: "#0b57d0" },
     aliases: ["sustainable-enhanced-short-term-bonds", "sest"],
     sources: { basis: "net" },
-    benchmark: { en: "FTSE Canada Short Term Corporate Bond Index", fr: "Indice FTSE Canada des obligations corporatives à court terme" },
+    benchmark: {
+      en: "FTSE Canada Short Term Corporate Bond Index",
+      fr: "Indice FTSE Canada des obligations corporatives à court terme",
+    },
     headlineClass: "LDM081",
     // every active class of the fund register (2026-10-04); the register stays the source of the live list (build/class-series.ts)
     classes: [
@@ -94,7 +102,10 @@ export const FUNDS: FundSpec[] = [
     ],
     defaults: {
       riskRating: "low-medium",
-      tagline: { en: "Monthly income from short-term corporate bonds", fr: "Un revenu mensuel tiré d’obligations de sociétés à court terme" },
+      tagline: {
+        en: "Monthly income from short-term corporate bonds",
+        fr: "Un revenu mensuel tiré d’obligations de sociétés à court terme",
+      },
       description: {
         en: "Short-term Canadian corporate bonds selected by our two-system process, with a protective futures overlay designed to have low correlation with bonds in down months and to offset part of bond losses; it may not do so and can lose money. Distributions are not guaranteed, may change and may include a return of capital.",
         fr: "Des obligations de sociétés canadiennes à court terme sélectionnées par notre processus à deux systèmes, avec une superposition protectrice conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et compenser une partie des pertes obligataires; elle peut ne pas y parvenir et peut subir des pertes. Les distributions ne sont pas garanties, peuvent changer et peuvent comprendre un remboursement de capital.",
@@ -122,7 +133,10 @@ export const FUNDS: FundSpec[] = [
     ],
     defaults: {
       riskRating: "low",
-      tagline: { en: "Canadian core bonds, managed systematically", fr: "Obligations canadiennes de base, gérées de façon systématique" },
+      tagline: {
+        en: "Canadian core bonds, managed systematically",
+        fr: "Obligations canadiennes de base, gérées de façon systématique",
+      },
       description: {
         en: "A core Canadian bond portfolio built systematically, integrating sustainability criteria in bond selection, with a protective futures overlay designed to have low correlation with bonds in down months and to offset part of bond losses; it may not do so and can lose money.",
         fr: "Un portefeuille obligataire canadien de base construit de façon systématique, intégrant des critères de durabilité dans la sélection des obligations, avec une superposition protectrice conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse et compenser une partie des pertes obligataires; elle peut ne pas y parvenir et peut subir des pertes.",
@@ -149,7 +163,10 @@ export const FUNDS: FundSpec[] = [
     ],
     defaults: {
       riskRating: "medium",
-      tagline: { en: "Four systematic strategies designed to have low correlation with one another", fr: "Quatre stratégies systématiques conçues pour être peu corrélées entre elles" },
+      tagline: {
+        en: "Four systematic strategies designed to have low correlation with one another",
+        fr: "Quatre stratégies systématiques conçues pour être peu corrélées entre elles",
+      },
       description: {
         en: "Low-volatility, directional, mean-reversion and hedging strategies combined into one portfolio, each designed to play a distinct role across market regimes.",
         fr: "Des stratégies à faible volatilité, directionnelles, de retour à la moyenne et de couverture réunies dans un portefeuille, chacune conçue pour jouer un rôle distinct selon les régimes de marché.",
@@ -168,14 +185,13 @@ export const FUNDS: FundSpec[] = [
     benchmark: null,
     headlineClass: null,
     classes: [],
-    variants: [
-      gmvVariant(3),
-      gmvVariant(6, true),
-      gmvVariant(9),
-    ],
+    variants: [gmvVariant(3), gmvVariant(6, true), gmvVariant(9)],
     defaults: {
       riskRating: "low",
-      tagline: { en: "A protective futures overlay designed to have low correlation with bonds in down months", fr: "Une superposition protectrice conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse" },
+      tagline: {
+        en: "A protective futures overlay designed to have low correlation with bonds in down months",
+        fr: "Une superposition protectrice conçue pour avoir une faible corrélation avec les obligations lors des mois de baisse",
+      },
       description: {
         en: "A protective managed-futures overlay stacked on top of an existing portfolio (margin deposit of about 5 to 10% of exposure): most of the capital stays invested in the underlying portfolio while the overlay targets 3%, 6% or 9% downside volatility. The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
         fr: "Une superposition protectrice de contrats à terme gérés ajoutée par-dessus un portefeuille existant (dépôt de garantie d’environ 5 à 10 % de l’exposition) : la majeure partie du capital reste investie dans le portefeuille sous-jacent, tandis que la stratégie cible une volatilité à la baisse de 3 %, 6 % ou 9 %. La superposition ajoute une exposition additionnelle au moyen de contrats à terme; ses pertes s’ajoutent à celles du portefeuille sous-jacent et peuvent exiger des dépôts de garantie supplémentaires.",

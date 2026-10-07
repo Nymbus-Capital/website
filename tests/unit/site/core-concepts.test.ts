@@ -10,28 +10,92 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { cycleMs, stepAt, stepStarts } from "../../../src/components/site/canvas/timeline.ts";
 import {
-  CHART_PERIODS, DEPOSIT_SHARE, EXPOSURE_SHARE, MAX_CONTRIB, chartScale, largestLoss, lossNoteSpot, stackOf, OVERLAY_STEP_MS, overlayStackLayout, periodAt, stackBlocks,
+  CHART_PERIODS,
+  DEPOSIT_SHARE,
+  EXPOSURE_SHARE,
+  MAX_CONTRIB,
+  chartScale,
+  largestLoss,
+  lossNoteSpot,
+  stackOf,
+  OVERLAY_STEP_MS,
+  overlayStackLayout,
+  periodAt,
+  stackBlocks,
 } from "../../../src/components/site/concepts/overlay-stack-model.ts";
 import {
-  DAYS, DAY_MS, FUTURES_STEP_MS, HIGH_VOL_FROM, HIGH_VOL_TO, LOOP_MS, MARGIN_K, READ_MARGIN, READ_MS_PER_WORD, RULE_FULL_MS, SETTLE_SHARE, futuresLayout,
-  futuresLoop, intraday, marginFor, marketU, ruleAlpha, settledThrough, sigmaOf, unsettled,
+  DAYS,
+  DAY_MS,
+  FUTURES_STEP_MS,
+  HIGH_VOL_FROM,
+  HIGH_VOL_TO,
+  LOOP_MS,
+  MARGIN_K,
+  READ_MARGIN,
+  READ_MS_PER_WORD,
+  RULE_FULL_MS,
+  SETTLE_SHARE,
+  futuresLayout,
+  futuresLoop,
+  intraday,
+  marginFor,
+  marketU,
+  ruleAlpha,
+  settledThrough,
+  sigmaOf,
+  unsettled,
 } from "../../../src/components/site/concepts/futures-model.ts";
 import {
-  ANALYSTS, CARD_ROWS, COVERAGE_STEP_MS, FOCUS_IN, LIQUID_MIN_MM, PER_ANALYST, TEAM_RANGE, UNIVERSE, analystPos, analystSlot, cellOf, coverageLabelBoxes, coverageLayout,
-  focusFrom, focusTracker, gridFit, pmPos, sectorBlocks, sectorFont, sectorLabelBoxes, sectorOf, sectorStart, teamCoverage, universe,
+  ANALYSTS,
+  CARD_ROWS,
+  COVERAGE_STEP_MS,
+  FOCUS_IN,
+  LIQUID_MIN_MM,
+  PER_ANALYST,
+  TEAM_RANGE,
+  UNIVERSE,
+  analystPos,
+  analystSlot,
+  cellOf,
+  coverageLabelBoxes,
+  coverageLayout,
+  focusFrom,
+  focusTracker,
+  gridFit,
+  pmPos,
+  sectorBlocks,
+  sectorFont,
+  sectorLabelBoxes,
+  sectorOf,
+  sectorStart,
+  teamCoverage,
+  universe,
 } from "../../../src/components/site/concepts/coverage-model.ts";
 import { CC, CONCEPTS, OVERLAY_EXPOSURE } from "../../../src/components/site/concepts/concepts.copy.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
-const leaves = (v: unknown): string[] => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : []);
+const leaves = (v: unknown): string[] =>
+  typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : [];
 type Box = { x: number; y: number; w: number; h: number };
 const inside = (b: Box, W: number, H: number, what: string) => {
   assert.ok(b.w > 0 && b.h > 0, `${what}: empty ${JSON.stringify(b)}`);
-  assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.w <= W + 0.01 && b.y + b.h <= H + 0.01, `${what} outside ${W}×${H}: ${JSON.stringify(b)}`);
+  assert.ok(
+    b.x >= 0 && b.y >= 0 && b.x + b.w <= W + 0.01 && b.y + b.h <= H + 0.01,
+    `${what} outside ${W}×${H}: ${JSON.stringify(b)}`,
+  );
 };
 /** canvas sizes the CSS gives each scene (narrow under 700 px wide) */
-const SIZES: [number, number][] = [[300, 640], [328, 640], [500, 640], [699, 640], [700, 460], [900, 470], [1150, 500], [1360, 520]];
+const SIZES: [number, number][] = [
+  [300, 640],
+  [328, 640],
+  [500, 640],
+  [699, 640],
+  [700, 460],
+  [900, 470],
+  [1150, 500],
+  [1360, 520],
+];
 
 /* ------------------------------------------------------------------ timeline */
 
@@ -45,13 +109,17 @@ test("timeline: steps cover the cycle in order and wrap around", () => {
   assert.equal(stepAt(350, d).step, 2);
   assert.equal(stepAt(650, d).step, 0);
   assert.equal(stepAt(650, d).loop, 1);
-  for (let t = 0; t < 2000; t += 7) { const s = stepAt(t, d); assert.ok(s.p >= 0 && s.p < 1); }
+  for (let t = 0; t < 2000; t += 7) {
+    const s = stepAt(t, d);
+    assert.ok(s.p >= 0 && s.p < 1);
+  }
 });
 
 /* ------------------------------------------------------------------ overlay stack */
 
 test("overlay: periods are deterministic, bounded, and combined = core + overlay exactly", () => {
-  let neg = 0, core = 0;
+  let neg = 0,
+    core = 0;
   for (let n = 0; n < 3000; n++) {
     const p = periodAt(n, 3);
     assert.deepEqual(p, periodAt(n, 3));
@@ -72,7 +140,8 @@ test("overlay: periods are deterministic, bounded, and combined = core + overlay
 test("overlay: driven by volatility (vega) — small in calm periods, larger in volatile ones (up or down moves), never a promise", () => {
   const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
   const all = Array.from({ length: 4000 }, (_, n) => periodAt(n, 0));
-  const vol = all.filter((p) => p.volatile), calm = all.filter((p) => !p.volatile);
+  const vol = all.filter((p) => p.volatile),
+    calm = all.filter((p) => !p.volatile);
   assert.ok(mean(vol.map((p) => p.overlay)) > 3 * mean(calm.map((p) => p.overlay)), "volatile mean > 3 × calm mean");
   for (const p of calm) assert.ok(Math.abs(p.overlay) < 0.6, `calm overlay stays small: ${p.overlay}`);
   // volatile periods can lose too (roughly one in five or six)
@@ -81,7 +150,8 @@ test("overlay: driven by volatility (vega) — small in calm periods, larger in 
   // the volatile core is symmetric with a larger spread: big up and big down moves both tend to pay
   assert.ok(Math.abs(mean(vol.map((p) => p.core))) < 0.08 && Math.abs(mean(calm.map((p) => p.core))) < 0.05);
   assert.ok(mean(vol.map((p) => Math.abs(p.core))) > 2.5 * mean(calm.map((p) => Math.abs(p.core))));
-  const bigUp = vol.filter((p) => p.core > 0.6), bigDn = vol.filter((p) => p.core < -0.6);
+  const bigUp = vol.filter((p) => p.core > 0.6),
+    bigDn = vol.filter((p) => p.core < -0.6);
   assert.ok(bigUp.length > 50 && bigDn.length > 50);
   assert.ok(mean(bigUp.map((p) => p.overlay)) > 0.4 && mean(bigDn.map((p) => p.overlay)) > 0.4);
   // default seed: the largest core drawdown comes with a positive overlay
@@ -93,7 +163,10 @@ test("overlay: driven by volatility (vega) — small in calm periods, larger in 
   for (let seed = 0; seed < 16; seed++) {
     const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
     assert.ok(w.some((p) => p.volatile) && w.some((p) => !p.volatile), `seed ${seed}`);
-    assert.ok(w.some((p) => p.overlay < 0 && !p.volatile), `seed ${seed}: no losing calm period`);
+    assert.ok(
+      w.some((p) => p.overlay < 0 && !p.volatile),
+      `seed ${seed}: no losing calm period`,
+    );
     volLosers += w.filter((p) => p.volatile && p.overlay < 0).length;
     for (const p of w) assert.equal(p.combined, p.core + p.overlay);
   }
@@ -101,23 +174,46 @@ test("overlay: driven by volatility (vega) — small in calm periods, larger in 
 });
 
 test("overlay chart: the scale uses the window's tallest stack; the loss note points at the largest loss and covers no bar", () => {
-  for (const [Cw, barsH, narrow] of [[332, 170, true], [384, 190, true], [800, 340, false]] as [number, number, boolean][]) {
+  for (const [Cw, barsH, narrow] of [
+    [332, 170, true],
+    [384, 190, true],
+    [800, 340, false],
+  ] as [number, number, boolean][]) {
     for (let seed = 0; seed < 16; seed++) {
       const w = Array.from({ length: CHART_PERIODS }, (_, n) => periodAt(n, seed));
-      const top = 40, bottom = top + barsH, mid = (top + bottom) / 2, half = barsH / 2;
+      const top = 40,
+        bottom = top + barsH,
+        mid = (top + bottom) / 2,
+        half = barsH / 2;
       const scale = chartScale(w, half);
       const tallest = Math.max(...w.map((p) => Math.max(stackOf(p).up, stackOf(p).dn)));
       assert.ok(tallest * scale <= half && tallest * scale > half * 0.8, `scale fills the height (${seed})`);
       const li = largestLoss(w);
       assert.ok(li >= 0 && w.every((p) => p.overlay >= w[li].overlay));
-      const bw = Cw / (CHART_PERIODS + 1), bwid = Math.max(3, bw * 0.56);
-      for (const textW of [26 * 5.6, 31 * 5.6]) { // "Overlay losses add up too" / « Les pertes s’additionnent aussi »
-        const s = lossNoteSpot(w, li, { x0: 0, bw, w: bwid, mid, top, bottom, scale, textW: Math.min(textW, Cw * 0.55) });
+      const bw = Cw / (CHART_PERIODS + 1),
+        bwid = Math.max(3, bw * 0.56);
+      for (const textW of [26 * 5.6, 31 * 5.6]) {
+        // "Overlay losses add up too" / « Les pertes s’additionnent aussi »
+        const s = lossNoteSpot(w, li, {
+          x0: 0,
+          bw,
+          w: bwid,
+          mid,
+          top,
+          bottom,
+          scale,
+          textW: Math.min(textW, Cw * 0.55),
+        });
         assert.ok(s.box.y >= top && s.box.y + s.box.h <= bottom, `note inside the bars area (${seed}, ${narrow})`);
         w.forEach((p, k) => {
-          const cx = bw * (k + 0.5), st = stackOf(p);
+          const cx = bw * (k + 0.5),
+            st = stackOf(p);
           const bar = { x: cx - bwid / 2, y: mid - st.up * scale, w: bwid, h: (st.up + st.dn) * scale };
-          const hit = s.box.x < bar.x + bar.w && bar.x < s.box.x + s.box.w && s.box.y < bar.y + bar.h && bar.y < s.box.y + s.box.h;
+          const hit =
+            s.box.x < bar.x + bar.w &&
+            bar.x < s.box.x + s.box.w &&
+            s.box.y < bar.y + bar.h &&
+            bar.y < s.box.y + s.box.h;
           assert.ok(!hit, `loss note covers bar ${k} (seed ${seed}, width ${Cw})`);
         });
       }
@@ -130,26 +226,39 @@ test("overlay: the deposit is drawn to scale (about 10% of the full exposure) an
   assert.equal(EXPOSURE_SHARE, 1);
   for (const [W, H] of SIZES) {
     const L = overlayStackLayout(W, H);
-    inside(L.stack, W, H, "stack"); inside(L.chart, W, H, "chart");
+    inside(L.stack, W, H, "stack");
+    inside(L.chart, W, H, "chart");
     const B = stackBlocks(L.stack, L.narrow);
     assert.ok(Math.abs(B.deposit.w - B.core.w * DEPOSIT_SHARE) < 1e-9);
     assert.ok(Math.abs(B.overlay.w - B.core.w) < 1e-9);
-    for (const [k, b] of [["core", B.core], ["deposit", B.deposit], ["overlay", B.overlay]] as const) inside(b, W, H, `${k} ${W}`);
+    for (const [k, b] of [
+      ["core", B.core],
+      ["deposit", B.deposit],
+      ["overlay", B.overlay],
+    ] as const)
+      inside(b, W, H, `${k} ${W}`);
     assert.ok(B.overlay.y + B.overlay.h <= B.core.y, "overlay stacked on top of the core");
     assert.ok(B.deposit.x >= B.core.x + B.core.w, "deposit beside the core");
     // the bracket spans core + deposit (one capital base); its labels and the deposit's never collide
     assert.equal(B.bracket.x0, B.core.x);
     assert.ok(Math.abs(B.bracket.x1 - (B.deposit.x + B.deposit.w)) < 1e-9);
     const boxes = Object.entries(B.labels);
-    for (const [k, b] of boxes) assert.ok(b.y + b.h <= L.stack.y + L.stack.h + 2 && b.y + b.h <= H - 20, `${k} label ${W}: ${JSON.stringify(b)}`);
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
-      const [ka, a] = boxes[i], [kb, b] = boxes[j];
-      const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-      assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}`);
-    }
-    assert.ok(B.labels.depositA.y >= B.core.y + B.core.h && B.labels.depositB.y + 14 <= B.bracketY, `deposit labels between core and bracket ${W}`);
+    for (const [k, b] of boxes)
+      assert.ok(b.y + b.h <= L.stack.y + L.stack.h + 2 && b.y + b.h <= H - 20, `${k} label ${W}: ${JSON.stringify(b)}`);
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const [ka, a] = boxes[i],
+          [kb, b] = boxes[j];
+        const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+        assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}`);
+      }
+    assert.ok(
+      B.labels.depositA.y >= B.core.y + B.core.h && B.labels.depositB.y + 14 <= B.bracketY,
+      `deposit labels between core and bracket ${W}`,
+    );
     // nothing overlaps between the stack and the chart
-    if (L.narrow) assert.ok(L.stack.y + L.stack.h <= L.chart.y); else assert.ok(L.stack.x + L.stack.w <= L.chart.x);
+    if (L.narrow) assert.ok(L.stack.y + L.stack.h <= L.chart.y);
+    else assert.ok(L.stack.x + L.stack.w <= L.chart.x);
   }
   assert.equal(OVERLAY_STEP_MS.length, 4);
 });
@@ -189,7 +298,10 @@ test("futures: only one day is ever unsettled, and the margin buffer covers it a
   for (const loop of [0, 3, 9]) {
     for (const day of futuresLoop(loop)) {
       assert.ok(Math.abs(unsettled(day, 0)) < 1e-12, "nothing open at the open: yesterday is settled");
-      assert.ok(Math.abs(unsettled(day, 1) - day.long) < 1e-9, "at the close the open P&L is exactly the day's settlement");
+      assert.ok(
+        Math.abs(unsettled(day, 1) - day.long) < 1e-9,
+        "at the close the open P&L is exactly the day's settlement",
+      );
       assert.ok(Math.abs(intraday(day, 1) - day.close) < 1e-9);
       for (let u = 0; u <= 1; u += 0.02) assert.ok(Math.abs(unsettled(day, u)) <= day.margin, `day ${day.d} u ${u}`);
       assert.ok(Math.abs(day.move) <= day.margin);
@@ -213,7 +325,11 @@ test("futures: a tiny bit faster than 5 s, still slower than 1.25 s (Gabriel 202
   assert.equal(marketU(0), 0);
   assert.equal(marketU(SETTLE_SHARE), 0);
   assert.equal(marketU(1), 1);
-  for (let u = 0; u < 1; u += 0.01) assert.ok(marketU(u + 0.01) >= marketU(u) && marketU(u + 0.01) - marketU(u) <= 0.01 / (1 - SETTLE_SHARE) + 1e-9, "monotone, no jump");
+  for (let u = 0; u < 1; u += 0.01)
+    assert.ok(
+      marketU(u + 0.01) >= marketU(u) && marketU(u + 0.01) - marketU(u) <= 0.01 / (1 - SETTLE_SHARE) + 1e-9,
+      "monotone, no jump",
+    );
   // the settlement message: fades in fast, fully shown for most of the day, gone just before the next close
   assert.equal(ruleAlpha(0), 0);
   assert.equal(ruleAlpha(1), 0);
@@ -222,10 +338,21 @@ test("futures: a tiny bit faster than 5 s, still slower than 1.25 s (Gabriel 202
   for (let u = 0; u <= 1; u += 0.001) if (ruleAlpha(u) >= 1) full += 0.001 * DAY_MS;
   assert.ok(Math.abs(full - RULE_FULL_MS) < 30, `${full} vs ${RULE_FULL_MS}`);
   // long enough to read the longest message (EN or FR) once comfortably (×1.5) at ≈ 300 words a minute
-  const words = (x: string) => x.trim().split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
+  const words = (x: string) =>
+    x
+      .trim()
+      .split(/\s+/)
+      .filter((w) => /[\p{L}\d]/u.test(w)).length;
   for (const k of ["en", "fr"] as const) {
-    const longest = Math.max(...[CC.futures.canvas.upPays[k], CC.futures.canvas.downPays[k]].map((r) => words(`${CC.futures.canvas.closeDay[k].replace("{n}", "12")} ${r}`)));
-    assert.ok(RULE_FULL_MS >= READ_MARGIN * longest * READ_MS_PER_WORD && READ_MARGIN >= 1.5, `${k}: ${longest} words, ${RULE_FULL_MS} ms`);
+    const longest = Math.max(
+      ...[CC.futures.canvas.upPays[k], CC.futures.canvas.downPays[k]].map((r) =>
+        words(`${CC.futures.canvas.closeDay[k].replace("{n}", "12")} ${r}`),
+      ),
+    );
+    assert.ok(
+      RULE_FULL_MS >= READ_MARGIN * longest * READ_MS_PER_WORD && READ_MARGIN >= 1.5,
+      `${k}: ${longest} words, ${RULE_FULL_MS} ms`,
+    );
   }
   // still frame of step 2 (5.22 days) catches the cash in flight: inside the settlement pause
   assert.ok(0.22 < SETTLE_SHARE);
@@ -240,7 +367,12 @@ test("futures: four focus steps over one loop; layouts fit", () => {
   for (const [W, H0] of SIZES) {
     const H = W < 700 ? 690 : H0;
     const L = futuresLayout(W, H);
-    for (const [k, b] of [["price", L.price], ["settle", L.settle], ["parties", L.parties]] as const) inside(b, W, H, `${k} ${W}`);
+    for (const [k, b] of [
+      ["price", L.price],
+      ["settle", L.settle],
+      ["parties", L.parties],
+    ] as const)
+      inside(b, W, H, `${k} ${W}`);
     assert.ok(L.price.y + L.price.h <= L.settle.y);
     assert.ok(L.parties.h >= (L.narrow ? 230 : 300), `parties height ${W}: ${L.parties.h}`);
   }
@@ -275,13 +407,29 @@ test("coverage: a team of six analysts × ~30 securities covers 180 bonds — a 
   assert.equal(TEAM_RANGE[1], 6 * PER_ANALYST);
   team.forEach((list, a) => {
     assert.equal(list.length, PER_ANALYST);
-    for (const i of list) { assert.equal(u[i].sector, a, "each analyst stays in their sector"); assert.ok(u[i].liquid); }
+    for (const i of list) {
+      assert.equal(u[i].sector, a, "each analyst stays in their sector");
+      assert.ok(u[i].liquid);
+    }
   });
   assert.ok(all.length / UNIVERSE < 0.1, "under one bond in ten");
 });
 
 /** coverage canvas sizes: the CSS gives 480–560 px wide, 620 px under 760 px viewports (narrow layout under 700 px) */
-const COV_SIZES: [number, number][] = [[300, 620], [320, 620], [328, 620], [360, 620], [412, 620], [500, 620], [699, 620], [700, 480], [740, 620], [900, 480], [1150, 506], [1360, 560]];
+const COV_SIZES: [number, number][] = [
+  [300, 620],
+  [320, 620],
+  [328, 620],
+  [360, 620],
+  [412, 620],
+  [500, 620],
+  [699, 620],
+  [700, 480],
+  [740, 620],
+  [900, 480],
+  [1150, 506],
+  [1360, 560],
+];
 /** Rough Poppins advance per character (em) — semibold mixed case, semibold uppercase — to check labels fit without the canvas. */
 const EM = { mixed: 0.6, upper: 0.7 };
 const fitsAt = (s: string, size: number, maxW: number, em = EM.mixed) => s.length * em * size <= maxW;
@@ -290,7 +438,8 @@ function wrapAt(s: string, size: number, maxW: number, em = EM.mixed): string[] 
   const out: string[] = [];
   for (const w of s.split(" ")) {
     const cur = out.length ? `${out[out.length - 1]} ${w}` : w;
-    if (out.length && fitsAt(cur, size, maxW, em)) out[out.length - 1] = cur; else out.push(w);
+    if (out.length && fitsAt(cur, size, maxW, em)) out[out.length - 1] = cur;
+    else out.push(w);
   }
   return out.every((ln) => fitsAt(ln, size, maxW, em)) ? out : null;
 }
@@ -299,12 +448,20 @@ test("coverage: one large shared graphic (Gabriel 2026-10-04) — the methods co
   for (const [W, H] of COV_SIZES) {
     const L = coverageLayout(W, H);
     const { team: A, systems: B, vs, grid: G } = L;
-    for (const [k, r] of [["team", A], ["systems", B], ["grid", G]] as const) inside(r, W, H, `${k} ${W}`);
+    for (const [k, r] of [
+      ["team", A],
+      ["systems", B],
+      ["grid", G],
+    ] as const)
+      inside(r, W, H, `${k} ${W}`);
     if (!L.narrow) {
       // a column: team on top, VS, systems below, all left of the graphic
       assert.equal(A.x, B.x);
       assert.ok(A.y + A.h + 2 * vs.r + 8 <= B.y, `VS gap ${W}`);
-      assert.ok(vs.y - vs.r > A.y + A.h && vs.y + vs.r < B.y && Math.abs(vs.x - (A.x + A.w / 2)) < 0.01, `badge between the methods ${W}`);
+      assert.ok(
+        vs.y - vs.r > A.y + A.h && vs.y + vs.r < B.y && Math.abs(vs.x - (A.x + A.w / 2)) < 0.01,
+        `badge between the methods ${W}`,
+      );
       assert.ok(A.x + A.w + 20 <= G.x - 6, `column left of the graphic ${W}`);
       // the graphic is the large one: well over half of the canvas width (the VS split gave each side under half)
       assert.ok(L.area.w >= 0.6 * W && G.w + L.depthX >= 0.48 * W, `graphic width ${W}: ${G.w}`);
@@ -334,26 +491,40 @@ test("coverage: one large shared graphic (Gabriel 2026-10-04) — the methods co
   }
   // gridFit picks the rows that give the largest cells
   const f = gridFit(400, 260);
-  for (let rows = 16; rows <= 64; rows++) assert.ok(Math.min(400 / sectorBlocks(rows).width, 260 / rows) <= f.cell + 1e-9);
+  for (let rows = 16; rows <= 64; rows++)
+    assert.ok(Math.min(400 / sectorBlocks(rows).width, 260 / rows) <= f.cell + 1e-9);
   assert.equal(COVERAGE_STEP_MS.length, 4);
 });
 
 test("coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (≈ 50 %); both in the compare step", () => {
   const starts = stepStarts(COVERAGE_STEP_MS);
   // at rest in each step (after the ease), whatever came before
-  for (const from of [[0.6, 0.6], [1, 0.5], [0.5, 1], [1, 1], [0.73, 0.81]] as const) {
+  for (const from of [
+    [0.6, 0.6],
+    [1, 0.5],
+    [0.5, 1],
+    [1, 1],
+    [0.73, 0.81],
+  ] as const) {
     for (const p of [FOCUS_IN + 0.001, 0.5, 0.99]) {
-      const [t1, s1] = focusFrom(from, 1, p), [t2, s2] = focusFrom(from, 2, p), [t3, s3] = focusFrom(from, 3, p);
-      assert.equal(t1, 1); assert.ok(s1 >= 0.45 && s1 <= 0.55, `${s1}`);
-      assert.equal(s2, 1); assert.ok(t2 >= 0.45 && t2 <= 0.55, `${t2}`);
-      assert.equal(t3, 1); assert.equal(s3, 1);
+      const [t1, s1] = focusFrom(from, 1, p),
+        [t2, s2] = focusFrom(from, 2, p),
+        [t3, s3] = focusFrom(from, 3, p);
+      assert.equal(t1, 1);
+      assert.ok(s1 >= 0.45 && s1 <= 0.55, `${s1}`);
+      assert.equal(s2, 1);
+      assert.ok(t2 >= 0.45 && t2 <= 0.55, `${t2}`);
+      assert.equal(t3, 1);
+      assert.equal(s3, 1);
     }
   }
   // the tracker eases from what was last drawn — played through or jumped to mid-transition — never a jump
   const frame = 1000 / 30;
   const sim = (jumps: Map<number, number>) => {
     const f = focusTracker();
-    let t = 0, prev: [number, number] | null = null, maxStep = 0;
+    let t = 0,
+      prev: [number, number] | null = null,
+      maxStep = 0;
     for (let n = 0; n < (cycleMs(COVERAGE_STEP_MS) * 1.2) / frame; n++) {
       t = jumps.get(n) ?? t + frame;
       const { step, p } = stepAt(t, COVERAGE_STEP_MS);
@@ -368,20 +539,32 @@ test("coverage: a two-act sequence — the method on the graphic is highlighted,
   const bound = (0.6 * 1.5) / easeFrames + 1e-9;
   assert.ok(sim(new Map()) <= bound, "played through");
   // jumps: into act 2 during act 1's ease, then to compare mid-ease, then back to the universe
-  const j = new Map([[3, starts[1] + 5], [110 + 4, starts[2] + 5], [116, starts[3]], [200, 0]]);
+  const j = new Map([
+    [3, starts[1] + 5],
+    [110 + 4, starts[2] + 5],
+    [116, starts[3]],
+    [200, 0],
+  ]);
   j.set(4, starts[2] + 2);
   assert.ok(sim(j) <= bound, `jumps: ${sim(j)} > ${bound}`);
   // first frame after a jump equals the last frame drawn before it
   const f = focusTracker();
-  f(1, 0); const mid = f(1, FOCUS_IN / 2);
+  f(1, 0);
+  const mid = f(1, FOCUS_IN / 2);
   assert.deepEqual(f(3, 0), mid);
   assert.ok(mid[1] > 0.5 && mid[1] < 0.6, "caught mid-transition");
   assert.ok(COVERAGE_STEP_MS[1] >= 6000 && COVERAGE_STEP_MS[2] >= 6000, "each act has time to be read");
 });
 
 test("coverage: steps read as a comparison of two methods — universe, conventional team, our systems, compare", () => {
-  assert.deepEqual(CC.coverage.steps.map((s) => s.en), ["The universe", "Conventional team", "Our systems", "Compare"]);
-  assert.deepEqual(CC.coverage.steps.map((s) => s.fr), ["L’univers", "Équipe conventionnelle", "Nos systèmes", "Comparaison"]);
+  assert.deepEqual(
+    CC.coverage.steps.map((s) => s.en),
+    ["The universe", "Conventional team", "Our systems", "Compare"],
+  );
+  assert.deepEqual(
+    CC.coverage.steps.map((s) => s.fr),
+    ["L’univers", "Équipe conventionnelle", "Nos systèmes", "Comparaison"],
+  );
   assert.equal(CC.coverage.canvas.team.en, "Conventional fundamental team");
   assert.equal(CC.coverage.canvas.team.fr, "Équipe fondamentale conventionnelle");
   assert.equal(CC.coverage.canvas.systems.en, "Our systems");
@@ -423,16 +606,25 @@ test("coverage: card labels fit (EN and FR) at every width — titles, scan clai
       }
       // compare legend: two items, each fits the legend row on its own line
       const maxW = L.grid.w + L.depthX - 12;
-      for (const s of [c.teamLegend[k], c.systemsLegend[k], c.below[k], c.liquid[k]]) assert.ok(fitsAt(s, L.narrow ? 10 : 11, maxW, 0.56), `${k} legend "${s}" at ${W}`);
+      for (const s of [c.teamLegend[k], c.systemsLegend[k], c.below[k], c.liquid[k]])
+        assert.ok(fitsAt(s, L.narrow ? 10 : 11, maxW, 0.56), `${k} legend "${s}" at ${W}`);
     }
   }
 });
 
 test("coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width", () => {
   assert.equal(CC.coverage.sectors.length, ANALYSTS);
-  assert.deepEqual(CC.coverage.sectors.map((s) => s.long.en), [
-    "Financials", "Technology & communications", "Consumer (discr. & staples)", "Utilities & infrastructure", "Energy", "Industrials",
-  ]);
+  assert.deepEqual(
+    CC.coverage.sectors.map((s) => s.long.en),
+    [
+      "Financials",
+      "Technology & communications",
+      "Consumer (discr. & staples)",
+      "Utilities & infrastructure",
+      "Energy",
+      "Industrials",
+    ],
+  );
   for (const s of CC.coverage.sectors) {
     for (const k of ["long", "short", "abbr"] as const) assert.ok(s[k].en.trim() && s[k].fr.trim());
     assert.ok(s.abbr.en.length <= 6 && s.abbr.fr.length <= 8, `abbreviation too long: ${s.abbr.en} / ${s.abbr.fr}`);
@@ -447,10 +639,12 @@ test("coverage: six named sector clusters — each analyst's bonds sit in their 
     const L = coverageLayout(W, H);
     const bands = sectorLabelBoxes(L);
     for (let i = 0; i < UNIVERSE; i++) {
-      const c = cellOf(i, L), b = bands[sectorOf(i)];
+      const c = cellOf(i, L),
+        b = bands[sectorOf(i)];
       assert.ok(c.x > b.x && c.x < b.x + b.w, `bond ${i} outside its sector at ${W}`);
     }
-    for (let s = 1; s < ANALYSTS; s++) assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= L.cell * 0.8, `gap ${s} at ${W}`);
+    for (let s = 1; s < ANALYSTS; s++)
+      assert.ok(bands[s].x - (bands[s - 1].x + bands[s - 1].w) >= L.cell * 0.8, `gap ${s} at ${W}`);
     const perChar = sectorFont(L) === 10 ? 5.6 : 4.8;
     for (const [s, b] of bands.entries()) {
       inside(b, W, H, `sector ${s} ${W}`);
@@ -459,14 +653,29 @@ test("coverage: six named sector clusters — each analyst's bonds sit in their 
       assert.ok(b.w + 4 >= longest * perChar, `sector ${s} cluster too narrow at ${W}: ${b.w}`);
     }
     // the team's 180 lit bonds sit in their analysts' clusters
-    team.forEach((list, a) => { for (const i of list) { const c = cellOf(i, L); assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w); } });
+    team.forEach((list, a) => {
+      for (const i of list) {
+        const c = cellOf(i, L);
+        assert.ok(c.x > bands[a].x && c.x < bands[a].x + bands[a].w);
+      }
+    });
     // the portfolio manager and the six analysts sit inside the team card, under its title, apart from each other
-    const T = L.team, pm = pmPos(L);
-    const inCard = (q: { x: number; y: number }, r: number) => q.x - r >= T.x && q.x + r <= T.x + T.w && q.y - r >= T.y + (L.narrow ? CARD_ROWS.narrow.team.title2 + 6 : CARD_ROWS.wide.team.title2 + 6) && q.y + r <= T.y + T.h;
+    const T = L.team,
+      pm = pmPos(L);
+    const inCard = (q: { x: number; y: number }, r: number) =>
+      q.x - r >= T.x &&
+      q.x + r <= T.x + T.w &&
+      q.y - r >= T.y + (L.narrow ? CARD_ROWS.narrow.team.title2 + 6 : CARD_ROWS.wide.team.title2 + 6) &&
+      q.y + r <= T.y + T.h;
     assert.ok(inCard(pm, L.narrow ? 6.5 : 9), `pm at ${W}`);
     const nodes = Array.from({ length: ANALYSTS }, (_, a) => analystPos(L, a));
     nodes.forEach((q, a) => assert.ok(inCard(q, 4), `analyst ${a} at ${W}`));
-    for (let a = 0; a < ANALYSTS; a++) for (let b2 = a + 1; b2 < ANALYSTS; b2++) assert.ok(Math.hypot(nodes[a].x - nodes[b2].x, nodes[a].y - nodes[b2].y) >= (L.narrow ? 9 : 14), `analysts ${a}/${b2} at ${W}`);
+    for (let a = 0; a < ANALYSTS; a++)
+      for (let b2 = a + 1; b2 < ANALYSTS; b2++)
+        assert.ok(
+          Math.hypot(nodes[a].x - nodes[b2].x, nodes[a].y - nodes[b2].y) >= (L.narrow ? 9 : 14),
+          `analysts ${a}/${b2} at ${W}`,
+        );
     if (L.narrow) assert.ok(nodes[0].x - 4 > pm.x + 6.5, `pm clear of the analysts at ${W}`);
     else assert.ok(analystSlot(L) - 16 >= longest * 5.6, `analyst names at ${W}`);
   }
@@ -476,11 +685,13 @@ test("coverage: texts and shapes never overlap (methods, VS badge, title row, gr
   for (const [W, H] of COV_SIZES) {
     const boxes = Object.entries(coverageLabelBoxes(W, H));
     for (const [k, b] of boxes) inside(b, W, H, `${k} ${W}`);
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
-      const [ka, a] = boxes[i], [kb, b] = boxes[j];
-      const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-      assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}×${H}: ${JSON.stringify(a)} ${JSON.stringify(b)}`);
-    }
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const [ka, a] = boxes[i],
+          [kb, b] = boxes[j];
+        const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+        assert.ok(!overlap, `${ka} overlaps ${kb} at ${W}×${H}: ${JSON.stringify(a)} ${JSON.stringify(b)}`);
+      }
   }
 });
 
@@ -491,17 +702,33 @@ test("copy: every string exists in English and French; three concepts with four 
   const walk = (v: unknown) => {
     if (v && typeof v === "object") {
       const o = v as Record<string, unknown>;
-      if (typeof o.en === "string" && typeof o.fr === "string") { pairs.push([o.en, o.fr]); return; }
+      if (typeof o.en === "string" && typeof o.fr === "string") {
+        pairs.push([o.en, o.fr]);
+        return;
+      }
       Object.values(o).forEach(walk);
     }
   };
   walk(CC);
   assert.ok(pairs.length > 80);
   for (const [en, fr] of pairs) assert.ok(en.trim() && fr.trim(), `missing translation: ${en} / ${fr}`);
-  assert.deepEqual(CONCEPTS.map((c) => c.id), ["overlay", "futures", "coverage"]);
-  assert.deepEqual(CONCEPTS.map((c) => c.anchor), ["overlay", "futures", "ultra-micro-analysis"]);
-  assert.deepEqual(CONCEPTS.find((c) => c.id === "coverage")!.aliases, ["coverage"], "the old #coverage anchor still lands on the concept");
-  for (const c of CONCEPTS) { assert.equal(c.copy.steps.length, 4); assert.ok(c.copy.alt.en.startsWith("Animated illustration")); }
+  assert.deepEqual(
+    CONCEPTS.map((c) => c.id),
+    ["overlay", "futures", "coverage"],
+  );
+  assert.deepEqual(
+    CONCEPTS.map((c) => c.anchor),
+    ["overlay", "futures", "ultra-micro-analysis"],
+  );
+  assert.deepEqual(
+    CONCEPTS.find((c) => c.id === "coverage")!.aliases,
+    ["coverage"],
+    "the old #coverage anchor still lands on the concept",
+  );
+  for (const c of CONCEPTS) {
+    assert.equal(c.copy.steps.length, 4);
+    assert.ok(c.copy.alt.en.startsWith("Animated illustration"));
+  }
   assert.equal(CC.watermark.en, "ILLUSTRATION · generated values");
   assert.equal(CC.watermark.fr, "ILLUSTRATION · valeurs générées");
 });
@@ -509,12 +736,27 @@ test("copy: every string exists in English and French; three concepts with four 
 test("copy: the overlay caption ends with the verbatim futures-exposure disclosure; futures say losses can exceed the deposit", () => {
   assert.ok(CC.overlay.caption.en.endsWith(OVERLAY_EXPOSURE.en));
   assert.ok(CC.overlay.caption.fr.endsWith(OVERLAY_EXPOSURE.fr));
-  assert.equal(OVERLAY_EXPOSURE.en, "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
+  assert.equal(
+    OVERLAY_EXPOSURE.en,
+    "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+  );
   assert.match(CC.overlay.caption.en, /generated values, not actual positions or results/);
-  assert.match(CC.overlay.caption.en, /Protective overlays are designed to offset part of losses; they may not do so and can lose money\./);
-  assert.match(CC.overlay.caption.fr, /Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir/);
-  assert.match(CC.overlay.caption.en, /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./);
-  assert.match(CC.overlay.caption.fr, /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./);
+  assert.match(
+    CC.overlay.caption.en,
+    /Protective overlays are designed to offset part of losses; they may not do so and can lose money\./,
+  );
+  assert.match(
+    CC.overlay.caption.fr,
+    /Les superpositions protectrices sont conçues pour compenser une partie des pertes; elles peuvent ne pas y parvenir/,
+  );
+  assert.match(
+    CC.overlay.caption.en,
+    /Illustration of the overlay strategy’s sensitivity to volatility \(vega\); it may not behave this way\./,
+  );
+  assert.match(
+    CC.overlay.caption.fr,
+    /sensibilité de la stratégie de superposition à la volatilité \(vega\); elle pourrait ne pas se comporter ainsi\./,
+  );
   assert.match(CC.overlay.canvas.volNote.en, /historically tended to/);
   assert.match(CC.overlay.canvas.loss.en, /^Overlay losses add up too$/);
   assert.match(CC.futures.caption.en, /losses can exceed the margin deposited/);
@@ -532,27 +774,37 @@ test("copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no p
     assert.ok(!/leverag|levier/i.test(s), s);
     assert.ok(!/baissi[eè]re|ingénieur|\bengineers?\b/i.test(s), s);
     // percentages only for the overlay's illustrative allocation (100%, ≈10%)
-    for (const m of s.matchAll(/(\d+(?:[.,]\d+)?)\s?%/g)) assert.ok(["100", "10"].includes(m[1]), `unexpected percentage in: ${s}`);
+    for (const m of s.matchAll(/(\d+(?:[.,]\d+)?)\s?%/g))
+      assert.ok(["100", "10"].includes(m[1]), `unexpected percentage in: ${s}`);
   }
 });
 
-test("copy: concept 1 is \"protective overlays\" (Gabriel 2026-10-03), always with the qualifier next to the name", () => {
+test('copy: concept 1 is "protective overlays" (Gabriel 2026-10-03), always with the qualifier next to the name', () => {
   assert.equal(CC.overlay.eyebrow.en, "Concept 1 · Protective overlays");
   assert.equal(CC.overlay.eyebrow.fr, "Concept 1 · Superpositions protectrices");
   assert.equal(`${CC.overlay.title.en} ${CC.overlay.accent.en}`, "What is a protective overlay?");
   assert.equal(`${CC.overlay.title.fr} ${CC.overlay.accent.fr}`, "Qu’est-ce qu’une superposition protectrice?");
   // the lead under the heading and the caption under the panel both carry "designed to offset part of … losses; may not"
   assert.match(CC.overlay.lead.en, /designed to offset part of bond losses; they may not do so\.$/);
-  assert.match(CC.overlay.lead.fr, /conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir\.$/);
+  assert.match(
+    CC.overlay.lead.fr,
+    /conçus pour compenser une partie des pertes obligataires; ils peuvent ne pas y parvenir\.$/,
+  );
   for (const k of ["en", "fr"] as const) {
-    assert.match(CC.overlay.caption[k], /(designed to offset part of losses; they may not|conçues pour compenser une partie des pertes; elles peuvent ne pas)/);
-    assert.match(CC.overlay.alt[k], /(designed to offset part of losses \(it may not\)|conçue pour compenser une partie des pertes \(elle peut ne pas y parvenir\))/);
+    assert.match(
+      CC.overlay.caption[k],
+      /(designed to offset part of losses; they may not|conçues pour compenser une partie des pertes; elles peuvent ne pas)/,
+    );
+    assert.match(
+      CC.overlay.alt[k],
+      /(designed to offset part of losses \(it may not\)|conçue pour compenser une partie des pertes \(elle peut ne pas y parvenir\))/,
+    );
   }
   // "protective" never stands as a promise: no "protects", "protection" or "protège" on the page
   for (const s of leaves(CC)) assert.ok(!/\bprotects?\b|\bprotection\b|protège/i.test(s), `promise wording: ${s}`);
 });
 
-test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phrase), heading \"Why machines see more\"", () => {
+test('copy: concept 3 is named "Ultra-micro analysis, at scale" (Gabriel\'s phrase), heading "Why machines see more"', () => {
   assert.equal(CC.coverage.eyebrow.en, "Concept 3 · Ultra-micro analysis, at scale");
   assert.equal(CC.coverage.eyebrow.fr, "Concept 3 · Analyse ultra-micro, à grande échelle");
   assert.equal(`${CC.coverage.title.en} ${CC.coverage.accent.en}`, "Why machines see more");
@@ -562,7 +814,10 @@ test("copy: concept 3 is named \"Ultra-micro analysis, at scale\" (Gabriel's phr
 test("copy: the coverage figures are Gabriel's illustrative estimates and match the model", () => {
   const v = CC.coverage.stats.map((s) => s.value.en);
   assert.deepEqual(v, ["≈30", "≈180", "≈2,000", "≥ $200 MM"]);
-  assert.deepEqual(CC.coverage.stats.map((s) => s.value.fr), ["≈ 30", "≈ 180", "≈ 2 000", "≥ 200 M$"]);
+  assert.deepEqual(
+    CC.coverage.stats.map((s) => s.value.fr),
+    ["≈ 30", "≈ 180", "≈ 2 000", "≥ 200 M$"],
+  );
   assert.equal(CC.coverage.chip.en, "Illustrative estimates");
   assert.match(CC.coverage.caption.en, /^Illustrative estimates/);
   assert.match(CC.coverage.note.en, /over the counter/);
@@ -571,9 +826,17 @@ test("copy: the coverage figures are Gabriel's illustrative estimates and match 
 });
 
 test("copy: very little visible prose (titles, takeaways, steps, note)", () => {
-  const words = (s: string) => s.trim().split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
+  const words = (s: string) =>
+    s
+      .trim()
+      .split(/\s+/)
+      .filter((w) => /[\p{L}\d]/u.test(w)).length;
   for (const lang of ["en", "fr"] as const) {
-    let n = words(CC.hero.title[lang]) + words(CC.hero.accent[lang]) + words(CC.hero.lead[lang]) + words(CC.coverage.note[lang]);
+    let n =
+      words(CC.hero.title[lang]) +
+      words(CC.hero.accent[lang]) +
+      words(CC.hero.lead[lang]) +
+      words(CC.coverage.note[lang]);
     for (const c of CONCEPTS) {
       n += words(c.copy.title[lang]) + words(c.copy.accent[lang]) + words(c.copy.lead[lang]);
       n += c.copy.steps.reduce((a, s) => a + words(s[lang]), 0);
@@ -587,7 +850,7 @@ test("copy: very little visible prose (titles, takeaways, steps, note)", () => {
 
 /* ------------------------------------------------------------------ wiring */
 
-test("nav and footer link the page as \"Core concepts\"; route and labels exist in both languages; the old URL redirects", () => {
+test('nav and footer link the page as "Core concepts"; route and labels exist in both languages; the old URL redirects', () => {
   assert.match(read("src/components/site/links.ts"), /\{ href: "\/core-concepts", key: "nav\.concepts" \}/);
   assert.match(read("src/components/site/Footer.tsx"), /href="\/core-concepts"/);
   assert.match(read("src/lib/i18n/en.ts"), /"nav\.concepts": "Core concepts"/);

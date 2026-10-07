@@ -24,7 +24,7 @@ export interface AlertMessage {
 }
 
 /** The title that may be logged or stored (never personal data: see `logTitle`). */
-const recordedTitle = (msg: AlertMessage): string => (msg.logTitle ?? msg.title);
+const recordedTitle = (msg: AlertMessage): string => msg.logTitle ?? msg.title;
 
 export interface DeliveryResult {
   ok: boolean;
@@ -70,14 +70,22 @@ export const webhookUrl = (env: Env = process.env): string | null => {
   return /^https:\/\/\S+$/i.test(u) ? u : null;
 };
 
-const TEAMS_HOSTS = [/(^|\.)webhook\.office\.com$/i, /(^|\.)logic\.azure\.com$/i, /(^|\.)powerplatform\.com$/i, /(^|\.)powerautomate\.com$/i];
+const TEAMS_HOSTS = [
+  /(^|\.)webhook\.office\.com$/i,
+  /(^|\.)logic\.azure\.com$/i,
+  /(^|\.)powerplatform\.com$/i,
+  /(^|\.)powerautomate\.com$/i,
+];
 
 /**
  * PIPELINE_ALERT_FORMAT = teams | json | auto (default). Auto: Microsoft Teams for a Teams incoming webhook
  * (*.webhook.office.com) or a Teams Workflows / Power Automate webhook (*.logic.azure.com, *.powerplatform.com), else
  * generic JSON (`{ text, title, severity, lines, adminUrl }`, which Slack-style webhooks also accept through `text`).
  */
-export function alertFormat(url: string | null, env: Env = process.env): { format: AlertFormat; source: "env" | "auto" } {
+export function alertFormat(
+  url: string | null,
+  env: Env = process.env,
+): { format: AlertFormat; source: "env" | "auto" } {
   const f = (env.PIPELINE_ALERT_FORMAT ?? "").trim().toLowerCase();
   if (f === "teams" || f === "json") return { format: f, source: "env" };
   let host = "";
@@ -103,10 +111,12 @@ const clip = (s: string): string => (s.length > MAX_LINE ? `${s.slice(0, MAX_LIN
  * "HTTP 503 on /api/x"; a bare "host:port" → "<host>".
  */
 export function scrubHosts(s: string): string {
-  return s
-    .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s/?#]+/gi, "")
-    // a host starts with a letter (never a clock time such as 14:00)
-    .replace(/\b[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)*:\d{2,5}\b/gi, "<host>");
+  return (
+    s
+      .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s/?#]+/gi, "")
+      // a host starts with a letter (never a clock time such as 14:00)
+      .replace(/\b[a-z][a-z0-9-]*(?:\.[a-z0-9-]+)*:\d{2,5}\b/gi, "<host>")
+  );
 }
 
 /** Environment label: the host of PUBLIC_URL (e.g. "www.nymbus.ca"), so a staging alert is never taken for production. */
@@ -151,22 +161,33 @@ export function alertPayload(msg: AlertMessage, format: AlertFormat, env: Env = 
   const absolute = !!link && /^https?:\/\//i.test(link);
   return {
     type: "message",
-    attachments: [{
-      contentType: "application/vnd.microsoft.card.adaptive",
-      contentUrl: null,
-      content: {
-        $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-        type: "AdaptiveCard",
-        version: "1.4",
-        msteams: { width: "Full" },
-        body: [
-          { type: "TextBlock", text: escapeTeamsMarkdown(title), weight: "Bolder", size: "Medium", wrap: true, color: TEAMS_COLOR[msg.severity] },
-          ...lines.map((l) => ({ type: "TextBlock", text: escapeTeamsMarkdown(l), wrap: true, spacing: "Small" })),
-          ...(link && !absolute ? [{ type: "TextBlock", text: escapeTeamsMarkdown(`Admin: ${link}`), wrap: true, isSubtle: true }] : []),
-        ],
-        ...(absolute ? { actions: [{ type: "Action.OpenUrl", title: "Open the admin", url: link }] } : {}),
+    attachments: [
+      {
+        contentType: "application/vnd.microsoft.card.adaptive",
+        contentUrl: null,
+        content: {
+          $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+          type: "AdaptiveCard",
+          version: "1.4",
+          msteams: { width: "Full" },
+          body: [
+            {
+              type: "TextBlock",
+              text: escapeTeamsMarkdown(title),
+              weight: "Bolder",
+              size: "Medium",
+              wrap: true,
+              color: TEAMS_COLOR[msg.severity],
+            },
+            ...lines.map((l) => ({ type: "TextBlock", text: escapeTeamsMarkdown(l), wrap: true, spacing: "Small" })),
+            ...(link && !absolute
+              ? [{ type: "TextBlock", text: escapeTeamsMarkdown(`Admin: ${link}`), wrap: true, isSubtle: true }]
+              : []),
+          ],
+          ...(absolute ? { actions: [{ type: "Action.OpenUrl", title: "Open the admin", url: link }] } : {}),
+        },
       },
-    }],
+    ],
   };
 }
 
@@ -188,7 +209,13 @@ export async function deliverWebhook(
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     let wait = delays[attempt] ?? 0;
     try {
-      const res = await fetchImpl(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), redirect: "manual", signal: AbortSignal.timeout(opts.timeoutMs ?? 15_000) });
+      const res = await fetchImpl(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        redirect: "manual",
+        signal: AbortSignal.timeout(opts.timeoutMs ?? 15_000),
+      });
       await res.body?.cancel().catch(() => undefined);
       if (res.status >= 200 && res.status < 300) return { ok: true, attempts: attempt + 1, status: res.status };
       last = { ok: false, attempts: attempt + 1, status: res.status, error: `HTTP ${res.status}` };
@@ -197,7 +224,13 @@ export async function deliverWebhook(
       if (res.status === 429 && Number.isFinite(ra) && ra > 0 && ra <= 60) wait = Math.max(wait, ra * 1000);
     } catch (e: unknown) {
       const name = (e as Error)?.name;
-      last = { ok: false, attempts: attempt + 1, error: scrub(name === "TimeoutError" || name === "AbortError" ? "timeout" : `network error: ${(e as Error)?.message ?? e}`).slice(0, 300) };
+      last = {
+        ok: false,
+        attempts: attempt + 1,
+        error: scrub(
+          name === "TimeoutError" || name === "AbortError" ? "timeout" : `network error: ${(e as Error)?.message ?? e}`,
+        ).slice(0, 300),
+      };
     }
     if (attempt < delays.length) await sleep(wait);
   }
@@ -218,11 +251,18 @@ function serial<T>(fn: () => Promise<T>): Promise<T> {
 
 export async function readAlertState(): Promise<AlertState> {
   const s = await readJson<AlertState | null>(ALERT_STATE_PATH, null).catch(() => null);
-  return s && typeof s === "object" && s.version === 1 && s.open && typeof s.open === "object" ? s : { version: 1, open: {} };
+  return s && typeof s === "object" && s.version === 1 && s.open && typeof s.open === "object"
+    ? s
+    : { version: 1, open: {} };
 }
 
 /** new / changed condition, a reminder due (when `remindAfterMs` is given), or nothing to post */
-export function alertDecision(entry: OpenAlert | undefined, fingerprint: string, now: Date, remindAfterMs?: number): "new" | "changed" | "reminder" | "none" {
+export function alertDecision(
+  entry: OpenAlert | undefined,
+  fingerprint: string,
+  now: Date,
+  remindAfterMs?: number,
+): "new" | "changed" | "reminder" | "none" {
   if (!entry) return "new";
   if (entry.fingerprint !== fingerprint) return "changed";
   if (remindAfterMs !== undefined && now.getTime() - Date.parse(entry.lastSentAt) >= remindAfterMs) return "reminder";
@@ -237,7 +277,14 @@ export interface AlertCtx {
   send(msg: AlertMessage): Promise<boolean>;
 }
 
-export interface AlertOpts { fetchImpl?: typeof fetch; now?: Date; env?: Env; sleep?: (ms: number) => Promise<void>; delays?: number[]; log?: (m: string) => void }
+export interface AlertOpts {
+  fetchImpl?: typeof fetch;
+  now?: Date;
+  env?: Env;
+  sleep?: (ms: number) => Promise<void>;
+  delays?: number[];
+  log?: (m: string) => void;
+}
 
 /** One serialised read → decide / send → write of the alert state. */
 export function withAlerts<T>(fn: (ctx: AlertCtx) => Promise<T>, opts: AlertOpts = {}): Promise<T> {
@@ -249,32 +296,64 @@ export function withAlerts<T>(fn: (ctx: AlertCtx) => Promise<T>, opts: AlertOpts
     const state = await readAlertState();
     const before = JSON.stringify(state);
     const ctx: AlertCtx = {
-      now, state, configured: !!url,
+      now,
+      state,
+      configured: !!url,
       async send(msg) {
         if (!url) return false;
         const { format } = alertFormat(url, env);
-        const r = await deliverWebhook(url, alertPayload(msg, format, env), { fetchImpl: opts.fetchImpl, sleep: opts.sleep, delays: opts.delays });
+        const r = await deliverWebhook(url, alertPayload(msg, format, env), {
+          fetchImpl: opts.fetchImpl,
+          sleep: opts.sleep,
+          delays: opts.delays,
+        });
         const at = new Date().toISOString();
-        state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: recordedTitle(msg).slice(0, 200) };
+        state.lastDelivery = {
+          at,
+          ok: r.ok,
+          attempts: r.attempts,
+          ...(r.status !== undefined ? { status: r.status } : {}),
+          ...(r.error ? { error: r.error } : {}),
+          title: recordedTitle(msg).slice(0, 200),
+        };
         if (r.ok) state.lastSuccessAt = at;
-        else log(`alert webhook failed after ${r.attempts} attempt(s): ${r.error ?? "unknown error"} (${recordedTitle(msg).slice(0, 120)})`);
+        else
+          log(
+            `alert webhook failed after ${r.attempts} attempt(s): ${r.error ?? "unknown error"} (${recordedTitle(msg).slice(0, 120)})`,
+          );
         return r.ok;
       },
     };
     const out = await fn(ctx);
-    if (JSON.stringify(state) !== before) await writeJson(ALERT_STATE_PATH, state).catch((e: unknown) => log(`could not store the alert state: ${(e as Error)?.message ?? e}`));
+    if (JSON.stringify(state) !== before)
+      await writeJson(ALERT_STATE_PATH, state).catch((e: unknown) =>
+        log(`could not store the alert state: ${(e as Error)?.message ?? e}`),
+      );
     return out;
   });
 }
 
 /** Record a delivered alert for `key` (open condition). */
-export function markSent(state: AlertState, key: string, fingerprint: string, title: string, now: Date, kind: "new" | "changed" | "reminder"): void {
+export function markSent(
+  state: AlertState,
+  key: string,
+  fingerprint: string,
+  title: string,
+  now: Date,
+  kind: "new" | "changed" | "reminder",
+): void {
   const prev = state.open[key];
   const at = now.toISOString();
   state.sentAt = { ...(state.sentAt ?? {}), [key]: at };
-  state.open[key] = kind === "reminder" && prev
-    ? { ...prev, lastSentAt: at, reminders: (prev.reminders ?? 0) + 1 }
-    : { fingerprint, title: title.slice(0, 200), since: kind === "changed" && prev ? prev.since : at, lastSentAt: at };
+  state.open[key] =
+    kind === "reminder" && prev
+      ? { ...prev, lastSentAt: at, reminders: (prev.reminders ?? 0) + 1 }
+      : {
+          fingerprint,
+          title: title.slice(0, 200),
+          since: kind === "changed" && prev ? prev.since : at,
+          lastSentAt: at,
+        };
 }
 
 /**
@@ -283,7 +362,12 @@ export function markSent(state: AlertState, key: string, fingerprint: string, ti
  * at the next evaluation.
  */
 export function raiseAlert(
-  a: { key: string; fingerprint: string; message: (kind: "new" | "changed" | "reminder", open: OpenAlert | undefined) => AlertMessage; remindAfterMs?: number },
+  a: {
+    key: string;
+    fingerprint: string;
+    message: (kind: "new" | "changed" | "reminder", open: OpenAlert | undefined) => AlertMessage;
+    remindAfterMs?: number;
+  },
   opts: AlertOpts = {},
 ): Promise<"sent" | "none" | "failed" | "off"> {
   return withAlerts(async (ctx) => {
@@ -320,7 +404,11 @@ export function resolveAlert(
  * disappear are forgotten, so an item that comes back later is posted again.
  */
 export function announceNew(
-  a: { key: string; items: { id: string; line: string }[]; message: (fresh: { id: string; line: string }[]) => AlertMessage },
+  a: {
+    key: string;
+    items: { id: string; line: string }[];
+    message: (fresh: { id: string; line: string }[]) => AlertMessage;
+  },
   opts: AlertOpts = {},
 ): Promise<"sent" | "none" | "failed" | "off"> {
   return withAlerts(async (ctx) => {
@@ -330,7 +418,8 @@ export function announceNew(
     const keepKnown = (): void => {
       const known = ids.filter((id) => prev.has(id));
       if (!known.length) delete ctx.state.open[a.key];
-      else if (known.length !== prev.size) ctx.state.open[a.key] = { ...ctx.state.open[a.key]!, fingerprint: JSON.stringify(known) };
+      else if (known.length !== prev.size)
+        ctx.state.open[a.key] = { ...ctx.state.open[a.key]!, fingerprint: JSON.stringify(known) };
     };
     if (!fresh.length) {
       keepKnown();
@@ -373,17 +462,31 @@ export const TEST_ALERT_COOLDOWN_MS = 60_000;
  * Test message from the admin: delivered at once (one attempt, 8 s timeout), not queued behind other alerts and their
  * retries; the result is recorded in the state afterwards. One per minute per process ("cooldown").
  */
-export async function sendTestAlert(msg: AlertMessage, opts: AlertOpts = {}): Promise<"sent" | "failed" | "off" | "cooldown"> {
+export async function sendTestAlert(
+  msg: AlertMessage,
+  opts: AlertOpts = {},
+): Promise<"sent" | "failed" | "off" | "cooldown"> {
   const env = opts.env ?? process.env;
   const url = webhookUrl(env);
   if (!url) return "off";
   const now = Date.now();
   if (T.__nymbusAlertTestAt && now - T.__nymbusAlertTestAt < TEST_ALERT_COOLDOWN_MS) return "cooldown";
   T.__nymbusAlertTestAt = now;
-  const r = await deliverWebhook(url, alertPayload(msg, alertFormat(url, env).format, env), { fetchImpl: opts.fetchImpl, delays: [], timeoutMs: 8_000 });
+  const r = await deliverWebhook(url, alertPayload(msg, alertFormat(url, env).format, env), {
+    fetchImpl: opts.fetchImpl,
+    delays: [],
+    timeoutMs: 8_000,
+  });
   const at = new Date().toISOString();
   void withAlerts(async (ctx) => {
-    ctx.state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: recordedTitle(msg).slice(0, 200) };
+    ctx.state.lastDelivery = {
+      at,
+      ok: r.ok,
+      attempts: r.attempts,
+      ...(r.status !== undefined ? { status: r.status } : {}),
+      ...(r.error ? { error: r.error } : {}),
+      title: recordedTitle(msg).slice(0, 200),
+    };
     if (r.ok) ctx.state.lastSuccessAt = at;
   }, opts).catch(() => undefined);
   return r.ok ? "sent" : "failed";
@@ -417,9 +520,14 @@ export function alertChannelStatus(state: AlertState, env: Env = process.env): A
     host = null;
   }
   return {
-    configured: !!url, format, formatSource: source, host,
+    configured: !!url,
+    format,
+    formatSource: source,
+    host,
     lastDelivery: state.lastDelivery ?? null,
     lastSuccessAt: state.lastSuccessAt ?? null,
-    open: Object.entries(state.open).map(([key, o]) => ({ key, title: o.title, since: o.since, lastSentAt: o.lastSentAt })).sort((a, b) => a.key.localeCompare(b.key)),
+    open: Object.entries(state.open)
+      .map(([key, o]) => ({ key, title: o.title, since: o.since, lastSentAt: o.lastSentAt }))
+      .sort((a, b) => a.key.localeCompare(b.key)),
   };
 }

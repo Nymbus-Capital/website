@@ -7,8 +7,14 @@ import type { BrandAssets } from "@/lib/data/brand-assets";
 import type { L } from "@/lib/i18n/config";
 
 /** Public projection of a published document (see toPublicDocument in lib/data/documents.ts): no uploader / hash. */
-export type PublicDocument = Pick<DocumentMeta, "id" | "scope" | "type" | "lang" | "title" | "date" | "fileName" | "size">;
-export interface FundDoc { meta: PublicDocument; url: string }
+export type PublicDocument = Pick<
+  DocumentMeta,
+  "id" | "scope" | "type" | "lang" | "title" | "date" | "fileName" | "size"
+>;
+export interface FundDoc {
+  meta: PublicDocument;
+  url: string;
+}
 
 /** Fund registry entry as the client receives it: `sources` reduced to the basis (no internal source names/keys). */
 export type PublicFundSpec = Omit<FundSpec, "sources"> & { sources: Pick<FundSpec["sources"], "basis"> };
@@ -30,7 +36,14 @@ export function toPublicData(data: FundData | null): PublicFundData | null {
 /** Admin content as the public page receives it: without the internal snapshot pin. */
 type PublicFundContent = Omit<FundContent, "pinnedSnapshot">;
 
-export interface FundLink { key: FundKey; name: L; short: L; assetClass: L; tagline: L; color: { solid: string; from: string; to: string } }
+export interface FundLink {
+  key: FundKey;
+  name: L;
+  short: L;
+  assetClass: L;
+  tagline: L;
+  color: { solid: string; from: string; to: string };
+}
 
 export interface FundPageProps {
   spec: PublicFundSpec;

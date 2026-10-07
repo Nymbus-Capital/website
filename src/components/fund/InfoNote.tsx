@@ -13,7 +13,15 @@
 import { Info } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-export function InfoNote({ label, children, testId = "info-note" }: { label: string; children: ReactNode; testId?: string }) {
+export function InfoNote({
+  label,
+  children,
+  testId = "info-note",
+}: {
+  label: string;
+  children: ReactNode;
+  testId?: string;
+}) {
   const id = useId();
   const root = useRef<HTMLSpanElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

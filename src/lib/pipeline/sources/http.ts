@@ -58,14 +58,23 @@ function retryAfterMs(res: Response): number | null {
  * Returns the Response for any status that is not retried (2xx, 4xx except 429), after at most
  * `retries` retries on network errors / timeouts / 5xx / 429. Throws the last error otherwise.
  */
-export async function fetchRetry(fetchImpl: FetchImpl, url: string, init: RequestInit = {}, opts: RetryOpts = {}): Promise<Response> {
+export async function fetchRetry(
+  fetchImpl: FetchImpl,
+  url: string,
+  init: RequestInit = {},
+  opts: RetryOpts = {},
+): Promise<Response> {
   const retries = opts.retries ?? 2;
   const base = opts.backoffMs ?? retryBaseMs();
   let lastErr: unknown = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     let wait = base * 2 ** attempt;
     try {
-      const res = await fetchImpl(url, { ...init, redirect: "manual", signal: AbortSignal.timeout(opts.timeoutMs ?? 60_000) });
+      const res = await fetchImpl(url, {
+        ...init,
+        redirect: "manual",
+        signal: AbortSignal.timeout(opts.timeoutMs ?? 60_000),
+      });
       if (res.status >= 500 || res.status === 429) {
         lastErr = new HttpError(res.status, `HTTP ${res.status} on ${safeUrl(url)}`);
         if (opts.honorRetryAfter) wait = retryAfterMs(res) ?? wait;
@@ -75,7 +84,11 @@ export async function fetchRetry(fetchImpl: FetchImpl, url: string, init: Reques
       }
     } catch (e: unknown) {
       const name = (e as Error)?.name;
-      lastErr = new Error(name === "TimeoutError" || name === "AbortError" ? `timeout on ${safeUrl(url)}` : `network error on ${safeUrl(url)}: ${(e as Error)?.message ?? e}`);
+      lastErr = new Error(
+        name === "TimeoutError" || name === "AbortError"
+          ? `timeout on ${safeUrl(url)}`
+          : `network error on ${safeUrl(url)}: ${(e as Error)?.message ?? e}`,
+      );
     }
     if (attempt < retries) await sleep(wait);
   }

@@ -15,7 +15,8 @@ export const loadFixture = (rel: string): unknown => JSON.parse(readFileSync(pat
 
 export type Route = (url: URL, init?: RequestInit) => Response | Promise<Response> | undefined;
 
-export const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+export const json = (body: unknown, status = 200): Response =>
+  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
 function filterDates<T extends { date: string }>(rows: T[], url: URL): T[] {
   const s = url.searchParams.get("start_date");
@@ -51,7 +52,8 @@ export function fixtureRoute(url: URL): Response | undefined {
     const fund = q.get("fund") ?? "";
     const date = q.get("date");
     // like the real endpoint: `date` must be a full ISO date
-    if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ detail: [{ loc: ["query", "date"], msg: "Input should be a valid date" }] }, 422);
+    if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date))
+      return json({ detail: [{ loc: ["query", "date"], msg: "Input should be a valid date" }] }, 422);
     try {
       return json(loadFixture(`dataplatform/portfolio_${fund}${date ? `_${date}` : ""}.json`));
     } catch {
@@ -73,7 +75,20 @@ export function fixtureRoute(url: URL): Response | undefined {
       return json(loadFixture(`dataplatform/holdings_${fund}_${date}.json`));
     } catch {
       // like the real endpoint: a day without a book is an empty answer, not an error
-      return json({ fund, fund_short_name: fund, start_date: date, end_date: date, nav_type: "FINAL_NAV", positions_count: 0, cash_count: 0, unrealised_pl_count: 0, warnings: [], positions: [], cash: [], unrealised_pl: [] });
+      return json({
+        fund,
+        fund_short_name: fund,
+        start_date: date,
+        end_date: date,
+        nav_type: "FINAL_NAV",
+        positions_count: 0,
+        cash_count: 0,
+        unrealised_pl_count: 0,
+        warnings: [],
+        positions: [],
+        cash: [],
+        unrealised_pl: [],
+      });
     }
   }
   if (p === "/api/instruments/batch") {
@@ -85,10 +100,17 @@ export function fixtureRoute(url: URL): Response | undefined {
   if (p === "/api/instruments") {
     const { universe } = loadFixture("dataplatform/instruments.json") as { universe: Record<string, unknown>[] };
     const after = q.get("maturity_after");
-    const rows = universe.filter((u) => (!q.get("asset_class") || u.asset_class === q.get("asset_class")) && (!after || (typeof u.maturity_date === "string" && u.maturity_date >= after)));
+    const rows = universe.filter(
+      (u) =>
+        (!q.get("asset_class") || u.asset_class === q.get("asset_class")) &&
+        (!after || (typeof u.maturity_date === "string" && u.maturity_date >= after)),
+    );
     const offset = Number(q.get("offset") ?? 0);
     const limit = Number(q.get("limit") ?? 100);
-    return new Response(JSON.stringify(rows.slice(offset, offset + limit)), { status: 200, headers: { "content-type": "application/json", "x-total-count": String(rows.length) } });
+    return new Response(JSON.stringify(rows.slice(offset, offset + limit)), {
+      status: 200,
+      headers: { "content-type": "application/json", "x-total-count": String(rows.length) },
+    });
   }
   if (p === "/api/apex/funds") return json(loadFixture("dataplatform/apex_funds.json"));
   // FTSE constituents: none of the synthetic bonds (the instrument master prices them); tests route their own
@@ -118,7 +140,9 @@ export function mockFetch(...overrides: Route[]): MockFetch {
   const f = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
     const headers: Record<string, string> = {};
-    new Headers(init?.headers).forEach((v, k) => { headers[k] = v; });
+    new Headers(init?.headers).forEach((v, k) => {
+      headers[k] = v;
+    });
     calls.push({ url: url.href, headers });
     for (const o of overrides) {
       const r = await o(url, init);
@@ -131,5 +155,11 @@ export function mockFetch(...overrides: Route[]): MockFetch {
 
 /** env for a run against the fixtures (no Graph, analytics from the local fixture file) */
 export function fixtureEnv(extra: Record<string, string | undefined> = {}): Record<string, string | undefined> {
-  return { DATAPLATFORM_URL: FIXTURE_BASE_URL, FACTSHEET_DATA_DIR: FIXTURE_FACTSHEETS_DIR, ANALYTICS_RETURNS_FILE: FIXTURE_ANALYTICS_FILE, PIPELINE_RETRY_BASE_MS: "0", ...extra };
+  return {
+    DATAPLATFORM_URL: FIXTURE_BASE_URL,
+    FACTSHEET_DATA_DIR: FIXTURE_FACTSHEETS_DIR,
+    ANALYTICS_RETURNS_FILE: FIXTURE_ANALYTICS_FILE,
+    PIPELINE_RETRY_BASE_MS: "0",
+    ...extra,
+  };
 }

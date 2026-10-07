@@ -4,11 +4,22 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ftseDaily, ftseFamily, ftseGapCheck, ftseReturnEstimate, joinFtseHistory, type FtseDay } from "../../../src/lib/pipeline/index-levels.ts";
+import {
+  ftseDaily,
+  ftseFamily,
+  ftseGapCheck,
+  ftseReturnEstimate,
+  joinFtseHistory,
+  type FtseDay,
+} from "../../../src/lib/pipeline/index-levels.ts";
 import { bondDays } from "../../../src/lib/pipeline/market-calendar.ts";
 
 /** a synthetic index whose daily return is the yield/duration estimate plus a small deterministic noise (±0.4 bp) */
-function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: string; noise?: number } = {}): Record<string, FtseDay> {
+function synth(
+  from: string,
+  to: string,
+  opts: { gapNoise?: number; gapDay?: string; noise?: number } = {},
+): Record<string, FtseDay> {
   const days = bondDays(from, to);
   const out: Record<string, FtseDay> = {};
   let level = 1000;
@@ -17,8 +28,12 @@ function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: str
     const dur = 7 - 0.001 * i;
     if (i > 0) {
       const prev = out[days[i - 1]];
-      const est = ftseReturnEstimate(prev, { ytm }, Math.round((Date.parse(d) - Date.parse(days[i - 1])) / 86_400_000))!;
-      const noise = (opts.noise ?? 0.00004) * Math.sin(i * 1.7) + (d === opts.gapDay ? opts.gapNoise ?? 0 : 0);
+      const est = ftseReturnEstimate(
+        prev,
+        { ytm },
+        Math.round((Date.parse(d) - Date.parse(days[i - 1])) / 86_400_000),
+      )!;
+      const noise = (opts.noise ?? 0.00004) * Math.sin(i * 1.7) + (d === opts.gapDay ? (opts.gapNoise ?? 0) : 0);
       level *= 1 + est + noise;
     }
     out[d] = { level, ytm, dur };
@@ -26,7 +41,11 @@ function synth(from: string, to: string, opts: { gapNoise?: number; gapDay?: str
   return out;
 }
 const split = (all: Record<string, FtseDay>, first: string, oldLast: string, rebase = 1) => {
-  const cur = Object.fromEntries(Object.entries(all).filter(([d]) => d >= first).map(([d, x]) => [d, { ...x, level: x.level * rebase }]));
+  const cur = Object.fromEntries(
+    Object.entries(all)
+      .filter(([d]) => d >= first)
+      .map(([d, x]) => [d, { ...x, level: x.level * rebase }]),
+  );
   const old = Object.fromEntries(Object.entries(all).filter(([d]) => d <= oldLast));
   const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
   return { cur, old, curL: lv(cur), oldL: lv(old) };
@@ -43,12 +62,29 @@ test("gap link accepted: the earlier name ends on the bond-market day before the
   assert.ok(Math.abs(g.check.residual) <= g.check.threshold);
   assert.equal(g.check.threshold, 2e-4, "3 × p95 of ±0.4 bp residuals is below the 2 bp floor");
   assert.ok(g.check.samples > 300);
-  const j = joinFtseHistory(curL, [{ name: "old_name", levels: oldL, why: "configured earlier name", daily: old, gapOk: true }], undefined, cur);
-  assert.deepEqual(j.used.map((u) => [u.name, u.kind, u.link]), [["old_name", "gap", "2024-12-05"]]);
+  const j = joinFtseHistory(
+    curL,
+    [{ name: "old_name", levels: oldL, why: "configured earlier name", daily: old, gapOk: true }],
+    undefined,
+    cur,
+  );
+  assert.deepEqual(
+    j.used.map((u) => [u.name, u.kind, u.link]),
+    [["old_name", "gap", "2024-12-05"]],
+  );
   assert.equal(Object.keys(j.levels)[0], "2024-01-02");
-  assert.equal(j.levels["2024-06-28"], ALL["2024-06-28"].level, "equal bases: the earlier levels are used as published");
+  assert.equal(
+    j.levels["2024-06-28"],
+    ALL["2024-06-28"].level,
+    "equal bases: the earlier levels are used as published",
+  );
   // a loose name match (not the same index for sure) is never gap-linked
-  const loose = joinFtseHistory(curL, [{ name: "old_name", levels: oldL, why: "name contains", daily: old, gapOk: false }], undefined, cur);
+  const loose = joinFtseHistory(
+    curL,
+    [{ name: "old_name", levels: oldL, why: "name contains", daily: old, gapOk: false }],
+    undefined,
+    cur,
+  );
   assert.deepEqual(loose.used, []);
   assert.match(loose.skipped[0], /gap links only for the same index/);
 });
@@ -59,7 +95,10 @@ test("gap link rejected: re-based levels, a two-day gap, a gap-day return off th
   assert.ok(!r.ok && /differ by -13\.\d+% \(re-based\)/.test(r.why), r.ok ? "accepted" : r.why);
   const two = split(ALL, "2024-12-05", "2024-12-03");
   const t = ftseGapCheck(two.curL, two.cur, two.oldL, two.old);
-  assert.ok(!t.ok && /2 daily returns missing between 2024-12-03 and 2024-12-05 \(2024-12-04 without a level\)/.test(t.why), t.ok ? "accepted" : t.why);
+  assert.ok(
+    !t.ok && /2 daily returns missing between 2024-12-03 and 2024-12-05 \(2024-12-04 without a level\)/.test(t.why),
+    t.ok ? "accepted" : t.why,
+  );
   // the gap day moved 0.5 % beyond the analytics: another index (or a re-basing), not linked
   const jump = synth("2024-01-02", "2025-06-30", { gapDay: "2024-12-05", gapNoise: 0.005 });
   const j = split(jump, "2024-12-05", "2024-12-04");
@@ -72,20 +111,51 @@ test("gap link rejected: re-based levels, a two-day gap, a gap-day return off th
   assert.ok(!n.ok && /no average yield \/ modified duration/.test(n.why));
   // an overlap link always wins over a gap link
   const over = split(ALL, "2024-12-05", "2024-12-20");
-  const both = joinFtseHistory(over.curL, [
-    { name: "gap_name", levels: split(ALL, "2024-12-05", "2024-12-04").oldL, why: "family", daily: split(ALL, "2024-12-05", "2024-12-04").old, gapOk: true },
-    { name: "overlap_name", levels: over.oldL, why: "family", daily: over.old, gapOk: true },
-  ], undefined, over.cur);
+  const both = joinFtseHistory(
+    over.curL,
+    [
+      {
+        name: "gap_name",
+        levels: split(ALL, "2024-12-05", "2024-12-04").oldL,
+        why: "family",
+        daily: split(ALL, "2024-12-05", "2024-12-04").old,
+        gapOk: true,
+      },
+      { name: "overlap_name", levels: over.oldL, why: "family", daily: over.old, gapOk: true },
+    ],
+    undefined,
+    over.cur,
+  );
   assert.equal(both.used[0].name, "overlap_name");
   assert.equal(both.used[0].kind, "overlap");
 });
 
 test("ftseDaily keeps the index row's average yield and modified duration (numbers or numeric strings)", () => {
   const d = ftseDaily([
-    { date: "2024-12-04", total_return: 100, rating: null, term: null, industry_sector: null, industry_group: null, average_yield: 3.9, modified_duration: "7.1" },
-    { date: "2024-12-05", total_return: 101, rating: null, term: null, industry_sector: null, industry_group: null, average_yield: null },
+    {
+      date: "2024-12-04",
+      total_return: 100,
+      rating: null,
+      term: null,
+      industry_sector: null,
+      industry_group: null,
+      average_yield: 3.9,
+      modified_duration: "7.1",
+    },
+    {
+      date: "2024-12-05",
+      total_return: 101,
+      rating: null,
+      term: null,
+      industry_sector: null,
+      industry_group: null,
+      average_yield: null,
+    },
   ]);
-  assert.deepEqual(d, { "2024-12-04": { level: 100, ytm: 3.9, dur: 7.1 }, "2024-12-05": { level: 101, ytm: null, dur: null } });
+  assert.deepEqual(d, {
+    "2024-12-04": { level: 100, ytm: 3.9, dur: 7.1 },
+    "2024-12-05": { level: 101, ytm: null, dur: null },
+  });
 });
 
 test("ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', prefixes and 'overall' do not change the family", () => {
@@ -101,13 +171,21 @@ test("ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', pref
 
 test("gap tolerance is capped at 5 bp; a copied level (zero implied return) is never a link", () => {
   // noisy analytics (±6 bp daily residuals): 3 × p95 would be about 18 bp, the tolerance stays at 5 bp
-  const noisy = synth("2024-01-02", "2025-06-30", { noise: 0.0006, gapDay: "2024-12-05", gapNoise: -0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7) });
+  const noisy = synth("2024-01-02", "2025-06-30", {
+    noise: 0.0006,
+    gapDay: "2024-12-05",
+    gapNoise: -0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7),
+  });
   const n = split(noisy, "2024-12-05", "2024-12-04");
   const g = ftseGapCheck(n.curL, n.cur, n.oldL, n.old);
   assert.ok(g.ok, g.ok ? "" : g.why);
   if (g.ok) assert.equal(g.check.threshold, 5e-4);
   // a 7 bp gap residual: within 3 × p95 of these noisy series, beyond the 5 bp cap → rejected
-  const off = synth("2024-01-02", "2025-06-30", { noise: 0.0006, gapDay: "2024-12-05", gapNoise: 0.0007 - 0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7) });
+  const off = synth("2024-01-02", "2025-06-30", {
+    noise: 0.0006,
+    gapDay: "2024-12-05",
+    gapNoise: 0.0007 - 0.0006 * Math.sin(bondDays("2024-01-02", "2024-12-05").length * 1.7 - 1.7),
+  });
   const o = split(off, "2024-12-05", "2024-12-04");
   const r = ftseGapCheck(o.curL, o.cur, o.oldL, o.old);
   assert.ok(!r.ok && /residual 7\.\d+ bp beyond 5\.00 bp/.test(r.why), r.ok ? "accepted" : r.why);

@@ -19,7 +19,16 @@ interface HeatmapProps {
   /** month-end of the published performance: only its year is flagged YTD */
   asOf?: string | null;
   lang: Locale;
-  labels: { year: string; total: string; ytd: string; launch: string; neg: string; pos: string; fund: string; withheld?: string };
+  labels: {
+    year: string;
+    total: string;
+    ytd: string;
+    launch: string;
+    neg: string;
+    pos: string;
+    fund: string;
+    withheld?: string;
+  };
   caption: string;
   /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */
   withheld?: Set<string>;
@@ -27,7 +36,16 @@ interface HeatmapProps {
   partial?: { month: string; label: string } | null;
 }
 
-export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption, withheld, partial = null }: HeatmapProps) {
+export function Heatmap({
+  monthly,
+  calendar,
+  asOf = null,
+  lang,
+  labels,
+  caption,
+  withheld,
+  partial = null,
+}: HeatmapProps) {
   const held = useMemo(() => new Set([...(withheld ?? [])].map((m) => m.slice(0, 7))), [withheld]);
   const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
@@ -40,9 +58,21 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption,
   const show = (el: HTMLElement, year: number, m: number, r: number) => {
     const host = ref.current;
     if (!host) return;
-    const hr = host.getBoundingClientRect(), cr = el.getBoundingClientRect();
+    const hr = host.getBoundingClientRect(),
+      cr = el.getBoundingClientRect();
     setW(hr.width);
-    setTip({ x: cr.left - hr.left + cr.width / 2, y: cr.top - hr.top, title: `${monthName(m + 1, lang)} ${year}`, rows: [{ cls: r >= 0 ? "fund" : "va", label: labels.fund, value: fmt(r, { pct: true, decimals: 2, sign: true, lang }) }] });
+    setTip({
+      x: cr.left - hr.left + cr.width / 2,
+      y: cr.top - hr.top,
+      title: `${monthName(m + 1, lang)} ${year}`,
+      rows: [
+        {
+          cls: r >= 0 ? "fund" : "va",
+          label: labels.fund,
+          value: fmt(r, { pct: true, decimals: 2, sign: true, lang }),
+        },
+      ],
+    });
   };
 
   // rows are ~ (cell height + spacing): reserve the height before the table mounts
@@ -55,36 +85,73 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption,
             <caption className="sr-only">{caption}</caption>
             <thead>
               <tr>
-                <th className="y" scope="col"><span className="sr-only">{labels.year}</span></th>
-                {MONTH_INITIALS[lang].map((m, i) => <th key={i} scope="col" abbr={monthName(i + 1, lang)}>{m}</th>)}
-                <th className="tot" scope="col" style={{ textAlign: "right" }}>{labels.total}</th>
+                <th className="y" scope="col">
+                  <span className="sr-only">{labels.year}</span>
+                </th>
+                {MONTH_INITIALS[lang].map((m, i) => (
+                  <th key={i} scope="col" abbr={monthName(i + 1, lang)}>
+                    {m}
+                  </th>
+                ))}
+                <th className="tot" scope="col" style={{ textAlign: "right" }}>
+                  {labels.total}
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, ri) => (
                 <tr key={row.year}>
-                  <th className="y" scope="row">{row.year}</th>
+                  <th className="y" scope="row">
+                    {row.year}
+                  </th>
                   {row.cells.map((r, m) => {
                     const c = heatCell(r, scale);
                     if (r == null && held.has(`${row.year}-${String(m + 1).padStart(2, "0")}`)) {
-                      return <td key={m} data-testid="heat-withheld"><div className="c none hm-held" title={labels.withheld}><span aria-hidden="true">—</span><span className="sr-only">{labels.withheld}</span></div></td>;
+                      return (
+                        <td key={m} data-testid="heat-withheld">
+                          <div className="c none hm-held" title={labels.withheld}>
+                            <span aria-hidden="true">—</span>
+                            <span className="sr-only">{labels.withheld}</span>
+                          </div>
+                        </td>
+                      );
                     }
-                    if (r == null) return <td key={m}><div className="c none" aria-hidden="true" /></td>;
+                    if (r == null)
+                      return (
+                        <td key={m}>
+                          <div className="c none" aria-hidden="true" />
+                        </td>
+                      );
                     const txt = fmt(r, { pct: true, decimals: 1, lang });
                     const isPartial = !!partial && partial.month === `${row.year}-${String(m + 1).padStart(2, "0")}`;
                     return (
                       <td key={m} data-testid={isPartial ? "heat-partial" : undefined}>
-                        <div className={`c ${c.tone}${c.strong ? " strong" : ""}${isPartial ? " hm-partial" : ""}`} style={{ "--a": c.alpha } as CSSProperties} tabIndex={0} data-cell={ri + m}
+                        <div
+                          className={`c ${c.tone}${c.strong ? " strong" : ""}${isPartial ? " hm-partial" : ""}`}
+                          style={{ "--a": c.alpha } as CSSProperties}
+                          tabIndex={0}
+                          data-cell={ri + m}
                           title={isPartial ? partial!.label : undefined}
                           aria-label={`${monthName(m + 1, lang)} ${row.year}: ${fmt(r, { pct: true, decimals: 2, lang })}${isPartial ? ` (${partial!.label})` : ""}`}
-                          onPointerEnter={(e) => show(e.currentTarget, row.year, m, r)} onFocus={(e) => show(e.currentTarget, row.year, m, r)} onBlur={() => setTip(null)}>
-                          <span className="v" aria-hidden="true">{txt.replace(/ ?%/, "")}</span>
+                          onPointerEnter={(e) => show(e.currentTarget, row.year, m, r)}
+                          onFocus={(e) => show(e.currentTarget, row.year, m, r)}
+                          onBlur={() => setTip(null)}
+                        >
+                          <span className="v" aria-hidden="true">
+                            {txt.replace(/ ?%/, "")}
+                          </span>
                         </div>
                       </td>
                     );
                   })}
                   <td className="tot">
-                    {row.total != null ? <span className={row.total >= 0 ? undefined : "neg"}>{fmt(row.total, { pct: true, decimals: 1, lang })}</span> : "—"}
+                    {row.total != null ? (
+                      <span className={row.total >= 0 ? undefined : "neg"}>
+                        {fmt(row.total, { pct: true, decimals: 1, lang })}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
                     {row.kind ? <small>{row.kind === "ytd" ? labels.ytd : labels.launch}</small> : null}
                   </td>
                 </tr>
@@ -92,9 +159,13 @@ export function Heatmap({ monthly, calendar, asOf = null, lang, labels, caption,
             </tbody>
           </table>
         </div>
-      ) : <div className="fx-ph" style={{ height: estH }} aria-hidden="true" />}
+      ) : (
+        <div className="fx-ph" style={{ height: estH }} aria-hidden="true" />
+      )}
       <div className="fx-hm-legend" aria-hidden="true">
-        <span>{labels.neg}</span><span className="bar" /><span>{labels.pos}</span>
+        <span>{labels.neg}</span>
+        <span className="bar" />
+        <span>{labels.pos}</span>
       </div>
       <Tip tip={tip} hostWidth={w} />
     </div>

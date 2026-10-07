@@ -20,10 +20,7 @@ export const STRAT_COPY = {
   cmpEyebrow: l("Side by side", "Côte à côte"),
   cmpTitle: l("Strategy", "Comparaison des"),
   cmpAccent: l("comparison", "stratégies"),
-  cmpLead: l(
-    "Key facts and published returns, side by side.",
-    "Caractéristiques et rendements publiés, côte à côte.",
-  ),
+  cmpLead: l("Key facts and published returns, side by side.", "Caractéristiques et rendements publiés, côte à côte."),
   cols: {
     fund: l("Strategy", "Stratégie"),
     asset: l("Asset class", "Catégorie d’actifs"),

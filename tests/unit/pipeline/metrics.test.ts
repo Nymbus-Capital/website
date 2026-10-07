@@ -1,7 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  addMonths, annualize, calendarYears, compound, downsideDeviation, growth, lastClosedMonth, maxDrawdown, monthEnd, riskStats, trailing, window, type Series,
+  addMonths,
+  annualize,
+  calendarYears,
+  compound,
+  downsideDeviation,
+  growth,
+  lastClosedMonth,
+  maxDrawdown,
+  monthEnd,
+  riskStats,
+  trailing,
+  window,
+  type Series,
 } from "../../../src/lib/pipeline/metrics.ts";
 import { ftseLevels, lastWeekdays, levelsToMonthly, monthEndReturns } from "../../../src/lib/pipeline/index-levels.ts";
 
@@ -93,7 +105,11 @@ test("trailing: siStart aligns an index on the fund inception", () => {
   const t = trailing(idx, "2021-04-30", { siStart: "2019-01-31" });
   close(t.SI, Math.pow(Math.pow(1.005, 28), 12 / 28) - 1);
   const short = flat("2019-06-30", 10, 0.005);
-  assert.equal(trailing(short, "2020-03-31", { siStart: "2019-01-31" }).SI, null, "index history does not cover the fund inception");
+  assert.equal(
+    trailing(short, "2020-03-31", { siStart: "2019-01-31" }).SI,
+    null,
+    "index history does not cover the fund inception",
+  );
 });
 
 test("calendar years: partial first and current years, gaps -> null", () => {
@@ -115,7 +131,10 @@ test("calendar years: partial first and current years, gaps -> null", () => {
 
 test("growth of 10 000 starts the month before the first return", () => {
   const g = growth({ "2026-01-31": 0.1, "2026-02-28": -0.1 }, "2026-02-28");
-  assert.deepEqual(g.map((x) => x.date), ["2025-12-31", "2026-01-31", "2026-02-28"]);
+  assert.deepEqual(
+    g.map((x) => x.date),
+    ["2025-12-31", "2026-01-31", "2026-02-28"],
+  );
   close(g[0].value, 10_000);
   close(g[1].value, 11_000, 1e-9);
   close(g[2].value, 9_900, 1e-9);
@@ -139,7 +158,9 @@ test("downside deviation: population st.dev. of negative months ×√12", () => 
 test("risk statistics (SI and 3Y), Sharpe without risk-free rate", () => {
   const rs = [0.02, -0.01, 0.03, -0.02, 0.01, 0.0, 0.02, -0.01, 0.01, 0.02, -0.03, 0.01];
   const s: Series = {};
-  rs.forEach((r, i) => { s[addMonths("2025-09-30", i)] = r; });
+  rs.forEach((r, i) => {
+    s[addMonths("2025-09-30", i)] = r;
+  });
   const st = riskStats(s, "2026-08-31", "SI")!;
   assert.equal(st.months, 12);
   const ann = compound(rs);
@@ -159,12 +180,33 @@ test("risk statistics (SI and 3Y), Sharpe without risk-free rate", () => {
 test("FTSE: only fully aggregate rows count (no sub-index fallback)", () => {
   const rows = [
     { date: "2026-01-30", total_return: 100, rating: null, term: null, industry_sector: null, industry_group: null },
-    { date: "2026-01-30", total_return: 150, rating: "All", term: "Short", industry_sector: null, industry_group: null },
+    {
+      date: "2026-01-30",
+      total_return: 150,
+      rating: "All",
+      term: "Short",
+      industry_sector: null,
+      industry_group: null,
+    },
     { date: "2026-01-30", total_return: 999, rating: "AAA", term: null, industry_sector: null, industry_group: null },
     // only a sub-index row (rating All but term Short) on this day: the day is dropped
-    { date: "2026-02-27", total_return: 180, rating: "All", term: "Short", industry_sector: null, industry_group: null },
+    {
+      date: "2026-02-27",
+      total_return: 180,
+      rating: "All",
+      term: "Short",
+      industry_sector: null,
+      industry_group: null,
+    },
     { date: "2026-02-27", total_return: 999, rating: "BBB", term: null, industry_sector: null, industry_group: null },
-    { date: "2026-03-31", total_return: 110, rating: "Overall", term: "Total", industry_sector: "", industry_group: "All" },
+    {
+      date: "2026-03-31",
+      total_return: 110,
+      rating: "Overall",
+      term: "Total",
+      industry_sector: "",
+      industry_group: "All",
+    },
   ];
   assert.deepEqual(ftseLevels(rows), { "2026-01-30": 100, "2026-03-31": 110 });
 });
@@ -174,7 +216,8 @@ test("FTSE month-end: closing level on the last bond-market business day (skippe
   assert.deepEqual(lastWeekdays("2026-05"), { last: "2026-05-29", earliest: "2026-05-27" });
   const m = monthEndReturns({
     "2025-12-31": 100,
-    "2026-01-15": 101, "2026-01-30": 102, // Jan 31 is a Saturday: the 30th closes January
+    "2026-01-15": 101,
+    "2026-01-30": 102, // Jan 31 is a Saturday: the 30th closes January
     "2026-02-27": 103.02, // the last valuation day of February
     "2026-03-10": 104, // March ends 21 days early: dropped, and so is April (no base)
     "2026-04-30": 105,
@@ -183,21 +226,38 @@ test("FTSE month-end: closing level on the last bond-market business day (skippe
   });
   assert.equal(m.series["2026-01-31"], 102 / 100 - 1);
   assert.equal(m.series["2026-02-28"], 103.02 / 102 - 1);
-  assert.match(m.dropped[0].reason, /no level for the bond-market business day\(s\) .*2026-03-31 … before the month-end/);
+  assert.match(
+    m.dropped[0].reason,
+    /no level for the bond-market business day\(s\) .*2026-03-31 … before the month-end/,
+  );
   assert.equal(m.series["2026-03-31"], undefined);
   assert.equal(m.series["2026-04-30"], undefined);
   assert.equal(m.series["2026-05-31"], 106.05 / 105 - 1);
   assert.equal(m.series["2026-06-30"], undefined, "open month");
-  assert.deepEqual(m.dropped.map((d) => d.month), ["2026-03-31"]);
+  assert.deepEqual(
+    m.dropped.map((d) => d.month),
+    ["2026-03-31"],
+  );
   close(m.series["2026-01-31"], 0.02);
   close(m.series["2026-02-28"], 0.01);
   close(m.series["2026-05-31"], 0.01);
-  assert.deepEqual(levelsToMonthly({ "2025-12-31": 100, "2026-02-27": 103, "2026-03-31": 104 }), {}, "a month without levels breaks the chain");
+  assert.deepEqual(
+    levelsToMonthly({ "2025-12-31": 100, "2026-02-27": 103, "2026-03-31": 104 }),
+    {},
+    "a month without levels breaks the chain",
+  );
 });
 
 test("m8: a month-end skipped on a bond-market holiday is accepted, a skipped business day is not", () => {
   // Truth and Reconciliation Day: the bond market (and FTSE Canada) closes on Sep 30 although the TSX is open
-  const tr = monthEndReturns({ "2025-08-29": 100, "2025-09-29": 101, "2025-10-31": 102, "2026-08-31": 103, "2026-09-29": 104, "2026-10-01": 104 });
+  const tr = monthEndReturns({
+    "2025-08-29": 100,
+    "2025-09-29": 101,
+    "2025-10-31": 102,
+    "2026-08-31": 103,
+    "2026-09-29": 104,
+    "2026-10-01": 104,
+  });
   close(tr.series["2025-09-30"], 0.01);
   close(tr.series["2025-10-31"], 102 / 101 - 1);
   assert.equal(tr.dropped.length, 0, JSON.stringify(tr.dropped));
@@ -211,7 +271,10 @@ test("m8: a month-end skipped on a bond-market holiday is accepted, a skipped bu
   const b = monthEndReturns({ "2026-03-31": 100, "2026-04-29": 101, "2026-05-29": 102, "2026-06-01": 103 });
   assert.equal(b.series["2026-04-30"], undefined);
   assert.equal(b.series["2026-05-31"], undefined);
-  assert.deepEqual(b.dropped.map((d) => d.month), ["2026-04-30"]);
+  assert.deepEqual(
+    b.dropped.map((d) => d.month),
+    ["2026-04-30"],
+  );
   assert.match(b.dropped[0].reason, /no level for the bond-market business day\(s\) 2026-04-30/);
   // Boxing Day 2026 observed on Monday 28 and Christmas on Friday 25: a level on 2026-12-31 closes December
   const c = monthEndReturns({ "2026-11-30": 100, "2026-12-31": 101, "2027-01-04": 101 });

@@ -4,7 +4,13 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bookAgeDays, bookAgeProblem, dropStalePortfolio, isFreshBook, PORTFOLIO_MAX_AGE_DAYS } from "../../../src/lib/data/freshness.ts";
+import {
+  bookAgeDays,
+  bookAgeProblem,
+  dropStalePortfolio,
+  isFreshBook,
+  PORTFOLIO_MAX_AGE_DAYS,
+} from "../../../src/lib/data/freshness.ts";
 import { PORTFOLIO } from "../../../src/lib/pipeline/config.ts";
 import { parseFundPortfolio } from "../../../src/lib/pipeline/sources/contracts.ts";
 import { selectPortfolio } from "../../../src/lib/pipeline/portfolio.ts";
@@ -33,8 +39,14 @@ test("freshness: whole calendar days, 7 days still daily, 8 not, one day of futu
 test("freshness: selection, validation gate and render gate agree at the boundary (exactly 8 days at midnight)", () => {
   // before the fix the validation gate accepted up to 8 fractional days while the selection stopped at 7 whole days
   const now = new Date("2026-09-29T00:00:00Z");
-  const book = parseFundPortfolio({ ...(loadFixture("dataplatform/portfolio_SEST.json") as object), as_of: "2026-09-21" })!;
-  assert.equal(selectPortfolio({ ok: true, data: book }, { base: "b", short: "SEST", now, greenBonds: false }).portfolio, null);
+  const book = parseFundPortfolio({
+    ...(loadFixture("dataplatform/portfolio_SEST.json") as object),
+    as_of: "2026-09-21",
+  })!;
+  assert.equal(
+    selectPortfolio({ ok: true, data: book }, { base: "b", short: "SEST", now, greenBonds: false }).portfolio,
+    null,
+  );
   const f = mi();
   f.portfolio!.asOf = "2026-09-21";
   assert.equal(hasDailyPortfolio(f.portfolio, now), false);

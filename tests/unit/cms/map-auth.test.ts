@@ -15,7 +15,9 @@ import { team as staticTeam } from "../../../src/data/team.ts";
 import { NEWS } from "../../../src/components/site/home/news.ts";
 import type { SiteContent } from "../../../src/lib/data/types.ts";
 
-const fixture = JSON.parse(readFileSync(resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8"));
+const fixture = JSON.parse(
+  readFileSync(resolve(import.meta.dirname, "../../../e2e/fixtures/wp-site-content.json"), "utf8"),
+);
 const { doc } = parseCmsDocument(fixture, { mediaOrigin: "http://localhost:3199", allowLoopbackHttp: true });
 
 test("a CMS member maps to the TeamMember shape the pages use", () => {
@@ -45,7 +47,9 @@ test("a member with only a French role / bio still shows text (pick falls back t
 });
 
 test("the mapped shape is a superset of the static one (same required fields)", () => {
-  const required = Object.keys(staticTeam[0]).filter((k) => ["name", "title", "department", "bio", "initials", "color"].includes(k));
+  const required = Object.keys(staticTeam[0]).filter((k) =>
+    ["name", "title", "department", "bio", "initials", "color"].includes(k),
+  );
   const m = toTeamMember(doc.team[0]);
   for (const k of required) assert.ok(k in m, k);
 });
@@ -65,7 +69,10 @@ test("news entries keep image and link; the static news have the same fields the
   assert.ok(NEWS.length >= 3, "the home teaser shows three items");
 });
 
-const stored = (firm: Partial<SiteContent["firm"]>): SiteContent => ({ ...DEFAULT_CONTENT, firm: { ...DEFAULT_CONTENT.firm, ...firm } });
+const stored = (firm: Partial<SiteContent["firm"]>): SiteContent => ({
+  ...DEFAULT_CONTENT,
+  firm: { ...DEFAULT_CONTENT.firm, ...firm },
+});
 
 test("precedence: admin value > CMS text > built-in default (AUM label)", () => {
   const texts = { aumLabel: { en: "$2.0B+", fr: "2,0 G$+" } };
@@ -85,10 +92,16 @@ test("precedence: announcement banner — admin banner wins, else CMS banner, el
   const banner = { en: "Maintenance tonight", fr: "Entretien ce soir" };
   assert.deepEqual(overlayTexts(DEFAULT_CONTENT, null, { banner }).firm.announcement, banner);
   const adminOn = stored({ announcement: { en: "Admin banner", fr: "Bannière admin" } });
-  assert.deepEqual(overlayTexts(adminOn, adminOn, { banner }).firm.announcement, { en: "Admin banner", fr: "Bannière admin" });
+  assert.deepEqual(overlayTexts(adminOn, adminOn, { banner }).firm.announcement, {
+    en: "Admin banner",
+    fr: "Bannière admin",
+  });
   assert.equal(overlayTexts(DEFAULT_CONTENT, null, {}).firm.announcement, null);
   // only one language given: both languages show it
-  assert.deepEqual(overlayTexts(DEFAULT_CONTENT, null, { banner: { en: "Only EN", fr: "" } }).firm.announcement, { en: "Only EN", fr: "Only EN" });
+  assert.deepEqual(overlayTexts(DEFAULT_CONTENT, null, { banner: { en: "Only EN", fr: "" } }).firm.announcement, {
+    en: "Only EN",
+    fr: "Only EN",
+  });
 });
 
 test("overlayTexts never mutates its inputs", () => {
@@ -99,7 +112,8 @@ test("overlayTexts never mutates its inputs", () => {
 
 test("revalidate secret: bearer parsing and constant-time comparison", () => {
   assert.equal(bearerToken("Bearer abc123"), "abc123");
-  for (const bad of [null, undefined, "", "abc", "Basic abc", "Bearer ", "Bearer a b", "bearer abc"]) assert.equal(bearerToken(bad), null, String(bad));
+  for (const bad of [null, undefined, "", "abc", "Basic abc", "Bearer ", "Bearer a b", "bearer abc"])
+    assert.equal(bearerToken(bad), null, String(bad));
   assert.equal(secretsEqual("s3cret", "s3cret"), true);
   assert.equal(secretsEqual("s3cret", "s3creT"), false);
   assert.equal(secretsEqual("s3cret", "s3cret-longer"), false);
@@ -111,20 +125,45 @@ test("revalidate secret: bearer parsing and constant-time comparison", () => {
 test("failure limiter blocks after max failures inside the window and recovers", () => {
   const l = failureLimiter(3, 1000);
   assert.equal(l.blocked(0), false);
-  l.fail(0); l.fail(10); l.fail(20);
+  l.fail(0);
+  l.fail(10);
+  l.fail(20);
   assert.equal(l.blocked(30), true);
   assert.equal(l.blocked(1500), false);
 });
 
 test("CSP: the media origin joins img-src; nothing else can be injected through it", () => {
   const n = makeNonce();
-  const img = (o: (string | null)[]) => buildCsp(n, { imgOrigins: o }).split("; ").find((d) => d.startsWith("img-src"))!;
+  const img = (o: (string | null)[]) =>
+    buildCsp(n, { imgOrigins: o })
+      .split("; ")
+      .find((d) => d.startsWith("img-src"))!;
   assert.equal(img([]), "img-src 'self' data: blob: https://www.nymbus.ca");
   assert.equal(img([null]), "img-src 'self' data: blob: https://www.nymbus.ca");
-  assert.equal(img(["https://cms.example.org"]), "img-src 'self' data: blob: https://www.nymbus.ca https://cms.example.org");
-  assert.equal(img(["https://cms.example.org", "https://cms.example.org"]), "img-src 'self' data: blob: https://www.nymbus.ca https://cms.example.org", "no duplicates");
-  assert.equal(img(["http://localhost:3199"]), "img-src 'self' data: blob: https://www.nymbus.ca http://localhost:3199");
-  for (const bad of ["*", "https://*.example.org", "http://cms.example.org", "https://a.example.org; script-src *", "https://a.example.org https://b.example.org", "data:", "https://", "'unsafe-inline'", "https://cms.example.org/path"]) {
+  assert.equal(
+    img(["https://cms.example.org"]),
+    "img-src 'self' data: blob: https://www.nymbus.ca https://cms.example.org",
+  );
+  assert.equal(
+    img(["https://cms.example.org", "https://cms.example.org"]),
+    "img-src 'self' data: blob: https://www.nymbus.ca https://cms.example.org",
+    "no duplicates",
+  );
+  assert.equal(
+    img(["http://localhost:3199"]),
+    "img-src 'self' data: blob: https://www.nymbus.ca http://localhost:3199",
+  );
+  for (const bad of [
+    "*",
+    "https://*.example.org",
+    "http://cms.example.org",
+    "https://a.example.org; script-src *",
+    "https://a.example.org https://b.example.org",
+    "data:",
+    "https://",
+    "'unsafe-inline'",
+    "https://cms.example.org/path",
+  ]) {
     assert.equal(img([bad]), "img-src 'self' data: blob: https://www.nymbus.ca", bad);
   }
   // the rest of the policy is untouched
@@ -141,15 +180,21 @@ test("revalidate: a correct secret is never limited; only failures count, per so
   assert.equal(revalidateDecision("bad", "s3cret", "1.2.3.4", l, t), "limited");
   assert.equal(revalidateDecision("s3cret", "s3cret", "1.2.3.4", l, t), "ok", "the secret is checked first");
   assert.equal(revalidateDecision("bad", "s3cret", "5.6.7.8", l, t), "unauthorized", "another source is not affected");
-  assert.equal(revalidateDecision("bad", "s3cret", "1.2.3.4", l, t + 1001), "unauthorized", "recovers after the window");
+  assert.equal(
+    revalidateDecision("bad", "s3cret", "1.2.3.4", l, t + 1001),
+    "unauthorized",
+    "recovers after the window",
+  );
   assert.equal(sourceKey("203.0.113.9, 10.0.0.1"), "203.0.113.9");
   assert.equal(sourceKey("[::1]"), "unknown");
   assert.equal(sourceKey(null), "unknown");
   assert.equal(sourceKey("x".repeat(200)), "unknown");
   // bounded memory: past maxKeys the new sources share one bucket
   const small = keyedFailureLimiter(2, 1000, 2);
-  small.fail("a", t); small.fail("b", t);
-  small.fail("c", t); small.fail("d", t);
+  small.fail("a", t);
+  small.fail("b", t);
+  small.fail("c", t);
+  small.fail("d", t);
   assert.equal(small.blocked("e", t), true, "overflow bucket");
   assert.equal(small.blocked("a", t), false);
 });

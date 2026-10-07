@@ -12,7 +12,14 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ slot: string }> };
 
 const notFound = () =>
-  new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+  new Response("Not found", {
+    status: 404,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 
 async function serve(request: Request, ctx: Ctx, head: boolean): Promise<Response> {
   // a former slot name (fundlibrary-logo → fundata-logo) still serves the asset
@@ -23,7 +30,14 @@ async function serve(request: Request, ctx: Ctx, head: boolean): Promise<Respons
   const base = brandHeaders(f.meta.type, f.meta.sha256);
   const inm = request.headers.get("if-none-match");
   // 304: no body, no Content-Length
-  if (inm && inm.split(",").map((s) => s.trim().replace(/^W\//, "")).some((t) => t === base.ETag || t === "*")) return new Response(null, { status: 304, headers: base });
+  if (
+    inm &&
+    inm
+      .split(",")
+      .map((s) => s.trim().replace(/^W\//, ""))
+      .some((t) => t === base.ETag || t === "*")
+  )
+    return new Response(null, { status: 304, headers: base });
   const headers: Record<string, string> = { ...base, "Content-Length": String(f.size) };
   if (head) return new Response(null, { status: 200, headers });
   const stream = createReadStream(f.path);

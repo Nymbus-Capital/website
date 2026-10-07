@@ -22,9 +22,23 @@ export const E2E_POLICY_VERSION = policyVersion({
   requiredRole: "",
 });
 
-export async function mintSession(o: { email: string; tid?: string; oid?: string; name?: string; expSeconds?: number; secret?: string; pv?: string; jti?: string }): Promise<string> {
+export async function mintSession(o: {
+  email: string;
+  tid?: string;
+  oid?: string;
+  name?: string;
+  expSeconds?: number;
+  secret?: string;
+  pv?: string;
+  jti?: string;
+}): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({ email: o.email, name: o.name ?? o.email.split("@")[0], tid: o.tid ?? TENANT, pv: o.pv ?? E2E_POLICY_VERSION })
+  return new SignJWT({
+    email: o.email,
+    name: o.name ?? o.email.split("@")[0],
+    tid: o.tid ?? TENANT,
+    pv: o.pv ?? E2E_POLICY_VERSION,
+  })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setJti(o.jti ?? `e2e${crypto.randomUUID().replace(/-/g, "")}`)
     .setSubject(o.oid ?? "33333333-3333-3333-3333-33333333e2e3")
@@ -35,7 +49,11 @@ export async function mintSession(o: { email: string; tid?: string; oid?: string
     .sign(new TextEncoder().encode(o.secret ?? E2E_ENV.AUTH_SECRET));
 }
 
-export async function signIn(context: BrowserContext, email = "alice@nymbus.ca", extra: { tid?: string } = {}): Promise<string> {
+export async function signIn(
+  context: BrowserContext,
+  email = "alice@nymbus.ca",
+  extra: { tid?: string } = {},
+): Promise<string> {
   const token = await mintSession({ email, ...extra });
   await context.addCookies([{ name: SESSION_COOKIE, value: token, url: BASE, httpOnly: true, sameSite: "Lax" }]);
   return token;
@@ -64,5 +82,8 @@ trailer << /Root 1 0 R /Info << /Title (${label}) >> >>
 export async function shot(page: Page, name: string, projectName: string) {
   const { mkdirSync } = await import("node:fs");
   mkdirSync("e2e/screenshots", { recursive: true });
-  await page.screenshot({ path: `e2e/screenshots/admin-${name}${projectName === "desktop" ? "" : `-${projectName}`}.png`, fullPage: true });
+  await page.screenshot({
+    path: `e2e/screenshots/admin-${name}${projectName === "desktop" ? "" : `-${projectName}`}.png`,
+    fullPage: true,
+  });
 }

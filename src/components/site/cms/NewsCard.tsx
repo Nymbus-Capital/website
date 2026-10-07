@@ -32,11 +32,13 @@ export function NewsCard({ n, locale }: { n: NewsEntry; locale: Loc }) {
         {n.summary.en || n.summary.fr ? <p>{pickL(n.summary, locale)}</p> : null}
         {href && external ? (
           <a className="link cms-news-more" href={href} target="_blank" rel="noopener noreferrer">
-            {more} <ArrowRight aria-hidden="true" /><span className="sr-only">: {title}</span>
+            {more} <ArrowRight aria-hidden="true" />
+            <span className="sr-only">: {title}</span>
           </a>
         ) : href ? (
           <Link className="link cms-news-more" href={href}>
-            {more} <ArrowRight aria-hidden="true" /><span className="sr-only">: {title}</span>
+            {more} <ArrowRight aria-hidden="true" />
+            <span className="sr-only">: {title}</span>
           </Link>
         ) : null}
       </div>

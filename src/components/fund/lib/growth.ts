@@ -18,13 +18,20 @@ export type GrowthMethod = "compounded" | "arithmetic";
  * How the published growth series aggregates returns: the published `method`, else arithmetic for a gross series
  * (the GMV overlay, computed on notional without reinvestment), else compounded.
  */
-export function growthMethod(perf: { method?: string | null; basis?: string | null } | null | undefined, specBasis?: "net" | "gross"): GrowthMethod {
+export function growthMethod(
+  perf: { method?: string | null; basis?: string | null } | null | undefined,
+  specBasis?: "net" | "gross",
+): GrowthMethod {
   if (perf?.method === "arithmetic" || perf?.method === "compounded") return perf.method;
   return (perf?.basis ?? specBasis) === "gross" ? "arithmetic" : "compounded";
 }
 
 interface GrowthSeries {
-  dates: string[]; fund: number[]; index: (number | null)[]; hasIndex: boolean; start: number;
+  dates: string[];
+  fund: number[];
+  index: (number | null)[];
+  hasIndex: boolean;
+  start: number;
   /** fund return over the range shown (decimal), consistent with the method: what the end label / aria state */
   change: number | null;
 }
@@ -44,7 +51,8 @@ export function growthRange(points: GrowthPoint[], range: Range, method: GrowthM
   const i0 = slice.find((p) => isNum(p.index))?.index ?? null;
   const rebased = range !== "SI" && slice !== clean;
   const add = method === "arithmetic";
-  const rb = (v: number, v0: number | null | undefined) => (!rebased || !isNum(v0) || !v0 ? v : add ? start + (v - v0) : (v / v0) * start);
+  const rb = (v: number, v0: number | null | undefined) =>
+    !rebased || !isNum(v0) || !v0 ? v : add ? start + (v - v0) : (v / v0) * start;
   const fund = slice.map((p) => rb(p.fund, f0));
   const index = slice.map((p) => (isNum(p.index) ? rb(p.index, i0) : null));
   const s0 = rebased ? start : base;
