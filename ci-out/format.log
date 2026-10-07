@@ -1,0 +1,14 @@
+
+> nymbus-web@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+[[33mwarn[39m] e2e/fund.spec.ts
+[[33mwarn[39m] e2e/home.spec.ts
+[[33mwarn[39m] e2e/no-unavailable.spec.ts
+[[33mwarn[39m] src/components/fund/Header.tsx
+[[33mwarn[39m] src/components/fund/lib/returns-class.ts
+[[33mwarn[39m] src/components/fund/Overview.tsx
+[[33mwarn[39m] src/components/fund/Portfolio.tsx
+[[33mwarn[39m] tests/unit/fund/select.test.ts
+[[33mwarn[39m] Code style issues found in 8 files. Run Prettier with --write to fix.

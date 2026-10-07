@@ -1,0 +1,398 @@
+diff --git a/e2e/fund.spec.ts b/e2e/fund.spec.ts
+index 33f5fa9..031a46d 100644
+--- a/e2e/fund.spec.ts
++++ b/e2e/fund.spec.ts
+@@ -409,7 +409,9 @@ test("French: labels, names and number formatting", async ({ page }) => {
+   await page.getByTestId("series-LDM021").click();
+   await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM021");
+   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
+-  await expect(page.locator("body")).not.toContainText(/bientôt|à venir|non disponible|pas disponible|seront présentés lorsque/);
++  await expect(page.locator("body")).not.toContainText(
++    /bientôt|à venir|non disponible|pas disponible|seront présentés lorsque/,
++  );
+   await page.getByTestId("series-LDM001").click();
+   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
+   await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
+@@ -448,7 +450,9 @@ test("class selector: returns follow the class; F is the default; a young class
+   await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
+   await expect(page.getByTestId("basis")).not.toContainText(/Series A(?![A-Za-z])/);
+   await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toHaveText(f);
+-  await expect(page.locator("body")).not.toContainText(/coming soon|will be shown once|not available|could not be verified/i);
++  await expect(page.locator("body")).not.toContainText(
++    /coming soon|will be shown once|not available|could not be verified/i,
++  );
+   await openTab(page, "performance");
+   await expect(page.getByTestId("perf-context")).toContainText(/Series F(?![A-Za-z])/);
+   await expect(page.getByTestId("growth")).toBeVisible();
+@@ -519,7 +523,9 @@ test("every series of a fund: own figures when it has them, a withheld period /
+     await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
+     await expect(strip.getByTestId("badge-SI")).toBeVisible();
+     await expect(page.getByTestId("overview-returns")).toBeVisible();
+-    await expect(page.locator("body")).not.toContainText(/coming soon|will be shown once|not available|figures are not shown/i);
++    await expect(page.locator("body")).not.toContainText(
++      /coming soon|will be shown once|not available|figures are not shown/i,
++    );
+   }
+   // the series table gives every series' inception
+   await expect(page.getByTestId("class-inception-LDM031")).toHaveText("Mar 6, 2023");
+@@ -528,7 +534,9 @@ test("every series of a fund: own figures when it has them, a withheld period /
+   await page.reload();
+   await page.getByTestId("nav-card").getByTestId("series-LDM021").click();
+   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
+-  await expect(page.locator("body")).not.toContainText(/bientôt|à venir|non disponible|pas disponible|seront présentés lorsque|n’a pas pu être vérifié/);
++  await expect(page.locator("body")).not.toContainText(
++    /bientôt|à venir|non disponible|pas disponible|seront présentés lorsque|n’a pas pu être vérifié/,
++  );
+ });
+ 
+ test("class types: only classes whose type is known are labelled, with a disclosure sentence", async ({ page }) => {
+diff --git a/e2e/home.spec.ts b/e2e/home.spec.ts
+index 6e1b5d8..dbab961 100644
+--- a/e2e/home.spec.ts
++++ b/e2e/home.spec.ts
+@@ -122,7 +122,9 @@ test("strategies: the filter shows fixed income or alternatives only", async ({
+   }
+ });
+ 
+-test("strategies: the comparison table lists every fund; a missing figure is a blank cell, never a dash", async ({ page }) => {
++test("strategies: the comparison table lists every fund; a missing figure is a blank cell, never a dash", async ({
++  page,
++}) => {
+   await page.goto("/strategies");
+   const table = page.getByTestId("compare-table");
+   await table.scrollIntoViewIfNeeded();
+diff --git a/e2e/no-unavailable.spec.ts b/e2e/no-unavailable.spec.ts
+index b1932d8..09cb5a6 100644
+--- a/e2e/no-unavailable.spec.ts
++++ b/e2e/no-unavailable.spec.ts
+@@ -59,9 +59,9 @@ for (const lang of ["en", "fr"] as const) {
+     }
+     // every news item
+     await page.goto("/news");
+-    const items = await page.locator('a[href^="/news/"]').evaluateAll((as) => [
+-      ...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!)),
+-    ]);
++    const items = await page
++      .locator('a[href^="/news/"]')
++      .evaluateAll((as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!))]);
+     for (const href of items) {
+       await page.goto(href);
+       await check(page, `${lang} ${href}`);
+@@ -78,7 +78,9 @@ for (const lang of ["en", "fr"] as const) {
+       await expect(page.locator("h1")).toBeVisible();
+       await check(page, `${lang} ${slug} (opening class)`);
+       const tabs = page.getByTestId("fund-tabs").locator('[role="tab"]');
+-      const radios = page.locator('[data-testid="nav-card"] [role="radio"], [data-testid="variant-selector"] [role="radio"]');
++      const radios = page.locator(
++        '[data-testid="nav-card"] [role="radio"], [data-testid="variant-selector"] [role="radio"]',
++      );
+       const n = await radios.count();
+       for (let i = 0; i < Math.max(n, 1); i++) {
+         if (n) await radios.nth(i).click();
+@@ -88,8 +90,7 @@ for (const lang of ["en", "fr"] as const) {
+           await check(page, `${lang} ${slug} class/variant ${label} tab ${await tabs.nth(t).getAttribute("data-tab")}`);
+         }
+         // the returns strip, when shown, always names the class / variant of its figures
+-        if (await page.getByTestId("basis").count())
+-          await expect(page.getByTestId("basis")).toContainText(/\S/);
++        if (await page.getByTestId("basis").count()) await expect(page.getByTestId("basis")).toContainText(/\S/);
+       }
+     });
+   }
+diff --git a/src/components/fund/Header.tsx b/src/components/fund/Header.tsx
+index 4cf1615..94b945d 100644
+--- a/src/components/fund/Header.tsx
++++ b/src/components/fund/Header.tsx
+@@ -415,53 +415,53 @@ export function ReturnStrip({
+               {tr(T.badges.title, lang)}
+             </h2>
+             <p className="fr-sub" data-testid="basis">
+-                {variant ? (
+-                  <>
+-                    <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
+-                  </>
+-                ) : null}
+-                {cl ? (
+-                  <>
+-                    {cl}, {basis}
+-                  </>
+-                ) : (
+-                  cap(basis)
+-                )}{" "}
+-                · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+-                {ctx.returnsType && !variant ? (
+-                  <>
+-                    {" "}
+-                    <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="returns-class-type" />
+-                  </>
+-                ) : null}
++              {variant ? (
++                <>
++                  <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
++                </>
++              ) : null}
++              {cl ? (
++                <>
++                  {cl}, {basis}
++                </>
++              ) : (
++                cap(basis)
++              )}{" "}
++              · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
++              {ctx.returnsType && !variant ? (
++                <>
++                  {" "}
++                  <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="returns-class-type" />
++                </>
++              ) : null}
+             </p>
+           </div>
+           <>
+-              <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
+-                {badges.map((b) => (
+-                  <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
+-                    <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
+-                      <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
+-                      <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
+-                      {b.annualized ? <sup aria-hidden="true">*</sup> : null}
+-                    </span>
+-                    <CountUp
+-                      value={b.value}
+-                      pct
+-                      sign
+-                      decimals={2}
+-                      lang={lang}
+-                      className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
+-                    />
+-                  </div>
+-                ))}
+-              </Reveal>
+-              {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+-              {perf?.shortRecord && perf.firstMonth ? (
+-                <p className="fr-note" data-testid="since-class-inception">
+-                  {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
+-                </p>
+-              ) : null}
++            <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
++              {badges.map((b) => (
++                <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
++                  <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
++                    <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
++                    <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
++                    {b.annualized ? <sup aria-hidden="true">*</sup> : null}
++                  </span>
++                  <CountUp
++                    value={b.value}
++                    pct
++                    sign
++                    decimals={2}
++                    lang={lang}
++                    className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
++                  />
++                </div>
++              ))}
++            </Reveal>
++            {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
++            {perf?.shortRecord && perf.firstMonth ? (
++              <p className="fr-note" data-testid="since-class-inception">
++                {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
++              </p>
++            ) : null}
+           </>
+         </div>
+       </div>
+diff --git a/src/components/fund/Overview.tsx b/src/components/fund/Overview.tsx
+index 2649dac..766195d 100644
+--- a/src/components/fund/Overview.tsx
++++ b/src/components/fund/Overview.tsx
+@@ -78,75 +78,77 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
+             ) : null}
+           </Block>
+           {rows.length && perf ? (
+-          <Block
+-            title={tr(T.overview.returns, lang)}
+-            testId="overview-returns"
+-            aside={
+-              rows.length ? (
+-                <a className="link" href="#performance">
+-                  {tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" />
+-                </a>
+-              ) : null
+-            }
+-            lead={
+-              rows.length && perf ? (
+-                <>
+-                  {variant ? (
+-                    <>
+-                      <span data-testid="overview-variant">{tr(variant.name, lang)}</span>,{" "}
+-                    </>
+-                  ) : null}
+-                  {cl
+-                    ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}`
+-                    : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}
+-                  {" · "}
+-                  {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+-                </>
+-              ) : null
+-            }
+-          >
+-            {rows.length ? (
+-              <div className="fx-scroll">
+-                <table className="table ft-table">
+-                  <caption className="sr-only">{tr(T.overview.returns, lang)}</caption>
+-                  <thead>
+-                    <tr>
+-                      <th scope="col">{tr(T.perf.period, lang)}</th>
+-                      <th scope="col">{fundWord}</th>
+-                      {hasIndex ? <th scope="col">{tr(T.perf.index, lang)}</th> : null}
+-                      {hasVa ? <th scope="col">{tr(T.perf.va, lang)}</th> : null}
+-                    </tr>
+-                  </thead>
+-                  <tbody>
+-                    {rows.map((r) => (
+-                      <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
+-                        <td>
+-                          <span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span>
+-                          <span className="fx-short" aria-hidden="true">
+-                            {tr(T.perf.periods[r.period], lang)}
+-                          </span>
+-                          {r.annualized ? "*" : ""}
+-                        </td>
+-                        <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
+-                        {hasIndex ? <td>{P(r.index, lang)}</td> : null}
+-                        {hasVa ? (
+-                          <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td>
+-                        ) : null}
++            <Block
++              title={tr(T.overview.returns, lang)}
++              testId="overview-returns"
++              aside={
++                rows.length ? (
++                  <a className="link" href="#performance">
++                    {tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" />
++                  </a>
++                ) : null
++              }
++              lead={
++                rows.length && perf ? (
++                  <>
++                    {variant ? (
++                      <>
++                        <span data-testid="overview-variant">{tr(variant.name, lang)}</span>,{" "}
++                      </>
++                    ) : null}
++                    {cl
++                      ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}`
++                      : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}
++                    {" · "}
++                    {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
++                  </>
++                ) : null
++              }
++            >
++              {rows.length ? (
++                <div className="fx-scroll">
++                  <table className="table ft-table">
++                    <caption className="sr-only">{tr(T.overview.returns, lang)}</caption>
++                    <thead>
++                      <tr>
++                        <th scope="col">{tr(T.perf.period, lang)}</th>
++                        <th scope="col">{fundWord}</th>
++                        {hasIndex ? <th scope="col">{tr(T.perf.index, lang)}</th> : null}
++                        {hasVa ? <th scope="col">{tr(T.perf.va, lang)}</th> : null}
+                       </tr>
+-                    ))}
+-                  </tbody>
+-                </table>
+-                {rows.some((r) => r.annualized) ? (
+-                  <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p>
+-                ) : null}
+-                {perf?.shortRecord && perf.firstMonth ? (
+-                  <p className="fine fxb-foot">
+-                    {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
+-                  </p>
+-                ) : null}
+-              </div>
+-            ) : null}
+-          </Block>
++                    </thead>
++                    <tbody>
++                      {rows.map((r) => (
++                        <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
++                          <td>
++                            <span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span>
++                            <span className="fx-short" aria-hidden="true">
++                              {tr(T.perf.periods[r.period], lang)}
++                            </span>
++                            {r.annualized ? "*" : ""}
++                          </td>
++                          <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
++                          {hasIndex ? <td>{P(r.index, lang)}</td> : null}
++                          {hasVa ? (
++                            <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>
++                              {P(r.va, lang, true)}
++                            </td>
++                          ) : null}
++                        </tr>
++                      ))}
++                    </tbody>
++                  </table>
++                  {rows.some((r) => r.annualized) ? (
++                    <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p>
++                  ) : null}
++                  {perf?.shortRecord && perf.firstMonth ? (
++                    <p className="fine fxb-foot">
++                      {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
++                    </p>
++                  ) : null}
++                </div>
++              ) : null}
++            </Block>
+           ) : null}
+         </div>
+         <aside className="fxov-side">
+diff --git a/src/components/fund/Portfolio.tsx b/src/components/fund/Portfolio.tsx
+index f810116..419db39 100644
+--- a/src/components/fund/Portfolio.tsx
++++ b/src/components/fund/Portfolio.tsx
+@@ -357,7 +357,9 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
+                   </span>
+                 ) : null}
+               </td>
+-              {cols.coupon ? <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : null}</td> : null}
++              {cols.coupon ? (
++                <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : null}</td>
++              ) : null}
+               {cols.maturity ? <td className="hd-opt">{h.maturity ? dateLabel(h.maturity, lang) : null}</td> : null}
+               {cols.rating ? <td>{h.rating ?? null}</td> : null}
+               {cols.sector ? (
+diff --git a/src/components/fund/lib/returns-class.ts b/src/components/fund/lib/returns-class.ts
+index cccc246..6222673 100644
+--- a/src/components/fund/lib/returns-class.ts
++++ b/src/components/fund/lib/returns-class.ts
+@@ -89,7 +89,9 @@ export function returnsCandidates(
+   push(data.defaultClass);
+   const track = data.performance;
+   const trackEntry = track
+-    ? Object.values(data.performanceByClass ?? {}).find((c) => !!track.returnClass && up(c.display) === up(track.returnClass))
++    ? Object.values(data.performanceByClass ?? {}).find(
++        (c) => !!track.returnClass && up(c.display) === up(track.returnClass),
++      )
+     : undefined;
+   push(trackEntry?.fundserv);
+   const rest = new Set<string>();
+diff --git a/tests/unit/fund/select.test.ts b/tests/unit/fund/select.test.ts
+index f8c333b..c7d0699 100644
+--- a/tests/unit/fund/select.test.ts
++++ b/tests/unit/fund/select.test.ts
+@@ -241,9 +241,7 @@ test("young / non-CAD / no-series classes: never offered for returns, their NAV
+ });
+ 
+ test("withheld figures: no row, no year, no dash; periods longer than the history do not appear", async () => {
+-  const { trailingRows, calendarRows, returnBadges } = await import(
+-    "../../../src/components/fund/lib/performance.ts"
+-  );
++  const { trailingRows, calendarRows, returnBadges } = await import("../../../src/components/fund/lib/performance.ts");
+   const p = perf("I", 0.05, {
+     firstMonth: "2023-03-31",
+     inception: "2023-03-06",
