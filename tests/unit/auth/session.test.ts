@@ -12,7 +12,8 @@ const { isJti, isRevoked, pruneRevoked, revokeSession } = await import("../../..
 
 test("jti format", () => {
   assert.equal(isJti("AbC_-0123456789abcdefXYZ"), true);
-  for (const bad of ["", "short", "../../etc/passwd", "a/b".repeat(10), "x".repeat(65), 42]) assert.equal(isJti(bad), false, String(bad));
+  for (const bad of ["", "short", "../../etc/passwd", "a/b".repeat(10), "x".repeat(65), 42])
+    assert.equal(isJti(bad), false, String(bad));
 });
 
 test("revoke → isRevoked; invalid ids count as revoked (fail closed)", async () => {

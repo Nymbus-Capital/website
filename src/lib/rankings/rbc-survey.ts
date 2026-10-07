@@ -16,15 +16,23 @@ import { sendAlertNow } from "../pipeline/alerts.ts";
 export const RBC_LISTING_URLS = ["https://www.rbcis.com/en/our-insights.page", "https://www.rbcits.com/en/insights/"];
 export const RBC_PDF_BASE = "https://www.rbcis.com/assets/rbcits/docs/";
 
-export interface SurveyQuarter { year: number; quarter: 1 | 2 | 3 | 4 }
-export interface SurveyRef extends SurveyQuarter { url?: string }
+export interface SurveyQuarter {
+  year: number;
+  quarter: 1 | 2 | 3 | 4;
+}
+export interface SurveyRef extends SurveyQuarter {
+  url?: string;
+}
 
 const q = (n: number): 1 | 2 | 3 | 4 | null => (n >= 1 && n <= 4 ? (n as 1 | 2 | 3 | 4) : null);
 const fullYear = (y: string): number => (y.length === 2 ? 2000 + Number(y) : Number(y));
 const plausibleYear = (y: number) => y >= 2015 && y <= 2100;
 
 export const quarterKey = (s: SurveyQuarter): number => s.year * 4 + (s.quarter - 1);
-export const fromKey = (k: number): SurveyQuarter => ({ year: Math.floor(k / 4), quarter: ((k % 4) + 1) as 1 | 2 | 3 | 4 });
+export const fromKey = (k: number): SurveyQuarter => ({
+  year: Math.floor(k / 4),
+  quarter: ((k % 4) + 1) as 1 | 2 | 3 | 4,
+});
 export const quarterLabel = (s: SurveyQuarter): string => `Q${s.quarter} ${s.year}`;
 
 /** Last day of the quarter, YYYY-MM-DD. */
@@ -42,11 +50,14 @@ export function quarterOf(iso: string): SurveyQuarter | null {
 }
 
 export function nextQuarter(s: SurveyQuarter): SurveyQuarter {
-  return s.quarter === 4 ? { year: s.year + 1, quarter: 1 } : { year: s.year, quarter: (s.quarter + 1) as 1 | 2 | 3 | 4 };
+  return s.quarter === 4
+    ? { year: s.year + 1, quarter: 1 }
+    : { year: s.year, quarter: (s.quarter + 1) as 1 | 2 | 3 | 4 };
 }
 
 /** Address RBC has used for the English survey PDF ("FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf"; Q3 2024 ended in ".PDF"). */
-export const expectedPdfUrl = (s: SurveyQuarter, ext: "pdf" | "PDF" = "pdf"): string => `${RBC_PDF_BASE}FINAL_EN_Pooled_Fund_Survey_Q${s.quarter}_${s.year}.${ext}`;
+export const expectedPdfUrl = (s: SurveyQuarter, ext: "pdf" | "PDF" = "pdf"): string =>
+  `${RBC_PDF_BASE}FINAL_EN_Pooled_Fund_Survey_Q${s.quarter}_${s.year}.${ext}`;
 
 function absolute(href: string, base: string): string | undefined {
   try {
@@ -85,7 +96,11 @@ export function parseSurveyRefs(html: string, baseUrl = RBC_LISTING_URLS[0]): Su
     if (mm) add(Number(mm[2]), Number(mm[1]), absolute(href, baseUrl));
   }
   // titles in the text
-  const text = html.replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/&ndash;|&#8211;|&mdash;|&#8212;/g, "–").replace(/\s+/g, " ");
+  const text = html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/g, " ")
+    .replace(/&ndash;|&#8211;|&mdash;|&#8212;/g, "–")
+    .replace(/\s+/g, " ");
   for (const m of text.matchAll(/pooled fund survey\s*[–—:-]?\s*q([1-4])\s+(\d{4})/gi)) add(Number(m[2]), Number(m[1]));
   for (const m of text.matchAll(/q([1-4])\s+(\d{4})\s+pooled fund survey/gi)) add(Number(m[2]), Number(m[1]));
   return [...found.values()].sort((a, b) => quarterKey(b) - quarterKey(a));
@@ -101,7 +116,13 @@ function decodeURIComponentSafe(s: string): string {
 
 /* ------------------------------------------------------------------ check */
 
-export interface SourceCheck { url: string; ok: boolean; status?: number; found?: string; error?: string }
+export interface SourceCheck {
+  url: string;
+  ok: boolean;
+  status?: number;
+  found?: string;
+  error?: string;
+}
 
 export interface RbcCheckState {
   checkedAt: string;
@@ -120,17 +141,25 @@ const STATE = ["rankings", "rbc-survey-check.json"];
 
 /** Latest edition known when this release was built (read by Nymbus, 2026-10-03): the floor of every check. */
 export const SEEDED_RBC_LATEST: NonNullable<RbcCheckState["latest"]> = {
-  year: 2026, quarter: 2, asOf: "2026-06-30", label: "Q2 2026", detectedAt: "2026-10-03T00:00:00.000Z",
+  year: 2026,
+  quarter: 2,
+  asOf: "2026-06-30",
+  label: "Q2 2026",
+  detectedAt: "2026-10-03T00:00:00.000Z",
   url: "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf",
 };
 
 /** The stored latest edition when valid (linked, publishable) and not older than the seed, else the seed. */
-export function effectiveLatest(state: Pick<RbcCheckState, "latest"> | null | undefined, now: Date): NonNullable<RbcCheckState["latest"]> {
+export function effectiveLatest(
+  state: Pick<RbcCheckState, "latest"> | null | undefined,
+  now: Date,
+): NonNullable<RbcCheckState["latest"]> {
   const l = state?.latest;
   return l && l.url && isPublishable(l, now) && quarterKey(l) >= quarterKey(SEEDED_RBC_LATEST) ? l : SEEDED_RBC_LATEST;
 }
 
-export const readRbcState = (): Promise<RbcCheckState | null> => readJson<RbcCheckState | null>(STATE, null).catch(() => null);
+export const readRbcState = (): Promise<RbcCheckState | null> =>
+  readJson<RbcCheckState | null>(STATE, null).catch(() => null);
 
 const MAX_PAGE = 3 * 1024 * 1024;
 /** Hosts the check may read (redirects are followed by hand and only to these). */
@@ -186,12 +215,21 @@ async function readCapped(res: Response): Promise<string> {
   }
   const out = new Uint8Array(total);
   let off = 0;
-  for (const c of chunks) { out.set(c, off); off += c.byteLength; }
+  for (const c of chunks) {
+    out.set(c, off);
+    off += c.byteLength;
+  }
   return new TextDecoder().decode(out);
 }
 
 async function fetchText(fetchImpl: typeof fetch, url: string): Promise<{ status: number; text: string }> {
-  const res = await fetchRbc(fetchImpl, url, { headers: { "User-Agent": "NymbusWebsite/1.0 (rankings freshness check)", Accept: "text/html,application/xhtml+xml" }, signal: AbortSignal.timeout(20_000) });
+  const res = await fetchRbc(fetchImpl, url, {
+    headers: {
+      "User-Agent": "NymbusWebsite/1.0 (rankings freshness check)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    signal: AbortSignal.timeout(20_000),
+  });
   if (!res.ok) {
     await res.body?.cancel().catch(() => undefined);
     return { status: res.status, text: "" };
@@ -199,7 +237,10 @@ async function fetchText(fetchImpl: typeof fetch, url: string): Promise<{ status
   return { status: res.status, text: await readCapped(res) };
 }
 
-async function pdfExists(fetchImpl: typeof fetch, url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+async function pdfExists(
+  fetchImpl: typeof fetch,
+  url: string,
+): Promise<{ ok: boolean; status?: number; error?: string }> {
   try {
     const res = await fetchRbc(fetchImpl, url, { method: "HEAD", signal: AbortSignal.timeout(15_000) });
     await res.body?.cancel().catch(() => undefined);
@@ -216,7 +257,12 @@ async function pdfExists(fetchImpl: typeof fetch, url: string): Promise<{ ok: bo
  * or PDF on an RBC host) and only when its quarter ended at least PUBLICATION_LAG_DAYS ago. `ok` is false only when no
  * source answered.
  */
-export async function detectLatestSurvey(opts: { fetchImpl: typeof fetch; known?: SurveyQuarter | null; listingUrls?: string[]; now?: Date }): Promise<{ ok: boolean; latest: SurveyRef | null; sources: SourceCheck[] }> {
+export async function detectLatestSurvey(opts: {
+  fetchImpl: typeof fetch;
+  known?: SurveyQuarter | null;
+  listingUrls?: string[];
+  now?: Date;
+}): Promise<{ ok: boolean; latest: SurveyRef | null; sources: SourceCheck[] }> {
   const now = opts.now ?? new Date();
   const sources: SourceCheck[] = [];
   let latest = null as SurveyRef | null;
@@ -228,7 +274,12 @@ export async function detectLatestSurvey(opts: { fetchImpl: typeof fetch; known?
     try {
       const { status, text } = await fetchText(opts.fetchImpl, url);
       const refs = (text ? parseSurveyRefs(text, url) : []).filter(counts);
-      sources.push({ url, ok: status >= 200 && status < 300, status, found: refs[0] ? quarterLabel(refs[0]) : undefined });
+      sources.push({
+        url,
+        ok: status >= 200 && status < 300,
+        status,
+        found: refs[0] ? quarterLabel(refs[0]) : undefined,
+      });
       better(refs[0]);
     } catch (e: unknown) {
       sources.push({ url, ok: false, error: (e as Error)?.message ?? String(e) });
@@ -246,8 +297,17 @@ export async function detectLatestSurvey(opts: { fetchImpl: typeof fetch; known?
     for (const ext of ["pdf", "PDF"] as const) {
       const url = expectedPdfUrl(probe, ext);
       const r = await pdfExists(opts.fetchImpl, url);
-      sources.push({ url, ok: r.status !== undefined, status: r.status, error: r.error, found: r.ok ? quarterLabel(probe) : undefined });
-      if (r.ok) { hit = url; break; }
+      sources.push({
+        url,
+        ok: r.status !== undefined,
+        status: r.status,
+        error: r.error,
+        found: r.ok ? quarterLabel(probe) : undefined,
+      });
+      if (r.ok) {
+        hit = url;
+        break;
+      }
     }
     if (!hit) break;
     better({ ...probe, url: hit });
@@ -259,34 +319,71 @@ export async function detectLatestSurvey(opts: { fetchImpl: typeof fetch; known?
 /** Newest as-of date of the RBC entries stored for each fund (drafts included: a draft means "being updated"). */
 export function storedRbcAsOf(content: Pick<SiteContent, "funds">): Partial<Record<FundKey, string>> {
   const out: Partial<Record<FundKey, string>> = {};
-  for (const [key, fc] of Object.entries(content.funds ?? {}) as [FundKey, NonNullable<SiteContent["funds"][FundKey]>][]) {
-    const dates = (fc.rankings?.thirdParty ?? []).filter((e) => e.provider === "rbc-pfs" && e.confirmed && /^\d{4}-\d{2}-\d{2}$/.test(e.asOf)).map((e) => e.asOf).sort();
+  for (const [key, fc] of Object.entries(content.funds ?? {}) as [
+    FundKey,
+    NonNullable<SiteContent["funds"][FundKey]>,
+  ][]) {
+    const dates = (fc.rankings?.thirdParty ?? [])
+      .filter((e) => e.provider === "rbc-pfs" && e.confirmed && /^\d{4}-\d{2}-\d{2}$/.test(e.asOf))
+      .map((e) => e.asOf)
+      .sort();
     if (dates.length) out[key] = dates[dates.length - 1];
   }
   return out;
 }
 
-export interface RankingIssue { level: "warn" | "info"; key: string; message: string }
+export interface RankingIssue {
+  level: "warn" | "info";
+  key: string;
+  message: string;
+}
 
 /** Admin issues of the survey check (pure). */
 export function rbcIssues(state: RbcCheckState | null, content: Pick<SiteContent, "funds">, now: Date): RankingIssue[] {
   const out: RankingIssue[] = [];
-  if (!state) out.push({ level: "info", key: "rankings.rbc.never", message: `The RBC pooled fund survey check has not run yet (it runs weekly; use “check now”). Latest edition known: ${SEEDED_RBC_LATEST.label}.` });
+  if (!state)
+    out.push({
+      level: "info",
+      key: "rankings.rbc.never",
+      message: `The RBC pooled fund survey check has not run yet (it runs weekly; use “check now”). Latest edition known: ${SEEDED_RBC_LATEST.label}.`,
+    });
   if (state && !state.ok) {
-    out.push({ level: "warn", key: "rankings.rbc.check-failed", message: `RBC pooled fund survey check failed on ${state.checkedAt.slice(0, 10)} (${state.error ?? "no source reachable"}). Rankings are unchanged; the check retries next week.` });
+    out.push({
+      level: "warn",
+      key: "rankings.rbc.check-failed",
+      message: `RBC pooled fund survey check failed on ${state.checkedAt.slice(0, 10)} (${state.error ?? "no source reachable"}). Rankings are unchanged; the check retries next week.`,
+    });
   }
-  const age = !state ? 0 : state.lastSuccessAt ? (now.getTime() - Date.parse(state.lastSuccessAt)) / 86_400_000 : Infinity;
-  if (age > 21) out.push({ level: "warn", key: "rankings.rbc.no-success", message: "No successful RBC pooled fund survey check in the last 3 weeks: check the published survey by hand (rbcis.com/en/insights)." });
+  const age = !state
+    ? 0
+    : state.lastSuccessAt
+      ? (now.getTime() - Date.parse(state.lastSuccessAt)) / 86_400_000
+      : Infinity;
+  if (age > 21)
+    out.push({
+      level: "warn",
+      key: "rankings.rbc.no-success",
+      message:
+        "No successful RBC pooled fund survey check in the last 3 weeks: check the published survey by hand (rbcis.com/en/insights).",
+    });
   const latest = effectiveLatest(state, now);
   const stored = storedRbcAsOf(content);
   const funds = Object.entries(stored) as [FundKey, string][];
   if (!funds.length) {
-    out.push({ level: "info", key: "rankings.rbc.none", message: `Latest RBC pooled fund survey: ${latest.label} (period ended ${latest.asOf}). No confirmed RBC ranking is entered for any fund.` });
+    out.push({
+      level: "info",
+      key: "rankings.rbc.none",
+      message: `Latest RBC pooled fund survey: ${latest.label} (period ended ${latest.asOf}). No confirmed RBC ranking is entered for any fund.`,
+    });
     return out;
   }
   for (const [key, asOf] of funds) {
     if (asOf < latest.asOf) {
-      out.push({ level: "warn", key: `rankings.rbc.new.${key}`, message: `New RBC pooled fund survey ${latest.label} published${latest.url ? ` (${latest.url})` : ""} — update rankings for ${key} (stored: period ended ${asOf}).` });
+      out.push({
+        level: "warn",
+        key: `rankings.rbc.new.${key}`,
+        message: `New RBC pooled fund survey ${latest.label} published${latest.url ? ` (${latest.url})` : ""} — update rankings for ${key} (stored: period ended ${asOf}).`,
+      });
     }
   }
   return out;
@@ -297,11 +394,18 @@ export function rbcIssues(state: RbcCheckState | null, content: Pick<SiteContent
  * last detected edition survives a failed check, unless it is not publishable yet: self-heal) and call the webhook once
  * per new edition.
  */
-export async function runRbcSurveyCheck(opts: { fetchImpl?: typeof fetch; now?: Date; content?: Pick<SiteContent, "funds">; log?: (m: string) => void } = {}): Promise<RbcCheckState | { locked: true }> {
+export async function runRbcSurveyCheck(
+  opts: { fetchImpl?: typeof fetch; now?: Date; content?: Pick<SiteContent, "funds">; log?: (m: string) => void } = {},
+): Promise<RbcCheckState | { locked: true }> {
   return withLock("rankings-check", () => checkOnce(opts), 10 * 60_000);
 }
 
-async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?: Pick<SiteContent, "funds">; log?: (m: string) => void }): Promise<RbcCheckState> {
+async function checkOnce(opts: {
+  fetchImpl?: typeof fetch;
+  now?: Date;
+  content?: Pick<SiteContent, "funds">;
+  log?: (m: string) => void;
+}): Promise<RbcCheckState> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const now = opts.now ?? new Date();
   const log = opts.log ?? ((m: string) => console.log(`[rankings] ${m}`));
@@ -311,23 +415,53 @@ async function checkOnce(opts: { fetchImpl?: typeof fetch; now?: Date; content?:
   const prev = stored ? { ...stored, latest: prevLatest } : null;
   const storedDates = opts.content ? Object.values(storedRbcAsOf(opts.content)).sort() : [];
   const knownFromContent = storedDates.length ? quarterOf(storedDates[storedDates.length - 1]) : null;
-  const known = [prev?.latest ?? null, knownFromContent].filter((x): x is SurveyQuarter => !!x).sort((x, y) => quarterKey(y) - quarterKey(x))[0] ?? null;
+  const known =
+    [prev?.latest ?? null, knownFromContent]
+      .filter((x): x is SurveyQuarter => !!x)
+      .sort((x, y) => quarterKey(y) - quarterKey(x))[0] ?? null;
   let state: RbcCheckState;
   try {
     const r = await detectLatestSurvey({ fetchImpl, known, now });
     const detected: SurveyRef | null = r.latest;
     const keep = prev?.latest && (!detected || quarterKey(prev.latest) >= quarterKey(detected)) ? prev.latest : null;
-    const latest = keep ?? (detected ? { ...detected, asOf: quarterEnd(detected), label: quarterLabel(detected), detectedAt: now.toISOString() } : undefined);
-    state = { checkedAt: now.toISOString(), ok: r.ok, lastSuccessAt: r.ok ? now.toISOString() : prev?.lastSuccessAt, latest, sources: r.sources, ...(r.ok ? {} : { error: "no source reachable" }), alertedFor: prev?.alertedFor };
+    const latest =
+      keep ??
+      (detected
+        ? { ...detected, asOf: quarterEnd(detected), label: quarterLabel(detected), detectedAt: now.toISOString() }
+        : undefined);
+    state = {
+      checkedAt: now.toISOString(),
+      ok: r.ok,
+      lastSuccessAt: r.ok ? now.toISOString() : prev?.lastSuccessAt,
+      latest,
+      sources: r.sources,
+      ...(r.ok ? {} : { error: "no source reachable" }),
+      alertedFor: prev?.alertedFor,
+    };
   } catch (e: unknown) {
-    state = { ...(prev ?? { sources: [] }), checkedAt: now.toISOString(), ok: false, error: (e as Error)?.message ?? String(e), sources: prev?.sources ?? [] } as RbcCheckState;
+    state = {
+      ...(prev ?? { sources: [] }),
+      checkedAt: now.toISOString(),
+      ok: false,
+      error: (e as Error)?.message ?? String(e),
+      sources: prev?.sources ?? [],
+    } as RbcCheckState;
   }
-  log(`RBC pooled fund survey check: ${state.ok ? "ok" : `failed (${state.error})`}; latest ${state.latest?.label ?? "unknown"}`);
+  log(
+    `RBC pooled fund survey check: ${state.ok ? "ok" : `failed (${state.error})`}; latest ${state.latest?.label ?? "unknown"}`,
+  );
   if (opts.content && state.latest) {
     const pending = rbcIssues(state, opts.content, now).filter((i) => i.key.startsWith("rankings.rbc.new."));
     if (pending.length && state.alertedFor !== state.latest.label) {
       // a failed delivery is tried again at the next check
-      if (await alertWebhook(fetchImpl, `Nymbus website: new RBC pooled fund survey ${state.latest.label} published — update the rankings in /admin.`, pending.map((i) => `• ${i.message}`))) state.alertedFor = state.latest.label;
+      if (
+        await alertWebhook(
+          fetchImpl,
+          `Nymbus website: new RBC pooled fund survey ${state.latest.label} published — update the rankings in /admin.`,
+          pending.map((i) => `• ${i.message}`),
+        )
+      )
+        state.alertedFor = state.latest.label;
     }
   }
   try {

@@ -6,7 +6,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { T, FUND_TEXTS } from "../../../src/components/fund/fund.copy.ts";
 import { RK } from "../../../src/components/fund/rankings.copy.ts";
-import { HOME_COPY, FUND_COPY, RISK_COPY, CATEGORY_COPY, VEHICLE_COPY } from "../../../src/components/site/home/home.copy.ts";
+import {
+  HOME_COPY,
+  FUND_COPY,
+  RISK_COPY,
+  CATEGORY_COPY,
+  VEHICLE_COPY,
+} from "../../../src/components/site/home/home.copy.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 import { OVERLAY_COPY } from "../../../src/components/site/fx/overlay.copy.ts";
 import { CC } from "../../../src/components/site/concepts/concepts.copy.ts";
@@ -37,15 +43,33 @@ function frStrings(x: unknown, where: string, inFr: boolean, out: [string, strin
 }
 
 const SOURCES: [string, unknown, boolean][] = [
-  ["fund/fund.copy T", T, false], ["fund/fund.copy FUND_TEXTS", FUND_TEXTS, false], ["fund/rankings.copy RK", RK, false],
-  ["home HOME_COPY", HOME_COPY, false], ["fx SCAN_COPY", SCAN_COPY, false], ["fx OVERLAY_COPY", OVERLAY_COPY, false], ["concepts CC", CC, false], ["home FUND_COPY", FUND_COPY, false], ["home RISK_COPY", RISK_COPY, false],
-  ["home CATEGORY_COPY", CATEGORY_COPY, false], ["home VEHICLE_COPY", VEHICLE_COPY, false],
-  ["news NEWS", NEWS, false], ["news NEWS_CATEGORY", NEWS_CATEGORY, false],
-  ["about AB", AB, false], ["approach AP", AP, false], ["contact CT", CT, false], ["sustainability SU", SU, false],
-  ["solutions SOL_COPY", SOL_COPY, false], ["solutions AUDIENCES", AUDIENCES, false], ["strategies STRAT_COPY", STRAT_COPY, false],
-  ["disclaimers", DISCLAIMERS.map((d) => d.text), false], ["FUND_INCEPTION", FUND_INCEPTION, false],
-  ["funds.ts", FUNDS, false], ["team.ts", team, false],
-  ["complaints (fr)", complaintsPolicy("fr"), true], ["ethics (fr)", codeOfEthics("fr"), true], ["privacy (fr)", privacyPolicy("fr"), true],
+  ["fund/fund.copy T", T, false],
+  ["fund/fund.copy FUND_TEXTS", FUND_TEXTS, false],
+  ["fund/rankings.copy RK", RK, false],
+  ["home HOME_COPY", HOME_COPY, false],
+  ["fx SCAN_COPY", SCAN_COPY, false],
+  ["fx OVERLAY_COPY", OVERLAY_COPY, false],
+  ["concepts CC", CC, false],
+  ["home FUND_COPY", FUND_COPY, false],
+  ["home RISK_COPY", RISK_COPY, false],
+  ["home CATEGORY_COPY", CATEGORY_COPY, false],
+  ["home VEHICLE_COPY", VEHICLE_COPY, false],
+  ["news NEWS", NEWS, false],
+  ["news NEWS_CATEGORY", NEWS_CATEGORY, false],
+  ["about AB", AB, false],
+  ["approach AP", AP, false],
+  ["contact CT", CT, false],
+  ["sustainability SU", SU, false],
+  ["solutions SOL_COPY", SOL_COPY, false],
+  ["solutions AUDIENCES", AUDIENCES, false],
+  ["strategies STRAT_COPY", STRAT_COPY, false],
+  ["disclaimers", DISCLAIMERS.map((d) => d.text), false],
+  ["FUND_INCEPTION", FUND_INCEPTION, false],
+  ["funds.ts", FUNDS, false],
+  ["team.ts", team, false],
+  ["complaints (fr)", complaintsPolicy("fr"), true],
+  ["ethics (fr)", codeOfEthics("fr"), true],
+  ["privacy (fr)", privacyPolicy("fr"), true],
   ["i18n fr", fr, true],
 ];
 

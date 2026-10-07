@@ -29,13 +29,16 @@ test("next.config.ts serves /brand/third-party/* with a sandboxing CSP and nosni
   const i = cfg.indexOf('source: "/brand/third-party/:path*"');
   assert.ok(i > 0, "header rule present");
   const block = cfg.slice(i, i + 600);
-  assert.match(block, /Content-Security-Policy[^\n]*default-src 'none'[^\n]*sandbox/);
-  assert.match(block, /X-Content-Type-Options[^\n]*nosniff/);
+  assert.match(block, /Content-Security-Policy",\s*value: "default-src 'none'[^"]*sandbox"/);
+  assert.match(block, /X-Content-Type-Options",\s*value: "nosniff"/);
 });
 
 test("official provider logos shipped (Fundata, RBC Investor Services) beside the Morningstar files", () => {
   for (const name of ["morningstar-logo.png", "morningstar-stars-5.png", "fundata-logo.png", "rbc-logo.png"]) {
     assert.ok(existsSync(path.join(DIR, name)), `${name} shipped`);
   }
-  assert.ok(!existsSync(path.join(DIR, "fundlibrary-logo.png")) && !existsSync(path.join(DIR, "fundlibrary-logo.svg")), "former slot name not shipped");
+  assert.ok(
+    !existsSync(path.join(DIR, "fundlibrary-logo.png")) && !existsSync(path.join(DIR, "fundlibrary-logo.svg")),
+    "former slot name not shipped",
+  );
 });

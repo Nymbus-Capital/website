@@ -24,7 +24,12 @@ export interface PipelineFundSpec {
 export const PIPELINE_FUNDS: Record<FundKey, PipelineFundSpec> = {
   // dataplatform monthly_net_returns._TRACK_RECORDS
   "monthly-income": { trackStart: "2019-01-31", apexKey: "monthly_income", method: "compounded" },
-  "sustainable-enhanced-bonds": { trackStart: "2019-02-28", apexKey: "sustainable_enhanced_bonds", method: "compounded", greenBonds: true },
+  "sustainable-enhanced-bonds": {
+    trackStart: "2019-02-28",
+    apexKey: "sustainable_enhanced_bonds",
+    method: "compounded",
+    greenBonds: true,
+  },
   "multi-strategy": { trackStart: "2019-01-31", apexKey: "multistrategy", method: "compounded" },
   "global-minimum-volatility": { trackStart: null, apexKey: null, method: "arithmetic" },
 };
@@ -172,7 +177,10 @@ export const PORTFOLIO = {
   /** every breakdown must add up to 100 % of net assets (cash included) within ±3 % */
   weightSumTol: 0.03,
   /** plausible ranges (years, decimal fractions) */
-  ranges: { duration: [0, 30], ytm: [-0.05, 0.25], coupon: [0, 0.25], maturity: [0, 100] } as Record<"duration" | "ytm" | "coupon" | "maturity", [number, number]>,
+  ranges: { duration: [0, 30], ytm: [-0.05, 0.25], coupon: [0, 0.25], maturity: [0, 100] } as Record<
+    "duration" | "ytm" | "coupon" | "maturity",
+    [number, number]
+  >,
   /** top 10 holdings: each weight in (0, 25 %], together at most 100 % */
   maxHoldingWeight: 0.25,
   /**
@@ -180,7 +188,14 @@ export const PORTFOLIO = {
    * within max(0.25 year, 5 %), yield within 0.30 percentage point (the factsheet "Portfolio Yield"), and the
    * weights of the 3 largest daily sectors that the factsheet also names within 5 percentage points.
    */
-  crossCheck: { durationYears: 0.25, durationRel: 0.05, yield: 0.003, sectorWeight: 0.05, sectors: 3, bookWithinDays: 7 },
+  crossCheck: {
+    durationYears: 0.25,
+    durationRel: 0.05,
+    yield: 0.003,
+    sectorWeight: 0.05,
+    sectors: 3,
+    bookWithinDays: 7,
+  },
 };
 
 /** Distributions gates (validate/distributions.ts): a class whose figures fail is dropped, the others are kept. */

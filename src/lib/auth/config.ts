@@ -52,11 +52,13 @@ export function loadAuthConfig(env: Env): AuthConfigResult {
   if (!isGuid(tenantId)) return { ok: false, error: "AZURE_TENANT_ID is missing or not a GUID" };
   if (!isGuid(clientId)) return { ok: false, error: "AZURE_CLIENT_ID is missing or not a GUID" };
   if (!clientSecret) return { ok: false, error: "AZURE_CLIENT_SECRET is missing" };
-  if (secret.length < MIN_SECRET_LENGTH) return { ok: false, error: `AUTH_SECRET is missing or shorter than ${MIN_SECRET_LENGTH} characters` };
+  if (secret.length < MIN_SECRET_LENGTH)
+    return { ok: false, error: `AUTH_SECRET is missing or shorter than ${MIN_SECRET_LENGTH} characters` };
   if (new Set(secret).size < 8) return { ok: false, error: "AUTH_SECRET is too repetitive" };
   const origin = originOf(publicUrl);
   if (!origin) return { ok: false, error: "PUBLIC_URL is missing or invalid" };
-  if (!origin.startsWith("https://") && !isLocalhostUrl(origin)) return { ok: false, error: "PUBLIC_URL must be https (except localhost)" };
+  if (!origin.startsWith("https://") && !isLocalhostUrl(origin))
+    return { ok: false, error: "PUBLIC_URL must be https (except localhost)" };
   const localTestSetup = isLocalhostUrl(origin) && env.AUTH_INSECURE_COOKIES_FOR_LOCALHOST === "1";
   if (env.NODE_ENV === "production" && isLocalhostUrl(origin) && !localTestSetup) {
     return { ok: false, error: "PUBLIC_URL is localhost in production (set the public https origin)" };

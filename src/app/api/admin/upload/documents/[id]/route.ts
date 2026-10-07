@@ -20,7 +20,15 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
     const before = await getDocument(id);
     const doc = await replaceDocumentFile(id, up.fileName, up.bytes, user.email);
     if (!doc) return fail(404, "not_found", "No such document.");
-    await audit({ by: user.email, action: "document.replace", target: id, detail: { before: before ? { fileName: before.fileName, sha256: before.sha256 } : null, after: { fileName: doc.fileName, size: doc.size, sha256: doc.sha256 } } });
+    await audit({
+      by: user.email,
+      action: "document.replace",
+      target: id,
+      detail: {
+        before: before ? { fileName: before.fileName, sha256: before.sha256 } : null,
+        after: { fileName: doc.fileName, size: doc.size, sha256: doc.sha256 },
+      },
+    });
     return ok({ document: doc });
   } catch (e) {
     return internalError("document.replace", e);

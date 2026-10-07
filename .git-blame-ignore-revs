@@ -1,0 +1,8 @@
+# .git-blame-ignore-revs — formatting-only commits for `git blame --ignore-revs-file .git-blame-ignore-revs`
+# (or once: `git config blame.ignoreRevsFile .git-blame-ignore-revs`; GitHub applies it automatically)
+
+# style: Prettier over the repository (no code change)
+84f3ff50bb20d8a4740a7b7294b6bafff496b253
+
+# style: Prettier second pass (3 files where the first pass is not idempotent)
+3d802d3b328806847c9c512e208cdbf78ea2cbc7

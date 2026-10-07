@@ -1,17 +1,39 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  BOND_CHARACTERISTICS, ESG_METRICS, MULTISTRAT_CHARACTERISTICS, parseAllocationSeries, parseBuckets, parseCalendarTable, parseCharacteristicTable, parseFlatCharacteristics,
-  parseHoldings, parseMonthlyTable, parseNumber, parsePct, parsePeriodMap, parseStatistics, parseText, parseTrailingTable,
+  BOND_CHARACTERISTICS,
+  ESG_METRICS,
+  MULTISTRAT_CHARACTERISTICS,
+  parseAllocationSeries,
+  parseBuckets,
+  parseCalendarTable,
+  parseCharacteristicTable,
+  parseFlatCharacteristics,
+  parseHoldings,
+  parseMonthlyTable,
+  parseNumber,
+  parsePct,
+  parsePeriodMap,
+  parseStatistics,
+  parseText,
+  parseTrailingTable,
 } from "../../../src/lib/pipeline/parse.ts";
 import { parseLooseJson } from "../../../src/lib/pipeline/sources/factsheets.ts";
 import { fundMonthlyTableKey, indexMonthlyTableKey } from "../../../src/lib/pipeline/parse.ts";
 
 test("monthly table keys: fund vs index", () => {
-  const b = { "Monthly Returns: Nymbus QCFI-SEB Net": {}, "Monthly Returns: Nymbus QCFI-SEB Gross": {}, "Monthly Returns: FTSE Canada Universe Bond Index": {}, "Monthly Value Added vs FTSE Canada Universe Bond Index Net": {} };
+  const b = {
+    "Monthly Returns: Nymbus QCFI-SEB Net": {},
+    "Monthly Returns: Nymbus QCFI-SEB Gross": {},
+    "Monthly Returns: FTSE Canada Universe Bond Index": {},
+    "Monthly Value Added vs FTSE Canada Universe Bond Index Net": {},
+  };
   assert.equal(fundMonthlyTableKey(b, "Net"), "Monthly Returns: Nymbus QCFI-SEB Net");
   assert.equal(indexMonthlyTableKey(b), "Monthly Returns: FTSE Canada Universe Bond Index");
-  assert.equal(indexMonthlyTableKey(b, "FTSE Canada Universe Bond Index"), "Monthly Returns: FTSE Canada Universe Bond Index");
+  assert.equal(
+    indexMonthlyTableKey(b, "FTSE Canada Universe Bond Index"),
+    "Monthly Returns: FTSE Canada Universe Bond Index",
+  );
   assert.equal(fundMonthlyTableKey({ "Monthly Returns Net": {} }, "Net"), "Monthly Returns Net");
   assert.equal(indexMonthlyTableKey({ "Monthly Returns Net": {} }), null);
 });
@@ -34,7 +56,8 @@ test("parseNumber / parsePct: every string format seen in the archives", () => {
   for (const bad of ["nan", "NaN", "", "  ", "n/a", "-", "None", "null", "abc", "4.8%%", "4.8.1", "12 bps", "AA"]) {
     assert.equal(parsePct(bad), null, `"${bad}" must be null`);
   }
-  for (const bad of [null, undefined, Number.NaN, Number.POSITIVE_INFINITY, {}, [], true]) assert.equal(parsePct(bad as unknown), null);
+  for (const bad of [null, undefined, Number.NaN, Number.POSITIVE_INFINITY, {}, [], true])
+    assert.equal(parsePct(bad as unknown), null);
 });
 
 test("parseText", () => {
@@ -57,7 +80,13 @@ test("characteristics table (Fund / Index / +/-)", () => {
   };
   const cs = parseCharacteristicTable(t, BOND_CHARACTERISTICS);
   const by = Object.fromEntries(cs.map((c) => [c.id, c]));
-  assert.deepEqual(by.portfolioYield, { id: "portfolioYield", label: by.portfolioYield.label, fund: 0.0482, index: 0.038, unit: "pct" });
+  assert.deepEqual(by.portfolioYield, {
+    id: "portfolioYield",
+    label: by.portfolioYield.label,
+    fund: 0.0482,
+    index: 0.038,
+    unit: "pct",
+  });
   assert.equal(by.duration.fund, 7.2);
   assert.equal(by.duration.unit, "num");
   assert.equal(by.creditQuality.fund, "A");
@@ -66,21 +95,53 @@ test("characteristics table (Fund / Index / +/-)", () => {
   assert.equal(by.numberOfSecurities.index, 1979);
   assert.equal(by.netCreditLeverage, undefined, "leverage metric never parsed");
   assert.equal(by.liquidityScore, undefined, "liquidity score never parsed");
-  assert.ok(!cs.some((c) => /leverag|effet de levier|liquidity score|cote de liquidit/i.test(`${c.id} ${c.label.en} ${c.label.fr}`)));
+  assert.ok(
+    !cs.some((c) =>
+      /leverag|effet de levier|liquidity score|cote de liquidit/i.test(`${c.id} ${c.label.en} ${c.label.fr}`),
+    ),
+  );
   assert.equal(by.investmentGrade.fund, 0.93);
   assert.equal("index" in by.investmentGrade, false, "nan index omitted");
   // order follows the spec, labels are bilingual
-  assert.deepEqual(cs.map((c) => c.id), ["portfolioYield", "duration", "creditQuality", "investmentGrade", "numberOfSecurities"]);
+  assert.deepEqual(
+    cs.map((c) => c.id),
+    ["portfolioYield", "duration", "creditQuality", "investmentGrade", "numberOfSecurities"],
+  );
   assert.ok(by.duration.label.fr.length > 0);
-  const esg = parseCharacteristicTable({ "Carbon Intensity": { Fund: "63.4", Index: "118.7", "+/-": "−55.3" } }, ESG_METRICS);
-  assert.deepEqual(esg.map((c) => [c.id, c.fund, c.index]), [["carbonIntensity", 63.4, 118.7]]);
+  const esg = parseCharacteristicTable(
+    { "Carbon Intensity": { Fund: "63.4", Index: "118.7", "+/-": "−55.3" } },
+    ESG_METRICS,
+  );
+  assert.deepEqual(
+    esg.map((c) => [c.id, c.fund, c.index]),
+    [["carbonIntensity", 63.4, 118.7]],
+  );
   assert.deepEqual(parseCharacteristicTable(null, BOND_CHARACTERISTICS), []);
-  const flat = parseFlatCharacteristics({ "Dividend Yield": "2.14%", "Price/Earnings Ratio": "nan", "Number of Holdings": "71", "Largest Equity Sector Exposure": "18%" }, MULTISTRAT_CHARACTERISTICS);
-  assert.deepEqual(flat.map((c) => [c.id, c.fund]), [["dividendYield", 0.0214], ["numberOfHoldings", 71], ["largestEquitySector", 0.18]]);
+  const flat = parseFlatCharacteristics(
+    {
+      "Dividend Yield": "2.14%",
+      "Price/Earnings Ratio": "nan",
+      "Number of Holdings": "71",
+      "Largest Equity Sector Exposure": "18%",
+    },
+    MULTISTRAT_CHARACTERISTICS,
+  );
+  assert.deepEqual(
+    flat.map((c) => [c.id, c.fund]),
+    [
+      ["dividendYield", 0.0214],
+      ["numberOfHoldings", 71],
+      ["largestEquitySector", 0.18],
+    ],
+  );
 });
 
 test("buckets: Nymbus/Index columns, index-only rows, flat tables, nan", () => {
-  const b = parseBuckets({ Nymbus: { AAA: "8.1%", AA: "14.6%", NR: "nan" }, Index: { AAA: "3.2%", AA: "16.8%", BBB: "38.1%" }, "Nymbus vs Index": { AAA: "+4.9%" } });
+  const b = parseBuckets({
+    Nymbus: { AAA: "8.1%", AA: "14.6%", NR: "nan" },
+    Index: { AAA: "3.2%", AA: "16.8%", BBB: "38.1%" },
+    "Nymbus vs Index": { AAA: "+4.9%" },
+  });
   assert.deepEqual(b, [
     { label: "AAA", fund: 0.081, index: 0.032 },
     { label: "AA", fund: 0.146, index: 0.168 },
@@ -91,26 +152,48 @@ test("buckets: Nymbus/Index columns, index-only rows, flat tables, nan", () => {
 });
 
 test("holdings: ranks sorted numerically, string or numeric weights, futures", () => {
-  const h = parseHoldings({ Nymbus: { "10": { Name: "J", "Market Value %": "1.0%" }, "2": { Name: "B", "Market Value %": 4.2 }, "1": { Name: "A", "Market Value %": "5.1%" }, "3": { Name: "nan", "Market Value %": "1%" } } });
-  assert.deepEqual(h, [{ name: "A", weight: 0.051 }, { name: "B", weight: 0.042 }, { name: "J", weight: 0.01 }]);
-  assert.deepEqual(parseHoldings({ "1": { Name: "Fut", "Instrument Exposure %": "12.5%" } }), [{ name: "Fut", weight: 0.125 }]);
+  const h = parseHoldings({
+    Nymbus: {
+      "10": { Name: "J", "Market Value %": "1.0%" },
+      "2": { Name: "B", "Market Value %": 4.2 },
+      "1": { Name: "A", "Market Value %": "5.1%" },
+      "3": { Name: "nan", "Market Value %": "1%" },
+    },
+  });
+  assert.deepEqual(h, [
+    { name: "A", weight: 0.051 },
+    { name: "B", weight: 0.042 },
+    { name: "J", weight: 0.01 },
+  ]);
+  assert.deepEqual(parseHoldings({ "1": { Name: "Fut", "Instrument Exposure %": "12.5%" } }), [
+    { name: "Fut", weight: 0.125 },
+  ]);
   assert.deepEqual(parseHoldings({}), []);
 });
 
 test("systematic allocation averaged over the dates", () => {
-  const a = parseAllocationSeries({ "2026-06-01": { EQUITIES: "40.00%", BONDS: "60.00%" }, "2026-07-06": { EQUITIES: "50.00%", BONDS: "50.00%" } })!;
+  const a = parseAllocationSeries({
+    "2026-06-01": { EQUITIES: "40.00%", BONDS: "60.00%" },
+    "2026-07-06": { EQUITIES: "50.00%", BONDS: "50.00%" },
+  })!;
   assert.equal(a.from, "2026-06-01");
   assert.equal(a.to, "2026-07-06");
-  assert.deepEqual(a.buckets, [{ label: "Equities", fund: 0.45 }, { label: "Bonds", fund: 0.55 }]);
+  assert.deepEqual(a.buckets, [
+    { label: "Equities", fund: 0.45 },
+    { label: "Bonds", fund: 0.55 },
+  ]);
   assert.equal(parseAllocationSeries({}), null);
 });
 
 test("trailing tables: nested (bonds) and flat (strategies), YTD label = year", () => {
-  const nested = parseTrailingTable({
-    "Nymbus Fund": { "1M": "0.4%", "2026": "3.1%", "1Y": "5.0%", SI: "4.2%" },
-    "FTSE Index": { "1M": "0.3%", "2026": "2.0%", "1Y": "nan", SI: "3.0%" },
-    "Value Added": { "1M": "+0.1%", "2026": "+1.1%", SI: "+1.2%" },
-  }, "2026")!;
+  const nested = parseTrailingTable(
+    {
+      "Nymbus Fund": { "1M": "0.4%", "2026": "3.1%", "1Y": "5.0%", SI: "4.2%" },
+      "FTSE Index": { "1M": "0.3%", "2026": "2.0%", "1Y": "nan", SI: "3.0%" },
+      "Value Added": { "1M": "+0.1%", "2026": "+1.1%", SI: "+1.2%" },
+    },
+    "2026",
+  )!;
   assert.equal(nested.fundName, "Nymbus Fund");
   assert.equal(nested.indexName, "FTSE Index");
   assert.deepEqual(nested.fund, { "1M": 0.004, YTD: 0.031, "1Y": 0.05, SI: 0.042 });
@@ -141,15 +224,40 @@ test("monthly returns table -> sorted month-end points", () => {
 });
 
 test("calendar tables (nested / flat) and statistics", () => {
-  const c = parseCalendarTable({ Fund: { "2025": "5.1%", "2026": "1.0%" }, Index: { "2025": "3.0%" }, "Value Added": { "2025": "+2.1%" } });
+  const c = parseCalendarTable({
+    Fund: { "2025": "5.1%", "2026": "1.0%" },
+    Index: { "2025": "3.0%" },
+    "Value Added": { "2025": "+2.1%" },
+  });
   assert.deepEqual(c["2025"], { fund: 0.051, index: 0.03, va: 0.021 });
   assert.deepEqual(c["2026"], { fund: 0.01, index: null, va: null });
-  assert.deepEqual(parseCalendarTable({ "2024": "9.9", "2025": "nan" }), { "2024": { fund: 0.099 }, "2025": { fund: null } });
-  const st = parseStatistics({ "Annualized Returns": "7.4%", "Annualized St. Dev.": "5.5%", "Sharpe Ratio": "1.3", "Sortino Ratio": "nan", "% Positive Months": "66%", "Max Drawdown": "-9%" })!;
-  assert.deepEqual(st, { annReturn: 0.074, annVol: 0.055, downsideDev: null, sharpe: 1.3, sortino: null, positiveMonths: 0.66, maxDrawdown: -0.09, decimals: { annReturn: 1, annVol: 1, sharpe: 1, positiveMonths: 0, maxDrawdown: 0 } });
+  assert.deepEqual(parseCalendarTable({ "2024": "9.9", "2025": "nan" }), {
+    "2024": { fund: 0.099 },
+    "2025": { fund: null },
+  });
+  const st = parseStatistics({
+    "Annualized Returns": "7.4%",
+    "Annualized St. Dev.": "5.5%",
+    "Sharpe Ratio": "1.3",
+    "Sortino Ratio": "nan",
+    "% Positive Months": "66%",
+    "Max Drawdown": "-9%",
+  })!;
+  assert.deepEqual(st, {
+    annReturn: 0.074,
+    annVol: 0.055,
+    downsideDev: null,
+    sharpe: 1.3,
+    sortino: null,
+    positiveMonths: 0.66,
+    maxDrawdown: -0.09,
+    decimals: { annReturn: 1, annVol: 1, sharpe: 1, positiveMonths: 0, maxDrawdown: 0 },
+  });
 });
 
 test("Python json.dump NaN / Infinity tokens are read as null (not inside strings)", () => {
-  const j = parseLooseJson('{"a": NaN, "b": "NaN text", "c": [Infinity, -Infinity, 1], "d": "say \\"NaN\\""}') as Record<string, unknown>;
+  const j = parseLooseJson(
+    '{"a": NaN, "b": "NaN text", "c": [Infinity, -Infinity, 1], "d": "say \\"NaN\\""}',
+  ) as Record<string, unknown>;
   assert.deepEqual(j, { a: null, b: "NaN text", c: [null, null, 1], d: 'say "NaN"' });
 });

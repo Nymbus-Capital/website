@@ -44,7 +44,9 @@ test("home (FR): AUM reads 1,9 G$ and the scan is labelled in French", async ({ 
   await expect(page.locator("main")).not.toContainText(/VL quotidienne/i);
 });
 
-test("home: the analysis scan is drawn, has no counters strip and stops when it leaves the screen", async ({ page }) => {
+test("home: the analysis scan is drawn, has no counters strip and stops when it leaves the screen", async ({
+  page,
+}) => {
   await page.goto("/");
   const panel = page.getByTestId("scan-panel");
   await panel.scrollIntoViewIfNeeded();
@@ -76,7 +78,10 @@ test("home: the hero data field starts lazily and pauses off screen", async ({ p
   await expect(field).toHaveAttribute("data-running", "false");
 });
 
-test("reduced motion: the scan and the data field are one still frame, nothing is hidden", async ({ browser, baseURL }) => {
+test("reduced motion: the scan and the data field are one still frame, nothing is hidden", async ({
+  browser,
+  baseURL,
+}) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
   await page.goto("/");
@@ -91,7 +96,9 @@ test("reduced motion: the scan and the data field are one still frame, nothing i
   await page.waitForTimeout(500);
   expect(await field.evaluate((el) => Number(el.getAttribute("data-frames")))).toBe(1);
   // dividers are fully drawn and static
-  const dividers = await page.locator(".sec-divider i").evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  const dividers = await page
+    .locator(".sec-divider i")
+    .evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
   for (const t of dividers) expect(t === "none" || t === "matrix(1, 0, 0, 1, 0, 0)").toBe(true);
   await ctx.close();
 });
@@ -111,10 +118,18 @@ test("site-wide motion is decorative: aria-hidden, no focusable element, no poin
   for (const sel of [".sec-divider", ".dfield", ".scroll-progress"]) {
     const n = await page.locator(sel).count();
     expect(n, sel).toBeGreaterThan(0);
-    const bad = await page.locator(sel).evaluateAll((els) => els.filter((e) => e.getAttribute("aria-hidden") !== "true" || getComputedStyle(e).pointerEvents !== "none").length);
+    const bad = await page
+      .locator(sel)
+      .evaluateAll(
+        (els) =>
+          els.filter((e) => e.getAttribute("aria-hidden") !== "true" || getComputedStyle(e).pointerEvents !== "none")
+            .length,
+      );
     expect(bad, sel).toBe(0);
   }
   // the scroll progress line follows the scroll
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight / 2));
-  await expect.poll(() => page.getByTestId("scroll-progress").evaluate((e) => getComputedStyle(e).transform)).not.toBe("matrix(1, 0, 0, 1, 0, 0)");
+  await expect
+    .poll(() => page.getByTestId("scroll-progress").evaluate((e) => getComputedStyle(e).transform))
+    .not.toBe("matrix(1, 0, 0, 1, 0, 0)");
 });

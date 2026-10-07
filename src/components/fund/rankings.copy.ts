@@ -50,7 +50,10 @@ export const RK = {
     ),
     launchOn: l(" on {date}", " le {date}"),
     disclosures: l("See the disclosures", "Voir les informations importantes"),
-    basis: l("Survey basis: returns {b}; percentile rank 1 = best.", "Base du sondage\u00a0: rendements {b}; rang centile 1 = meilleur."),
+    basis: l(
+      "Survey basis: returns {b}; percentile rank 1 = best.",
+      "Base du sondage\u00a0: rendements {b}; rang centile 1 = meilleur.",
+    ),
     basisShort: l("returns {b}", "rendements {b}"),
     rolling: l("{n} years to {date}", "{n} ans au {date}"),
     note: l(

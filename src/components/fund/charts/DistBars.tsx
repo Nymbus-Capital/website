@@ -13,8 +13,21 @@ import { Tip, type TipState } from "./Tip";
 import { useEntrance, useNear, useSvgId, useWidth } from "./hooks";
 import type { Locale } from "@/lib/i18n/config";
 
-export function DistBars({ points, currency, lang, label, seriesName, height = 220, decimals: amountDecimals = 4 }: {
-  points: { date: string; amount: number }[]; currency: string; lang: Locale; label: string; seriesName: string; height?: number;
+export function DistBars({
+  points,
+  currency,
+  lang,
+  label,
+  seriesName,
+  height = 220,
+  decimals: amountDecimals = 4,
+}: {
+  points: { date: string; amount: number }[];
+  currency: string;
+  lang: Locale;
+  label: string;
+  seriesName: string;
+  height?: number;
   /** decimals of the amounts (the series' own precision, as in the tables) */
   decimals?: number;
 }) {
@@ -31,7 +44,8 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   const pad = { l: narrow ? 44 : 54, r: 8, t: 18, b: 34 };
   const geo = useMemo(() => {
     const sc = nice(0, Math.max(...points.map((p) => p.amount), 0.0001), 4);
-    const W = Math.max(0, w - pad.l - pad.r), IH = height - pad.t - pad.b;
+    const W = Math.max(0, w - pad.l - pad.r),
+      IH = height - pad.t - pad.b;
     const y = (v: number) => pad.t + IH - (v / (sc.hi || 1)) * IH;
     const b = bands(points.length, pad.l, W, 1, points.length <= 6 ? 0.5 : 0.28);
     return { sc, y, b, W };
@@ -43,21 +57,43 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   // the axis says "per unit" in the chart label; ticks carry the currency like the table
   const tick = (v: number) => money(v, currency, lang, v === 0 ? 0 : decimals);
   // labels: every bar when few (quarterly / annual), else the first bar of each year
-  const labels = points.length <= 8
-    ? points.map((p, i) => ({ i, label: points.length <= 4 ? String(p.date.slice(0, 4)) : monthLabel(p.date, lang, true) }))
-    : yearTicks(points.map((p) => p.date), narrow ? 3 : 6);
+  const labels =
+    points.length <= 8
+      ? points.map((p, i) => ({
+          i,
+          label: points.length <= 4 ? String(p.date.slice(0, 4)) : monthLabel(p.date, lang, true),
+        }))
+      : yearTicks(
+          points.map((p) => p.date),
+          narrow ? 3 : 6,
+        );
 
   const focusBar = (i: number | null) => {
     setOn(i);
-    if (i == null) { setTip(null); return; }
+    if (i == null) {
+      setTip(null);
+      return;
+    }
     const p = points[i];
-    setTip({ x: geo.b.x(i) + geo.b.band / 2, y: Math.max(8, geo.y(p.amount)), title: dateLabel(p.date, lang, true), rows: [{ cls: "fund", label: seriesName, value: amount(p.amount) }] });
+    setTip({
+      x: geo.b.x(i) + geo.b.band / 2,
+      y: Math.max(8, geo.y(p.amount)),
+      title: dateLabel(p.date, lang, true),
+      rows: [{ cls: "fund", label: seriesName, value: amount(p.amount) }],
+    });
   };
   const onKey = (e: KeyboardEvent<SVGGElement>, i: number) => {
     const last = points.length - 1;
-    const next = e.key === "ArrowRight" || e.key === "ArrowUp" ? Math.min(last, i + 1)
-      : e.key === "ArrowLeft" || e.key === "ArrowDown" ? Math.max(0, i - 1)
-      : e.key === "Home" ? 0 : e.key === "End" ? last : null;
+    const next =
+      e.key === "ArrowRight" || e.key === "ArrowUp"
+        ? Math.min(last, i + 1)
+        : e.key === "ArrowLeft" || e.key === "ArrowDown"
+          ? Math.max(0, i - 1)
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? last
+              : null;
     if (next == null) return;
     e.preventDefault();
     setStop(next);
@@ -65,17 +101,41 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
   };
 
   return (
-    <div ref={(el) => { hostRef.current = el; nearRef.current = el; }} className="fx-chart ds-chart" style={{ height }} data-testid="distribution-chart">
+    <div
+      ref={(el) => {
+        hostRef.current = el;
+        nearRef.current = el;
+      }}
+      className="fx-chart ds-chart"
+      style={{ height }}
+      data-testid="distribution-chart"
+    >
       {near && w > 0 ? (
-        <svg ref={svgRef} width={w} height={height} viewBox={`0 0 ${w} ${height}`} role="group" aria-label={label} className={on != null ? "hovering" : undefined} onPointerLeave={() => focusBar(null)}>
+        <svg
+          ref={svgRef}
+          width={w}
+          height={height}
+          viewBox={`0 0 ${w} ${height}`}
+          role="group"
+          aria-label={label}
+          className={on != null ? "hovering" : undefined}
+          onPointerLeave={() => focusBar(null)}
+        >
           <defs>
-            <linearGradient id={`${id}f`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--fund-from)" /><stop offset="1" stopColor="var(--fund-to)" /></linearGradient>
-            <filter id={`${id}g`} x="-50%" y="-20%" width="200%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="var(--fund)" floodOpacity=".3" /></filter>
+            <linearGradient id={`${id}f`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="var(--fund-from)" />
+              <stop offset="1" stopColor="var(--fund-to)" />
+            </linearGradient>
+            <filter id={`${id}g`} x="-50%" y="-20%" width="200%" height="140%">
+              <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="var(--fund)" floodOpacity=".3" />
+            </filter>
           </defs>
           {geo.sc.ticks.map((t) => (
             <g key={t}>
               <line x1={pad.l} x2={pad.l + geo.W} y1={geo.y(t)} y2={geo.y(t)} className={t === 0 ? "zero" : "gl"} />
-              <text x={pad.l - 8} y={geo.y(t)} className="tk" textAnchor="end" dominantBaseline="central">{tick(t)}</text>
+              <text x={pad.l - 8} y={geo.y(t)} className="tk" textAnchor="end" dominantBaseline="central">
+                {tick(t)}
+              </text>
             </g>
           ))}
           {points.map((p, i) => {
@@ -83,18 +143,48 @@ export function DistBars({ points, currency, lang, label, seriesName, height = 2
             const bx = geo.b.x(i) + (geo.b.band - bw) / 2;
             const d = barPath(bx, geo.y(0), bw, geo.y(p.amount), Math.min(6, bw / 3));
             return (
-              <g key={p.date} className={`cat${on === i ? " on" : ""}`} tabIndex={i === tabStop ? 0 : -1} role="img" aria-label={`${dateLabel(p.date, lang, true)}: ${amount(p.amount)}`}
-                onPointerEnter={() => focusBar(i)} onFocus={() => { setStop(i); focusBar(i); }} onBlur={() => focusBar(null)} onKeyDown={(e) => onKey(e, i)}>
-                <rect className="hit" x={geo.b.x(i)} y={pad.t - 10} width={geo.b.band} height={height - pad.t - pad.b + 10} rx={8} />
+              <g
+                key={p.date}
+                className={`cat${on === i ? " on" : ""}`}
+                tabIndex={i === tabStop ? 0 : -1}
+                role="img"
+                aria-label={`${dateLabel(p.date, lang, true)}: ${amount(p.amount)}`}
+                onPointerEnter={() => focusBar(i)}
+                onFocus={() => {
+                  setStop(i);
+                  focusBar(i);
+                }}
+                onBlur={() => focusBar(null)}
+                onKeyDown={(e) => onKey(e, i)}
+              >
+                <rect
+                  className="hit"
+                  x={geo.b.x(i)}
+                  y={pad.t - 10}
+                  width={geo.b.band}
+                  height={height - pad.t - pad.b + 10}
+                  rx={8}
+                />
                 {d ? <path d={d} fill={`url(#${id}f)`} filter={`url(#${id}g)`} data-grow="up" /> : null}
               </g>
             );
           })}
           {labels.map((l) => (
-            <text key={l.i} x={geo.b.x(l.i) + geo.b.band / 2} y={height - pad.b + 22} className="tk x" textAnchor="middle" aria-hidden="true">{l.label}</text>
+            <text
+              key={l.i}
+              x={geo.b.x(l.i) + geo.b.band / 2}
+              y={height - pad.b + 22}
+              className="tk x"
+              textAnchor="middle"
+              aria-hidden="true"
+            >
+              {l.label}
+            </text>
           ))}
         </svg>
-      ) : <div className="fx-ph" style={{ height }} aria-hidden="true" />}
+      ) : (
+        <div className="fx-ph" style={{ height }} aria-hidden="true" />
+      )}
       <Tip tip={tip} hostWidth={w} />
     </div>
   );

@@ -1,5 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { adminHeaders, BASE, mintSession, OTHER_TENANT, SESSION_COOKIE, shot, signIn, TENANT, tinyPdf } from "./helpers";
+import {
+  adminHeaders,
+  BASE,
+  mintSession,
+  OTHER_TENANT,
+  SESSION_COOKIE,
+  shot,
+  signIn,
+  TENANT,
+  tinyPdf,
+} from "./helpers";
 import { E2E_ENV } from "../playwright.config";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -13,7 +23,9 @@ const CAD_KEY = /\\?"cad\\?"\s*:/;
  */
 
 test.describe("sign-in gate", () => {
-  test("unauthenticated /admin redirects to /api/auth/login, which redirects to Entra with PKCE", async ({ request }) => {
+  test("unauthenticated /admin redirects to /api/auth/login, which redirects to Entra with PKCE", async ({
+    request,
+  }) => {
     const r1 = await request.get("/admin/funds/multi-strategy?x=1", { maxRedirects: 0 });
     expect(r1.status()).toBe(302);
     const loc1 = new URL(r1.headers()["location"], BASE);
@@ -74,7 +86,9 @@ test.describe("sign-in gate", () => {
     expect(await r1.text()).toContain(`nonce="${nonce}"`);
     // no CSP violation while the page runs (theme script + Next bootstrap carry the nonce)
     const violations: string[] = [];
-    page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) violations.push(m.text()); });
+    page.on("console", (m) => {
+      if (/Content Security Policy/i.test(m.text())) violations.push(m.text());
+    });
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     expect(violations).toEqual([]);
@@ -82,7 +96,15 @@ test.describe("sign-in gate", () => {
 
   test("public fund page does not ship internal source names or admin fields", async ({ request }) => {
     const html = await request.get("/strategies/monthly-income").then((r) => r.text());
-    for (const leak of ["sourceName", "dataplatform", "ftseIndex", "bonds_data", "pinnedSnapshot", "uploadedBy", "sha256"]) {
+    for (const leak of [
+      "sourceName",
+      "dataplatform",
+      "ftseIndex",
+      "bonds_data",
+      "pinnedSnapshot",
+      "uploadedBy",
+      "sha256",
+    ]) {
       expect(html, leak).not.toContain(leak);
     }
     // fund AUM is hidden by default: it must not even reach the RSC payload (`"cad"` is the AUM field; quotes are
@@ -101,7 +123,9 @@ test.describe("sign-in gate", () => {
     expect(await r.json()).toEqual({ ok: true });
   });
 
-  test("/api/status is public, cacheable, always 200 with an ok flag, no ops state; strict=1 answers 503 (no-store) when stale", async ({ request }) => {
+  test("/api/status is public, cacheable, always 200 with an ok flag, no ops state; strict=1 answers 503 (no-store) when stale", async ({
+    request,
+  }) => {
     const r = await request.get("/api/status");
     expect(r.status()).toBe(200);
     expect(r.headers()["cache-control"]).toContain("max-age=60");
@@ -111,7 +135,20 @@ test.describe("sign-in gate", () => {
     expect(["ok", "stale"]).toContain(s.verdict);
     expect(Object.keys(s.funds)).toContain("monthly-income");
     const body = JSON.stringify(s);
-    for (const leak of ["blocked", "pending", "failed", "running", "retry", "schedule", "dataplatform", "webhook", "http://", "https://", "issues"]) expect(body, leak).not.toContain(leak);
+    for (const leak of [
+      "blocked",
+      "pending",
+      "failed",
+      "running",
+      "retry",
+      "schedule",
+      "dataplatform",
+      "webhook",
+      "http://",
+      "https://",
+      "issues",
+    ])
+      expect(body, leak).not.toContain(leak);
     const strict = await request.get("/api/status?strict=1");
     expect(strict.status()).toBe(s.ok ? 200 : 503);
     if (!s.ok) expect(strict.headers()["cache-control"]).toBe("no-store");
@@ -156,14 +193,22 @@ test.describe("API guards", () => {
   });
 
   test("a session for another domain or tenant gets 403", async ({ request }) => {
-    for (const s of [{ email: "bob@evil.com" }, { email: "bob@evilnymbus.ca" }, { email: "alice@nymbus.ca", tid: OTHER_TENANT }, { email: "x#EXT#@nymbus.ca" }]) {
+    for (const s of [
+      { email: "bob@evil.com" },
+      { email: "bob@evilnymbus.ca" },
+      { email: "alice@nymbus.ca", tid: OTHER_TENANT },
+      { email: "x#EXT#@nymbus.ca" },
+    ]) {
       const t = await mintSession(s);
       const r = await request.get("/api/admin/status", { headers: { cookie: `${SESSION_COOKIE}=${t}` } });
       expect(r.status(), JSON.stringify(s)).toBe(403);
       const page = await request.get("/admin", { headers: { cookie: `${SESSION_COOKIE}=${t}` }, maxRedirects: 0 });
       expect(page.status(), JSON.stringify(s)).toBe(403);
       // uploads (not behind the proxy) enforce the same policy
-      const up = await request.post("/api/admin/upload/documents", { headers: adminHeaders(t, false), multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } } });
+      const up = await request.post("/api/admin/upload/documents", {
+        headers: adminHeaders(t, false),
+        multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } },
+      });
       expect(up.status()).toBe(403);
     }
   });
@@ -173,33 +218,62 @@ test.describe("API guards", () => {
     const cookie = `${SESSION_COOKIE}=${t}`;
     const body = JSON.stringify({ dryRun: true });
     // no Origin
-    let r = await request.post("/api/admin/pipeline/run", { headers: { cookie, "x-nymbus-admin": "1", "content-type": "application/json" }, data: body });
+    let r = await request.post("/api/admin/pipeline/run", {
+      headers: { cookie, "x-nymbus-admin": "1", "content-type": "application/json" },
+      data: body,
+    });
     expect(r.status()).toBe(403);
     // foreign Origin
-    r = await request.post("/api/admin/pipeline/run", { headers: { cookie, origin: "https://evil.example", "x-nymbus-admin": "1", "content-type": "application/json" }, data: body });
+    r = await request.post("/api/admin/pipeline/run", {
+      headers: { cookie, origin: "https://evil.example", "x-nymbus-admin": "1", "content-type": "application/json" },
+      data: body,
+    });
     expect(r.status()).toBe(403);
     // same Origin but a "simple" cross-site-able request (text/plain, no custom header)
-    r = await request.post("/api/admin/pipeline/run", { headers: { cookie, origin: BASE, "content-type": "text/plain" }, data: body });
+    r = await request.post("/api/admin/pipeline/run", {
+      headers: { cookie, origin: BASE, "content-type": "text/plain" },
+      data: body,
+    });
     expect(r.status()).toBe(403);
     // upload form post from another site
-    r = await request.post("/api/admin/upload/documents", { headers: { cookie, origin: "https://evil.example" }, multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } } });
+    r = await request.post("/api/admin/upload/documents", {
+      headers: { cookie, origin: "https://evil.example" },
+      multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } },
+    });
     expect(r.status()).toBe(403);
     // same Origin, multipart without the custom header
-    r = await request.post("/api/admin/upload/documents", { headers: { cookie, origin: BASE }, multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } } });
+    r = await request.post("/api/admin/upload/documents", {
+      headers: { cookie, origin: BASE },
+      multipart: { file: { name: "a.pdf", mimeType: "application/pdf", buffer: tinyPdf() } },
+    });
     expect(r.status()).toBe(403);
   });
 
   test("path traversal ids are rejected", async ({ request }) => {
     const t = await mintSession({ email: "alice@nymbus.ca" });
     // (literal ../ and %2e%2e segments are normalised away by the URL parser before reaching the server)
-    for (const id of ["..%2F..%2Fcontent%2Fsite-content.json", "..%2Findex.json", "..%5Cindex.json", "index.json", "20260101T000000-zzzzzzzz"]) {
+    for (const id of [
+      "..%2F..%2Fcontent%2Fsite-content.json",
+      "..%2Findex.json",
+      "..%5Cindex.json",
+      "index.json",
+      "20260101T000000-zzzzzzzz",
+    ]) {
       const pub = await request.get(`/api/documents/${id}`);
       expect([400, 404]).toContain(pub.status());
-      const adm = await request.fetch(`/api/admin/documents/${id}`, { method: "PATCH", headers: adminHeaders(t), data: { published: true } });
+      const adm = await request.fetch(`/api/admin/documents/${id}`, {
+        method: "PATCH",
+        headers: adminHeaders(t),
+        data: { published: true },
+      });
       expect([400, 404]).toContain(adm.status());
       const run = await request.get(`/api/admin/runs/${id}`, { headers: adminHeaders(t) });
       expect([400, 404]).toContain(run.status());
-      const inq = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: adminHeaders(t), data: { handled: true } });
+      const inq = await request.fetch(`/api/admin/inquiries/${id}`, {
+        method: "PATCH",
+        headers: adminHeaders(t),
+        data: { handled: true },
+      });
       expect([400, 404]).toContain(inq.status());
       const inqDel = await request.delete(`/api/admin/inquiries/${id}`, { headers: adminHeaders(t, false) });
       expect([400, 404]).toContain(inqDel.status());
@@ -230,7 +304,11 @@ test.describe("admin flows", () => {
     // the GMV returns row names its downside volatility variant
     await expect(page.getByTestId("admin-variant-global-minimum-volatility")).toHaveText("6% downside volatility");
     await shot(page, "dashboard", info.project.name);
-    for (const [path, name] of [["/admin/runs", "runs"], ["/admin/settings", "settings"], ["/admin/audit", "audit"]] as const) {
+    for (const [path, name] of [
+      ["/admin/runs", "runs"],
+      ["/admin/settings", "settings"],
+      ["/admin/audit", "audit"],
+    ] as const) {
       const r = await page.goto(path);
       expect(r?.status(), path).toBe(200);
       await shot(page, name, info.project.name);
@@ -258,17 +336,31 @@ test.describe("admin flows", () => {
     expect(content.funds["multi-strategy"].mer).toBe(mer);
     expect(content.funds["multi-strategy"].tagline.en).toBe("e2e tagline");
 
-    const stale = await request.put("/api/admin/content/funds/multi-strategy", { headers: adminHeaders(token), data: { version: content.version - 1, fund: { mer: "9%" } } });
+    const stale = await request.put("/api/admin/content/funds/multi-strategy", {
+      headers: adminHeaders(token),
+      data: { version: content.version - 1, fund: { mer: "9%" } },
+    });
     expect(stale.status()).toBe(409);
 
-    const invalid = await request.put("/api/admin/content/funds/multi-strategy", { headers: adminHeaders(token), data: { version: content.version, fund: { riskRating: "extreme" } } });
+    const invalid = await request.put("/api/admin/content/funds/multi-strategy", {
+      headers: adminHeaders(token),
+      data: { version: content.version, fund: { riskRating: "extreme" } },
+    });
     expect(invalid.status()).toBe(400);
-    const unknown = await request.put("/api/admin/content/funds/not-a-fund", { headers: adminHeaders(token), data: { version: content.version, fund: {} } });
+    const unknown = await request.put("/api/admin/content/funds/not-a-fund", {
+      headers: adminHeaders(token),
+      data: { version: content.version, fund: {} },
+    });
     expect(unknown.status()).toBe(404);
 
     const audit = await request.get("/api/admin/audit", { headers: adminHeaders(token) });
     const { entries } = await audit.json();
-    expect(entries.some((e: { action: string; by: string; target?: string }) => e.action === "content.fund.save" && e.by === "alice@nymbus.ca" && e.target === "multi-strategy")).toBe(true);
+    expect(
+      entries.some(
+        (e: { action: string; by: string; target?: string }) =>
+          e.action === "content.fund.save" && e.by === "alice@nymbus.ca" && e.target === "multi-strategy",
+      ),
+    ).toBe(true);
   });
 
   test("upload a PDF, publish it and download it publicly", async ({ page, context, request }, info) => {
@@ -277,7 +369,9 @@ test.describe("admin flows", () => {
     await page.goto("/admin/documents");
     await expect(page.getByTestId("upload-form")).toBeVisible();
     const title = `e2e fund facts ${info.project.name} ${Date.now()}`;
-    await page.locator('input[type="file"][name="file"]').setInputFiles({ name: "Fund Facts <e2e>.pdf", mimeType: "application/pdf", buffer: tinyPdf() });
+    await page
+      .locator('input[type="file"][name="file"]')
+      .setInputFiles({ name: "Fund Facts <e2e>.pdf", mimeType: "application/pdf", buffer: tinyPdf() });
     await page.getByLabel("title (EN)", { exact: true }).fill(title);
     await page.getByLabel("title (FR)", { exact: true }).fill(`${title} fr`);
     await page.locator('select[name="scope"]').first().selectOption("monthly-income");
@@ -311,24 +405,42 @@ test.describe("admin flows", () => {
     const head = await request.head(`/api/documents/${id}`);
     expect(head.status()).toBe(200);
     expect(Number(head.headers()["content-length"])).toBe(tinyPdf().length);
-    expect(dl.headers()["content-disposition"]).toMatch(/^inline; filename="Fund Facts _e2e_\.pdf"; filename\*=UTF-8''Fund%20Facts%20_e2e_\.pdf$/);
+    expect(dl.headers()["content-disposition"]).toMatch(
+      /^inline; filename="Fund Facts _e2e_\.pdf"; filename\*=UTF-8''Fund%20Facts%20_e2e_\.pdf$/,
+    );
     expect((await dl.body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
     expect((await request.get(`/api/documents/${id}/Fund%20Facts%20_e2e_.pdf`)).status()).toBe(200);
 
     // not a PDF → 415; unpublish → 404; delete
     const notPdf = await request.post("/api/admin/upload/documents", {
       headers: adminHeaders(token, false),
-      multipart: { file: { name: "x.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html><script>alert(1)</script>") }, scope: "firm", type: "other", lang: "en", titleEn: "x", titleFr: "x", date: "2026-01-01", published: "true" },
+      multipart: {
+        file: { name: "x.pdf", mimeType: "application/pdf", buffer: Buffer.from("<html><script>alert(1)</script>") },
+        scope: "firm",
+        type: "other",
+        lang: "en",
+        titleEn: "x",
+        titleFr: "x",
+        date: "2026-01-01",
+        published: "true",
+      },
     });
     expect(notPdf.status()).toBe(415);
-    const unpub = await request.patch(`/api/admin/documents/${id}`, { headers: adminHeaders(token), data: { published: false } });
+    const unpub = await request.patch(`/api/admin/documents/${id}`, {
+      headers: adminHeaders(token),
+      data: { published: false },
+    });
     expect(unpub.status()).toBe(200);
     expect((await request.get(`/api/documents/${id}`)).status()).toBe(404);
     const del = await request.delete(`/api/admin/documents/${id}`, { headers: adminHeaders(token, false) });
     expect(del.status()).toBe(200);
   });
 
-  test("disclaimers: boilerplate on public pages, compliance banner until reviewed, back after a change", async ({ page, context, request }, info) => {
+  test("disclaimers: boilerplate on public pages, compliance banner until reviewed, back after a change", async ({
+    page,
+    context,
+    request,
+  }, info) => {
     test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
     // every public page footer carries the boilerplate; the fund disclosure too (with the FTSE notice)
     for (const path of ["/", "/strategies", "/strategies/monthly-income"]) {
@@ -358,7 +470,11 @@ test.describe("admin flows", () => {
     const firm = { en: "E2E firm disclaimer override.", fr: "Avis de la firme E2E." };
     const put = await request.put("/api/admin/content/settings", {
       headers: adminHeaders(token),
-      data: { version: content.version, firm: { aumLabel: content.firm.aumLabel, announcement: null, disclaimer: firm }, publishMode: content.pipeline.publishMode },
+      data: {
+        version: content.version,
+        firm: { aumLabel: content.firm.aumLabel, announcement: null, disclaimer: firm },
+        publishMode: content.pipeline.publishMode,
+      },
     });
     expect(put.status()).toBe(200);
     await page.goto("/");
@@ -370,15 +486,26 @@ test.describe("admin flows", () => {
     const after = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
     await request.put("/api/admin/content/settings", {
       headers: adminHeaders(token),
-      data: { version: after.version, firm: { aumLabel: after.firm.aumLabel, announcement: null, disclaimer: { en: "", fr: "" } }, publishMode: after.pipeline.publishMode },
+      data: {
+        version: after.version,
+        firm: { aumLabel: after.firm.aumLabel, announcement: null, disclaimer: { en: "", fr: "" } },
+        publishMode: after.pipeline.publishMode,
+      },
     });
 
     // a stale hash is refused
-    const stale = await request.post("/api/admin/compliance", { headers: adminHeaders(token), data: { version: after.version + 1, textsHash: "0000000000000000", confirm: true } });
+    const stale = await request.post("/api/admin/compliance", {
+      headers: adminHeaders(token),
+      data: { version: after.version + 1, textsHash: "0000000000000000", confirm: true },
+    });
     expect(stale.status()).toBe(409);
   });
 
-  test("unticking 'hide aum' persists and publishes the fund AUM; ticking it again removes it from the page", async ({ page, context, request }, info) => {
+  test("unticking 'hide aum' persists and publishes the fund AUM; ticking it again removes it from the page", async ({
+    page,
+    context,
+    request,
+  }, info) => {
     test.skip(info.project.name !== "desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
     const fund = "sustainable-enhanced-bonds";
@@ -400,18 +527,28 @@ test.describe("admin flows", () => {
     // restore (hide again)
     const put = await request.put(`/api/admin/content/funds/${fund}`, {
       headers: adminHeaders(token),
-      data: { version: content.version, fund: { ...content.funds[fund], hide: { ...(content.funds[fund].hide ?? {}), aum: true } } },
+      data: {
+        version: content.version,
+        fund: { ...content.funds[fund], hide: { ...(content.funds[fund].hide ?? {}), aum: true } },
+      },
     });
     expect(put.status()).toBe(200);
     expect(await request.get(`/strategies/${fund}`).then((r) => r.text())).not.toMatch(CAD_KEY);
 
     // a one-language override is rejected
     const v = (await put.json()).content.version;
-    const bad = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: v, fund: { tagline: { en: "only english", fr: "" } } } });
+    const bad = await request.put(`/api/admin/content/funds/${fund}`, {
+      headers: adminHeaders(token),
+      data: { version: v, fund: { tagline: { en: "only english", fr: "" } } },
+    });
     expect(bad.status()).toBe(400);
   });
 
-  test("SEB pinned to a class H run: opens on class H, F says coming soon; with class H selected every performance label says Series H / Série H", async ({ page, context, request }, info) => {
+  test("SEB pinned to a class H run: opens on class H, F says coming soon; with class H selected every performance label says Series H / Série H", async ({
+    page,
+    context,
+    request,
+  }, info) => {
     // mutates the (global) content: desktop admin project only, restored at the end
     test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
@@ -423,16 +560,35 @@ test.describe("admin flows", () => {
     const data = JSON.parse(readFileSync("e2e/fixtures/seb-class-h-site-data.json", "utf8"));
     expect(data.funds[fund].performance.classCode).toBe("STRATEGY_H");
     writeFileSync(path.join(dirRun, "site-data.json"), JSON.stringify({ ...data, runId: id }));
-    writeFileSync(path.join(dirRun, "report.json"), JSON.stringify({
-      id, trigger: "manual", by: "e2e", startedAt: data.generatedAt, finishedAt: data.generatedAt, status: "published", asOf: data.asOf,
-      issues: [], sources: [], funds: { [fund]: "updated" }, publishedAt: data.generatedAt, publishedBy: "e2e",
-    }));
+    writeFileSync(
+      path.join(dirRun, "report.json"),
+      JSON.stringify({
+        id,
+        trigger: "manual",
+        by: "e2e",
+        startedAt: data.generatedAt,
+        finishedAt: data.generatedAt,
+        status: "published",
+        asOf: data.asOf,
+        issues: [],
+        sources: [],
+        funds: { [fund]: "updated" },
+        publishedAt: data.generatedAt,
+        publishedBy: "e2e",
+      }),
+    );
     const { content } = await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json();
     const original = content.funds[fund] ?? {};
-    const pin = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: content.version, fund: { ...original, pinnedSnapshot: id } } });
+    const pin = await request.put(`/api/admin/content/funds/${fund}`, {
+      headers: adminHeaders(token),
+      data: { version: content.version, fund: { ...original, pinnedSnapshot: id } },
+    });
     expect(pin.status(), await pin.text()).toBe(200);
     try {
-      for (const [lang, word, fundWord, returns] of [["en", "Series", "Fund", "Returns: Series"], ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie"]] as const) {
+      for (const [lang, word, fundWord, returns] of [
+        ["en", "Series", "Fund", "Returns: Series"],
+        ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie"],
+      ] as const) {
         await page.goto(`/strategies/${fund}`);
         if (lang === "fr") {
           // cookie for the whole site (a cookie set from the fund page's URL would be scoped to /strategies)
@@ -464,13 +620,21 @@ test.describe("admin flows", () => {
           // the tile shows only the headline class's own returns: F has no series here, so no class H figure appears
           await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveCount(0);
         }
-        await expect(page.getByTestId("compare-table").getByTestId("perf-class").filter({ hasText: new RegExp(`${returns} H$`) })).toHaveCount(0);
+        await expect(
+          page
+            .getByTestId("compare-table")
+            .getByTestId("perf-class")
+            .filter({ hasText: new RegExp(`${returns} H$`) }),
+        ).toHaveCount(0);
       }
       await shot(page, "seb-class-h-strategies", info.project.name);
     } finally {
       const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
       const { pinnedSnapshot: _pin, ...rest } = cur.funds[fund] ?? {};
-      const unpin = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: rest } });
+      const unpin = await request.put(`/api/admin/content/funds/${fund}`, {
+        headers: adminHeaders(token),
+        data: { version: cur.version, fund: rest },
+      });
       expect(unpin.status()).toBe(200);
     }
     await page.goto(`/strategies/${fund}`);
@@ -479,11 +643,16 @@ test.describe("admin flows", () => {
     await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
   });
 
-  test("rankings: seeded RBC entry shown; new entry draft → stale hidden → fresh shown with source and date; brand image slots", async ({ page, context, request }, info) => {
+  test("rankings: seeded RBC entry shown; new entry draft → stale hidden → fresh shown with source and date; brand image slots", async ({
+    page,
+    context,
+    request,
+  }, info) => {
     test.skip(info.project.name !== "admin-desktop", "mutations run on the desktop project only");
     const token = await signIn(context);
     const fund = "sustainable-enhanced-bonds";
-    const original = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content.funds[fund];
+    const original = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content
+      .funds[fund];
 
     await page.goto("/admin");
     // official Morningstar files are shipped: no missing-assets warning; the seeded RBC entry is confirmed
@@ -523,7 +692,9 @@ test.describe("admin flows", () => {
 
     // fresh (end of the last quarter): shown on the awards tab, with source link and date
     const now = new Date();
-    const qEnd = new Date(Date.UTC(now.getUTCFullYear(), Math.floor(now.getUTCMonth() / 3) * 3, 0)).toISOString().slice(0, 10);
+    const qEnd = new Date(Date.UTC(now.getUTCFullYear(), Math.floor(now.getUTCMonth() / 3) * 3, 0))
+      .toISOString()
+      .slice(0, 10);
     await page.goto(`/admin/funds/${fund}`);
     await label("as of").fill(qEnd);
     await expect(page.getByTestId("tp-editor").getByTestId("tp-status-1")).toHaveText("shown on the site");
@@ -533,24 +704,45 @@ test.describe("admin flows", () => {
     const entry = page.getByTestId("tp-evestment");
     await expect(entry).toBeVisible();
     await expect(entry.getByTestId("tp-row-1M")).toContainText("3rd percentile");
-    await expect(entry.getByRole("link", { name: /eVestment/ })).toHaveAttribute("href", "https://www.evestment.example/e2e-ranking");
+    await expect(entry.getByRole("link", { name: /eVestment/ })).toHaveAttribute(
+      "href",
+      "https://www.evestment.example/e2e-ranking",
+    );
 
     // a confirmed entry without its source URL is refused by the API
     const cur = (await (await request.get("/api/admin/content", { headers: adminHeaders(token) })).json()).content;
     const noUrl = { ...cur.funds[fund].rankings.thirdParty[1], url: undefined };
-    const bad = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: { ...cur.funds[fund], rankings: { ...cur.funds[fund].rankings, thirdParty: [noUrl] } } } });
+    const bad = await request.put(`/api/admin/content/funds/${fund}`, {
+      headers: adminHeaders(token),
+      data: {
+        version: cur.version,
+        fund: { ...cur.funds[fund], rankings: { ...cur.funds[fund].rankings, thirdParty: [noUrl] } },
+      },
+    });
     expect(bad.status()).toBe(400);
     expect(await bad.text()).toContain("source URL");
 
     // restore the seeded content
-    const restore = await request.put(`/api/admin/content/funds/${fund}`, { headers: adminHeaders(token), data: { version: cur.version, fund: original } });
+    const restore = await request.put(`/api/admin/content/funds/${fund}`, {
+      headers: adminHeaders(token),
+      data: { version: cur.version, fund: original },
+    });
     expect(restore.status(), await restore.text()).toBe(200);
 
     // brand image slots: plain image accepted and served with its exact type, an active SVG refused, removal
-    const svgBad = await request.post("/api/admin/upload/brand", { headers: adminHeaders(token, false), multipart: { slot: "gmr-logo", file: { name: "x.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg onload="alert(1)"></svg>') } } });
+    const svgBad = await request.post("/api/admin/upload/brand", {
+      headers: adminHeaders(token, false),
+      multipart: {
+        slot: "gmr-logo",
+        file: { name: "x.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg onload="alert(1)"></svg>') },
+      },
+    });
     expect(svgBad.status()).toBe(415);
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
-    const up = await request.post("/api/admin/upload/brand", { headers: adminHeaders(token, false), multipart: { slot: "gmr-logo", file: { name: "gmr.png", mimeType: "image/png", buffer: png } } });
+    const up = await request.post("/api/admin/upload/brand", {
+      headers: adminHeaders(token, false),
+      multipart: { slot: "gmr-logo", file: { name: "gmr.png", mimeType: "image/png", buffer: png } },
+    });
     expect(up.status(), await up.text()).toBe(201);
     const img = await request.get("/api/brand/gmr-logo");
     expect(img.status()).toBe(200);
@@ -558,7 +750,13 @@ test.describe("admin flows", () => {
     expect(img.headers()["x-content-type-options"]).toBe("nosniff");
     expect(img.headers()["content-security-policy"]).toContain("sandbox");
     expect((await request.get("/api/brand/not-a-slot")).status()).toBe(404);
-    expect((await request.post("/api/admin/upload/brand", { multipart: { slot: "gmr-logo", file: { name: "gmr.png", mimeType: "image/png", buffer: png } } })).status()).toBe(401);
+    expect(
+      (
+        await request.post("/api/admin/upload/brand", {
+          multipart: { slot: "gmr-logo", file: { name: "gmr.png", mimeType: "image/png", buffer: png } },
+        })
+      ).status(),
+    ).toBe(401);
     await page.goto("/admin/settings");
     await expect(page.getByTestId("brand-gmr-logo")).toContainText("uploaded");
     await expect(page.getByTestId("brand-morningstar-logo")).toContainText("shipped");
@@ -568,7 +766,11 @@ test.describe("admin flows", () => {
     expect((await request.get("/api/brand/gmr-logo")).status()).toBe(404);
   });
 
-  test("inquiries: contact form messages listed (bots filtered), marked handled, deleted, audited without personal data", async ({ page, context, request }, info) => {
+  test("inquiries: contact form messages listed (bots filtered), marked handled, deleted, audited without personal data", async ({
+    page,
+    context,
+    request,
+  }, info) => {
     const token = await signIn(context);
     // unauthenticated: the page goes to sign-in, the API answers 401, a mutation without the CSRF header is refused
     expect((await request.get("/admin/inquiries", { maxRedirects: 0 })).status()).toBe(302);
@@ -577,16 +779,36 @@ test.describe("admin flows", () => {
     const t = /name="t" value="(v1\.[^"]+)"/.exec(html)![1];
     await page.waitForTimeout(3200);
     const name = `E2E Admin ${info.project.name}`;
-    const post = () => request.post("/api/contact", {
-      headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a:2::1" : "2001:db8:a:1::1" },
-      data: JSON.stringify({ profile: "Institution", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "=E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
-    });
+    const post = () =>
+      request.post("/api/contact", {
+        headers: {
+          origin: BASE,
+          "content-type": "application/json",
+          "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a:2::1" : "2001:db8:a:1::1",
+        },
+        data: JSON.stringify({
+          profile: "Institution",
+          interests: ["General inquiry"],
+          name,
+          email: "admin-test@example.com",
+          phone: "+1 514 555 0100",
+          company: "=E2E Pension",
+          message: "Line one\n<script>alert(1)</script>",
+          consent: true,
+          website: "",
+          t,
+          lang: "fr",
+        }),
+      });
     expect((await post()).status()).toBe(200);
     // the same message sent again (double click, reload) answers OK but is stored once (checked below: one card)
     expect((await post()).status()).toBe(200);
 
     const dialogs: string[] = [];
-    page.on("dialog", (d) => { dialogs.push(d.message()); void d.dismiss(); });
+    page.on("dialog", (d) => {
+      dialogs.push(d.message());
+      void d.dismiss();
+    });
     expect((await page.goto("/admin/inquiries"))?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: "messages" })).toBeVisible();
     await expect(page.locator("#admin-main")).toContainText("deleted automatically 180 days after it was received");
@@ -599,7 +821,10 @@ test.describe("admin flows", () => {
     const card = list.locator("article", { hasText: name });
     await expect(card).toHaveCount(1);
     await expect(card.getByTestId("inquiry-message")).toHaveText(/Line one\s+<script>alert\(1\)<\/script>/); // plain text, never markup
-    await expect(card.getByRole("link", { name: "admin-test@example.com" })).toHaveAttribute("href", "mailto:admin-test@example.com");
+    await expect(card.getByRole("link", { name: "admin-test@example.com" })).toHaveAttribute(
+      "href",
+      "mailto:admin-test@example.com",
+    );
     await expect(card).toContainText("E2E Pension");
     await expect(card).toContainText("français");
     await shot(page, "inquiries", info.project.name);
@@ -610,7 +835,9 @@ test.describe("admin flows", () => {
     const csv = await request.get("/api/admin/inquiries/export", { headers: adminHeaders(token, false) });
     expect(csv.status()).toBe(200);
     expect(csv.headers()["content-type"]).toMatch(/^text\/csv/);
-    expect(csv.headers()["content-disposition"]).toMatch(/^attachment; filename="nymbus-website-messages-\d{4}-\d{2}-\d{2}\.csv"$/);
+    expect(csv.headers()["content-disposition"]).toMatch(
+      /^attachment; filename="nymbus-website-messages-\d{4}-\d{2}-\d{2}\.csv"$/,
+    );
     const csvText = await csv.text();
     expect(csvText.split("\r\n")[0]).toContain("id,received_at,status");
     expect(csvText).toContain(name);
@@ -622,30 +849,46 @@ test.describe("admin flows", () => {
     await expect(card.locator(".adm-pill", { hasText: /^handled$/ })).toBeVisible();
     const id = await card.getAttribute("data-inquiry-id");
     // the JSON API agrees, and refuses a mutation without the CSRF header
-    const listed = (await (await request.get("/api/admin/inquiries", { headers: adminHeaders(token, false) })).json()) as { inquiries: { id: string; handled: { by: string } | null }[] };
+    const listed = (await (
+      await request.get("/api/admin/inquiries", { headers: adminHeaders(token, false) })
+    ).json()) as { inquiries: { id: string; handled: { by: string } | null }[] };
     expect(listed.inquiries.find((x) => x.id === id)?.handled?.by).toBe("alice@nymbus.ca");
-    const csrf = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: { cookie: `${SESSION_COOKIE}=${token}`, origin: BASE, "content-type": "text/plain" }, data: JSON.stringify({ handled: false }) });
+    const csrf = await request.fetch(`/api/admin/inquiries/${id}`, {
+      method: "PATCH",
+      headers: { cookie: `${SESSION_COOKIE}=${token}`, origin: BASE, "content-type": "text/plain" },
+      data: JSON.stringify({ handled: false }),
+    });
     expect(csrf.status()).toBe(403);
-    const unknownKey = await request.fetch(`/api/admin/inquiries/${id}`, { method: "PATCH", headers: adminHeaders(token), data: { handled: false, extra: 1 } });
+    const unknownKey = await request.fetch(`/api/admin/inquiries/${id}`, {
+      method: "PATCH",
+      headers: adminHeaders(token),
+      data: { handled: false, extra: 1 },
+    });
     expect(unknownKey.status()).toBe(400);
 
     await card.getByTestId("inquiry-delete").click();
     await page.getByRole("dialog").getByRole("button", { name: "delete" }).click();
     await expect(card).toHaveCount(0);
-    expect((await request.delete(`/api/admin/inquiries/${id}`, { headers: adminHeaders(token, false) })).status()).toBe(404);
+    expect((await request.delete(`/api/admin/inquiries/${id}`, { headers: adminHeaders(token, false) })).status()).toBe(
+      404,
+    );
     expect(dialogs).toEqual([]);
 
     await page.goto("/admin/audit");
     const audit = page.getByTestId("audit-table");
-    for (const a of ["inquiries.view", "inquiries.export", "inquiry.handled", "inquiry.delete"]) await expect(audit).toContainText(a);
+    for (const a of ["inquiries.view", "inquiries.export", "inquiry.handled", "inquiry.delete"])
+      await expect(audit).toContainText(a);
     await expect(audit).toContainText(id!);
-    for (const pii of ["admin-test@example.com", name, "E2E Pension", "Line one"]) await expect(audit).not.toContainText(pii);
+    for (const pii of ["admin-test@example.com", name, "E2E Pension", "Line one"])
+      await expect(audit).not.toContainText(pii);
   });
 
   test("logout clears and revokes the session", async ({ request }) => {
     const t = await mintSession({ email: "alice@nymbus.ca" });
     expect((await request.get("/api/admin/me", { headers: { cookie: `${SESSION_COOKIE}=${t}` } })).status()).toBe(200);
-    const r = await request.post("/api/auth/logout", { headers: { cookie: `${SESSION_COOKIE}=${t}`, origin: BASE, accept: "application/json" } });
+    const r = await request.post("/api/auth/logout", {
+      headers: { cookie: `${SESSION_COOKIE}=${t}`, origin: BASE, accept: "application/json" },
+    });
     expect(r.status()).toBe(200);
     expect(r.headers()["set-cookie"]).toMatch(/nymbus_admin=;.*Max-Age=0/i);
     // the same token replayed after logout is rejected server-side

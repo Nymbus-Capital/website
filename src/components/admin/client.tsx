@@ -5,12 +5,19 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, public readonly code: string, message: string) {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string,
+  ) {
     super(message);
   }
 }
 
-export async function api<T>(path: string, init: { method?: string; json?: unknown; form?: FormData } = {}): Promise<T> {
+export async function api<T>(
+  path: string,
+  init: { method?: string; json?: unknown; form?: FormData } = {},
+): Promise<T> {
   const headers: Record<string, string> = { "x-nymbus-admin": "1", Accept: "application/json" };
   let body: BodyInit | undefined;
   if (init.json !== undefined) {
@@ -19,7 +26,13 @@ export async function api<T>(path: string, init: { method?: string; json?: unkno
   } else if (init.form) {
     body = init.form;
   }
-  const res = await fetch(path, { method: init.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin", cache: "no-store" });
+  const res = await fetch(path, {
+    method: init.method ?? (body ? "POST" : "GET"),
+    headers,
+    body,
+    credentials: "same-origin",
+    cache: "no-store",
+  });
   if (res.status === 401) {
     window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
     throw new ApiError(401, "unauthenticated", "Your session expired; redirecting to sign-in…");
@@ -57,7 +70,9 @@ export function AdminShellClient({ children }: { children: ReactNode }) {
       {children}
       <div className="adm-toasts" role="status" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`adm-toast ${t.kind}`}>{t.text}</div>
+          <div key={t.id} className={`adm-toast ${t.kind}`}>
+            {t.text}
+          </div>
         ))}
       </div>
     </ToastCtx.Provider>
@@ -67,7 +82,13 @@ export function AdminShellClient({ children }: { children: ReactNode }) {
 /* ------------------------------------------------------------------ confirm dialog */
 
 export function useConfirm() {
-  const [state, setState] = useState<{ title: string; body: string; action: string; danger?: boolean; resolve: (v: boolean) => void } | null>(null);
+  const [state, setState] = useState<{
+    title: string;
+    body: string;
+    action: string;
+    danger?: boolean;
+    resolve: (v: boolean) => void;
+  } | null>(null);
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -76,7 +97,8 @@ export function useConfirm() {
     if (!state && d.open) d.close();
   }, [state]);
   const confirm = useCallback(
-    (o: { title: string; body: string; action: string; danger?: boolean }) => new Promise<boolean>((resolve) => setState({ ...o, resolve })),
+    (o: { title: string; body: string; action: string; danger?: boolean }) =>
+      new Promise<boolean>((resolve) => setState({ ...o, resolve })),
     [],
   );
   const close = (v: boolean) => {
@@ -84,7 +106,15 @@ export function useConfirm() {
     setState(null);
   };
   const dialog = (
-    <dialog ref={ref} className="adm-dialog" onCancel={(e) => { e.preventDefault(); close(false); }} aria-labelledby="adm-confirm-title">
+    <dialog
+      ref={ref}
+      className="adm-dialog"
+      onCancel={(e) => {
+        e.preventDefault();
+        close(false);
+      }}
+      aria-labelledby="adm-confirm-title"
+    >
       {state ? (
         <div className="in">
           <span className="adm-mark" />
@@ -92,8 +122,17 @@ export function useConfirm() {
           <p>{state.body}</p>
           <div className="adm-actions">
             <span className="sp" />
-            <button type="button" className="adm-btn ghost" onClick={() => close(false)}>cancel</button>
-            <button type="button" className={`adm-btn${state.danger ? " danger" : ""}`} onClick={() => close(true)} autoFocus>{state.action}</button>
+            <button type="button" className="adm-btn ghost" onClick={() => close(false)}>
+              cancel
+            </button>
+            <button
+              type="button"
+              className={`adm-btn${state.danger ? " danger" : ""}`}
+              onClick={() => close(true)}
+              autoFocus
+            >
+              {state.action}
+            </button>
           </div>
         </div>
       ) : null}
@@ -105,11 +144,28 @@ export function useConfirm() {
 /* ------------------------------------------------------------------ small shared bits */
 
 export function L10nInput({
-  label, value, onChange, multiline, max, hint, name,
-}: { label: string; value: { en: string; fr: string }; onChange: (v: { en: string; fr: string }) => void; multiline?: boolean; max?: number; hint?: string; name?: string }) {
+  label,
+  value,
+  onChange,
+  multiline,
+  max,
+  hint,
+  name,
+}: {
+  label: string;
+  value: { en: string; fr: string };
+  onChange: (v: { en: string; fr: string }) => void;
+  multiline?: boolean;
+  max?: number;
+  hint?: string;
+  name?: string;
+}) {
   return (
     <div className="adm-field">
-      <span>{label}{hint ? <em>{hint}</em> : null}</span>
+      <span>
+        {label}
+        {hint ? <em>{hint}</em> : null}
+      </span>
       <div className="adm-l10n">
         {(["en", "fr"] as const).map((l) => (
           <div key={l} className="lang" data-lang={l}>

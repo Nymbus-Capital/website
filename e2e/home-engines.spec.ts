@@ -7,7 +7,8 @@ import { expect, test, type Page } from "@playwright/test";
  * scale above it is unchanged. Saves screenshots of the band at several animation moments for design review.
  */
 import { mkdirSync } from "node:fs";
-const frames = (page: Page) => page.getByTestId("overlay-host").evaluate((el) => Number(el.getAttribute("data-frames") ?? "0"));
+const frames = (page: Page) =>
+  page.getByTestId("overlay-host").evaluate((el) => Number(el.getAttribute("data-frames") ?? "0"));
 const norm = (s: string | null) => (s ?? "").replace(/\s+/g, " ").trim();
 /** phones: the panel is taller than the viewport; make the whole figure fit so screenshots keep its footer */
 async function tallViewport(page: Page) {
@@ -36,14 +37,19 @@ test("engines band: drawn, advancing, labelled as an illustration, paused off sc
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("data-running", "true");
   await expect(panel).toContainText(/illustration/i);
   await expect(page.getByTestId("overlay-caption")).toContainText(/generated values, not actual positions or results/);
-  await expect(page.getByTestId("overlay-caption")).toContainText("The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.");
+  await expect(page.getByTestId("overlay-caption")).toContainText(
+    "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.",
+  );
   // only the drawing is an image; no simulated counters under it (Gabriel 2026-10-04)
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("role", "img");
   await expect(panel).not.toHaveAttribute("role", "img");
   await expect(panel.locator("dl")).toHaveCount(0);
   await expect(panel).not.toContainText(/simulated/i);
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /equities and bonds fall together/);
-  await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /designed to have low down-month correlation, are drawn moving independently\. A heatmap shows the concept/);
+  await expect(page.getByTestId("overlay-host")).toHaveAttribute(
+    "aria-label",
+    /designed to have low down-month correlation, are drawn moving independently\. A heatmap shows the concept/,
+  );
   await expect(page.getByTestId("overlay-caption")).toContainText(/design objective, not a guarantee/);
   await expect(page.getByTestId("overlay-caption")).toContainText("Market lines are not an index.");
   // never stated as a fact
@@ -75,7 +81,9 @@ test("engines band (FR): French labels and caption", async ({ page, baseURL }, i
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toContainText(/mois de baisse/i);
   await expect(page.getByTestId("overlay-caption")).toContainText(/un objectif, pas une garantie/);
-  await expect(page.getByTestId("overlay-caption")).toContainText(/exposition additionnelle au moyen de contrats à terme/);
+  await expect(page.getByTestId("overlay-caption")).toContainText(
+    /exposition additionnelle au moyen de contrats à terme/,
+  );
   await expect(panel.locator("dl")).toHaveCount(0);
   await expect(panel).not.toContainText(/simulés/i);
   await expect(page.getByTestId("overlay-host")).toHaveAttribute("aria-label", /carte de chaleur/);
@@ -88,7 +96,10 @@ test("engines band (FR): French labels and caption", async ({ page, baseURL }, i
   await page.getByTestId("overlay-figure").screenshot({ path: `e2e/screenshots/engines-fr-${info.project.name}.png` });
 });
 
-test("reduced motion: the engines band is one still frame, and follows a live change of the preference", async ({ browser, baseURL }, info) => {
+test("reduced motion: the engines band is one still frame, and follows a live change of the preference", async ({
+  browser,
+  baseURL,
+}, info) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
   await page.goto("/");
@@ -115,7 +126,12 @@ test("reduced motion: the engines band is one still frame, and follows a live ch
 });
 
 test("engines band: no horizontal scroll at 360 px, panel inside the viewport", async ({ browser, baseURL }) => {
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, baseURL, hasTouch: true, isMobile: true });
+  const ctx = await browser.newContext({
+    viewport: { width: 360, height: 760 },
+    baseURL,
+    hasTouch: true,
+    isMobile: true,
+  });
   const page = await ctx.newPage();
   await page.goto("/");
   const panel = page.getByTestId("overlay-panel");
@@ -131,13 +147,19 @@ test("engines band: no horizontal scroll at 360 px, panel inside the viewport", 
 });
 
 // copy changed at Gabriel's request 2026-10-03 (title and third trio card) and 2026-10-04 (counters removed); animation unchanged
-test("science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-04 counters removal), and the engines band comes right after it", async ({ page }) => {
+test("science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-04 counters removal), and the engines band comes right after it", async ({
+  page,
+}) => {
   await page.goto("/");
   const sc = page.locator("section.sc");
   await sc.scrollIntoViewIfNeeded();
-  const texts = (sel: string) => sc.locator(sel).evaluateAll((els) => els.map((e) => (e.textContent ?? "").replace(/\s+/g, " ").trim()));
+  const texts = (sel: string) =>
+    sc.locator(sel).evaluateAll((els) => els.map((e) => (e.textContent ?? "").replace(/\s+/g, " ").trim()));
   expect(await texts(".section-head .eyebrow")).toEqual(["Science at scale"]);
-  await expect(sc.locator("#scan-t")).toHaveAttribute("aria-label", "Scientists, engineers and market veterans, hard problems in finance");
+  await expect(sc.locator("#scan-t")).toHaveAttribute(
+    "aria-label",
+    "Scientists, engineers and market veterans, hard problems in finance",
+  );
   expect(await texts(".section-head .lead")).toEqual(["Data at scale. Models tested before they are trusted."]);
   expect(await texts(".sc-title, .sc-chip")).toEqual(["Analysis · universe, factors, signals", "Illustration"]);
   expect(norm(await sc.locator("figcaption").textContent())).toBe(
@@ -146,10 +168,18 @@ test("science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-
   // 2026-10-04: Gabriel requested the removal of the simulated counters strip
   await expect(sc.locator(".sc-stats")).toHaveCount(0);
   expect(await texts(".sc-trio h3, .sc-trio p")).toEqual([
-    "Scientists", "Hypotheses, tested on data.", "Engineers", "Pipelines that run every day.", "Market veterans", "Decades in fixed income and derivatives.",
+    "Scientists",
+    "Hypotheses, tested on data.",
+    "Engineers",
+    "Pipelines that run every day.",
+    "Market veterans",
+    "Decades in fixed income and derivatives.",
   ]);
   await expect(sc.getByTestId("scan-canvas")).toHaveCount(1);
-  await expect(page.getByTestId("scan-panel")).toHaveAttribute("aria-label", "Animated illustration: a table of securities scanned for factor scores, with flagged signals.");
+  await expect(page.getByTestId("scan-panel")).toHaveAttribute(
+    "aria-label",
+    "Animated illustration: a table of securities scanned for factor scores, with flagged signals.",
+  );
   // order: science at scale, then the engines band
   const next = await sc.evaluate((el) => el.nextElementSibling?.getAttribute("aria-labelledby"));
   expect(next).toBe("ov-t");
@@ -164,7 +194,11 @@ test("engines band: screenshots at several animation moments", async ({ page }, 
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toHaveClass(/\bon\b/);
   await expect.poll(() => frames(page)).toBeGreaterThan(5);
-  for (const [k, wait] of [[1, 1200], [2, 3500], [3, 6000]] as const) {
+  for (const [k, wait] of [
+    [1, 1200],
+    [2, 3500],
+    [3, 6000],
+  ] as const) {
     await page.waitForTimeout(wait);
     await panel.screenshot({ path: `e2e/screenshots/engines-${info.project.name}-${k}.png` });
   }

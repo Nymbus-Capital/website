@@ -24,12 +24,18 @@ import type { CmsTexts } from "./types";
 export type { NewsEntry } from "./map";
 
 const KEY = Symbol.for("nymbus.cms.instance");
-const g = globalThis as unknown as Record<symbol, { sig: string; cfg: CmsConfig; source: CmsSource } | null | undefined>;
+const g = globalThis as unknown as Record<
+  symbol,
+  { sig: string; cfg: CmsConfig; source: CmsSource } | null | undefined
+>;
 
 /** The source for the current environment (rebuilt only when the CMS settings change), or null when disabled. */
 export function cmsSource(): { cfg: CmsConfig; source: CmsSource } | null {
   const cfg = loadCmsConfig();
-  if (!cfg) { g[KEY] = null; return null; }
+  if (!cfg) {
+    g[KEY] = null;
+    return null;
+  }
   const sig = JSON.stringify([cfg.endpoint, cfg.mediaOrigin, cfg.contentSecret, cfg.ttlMs]);
   const cur = g[KEY];
   if (cur && cur.sig === sig) return cur;

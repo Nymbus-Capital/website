@@ -19,14 +19,42 @@ const MONTHS: Record<Locale, string[]> = {
   fr: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juill.", "août", "sept.", "oct.", "nov.", "déc."],
 };
 const MONTHS_LONG: Record<Locale, string[]> = {
-  en: ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"],
-  fr: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+  en: [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+  ],
+  fr: [
+    "janvier",
+    "février",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juillet",
+    "août",
+    "septembre",
+    "octobre",
+    "novembre",
+    "décembre",
+  ],
 };
 
 /** ISO date (YYYY-MM-DD) as a day: "sep 26, 2026" / "26 sept. 2026". Parsed by hand: no timezone shift. */
 export function formatDay(iso: string | null | undefined, locale: Locale): string {
   if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return "";
-  const y = iso.slice(0, 4), m = +iso.slice(5, 7) - 1, d = +iso.slice(8, 10);
+  const y = iso.slice(0, 4),
+    m = +iso.slice(5, 7) - 1,
+    d = +iso.slice(8, 10);
   return locale === "fr" ? `${d} ${MONTHS[locale][m]} ${y}` : `${MONTHS[locale][m]} ${d}, ${y}`;
 }
 

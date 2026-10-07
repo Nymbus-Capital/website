@@ -38,7 +38,9 @@ export const p = (...parts: string[]): string => {
 const GEN = Symbol.for("nymbus.store.generation");
 const g = globalThis as unknown as Record<symbol, number>;
 export const writeGeneration = (): number => g[GEN] ?? 0;
-const bumpWriteGeneration = (): void => { g[GEN] = writeGeneration() + 1; };
+const bumpWriteGeneration = (): void => {
+  g[GEN] = writeGeneration() + 1;
+};
 
 export async function readJson<T>(rel: string[], fallback: T): Promise<T> {
   try {
@@ -88,7 +90,11 @@ export async function removePath(rel: string[]): Promise<void> {
  * and taken over. On release the directory is removed only if it still carries our token (a holder
  * that was taken over never deletes its successor's lock).
  */
-export async function withLock<T>(name: string, fn: () => Promise<T>, staleMs = 30 * 60_000): Promise<T | { locked: true }> {
+export async function withLock<T>(
+  name: string,
+  fn: () => Promise<T>,
+  staleMs = 30 * 60_000,
+): Promise<T | { locked: true }> {
   const dir = p("locks", `${name}.lock`);
   const ownerFile = path.join(dir, "owner");
   const token = crypto.randomBytes(12).toString("hex");
@@ -140,10 +146,15 @@ export async function withLock<T>(name: string, fn: () => Promise<T>, staleMs = 
   }
   // verify we still own the directory we created (a concurrent takeover would have replaced it)
   if ((await fs.readFile(ownerFile, "utf8").catch(() => null)) !== token) return { locked: true };
-  const heartbeat = setInterval(() => {
-    const now = new Date();
-    fs.readFile(ownerFile, "utf8").then((t) => (t === token ? fs.utimes(ownerFile, now, now) : undefined)).catch(() => undefined);
-  }, Math.max(1000, Math.min(60_000, Math.floor(staleMs / 4))));
+  const heartbeat = setInterval(
+    () => {
+      const now = new Date();
+      fs.readFile(ownerFile, "utf8")
+        .then((t) => (t === token ? fs.utimes(ownerFile, now, now) : undefined))
+        .catch(() => undefined);
+    },
+    Math.max(1000, Math.min(60_000, Math.floor(staleMs / 4))),
+  );
   heartbeat.unref?.();
   try {
     return await fn();
@@ -161,7 +172,13 @@ export async function lockHeartbeat(name: string): Promise<number | null> {
   return st ? st.mtimeMs : null;
 }
 
-export interface AuditEntry { at: string; by: string; action: string; target?: string; detail?: unknown }
+export interface AuditEntry {
+  at: string;
+  by: string;
+  action: string;
+  target?: string;
+  detail?: unknown;
+}
 export const audit = (e: Omit<AuditEntry, "at">): Promise<void> =>
   appendLine(["audit", "audit.jsonl"], JSON.stringify({ at: new Date().toISOString(), ...e }));
 

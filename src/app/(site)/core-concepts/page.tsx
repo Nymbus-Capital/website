@@ -5,7 +5,11 @@ import { getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: CC.meta.title[locale], description: CC.meta.description[locale], alternates: { canonical: "/core-concepts" } };
+  return {
+    title: CC.meta.title[locale],
+    description: CC.meta.description[locale],
+    alternates: { canonical: "/core-concepts" },
+  };
 }
 
 export default function Page() {

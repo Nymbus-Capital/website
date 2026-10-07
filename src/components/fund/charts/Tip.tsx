@@ -2,8 +2,17 @@
 /** Chart tooltip (the `.tip` of globals.css): positioned inside the chart host, flips at the edges. */
 import { useLayoutEffect, useRef, useState } from "react";
 
-interface TipRow { cls: "fund" | "index" | "va"; label: string; value: string }
-export interface TipState { x: number; y: number; title: string; rows: TipRow[] }
+interface TipRow {
+  cls: "fund" | "index" | "va";
+  label: string;
+  value: string;
+}
+export interface TipState {
+  x: number;
+  y: number;
+  title: string;
+  rows: TipRow[];
+}
 
 export function Tip({ tip, hostWidth }: { tip: TipState | null; hostWidth: number }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -15,8 +24,10 @@ export function Tip({ tip, hostWidth }: { tip: TipState | null; hostWidth: numbe
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !tip) return;
-    const w = el.offsetWidth, h = el.offsetHeight;
-    let left = tip.x + 16, top = tip.y - h - 14;
+    const w = el.offsetWidth,
+      h = el.offsetHeight;
+    let left = tip.x + 16,
+      top = tip.y - h - 14;
     if (left + w > hostWidth) left = tip.x - w - 16;
     if (left < 0) left = Math.max(0, Math.min(hostWidth - w, tip.x - w / 2));
     if (top < -8) top = tip.y + 18;
@@ -29,7 +40,10 @@ export function Tip({ tip, hostWidth }: { tip: TipState | null; hostWidth: numbe
           <b>{t.title}</b>
           {t.rows.map((r) => (
             <div className="r" key={r.cls + r.label}>
-              <span><i className={r.cls} />{r.label}</span>
+              <span>
+                <i className={r.cls} />
+                {r.label}
+              </span>
               <em>{r.value}</em>
             </div>
           ))}

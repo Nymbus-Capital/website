@@ -35,14 +35,19 @@ export function shrinkProblem(prev: CmsDocument | null, next: CmsDocument, dropp
   const after = itemCount(next);
   if (after === 0) return `no item (was ${before})`;
   if (after * 2 < before) return `${after} item(s) (was ${before})`;
-  if (dropped > 0 && after < before) return `${dropped} item(s) failed validation and the list shrank (${before} to ${after})`;
+  if (dropped > 0 && after < before)
+    return `${dropped} item(s) failed validation and the list shrank (${before} to ${after})`;
   return null;
 }
 export const FAIL_BACKOFF_MS = 30_000;
 export const MIN_FETCH_GAP_MS = 2_000;
 
 export type CmsOrigin = "live" | "last-good";
-export interface CmsSnapshot { doc: CmsDocument; origin: CmsOrigin; at: number }
+export interface CmsSnapshot {
+  doc: CmsDocument;
+  origin: CmsOrigin;
+  at: number;
+}
 
 interface Deps {
   fetchImpl?: Parameters<typeof fetchCmsDocument>[1];
@@ -67,7 +72,12 @@ export function createCmsSource(cfg: CmsConfig, deps: Deps = {}): CmsSource {
   let inflight: Promise<boolean> | null = null;
   let lastLogAt = 0;
 
-  const warnOnce = (m: string) => { if (now() - lastLogAt > 60_000) { lastLogAt = now(); log(m); } };
+  const warnOnce = (m: string) => {
+    if (now() - lastLogAt > 60_000) {
+      lastLogAt = now();
+      log(m);
+    }
+  };
 
   let lastMetaAt = 0;
 
@@ -117,12 +127,19 @@ export function createCmsSource(cfg: CmsConfig, deps: Deps = {}): CmsSource {
             await writeJson(LAST_GOOD, doc);
             lastWritten = ser;
           }
-          if (changed || now() - lastMetaAt > 15 * 60_000 || lastMetaAt === 0) { await writeJson(LAST_GOOD_META, { at: now() }); lastMetaAt = now(); }
-        } catch (e: unknown) { warnOnce(`could not store the last good copy (${e instanceof Error ? e.name : "error"})`); }
+          if (changed || now() - lastMetaAt > 15 * 60_000 || lastMetaAt === 0) {
+            await writeJson(LAST_GOOD_META, { at: now() });
+            lastMetaAt = now();
+          }
+        } catch (e: unknown) {
+          warnOnce(`could not store the last good copy (${e instanceof Error ? e.name : "error"})`);
+        }
         return true;
       } catch (e: unknown) {
         nextTryAt = now() + FAIL_BACKOFF_MS;
-        warnOnce(`WordPress document not used: ${e instanceof Error ? e.message.slice(0, 200) : "error"}${mem ? " (keeping the last good copy)" : ""}`);
+        warnOnce(
+          `WordPress document not used: ${e instanceof Error ? e.message.slice(0, 200) : "error"}${mem ? " (keeping the last good copy)" : ""}`,
+        );
         if (!mem) {
           const disk = await readLastGood();
           if (disk) mem = { doc: disk.doc, origin: "last-good", at: disk.at };
@@ -150,10 +167,18 @@ export function createCmsSource(cfg: CmsConfig, deps: Deps = {}): CmsSource {
       return mem && now() - mem.at <= cfg.maxStaleMs ? mem : null;
     },
     async revalidate() {
-      if (!inflight && now() - lastFetchAt < MIN_FETCH_GAP_MS) return { ok: mem?.origin === "live", origin: mem?.origin ?? null };
+      if (!inflight && now() - lastFetchAt < MIN_FETCH_GAP_MS)
+        return { ok: mem?.origin === "live", origin: mem?.origin ?? null };
       const ok = await refresh();
       return { ok, origin: (mem as CmsSnapshot | null)?.origin ?? null };
     },
-    reset() { mem = null; nextTryAt = 0; lastFetchAt = 0; lastWritten = ""; lastMetaAt = 0; inflight = null; },
+    reset() {
+      mem = null;
+      nextTryAt = 0;
+      lastFetchAt = 0;
+      lastWritten = "";
+      lastMetaAt = 0;
+      inflight = null;
+    },
   };
 }

@@ -5,7 +5,23 @@
  */
 import type { InquiryRecord } from "./store.ts";
 
-export const CSV_COLUMNS = ["id", "received_at", "status", "handled_at", "handled_by", "name", "email", "phone", "organisation", "investor_type", "interests", "language", "message", "consent_at", "consent_version"] as const;
+export const CSV_COLUMNS = [
+  "id",
+  "received_at",
+  "status",
+  "handled_at",
+  "handled_by",
+  "name",
+  "email",
+  "phone",
+  "organisation",
+  "investor_type",
+  "interests",
+  "language",
+  "message",
+  "consent_at",
+  "consent_version",
+] as const;
 
 /** One CSV cell: neutralised when it starts like a formula, quoted when it holds a quote, comma or line break. */
 export function csvCell(v: string | null | undefined): string {
@@ -19,9 +35,24 @@ export function inquiriesCsv(rows: readonly InquiryRecord[]): string {
   for (const r of rows) {
     lines.push(
       [
-        r.id, r.receivedAt, r.handled ? "handled" : "open", r.handled?.at, r.handled?.by, r.name, r.email, r.phone, r.company,
-        r.profile, r.interests.join("; "), r.lang, r.message, r.consent.at, r.consent.version,
-      ].map(csvCell).join(","),
+        r.id,
+        r.receivedAt,
+        r.handled ? "handled" : "open",
+        r.handled?.at,
+        r.handled?.by,
+        r.name,
+        r.email,
+        r.phone,
+        r.company,
+        r.profile,
+        r.interests.join("; "),
+        r.lang,
+        r.message,
+        r.consent.at,
+        r.consent.version,
+      ]
+        .map(csvCell)
+        .join(","),
     );
   }
   return `﻿${lines.join("\r\n")}\r\n`;

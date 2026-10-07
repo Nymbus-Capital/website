@@ -49,17 +49,23 @@ const opts = { animations: "disabled", caret: "hide" } as const;
 
 /** Sampled pixels of a canvas with some ink (alpha above 8): 0 means a blank drawing. */
 const ink = (page: Page, testId: string) =>
-  page.getByTestId(testId).first().evaluate((c: HTMLCanvasElement) => {
-    if (!c.width || !c.height) return 0;
-    const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
-    let n = 0;
-    for (let i = 3; i < d.length; i += 4 * 7) if (d[i] > 8) n++;
-    return n;
-  });
+  page
+    .getByTestId(testId)
+    .first()
+    .evaluate((c: HTMLCanvasElement) => {
+      if (!c.width || !c.height) return 0;
+      const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 3; i < d.length; i += 4 * 7) if (d[i] > 8) n++;
+      return n;
+    });
 
 async function open(page: Page, baseURL: string, path: string, locale: "en" | "fr") {
   const origin = new URL(baseURL).origin;
-  await page.route((url) => url.origin !== origin, (route) => route.abort());
+  await page.route(
+    (url) => url.origin !== origin,
+    (route) => route.abort(),
+  );
   await page.context().addCookies([{ name: "nymbus-locale", value: locale, url: baseURL }]);
   await page.goto(path, { waitUntil: "networkidle" });
 }
@@ -79,8 +85,11 @@ async function settle(page: Page) {
 
 /** Every visible canvas the page drew (still frames under reduced motion) has ink: a blank one fails the run. */
 async function expectCanvasesDrawn(page: Page) {
-  const ids = await page.locator("canvas[data-testid]").evaluateAll((cs) =>
-    cs.filter((c) => c.getBoundingClientRect().width > 0).map((c) => c.getAttribute("data-testid")!));
+  const ids = await page
+    .locator("canvas[data-testid]")
+    .evaluateAll((cs) =>
+      cs.filter((c) => c.getBoundingClientRect().width > 0).map((c) => c.getAttribute("data-testid")!),
+    );
   for (const id of ids) expect(await ink(page, id), `${id} is blank`).toBeGreaterThan(100);
 }
 
@@ -132,7 +141,10 @@ test.describe("motion on, fake clock", () => {
       await expect(host).toHaveAttribute("data-running", "true");
       await page.clock.runFor(4000);
       expect(await ink(page, c.canvas), `${c.canvas} is blank`).toBeGreaterThan(100);
-      await page.getByTestId(c.canvas).first().screenshot({ ...opts, path: file("visual-motion", c.name, info.project.name) });
+      await page
+        .getByTestId(c.canvas)
+        .first()
+        .screenshot({ ...opts, path: file("visual-motion", c.name, info.project.name) });
     });
   }
 });

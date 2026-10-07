@@ -12,12 +12,25 @@ import { registerFund } from "./register.ts";
  * valuation, only when it starts exactly at the previous valuation day shown. The $ change is shown only
  * when it is consistent with that return (no distribution in between).
  */
-export function navChange(last: NavPoint, before: NavPoint | null): { changePct: number | null; change: number | null; reason: string | null } {
+export function navChange(
+  last: NavPoint,
+  before: NavPoint | null,
+): { changePct: number | null; change: number | null; reason: string | null } {
   if (!before) return { changePct: null, change: null, reason: "no previous valuation" };
   const r = last.net_daily_return;
-  if (last.net_return_method !== "apex_distribution_aware") return { changePct: null, change: null, reason: `return method ${last.net_return_method ?? "unknown"} (not distribution-aware)` };
+  if (last.net_return_method !== "apex_distribution_aware")
+    return {
+      changePct: null,
+      change: null,
+      reason: `return method ${last.net_return_method ?? "unknown"} (not distribution-aware)`,
+    };
   if (typeof r !== "number" || !Number.isFinite(r)) return { changePct: null, change: null, reason: "no daily return" };
-  if (last.return_start_date !== before.date) return { changePct: null, change: null, reason: `daily return starts ${last.return_start_date ?? "?"}, previous valuation shown is ${before.date}` };
+  if (last.return_start_date !== before.date)
+    return {
+      changePct: null,
+      change: null,
+      reason: `daily return starts ${last.return_start_date ?? "?"}, previous valuation shown is ${before.date}`,
+    };
   const nav = last.nav_per_share_local as number;
   const prevNav = before.nav_per_share_local as number;
   const priceRet = nav / prevNav - 1;
@@ -25,7 +38,13 @@ export function navChange(last: NavPoint, before: NavPoint | null): { changePct:
 }
 
 /** NAV per unit of each live class with its daily change; a failed source keeps the previous NAV. */
-export function buildNav(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string): { nav: FundData["nav"]; state: PartState } {
+export function buildNav(
+  raw: RawPayloads,
+  spec: FundSpec,
+  prev: FundData | undefined,
+  c: Ctx,
+  base: string,
+): { nav: FundData["nav"]; state: PartState } {
   const short = FUND_SOURCES[spec.key].dataplatform as DpShort;
   const res = raw.nav[short];
   const carry = (why: string): { nav: FundData["nav"]; state: PartState } => {
@@ -37,12 +56,19 @@ export function buildNav(raw: RawPayloads, spec: FundSpec, prev: FundData | unde
   const reg = registerFund(raw, spec);
   let allowed: { fundserv: string; display: string | null; currency: string | null }[];
   if (reg) {
-    allowed = reg.classes.filter((k) => k.status === "active").map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency }));
+    allowed = reg.classes
+      .filter((k) => k.status === "active")
+      .map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency }));
   } else if (prev?.nav?.classes.length) {
-    c.warn(`${base}.nav`, `fund register unavailable (${raw.apexFunds.error ?? "fund not found"}): previously published classes used`);
+    c.warn(
+      `${base}.nav`,
+      `fund register unavailable (${raw.apexFunds.error ?? "fund not found"}): previously published classes used`,
+    );
     allowed = prev.nav.classes.map((k) => ({ fundserv: k.fundserv, display: k.display, currency: k.currency }));
   } else {
-    return carry(`fund register unavailable (${raw.apexFunds.error ?? "fund not found in /api/apex/funds"}), live classes unknown`);
+    return carry(
+      `fund register unavailable (${raw.apexFunds.error ?? "fund not found in /api/apex/funds"}), live classes unknown`,
+    );
   }
   const byClass = new Map<string, Map<string, NavPoint>>();
   for (const r of res.data.rows) {
@@ -60,7 +86,10 @@ export function buildNav(raw: RawPayloads, spec: FundSpec, prev: FundData | unde
     const m = byClass.get(a.fundserv);
     const dates = m ? [...m.keys()].sort() : [];
     if (!dates.length) {
-      c.info(`${base}.nav.${a.fundserv}`, `no NAV for class ${a.display ?? a.fundserv} (${a.fundserv}) in the last weeks`);
+      c.info(
+        `${base}.nav.${a.fundserv}`,
+        `no NAV for class ${a.display ?? a.fundserv} (${a.fundserv}) in the last weeks`,
+      );
       continue;
     }
     const last = m!.get(dates[dates.length - 1])!;
@@ -71,24 +100,40 @@ export function buildNav(raw: RawPayloads, spec: FundSpec, prev: FundData | unde
       fundserv: a.fundserv,
       display: a.display ?? last.class_display ?? a.fundserv,
       currency: a.currency ?? last.currency ?? "CAD",
-      nav: last.nav_per_share_local as number, date: last.date,
+      nav: last.nav_per_share_local as number,
+      date: last.date,
       prevNav: before ? (before.nav_per_share_local as number) : null,
       prevDate: before?.date ?? null,
-      change: ch.change, changePct: ch.changePct,
+      change: ch.change,
+      changePct: ch.changePct,
     });
   }
   if (!classes.length) return carry("no NAV row for any live class");
   if (noChange.length) c.info(`${base}.nav`, `daily change not shown for ${noChange.join("; ")}`);
-  const asOf = classes.map((k) => k.date as string).sort().pop() ?? null;
-  c.prov[`${base}.nav`] = `dataplatform /api/performance/nav-timeseries ${short} (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)`;
+  const asOf =
+    classes
+      .map((k) => k.date as string)
+      .sort()
+      .pop() ?? null;
+  c.prov[`${base}.nav`] =
+    `dataplatform /api/performance/nav-timeseries ${short} (FINAL_NAV, NAV per unit in class currency, apex preferred; daily change = Apex distribution-aware net daily return from the previous valuation day, per class date); classes from /api/apex/funds (active)`;
   return { nav: { asOf, classes }, state: "fresh" };
 }
 
 /** Fund AUM (unitholder holdings total); a failed source keeps the previous AUM. */
-export function buildAum(raw: RawPayloads, spec: FundSpec, prev: FundData | undefined, c: Ctx, base: string): { aum: FundData["aum"]; state: PartState } {
+export function buildAum(
+  raw: RawPayloads,
+  spec: FundSpec,
+  prev: FundData | undefined,
+  c: Ctx,
+  base: string,
+): { aum: FundData["aum"]; state: PartState } {
   const short = FUND_SOURCES[spec.key].dataplatform as DpShort;
   if (!raw.aum.ok || !raw.aum.data) {
-    c.warn(`${base}.aum`, `AUM unavailable (${raw.aum.error ?? "not fetched"}); ${prev?.aum ? "previous AUM kept" : "no AUM shown"}`);
+    c.warn(
+      `${base}.aum`,
+      `AUM unavailable (${raw.aum.error ?? "not fetched"}); ${prev?.aum ? "previous AUM kept" : "no AUM shown"}`,
+    );
     if (prev?.aum) c.prov[`${base}.aum`] = carriedNoteFor(c, base, "aum");
     return { aum: prev?.aum ?? null, state: prev?.aum ? "carried" : "none" };
   }
@@ -98,6 +143,7 @@ export function buildAum(raw: RawPayloads, spec: FundSpec, prev: FundData | unde
     return { aum: null, state: "none" };
   }
   const asOf = raw.aum.data.snapshot_date ?? raw.fetchedAt.slice(0, 10);
-  c.prov[`${base}.aum`] = `dataplatform /api/unitholders/aum group_by=short_name (sum of holding_value_cad, snapshot ${asOf}); fund total only`;
+  c.prov[`${base}.aum`] =
+    `dataplatform /api/unitholders/aum group_by=short_name (sum of holding_value_cad, snapshot ${asOf}); fund total only`;
   return { aum: { cad: v, asOf }, state: "fresh" };
 }

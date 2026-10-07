@@ -32,15 +32,26 @@ export function rankingsToShow(
 }
 
 /** Display order of the percentile rankings: RBC Investor Services first, then the others as entered. */
-const byProvider = (list: ThirdPartyRanking[]): ThirdPartyRanking[] =>
-  [...list.filter((e) => e.provider === "rbc-pfs"), ...list.filter((e) => e.provider !== "rbc-pfs")];
+const byProvider = (list: ThirdPartyRanking[]): ThirdPartyRanking[] => [
+  ...list.filter((e) => e.provider === "rbc-pfs"),
+  ...list.filter((e) => e.provider !== "rbc-pfs"),
+];
 
 /** The CIFSC category for the facts table: the admin's, else the Fundata category when every entry agrees. */
-export function cifscCategory(content: Pick<FundContent, "cifscCategory" | "rankings" | "hide"> | null | undefined, lang: Locale, classes?: { fundserv: string }[], now?: Date): string | null {
+export function cifscCategory(
+  content: Pick<FundContent, "cifscCategory" | "rankings" | "hide"> | null | undefined,
+  lang: Locale,
+  classes?: { fundserv: string }[],
+  now?: Date,
+): string | null {
   const own = content?.cifscCategory;
   if (own && (own.en || own.fr)) return tr(own, lang);
   if (!content || content.hide?.rankings) return null;
-  const lib = publicRankings(content.rankings, { now: now ?? null, months: DEFAULT_MAX_AGE_MONTHS, classes }).fundLibrary;
+  const lib = publicRankings(content.rankings, {
+    now: now ?? null,
+    months: DEFAULT_MAX_AGE_MONTHS,
+    classes,
+  }).fundLibrary;
   const names = [...new Set(lib.map((e) => tr(e.category, lang)).filter(Boolean))];
   return names.length === 1 ? names[0] : null;
 }

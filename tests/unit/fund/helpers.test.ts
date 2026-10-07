@@ -1,12 +1,51 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fmt, pct, money, moneyParts, compactMoney, monthLabel, dateLabel, charValue, charCount, pctTick, fileSize, bigMoney } from "../../../src/components/fund/lib/format.ts";
-import { nice, linear, barPath, barWidthPct, monotonePath, bands, nearestIndex, yearTicks, monthTicks } from "../../../src/components/fund/lib/scale.ts";
+import {
+  fmt,
+  pct,
+  money,
+  moneyParts,
+  compactMoney,
+  monthLabel,
+  dateLabel,
+  charValue,
+  charCount,
+  pctTick,
+  fileSize,
+  bigMoney,
+} from "../../../src/components/fund/lib/format.ts";
+import {
+  nice,
+  linear,
+  barPath,
+  barWidthPct,
+  monotonePath,
+  bands,
+  nearestIndex,
+  yearTicks,
+  monthTicks,
+} from "../../../src/components/fund/lib/scale.ts";
 import { groupDocuments, REGULATORY_DOCS } from "../../../src/components/fund/lib/documents.ts";
-import { headlineClass, initials, navDirection, resolveManagers, riskIndex, sortedClasses } from "../../../src/components/fund/lib/facts.ts";
+import {
+  headlineClass,
+  initials,
+  navDirection,
+  resolveManagers,
+  riskIndex,
+  sortedClasses,
+} from "../../../src/components/fund/lib/facts.ts";
 import { availableRanges, growthRange } from "../../../src/components/fund/lib/growth.ts";
 import { heatCell, heatmapGrid, heatScale } from "../../../src/components/fund/lib/heatmap.ts";
-import { calendarRows, isAnnualized, perfClassLabel, returnBadges, riskWindows, trailingPeriods, trailingRows, vaRounded } from "../../../src/components/fund/lib/performance.ts";
+import {
+  calendarRows,
+  isAnnualized,
+  perfClassLabel,
+  returnBadges,
+  riskWindows,
+  trailingPeriods,
+  trailingRows,
+  vaRounded,
+} from "../../../src/components/fund/lib/performance.ts";
 import { bucketRows } from "../../../src/components/fund/lib/portfolio.ts";
 import { visibleBlocks } from "../../../src/components/fund/lib/visibility.ts";
 import type { DocumentMeta, FundData, GrowthPoint, NavClass } from "../../../src/lib/data/types.ts";
@@ -80,10 +119,21 @@ test("bar path: rounded far end, empty for zero height", () => {
 });
 
 test("monotone path passes through every point", () => {
-  const d = monotonePath([[0, 10], [10, 5], [20, 5], [30, 0]]);
+  const d = monotonePath([
+    [0, 10],
+    [10, 5],
+    [20, 5],
+    [30, 0],
+  ]);
   assert.ok(d.startsWith("M0,10"));
   for (const p of ["10,5", "20,5", "30,0"]) assert.ok(d.includes(p));
-  assert.equal(monotonePath([[0, 0], [5, 5]]), "M0,0L5,5");
+  assert.equal(
+    monotonePath([
+      [0, 0],
+      [5, 5],
+    ]),
+    "M0,0L5,5",
+  );
 });
 
 test("bands, nearest index, ticks", () => {
@@ -93,7 +143,10 @@ test("bands, nearest index, ticks", () => {
   assert.equal(b.barX(1, 1), 150);
   assert.equal(nearestIndex([0, 10, 20, 30], 14), 1);
   assert.equal(nearestIndex([0, 10, 20, 30], 16), 2);
-  const dates = Array.from({ length: 90 }, (_, i) => `${2019 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, "0")}-28`);
+  const dates = Array.from(
+    { length: 90 },
+    (_, i) => `${2019 + Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, "0")}-28`,
+  );
   const yt = yearTicks(dates, 4);
   assert.ok(yt.length <= 4 && yt.every((t) => dates[t.i].startsWith(t.label)));
   assert.deepEqual(monthTicks(dates.slice(0, 13), 5).at(-1), 12);
@@ -107,7 +160,16 @@ test("trailing periods and annualisation", () => {
   assert.equal(isAnnualized("SI", "2019-01-31", "2026-08-31"), true);
 });
 
-const cls = (fundserv: string, nav: number | null): NavClass => ({ fundserv, display: fundserv, currency: "CAD", nav, date: "2026-09-26", prevNav: null, change: null, changePct: null });
+const cls = (fundserv: string, nav: number | null): NavClass => ({
+  fundserv,
+  display: fundserv,
+  currency: "CAD",
+  nav,
+  date: "2026-09-26",
+  prevNav: null,
+  change: null,
+  changePct: null,
+});
 test("headline class: admin choice, then default, then first with a NAV", () => {
   const cs = [cls("LDM000", null), cls("LDM001", 10), cls("LDM002", 11)];
   assert.equal(headlineClass(cs, ["LDM002", "LDM001"])?.fundserv, "LDM002");
@@ -117,7 +179,11 @@ test("headline class: admin choice, then default, then first with a NAV", () => 
 });
 
 test("growth ranges rebase to 10 000 and never invent points", () => {
-  const pts: GrowthPoint[] = Array.from({ length: 50 }, (_, i) => ({ date: `d${i}`, fund: 10000 * (1 + 0.01 * i), index: i < 3 ? null : 10000 * (1 + 0.005 * i) }));
+  const pts: GrowthPoint[] = Array.from({ length: 50 }, (_, i) => ({
+    date: `d${i}`,
+    fund: 10000 * (1 + 0.01 * i),
+    index: i < 3 ? null : 10000 * (1 + 0.005 * i),
+  }));
   assert.deepEqual(availableRanges(pts), ["1Y", "3Y", "SI"]);
   const si = growthRange(pts, "SI");
   assert.equal(si.fund.length, 50);
@@ -131,9 +197,19 @@ test("growth ranges rebase to 10 000 and never invent points", () => {
 });
 
 test("heatmap grid and colours", () => {
-  const monthly = [{ month: "2025-11-30", r: 0.01 }, { month: "2025-12-31", r: -0.02 }, { month: "2026-01-31", r: 0.003 }];
-  const g = heatmapGrid(monthly, [{ year: 2025, fund: 0.05 }, { year: 2026, fund: 0.003, partial: true }]);
-  assert.deepEqual(g.map((r) => r.year), [2026, 2025]);
+  const monthly = [
+    { month: "2025-11-30", r: 0.01 },
+    { month: "2025-12-31", r: -0.02 },
+    { month: "2026-01-31", r: 0.003 },
+  ];
+  const g = heatmapGrid(monthly, [
+    { year: 2025, fund: 0.05 },
+    { year: 2026, fund: 0.003, partial: true },
+  ]);
+  assert.deepEqual(
+    g.map((r) => r.year),
+    [2026, 2025],
+  );
   assert.equal(g[1].cells[10], 0.01);
   assert.equal(g[1].cells[0], null);
   assert.equal(g[1].total, 0.05);
@@ -150,34 +226,108 @@ test("heatmap grid and colours", () => {
 });
 
 test("calendar rows and buckets drop empty values", () => {
-  assert.deepEqual(calendarRows([{ year: 2021, fund: null, index: null }, { year: 2020, fund: 0.01 }]).map((r) => r.year), [2020]);
-  assert.deepEqual(bucketRows([{ label: "a", fund: 0.1 }, { label: "b", fund: 0.3 }, { label: "c", fund: null }]).map((b) => b.label), ["b", "a"]);
+  assert.deepEqual(
+    calendarRows([
+      { year: 2021, fund: null, index: null },
+      { year: 2020, fund: 0.01 },
+    ]).map((r) => r.year),
+    [2020],
+  );
+  assert.deepEqual(
+    bucketRows([
+      { label: "a", fund: 0.1 },
+      { label: "b", fund: 0.3 },
+      { label: "c", fund: null },
+    ]).map((b) => b.label),
+    ["b", "a"],
+  );
   assert.equal(riskIndex("medium"), 2);
   assert.equal(riskIndex(undefined), 0);
 });
 
 test("risk windows accept one object or several", () => {
-  const w = (window: "SI" | "3Y", v: number | null) => ({ window, annReturn: v, annVol: null, downsideDev: null, sharpe: null, sortino: null, maxDrawdown: null, positiveMonths: null, bestMonth: null, worstMonth: null });
-  assert.deepEqual(riskWindows(w("SI", 0.05)).map((r) => r.window), ["SI"]);
-  assert.deepEqual(riskWindows([w("3Y", 0.05), w("SI", 0.04)]).map((r) => r.window), ["SI", "3Y"]);
+  const w = (window: "SI" | "3Y", v: number | null) => ({
+    window,
+    annReturn: v,
+    annVol: null,
+    downsideDev: null,
+    sharpe: null,
+    sortino: null,
+    maxDrawdown: null,
+    positiveMonths: null,
+    bestMonth: null,
+    worstMonth: null,
+  });
+  assert.deepEqual(
+    riskWindows(w("SI", 0.05)).map((r) => r.window),
+    ["SI"],
+  );
+  assert.deepEqual(
+    riskWindows([w("3Y", 0.05), w("SI", 0.04)]).map((r) => r.window),
+    ["SI", "3Y"],
+  );
   assert.deepEqual(riskWindows({ SI: w("SI", null) }), []);
   assert.deepEqual(riskWindows(null), []);
 });
 
 test("documents grouped by type, newest first, unpublished dropped", () => {
   const d = (id: string, type: DocumentMeta["type"], date: string, published = true): DocumentMeta => ({
-    id, scope: "firm", type, lang: "both", title: { en: id, fr: id }, date, fileName: `${id}.pdf`, size: 1, sha256: "", published, uploadedBy: "", uploadedAt: "",
+    id,
+    scope: "firm",
+    type,
+    lang: "both",
+    title: { en: id, fr: id },
+    date,
+    fileName: `${id}.pdf`,
+    size: 1,
+    sha256: "",
+    published,
+    uploadedBy: "",
+    uploadedAt: "",
   });
-  const g = groupDocuments([d("a", "commentary", "2026-01-01"), d("b", "factsheet", "2026-02-01"), d("c", "factsheet", "2026-03-01"), d("x", "esg", "2026-01-01", false)], "en");
-  assert.deepEqual(g.map((x) => x.type), ["factsheet", "commentary"]);
-  assert.deepEqual(g[0].docs.map((x) => x.id), ["c", "b"]);
+  const g = groupDocuments(
+    [
+      d("a", "commentary", "2026-01-01"),
+      d("b", "factsheet", "2026-02-01"),
+      d("c", "factsheet", "2026-03-01"),
+      d("x", "esg", "2026-01-01", false),
+    ],
+    "en",
+  );
+  assert.deepEqual(
+    g.map((x) => x.type),
+    ["factsheet", "commentary"],
+  );
+  assert.deepEqual(
+    g[0].docs.map((x) => x.id),
+    ["c", "b"],
+  );
 });
 
 test("visible blocks follow data and admin switches", () => {
   const data = {
-    key: "monthly-income", sourceName: "SEST",
-    performance: { asOf: "2026-08-31", basis: "net", firstMonth: "2019-01-31", monthly: [{ month: "2026-08-31", r: 0.01 }], trailing: { fund: { SI: 0.05 } }, calendar: [], growth: [{ date: "a", fund: 1 }, { date: "b", fund: 2 }] },
-    risk: null, nav: null, aum: null, characteristics: [], breakdowns: {}, topHoldings: [], esg: [], factsheetMonth: null,
+    key: "monthly-income",
+    sourceName: "SEST",
+    performance: {
+      asOf: "2026-08-31",
+      basis: "net",
+      firstMonth: "2019-01-31",
+      monthly: [{ month: "2026-08-31", r: 0.01 }],
+      trailing: { fund: { SI: 0.05 } },
+      calendar: [],
+      growth: [
+        { date: "a", fund: 1 },
+        { date: "b", fund: 2 },
+      ],
+    },
+    risk: null,
+    nav: null,
+    aum: null,
+    characteristics: [],
+    breakdowns: {},
+    topHoldings: [],
+    esg: [],
+    factsheetMonth: null,
   } as unknown as FundData;
   const v = visibleBlocks(data, {}, 0);
   assert.equal(v.trailing, true);
@@ -204,24 +354,42 @@ test("performance class label", () => {
   assert.equal(perfClassLabel({ returnClassLabel: "Strategy composite" }, "class"), "Strategy composite");
   assert.equal(perfClassLabel({ returnClass: "FP" }, "class"), "class FP");
   // SEB: the label follows the class of the data (H fallback / F full history), localised
-  assert.equal(perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "Series"), "Series H");
-  assert.equal(perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "S\u00e9rie"), "S\u00e9rie H");
-  assert.equal(perfClassLabel({ classCode: "STRATEGY", returnClass: "F", returnClassLabel: "Series F" } as never, "S\u00e9rie"), "S\u00e9rie F");
+  assert.equal(
+    perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "Series"),
+    "Series H",
+  );
+  assert.equal(
+    perfClassLabel({ classCode: "STRATEGY_H", returnClass: "H", returnClassLabel: "Series H" } as never, "S\u00e9rie"),
+    "S\u00e9rie H",
+  );
+  assert.equal(
+    perfClassLabel({ classCode: "STRATEGY", returnClass: "F", returnClassLabel: "Series F" } as never, "S\u00e9rie"),
+    "S\u00e9rie F",
+  );
   assert.equal(perfClassLabel({}, "class"), null);
   assert.equal(perfClassLabel(null, "class"), null);
 });
 
 test("money parts rebuild money() around fmt()", () => {
-  for (const cur of ["CAD", "USD", "EUR"]) for (const lang of ["en", "fr"] as const) {
-    const p = moneyParts(cur, lang);
-    assert.equal(fmt(10.1905, { decimals: 4, lang, ...p }), money(10.1905, cur, lang, 4), `${cur} ${lang}`);
-  }
+  for (const cur of ["CAD", "USD", "EUR"])
+    for (const lang of ["en", "fr"] as const) {
+      const p = moneyParts(cur, lang);
+      assert.equal(fmt(10.1905, { decimals: 4, lang, ...p }), money(10.1905, cur, lang, 4), `${cur} ${lang}`);
+    }
 });
 
 test("return badges: published periods only, in order, annualized flag, hidden by the admin", () => {
-  const perf = { trailing: { fund: { SI: 0.05, "1Y": 0.04, "2Y": 0.03, "1M": -0.001, "10Y": null } }, firstMonth: "2019-01-31", asOf: "2026-08-31" };
+  const perf = {
+    trailing: { fund: { SI: 0.05, "1Y": 0.04, "2Y": 0.03, "1M": -0.001, "10Y": null } },
+    firstMonth: "2019-01-31",
+    asOf: "2026-08-31",
+  };
   const b = returnBadges(perf);
-  assert.deepEqual(b.map((x) => x.period), ["1M", "1Y", "SI"], "2Y is not a badge, 10Y null is dropped");
+  assert.deepEqual(
+    b.map((x) => x.period),
+    ["1M", "1Y", "SI"],
+    "2Y is not a badge, 10Y null is dropped",
+  );
   assert.equal(b[0].value, -0.001);
   assert.equal(b[2].annualized, true);
   assert.equal(b[1].annualized, false);
@@ -230,8 +398,18 @@ test("return badges: published periods only, in order, annualized flag, hidden b
 });
 
 test("trailing rows carry benchmark and value added only when published", () => {
-  const rows = trailingRows({ trailing: { fund: { "1Y": 0.04, SI: 0.05 }, index: { "1Y": 0.03 }, va: { "1Y": 0.01, SI: null } }, firstMonth: "2019-01-31", asOf: "2026-08-31" });
-  assert.deepEqual(rows.map((r) => [r.period, r.index, r.va, r.annualized]), [["1Y", 0.03, 0.01, false], ["SI", null, null, true]]);
+  const rows = trailingRows({
+    trailing: { fund: { "1Y": 0.04, SI: 0.05 }, index: { "1Y": 0.03 }, va: { "1Y": 0.01, SI: null } },
+    firstMonth: "2019-01-31",
+    asOf: "2026-08-31",
+  });
+  assert.deepEqual(
+    rows.map((r) => [r.period, r.index, r.va, r.annualized]),
+    [
+      ["1Y", 0.03, 0.01, false],
+      ["SI", null, null, true],
+    ],
+  );
   assert.deepEqual(trailingRows(null), []);
 });
 
@@ -245,7 +423,10 @@ test("nav direction rounds like the display", () => {
 test("managers resolve against the team registry", () => {
   const team = [{ name: "Gabriel Cefaloni", photo: "g.png" }, { name: "Mathieu Poulin-Brière" }];
   const r = resolveManagers([" gabriel cefaloni ", "Mathieu Poulin-Briere", "Jane Doe", "", "Gabriel Cefaloni"], team);
-  assert.deepEqual(r.map((x) => x.name), ["Gabriel Cefaloni", "Mathieu Poulin-Brière", "Jane Doe"]);
+  assert.deepEqual(
+    r.map((x) => x.name),
+    ["Gabriel Cefaloni", "Mathieu Poulin-Brière", "Jane Doe"],
+  );
   assert.equal(r[0].member?.photo, "g.png");
   assert.equal(r[2].member, null);
   assert.deepEqual(resolveManagers(undefined, team), []);
@@ -255,17 +436,30 @@ test("managers resolve against the team registry", () => {
 
 test("series sorted with the headline class first", () => {
   const cs = [cls("LDM081", 10), cls("LDM001", 10), cls("LDM021", 9)];
-  assert.deepEqual(sortedClasses(cs, "ldm081").map((c) => c.fundserv), ["LDM081", "LDM001", "LDM021"]);
-  assert.deepEqual(sortedClasses(cs, null).map((c) => c.fundserv), ["LDM001", "LDM021", "LDM081"]);
+  assert.deepEqual(
+    sortedClasses(cs, "ldm081").map((c) => c.fundserv),
+    ["LDM081", "LDM001", "LDM021"],
+  );
+  assert.deepEqual(
+    sortedClasses(cs, null).map((c) => c.fundserv),
+    ["LDM001", "LDM021", "LDM081"],
+  );
   assert.deepEqual(REGULATORY_DOCS, ["fund-facts", "prospectus", "annual-report", "interim-report", "mrfp"]);
 });
 
 test("horizontal bar width: clamped to [0, 100 %]; a negative weight (negative cash) draws no bar, never an invalid width", () => {
   // a breakdown with negative cash, as a daily book can have while trades settle
-  const rows = [{ label: "Corporate bonds", fund: 0.62 }, { label: "Federal bonds", fund: 0.4 }, { label: "Cash", fund: -0.02 }];
+  const rows = [
+    { label: "Corporate bonds", fund: 0.62 },
+    { label: "Federal bonds", fund: 0.4 },
+    { label: "Cash", fund: -0.02 },
+  ];
   const max = Math.max(0.0001, ...rows.map((r) => r.fund));
   const widths = rows.map((r) => barWidthPct(r.fund, max));
-  assert.deepEqual(widths.map((w) => +w.toFixed(4)), [100, 64.5161, 0]);
+  assert.deepEqual(
+    widths.map((w) => +w.toFixed(4)),
+    [100, 64.5161, 0],
+  );
   for (const w of widths) assert.ok(Number.isFinite(w) && w >= 0 && w <= 100, `${w}`);
   assert.equal(barWidthPct(null, max), 0);
   assert.equal(barWidthPct(Number.NaN, max), 0);

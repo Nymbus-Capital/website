@@ -16,8 +16,10 @@ export function telHref(num: string): string {
 
 export function contactParts(line: string): Part[] {
   const hits: { start: number; end: number; href: string }[] = [];
-  for (const m of line.matchAll(PHONE)) hits.push({ start: m.index!, end: m.index! + m[0].length, href: telHref(m[0]) });
-  for (const m of line.matchAll(EMAIL)) hits.push({ start: m.index!, end: m.index! + m[0].length, href: `mailto:${m[0]}` });
+  for (const m of line.matchAll(PHONE))
+    hits.push({ start: m.index!, end: m.index! + m[0].length, href: telHref(m[0]) });
+  for (const m of line.matchAll(EMAIL))
+    hits.push({ start: m.index!, end: m.index! + m[0].length, href: `mailto:${m[0]}` });
   hits.sort((a, b) => a.start - b.start);
   const parts: Part[] = [];
   let at = 0;

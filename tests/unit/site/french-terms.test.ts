@@ -24,7 +24,8 @@ function walk(dir: string, out: string[] = []): string[] {
   }
   return out;
 }
-const leaves = (v: unknown): string[] => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : []);
+const leaves = (v: unknown): string[] =>
+  typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : [];
 
 test("French: « volatilité à la baisse », never « baissière », anywhere in the source", () => {
   const bad = walk(SRC).filter((f) => /baissi[eè]re/i.test(readFileSync(f, "utf8")));
@@ -32,8 +33,20 @@ test("French: « volatilité à la baisse », never « baissière », anywhere i
 });
 
 test("visitor copy writes Fundserv (not FundServ)", () => {
-  const all = leaves([T, FUND_TEXTS, HOME_COPY, FUND_COPY, VEHICLE_COPY, SOL_COPY, AUDIENCES, FUNDS.map((f) => f.defaults)]);
-  assert.deepEqual(all.filter((s) => /FundServ/.test(s)), []);
+  const all = leaves([
+    T,
+    FUND_TEXTS,
+    HOME_COPY,
+    FUND_COPY,
+    VEHICLE_COPY,
+    SOL_COPY,
+    AUDIENCES,
+    FUNDS.map((f) => f.defaults),
+  ]);
+  assert.deepEqual(
+    all.filter((s) => /FundServ/.test(s)),
+    [],
+  );
 });
 
 // EN "engineers" is fine (Gabriel, 2026-10-03: "scientists, engineers and market veterans"); FR uses « développeurs »

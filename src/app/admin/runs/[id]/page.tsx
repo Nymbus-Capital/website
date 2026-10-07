@@ -22,7 +22,16 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
   const name = (k: string) => FUNDS.find((f) => f.key === k)?.short.en ?? k;
   return (
     <>
-      <Head crumb="admin / pipeline / run" title={`run ${report.id}`} lead={<>Started {when(report.startedAt)} by {report.by} ({report.trigger}), took {duration(report.startedAt, report.finishedAt)}.</>}>
+      <Head
+        crumb="admin / pipeline / run"
+        title={`run ${report.id}`}
+        lead={
+          <>
+            Started {when(report.startedAt)} by {report.by} ({report.trigger}), took{" "}
+            {duration(report.startedAt, report.finishedAt)}.
+          </>
+        }
+      >
         <RunStatusPill status={report.status} />
         <PublishRunButton run={report} publishedRunId={status?.publishedRunId ?? null} />
       </Head>
@@ -35,9 +44,17 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
               <table className="adm-table">
                 <thead>
                   <tr>
-                    <th>fund</th><th>outcome</th><th>as of</th><th>basis</th>
-                    <th className="num">1m</th><th className="num">ytd</th><th className="num">1y</th><th className="num">si</th>
-                    <th>nav</th><th className="num">aum</th><th>factsheet</th>
+                    <th>fund</th>
+                    <th>outcome</th>
+                    <th>as of</th>
+                    <th>basis</th>
+                    <th className="num">1m</th>
+                    <th className="num">ytd</th>
+                    <th className="num">1y</th>
+                    <th className="num">si</th>
+                    <th>nav</th>
+                    <th className="num">aum</th>
+                    <th>factsheet</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -46,8 +63,13 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
                     const st = report.funds?.[f.key];
                     return (
                       <tr key={f.key}>
-                        <td>{f.short.en}{s?.variant ? <div className="adm-small adm-muted">{s.variant}</div> : null}</td>
-                        <td><Pill tone={fundStateTone(st)}>{st ?? "—"}</Pill></td>
+                        <td>
+                          {f.short.en}
+                          {s?.variant ? <div className="adm-small adm-muted">{s.variant}</div> : null}
+                        </td>
+                        <td>
+                          <Pill tone={fundStateTone(st)}>{st ?? "—"}</Pill>
+                        </td>
                         <td className="tabnum">{s?.performanceAsOf ?? "—"}</td>
                         <td className="adm-muted">{s?.basis ?? "—"}</td>
                         <td className="num">{pct(s?.r1M)}</td>
@@ -56,7 +78,10 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
                         <td className="num">{pct(s?.rSI)}</td>
                         <td className="adm-small">
                           {s?.classes.length
-                            ? s.classes.slice(0, 3).map((c) => `${c.display} ${num(c.nav, 4)}`).join(" · ") + (s.classes.length > 3 ? ` +${s.classes.length - 3}` : "")
+                            ? s.classes
+                                .slice(0, 3)
+                                .map((c) => `${c.display} ${num(c.nav, 4)}`)
+                                .join(" · ") + (s.classes.length > 3 ? ` +${s.classes.length - 3}` : "")
                             : "—"}
                         </td>
                         <td className="num">{money(s?.aumCad)}</td>
@@ -69,7 +94,9 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
             </div>
           </section>
           <section className="adm-panel">
-            <h2 className="adm-h2">issues <span className="sp adm-small">{report.issues.length}</span></h2>
+            <h2 className="adm-h2">
+              issues <span className="sp adm-small">{report.issues.length}</span>
+            </h2>
             <IssueList issues={report.issues} />
           </section>
         </div>
@@ -77,12 +104,18 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
           <section className="adm-panel">
             <h2 className="adm-h2">as of</h2>
             <dl className="adm-dl">
-              <dt>performance</dt><dd>{report.asOf?.performance ?? "—"}</dd>
-              <dt>nav</dt><dd>{report.asOf?.nav ?? "—"}</dd>
-              <dt>aum</dt><dd>{report.asOf?.aum ?? "—"}</dd>
-              <dt>factsheet</dt><dd>{report.asOf?.factsheet ?? "—"}</dd>
-              <dt>data mode</dt><dd>{summary.mode}</dd>
-              <dt>published</dt><dd>{report.publishedAt ? `${when(report.publishedAt)} by ${report.publishedBy ?? "—"}` : "no"}</dd>
+              <dt>performance</dt>
+              <dd>{report.asOf?.performance ?? "—"}</dd>
+              <dt>nav</dt>
+              <dd>{report.asOf?.nav ?? "—"}</dd>
+              <dt>aum</dt>
+              <dd>{report.asOf?.aum ?? "—"}</dd>
+              <dt>factsheet</dt>
+              <dd>{report.asOf?.factsheet ?? "—"}</dd>
+              <dt>data mode</dt>
+              <dd>{summary.mode}</dd>
+              <dt>published</dt>
+              <dd>{report.publishedAt ? `${when(report.publishedAt)} by ${report.publishedBy ?? "—"}` : "no"}</dd>
             </dl>
           </section>
           <section className="adm-panel">
@@ -91,10 +124,18 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
               {report.sources.map((s) => (
                 <li key={s.name}>
                   <Pill tone={s.ok ? "ok" : "err"}>{s.ok ? "ok" : "fail"}</Pill>
-                  <div>{s.name}{s.detail ? <code>{s.detail}</code> : null}</div>
+                  <div>
+                    {s.name}
+                    {s.detail ? <code>{s.detail}</code> : null}
+                  </div>
                 </li>
               ))}
-              {!report.sources.length ? <li><span /><span className="adm-muted">none recorded</span></li> : null}
+              {!report.sources.length ? (
+                <li>
+                  <span />
+                  <span className="adm-muted">none recorded</span>
+                </li>
+              ) : null}
             </ul>
           </section>
           {summary.provenance.length ? (
@@ -102,13 +143,25 @@ export default async function RunDetail({ params }: { params: Promise<{ id: stri
               <h2 className="adm-h2">provenance</h2>
               <dl className="adm-dl" style={{ fontSize: 12 }}>
                 {summary.provenance.slice(0, 40).map(([k, v]) => (
-                  <Fragment key={k}><dt className="mono">{k.replace(/^funds\./, "")}</dt><dd>{v}</dd></Fragment>
+                  <Fragment key={k}>
+                    <dt className="mono">{k.replace(/^funds\./, "")}</dt>
+                    <dd>{v}</dd>
+                  </Fragment>
                 ))}
               </dl>
             </section>
           ) : null}
-          <Link href="/admin/runs" className="adm-link adm-small">← all runs</Link>
-          <span className="adm-small">Funds kept on their previous data: {Object.entries(report.funds ?? {}).filter(([, v]) => v !== "updated").map(([k]) => name(k)).join(", ") || "none"}.</span>
+          <Link href="/admin/runs" className="adm-link adm-small">
+            ← all runs
+          </Link>
+          <span className="adm-small">
+            Funds kept on their previous data:{" "}
+            {Object.entries(report.funds ?? {})
+              .filter(([, v]) => v !== "updated")
+              .map(([k]) => name(k))
+              .join(", ") || "none"}
+            .
+          </span>
         </div>
       </div>
     </>

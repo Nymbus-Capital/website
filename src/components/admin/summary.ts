@@ -9,7 +9,10 @@ import { fundSpec, shownVariant } from "../../config/funds.ts";
  * "published", or "blocked" that an admin explicitly published (publishedAt set), and live (not sample) data.
  * Never pending-review, failed or dry-run snapshots.
  */
-export function isPinnable(report: { status: string; publishedAt?: string; classChanges?: string[]; classChangesApprovedAt?: string }, data: { mode?: string } | null | undefined): boolean {
+export function isPinnable(
+  report: { status: string; publishedAt?: string; classChanges?: string[]; classChangesApprovedAt?: string },
+  data: { mode?: string } | null | undefined,
+): boolean {
   if (!data || data.mode !== "live") return false;
   // its stored data holds a performance class change nobody approved (it went live without it)
   if (report.classChanges?.length && !report.classChangesApprovedAt) return false;
@@ -28,7 +31,14 @@ interface FundSummary {
   r1Y: number | null;
   rSI: number | null;
   navAsOf: string | null;
-  classes: { fundserv: string; display: string; currency: string; nav: number | null; date: string | null; changePct: number | null }[];
+  classes: {
+    fundserv: string;
+    display: string;
+    currency: string;
+    nav: number | null;
+    date: string | null;
+    changePct: number | null;
+  }[];
   aumCad: number | null;
   aumAsOf: string | null;
   factsheetMonth: string | null;
@@ -43,14 +53,19 @@ export function summarizeFund(key: FundKey, f: FundData | undefined | null): Fun
     key,
     performanceAsOf: f?.performance?.asOf ?? null,
     basis: f?.performance?.basis ?? null,
-    variant: f?.performance ? shownVariant(fundSpec(key) ?? {}, f.defaultVariant)?.name.en ?? null : null,
+    variant: f?.performance ? (shownVariant(fundSpec(key) ?? {}, f.defaultVariant)?.name.en ?? null) : null,
     r1M: n(t["1M"]),
     rYTD: n(t.YTD),
     r1Y: n(t["1Y"]),
     rSI: n(t.SI),
     navAsOf: f?.nav?.asOf ?? null,
     classes: (f?.nav?.classes ?? []).map((c) => ({
-      fundserv: c.fundserv, display: c.display, currency: c.currency, nav: n(c.nav), date: c.date, changePct: n(c.changePct),
+      fundserv: c.fundserv,
+      display: c.display,
+      currency: c.currency,
+      nav: n(c.nav),
+      date: c.date,
+      changePct: n(c.changePct),
     })),
     aumCad: n(f?.aum?.cad),
     aumAsOf: f?.aum?.asOf ?? null,

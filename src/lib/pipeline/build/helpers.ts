@@ -13,7 +13,10 @@ export function monthRanges(ms: string[]): string {
   let a: string | null = null;
   let b: string | null = null;
   for (const m of [...ms].sort()) {
-    if (b && addMonths(b, 1) === toMonthEnd(m)) { b = m; continue; }
+    if (b && addMonths(b, 1) === toMonthEnd(m)) {
+      b = m;
+      continue;
+    }
     if (a) out.push(a === b ? ym(a) : `${ym(a)} to ${ym(b!)}`);
     a = b = m;
   }
@@ -35,10 +38,23 @@ export function fromTrailingMap(t: ReturnType<typeof trailingOf>): PeriodMap {
 export function riskFrom(r: RiskResult | null): RiskStats | null {
   if (!r) return null;
   return {
-    window: r.window, annReturn: r.annReturn, annVol: r.annVol, downsideDev: r.downsideDev, sharpe: r.sharpe, sortino: r.sortino,
-    maxDrawdown: r.maxDrawdown, positiveMonths: r.positiveMonths, bestMonth: r.bestMonth, worstMonth: r.worstMonth,
+    window: r.window,
+    annReturn: r.annReturn,
+    annVol: r.annVol,
+    downsideDev: r.downsideDev,
+    sharpe: r.sharpe,
+    sortino: r.sortino,
+    maxDrawdown: r.maxDrawdown,
+    positiveMonths: r.positiveMonths,
+    bestMonth: r.bestMonth,
+    worstMonth: r.worstMonth,
   };
 }
 
 /** The months of `s` up to `end`. */
-export const cut = (s: Series, end: string): Series => Object.fromEntries(sortedKeys(s).filter((m) => m <= end).map((m) => [m, s[m]]));
+export const cut = (s: Series, end: string): Series =>
+  Object.fromEntries(
+    sortedKeys(s)
+      .filter((m) => m <= end)
+      .map((m) => [m, s[m]]),
+  );

@@ -36,7 +36,11 @@ export async function getSiteData(): Promise<SiteData | null> {
  * honoured (invalid id, snapshot missing or without this fund) shows NO data for the fund rather than
  * silently falling back to the live dataset the admin chose not to show.
  */
-async function fundData(key: FundKey, site: SiteData | null, content: FundContent | undefined): Promise<FundData | null> {
+async function fundData(
+  key: FundKey,
+  site: SiteData | null,
+  content: FundContent | undefined,
+): Promise<FundData | null> {
   const pin = content?.pinnedSnapshot;
   if (pin) {
     if (!/^[0-9A-Za-z-]+$/.test(pin)) return null;

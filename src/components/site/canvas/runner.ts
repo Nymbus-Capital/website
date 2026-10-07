@@ -37,18 +37,29 @@ export function runScene(canvas: HTMLCanvasElement, scene: Scene, opts: RunnerOp
   if (!ctx) return { destroy() {}, redraw() {}, setPlaying() {}, goto() {} };
   const total = cycleMs(scene.steps);
   const starts = stepStarts(scene.steps);
-  let W = 1, H = 1, dpr = 1;
-  let raf = 0, running = false, onscreen = false, visible = document.visibilityState === "visible";
-  let userPaused = false, dead = false;
+  let W = 1,
+    H = 1,
+    dpr = 1;
+  let raf = 0,
+    running = false,
+    onscreen = false,
+    visible = document.visibilityState === "visible";
+  let userPaused = false,
+    dead = false;
   let clock = opts.still ? scene.stillAt(scene.steps.length - 1) : 0;
-  let last = 0, frames = 0, slow = 0, minGap = 1000 / Math.max(5, Math.min(60, opts.maxFps ?? 30));
+  let last = 0,
+    frames = 0,
+    slow = 0,
+    minGap = 1000 / Math.max(5, Math.min(60, opts.maxFps ?? 30));
   let step = -1;
 
   function resize() {
     const r = canvas.getBoundingClientRect();
     dpr = Math.min(1.5, window.devicePixelRatio || 1);
-    W = Math.max(1, r.width); H = Math.max(1, r.height);
-    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
     scene.resize(W, H);
   }
 
@@ -59,23 +70,34 @@ export function runScene(canvas: HTMLCanvasElement, scene: Scene, opts: RunnerOp
     frames = still ? 1 : frames + 1;
     host.setAttribute("data-frames", String(frames));
     const s = stepAt(clock, scene.steps).step;
-    if (s !== step) { step = s; host.setAttribute("data-step", String(s)); opts.onStep?.(s); }
+    if (s !== step) {
+      step = s;
+      host.setAttribute("data-step", String(s));
+      opts.onStep?.(s);
+    }
   }
 
   const loop = (now: number) => {
     raf = 0;
     if (!running) return;
     const dt = last ? Math.min(100, now - last) : 16;
-    if (last && dt < minGap - 2) { raf = requestAnimationFrame(loop); return; }
+    if (last && dt < minGap - 2) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
     last = now;
-    if (dt > 52 && minGap < 50) { slow++; if (slow > 20) minGap = 1000 / 20; } else slow = Math.max(0, slow - 1);
+    if (dt > 52 && minGap < 50) {
+      slow++;
+      if (slow > 20) minGap = 1000 / 20;
+    } else slow = Math.max(0, slow - 1);
     clock += dt;
     frame();
     raf = requestAnimationFrame(loop);
   };
   const start = () => {
     if (running || opts.still || userPaused || !visible || !onscreen || dead) return;
-    running = true; last = 0;
+    running = true;
+    last = 0;
     host.setAttribute("data-running", "true");
     raf = requestAnimationFrame(loop);
   };
@@ -92,27 +114,58 @@ export function runScene(canvas: HTMLCanvasElement, scene: Scene, opts: RunnerOp
   frame(opts.still);
   opts.onReady?.();
 
-  const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => { resize(); if (!running) frame(opts.still); }) : null;
+  const ro =
+    typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => {
+          resize();
+          if (!running) frame(opts.still);
+        })
+      : null;
   ro?.observe(canvas);
-  const io = typeof IntersectionObserver !== "undefined"
-    ? new IntersectionObserver((es) => { onscreen = es.some((e) => e.isIntersecting); if (onscreen) start(); else stop(); }, { threshold: 0.05 })
-    : null;
-  if (io) io.observe(canvas); else { onscreen = true; start(); }
-  const onVis = () => { visible = document.visibilityState === "visible"; if (visible) start(); else stop(); };
+  const io =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(
+          (es) => {
+            onscreen = es.some((e) => e.isIntersecting);
+            if (onscreen) start();
+            else stop();
+          },
+          { threshold: 0.05 },
+        )
+      : null;
+  if (io) io.observe(canvas);
+  else {
+    onscreen = true;
+    start();
+  }
+  const onVis = () => {
+    visible = document.visibilityState === "visible";
+    if (visible) start();
+    else stop();
+  };
   document.addEventListener("visibilitychange", onVis);
 
-  const redraw = () => { if (!dead && !running) frame(opts.still); };
+  const redraw = () => {
+    if (!dead && !running) frame(opts.still);
+  };
   try {
     const fonts = document.fonts;
-    if (fonts?.load) void Promise.all(["500", "600"].map((w) => fonts.load(`${w} 12px Poppins`))).then(redraw, () => undefined);
-  } catch { /* no font API: keep the fallback font */ }
+    if (fonts?.load)
+      void Promise.all(["500", "600"].map((w) => fonts.load(`${w} 12px Poppins`))).then(redraw, () => undefined);
+  } catch {
+    /* no font API: keep the fallback font */
+  }
 
   return {
     redraw,
     setPlaying(on: boolean) {
       if (opts.still) return;
       userPaused = !on;
-      if (on) start(); else { stop(); frame(); }
+      if (on) start();
+      else {
+        stop();
+        frame();
+      }
     },
     goto(s: number) {
       const k = Math.max(0, Math.min(scene.steps.length - 1, s));

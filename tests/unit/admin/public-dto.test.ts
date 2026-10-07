@@ -19,7 +19,11 @@ test("public fund spec keeps only the basis of the internal sources", () => {
 });
 
 test("public fund data drops sourceName", () => {
-  const data = { key: "monthly-income", sourceName: "dataplatform SEST / analytics X", performance: null } as unknown as FundData;
+  const data = {
+    key: "monthly-income",
+    sourceName: "dataplatform SEST / analytics X",
+    performance: null,
+  } as unknown as FundData;
   const pub = toPublicData(data)!;
   assert.equal("sourceName" in pub, false);
   assert.equal(pub.key, "monthly-income");

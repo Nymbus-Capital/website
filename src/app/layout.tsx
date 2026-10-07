@@ -26,7 +26,12 @@ export const metadata: Metadata = {
     locale: "en_CA",
     alternateLocale: ["fr_CA"],
   },
-  twitter: { card: "summary_large_image", title: "Nymbus Capital · scientific investing", description: DESCRIPTION, images: ["/og.png"] },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nymbus Capital · scientific investing",
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,7 +44,10 @@ export const viewport: Viewport = {
 /* Poppins, self-hosted (subset: Latin + French punctuation). Plain @font-face keeps the family name
    "Poppins" that globals.css and the fund pages reference. */
 const fonts = [400, 500, 600]
-  .map((w) => `@font-face{font-family:"Poppins";font-style:normal;font-weight:${w};font-display:swap;src:url(/fonts/poppins-${w}.woff) format("woff")}`)
+  .map(
+    (w) =>
+      `@font-face{font-family:"Poppins";font-style:normal;font-weight:${w};font-display:swap;src:url(/fonts/poppins-${w}.woff) format("woff")}`,
+  )
   .join("");
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

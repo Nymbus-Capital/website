@@ -6,7 +6,11 @@ import { getSiteTexts, getTeam } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  return { title: AP.meta.title[locale], description: AP.meta.description[locale], alternates: { canonical: "/approach" } };
+  return {
+    title: AP.meta.title[locale],
+    description: AP.meta.description[locale],
+    alternates: { canonical: "/approach" },
+  };
 }
 
 export default async function Page() {

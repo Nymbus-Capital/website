@@ -24,16 +24,32 @@ export interface PerfBuild {
   /** new months that no independent source confirms (FundContext.unconfirmed) */
   unconfirmed?: string[];
   /** what the per-class series are compared with and measured against (net funds only) */
-  ref?: { series: Series; origin: Record<string, string>; idx: Series | null; firstMonth: string; indexName?: string; sourceMonths: Series; verify: ChainVerification };
+  ref?: {
+    series: Series;
+    origin: Record<string, string>;
+    idx: Series | null;
+    firstMonth: string;
+    indexName?: string;
+    sourceMonths: Series;
+    verify: ChainVerification;
+  };
 }
 
 /** a factsheet trailing table can serve as a cross-check only if the fund row has 1M, 3M, YTD and 1Y */
 export function crossCheckable(tt: TrailingTable | null): tt is TrailingTable {
-  return !!tt && (["1M", "3M", "YTD", "1Y"] as const).every((k) => typeof tt.fund[k] === "number" && Number.isFinite(tt.fund[k] as number));
+  return (
+    !!tt &&
+    (["1M", "3M", "YTD", "1Y"] as const).every(
+      (k) => typeof tt.fund[k] === "number" && Number.isFinite(tt.fund[k] as number),
+    )
+  );
 }
 
 /** fund trailing vs published factsheet, per-period tolerance: "ok" | "warn" | "block" per period */
-export function crossCheck(fund: PeriodMap, fs: TrailingTable): { period: string; computed: number; published: number; level: "warn" | "block" }[] {
+export function crossCheck(
+  fund: PeriodMap,
+  fs: TrailingTable,
+): { period: string; computed: number; published: number; level: "warn" | "block" }[] {
   const out: { period: string; computed: number; published: number; level: "warn" | "block" }[] = [];
   for (const p of PERIOD_LIST) {
     const a = fund[p as keyof PeriodMap];
@@ -51,7 +67,10 @@ export function crossCheck(fund: PeriodMap, fs: TrailingTable): { period: string
 export const isShortRecord = (firstMonth: string, asOf: string): boolean => monthsBetween(firstMonth, asOf) < 12;
 
 /** months already published (up to the previous as-of) whose return changed by more than 1e-6, or disappeared */
-export function revisions(prev: Performance | null | undefined, next: Performance | null): { month: string; before: number; after: number | null }[] {
+export function revisions(
+  prev: Performance | null | undefined,
+  next: Performance | null,
+): { month: string; before: number; after: number | null }[] {
   if (!prev || !next) return [];
   const now = new Map(next.monthly.map((p) => [p.month, p.r]));
   const out: { month: string; before: number; after: number | null }[] = [];
@@ -67,7 +86,8 @@ export function revisions(prev: Performance | null | undefined, next: Performanc
 /** Previous publication's performance of the same class as `next` (never another class: its months are not "revised"). */
 export function comparablePrevious(prev: FundData | undefined, next: Performance): Performance | null {
   if (!prev) return null;
-  const same = (p: Performance | null | undefined): boolean => !!p && (next.classCode && p.classCode ? p.classCode === next.classCode : p.returnClass === next.returnClass);
+  const same = (p: Performance | null | undefined): boolean =>
+    !!p && (next.classCode && p.classCode ? p.classCode === next.classCode : p.returnClass === next.returnClass);
   if (same(prev.performance)) return prev.performance;
   const hit = Object.values(prev.performanceByClass ?? {}).find((k) => same(k.performance));
   return hit ? hit.performance : null;

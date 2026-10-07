@@ -11,8 +11,15 @@ export function AnnouncementBanner({ text }: { text: { en: string; fr: string } 
   const msg = text ? pick(text).trim() : "";
   if (!msg) return null;
   return (
-    <div className="cms-banner" role="region" aria-label={locale === "fr" ? "Annonce" : "Announcement"} data-testid="announcement-banner">
-      <div className="container"><p style={{ margin: 0 }}>{msg}</p></div>
+    <div
+      className="cms-banner"
+      role="region"
+      aria-label={locale === "fr" ? "Annonce" : "Announcement"}
+      data-testid="announcement-banner"
+    >
+      <div className="container">
+        <p style={{ margin: 0 }}>{msg}</p>
+      </div>
     </div>
   );
 }

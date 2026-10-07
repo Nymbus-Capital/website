@@ -48,7 +48,8 @@ export function sanitizeReturnTo(raw: unknown, allowedPrefix = "/admin"): string
     return DEFAULT_RETURN;
   }
   if (u.origin !== "https://placeholder.invalid") return DEFAULT_RETURN;
-  if (allowedPrefix && u.pathname !== allowedPrefix && !u.pathname.startsWith(allowedPrefix + "/")) return DEFAULT_RETURN;
+  if (allowedPrefix && u.pathname !== allowedPrefix && !u.pathname.startsWith(allowedPrefix + "/"))
+    return DEFAULT_RETURN;
   return u.pathname + u.search + u.hash;
 }
 
@@ -65,10 +66,20 @@ export interface CookieSpec {
  * Secure `__Host-` cookies always, except when BOTH the explicit opt-in AUTH_INSECURE_COOKIES_FOR_LOCALHOST=1 is set
  * AND PUBLIC_URL is plain http on localhost / 127.0.0.1 (the e2e server). Anything else falls back to secure.
  */
-export function sessionCookieSpec(env: { AUTH_INSECURE_COOKIES_FOR_LOCALHOST?: string; PUBLIC_URL?: string }): CookieSpec {
+export function sessionCookieSpec(env: {
+  AUTH_INSECURE_COOKIES_FOR_LOCALHOST?: string;
+  PUBLIC_URL?: string;
+}): CookieSpec {
   const insecure = env.AUTH_INSECURE_COOKIES_FOR_LOCALHOST === "1" && isLocalhostUrl(env.PUBLIC_URL);
   return insecure
-    ? { name: SESSION_COOKIE_INSECURE, flowName: FLOW_COOKIE_INSECURE, secure: false, httpOnly: true, sameSite: "lax", path: "/" }
+    ? {
+        name: SESSION_COOKIE_INSECURE,
+        flowName: FLOW_COOKIE_INSECURE,
+        secure: false,
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      }
     : { name: SESSION_COOKIE, flowName: FLOW_COOKIE, secure: true, httpOnly: true, sameSite: "lax", path: "/" };
 }
 
@@ -76,7 +87,9 @@ export function isLocalhostUrl(raw: string | undefined): boolean {
   if (!raw) return false;
   try {
     const u = new URL(raw);
-    return (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1");
+    return (
+      (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1")
+    );
   } catch {
     return false;
   }
@@ -84,7 +97,13 @@ export function isLocalhostUrl(raw: string | undefined): boolean {
 
 /** Serialise a Set-Cookie header value (used where a raw header is needed). */
 export function serializeCookie(name: string, value: string, spec: CookieSpec, maxAgeSeconds: number): string {
-  const parts = [`${name}=${value}`, `Path=${spec.path}`, `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`, "HttpOnly", "SameSite=Lax"];
+  const parts = [
+    `${name}=${value}`,
+    `Path=${spec.path}`,
+    `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`,
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
   if (spec.secure) parts.push("Secure");
   if (maxAgeSeconds <= 0) parts.push("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
   return parts.join("; ");
@@ -111,7 +130,10 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
  * AND the request must carry `x-nymbus-admin: 1` or be `application/json` (neither can be sent cross-site without a
  * CORS preflight, which we never grant). `Sec-Fetch-Site`, when sent, must be same-origin.
  */
-export function checkCsrf(req: { method: string; headers: { get(name: string): string | null } }, publicUrl: string | undefined): CsrfResult {
+export function checkCsrf(
+  req: { method: string; headers: { get(name: string): string | null } },
+  publicUrl: string | undefined,
+): CsrfResult {
   const method = req.method.toUpperCase();
   if (SAFE_METHODS.has(method)) return { ok: true };
   const expected = originOf(publicUrl);

@@ -14,7 +14,9 @@ export class ContentConflictError extends Error {
   readonly expected: number;
   readonly actual: number;
   constructor(expected: number, actual: number) {
-    super(`The content was changed by someone else (you edited version ${expected}, the current version is ${actual}). Reload and try again.`);
+    super(
+      `The content was changed by someone else (you edited version ${expected}, the current version is ${actual}). Reload and try again.`,
+    );
     this.expected = expected;
     this.actual = actual;
   }
@@ -57,7 +59,11 @@ export function saveContent(next: SiteContent, by: string): Promise<SiteContent>
  * content/history/, and write version + 1. Serialised so two saves on the same version cannot both win, and the
  * mutation always applies to the latest stored document (no lost update between read and write).
  */
-export async function updateContent(expectedVersion: number, mutate: (current: SiteContent) => SiteContent, by: string): Promise<SiteContent> {
+export async function updateContent(
+  expectedVersion: number,
+  mutate: (current: SiteContent) => SiteContent,
+  by: string,
+): Promise<SiteContent> {
   for (let attempt = 0; attempt < 20; attempt++) {
     const r = await withLock(
       "content",

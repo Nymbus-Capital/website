@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
   const user = await requireAdmin(request);
   if (user instanceof Response) return user;
   const ct = request.headers.get("content-type") || "";
-  if (!/^multipart\/form-data;\s*boundary=/i.test(ct)) return fail(415, "unsupported_media_type", "Expected multipart/form-data.");
+  if (!/^multipart\/form-data;\s*boundary=/i.test(ct))
+    return fail(415, "unsupported_media_type", "Expected multipart/form-data.");
   const buf = await readBodyCapped(request, MAX_BRAND_BYTES + 16 * 1024);
   if (!buf) return fail(413, "too_large", "The image is larger than 512 KB.");
   let form: FormData;
@@ -30,10 +31,20 @@ export async function POST(request: NextRequest) {
   if (!file || typeof file === "string") return fail(400, "invalid_input", "file: an image is required.");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const check = validateBrandImage(bytes);
-  if (!check.ok) return fail(check.status, check.status === 413 ? "too_large" : check.status === 415 ? "unsupported_image" : "invalid_input", check.message);
+  if (!check.ok)
+    return fail(
+      check.status,
+      check.status === 413 ? "too_large" : check.status === 415 ? "unsupported_image" : "invalid_input",
+      check.message,
+    );
   try {
     const meta = await saveBrandAsset(slot, bytes, check.type, user.email);
-    await audit({ by: user.email, action: "brand.upload", target: slot, detail: { type: meta.type, size: meta.size, sha256: meta.sha256 } });
+    await audit({
+      by: user.email,
+      action: "brand.upload",
+      target: slot,
+      detail: { type: meta.type, size: meta.size, sha256: meta.sha256 },
+    });
     return ok({ asset: meta }, 201);
   } catch (e) {
     return internalError("brand.upload", e);

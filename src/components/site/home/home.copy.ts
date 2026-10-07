@@ -9,7 +9,10 @@ import { DISC } from "../../../content/disclaimers.ts";
 
 export const HOME_COPY = {
   hero: {
-    eyebrow: l("Montreal · systematic fixed income and alternatives", "Montréal · revenu fixe systématique et alternatives"),
+    eyebrow: l(
+      "Montreal · systematic fixed income and alternatives",
+      "Montréal · revenu fixe systématique et alternatives",
+    ),
     // the H1 reads "Scientific investing" / "Investissement scientifique"; the second word carries the gradient
     title: l("Scientific", "Investissement"),
     accent: l("investing", "scientifique"),
@@ -43,17 +46,11 @@ export const HOME_COPY = {
     eyebrow: l("Investment process", "Processus de placement"),
     title: l("One pipeline, from data", "Un seul processus, des données"),
     accent: l("to portfolio", "au portefeuille"),
-    lead: l(
-      "Four tested, monitored steps.",
-      "Quatre étapes testées et surveillées.",
-    ),
+    lead: l("Four tested, monitored steps.", "Quatre étapes testées et surveillées."),
     steps: [
       {
         title: l("Data and research", "Données et recherche"),
-        text: l(
-          "Market and fundamental data, cleaned.",
-          "Données de marché et fondamentales, nettoyées.",
-        ),
+        text: l("Market and fundamental data, cleaned.", "Données de marché et fondamentales, nettoyées."),
       },
       {
         title: l("Signal generation", "Génération de signaux"),
@@ -86,7 +83,10 @@ export const HOME_COPY = {
       "Source: Nymbus Capital Inc. Representative list; not all clients are shown. QEMP: Quebec Emerging Managers Program (Innocap). Inclusion does not imply endorsement.",
       "Source : Nymbus Capital inc. Liste représentative; tous les clients ne sont pas présentés. QEMP : Programme des gestionnaires en émergence du Québec (Innocap). Leur présence ne constitue pas une recommandation.",
     ),
-    marquee: l("Logos of institutions and platforms we work with", "Logos des institutions et plateformes avec qui nous travaillons"),
+    marquee: l(
+      "Logos of institutions and platforms we work with",
+      "Logos des institutions et plateformes avec qui nous travaillons",
+    ),
   },
   news: {
     eyebrow: l("News and milestones", "Nouvelles et jalons"),
@@ -100,10 +100,7 @@ export const HOME_COPY = {
   cta: {
     title: l("Let’s discuss your", "Discutons de vos"),
     accent: l("investment objectives", "objectifs de placement"),
-    text: l(
-      "Tell us about your mandate.",
-      "Parlez-nous de votre mandat.",
-    ),
+    text: l("Tell us about your mandate.", "Parlez-nous de votre mandat."),
     contact: l("Get in touch", "Communiquez avec nous"),
     solutions: l("View solutions", "Voir les solutions"),
   },
@@ -138,7 +135,10 @@ export const FUND_COPY = {
     "Les rendements sont publiés ici une fois le mois fermé et validé.",
   ),
   sample: l("Sample data", "Données fictives"),
-  sampleLong: l("Illustrative figures only, not actual performance.", "Chiffres illustratifs seulement, pas des rendements réels."),
+  sampleLong: l(
+    "Illustrative figures only, not actual performance.",
+    "Chiffres illustratifs seulement, pas des rendements réels.",
+  ),
   calendar: l("Calendar-year returns", "Rendements par année civile"),
   ytdMark: l("year to date", "depuis le début de l’année"),
   perfNote: DISC.summaryNet,

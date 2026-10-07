@@ -22,7 +22,18 @@ export async function POST(request: NextRequest) {
   if (isResponse(meta)) return meta;
   try {
     const doc = await createDocument(meta, up.fileName, up.bytes, user.email);
-    await audit({ by: user.email, action: "document.upload", target: doc.id, detail: { fileName: doc.fileName, size: doc.size, sha256: doc.sha256, scope: doc.scope, published: doc.published } });
+    await audit({
+      by: user.email,
+      action: "document.upload",
+      target: doc.id,
+      detail: {
+        fileName: doc.fileName,
+        size: doc.size,
+        sha256: doc.sha256,
+        scope: doc.scope,
+        published: doc.published,
+      },
+    });
     return ok({ document: doc }, 201);
   } catch (e) {
     return internalError("document.upload", e);

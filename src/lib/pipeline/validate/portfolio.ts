@@ -26,7 +26,8 @@ function breakdownProblem(rows: WeightBucket[]): string | null {
 
 /** Why the top-holdings list is implausible, or null. */
 function holdingsProblem(rows: PortfolioData["topHoldings"]): string | null {
-  if (rows.some((h) => !h.name || !isNum(h.weight) || h.weight <= 0 || h.weight > PORTFOLIO.maxHoldingWeight)) return `a weight is outside (0, ${pct(PORTFOLIO.maxHoldingWeight)}]`;
+  if (rows.some((h) => !h.name || !isNum(h.weight) || h.weight <= 0 || h.weight > PORTFOLIO.maxHoldingWeight))
+    return `a weight is outside (0, ${pct(PORTFOLIO.maxHoldingWeight)}]`;
   const total = rows.reduce((a, h) => a + h.weight, 0);
   return total > 1 + 1e-9 ? `weights add up to ${pct(total)}` : null;
 }
@@ -68,19 +69,34 @@ export function checkPortfolio(f: FundData, base: string, now: Date): Issue[] {
   }
   for (const h of p.topHoldings) {
     // field repairs: an implausible detail is blanked, the holding and its weight stay
-    if (h.coupon !== null && !(isNum(h.coupon) && h.coupon >= PORTFOLIO.ranges.coupon[0] && h.coupon <= PORTFOLIO.ranges.coupon[1])) h.coupon = null;
+    if (
+      h.coupon !== null &&
+      !(isNum(h.coupon) && h.coupon >= PORTFOLIO.ranges.coupon[0] && h.coupon <= PORTFOLIO.ranges.coupon[1])
+    )
+      h.coupon = null;
     if (h.maturity !== null && !(typeof h.maturity === "string" && ISO.test(h.maturity))) h.maturity = null;
   }
-  if (p.greenBondsWeight !== null && !(isNum(p.greenBondsWeight) && p.greenBondsWeight >= 0 && p.greenBondsWeight <= 1)) {
+  if (
+    p.greenBondsWeight !== null &&
+    !(isNum(p.greenBondsWeight) && p.greenBondsWeight >= 0 && p.greenBondsWeight <= 1)
+  ) {
     warn(`${key}.greenBondsWeight`, `green bonds weight ${p.greenBondsWeight} not shown`);
     p.greenBondsWeight = null;
   }
   if (p.totals) {
     const t = p.totals;
-    for (const k of ["holdings", "bonds", "derivatives"] as const) if (t[k] !== null && !(isNum(t[k]) && Number.isInteger(t[k]) && (t[k] as number) >= 0)) t[k] = null;
+    for (const k of ["holdings", "bonds", "derivatives"] as const)
+      if (t[k] !== null && !(isNum(t[k]) && Number.isInteger(t[k]) && (t[k] as number) >= 0)) t[k] = null;
     if (t.cashWeight !== null && !(isNum(t.cashWeight) && Math.abs(t.cashWeight) <= 1)) t.cashWeight = null;
   }
-  if (p.coverage) for (const k of ["resolved", "priced"] as const) if (p.coverage[k] !== null && !(isNum(p.coverage[k]) && (p.coverage[k] as number) >= 0 && (p.coverage[k] as number) <= 1)) p.coverage[k] = null;
-  if (!p.characteristics.length && !Object.keys(p.breakdowns).length && !p.topHoldings.length) return drop("nothing plausible left");
+  if (p.coverage)
+    for (const k of ["resolved", "priced"] as const)
+      if (
+        p.coverage[k] !== null &&
+        !(isNum(p.coverage[k]) && (p.coverage[k] as number) >= 0 && (p.coverage[k] as number) <= 1)
+      )
+        p.coverage[k] = null;
+  if (!p.characteristics.length && !Object.keys(p.breakdowns).length && !p.topHoldings.length)
+    return drop("nothing plausible left");
   return issues;
 }

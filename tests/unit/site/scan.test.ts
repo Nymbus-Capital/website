@@ -4,13 +4,34 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COLUMNS, COMPACT_KEYS, HIT_RATE, MEDIUM_KEYS, XS_KEYS, fitText, SECTORS, columnsFor, countersAfter, flicker, fmtNum, fmtZ, groupDigits, hash01, layout, rowAt, scanProgress } from "../../../src/components/site/fx/scan-model.ts";
+import {
+  COLUMNS,
+  COMPACT_KEYS,
+  HIT_RATE,
+  MEDIUM_KEYS,
+  XS_KEYS,
+  fitText,
+  SECTORS,
+  columnsFor,
+  countersAfter,
+  flicker,
+  fmtNum,
+  fmtZ,
+  groupDigits,
+  hash01,
+  layout,
+  rowAt,
+  scanProgress,
+} from "../../../src/components/site/fx/scan-model.ts";
 import { SCAN_COPY } from "../../../src/components/site/fx/scan-copy.ts";
 
 test("hash01 is deterministic and in [0, 1)", () => {
   assert.equal(hash01(5, 2, 1), hash01(5, 2, 1));
   assert.notEqual(hash01(5, 2, 1), hash01(5, 2, 2));
-  for (let i = 0; i < 2000; i++) { const v = hash01(i, 3, 7); assert.ok(v >= 0 && v < 1); }
+  for (let i = 0; i < 2000; i++) {
+    const v = hash01(i, 3, 7);
+    assert.ok(v >= 0 && v < 1);
+  }
 });
 
 test("rows are deterministic, generic and self-consistent", () => {
@@ -37,16 +58,31 @@ test("about 12 % of the rows are flagged", () => {
 
 test("the table names no issuer: sectors are generic labels, EN and FR", () => {
   assert.ok(SECTORS.length >= 8);
-  for (const s of SECTORS) { assert.ok(s.en.trim() && s.fr.trim()); assert.ok(s.en.split(/\s+/).length <= 2); }
+  for (const s of SECTORS) {
+    assert.ok(s.en.trim() && s.fr.trim());
+    assert.ok(s.en.split(/\s+/).length <= 2);
+  }
   for (const c of COLUMNS) assert.ok(c.label.en.trim() && c.label.fr.trim());
 });
 
 test("columns: compact and medium widths keep the identifier and the signal; layout fills the width", () => {
-  assert.deepEqual(columnsFor(419).map((c) => c.key), XS_KEYS);
+  assert.deepEqual(
+    columnsFor(419).map((c) => c.key),
+    XS_KEYS,
+  );
   assert.ok(!columnsFor(360).some((c) => c.key === "sector"), "no Sector column under 420 px");
-  assert.deepEqual(columnsFor(420).map((c) => c.key), COMPACT_KEYS);
-  assert.deepEqual(columnsFor(500).map((c) => c.key), COMPACT_KEYS);
-  assert.deepEqual(columnsFor(700).map((c) => c.key), MEDIUM_KEYS);
+  assert.deepEqual(
+    columnsFor(420).map((c) => c.key),
+    COMPACT_KEYS,
+  );
+  assert.deepEqual(
+    columnsFor(500).map((c) => c.key),
+    COMPACT_KEYS,
+  );
+  assert.deepEqual(
+    columnsFor(700).map((c) => c.key),
+    MEDIUM_KEYS,
+  );
   assert.equal(columnsFor(1200).length, COLUMNS.length);
   for (const w of [320, 390, 700, 1024, 1400]) {
     const cols = columnsFor(w);
@@ -96,10 +132,15 @@ test("scan progress runs 0 → 1, rests, then starts a new cycle; it never leave
   const mid = scanProgress(2600);
   assert.ok(Math.abs(mid.k - 0.5) < 1e-9);
   const rest = scanProgress(5300);
-  assert.equal(rest.k, 1); assert.equal(rest.resting, true);
+  assert.equal(rest.k, 1);
+  assert.equal(rest.resting, true);
   assert.equal(scanProgress(5700).cycle, 1);
   let prev = -1;
-  for (let t = 0; t < 5200; t += 50) { const { k } = scanProgress(t); assert.ok(k >= 0 && k <= 1 && k >= prev); prev = k; }
+  for (let t = 0; t < 5200; t += 50) {
+    const { k } = scanProgress(t);
+    assert.ok(k >= 0 && k <= 1 && k >= prev);
+    prev = k;
+  }
 });
 
 test("scan copy exists in English and French and labels the animation as an illustration", () => {

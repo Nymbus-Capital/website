@@ -2,10 +2,32 @@
    Home "diversifying engines" panel (overlay.tsx). Reuses the analysis-scan panel chrome (.sc-panel, .sc-bar,
    .sc-trio from fx.css; no counters strip since 2026-10-04); only the canvas and the section are its own. Light only.
    ===================================================================================================== */
-.ov { overflow-x: clip; }
+.ov {
+  overflow-x: clip;
+}
 /* the canvas draws its labels and the "ILLUSTRATION" mark itself (overlay-engine.ts) */
-.ov-canvas { display: block; width: 100%; height: clamp(460px, 46vw, 600px); opacity: 0; transition: opacity 1s var(--ease); }
-.ov-panel.on .ov-canvas { opacity: 1; }
-.ov-panel { box-shadow: 0 40px 80px -40px rgba(0,163,224,.38), 0 2px 8px rgba(16,24,40,.05); }
-@media (max-width: 760px) { .ov-canvas { height: 760px; } }
-@media (prefers-reduced-motion: reduce) { .ov-canvas { transition: none; } }
+.ov-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(460px, 46vw, 600px);
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+}
+.ov-panel.on .ov-canvas {
+  opacity: 1;
+}
+.ov-panel {
+  box-shadow:
+    0 40px 80px -40px rgba(0, 163, 224, 0.38),
+    0 2px 8px rgba(16, 24, 40, 0.05);
+}
+@media (max-width: 760px) {
+  .ov-canvas {
+    height: 760px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-canvas {
+    transition: none;
+  }
+}

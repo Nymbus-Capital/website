@@ -16,13 +16,17 @@ export function cleanFundContent(f: FundContent): FundContent {
     }
     if (Array.isArray(v) && v.length === 0) continue;
     if (k === "hide" && typeof v === "object") {
-      const h = Object.fromEntries(Object.entries(v).filter(([block, b]) => b === true || (block === "aum" && b === false)));
+      const h = Object.fromEntries(
+        Object.entries(v).filter(([block, b]) => b === true || (block === "aum" && b === false)),
+      );
       if (Object.keys(h).length === 0) continue;
       out[k] = h;
       continue;
     }
     if (k === "classTypes" && typeof v === "object") {
-      const t = Object.fromEntries(Object.entries(v).filter(([code, kind]) => code && (kind === "prospectus" || kind === "om" || kind === "none")));
+      const t = Object.fromEntries(
+        Object.entries(v).filter(([code, kind]) => code && (kind === "prospectus" || kind === "om" || kind === "none")),
+      );
       if (Object.keys(t).length === 0) continue;
       out[k] = t;
       continue;
@@ -46,7 +50,13 @@ export function cleanFundContent(f: FundContent): FundContent {
 
 /** Drop empty optional fields of a third-party entry (rows without any figure are kept: the admin is still typing). */
 function cleanThirdParty(e: ThirdPartyRanking): ThirdPartyRanking {
-  const out: ThirdPartyRanking = { provider: e.provider, classLabel: e.classLabel, category: e.category, asOf: e.asOf, rows: e.rows };
+  const out: ThirdPartyRanking = {
+    provider: e.provider,
+    classLabel: e.classLabel,
+    category: e.category,
+    asOf: e.asOf,
+    rows: e.rows,
+  };
   if (e.scope === "fund") out.scope = "fund";
   if (e.basis && (e.basis.en || e.basis.fr)) out.basis = e.basis;
   if (e.rolling?.length) out.rolling = e.rolling;

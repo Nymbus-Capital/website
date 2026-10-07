@@ -41,7 +41,12 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
   try {
     const r = await deleteInquiry(id);
     if (!r) return fail(404, "not_found", "No such inquiry.");
-    await audit({ by: user.email, action: "inquiry.delete", target: id, detail: { receivedAt: r.receivedAt, handled: !!r.handled } });
+    await audit({
+      by: user.email,
+      action: "inquiry.delete",
+      target: id,
+      detail: { receivedAt: r.receivedAt, handled: !!r.handled },
+    });
     return ok({ deleted: id });
   } catch (e) {
     return internalError("inquiry.delete", e);

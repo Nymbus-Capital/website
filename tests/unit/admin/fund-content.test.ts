@@ -14,7 +14,13 @@ test("hide keeps true entries and an explicit aum:false (AUM published)", () => 
 });
 
 test("empty strings / L10n / lists are dropped", () => {
-  const c = cleanFundContent({ mer: "", tagline: { en: "", fr: "" }, managers: [], description: { en: "d", fr: "d" }, pinnedSnapshot: null });
+  const c = cleanFundContent({
+    mer: "",
+    tagline: { en: "", fr: "" },
+    managers: [],
+    description: { en: "d", fr: "d" },
+    pinnedSnapshot: null,
+  });
   assert.deepEqual(c, { description: { en: "d", fr: "d" } });
 });
 
@@ -26,7 +32,10 @@ test("tr falls back to EN for an empty FR string", () => {
 test("benchmark label: localized registry name in FR, published index name in EN", () => {
   const b = { en: "FTSE Canada Universe Bond Index", fr: "Indice FTSE Canada des obligations universelles" };
   assert.equal(benchmarkLabel("FTSE Canada Universe Bond Index (published)", b, "fr"), b.fr);
-  assert.equal(benchmarkLabel("FTSE Canada Universe Bond Index (published)", b, "en"), "FTSE Canada Universe Bond Index (published)");
+  assert.equal(
+    benchmarkLabel("FTSE Canada Universe Bond Index (published)", b, "en"),
+    "FTSE Canada Universe Bond Index (published)",
+  );
   assert.equal(benchmarkLabel(null, b, "en"), b.en);
   assert.equal(benchmarkLabel("X", null, "fr"), "X");
   assert.equal(benchmarkLabel(null, null, "fr"), null);

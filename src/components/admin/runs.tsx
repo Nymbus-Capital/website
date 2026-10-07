@@ -32,7 +32,10 @@ function FundStates({ funds }: { funds: RunReport["funds"] }) {
         const s = funds?.[f.key];
         return (
           <span key={f.key} title={`${f.name.en}: ${s ?? "not in run"}`} className={`adm-pill ${fundStateTone(s)}`}>
-            {f.short.en.split(" ").map((w) => w[0]).join("")}
+            {f.short.en
+              .split(" ")
+              .map((w) => w[0])
+              .join("")}
           </span>
         );
       })}
@@ -46,7 +49,15 @@ function issueCounts(r: RunReport) {
   return c;
 }
 
-export function RunsTable({ runs, publishedRunId, compact }: { runs: RunReport[]; publishedRunId: string | null; compact?: boolean }) {
+export function RunsTable({
+  runs,
+  publishedRunId,
+  compact,
+}: {
+  runs: RunReport[];
+  publishedRunId: string | null;
+  compact?: boolean;
+}) {
   if (!runs.length) return <div className="adm-empty">No pipeline run yet.</div>;
   return (
     <div className="adm-scroll">
@@ -72,20 +83,31 @@ export function RunsTable({ runs, publishedRunId, compact }: { runs: RunReport[]
               <tr key={r.id} className={r.id === publishedRunId ? "hl" : undefined}>
                 <td className="tabnum">{when(r.startedAt)}</td>
                 <td>
-                  <RunStatusPill status={r.status} /> {r.id === publishedRunId ? <Pill tone="info" plain>live</Pill> : null}
+                  <RunStatusPill status={r.status} />{" "}
+                  {r.id === publishedRunId ? (
+                    <Pill tone="info" plain>
+                      live
+                    </Pill>
+                  ) : null}
                 </td>
                 <td className="adm-muted">{r.trigger}</td>
                 {!compact && <td className="adm-muted">{r.by}</td>}
                 <td className="tabnum">{r.asOf?.performance ?? "—"}</td>
                 {!compact && <td className="tabnum">{r.asOf?.nav ?? "—"}</td>}
-                <td><FundStates funds={r.funds} /></td>
+                <td>
+                  <FundStates funds={r.funds} />
+                </td>
                 <td className="num">
                   {c.error ? <span className="neg">{c.error} err </span> : null}
                   {c.warn ? <span style={{ color: "var(--yellow)" }}>{c.warn} warn</span> : null}
                   {!c.error && !c.warn ? <span className="adm-muted">{c.info || "—"}</span> : null}
                 </td>
                 {!compact && <td className="num adm-muted">{duration(r.startedAt, r.finishedAt)}</td>}
-                <td className="num"><Link className="adm-link" href={`/admin/runs/${encodeURIComponent(r.id)}`}>details →</Link></td>
+                <td className="num">
+                  <Link className="adm-link" href={`/admin/runs/${encodeURIComponent(r.id)}`}>
+                    details →
+                  </Link>
+                </td>
               </tr>
             );
           })}
@@ -95,7 +117,13 @@ export function RunsTable({ runs, publishedRunId, compact }: { runs: RunReport[]
   );
 }
 
-export function PipelinePanel({ initialStatus, initialRuns }: { initialStatus: PipelineStatus | null; initialRuns: RunReport[] }) {
+export function PipelinePanel({
+  initialStatus,
+  initialRuns,
+}: {
+  initialStatus: PipelineStatus | null;
+  initialRuns: RunReport[];
+}) {
   const [status, setStatus] = useState(initialStatus);
   const [runs, setRuns] = useState(initialRuns);
   const [dryRun, setDryRun] = useState(false);
@@ -105,7 +133,10 @@ export function PipelinePanel({ initialStatus, initialRuns }: { initialStatus: P
 
   const refresh = useCallback(async () => {
     try {
-      const [s, r] = await Promise.all([api<PipelineStatus>("/api/admin/status"), api<{ runs: RunReport[] }>("/api/admin/runs?limit=12")]);
+      const [s, r] = await Promise.all([
+        api<PipelineStatus>("/api/admin/status"),
+        api<{ runs: RunReport[] }>("/api/admin/runs?limit=12"),
+      ]);
       setStatus(s);
       setRuns(r.runs);
       setError(null);
@@ -153,8 +184,21 @@ export function PipelinePanel({ initialStatus, initialRuns }: { initialStatus: P
             <label className="adm-check">
               <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)} /> dry run
             </label>
-            <button type="button" className="adm-btn ghost xs" onClick={() => void refresh()} aria-label="refresh status"><RefreshCw /></button>
-            <button type="button" className="adm-btn" onClick={runNow} disabled={starting || !!status?.running} data-testid="run-now">
+            <button
+              type="button"
+              className="adm-btn ghost xs"
+              onClick={() => void refresh()}
+              aria-label="refresh status"
+            >
+              <RefreshCw />
+            </button>
+            <button
+              type="button"
+              className="adm-btn"
+              onClick={runNow}
+              disabled={starting || !!status?.running}
+              data-testid="run-now"
+            >
               <Play /> {status?.running ? "running…" : "run now"}
             </button>
           </span>
@@ -169,34 +213,62 @@ export function PipelinePanel({ initialStatus, initialRuns }: { initialStatus: P
           <div className="adm-kpi">
             <span className="k">performance as of</span>
             <span className="v grad">{last?.asOf?.performance ?? "—"}</span>
-            <span className="s">nav {last?.asOf?.nav ?? "—"} · aum {last?.asOf?.aum ?? "—"}</span>
+            <span className="s">
+              nav {last?.asOf?.nav ?? "—"} · aum {last?.asOf?.aum ?? "—"}
+            </span>
           </div>
           <div className="adm-kpi">
             <span className="k">factsheet</span>
             <span className="v">{last?.asOf?.factsheet ?? "—"}</span>
-            <span className="s">live run {status?.publishedRunId ? <Link className="adm-link mono" href={`/admin/runs/${encodeURIComponent(status.publishedRunId)}`}>{status.publishedRunId}</Link> : "—"}</span>
+            <span className="s">
+              live run{" "}
+              {status?.publishedRunId ? (
+                <Link className="adm-link mono" href={`/admin/runs/${encodeURIComponent(status.publishedRunId)}`}>
+                  {status.publishedRunId}
+                </Link>
+              ) : (
+                "—"
+              )}
+            </span>
           </div>
           <div className="adm-kpi">
             <span className="k">next run</span>
             <span className="v">{status?.nextRunAt ? when(status.nextRunAt).slice(11) : "off"}</span>
-            <span className="s">{status?.nextRunAt ? when(status.nextRunAt).slice(0, 10) : ""} {status?.schedule?.length ? `(${status.schedule.join(", ")} ${status.timezone})` : "schedule off"}</span>
+            <span className="s">
+              {status?.nextRunAt ? when(status.nextRunAt).slice(0, 10) : ""}{" "}
+              {status?.schedule?.length ? `(${status.schedule.join(", ")} ${status.timezone})` : "schedule off"}
+            </span>
           </div>
         </div>
         {last?.status === "pending-review" ? (
           <div className="adm-alert warn" style={{ marginTop: 14 }}>
-            The last run is waiting for approval. <Link className="adm-link" href={`/admin/runs/${encodeURIComponent(last.id)}`}>Review and publish →</Link>
+            The last run is waiting for approval.{" "}
+            <Link className="adm-link" href={`/admin/runs/${encodeURIComponent(last.id)}`}>
+              Review and publish →
+            </Link>
           </div>
         ) : null}
         {issues.length ? (
           <>
-            <h3 className="adm-small" style={{ margin: "16px 0 6px", textTransform: "lowercase" }}>issues of the last run</h3>
+            <h3 className="adm-small" style={{ margin: "16px 0 6px", textTransform: "lowercase" }}>
+              issues of the last run
+            </h3>
             <IssueList issues={issues.slice(0, 8)} />
-            {issues.length > 8 && last ? <Link className="adm-link adm-small" href={`/admin/runs/${encodeURIComponent(last.id)}`}>all {issues.length} issues →</Link> : null}
+            {issues.length > 8 && last ? (
+              <Link className="adm-link adm-small" href={`/admin/runs/${encodeURIComponent(last.id)}`}>
+                all {issues.length} issues →
+              </Link>
+            ) : null}
           </>
         ) : null}
       </section>
       <section className="adm-panel" aria-labelledby="runs-title">
-        <h2 id="runs-title" className="adm-h2">recent runs <Link href="/admin/runs" className="sp adm-link adm-small">full history →</Link></h2>
+        <h2 id="runs-title" className="adm-h2">
+          recent runs{" "}
+          <Link href="/admin/runs" className="sp adm-link adm-small">
+            full history →
+          </Link>
+        </h2>
         <RunsTable runs={runs} publishedRunId={status?.publishedRunId ?? null} compact />
       </section>
     </>
@@ -257,8 +329,15 @@ export function PublishRunButton({ run, publishedRunId }: { run: RunReport; publ
   };
   return (
     <>
-      <button type="button" className={`adm-btn${pending ? "" : " ghost"}`} onClick={go} disabled={busy} data-testid="publish-run">
-        <Upload /> {classChange ? "approve class change & publish" : pending ? "approve & publish" : "roll back to this run"}
+      <button
+        type="button"
+        className={`adm-btn${pending ? "" : " ghost"}`}
+        onClick={go}
+        disabled={busy}
+        data-testid="publish-run"
+      >
+        <Upload />{" "}
+        {classChange ? "approve class change & publish" : pending ? "approve & publish" : "roll back to this run"}
       </button>
       {dialog}
     </>

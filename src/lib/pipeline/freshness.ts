@@ -70,7 +70,8 @@ export function localDate(t: number, tz: string = TIMEZONE): string {
   return `${o.year}-${o.month}-${o.day}`;
 }
 
-const addDays = (d: string, n: number): string => new Date(Date.parse(`${d}T00:00:00Z`) + n * DAY).toISOString().slice(0, 10);
+const addDays = (d: string, n: number): string =>
+  new Date(Date.parse(`${d}T00:00:00Z`) + n * DAY).toISOString().slice(0, 10);
 
 const monthEnd = (y: number, m: number): string => new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 
@@ -91,7 +92,8 @@ export function expectedPerformanceMonthEnd(today: string, days: number = FRESHN
 }
 
 /** Business days after `asOf` up to and including `today`. */
-export const businessDaysSince = (asOf: string, today: string): number => (asOf >= today ? 0 : tradingDays(addDays(asOf, 1), today).length);
+export const businessDaysSince = (asOf: string, today: string): number =>
+  asOf >= today ? 0 : tradingDays(addDays(asOf, 1), today).length;
 
 const isIso = (s: unknown): s is string => typeof s === "string" && /^\d{4}-\d{2}-\d{2}/.test(s);
 
@@ -113,7 +115,9 @@ export function freshness(o: { now: Date; funds: FundFreshnessInput[]; tz?: stri
       fr.push("no performance published");
       codes.push(`${f.key}:performance`);
     } else if (perf.slice(0, 7) < expected.slice(0, 7)) {
-      fr.push(`performance as of ${perf}, ${expected.slice(0, 7)} expected (closed more than ${FRESHNESS.performanceBusinessDays} business days ago)`);
+      fr.push(
+        `performance as of ${perf}, ${expected.slice(0, 7)} expected (closed more than ${FRESHNESS.performanceBusinessDays} business days ago)`,
+      );
       codes.push(`${f.key}:performance`);
     }
     const lag = nav ? businessDaysSince(nav, today) : null;
@@ -126,7 +130,14 @@ export function freshness(o: { now: Date; funds: FundFreshnessInput[]; tz?: stri
         codes.push(`${f.key}:nav`);
       }
     }
-    funds[f.key] = { performanceAsOf: perf, navAsOf: nav, performanceExpected: checkPerf ? expected : null, navLagBusinessDays: f.hasNav ? lag : null, verdict: fr.length ? "stale" : "ok", reasons: fr };
+    funds[f.key] = {
+      performanceAsOf: perf,
+      navAsOf: nav,
+      performanceExpected: checkPerf ? expected : null,
+      navLagBusinessDays: f.hasNav ? lag : null,
+      verdict: fr.length ? "stale" : "ok",
+      reasons: fr,
+    };
     for (const r of fr) reasons.push(`${f.key}: ${r}`);
   }
   return { verdict: codes.length ? "stale" : "ok", codes: codes.sort(), reasons, funds, thresholds: FRESHNESS };

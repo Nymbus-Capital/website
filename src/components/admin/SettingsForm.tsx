@@ -8,7 +8,19 @@ import type { L } from "@/lib/i18n/config";
 
 const E: L = { en: "", fr: "" };
 
-export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths: m0 = 6, retentionDays: r0 = 180 }: { version: number; firm: SiteContent["firm"]; publishMode: "auto" | "review"; maxAgeMonths?: number; retentionDays?: number }) {
+export function SettingsForm({
+  version: v0,
+  firm,
+  publishMode: pm0,
+  maxAgeMonths: m0 = 6,
+  retentionDays: r0 = 180,
+}: {
+  version: number;
+  firm: SiteContent["firm"];
+  publishMode: "auto" | "review";
+  maxAgeMonths?: number;
+  retentionDays?: number;
+}) {
   const [version, setVersion] = useState(v0);
   const [aumLabel, setAum] = useState<L>(firm.aumLabel ?? E);
   const [bannerOn, setBannerOn] = useState(!!firm.announcement);
@@ -29,7 +41,13 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
     try {
       const r = await api<{ content: { version: number } }>("/api/admin/content/settings", {
         method: "PUT",
-        json: { version, firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer }, publishMode, rankingPolicy: { maxAgeMonths: Math.min(24, Math.max(1, Math.trunc(Number(maxAge)) || 6)) }, inquiryPolicy: { retentionDays: Math.min(180, Math.max(30, Math.trunc(Number(retention)) || 180)) } },
+        json: {
+          version,
+          firm: { aumLabel, announcement: bannerOn ? announcement : null, disclaimer },
+          publishMode,
+          rankingPolicy: { maxAgeMonths: Math.min(24, Math.max(1, Math.trunc(Number(maxAge)) || 6)) },
+          inquiryPolicy: { retentionDays: Math.min(180, Math.max(30, Math.trunc(Number(retention)) || 180)) },
+        },
       });
       setVersion(r.content.version);
       toast("ok", `Saved (content v${r.content.version}).`);
@@ -45,42 +63,100 @@ export function SettingsForm({ version: v0, firm, publishMode: pm0, maxAgeMonths
     <form className="adm-grid c2" onSubmit={save} data-testid="settings-form" style={{ alignItems: "start" }}>
       <section className="adm-panel adm-form">
         <h2 className="adm-h2">firm</h2>
-        {error ? <div className="adm-alert err" role="alert">{error}</div> : null}
+        {error ? (
+          <div className="adm-alert err" role="alert">
+            {error}
+          </div>
+        ) : null}
         <L10nInput label="firm aum label" hint="e.g. $1.9B / 1,9 G$" value={aumLabel} onChange={setAum} max={40} />
         <label className="adm-check">
-          <input type="checkbox" checked={bannerOn} onChange={(e) => setBannerOn(e.target.checked)} /> show an announcement banner
+          <input type="checkbox" checked={bannerOn} onChange={(e) => setBannerOn(e.target.checked)} /> show an
+          announcement banner
         </label>
-        {bannerOn ? <L10nInput label="announcement" value={announcement} onChange={setAnn} multiline max={400} /> : null}
-        <L10nInput label="firm disclaimer" hint="empty = boilerplate; replaces the firm text in every footer and fund disclosure (needs compliance review)" value={disclaimer} onChange={setDisc} multiline max={4000} />
+        {bannerOn ? (
+          <L10nInput label="announcement" value={announcement} onChange={setAnn} multiline max={400} />
+        ) : null}
+        <L10nInput
+          label="firm disclaimer"
+          hint="empty = boilerplate; replaces the firm text in every footer and fund disclosure (needs compliance review)"
+          value={disclaimer}
+          onChange={setDisc}
+          multiline
+          max={4000}
+        />
       </section>
       <section className="adm-panel adm-form">
         <h2 className="adm-h2">publishing</h2>
         <fieldset className="adm-fieldset" style={{ borderTop: 0, paddingTop: 0 }}>
           <legend>when a pipeline run passes validation</legend>
           <label className="adm-check">
-            <input type="radio" name="publishMode" value="auto" checked={publishMode === "auto"} onChange={() => setPm("auto")} />
-            <span><b>auto</b> — publish it immediately</span>
+            <input
+              type="radio"
+              name="publishMode"
+              value="auto"
+              checked={publishMode === "auto"}
+              onChange={() => setPm("auto")}
+            />
+            <span>
+              <b>auto</b> — publish it immediately
+            </span>
           </label>
           <label className="adm-check">
-            <input type="radio" name="publishMode" value="review" checked={publishMode === "review"} onChange={() => setPm("review")} />
-            <span><b>review</b> — wait for approval in the dashboard</span>
+            <input
+              type="radio"
+              name="publishMode"
+              value="review"
+              checked={publishMode === "review"}
+              onChange={() => setPm("review")}
+            />
+            <span>
+              <b>review</b> — wait for approval in the dashboard
+            </span>
           </label>
         </fieldset>
-        <p className="adm-small">Runs that fail a blocking check never publish the fund concerned: it keeps its previous data either way.</p>
+        <p className="adm-small">
+          Runs that fail a blocking check never publish the fund concerned: it keeps its previous data either way.
+        </p>
         <label className="adm-field">
           <span>hide third-party rankings older than (months)</span>
-          <input className="adm-input" type="number" min={1} max={24} step={1} value={maxAge} onChange={(e) => setMaxAge(e.target.value)} data-testid="rankings-max-age" />
-          <span className="adm-small">Morningstar, Fundata, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.</span>
+          <input
+            className="adm-input"
+            type="number"
+            min={1}
+            max={24}
+            step={1}
+            value={maxAge}
+            onChange={(e) => setMaxAge(e.target.value)}
+            data-testid="rankings-max-age"
+          />
+          <span className="adm-small">
+            Morningstar, Fundata, RBC pooled fund survey, eVestment, LSEG Lipper and GMR entries are hidden once their
+            as-of date is older than this (default 6). Re-confirming means entering the source’s new as-of date.
+          </span>
         </label>
         <label className="adm-field">
           <span>delete contact messages after (days)</span>
-          <input className="adm-input" type="number" min={30} max={180} step={1} value={retention} onChange={(e) => setRetention(e.target.value)} data-testid="inquiry-retention" />
-          <span className="adm-small">Messages sent with the /contact form are deleted automatically this many days after they were received (default 180, between 30 and 180: the privacy policy promises at most 180).</span>
+          <input
+            className="adm-input"
+            type="number"
+            min={30}
+            max={180}
+            step={1}
+            value={retention}
+            onChange={(e) => setRetention(e.target.value)}
+            data-testid="inquiry-retention"
+          />
+          <span className="adm-small">
+            Messages sent with the /contact form are deleted automatically this many days after they were received
+            (default 180, between 30 and 180: the privacy policy promises at most 180).
+          </span>
         </label>
         <div className="adm-actions">
           <span className="adm-small">v{version}</span>
           <span className="sp" />
-          <button type="submit" className="adm-btn" disabled={saving} data-testid="save-settings"><Save /> {saving ? "saving…" : "save settings"}</button>
+          <button type="submit" className="adm-btn" disabled={saving} data-testid="save-settings">
+            <Save /> {saving ? "saving…" : "save settings"}
+          </button>
         </div>
       </section>
     </form>

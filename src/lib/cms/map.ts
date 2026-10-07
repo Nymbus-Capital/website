@@ -18,7 +18,16 @@ export interface NewsEntry {
   link: string | null;
 }
 
-export const toNewsEntry = (n: CmsNews): NewsEntry => ({ id: n.id, date: n.date, category: n.category, title: n.title, summary: n.summary, body: n.body, image: n.image, link: n.link });
+export const toNewsEntry = (n: CmsNews): NewsEntry => ({
+  id: n.id,
+  date: n.date,
+  category: n.category,
+  title: n.title,
+  summary: n.summary,
+  body: n.body,
+  image: n.image,
+  link: n.link,
+});
 
 const PALETTE = ["#0b57d0", "#1a73e8", "#0277bd", "#0b8fd6", "#188038", "#5b6cff", "#c2410c", "#7a3fd1"];
 
@@ -59,7 +68,8 @@ export function toTeamMember(c: CmsTeamMember): TeamMember {
   };
 }
 
-const hasText = (b: { en?: string; fr?: string } | null | undefined): boolean => !!(b && (b.en?.trim() || b.fr?.trim()));
+const hasText = (b: { en?: string; fr?: string } | null | undefined): boolean =>
+  !!(b && (b.en?.trim() || b.fr?.trim()));
 const fill = (b: Bi): Bi => ({ en: b.en || b.fr, fr: b.fr || b.en });
 
 /**
@@ -69,8 +79,10 @@ const fill = (b: Bi): Bi => ({ en: b.en || b.fr, fr: b.fr || b.en });
  */
 export function overlayTexts(content: SiteContent, stored: SiteContent | null, texts: CmsTexts): SiteContent {
   const firm = { ...content.firm };
-  if (!hasText(stored?.firm?.aumLabel) && texts.aumLabel && hasText(texts.aumLabel)) firm.aumLabel = fill(texts.aumLabel);
-  if (!hasText(stored?.firm?.announcement) && texts.banner && hasText(texts.banner)) firm.announcement = fill(texts.banner);
+  if (!hasText(stored?.firm?.aumLabel) && texts.aumLabel && hasText(texts.aumLabel))
+    firm.aumLabel = fill(texts.aumLabel);
+  if (!hasText(stored?.firm?.announcement) && texts.banner && hasText(texts.banner))
+    firm.announcement = fill(texts.banner);
   return { ...content, firm };
 }
 
@@ -105,12 +117,20 @@ export function contactOverrides(texts: CmsTexts): CmsContact {
 }
 
 /** One-line form of a multi-line address (map links): "Line 1\nLine 2" → "Line 1, Line 2". */
-export const oneLine = (address: string): string => address.split(/\s*\n\s*/).filter(Boolean).join(", ");
+export const oneLine = (address: string): string =>
+  address
+    .split(/\s*\n\s*/)
+    .filter(Boolean)
+    .join(", ");
 
 /* ---- page intros ------------------------------------------------------------------------------------------------ */
 
 /** The coded hero copy of a page (title + coloured accent + lead), as the page components already hold it. */
-export interface IntroCopy { title: Bi; accent: Bi; lead: Bi }
+export interface IntroCopy {
+  title: Bi;
+  accent: Bi;
+  lead: Bi;
+}
 
 /**
  * Hero copy of a page with the WordPress intro applied, PER LANGUAGE: a headline filled for a language replaces the

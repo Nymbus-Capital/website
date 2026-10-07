@@ -1,8 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  evaluateLogin, evaluateSession, guestReason, isAllowedEmail, normalizeEmail, parseAllowedDomains, parseGroupIds, parseRequiredRole, policyVersion,
-  type Claims, type PolicyConfig,
+  evaluateLogin,
+  evaluateSession,
+  guestReason,
+  isAllowedEmail,
+  normalizeEmail,
+  parseAllowedDomains,
+  parseGroupIds,
+  parseRequiredRole,
+  policyVersion,
+  type Claims,
+  type PolicyConfig,
 } from "../../../src/lib/auth/policy.ts";
 
 const TID = "00000000-0000-0000-0000-00000000abcd";
@@ -12,7 +21,15 @@ const G1 = "aaaaaaaa-0000-0000-0000-000000000001";
 const G2 = "aaaaaaaa-0000-0000-0000-000000000002";
 
 const cfg: PolicyConfig = { tenantId: TID, allowedDomains: ["nymbus.ca"] };
-const base = (o: Claims = {}): Claims => ({ tid: TID, oid: OID, acct: 0, email: "alice@nymbus.ca", name: "Alice", preferred_username: "alice@nymbus.ca", ...o });
+const base = (o: Claims = {}): Claims => ({
+  tid: TID,
+  oid: OID,
+  acct: 0,
+  email: "alice@nymbus.ca",
+  name: "Alice",
+  preferred_username: "alice@nymbus.ca",
+  ...o,
+});
 const deny = (claims: Claims, c: PolicyConfig = cfg) => {
   const r = evaluateLogin(claims, c);
   assert.equal(r.ok, false, `expected deny for ${JSON.stringify(claims)}`);
@@ -97,7 +114,11 @@ test("domain must match exactly: look-alikes, suffixes, subdomains are denied", 
     "a@",
     "a@nymbus-ca",
   ]) {
-    assert.equal(deny(base({ email, preferred_username: email, upn: email })), email.includes("@") && normalizeEmail(email) ? "domain" : "email", email);
+    assert.equal(
+      deny(base({ email, preferred_username: email, upn: email })),
+      email.includes("@") && normalizeEmail(email) ? "domain" : "email",
+      email,
+    );
   }
 });
 
@@ -109,10 +130,16 @@ test("domain match is case-insensitive", () => {
 
 test("the domain is checked on preferred_username, else upn; the email claim is never trusted", () => {
   assert.equal(evaluateLogin(base({ email: undefined, preferred_username: "p@nymbus.ca" }), cfg).ok, true);
-  assert.equal(evaluateLogin(base({ email: undefined, preferred_username: undefined, upn: "u@nymbus.ca" }), cfg).ok, true);
+  assert.equal(
+    evaluateLogin(base({ email: undefined, preferred_username: undefined, upn: "u@nymbus.ca" }), cfg).ok,
+    true,
+  );
   assert.equal(deny(base({ email: undefined, preferred_username: undefined, upn: undefined })), "email");
   // an in-domain `email` (user/admin-editable) cannot rescue an out-of-domain sign-in name
-  assert.equal(deny(base({ email: "alice@nymbus.ca", preferred_username: "alice@evil.com", upn: "alice@evil.com" })), "domain");
+  assert.equal(
+    deny(base({ email: "alice@nymbus.ca", preferred_username: "alice@evil.com", upn: "alice@evil.com" })),
+    "domain",
+  );
   assert.equal(deny(base({ email: "alice@nymbus.ca", preferred_username: undefined, upn: undefined })), "email");
   // a different `email` is ignored: identity = sign-in name
   const r = evaluateLogin(base({ email: "someone.else@evil.com", preferred_username: "Alice@Nymbus.ca" }), cfg);
@@ -135,10 +162,21 @@ test("required app role", () => {
 test("policy version changes when the policy changes, not with ordering / case", () => {
   const v = policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1, G2] });
   assert.match(v, /^[0-9a-f]{16}$/);
-  assert.equal(policyVersion({ tenantId: TID.toUpperCase(), allowedDomains: ["b.ca", "NYMBUS.ca"], allowedGroupIds: [G2, G1] }), v);
+  assert.equal(
+    policyVersion({ tenantId: TID.toUpperCase(), allowedDomains: ["b.ca", "NYMBUS.ca"], allowedGroupIds: [G2, G1] }),
+    v,
+  );
   assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca"], allowedGroupIds: [G1, G2] }), v);
   assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1] }), v);
-  assert.notEqual(policyVersion({ tenantId: TID, allowedDomains: ["nymbus.ca", "b.ca"], allowedGroupIds: [G1, G2], requiredRole: "Admin" }), v);
+  assert.notEqual(
+    policyVersion({
+      tenantId: TID,
+      allowedDomains: ["nymbus.ca", "b.ca"],
+      allowedGroupIds: [G1, G2],
+      requiredRole: "Admin",
+    }),
+    v,
+  );
 });
 
 test("listed subdomains are allowed only when explicitly configured", () => {
@@ -160,7 +198,10 @@ test("group allow-list requires an intersection with the groups claim", () => {
 
 test("group overage is denied with an explicit message (not guessed)", () => {
   const c = { ...cfg, allowedGroupIds: [G1] };
-  const r = evaluateLogin(base({ _claim_names: { groups: "src1" }, _claim_sources: { src1: { endpoint: "https://graph" } } }), c);
+  const r = evaluateLogin(
+    base({ _claim_names: { groups: "src1" }, _claim_sources: { src1: { endpoint: "https://graph" } } }),
+    c,
+  );
   assert.equal(r.ok, false);
   if (!r.ok) {
     assert.equal(r.reason, "groups-overage");
@@ -175,7 +216,10 @@ test("session re-check applies tenant and domain policy", () => {
   assert.equal(evaluateSession({ sub: "x", email: "alice@nymbus.ca", tid: TID }, cfg).ok, false);
   assert.equal(evaluateSession({ sub: OID, email: "a#EXT#@nymbus.ca", tid: TID }, cfg).ok, false);
   // a domain removed from the config takes effect for existing sessions
-  assert.equal(evaluateSession({ sub: OID, email: "alice@nymbus.ca", tid: TID }, { ...cfg, allowedDomains: ["other.ca"] }).ok, false);
+  assert.equal(
+    evaluateSession({ sub: OID, email: "alice@nymbus.ca", tid: TID }, { ...cfg, allowedDomains: ["other.ca"] }).ok,
+    false,
+  );
 });
 
 test("config parsing: defaults, normalisation, invalid entries fail closed", () => {

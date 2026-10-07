@@ -4,9 +4,16 @@
 
 /** "Nice" axis: rounded bounds and 1-2-2.5-5-10 steps covering [min, max]. */
 export function nice(min: number, max: number, n = 5): { lo: number; hi: number; step: number; ticks: number[] } {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) { min = 0; max = 1; }
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    min = 0;
+    max = 1;
+  }
   if (min > max) [min, max] = [max, min];
-  if (min === max) { const d = Math.abs(min) * 0.1 || 1; min -= d; max += d; }
+  if (min === max) {
+    const d = Math.abs(min) * 0.1 || 1;
+    min -= d;
+    max += d;
+  }
   const raw = (max - min) / Math.max(1, n);
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const r = raw / mag;
@@ -38,7 +45,8 @@ export function barPath(x: number, y0: number, w: number, y1: number, r: number)
   if (h < 0.5 || w <= 0) return "";
   const rr = Math.max(0, Math.min(r, w / 2, h));
   const f = (n: number) => +n.toFixed(2);
-  if (y1 < y0) return `M${f(x)},${f(y0)}V${f(y1 + rr)}Q${f(x)},${f(y1)} ${f(x + rr)},${f(y1)}H${f(x + w - rr)}Q${f(x + w)},${f(y1)} ${f(x + w)},${f(y1 + rr)}V${f(y0)}Z`;
+  if (y1 < y0)
+    return `M${f(x)},${f(y0)}V${f(y1 + rr)}Q${f(x)},${f(y1)} ${f(x + rr)},${f(y1)}H${f(x + w - rr)}Q${f(x + w)},${f(y1)} ${f(x + w)},${f(y1 + rr)}V${f(y0)}Z`;
   return `M${f(x)},${f(y0)}V${f(y1 - rr)}Q${f(x)},${f(y1)} ${f(x + rr)},${f(y1)}H${f(x + w - rr)}Q${f(x + w)},${f(y1)} ${f(x + w)},${f(y1 - rr)}V${f(y0)}Z`;
 }
 
@@ -50,11 +58,23 @@ export function monotonePath(pts: [number, number][]): string {
   if (n < 3) return pts.map((p, i) => `${i ? "L" : "M"}${f(p[0])},${f(p[1])}`).join("");
   const dx = pts.slice(1).map((p, i) => p[0] - pts[i][0]);
   const sl = pts.slice(1).map((p, i) => (dx[i] ? (p[1] - pts[i][1]) / dx[i] : 0));
-  const m = pts.map((_, i) => (i === 0 ? sl[0] : i === n - 1 ? sl[n - 2] : sl[i - 1] * sl[i] <= 0 ? 0 : (sl[i - 1] + sl[i]) / 2));
+  const m = pts.map((_, i) =>
+    i === 0 ? sl[0] : i === n - 1 ? sl[n - 2] : sl[i - 1] * sl[i] <= 0 ? 0 : (sl[i - 1] + sl[i]) / 2,
+  );
   for (let i = 0; i < n - 1; i++) {
-    if (!sl[i]) { m[i] = 0; m[i + 1] = 0; continue; }
-    const a = m[i] / sl[i], b = m[i + 1] / sl[i], h = a * a + b * b;
-    if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t * a * sl[i]; m[i + 1] = t * b * sl[i]; }
+    if (!sl[i]) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / sl[i],
+      b = m[i + 1] / sl[i],
+      h = a * a + b * b;
+    if (h > 9) {
+      const t = 3 / Math.sqrt(h);
+      m[i] = t * a * sl[i];
+      m[i + 1] = t * b * sl[i];
+    }
   }
   let d = `M${f(pts[0][0])},${f(pts[0][1])}`;
   for (let i = 0; i < n - 1; i++) {
@@ -69,16 +89,24 @@ export function bands(n: number, x0: number, width: number, series: number, gap 
   const band = n > 0 ? width / n : width;
   const inner = band * (1 - gap);
   const bw = series > 0 ? inner / series : inner;
-  return { band, inner, bw, x: (i: number) => x0 + i * band, barX: (i: number, s: number) => x0 + i * band + (band - inner) / 2 + s * bw };
+  return {
+    band,
+    inner,
+    bw,
+    x: (i: number) => x0 + i * band,
+    barX: (i: number, s: number) => x0 + i * band + (band - inner) / 2 + s * bw,
+  };
 }
 
 /** Index of the value in a sorted array closest to x. */
 export function nearestIndex(xs: number[], x: number): number {
   if (!xs.length) return -1;
-  let lo = 0, hi = xs.length - 1;
+  let lo = 0,
+    hi = xs.length - 1;
   while (hi - lo > 1) {
     const mid = (lo + hi) >> 1;
-    if (xs[mid] <= x) lo = mid; else hi = mid;
+    if (xs[mid] <= x) lo = mid;
+    else hi = mid;
   }
   return Math.abs(xs[lo] - x) <= Math.abs(xs[hi] - x) ? lo : hi;
 }
@@ -92,7 +120,10 @@ export function yearTicks(dates: string[], max = 6): { i: number; label: string 
   let prev = "";
   dates.forEach((d, i) => {
     const y = d.slice(0, 4);
-    if (y !== prev) { if (i > 0 || dates.length < 3) firsts.push({ i, y: +y }); prev = y; }
+    if (y !== prev) {
+      if (i > 0 || dates.length < 3) firsts.push({ i, y: +y });
+      prev = y;
+    }
   });
   if (!firsts.length) return [];
   const every = [1, 2, 5, 10, 20].find((k) => Math.ceil(firsts.length / k) <= Math.max(1, max)) ?? 20;

@@ -58,7 +58,11 @@ export function parseLooseJson(text: string): unknown {
   }
 }
 
-export async function fetchFactsheets(targetMonth: string, fetchImpl: FetchImpl, env: Record<string, string | undefined> = process.env): Promise<SourceResult<FactsheetFiles>> {
+export async function fetchFactsheets(
+  targetMonth: string,
+  fetchImpl: FetchImpl,
+  env: Record<string, string | undefined> = process.env,
+): Promise<SourceResult<FactsheetFiles>> {
   const tried = candidateFiles(targetMonth);
   const files: Record<string, unknown> = {};
   const errors: string[] = [];
@@ -92,7 +96,15 @@ export async function fetchFactsheets(targetMonth: string, fetchImpl: FetchImpl,
   }
   const found = Object.keys(files);
   if (!found.length) {
-    return { ok: false, data: null, error: `factsheets (${where}): no archive found for ${tried[0].slice(-12, -5)} or the 2 previous months${errors.length ? `; ${errors.join("; ")}` : ""}` };
+    return {
+      ok: false,
+      data: null,
+      error: `factsheets (${where}): no archive found for ${tried[0].slice(-12, -5)} or the 2 previous months${errors.length ? `; ${errors.join("; ")}` : ""}`,
+    };
   }
-  return { ok: true, data: { files, tried, where }, detail: `${where}: ${found.join(", ")}${errors.length ? `; errors: ${errors.join("; ")}` : ""}` };
+  return {
+    ok: true,
+    data: { files, tried, where },
+    detail: `${where}: ${found.join(", ")}${errors.length ? `; errors: ${errors.join("; ")}` : ""}`,
+  };
 }

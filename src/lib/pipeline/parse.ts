@@ -21,7 +21,10 @@ export const isObj = (v: Json): v is Obj => typeof v === "object" && v !== null 
 export function parseNumber(v: Json): number | null {
   if (typeof v === "number") return Number.isFinite(v) ? v : null;
   if (typeof v !== "string") return null;
-  let t = v.trim().replace(/[−–‒—]/g, "-").replace(/[\s  ]/g, "");
+  let t = v
+    .trim()
+    .replace(/[−–‒—]/g, "-")
+    .replace(/[\s  ]/g, "");
   if (t.endsWith("%")) t = t.slice(0, -1);
   if (!t || /^(nan|none|null|n\/a|na|-)$/i.test(t)) return null;
   if (/^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) t = t.replace(/,/g, "");
@@ -54,34 +57,114 @@ export function parseText(v: Json): string | null {
 
 /* ------------------------------------------------------------------ characteristics */
 
-interface CharSpec { id: string; source: string; label: L; unit: Characteristic["unit"] }
+interface CharSpec {
+  id: string;
+  source: string;
+  label: L;
+  unit: Characteristic["unit"];
+}
 
 /** Bond fund characteristics (bonds_data "Characteristics"), in display order. */
 export const BOND_CHARACTERISTICS: CharSpec[] = [
-  { id: "portfolioYield", source: "Portfolio Yield", label: { en: "Portfolio yield", fr: "Rendement du portefeuille" }, unit: "pct" },
+  {
+    id: "portfolioYield",
+    source: "Portfolio Yield",
+    label: { en: "Portfolio yield", fr: "Rendement du portefeuille" },
+    unit: "pct",
+  },
   { id: "currentYield", source: "Current Yield", label: { en: "Current yield", fr: "Rendement courant" }, unit: "pct" },
   { id: "duration", source: "Duration", label: { en: "Duration (years)", fr: "Durée (années)" }, unit: "num" },
-  { id: "creditQuality", source: "Credit Quality", label: { en: "Average credit quality", fr: "Qualité de crédit moyenne" }, unit: "text" },
-  { id: "investmentGrade", source: "% of Portfolio Rated Investment Grade", label: { en: "Rated investment grade", fr: "Cotée de première qualité" }, unit: "pct" },
-  { id: "numberOfSecurities", source: "Number of Securities", label: { en: "Number of securities", fr: "Nombre de titres" }, unit: "int" },
-  { id: "probabilityOfDefault5y", source: "Probability of Defaults (5Y)", label: { en: "Probability of default (5Y)", fr: "Probabilité de défaut (5 ans)" }, unit: "pct" },
+  {
+    id: "creditQuality",
+    source: "Credit Quality",
+    label: { en: "Average credit quality", fr: "Qualité de crédit moyenne" },
+    unit: "text",
+  },
+  {
+    id: "investmentGrade",
+    source: "% of Portfolio Rated Investment Grade",
+    label: { en: "Rated investment grade", fr: "Cotée de première qualité" },
+    unit: "pct",
+  },
+  {
+    id: "numberOfSecurities",
+    source: "Number of Securities",
+    label: { en: "Number of securities", fr: "Nombre de titres" },
+    unit: "int",
+  },
+  {
+    id: "probabilityOfDefault5y",
+    source: "Probability of Defaults (5Y)",
+    label: { en: "Probability of default (5Y)", fr: "Probabilité de défaut (5 ans)" },
+    unit: "pct",
+  },
 ];
 
 export const ESG_METRICS: CharSpec[] = [
-  { id: "spGlobalEsgRank", source: "S&P Global ESG Rank", label: { en: "S&P Global ESG rank", fr: "Rang ESG S&P Global" }, unit: "num" },
-  { id: "carbonIntensity", source: "Carbon Intensity", label: { en: "Carbon intensity", fr: "Intensité carbone" }, unit: "num" },
-  { id: "waterIntensity", source: "Water Intensity", label: { en: "Water intensity", fr: "Intensité hydrique" }, unit: "num" },
-  { id: "boardIndependence", source: "Board Independence", label: { en: "Board independence", fr: "Indépendance du conseil" }, unit: "pct" },
-  { id: "boardDiversity", source: "Board Diversity", label: { en: "Board diversity", fr: "Diversité du conseil" }, unit: "pct" },
+  {
+    id: "spGlobalEsgRank",
+    source: "S&P Global ESG Rank",
+    label: { en: "S&P Global ESG rank", fr: "Rang ESG S&P Global" },
+    unit: "num",
+  },
+  {
+    id: "carbonIntensity",
+    source: "Carbon Intensity",
+    label: { en: "Carbon intensity", fr: "Intensité carbone" },
+    unit: "num",
+  },
+  {
+    id: "waterIntensity",
+    source: "Water Intensity",
+    label: { en: "Water intensity", fr: "Intensité hydrique" },
+    unit: "num",
+  },
+  {
+    id: "boardIndependence",
+    source: "Board Independence",
+    label: { en: "Board independence", fr: "Indépendance du conseil" },
+    unit: "pct",
+  },
+  {
+    id: "boardDiversity",
+    source: "Board Diversity",
+    label: { en: "Board diversity", fr: "Diversité du conseil" },
+    unit: "pct",
+  },
 ];
 
 /** Multistrategy "Characteristics" (flat {field: string}). */
 export const MULTISTRAT_CHARACTERISTICS: CharSpec[] = [
-  { id: "dividendYield", source: "Dividend Yield", label: { en: "Dividend yield", fr: "Rendement en dividendes" }, unit: "pct" },
-  { id: "priceEarnings", source: "Price/Earnings Ratio", label: { en: "Price/earnings ratio", fr: "Ratio cours/bénéfice" }, unit: "num" },
-  { id: "numberOfEquityHoldings", source: "Number of Equity Holdings", label: { en: "Number of equity holdings", fr: "Nombre de titres de capitaux propres" }, unit: "int" },
-  { id: "numberOfHoldings", source: "Number of Holdings", label: { en: "Number of holdings", fr: "Nombre de titres" }, unit: "int" },
-  { id: "largestEquitySector", source: "Largest Equity Sector Exposure", label: { en: "Largest equity sector exposure", fr: "Exposition sectorielle la plus importante" }, unit: "pct" },
+  {
+    id: "dividendYield",
+    source: "Dividend Yield",
+    label: { en: "Dividend yield", fr: "Rendement en dividendes" },
+    unit: "pct",
+  },
+  {
+    id: "priceEarnings",
+    source: "Price/Earnings Ratio",
+    label: { en: "Price/earnings ratio", fr: "Ratio cours/bénéfice" },
+    unit: "num",
+  },
+  {
+    id: "numberOfEquityHoldings",
+    source: "Number of Equity Holdings",
+    label: { en: "Number of equity holdings", fr: "Nombre de titres de capitaux propres" },
+    unit: "int",
+  },
+  {
+    id: "numberOfHoldings",
+    source: "Number of Holdings",
+    label: { en: "Number of holdings", fr: "Nombre de titres" },
+    unit: "int",
+  },
+  {
+    id: "largestEquitySector",
+    source: "Largest Equity Sector Exposure",
+    label: { en: "Largest equity sector exposure", fr: "Exposition sectorielle la plus importante" },
+    unit: "pct",
+  },
 ];
 
 function convert(v: Json, unit: Characteristic["unit"]): number | string | null {
@@ -141,7 +224,8 @@ export function parseBuckets(section: Json): Bucket[] {
     return out;
   }
   const labels: string[] = [];
-  for (const col of [fundCol, idxCol]) if (isObj(col)) for (const k of Object.keys(col)) if (!labels.includes(k)) labels.push(k);
+  for (const col of [fundCol, idxCol])
+    if (isObj(col)) for (const k of Object.keys(col)) if (!labels.includes(k)) labels.push(k);
   const out: Bucket[] = [];
   for (const label of labels) {
     const f = isObj(fundCol) ? parsePct(fundCol[label]) : null;
@@ -181,9 +265,16 @@ export function parseHoldings(section: Json): Holding[] {
  */
 export function parseAllocationSeries(section: Json): { buckets: Bucket[]; from: string; to: string } | null {
   if (!isObj(section)) return null;
-  const dates = Object.keys(section).filter((d) => isObj(section[d])).sort();
+  const dates = Object.keys(section)
+    .filter((d) => isObj(section[d]))
+    .sort();
   if (!dates.length) return null;
-  const labels: Record<string, string> = { EQUITIES: "Equities", BONDS: "Bonds", CURRENCIES: "Currencies", COMMODITIES: "Commodities" };
+  const labels: Record<string, string> = {
+    EQUITIES: "Equities",
+    BONDS: "Bonds",
+    CURRENCIES: "Currencies",
+    COMMODITIES: "Commodities",
+  };
   const acc: Record<string, { s: number; n: number }> = {};
   for (const d of dates) {
     for (const [k, v] of Object.entries(section[d] as Obj)) {
@@ -216,7 +307,11 @@ export function parsePeriodMap(d: Json, ytdYear: string): PeriodMap {
 type PeriodDecimals = Partial<Record<keyof PeriodMap, number>>;
 
 export interface TrailingTable {
-  fund: PeriodMap; index?: PeriodMap; va?: PeriodMap; fundName?: string; indexName?: string;
+  fund: PeriodMap;
+  index?: PeriodMap;
+  va?: PeriodMap;
+  fundName?: string;
+  indexName?: string;
   /** published decimals (percent units) per period, for rounding tolerances */
   decimals: { fund: PeriodDecimals; index: PeriodDecimals; va: PeriodDecimals };
 }
@@ -240,9 +335,17 @@ function periodDecimals(d: Json, ytdYear: string): PeriodDecimals {
 export function parseTrailingTable(section: Json, ytdYear: string): TrailingTable | null {
   if (!isObj(section) || !Object.keys(section).length) return null;
   const vals = Object.values(section);
-  if (!isObj(vals[0])) return { fund: parsePeriodMap(section, ytdYear), decimals: { fund: periodDecimals(section, ytdYear), index: {}, va: {} } };
+  if (!isObj(vals[0]))
+    return {
+      fund: parsePeriodMap(section, ytdYear),
+      decimals: { fund: periodDecimals(section, ytdYear), index: {}, va: {} },
+    };
   const names = Object.keys(section).filter((k) => k !== "Value Added" && isObj(section[k]));
-  const out: TrailingTable = { fund: parsePeriodMap(section[names[0]], ytdYear), fundName: names[0], decimals: { fund: periodDecimals(section[names[0]], ytdYear), index: {}, va: {} } };
+  const out: TrailingTable = {
+    fund: parsePeriodMap(section[names[0]], ytdYear),
+    fundName: names[0],
+    decimals: { fund: periodDecimals(section[names[0]], ytdYear), index: {}, va: {} },
+  };
   if (names[1]) {
     out.index = parsePeriodMap(section[names[1]], ytdYear);
     out.indexName = names[1];
@@ -285,7 +388,9 @@ export function parseMonthlyTable(section: Json): { points: MonthlyPoint[]; deci
  * "Calendar Performance Net": nested {<fund>: {year: "x%"}, <index>: {...}, "Value Added": {...}} or
  * flat {year: "x.x"}. Returns year -> {fund, index, va}.
  */
-export function parseCalendarTable(section: Json): Record<string, { fund: number | null; index?: number | null; va?: number | null }> {
+export function parseCalendarTable(
+  section: Json,
+): Record<string, { fund: number | null; index?: number | null; va?: number | null }> {
   const out: Record<string, { fund: number | null; index?: number | null; va?: number | null }> = {};
   if (!isObj(section)) return out;
   const vals = Object.values(section);
@@ -308,21 +413,42 @@ export function parseCalendarTable(section: Json): Record<string, { fund: number
 }
 
 interface PublishedStatistics {
-  annReturn: number | null; annVol: number | null; downsideDev: number | null; sharpe: number | null;
-  sortino: number | null; positiveMonths: number | null; maxDrawdown: number | null;
+  annReturn: number | null;
+  annVol: number | null;
+  downsideDev: number | null;
+  sharpe: number | null;
+  sortino: number | null;
+  positiveMonths: number | null;
+  maxDrawdown: number | null;
   /** published decimals (display units) of each value present */
-  decimals: Partial<Record<"annReturn" | "annVol" | "downsideDev" | "sharpe" | "sortino" | "positiveMonths" | "maxDrawdown", number>>;
+  decimals: Partial<
+    Record<"annReturn" | "annVol" | "downsideDev" | "sharpe" | "sortino" | "positiveMonths" | "maxDrawdown", number>
+  >;
 }
 
 const STAT_FIELDS = [
-  ["annReturn", "Annualized Returns", "pct"], ["annVol", "Annualized St. Dev.", "pct"], ["downsideDev", "Annualized Downside Dev.", "pct"],
-  ["sharpe", "Sharpe Ratio", "num"], ["sortino", "Sortino Ratio", "num"], ["positiveMonths", "% Positive Months", "pct"], ["maxDrawdown", "Max Drawdown", "pct"],
+  ["annReturn", "Annualized Returns", "pct"],
+  ["annVol", "Annualized St. Dev.", "pct"],
+  ["downsideDev", "Annualized Downside Dev.", "pct"],
+  ["sharpe", "Sharpe Ratio", "num"],
+  ["sortino", "Sortino Ratio", "num"],
+  ["positiveMonths", "% Positive Months", "pct"],
+  ["maxDrawdown", "Max Drawdown", "pct"],
 ] as const;
 
 /** "Statistics Net|Gross" dict -> numbers (percent strings as decimals, ratios as numbers) + published decimals. */
 export function parseStatistics(section: Json): PublishedStatistics | null {
   if (!isObj(section)) return null;
-  const out: PublishedStatistics = { annReturn: null, annVol: null, downsideDev: null, sharpe: null, sortino: null, positiveMonths: null, maxDrawdown: null, decimals: {} };
+  const out: PublishedStatistics = {
+    annReturn: null,
+    annVol: null,
+    downsideDev: null,
+    sharpe: null,
+    sortino: null,
+    positiveMonths: null,
+    maxDrawdown: null,
+    decimals: {},
+  };
   for (const [k, label, unit] of STAT_FIELDS) {
     const raw = section[label];
     const v = unit === "pct" ? parsePct(raw) : parseNumber(raw);
@@ -336,11 +462,19 @@ export function parseStatistics(section: Json): PublishedStatistics | null {
 /** the factsheet table of fund monthly returns (bonds: "Monthly Returns: Nymbus <X> Net"; strategies: "Monthly Returns Net") */
 export function fundMonthlyTableKey(block: Obj, basis: "Net" | "Gross"): string | null {
   if (isObj(block[`Monthly Returns ${basis}`])) return `Monthly Returns ${basis}`;
-  return Object.keys(block).find((k) => k.startsWith("Monthly Returns: Nymbus ") && k.endsWith(` ${basis}`) && isObj(block[k])) ?? null;
+  return (
+    Object.keys(block).find(
+      (k) => k.startsWith("Monthly Returns: Nymbus ") && k.endsWith(` ${basis}`) && isObj(block[k]),
+    ) ?? null
+  );
 }
 
 /** the factsheet table of index monthly returns ("Monthly Returns: <index name>") */
 export function indexMonthlyTableKey(block: Obj, indexName?: string): string | null {
   if (indexName && isObj(block[`Monthly Returns: ${indexName}`])) return `Monthly Returns: ${indexName}`;
-  return Object.keys(block).find((k) => k.startsWith("Monthly Returns: ") && !k.startsWith("Monthly Returns: Nymbus ") && isObj(block[k])) ?? null;
+  return (
+    Object.keys(block).find(
+      (k) => k.startsWith("Monthly Returns: ") && !k.startsWith("Monthly Returns: Nymbus ") && isObj(block[k]),
+    ) ?? null
+  );
 }

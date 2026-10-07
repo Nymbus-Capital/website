@@ -50,19 +50,46 @@ export default async function StrategyPage({ params }: Params) {
   if (!view) notFound();
   if (view.spec.key !== slug) permanentRedirect(`/strategies/${view.spec.key}`);
 
-  const [docs, all, siteContent, brand] = await Promise.all([documentsFor(view.spec.key), getAllFundViews(), getContent(), resolveBrandAssets()]);
+  const [docs, all, siteContent, brand] = await Promise.all([
+    documentsFor(view.spec.key),
+    getAllFundViews(),
+    getContent(),
+    resolveBrandAssets(),
+  ]);
   const funds: FundLink[] = all.map(({ spec, content }) => ({
-    key: spec.key, name: spec.name, short: spec.short, assetClass: spec.assetClass, tagline: content.tagline ?? spec.defaults.tagline, color: spec.color,
+    key: spec.key,
+    name: spec.name,
+    short: spec.short,
+    assetClass: spec.assetClass,
+    tagline: content.tagline ?? spec.defaults.tagline,
+    color: spec.color,
   }));
 
   // the snapshot pin is internal (admin) state: strip it before the props cross to the client
   const { pinnedSnapshot: _pin, rankings: allRankings, ...rest } = view.content;
   void _pin;
   // only confirmed, fresh rankings reach the page (drafts, notes, stale figures stay on the server); "hide" sends none
-  const rankings = rest.hide?.rankings ? undefined : publicFundRankings(allRankings, { now: new Date(), months: policyMonths(siteContent), classes: view.spec.classes });
+  const rankings = rest.hide?.rankings
+    ? undefined
+    : publicFundRankings(allRankings, {
+        now: new Date(),
+        months: policyMonths(siteContent),
+        classes: view.spec.classes,
+      });
   // awards only for a Fundata FundGrade of A or B: otherwise no rankings in the payload (CIFSC category line kept)
   const content = gateAwards(rankings ? { ...rest, rankings } : rest, view.spec.classes);
   // internal source names and every block the admin hid (AUM unless published) stay out of the RSC payload
   const data = stripHidden(toPublicData(view.data), content);
-  return <FundPage spec={toPublicSpec(view.spec)} content={content} data={data} sample={view.sample} docs={docs} funds={funds} firmDisclaimer={siteContent.firm.disclaimer ?? null} brand={brand} />;
+  return (
+    <FundPage
+      spec={toPublicSpec(view.spec)}
+      content={content}
+      data={data}
+      sample={view.sample}
+      docs={docs}
+      funds={funds}
+      firmDisclaimer={siteContent.firm.disclaimer ?? null}
+      brand={brand}
+    />
+  );
 }

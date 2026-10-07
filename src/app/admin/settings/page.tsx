@@ -15,8 +15,24 @@ export default async function SettingsPage() {
   const [c, rows] = await Promise.all([getContent(), brandRows()]);
   return (
     <>
-      <Head crumb="admin / settings" title="site settings" lead={<>Firm-wide texts and how pipeline runs reach the site. Content v{c.version}{c.version ? `, last saved ${when(c.updatedAt)} by ${c.updatedBy}` : ""}.</>} />
-      <SettingsForm key={c.version} version={c.version} firm={c.firm} publishMode={c.pipeline.publishMode} maxAgeMonths={policyMonths(c)} retentionDays={retentionDaysOf(c)} />
+      <Head
+        crumb="admin / settings"
+        title="site settings"
+        lead={
+          <>
+            Firm-wide texts and how pipeline runs reach the site. Content v{c.version}
+            {c.version ? `, last saved ${when(c.updatedAt)} by ${c.updatedBy}` : ""}.
+          </>
+        }
+      />
+      <SettingsForm
+        key={c.version}
+        version={c.version}
+        firm={c.firm}
+        publishMode={c.pipeline.publishMode}
+        maxAgeMonths={policyMonths(c)}
+        retentionDays={retentionDaysOf(c)}
+      />
       <BrandAssetsManager rows={rows} />
     </>
   );

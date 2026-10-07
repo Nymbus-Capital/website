@@ -13,14 +13,40 @@
  *    on load, on hashchange and on a same-page link click;
  *  - short blocks (< DISCLOSURE_MIN_CHARS) render as before: no box, no fade, no arrow (`display: contents`).
  */
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
-import { DISCLOSURE_MIN_CHARS, discState, enLength, hashId, hashOpens, isCollapsible, textLength, toggleLabel } from "./disclosure-logic";
+import {
+  DISCLOSURE_MIN_CHARS,
+  discState,
+  enLength,
+  hashId,
+  hashOpens,
+  isCollapsible,
+  textLength,
+  toggleLabel,
+} from "./disclosure-logic";
 import type { Locale } from "@/lib/i18n/config";
 
-export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLOSURE_MIN_CHARS, className, testId }: {
+export function Disclosure({
+  children,
+  en,
+  lang,
+  anchors = [],
+  minChars = DISCLOSURE_MIN_CHARS,
+  className,
+  testId,
+}: {
   children: ReactNode;
   /**
    * the block's ENGLISH texts: the collapse decision is taken on them so both languages behave the same (French runs
@@ -55,10 +81,14 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
 
   // open / close; animated from the current height to the target, then the CSS state takes over (max-height: none)
   const setOpen = useCallback((open: boolean, animate = true) => {
-    const clip = clipRef.current, inner = innerRef.current;
+    const clip = clipRef.current,
+      inner = innerRef.current;
     if (!clip || !inner || expandedRef.current === open) return;
     expandedRef.current = open;
-    const done = () => { clip.style.maxHeight = ""; clip.style.transition = ""; };
+    const done = () => {
+      clip.style.maxHeight = "";
+      clip.style.transition = "";
+    };
     if (!animate || reduce()) {
       done();
       setExpanded(open);
@@ -74,7 +104,12 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
       if (open) clip.style.maxHeight = `${inner.getBoundingClientRect().height}px`;
       else clip.style.maxHeight = ""; // the collapsed height of the CSS
       let finished = false;
-      const end = () => { if (finished) return; finished = true; clip.removeEventListener("transitionend", end); if (open) done(); };
+      const end = () => {
+        if (finished) return;
+        finished = true;
+        clip.removeEventListener("transitionend", end);
+        if (open) done();
+      };
       clip.addEventListener("transitionend", end);
       setTimeout(end, 600); // no transitionend when nothing moved
     });
@@ -96,7 +131,8 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
   // does the text overflow the collapsed height? (wide screens: no fade / arrow when it fits; never changes a height)
   useEffect(() => {
     if (!collapsible) return;
-    const clip = clipRef.current, inner = innerRef.current;
+    const clip = clipRef.current,
+      inner = innerRef.current;
     if (!clip || !inner) return;
     const measure = () => {
       if (expandedRef.current) return;
@@ -148,7 +184,11 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
   }, [collapsible, anchors.join(" "), setOpen, pathname]);
 
   if (!collapsible) {
-    return <div className="disc" data-disc="plain" data-testid={testId}>{className ? <div className={className}>{children}</div> : children}</div>;
+    return (
+      <div className="disc" data-disc="plain" data-testid={testId}>
+        {className ? <div className={className}>{children}</div> : children}
+      </div>
+    );
   }
 
   // find-in-page / focus / scrollIntoView scroll the clip: open the box instead (limitation: docs/compliance-review.md D2)
@@ -163,7 +203,9 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
     pendingShift.current = shift;
     setOpen(true, false);
   };
-  const onFocus = () => { if (!expandedRef.current) setOpen(true, false); };
+  const onFocus = () => {
+    if (!expandedRef.current) setOpen(true, false);
+  };
   // the collapsed box is clickable as a whole (mouse); links inside keep working, a text selection is left alone
   const onBoxClick = (e: MouseEvent) => {
     if (expandedRef.current || state !== "collapsed") return;
@@ -176,10 +218,20 @@ export function Disclosure({ children, en, lang, anchors = [], minChars = DISCLO
   return (
     <div ref={boxRef} className="disc" data-disc={state} data-testid={testId}>
       <div ref={clipRef} id={bodyId} className="disc-clip" onScroll={onScroll} onFocus={onFocus} onClick={onBoxClick}>
-        <div ref={innerRef} className={className ? `disc-inner ${className}` : "disc-inner"}>{children}</div>
+        <div ref={innerRef} className={className ? `disc-inner ${className}` : "disc-inner"}>
+          {children}
+        </div>
       </div>
-      <button type="button" className="disc-toggle" aria-expanded={expanded} aria-controls={bodyId} title={label}
-        hidden={state === "fits"} onClick={() => setOpen(!expandedRef.current)} data-testid={testId ? `${testId}-toggle` : undefined}>
+      <button
+        type="button"
+        className="disc-toggle"
+        aria-expanded={expanded}
+        aria-controls={bodyId}
+        title={label}
+        hidden={state === "fits"}
+        onClick={() => setOpen(!expandedRef.current)}
+        data-testid={testId ? `${testId}-toggle` : undefined}
+      >
         <ChevronDown aria-hidden="true" />
         <span className="sr-only">{label}</span>
       </button>

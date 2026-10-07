@@ -7,19 +7,44 @@
  */
 import { safeHttpUrl, safeImageUrl, safeLinkedIn, plainLines, plainParagraphs, plainText } from "./sanitize.ts";
 import {
-  DEPARTMENTS, INTRO_LEAD_LOCKED, INTRO_PAGES, NEWS_CATEGORIES,
-  type Bi, type CmsDepartment, type CmsDocument, type CmsNews, type CmsNewsCategory, type CmsPageIntro, type CmsTeamMember, type CmsTexts,
+  DEPARTMENTS,
+  INTRO_LEAD_LOCKED,
+  INTRO_PAGES,
+  NEWS_CATEGORIES,
+  type Bi,
+  type CmsDepartment,
+  type CmsDocument,
+  type CmsNews,
+  type CmsNewsCategory,
+  type CmsPageIntro,
+  type CmsTeamMember,
+  type CmsTexts,
   type IntroPage,
 } from "./types.ts";
 
 export const LIMITS = {
-  news: 200, team: 100,
-  title: 200, summary: 600, body: 20_000, name: 120, role: 160, bio: 5_000, listLines: 20, listLine: 200, text: 400, address: 300,
-  introHeadline: 200, introHighlight: 120, introLead: 400,
+  news: 200,
+  team: 100,
+  title: 200,
+  summary: 600,
+  body: 20_000,
+  name: 120,
+  role: 160,
+  bio: 5_000,
+  listLines: 20,
+  listLine: 200,
+  text: 400,
+  address: 300,
+  introHeadline: 200,
+  introHighlight: 120,
+  introLead: 400,
 } as const;
 
 export class CmsInvalidError extends Error {
-  constructor(message: string) { super(message); this.name = "CmsInvalidError"; }
+  constructor(message: string) {
+    super(message);
+    this.name = "CmsInvalidError";
+  }
 }
 
 export interface ParseOptions {
@@ -27,11 +52,17 @@ export interface ParseOptions {
   mediaOrigin: string | null;
   allowLoopbackHttp?: boolean;
 }
-export interface ParseResult { doc: CmsDocument; dropped: string[] }
+export interface ParseResult {
+  doc: CmsDocument;
+  dropped: string[];
+}
 
 /** Placeholder content created by `wp nymbus seed` ("[Sample] ...", "[Exemple] ..."): never published on the site. */
 export const SAMPLE_MARK = /^\s*\[(sample|exemple)\]/i;
-const isSample = (...texts: (string | Bi | undefined)[]): boolean => texts.some((t) => (typeof t === "string" ? SAMPLE_MARK.test(t) : !!t && (SAMPLE_MARK.test(t.en) || SAMPLE_MARK.test(t.fr))));
+const isSample = (...texts: (string | Bi | undefined)[]): boolean =>
+  texts.some((t) =>
+    typeof t === "string" ? SAMPLE_MARK.test(t) : !!t && (SAMPLE_MARK.test(t.en) || SAMPLE_MARK.test(t.fr)),
+  );
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const SLUG = /^[a-z0-9][a-z0-9-]{0,99}$/;
@@ -60,16 +91,23 @@ function parseNews(v: unknown, opts: ParseOptions): CmsNews | string {
   const body = bi(v.body, LIMITS.body, true);
   if (isSample(title, summary, body)) return `${id}: sample content`;
   const cat = typeof v.category === "string" ? v.category : "";
-  const category: CmsNewsCategory = (NEWS_CATEGORIES as readonly string[]).includes(cat) ? (cat as CmsNewsCategory) : "community";
+  const category: CmsNewsCategory = (NEWS_CATEGORIES as readonly string[]).includes(cat)
+    ? (cat as CmsNewsCategory)
+    : "community";
   return {
-    id, date, category, title,
-    summary, body,
+    id,
+    date,
+    category,
+    title,
+    summary,
+    body,
     image: safeImageUrl(v.image, opts.mediaOrigin, opts),
     link: safeHttpUrl(v.link, opts),
   };
 }
 
-const isDept = (x: unknown): x is CmsDepartment => typeof x === "string" && (DEPARTMENTS as readonly string[]).includes(x);
+const isDept = (x: unknown): x is CmsDepartment =>
+  typeof x === "string" && (DEPARTMENTS as readonly string[]).includes(x);
 
 function parseMember(v: unknown, opts: ParseOptions): CmsTeamMember | string {
   if (!isObj(v)) return "not an object";
@@ -81,18 +119,31 @@ function parseMember(v: unknown, opts: ParseOptions): CmsTeamMember | string {
   const role = bi(v.role, LIMITS.role);
   const bio = bi(v.bio, LIMITS.bio, true);
   if (isSample(name, role, bio)) return `${id}: sample content`;
-  const additional = (Array.isArray(v.additionalDepartments) ? v.additionalDepartments : []).filter(isDept).filter((d) => d !== v.department);
+  const additional = (Array.isArray(v.additionalDepartments) ? v.additionalDepartments : [])
+    .filter(isDept)
+    .filter((d) => d !== v.department);
   const pr = isObj(v.previousRoles) ? v.previousRoles : {};
-  const year = typeof v.yearJoined === "number" && Number.isInteger(v.yearJoined) && v.yearJoined >= 1900 && v.yearJoined <= 2100 ? v.yearJoined : null;
-  const order = typeof v.order === "number" && Number.isFinite(v.order) ? Math.max(-100000, Math.min(100000, Math.trunc(v.order))) : 0;
+  const year =
+    typeof v.yearJoined === "number" && Number.isInteger(v.yearJoined) && v.yearJoined >= 1900 && v.yearJoined <= 2100
+      ? v.yearJoined
+      : null;
+  const order =
+    typeof v.order === "number" && Number.isFinite(v.order)
+      ? Math.max(-100000, Math.min(100000, Math.trunc(v.order)))
+      : 0;
   return {
-    id, name,
-    role, bio,
+    id,
+    name,
+    role,
+    bio,
     department: v.department,
     additionalDepartments: [...new Set(additional)],
     designations: plainLines(v.designations, LIMITS.listLines, LIMITS.listLine),
     education: plainLines(v.education, LIMITS.listLines, LIMITS.listLine),
-    previousRoles: { en: plainLines(pr.en, LIMITS.listLines, LIMITS.listLine), fr: plainLines(pr.fr, LIMITS.listLines, LIMITS.listLine) },
+    previousRoles: {
+      en: plainLines(pr.en, LIMITS.listLines, LIMITS.listLine),
+      fr: plainLines(pr.fr, LIMITS.listLines, LIMITS.listLine),
+    },
     yearJoined: year,
     photo: safeImageUrl(v.photo, opts.mediaOrigin, opts),
     linkedin: safeLinkedIn(v.linkedin),
@@ -156,7 +207,8 @@ function parseTexts(v: unknown): CmsTexts {
 
 export function parseCmsDocument(raw: unknown, opts: ParseOptions): ParseResult {
   if (!isObj(raw)) throw new CmsInvalidError("document is not an object");
-  if (raw.schemaVersion !== 1) throw new CmsInvalidError(`unsupported schemaVersion ${String(raw.schemaVersion).slice(0, 20)}`);
+  if (raw.schemaVersion !== 1)
+    throw new CmsInvalidError(`unsupported schemaVersion ${String(raw.schemaVersion).slice(0, 20)}`);
   if (!Array.isArray(raw.news) || !Array.isArray(raw.team)) throw new CmsInvalidError("news and team must be arrays");
   const dropped: string[] = [];
 
@@ -166,7 +218,10 @@ export function parseCmsDocument(raw: unknown, opts: ParseOptions): ParseResult 
     const r = parseNews(x, opts);
     if (typeof r === "string") dropped.push(`news[${i}]: ${r}`);
     else if (seenNews.has(r.id)) dropped.push(`news[${i}]: duplicate id ${r.id}`);
-    else { seenNews.add(r.id); news.push(r); }
+    else {
+      seenNews.add(r.id);
+      news.push(r);
+    }
   }
   if (raw.news.length > LIMITS.news) dropped.push(`news: ${raw.news.length - LIMITS.news} items over the limit`);
   // newest first, stable for equal dates
@@ -178,7 +233,10 @@ export function parseCmsDocument(raw: unknown, opts: ParseOptions): ParseResult 
     const r = parseMember(x, opts);
     if (typeof r === "string") dropped.push(`team[${i}]: ${r}`);
     else if (seenTeam.has(r.id)) dropped.push(`team[${i}]: duplicate id ${r.id}`);
-    else { seenTeam.add(r.id); team.push(r); }
+    else {
+      seenTeam.add(r.id);
+      team.push(r);
+    }
   }
   if (raw.team.length > LIMITS.team) dropped.push(`team: ${raw.team.length - LIMITS.team} members over the limit`);
   team.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));

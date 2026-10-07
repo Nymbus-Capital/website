@@ -27,12 +27,36 @@ export async function PUT(request: NextRequest) {
     const saved = await updateContent(
       body.version,
       (cur) => {
-        before = { firm: cur.firm, pipeline: cur.pipeline, rankingPolicy: cur.rankingPolicy, inquiryPolicy: cur.inquiryPolicy };
-        return { ...cur, firm, pipeline: { ...cur.pipeline, publishMode: body.publishMode }, ...(body.rankingPolicy ? { rankingPolicy: body.rankingPolicy } : {}), ...(body.inquiryPolicy ? { inquiryPolicy: body.inquiryPolicy } : {}) };
+        before = {
+          firm: cur.firm,
+          pipeline: cur.pipeline,
+          rankingPolicy: cur.rankingPolicy,
+          inquiryPolicy: cur.inquiryPolicy,
+        };
+        return {
+          ...cur,
+          firm,
+          pipeline: { ...cur.pipeline, publishMode: body.publishMode },
+          ...(body.rankingPolicy ? { rankingPolicy: body.rankingPolicy } : {}),
+          ...(body.inquiryPolicy ? { inquiryPolicy: body.inquiryPolicy } : {}),
+        };
       },
       user.email,
     );
-    await audit({ by: user.email, action: "content.settings.save", detail: { version: saved.version, before, after: { firm, pipeline: saved.pipeline, rankingPolicy: saved.rankingPolicy, inquiryPolicy: saved.inquiryPolicy } } });
+    await audit({
+      by: user.email,
+      action: "content.settings.save",
+      detail: {
+        version: saved.version,
+        before,
+        after: {
+          firm,
+          pipeline: saved.pipeline,
+          rankingPolicy: saved.rankingPolicy,
+          inquiryPolicy: saved.inquiryPolicy,
+        },
+      },
+    });
     return ok({ content: saved });
   } catch (e) {
     return contentError("content.settings", e);

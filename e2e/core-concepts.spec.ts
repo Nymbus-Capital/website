@@ -7,8 +7,10 @@ import { expect, test, type Page } from "@playwright/test";
  * label, figures and captions, and fit a 360 px phone without horizontal scroll.
  */
 const IDS = ["overlay", "futures", "coverage"] as const;
-const EXPOSURE = "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.";
-const frames = (page: Page, id: string) => page.getByTestId(`${id}-host`).evaluate((el) => Number(el.getAttribute("data-frames") ?? "0"));
+const EXPOSURE =
+  "The overlay adds futures exposure on top of the underlying portfolio; its losses add to those of the underlying portfolio and may require additional margin.";
+const frames = (page: Page, id: string) =>
+  page.getByTestId(`${id}-host`).evaluate((el) => Number(el.getAttribute("data-frames") ?? "0"));
 
 async function canvasInk(page: Page, id: string) {
   return page.getByTestId(`${id}-canvas`).evaluate((c: HTMLCanvasElement) => {
@@ -45,16 +47,24 @@ test("core concepts (EN): three panels drawn, advancing, labelled, with captions
   }
   await expect(page.getByTestId("overlay-caption")).toContainText(EXPOSURE);
   await expect(page.getByTestId("overlay-caption")).toContainText(/generated values, not actual positions or results/);
-  await expect(page.getByTestId("overlay-caption")).toContainText("Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way.");
+  await expect(page.getByTestId("overlay-caption")).toContainText(
+    "Illustration of the overlay strategy’s sensitivity to volatility (vega); it may not behave this way.",
+  );
   await expect(page.getByTestId("futures-caption")).toContainText(/losses can exceed the margin deposited/);
   await expect(page.getByTestId("coverage-caption")).toContainText(/^Illustrative estimates/);
   await expect(page.getByTestId("coverage-panel").locator("dl dd")).toHaveText(["≈30", "≈180", "≈2,000", "≥ $200 MM"]);
   await expect(page.getByTestId("coverage-panel")).toContainText("Illustrative estimates");
   await expect(page.getByTestId("coverage-note")).toContainText(/over the counter/);
   // concept 3 compares two methods on one shared graphic: conventional team, then our systems, then both
-  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["The universe", "Conventional team", "Our systems", "Compare"]);
+  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText([
+    "The universe",
+    "Conventional team",
+    "Our systems",
+    "Compare",
+  ]);
   await expect(page.getByTestId("coverage-host")).toHaveAttribute("aria-label", /comparing two methods/);
-  for (const sec of await page.locator("section.cc-sec").all()) await expect(sec).not.toContainText(/\buncorrelated\b/i);
+  for (const sec of await page.locator("section.cc-sec").all())
+    await expect(sec).not.toContainText(/\buncorrelated\b/i);
   expect(errors).toEqual([]);
 });
 
@@ -63,35 +73,63 @@ test("core concepts (FR): French headings, steps and captions", async ({ page, b
   await page.goto("/core-concepts");
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(/trois idées derrière nos fonds/i);
-  await expect(page.getByRole("heading", { level: 2, name: /qu’est-ce qu’une superposition protectrice\?/i })).toBeAttached();
-  await expect(page.getByTestId("overlay-caption")).toContainText(/exposition additionnelle au moyen de contrats à terme/);
+  await expect(
+    page.getByRole("heading", { level: 2, name: /qu’est-ce qu’une superposition protectrice\?/i }),
+  ).toBeAttached();
+  await expect(page.getByTestId("overlay-caption")).toContainText(
+    /exposition additionnelle au moyen de contrats à terme/,
+  );
   await expect(page.getByTestId("futures-caption")).toContainText(/les pertes peuvent dépasser le dépôt/);
-  await expect(page.getByTestId("futures-panel").locator(".cc-steps .t")).toHaveText(["Acheteur et vendeur", "Règlement quotidien", "Dépôt de garantie", "Un seul jour à risque"]);
+  await expect(page.getByTestId("futures-panel").locator(".cc-steps .t")).toHaveText([
+    "Acheteur et vendeur",
+    "Règlement quotidien",
+    "Dépôt de garantie",
+    "Un seul jour à risque",
+  ]);
   await page.getByTestId("coverage-panel").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("coverage-panel")).toContainText("Estimations illustratives");
-  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText(["L’univers", "Équipe conventionnelle", "Nos systèmes", "Comparaison"]);
+  await expect(page.getByTestId("coverage-panel").locator(".cc-steps .t")).toHaveText([
+    "L’univers",
+    "Équipe conventionnelle",
+    "Nos systèmes",
+    "Comparaison",
+  ]);
 });
 
 test("nav and footer link to core concepts; jump links reach each concept", async ({ page, isMobile }) => {
   await page.goto("/");
   if (isMobile) {
     await page.getByTestId("menu-toggle").click();
-    await expect(page.getByTestId("mobile-menu").getByRole("link", { name: "Core concepts" })).toHaveAttribute("href", "/core-concepts");
+    await expect(page.getByTestId("mobile-menu").getByRole("link", { name: "Core concepts" })).toHaveAttribute(
+      "href",
+      "/core-concepts",
+    );
     await page.keyboard.press("Escape");
   } else {
     const link = page.getByTestId("site-nav").getByRole("link", { name: "Core concepts" });
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(/\/core-concepts$/);
-    await expect(page.getByTestId("site-nav").getByRole("link", { name: "Core concepts" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("site-nav").getByRole("link", { name: "Core concepts" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   }
-  await expect(page.getByTestId("site-footer").getByRole("link", { name: "Core concepts" })).toHaveAttribute("href", "/core-concepts");
+  await expect(page.getByTestId("site-footer").getByRole("link", { name: "Core concepts" })).toHaveAttribute(
+    "href",
+    "/core-concepts",
+  );
   await page.goto("/core-concepts");
-  await page.getByTestId("concepts-jump").getByRole("link", { name: /futures/i }).click();
+  await page
+    .getByTestId("concepts-jump")
+    .getByRole("link", { name: /futures/i })
+    .click();
   await expect(page).toHaveURL(/#futures$/);
   await expect(page.locator("section#futures")).toBeInViewport();
   // concept 3 is "Ultra-micro analysis, at scale"; the old #coverage anchor still lands on it
-  await expect(page.getByTestId("concepts-jump").getByRole("link", { name: /ultra-micro analysis, at scale/i })).toHaveAttribute("href", "#ultra-micro-analysis");
+  await expect(
+    page.getByTestId("concepts-jump").getByRole("link", { name: /ultra-micro analysis, at scale/i }),
+  ).toHaveAttribute("href", "#ultra-micro-analysis");
   await page.goto("/core-concepts#coverage");
   await expect(page.locator("section#ultra-micro-analysis")).toBeInViewport();
   await expect(page.locator("section#ultra-micro-analysis")).toContainText("Ultra-micro analysis, at scale");
@@ -164,7 +202,10 @@ test("off screen and hidden tab: the animations pause", async ({ page }) => {
   await expect(page.getByTestId("coverage-host")).toHaveAttribute("data-running", "false");
 });
 
-test("reduced motion: one still frame per panel, steps switch still frames, live change restarts", async ({ browser, baseURL }) => {
+test("reduced motion: one still frame per panel, steps switch still frames, live change restarts", async ({
+  browser,
+  baseURL,
+}) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL });
   const page = await ctx.newPage();
   await page.goto("/core-concepts");
@@ -193,8 +234,16 @@ test("reduced motion: one still frame per panel, steps switch still frames, live
   await ctx.close();
 });
 
-test("360 px phone: no horizontal scroll, panels inside the viewport, captions visible", async ({ browser, baseURL }) => {
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, baseURL, hasTouch: true, isMobile: true });
+test("360 px phone: no horizontal scroll, panels inside the viewport, captions visible", async ({
+  browser,
+  baseURL,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 360, height: 760 },
+    baseURL,
+    hasTouch: true,
+    isMobile: true,
+  });
   const page = await ctx.newPage();
   await page.goto("/core-concepts");
   for (const id of IDS) {
@@ -216,7 +265,11 @@ test("360 px phone: no horizontal scroll, panels inside the viewport, captions v
   await ctx.close();
 });
 
-test("desktop nav: seven links fit without overlapping the logo or the tools, in both languages", async ({ browser, baseURL, isMobile }) => {
+test("desktop nav: seven links fit without overlapping the logo or the tools, in both languages", async ({
+  browser,
+  baseURL,
+  isMobile,
+}) => {
   test.skip(isMobile, "desktop widths only");
   for (const locale of ["en", "fr"] as const) {
     for (const width of [1241, 1300, 1361, 1440]) {
@@ -226,8 +279,19 @@ test("desktop nav: seven links fit without overlapping the logo or the tools, in
       await page.goto("/core-concepts");
       const m = await page.evaluate(() => {
         const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
-        const links = Array.from(document.querySelectorAll(".nav-links > li > a")).map((a) => a.getBoundingClientRect());
-        return { logo: r(".nav-logo").right, first: links[0].left, last: links[links.length - 1].right, tools: r(".nav-tools").left, tall: Math.max(...links.map((b) => b.height)), n: links.length, sw: document.documentElement.scrollWidth, iw: window.innerWidth };
+        const links = Array.from(document.querySelectorAll(".nav-links > li > a")).map((a) =>
+          a.getBoundingClientRect(),
+        );
+        return {
+          logo: r(".nav-logo").right,
+          first: links[0].left,
+          last: links[links.length - 1].right,
+          tools: r(".nav-tools").left,
+          tall: Math.max(...links.map((b) => b.height)),
+          n: links.length,
+          sw: document.documentElement.scrollWidth,
+          iw: window.innerWidth,
+        };
       });
       expect(m.n, `${locale} ${width}`).toBe(7);
       expect(m.first, `${locale} ${width}`).toBeGreaterThan(m.logo);
@@ -256,10 +320,16 @@ async function frameForCapture(page: Page, id: string) {
   await page.waitForTimeout(200);
 }
 
-test("still frame of every step, captured for review (e2e/screenshots/concepts-*)", async ({ browser, baseURL }, info) => {
+test("still frame of every step, captured for review (e2e/screenshots/concepts-*)", async ({
+  browser,
+  baseURL,
+}, info) => {
   const mobile = info.project.name === "mobile";
   const sizes: { tag: string; viewport: { width: number; height: number }; steps: number[] }[] = mobile
-    ? [{ tag: "mobile", viewport: { width: 412, height: 915 }, steps: [0, 1, 2, 3] }, { tag: "360", viewport: { width: 360, height: 780 }, steps: [1, 2, 3] }]
+    ? [
+        { tag: "mobile", viewport: { width: 412, height: 915 }, steps: [0, 1, 2, 3] },
+        { tag: "360", viewport: { width: 360, height: 780 }, steps: [1, 2, 3] },
+      ]
     : [{ tag: "desktop", viewport: { width: 1440, height: 900 }, steps: [0, 1, 2, 3] }];
   for (const size of sizes) {
     const ctx = await browser.newContext({ reducedMotion: "reduce", baseURL, viewport: size.viewport });

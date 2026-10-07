@@ -36,7 +36,7 @@ Commit trailers used so far (keep them):
   (`src/lib/pipeline/**`, `src/lib/data/{types,store}.ts`, `src/config/funds.ts`, `src/lib/auth/policy.ts`,
   `src/content/disclaimers.ts`, `deploy/northflank/provision.mjs`) use relative imports with explicit
   `.ts` extensions and erasable TypeScript only, so they run under Node type stripping.
-- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (**blocking**, `eslint.config.mjs`) → build →
+- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (**blocking**, `eslint.config.mjs`) → format check (**blocking**) → build →
   Playwright e2e (desktop + Pixel 7; admin tests run after public ones) → Docker build.
   Add `[ci-logs]` to a commit message to have CI push logs + screenshots to a `ci/run-<n>` branch
   (useful from sandboxes that cannot download Actions artifacts:
@@ -58,6 +58,13 @@ Commit trailers used so far (keep them):
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
 - **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 0 since § 5 B3: no warning may be added).
   Fixing warnings → lower the cap in the same commit; never raise it.
+- **Formatting**: Prettier 3 (`.prettierrc`: printWidth 120; `.prettierignore`: the frozen Science-at-scale files, all
+  data / fixture JSON except `package.json` and `tsconfig.json`, Markdown, the WordPress plugin, `public/`). CI runs
+  `npm run format:check` (**blocking**, after lint); on failure it writes the needed diff to `ci-out/prettier.diff`
+  (published with `[ci-logs]`, so a sandbox without `node_modules` can `git apply` it). Locally: `npm run format`.
+  The one-time repository pass is listed in `.git-blame-ignore-revs` (`git config blame.ignoreRevsFile
+  .git-blame-ignore-revs`; GitHub applies it automatically). Prettier is pinned to an exact version (no lockfile yet), so
+  a newer 3.x cannot fail the check on its own; bump it deliberately with a fresh `format` pass.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
   the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
@@ -155,7 +162,7 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    `portfolio`, `distributions`, `site`, `helpers`); FTSE level code out of `metrics.ts` into `index-levels.ts`;
    `components/fund/lib/data.ts` → `performance`, `growth`, `heatmap`, `portfolio`, `distributions`, `documents`,
    `visibility`, `facts`, `is-num`; Contact.tsx imports `components/motion/motion` (shim deleted), `contact.copy.ts`.
-   Remaining: run Prettier once over the repository (separate commit, visual diff byte-identical); `class-returns.ts`
+   Prettier pass done on branch `chore/prettier` (not merged, 2026-10-06; § 2 Formatting). Remaining: `class-returns.ts`
    (≈ 500 lines) left whole while B1 changes it; `fund.copy.ts` and `data/types.ts` (≈ 530 lines each) are copy / the
    data contract and read best in one file; references to `build.ts` in `config.ts` comments left (CLASS_CHECKS is being
    changed on another branch).
@@ -178,6 +185,19 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (sub-agent, branch `chore/prettier`, **not merged**): § 5 B2 — one Prettier 3.9.9 pass over the repository
+  (`style: Prettier over the repository (no code change)` `84f3ff5`, 378 files, + a 3-file second pass `3d802d3` where
+  Prettier is not idempotent; both in `.git-blame-ignore-revs`), produced in CI (temporary step, run 278) and applied
+  locally. `.prettierignore`: frozen scan files (fx `scan-model/engine/copy.ts`, `fx.tsx`, `fx.css`, `home/Home.tsx`),
+  data / fixture JSON, Markdown, `wordpress/plugins/`, `public/`. Permanent blocking `npm run format:check` in CI
+  (writes `ci-out/prettier.diff` on failure); `format` / `format:check` scripts; prettier pinned (no lockfile).
+  Hand fixes in their own commits: four source-text unit tests made whitespace tolerant; three `eslint-disable`
+  comments re-anchored; the Overview Returns lead keeps its ` · ` in one text node (`{" · "}`: Prettier's `{" "}` split
+  shifted the glyph by 8 px on the GMV page). Visual proof: base run 277 (empty `[ci-logs]` commit on `f6da169`; equal
+  to run 275) vs run 282 (`bd02aa3`), `--max-ratio=0`: visual 44, visual-fr 6, visual-motion 10, all byte-identical.
+  Prettier's `{" "}` also splits ~45 other JSX text nodes (admin pages mostly, not covered by the visual set; no other
+  pixel moved on the public pages). Branch `chore/prettier-base` (baseline only) can be deleted.
 
 - 2026-10-06 (sub-agent, branch `feat/contact-form`, fourth pass; **not merged**): rebased on
   `chore/react-compiler-warnings` (Contact uses `useMountValue` and one ref per step, no lint disable; lint cap 0).

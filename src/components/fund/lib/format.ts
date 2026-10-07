@@ -8,12 +8,22 @@ import type { Locale } from "../../../lib/i18n/config.ts";
 
 const MINUS = "−";
 
-interface FmtOpts { decimals?: number; pct?: boolean; sign?: boolean; prefix?: string; suffix?: string; lang?: Locale }
+interface FmtOpts {
+  decimals?: number;
+  pct?: boolean;
+  sign?: boolean;
+  prefix?: string;
+  suffix?: string;
+  lang?: Locale;
+}
 
 export function fmt(v: number, o: FmtOpts = {}): string {
   const d = o.decimals ?? 1;
   const x = o.pct ? v * 100 : v;
-  const s = Math.abs(x).toLocaleString(o.lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const s = Math.abs(x).toLocaleString(o.lang === "fr" ? "fr-CA" : "en-CA", {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d,
+  });
   // a value that rounds to zero is shown unsigned ("0.0%", never "−0.0%")
   const zero = Number(Math.abs(x).toFixed(d)) === 0;
   const sign = zero ? "" : x < 0 ? MINUS : o.sign && x > 0 ? "+" : "";
@@ -38,7 +48,10 @@ export function pctTick(v: number, lang: Locale, step: number): string {
 export const NAV_DECIMALS = 4;
 
 export function money(v: number, currency: string, lang: Locale, decimals = 2): string {
-  const n = Math.abs(v).toLocaleString(lang === "fr" ? "fr-CA" : "en-CA", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const n = Math.abs(v).toLocaleString(lang === "fr" ? "fr-CA" : "en-CA", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
   const sign = v < 0 && Number(Math.abs(v).toFixed(decimals)) !== 0 ? MINUS : "";
   const cur = (currency || "CAD").toUpperCase();
   if (lang === "fr") return `${sign}${n} $${cur === "CAD" ? "" : ` ${cur === "USD" ? "US" : cur}`}`;
@@ -55,7 +68,8 @@ export function moneyParts(currency: string, lang: Locale): { prefix: string; su
 /** Compact dollars for axes: 12 500 → "$12.5k" / "12,5 k$"; 1 250 000 → "$1.25M" / "1,25 M$". */
 export function compactMoney(v: number, lang: Locale): string {
   const a = Math.abs(v);
-  const [k, unitEn, unitFr] = a >= 1e9 ? [1e9, "B", "G$"] : a >= 1e6 ? [1e6, "M", "M$"] : a >= 1e3 ? [1e3, "k", "k$"] : [1, "", "$"];
+  const [k, unitEn, unitFr] =
+    a >= 1e9 ? [1e9, "B", "G$"] : a >= 1e6 ? [1e6, "M", "M$"] : a >= 1e3 ? [1e3, "k", "k$"] : [1, "", "$"];
   const x = v / k;
   const d = Number.isInteger(+x.toFixed(2)) ? 0 : Number.isInteger(+(x * 10).toFixed(2)) ? 1 : 2;
   const s = fmt(x, { decimals: d, lang });
@@ -71,8 +85,34 @@ export function bigMoney(v: number, lang: Locale): string {
 }
 
 const MONTHS: Record<Locale, string[]> = {
-  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-  fr: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+  en: [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ],
+  fr: [
+    "janvier",
+    "février",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juillet",
+    "août",
+    "septembre",
+    "octobre",
+    "novembre",
+    "décembre",
+  ],
 };
 const MONTHS_SHORT: Record<Locale, string[]> = {
   en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -102,7 +142,9 @@ export function monthLabel(iso: string | null | undefined, lang: Locale, short =
 export function dateLabel(iso: string | null | undefined, lang: Locale, long = false): string {
   const p = iso ? parseYmd(iso) : null;
   if (!p) return "";
-  return lang === "fr" ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, !long)} ${p.y}` : `${monthName(p.m, lang, !long)} ${p.d}, ${p.y}`;
+  return lang === "fr"
+    ? `${p.d}${p.d === 1 ? "er" : ""} ${monthName(p.m, lang, !long)} ${p.y}`
+    : `${monthName(p.m, lang, !long)} ${p.d}, ${p.y}`;
 }
 
 /** "<text ending in « de »> <word>" with the French elision before a vowel: « de août » → « d’août ». */
@@ -117,7 +159,11 @@ export function fileSize(bytes: number, lang: Locale): string {
 }
 
 /** Characteristic value according to its unit (contract: pct = decimal, num = 1 decimal, int, text). */
-export function charValue(v: number | string | null | undefined, unit: "pct" | "num" | "int" | "text", lang: Locale): string | null {
+export function charValue(
+  v: number | string | null | undefined,
+  unit: "pct" | "num" | "int" | "text",
+  lang: Locale,
+): string | null {
   if (v == null || v === "") return null;
   if (typeof v === "string") return v;
   if (!Number.isFinite(v)) return null;
@@ -128,9 +174,16 @@ export function charValue(v: number | string | null | undefined, unit: "pct" | "
 }
 
 /** Numeric parts of a characteristic, for CountUp (null when the value is text). */
-export function charCount(v: number | string | null | undefined, unit: "pct" | "num" | "int" | "text"): { value: number; decimals: number; pct: boolean } | null {
+export function charCount(
+  v: number | string | null | undefined,
+  unit: "pct" | "num" | "int" | "text",
+): { value: number; decimals: number; pct: boolean } | null {
   if (typeof v !== "number" || !Number.isFinite(v) || unit === "text") return null;
-  return unit === "pct" ? { value: v, decimals: Math.abs(v) >= 0.1 ? 1 : 2, pct: true } : unit === "num" ? { value: v, decimals: 1, pct: false } : { value: v, decimals: 0, pct: false };
+  return unit === "pct"
+    ? { value: v, decimals: Math.abs(v) >= 0.1 ? 1 : 2, pct: true }
+    : unit === "num"
+      ? { value: v, decimals: 1, pct: false }
+      : { value: v, decimals: 0, pct: false };
 }
 
 /** Label separator: French puts a non-breaking space before the colon. */

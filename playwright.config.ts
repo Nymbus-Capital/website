@@ -41,15 +41,37 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "desktop", testIgnore: /admin\.spec|cms\.spec/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    {
+      name: "desktop",
+      testIgnore: /admin\.spec|cms\.spec/,
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+    },
     { name: "mobile", testIgnore: /admin\.spec|cms\.spec/, use: { ...devices["Pixel 7"] } },
     // headless WordPress: its own server of the same build (own data volume and port) wired to a mock WordPress
     // (e2e/mock-wp.mjs); serial, because the tests flip the mock's mode
-    { name: "cms", testMatch: /cms\.spec/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: `http://localhost:${CMS_PORT}` } },
+    {
+      name: "cms",
+      testMatch: /cms\.spec/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        baseURL: `http://localhost:${CMS_PORT}`,
+      },
+    },
     // the admin tests write content (taglines, documents) to the shared data volume: they run after the public
     // page tests so no public screenshot or assertion ever sees test content
-    { name: "admin-desktop", testMatch: /admin\.spec/, dependencies: ["desktop", "mobile"], use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
-    { name: "admin-mobile", testMatch: /admin\.spec/, dependencies: ["desktop", "mobile"], use: { ...devices["Pixel 7"] } },
+    {
+      name: "admin-desktop",
+      testMatch: /admin\.spec/,
+      dependencies: ["desktop", "mobile"],
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: "admin-mobile",
+      testMatch: /admin\.spec/,
+      dependencies: ["desktop", "mobile"],
+      use: { ...devices["Pixel 7"] },
+    },
   ],
   webServer: [
     {

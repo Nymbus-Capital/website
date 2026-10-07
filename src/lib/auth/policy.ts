@@ -26,7 +26,8 @@ export interface PolicyConfig {
   requiredRole?: string;
 }
 
-type PolicyDenyReason = "tenant" | "subject" | "guest" | "acct-missing" | "email" | "domain" | "groups" | "groups-overage" | "role";
+type PolicyDenyReason =
+  "tenant" | "subject" | "guest" | "acct-missing" | "email" | "domain" | "groups" | "groups-overage" | "role";
 
 export type PolicyResult =
   | { ok: true; oid: string; email: string; name: string; tid: string }
@@ -60,14 +61,16 @@ export function parseGroupIds(raw: string | undefined): string[] {
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter((s) => s.length > 0);
-  for (const g of out) if (!GUID_RE.test(g)) throw new Error(`invalid group object id in ADMIN_ALLOWED_GROUP_IDS: "${g}"`);
+  for (const g of out)
+    if (!GUID_RE.test(g)) throw new Error(`invalid group object id in ADMIN_ALLOWED_GROUP_IDS: "${g}"`);
   return [...new Set(out)];
 }
 
 /** ADMIN_REQUIRED_ROLE → trimmed app-role value, or "" (no restriction). Invalid values throw. */
 export function parseRequiredRole(raw: string | undefined): string {
   const r = (raw ?? "").trim();
-  if (r && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(r)) throw new Error(`invalid app role in ADMIN_REQUIRED_ROLE: "${r}"`);
+  if (r && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(r))
+    throw new Error(`invalid app role in ADMIN_REQUIRED_ROLE: "${r}"`);
   return r;
 }
 
@@ -99,7 +102,11 @@ export function guestReason(claims: Claims, tenantId: string): string | null {
   if (claims.idp !== undefined && claims.idp !== null) {
     const idp = typeof claims.idp === "string" ? claims.idp.toLowerCase().replace(/\/+$/, "") : "";
     const t = tenantId.toLowerCase();
-    const own = [`https://sts.windows.net/${t}`, `https://login.microsoftonline.com/${t}/v2.0`, `https://login.microsoftonline.com/${t}`];
+    const own = [
+      `https://sts.windows.net/${t}`,
+      `https://login.microsoftonline.com/${t}/v2.0`,
+      `https://login.microsoftonline.com/${t}`,
+    ];
     if (!own.includes(idp)) return "the account is authenticated by another identity provider (guest)";
   }
   if (claims.acct !== undefined && claims.acct !== null) {
@@ -135,14 +142,20 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
     return {
       ok: false,
       reason: "acct-missing",
-      message: "The sign-in token has no acct claim, so member accounts cannot be told apart from guests. " +
+      message:
+        "The sign-in token has no acct claim, so member accounts cannot be told apart from guests. " +
         "An administrator must add the acct optional claim to the ID token (app registration → Token configuration).",
     };
   }
 
   const rawName = pickSignInName(claims);
   const email = rawName ? normalizeEmail(rawName) : null;
-  if (!email) return { ok: false, reason: "email", message: "The sign-in token has no usable sign-in name (preferred_username / upn)." };
+  if (!email)
+    return {
+      ok: false,
+      reason: "email",
+      message: "The sign-in token has no usable sign-in name (preferred_username / upn).",
+    };
   if (!isAllowedEmail(email, cfg.allowedDomains)) {
     return { ok: false, reason: "domain", message: "This account's e-mail domain is not allowed to use the admin." };
   }
@@ -159,10 +172,16 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
           "Ask an administrator to configure the app registration to emit only the groups assigned to the application.",
       };
     }
-    const claimGroups = Array.isArray(claims.groups) ? claims.groups.filter((g): g is string => typeof g === "string") : [];
+    const claimGroups = Array.isArray(claims.groups)
+      ? claims.groups.filter((g): g is string => typeof g === "string")
+      : [];
     const mine = new Set(claimGroups.map((g) => g.toLowerCase()));
     if (!groups.some((g) => mine.has(g.toLowerCase()))) {
-      return { ok: false, reason: "groups", message: "Your account is not a member of a group allowed to use the admin." };
+      return {
+        ok: false,
+        reason: "groups",
+        message: "Your account is not a member of a group allowed to use the admin.",
+      };
     }
   }
 
@@ -170,7 +189,11 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
   if (role) {
     const roles = Array.isArray(claims.roles) ? claims.roles.filter((r): r is string => typeof r === "string") : [];
     if (!roles.includes(role)) {
-      return { ok: false, reason: "role", message: `Your account has not been assigned the "${role}" role of the admin application.` };
+      return {
+        ok: false,
+        reason: "role",
+        message: `Your account has not been assigned the "${role}" role of the admin application.`,
+      };
     }
   }
 
@@ -183,7 +206,9 @@ export function evaluateLogin(claims: Claims, cfg: PolicyConfig): PolicyResult {
  * policy (e.g. adding a group or role requirement) invalidates existing sessions, which were checked under the old
  * rules at sign-in. Pure (FNV-1a 64 over a canonical string; not a secret).
  */
-export function policyVersion(cfg: Pick<PolicyConfig, "tenantId" | "allowedDomains" | "allowedGroupIds" | "requiredRole">): string {
+export function policyVersion(
+  cfg: Pick<PolicyConfig, "tenantId" | "allowedDomains" | "allowedGroupIds" | "requiredRole">,
+): string {
   const canon = JSON.stringify([
     cfg.tenantId.toLowerCase(),
     [...cfg.allowedDomains].map((d) => d.toLowerCase()).sort(),
@@ -199,14 +224,18 @@ export function policyVersion(cfg: Pick<PolicyConfig, "tenantId" | "allowedDomai
 }
 
 /** Re-check on every request from the session claims (tenant, member, domain). Groups are checked at sign-in. */
-export function evaluateSession(session: { sub?: unknown; email?: unknown; name?: unknown; tid?: unknown }, cfg: PolicyConfig): PolicyResult {
+export function evaluateSession(
+  session: { sub?: unknown; email?: unknown; name?: unknown; tid?: unknown },
+  cfg: PolicyConfig,
+): PolicyResult {
   if (!isGuid(cfg.tenantId) || !tenantMatches(session.tid, cfg.tenantId)) {
     return { ok: false, reason: "tenant", message: "This session does not belong to the Nymbus Microsoft tenant." };
   }
   if (!isGuid(session.sub)) return { ok: false, reason: "subject", message: "Invalid session subject." };
   const email = typeof session.email === "string" ? normalizeEmail(session.email) : null;
   if (!email) return { ok: false, reason: "email", message: "The session has no usable e-mail address." };
-  if (email.toUpperCase().includes("#EXT#")) return { ok: false, reason: "guest", message: "Guest accounts cannot use the admin." };
+  if (email.toUpperCase().includes("#EXT#"))
+    return { ok: false, reason: "guest", message: "Guest accounts cannot use the admin." };
   if (!isAllowedEmail(email, cfg.allowedDomains)) {
     return { ok: false, reason: "domain", message: "This account's e-mail domain is not allowed to use the admin." };
   }

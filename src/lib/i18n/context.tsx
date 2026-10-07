@@ -23,17 +23,26 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }: { children: ReactNode; initialLocale?: Locale }) {
+export function I18nProvider({
+  children,
+  initialLocale = DEFAULT_LOCALE,
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
   const [locale, setState] = useState<Locale>(initialLocale);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
-  const setLocale = useCallback((next: Locale) => {
-    setState(next);
-    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
-    document.documentElement.lang = next;
-    startTransition(() => router.refresh());
-  }, [router]);
+  const setLocale = useCallback(
+    (next: Locale) => {
+      setState(next);
+      document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+      document.documentElement.lang = next;
+      startTransition(() => router.refresh());
+    },
+    [router],
+  );
 
   const value = useMemo<I18nContextValue>(() => {
     const t = dict(locale);

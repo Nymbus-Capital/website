@@ -8,12 +8,22 @@ import { addMonths, toMonthEnd, type Series } from "./metrics.ts";
 
 const AGG = new Set<unknown>([null, undefined, "", "All", "all", "Overall", "Total"]);
 
-export interface FtseRow { date: string; total_return?: number | null; rating?: string | null; term?: string | null; industry_sector?: string | null; industry_group?: string | null; [k: string]: unknown }
+export interface FtseRow {
+  date: string;
+  total_return?: number | null;
+  rating?: string | null;
+  term?: string | null;
+  industry_sector?: string | null;
+  industry_group?: string | null;
+  [k: string]: unknown;
+}
 
 const SIGNATURE_KEYS = ["index_name", "rating", "term", "industry_sector", "industry_group", "index_content"] as const;
 /** grouping values that mean "not broken down" (null, "", All, Overall, Total) compare equal */
-const signatureOf = (r: FtseRow): string => JSON.stringify(SIGNATURE_KEYS.map((k) => (AGG.has(r[k]) ? "*" : String(r[k]))));
-const isAggregate = (r: FtseRow): boolean => AGG.has(r.rating) && AGG.has(r.term) && AGG.has(r.industry_sector) && AGG.has(r.industry_group);
+const signatureOf = (r: FtseRow): string =>
+  JSON.stringify(SIGNATURE_KEYS.map((k) => (AGG.has(r[k]) ? "*" : String(r[k]))));
+const isAggregate = (r: FtseRow): boolean =>
+  AGG.has(r.rating) && AGG.has(r.term) && AGG.has(r.industry_sector) && AGG.has(r.industry_group);
 
 /**
  * Date -> total-return level of the index itself, from index-summary rows of ONE short_name. The dataplatform
@@ -28,7 +38,11 @@ export function ftseLevels(rows: FtseRow[]): Record<string, number> {
 }
 
 /** one day of an FTSE index: total-return level, average yield (percent) and modified duration (years) of the index row */
-export interface FtseDay { level: number; ytm: number | null; dur: number | null }
+export interface FtseDay {
+  level: number;
+  ytm: number | null;
+  dur: number | null;
+}
 
 /** ftseLevels with the index row's average yield and modified duration (the gap-link estimate needs them). */
 export function ftseDaily(rows: FtseRow[]): Record<string, FtseDay> {
@@ -54,10 +68,20 @@ export function ftseDaily(rows: FtseRow[]): Record<string, FtseDay> {
   }
   if (sig === null) return {};
   const out: Record<string, FtseDay> = {};
-  const fin = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() && Number.isFinite(Number(v)) ? Number(v) : null);
+  const fin = (v: unknown): number | null =>
+    typeof v === "number" && Number.isFinite(v)
+      ? v
+      : typeof v === "string" && v.trim() && Number.isFinite(Number(v))
+        ? Number(v)
+        : null;
   for (const d of dates) {
     const match = byDate.get(d)!.filter((r) => signatureOf(r) === sig);
-    if (match.length === 1) out[d] = { level: match[0].total_return as number, ytm: fin(match[0].average_yield), dur: fin(match[0].modified_duration) };
+    if (match.length === 1)
+      out[d] = {
+        level: match[0].total_return as number,
+        ytm: fin(match[0].average_yield),
+        dur: fin(match[0].modified_duration),
+      };
   }
   return out;
 }
@@ -65,7 +89,10 @@ export function ftseDaily(rows: FtseRow[]): Record<string, FtseDay> {
 /** Why no aggregate row was found: row count and the grouping values seen on the latest date (FTSE metadata only). */
 export function ftseGroupingSummary(rows: FtseRow[]): string {
   if (!rows.length) return "0 rows";
-  const last = rows.map((r) => String(r.date).slice(0, 10)).sort().at(-1);
+  const last = rows
+    .map((r) => String(r.date).slice(0, 10))
+    .sort()
+    .at(-1);
   const day = rows.filter((r) => String(r.date).slice(0, 10) === last);
   const vals = (k: string): string => {
     const set = [...new Set(day.map((r) => (r[k] == null ? "null" : JSON.stringify(r[k]))))].sort();
@@ -83,14 +110,28 @@ export function ftseGroupingSummary(rows: FtseRow[]): string {
  */
 export function ftseFamily(name: string | null | undefined): string {
   let t = ` ${(name ?? "").toLowerCase().replace(/\(synthetic\)/g, " ")} `;
-  t = t.replace(/short[\s-]*term/g, " short ").replace(/mid[\s-]*term/g, " mid ").replace(/long[\s-]*term/g, " long ");
+  t = t
+    .replace(/short[\s-]*term/g, " short ")
+    .replace(/mid[\s-]*term/g, " mid ")
+    .replace(/long[\s-]*term/g, " long ");
   t = t.replace(/[^a-z0-9]+/g, " ");
-  t = t.replace(/ (ftse|tmx|canada|canadian|dex|pc|scotia|capital|markets|bond|bonds|index|indices|overall|term|total|all)(?= )/g, " ");
-  t = t.replace(/ (corporate|corporates|corps)(?= )/g, " corp").replace(/ universe(?= )/g, " univ").replace(/ st(?= )/g, " short");
+  t = t.replace(
+    / (ftse|tmx|canada|canadian|dex|pc|scotia|capital|markets|bond|bonds|index|indices|overall|term|total|all)(?= )/g,
+    " ",
+  );
+  t = t
+    .replace(/ (corporate|corporates|corps)(?= )/g, " corp")
+    .replace(/ universe(?= )/g, " univ")
+    .replace(/ st(?= )/g, " short");
   // order-insensitive: "Corporate Short Term" and "Short Term Corporate" are one family
   const tokens = [...new Set(t.split(/\s+/).filter(Boolean))];
   const ORDER = ["short", "mid", "long", "univ", "corp"];
-  return tokens.sort((a, b) => (ORDER.includes(a) ? ORDER.indexOf(a) : 99) - (ORDER.includes(b) ? ORDER.indexOf(b) : 99) || a.localeCompare(b)).join(" ");
+  return tokens
+    .sort(
+      (a, b) =>
+        (ORDER.includes(a) ? ORDER.indexOf(a) : 99) - (ORDER.includes(b) ? ORDER.indexOf(b) : 99) || a.localeCompare(b),
+    )
+    .join(" ");
 }
 
 export interface FtseCandidate {
@@ -103,11 +144,28 @@ export interface FtseCandidate {
   gapOk?: boolean;
 }
 /** the verification of a gap link (one missing daily return between two naming generations) */
-interface FtseGapCheck { last: string; first: string; implied: number; estimate: number; residual: number; threshold: number; p95: number; samples: number }
+interface FtseGapCheck {
+  last: string;
+  first: string;
+  implied: number;
+  estimate: number;
+  residual: number;
+  threshold: number;
+  p95: number;
+  samples: number;
+}
 interface FtseJoin {
   levels: Record<string, number>;
   /** earlier names linked in front: on an overlap (equal daily returns) or across a verified one-day gap */
-  used: { name: string; link: string; from: string; checked: number; why: string; kind: "overlap" | "gap"; gap?: FtseGapCheck }[];
+  used: {
+    name: string;
+    link: string;
+    from: string;
+    checked: number;
+    why: string;
+    kind: "overlap" | "gap";
+    gap?: FtseGapCheck;
+  }[];
   skipped: string[];
 }
 /**
@@ -117,19 +175,35 @@ interface FtseJoin {
  * gapZero while the estimate is not), the levels within gapMaxLevelDiff, and the
  * tolerance needs gapMinSamples daily residuals (all of the current series, the earlier one's last gapOldDays days).
  */
-const FTSE_JOIN = { minCommonReturns: 5, dailyTol: 2e-6, gapResidualMult: 3, gapMinTol: 2e-4, gapMaxTol: 5e-4, gapZero: 1e-7, gapMaxReturn: 0.01, gapMaxLevelDiff: 0.03, gapMinSamples: 20, gapOldDays: 250 };
+const FTSE_JOIN = {
+  minCommonReturns: 5,
+  dailyTol: 2e-6,
+  gapResidualMult: 3,
+  gapMinTol: 2e-4,
+  gapMaxTol: 5e-4,
+  gapZero: 1e-7,
+  gapMaxReturn: 0.01,
+  gapMaxLevelDiff: 0.03,
+  gapMinSamples: 20,
+  gapOldDays: 250,
+};
 
 /**
  * Daily index return estimated from the index's own analytics: carry (average yield, act/365) minus modified duration ×
  * the change of the average yield (first-order price effect; convexity and roll ignored, absorbed by the calibrated
  * tolerance).
  */
-export function ftseReturnEstimate(a: { ytm: number | null; dur: number | null }, b: { ytm: number | null }, calendarDays: number): number | null {
+export function ftseReturnEstimate(
+  a: { ytm: number | null; dur: number | null },
+  b: { ytm: number | null },
+  calendarDays: number,
+): number | null {
   if (a.ytm === null || a.dur === null || b.ytm === null) return null;
   return (a.ytm / 100 / 365) * calendarDays - (a.dur * (b.ytm - a.ytm)) / 100;
 }
 
-const calDays = (a: string, b: string): number => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
+const calDays = (a: string, b: string): number =>
+  Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
 /** the first bond-market business day of its month (the index rebalances at the month-end: not a typical day) */
 function firstBondDayOfMonth(d: string): boolean {
@@ -144,7 +218,8 @@ function firstBondDayOfMonth(d: string): boolean {
 function residualsOf(levels: Record<string, number>, daily: Record<string, FtseDay>, days: string[]): number[] {
   const out: number[] = [];
   for (let i = 1; i < days.length; i++) {
-    const a = days[i - 1], b = days[i];
+    const a = days[i - 1],
+      b = days[i];
     if (firstBondDayOfMonth(b)) continue;
     const est = daily[a] && daily[b] ? ftseReturnEstimate(daily[a], daily[b], calDays(a, b)) : null;
     if (est === null || !(levels[a] > 0) || !(levels[b] > 0)) continue;
@@ -158,28 +233,66 @@ function residualsOf(levels: Record<string, number>, daily: Record<string, FtseD
  * (one daily return missing). Accepted only if the return implied by equal bases (first / last − 1) matches the
  * analytics estimate within a tolerance calibrated on both series' own residuals. Returns the check, or why not.
  */
-export function ftseGapCheck(cur: Record<string, number>, curDaily: Record<string, FtseDay>, old: Record<string, number>, oldDaily: Record<string, FtseDay>, cfg = FTSE_JOIN): { ok: true; check: FtseGapCheck } | { ok: false; why: string } {
-  const curDays = Object.keys(cur).filter((d) => d in curDaily).sort();
+export function ftseGapCheck(
+  cur: Record<string, number>,
+  curDaily: Record<string, FtseDay>,
+  old: Record<string, number>,
+  oldDaily: Record<string, FtseDay>,
+  cfg = FTSE_JOIN,
+): { ok: true; check: FtseGapCheck } | { ok: false; why: string } {
+  const curDays = Object.keys(cur)
+    .filter((d) => d in curDaily)
+    .sort();
   const oldDays = Object.keys(old).sort();
   const first = Object.keys(cur).sort()[0];
   const last = oldDays[oldDays.length - 1];
   if (!first || !last || last >= first) return { ok: false, why: "no gap before the current series" };
-  const between = bondDays(new Date(Date.parse(`${last}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10), new Date(Date.parse(`${first}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10));
-  if (between.length) return { ok: false, why: `${between.length + 1} daily returns missing between ${last} and ${first} (${between.slice(0, 3).join(", ")} without a level): only a one-day gap is verifiable` };
+  const between = bondDays(
+    new Date(Date.parse(`${last}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10),
+    new Date(Date.parse(`${first}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10),
+  );
+  if (between.length)
+    return {
+      ok: false,
+      why: `${between.length + 1} daily returns missing between ${last} and ${first} (${between.slice(0, 3).join(", ")} without a level): only a one-day gap is verifiable`,
+    };
   const implied = cur[first] / old[last] - 1;
-  if (Math.abs(implied) > cfg.gapMaxLevelDiff) return { ok: false, why: `levels ${old[last]} on ${last} and ${cur[first]} on ${first} differ by ${(100 * implied).toFixed(2)}% (re-based)` };
-  const estimate = oldDaily[last] && curDaily[first] ? ftseReturnEstimate(oldDaily[last], curDaily[first], calDays(last, first)) : null;
-  if (estimate === null) return { ok: false, why: `no average yield / modified duration on ${last} or ${first} to estimate the gap return` };
-  const res = [...residualsOf(cur, curDaily, curDays), ...residualsOf(old, oldDaily, oldDays.slice(-cfg.gapOldDays))].map(Math.abs).sort((a, b) => a - b);
-  if (res.length < cfg.gapMinSamples) return { ok: false, why: `${res.length} daily residual(s) to calibrate the tolerance (${cfg.gapMinSamples} needed)` };
+  if (Math.abs(implied) > cfg.gapMaxLevelDiff)
+    return {
+      ok: false,
+      why: `levels ${old[last]} on ${last} and ${cur[first]} on ${first} differ by ${(100 * implied).toFixed(2)}% (re-based)`,
+    };
+  const estimate =
+    oldDaily[last] && curDaily[first]
+      ? ftseReturnEstimate(oldDaily[last], curDaily[first], calDays(last, first))
+      : null;
+  if (estimate === null)
+    return { ok: false, why: `no average yield / modified duration on ${last} or ${first} to estimate the gap return` };
+  const res = [...residualsOf(cur, curDaily, curDays), ...residualsOf(old, oldDaily, oldDays.slice(-cfg.gapOldDays))]
+    .map(Math.abs)
+    .sort((a, b) => a - b);
+  if (res.length < cfg.gapMinSamples)
+    return {
+      ok: false,
+      why: `${res.length} daily residual(s) to calibrate the tolerance (${cfg.gapMinSamples} needed)`,
+    };
   const p95 = res[Math.min(res.length - 1, Math.ceil(0.95 * res.length) - 1)];
   const threshold = Math.min(Math.max(cfg.gapResidualMult * p95, cfg.gapMinTol), cfg.gapMaxTol);
   const residual = implied - estimate;
   const check: FtseGapCheck = { last, first, implied, estimate, residual, threshold, p95, samples: res.length };
   const bp = (x: number): string => `${(x * 10_000).toFixed(2)} bp`;
-  if (Math.abs(implied) < cfg.gapZero && Math.abs(estimate) >= cfg.gapZero) return { ok: false, why: `implied gap return is zero (${old[last]} on ${last} = ${cur[first]} on ${first}: a copied level, not a market move) while the estimate is ${bp(estimate)}` };
-  if (Math.abs(implied) >= cfg.gapMaxReturn) return { ok: false, why: `implied gap return ${bp(implied)} is not below ${(cfg.gapMaxReturn * 100).toFixed(0)}%` };
-  if (Math.abs(residual) > threshold) return { ok: false, why: `implied gap return ${bp(implied)} vs estimate ${bp(estimate)}: residual ${bp(residual)} beyond ${bp(threshold)} (3 × p95 of ${res.length} daily residuals, between 2 and 5 bp)` };
+  if (Math.abs(implied) < cfg.gapZero && Math.abs(estimate) >= cfg.gapZero)
+    return {
+      ok: false,
+      why: `implied gap return is zero (${old[last]} on ${last} = ${cur[first]} on ${first}: a copied level, not a market move) while the estimate is ${bp(estimate)}`,
+    };
+  if (Math.abs(implied) >= cfg.gapMaxReturn)
+    return { ok: false, why: `implied gap return ${bp(implied)} is not below ${(cfg.gapMaxReturn * 100).toFixed(0)}%` };
+  if (Math.abs(residual) > threshold)
+    return {
+      ok: false,
+      why: `implied gap return ${bp(implied)} vs estimate ${bp(estimate)}: residual ${bp(residual)} beyond ${bp(threshold)} (3 × p95 of ${res.length} daily residuals, between 2 and 5 bp)`,
+    };
   return { ok: true, check };
 }
 
@@ -191,7 +304,12 @@ export function ftseGapCheck(cur: Record<string, number>, curDaily: Record<strin
  * days are then chain-linked (rescaled at that first day). Without such an overlap nothing is joined (the index figures
  * needing those months are not shown). Repeats for older generations.
  */
-export function joinFtseHistory(current: Record<string, number>, candidates: FtseCandidate[], cfg = FTSE_JOIN, currentDaily?: Record<string, FtseDay>): FtseJoin {
+export function joinFtseHistory(
+  current: Record<string, number>,
+  candidates: FtseCandidate[],
+  cfg = FTSE_JOIN,
+  currentDaily?: Record<string, FtseDay>,
+): FtseJoin {
   let cur = { ...current };
   let curDaily: Record<string, FtseDay> = { ...(currentDaily ?? {}) };
   const used: FtseJoin["used"] = [];
@@ -205,27 +323,45 @@ export function joinFtseHistory(current: Record<string, number>, candidates: Fts
     let gapBest: { c: FtseCandidate; earliest: string; check: FtseGapCheck } | null = null;
     for (const c of [...pending]) {
       const days = Object.keys(c.levels).sort();
-      const drop = (why: string): void => { skipped.push(`${c.name} (${why})`); pending.splice(pending.indexOf(c), 1); };
-      if (!days.length || days[0] >= first) { drop(days.length ? `starts ${days[0]}, not before ${first}` : "no level"); continue; }
+      const drop = (why: string): void => {
+        skipped.push(`${c.name} (${why})`);
+        pending.splice(pending.indexOf(c), 1);
+      };
+      if (!days.length || days[0] >= first) {
+        drop(days.length ? `starts ${days[0]}, not before ${first}` : "no level");
+        continue;
+      }
       if (!(first in c.levels)) {
         // no overlap: a verified one-day gap link (same index only: alias, index_id or family)
         if (days[days.length - 1] < first && c.gapOk && c.daily && Object.keys(curDaily).length) {
           const g = ftseGapCheck(cur, curDaily, c.levels, c.daily, cfg);
-          if (g.ok) { if (!gapBest || days[0] < gapBest.earliest) gapBest = { c, earliest: days[0], check: g.check }; continue; }
+          if (g.ok) {
+            if (!gapBest || days[0] < gapBest.earliest) gapBest = { c, earliest: days[0], check: g.check };
+            continue;
+          }
           drop(`no level on ${first} (no overlap); gap link not verified: ${g.why}`);
           continue;
         }
-        drop(`no level on ${first}, the first day of the current series: no overlap to verify a link${c.gapOk ? "" : " (gap links only for the same index)"}`);
+        drop(
+          `no level on ${first}, the first day of the current series: no overlap to verify a link${c.gapOk ? "" : " (gap links only for the same index)"}`,
+        );
         continue;
       }
       const common = days.filter((d) => d in cur);
-      if (common.length < cfg.minCommonReturns + 1) { drop(`${common.length} common day(s): at least ${cfg.minCommonReturns + 1} needed to compare daily returns`); continue; }
+      if (common.length < cfg.minCommonReturns + 1) {
+        drop(`${common.length} common day(s): at least ${cfg.minCommonReturns + 1} needed to compare daily returns`);
+        continue;
+      }
       let worst = 0;
       for (let i = 1; i < common.length; i++) {
-        const a = common[i - 1], b = common[i];
+        const a = common[i - 1],
+          b = common[i];
         worst = Math.max(worst, Math.abs(cur[b] / cur[a] - c.levels[b] / c.levels[a]));
       }
-      if (!(worst <= cfg.dailyTol)) { drop(`daily returns differ on common days (up to ${bp(worst)}): another index`); continue; }
+      if (!(worst <= cfg.dailyTol)) {
+        drop(`daily returns differ on common days (up to ${bp(worst)}): another index`);
+        continue;
+      }
       if (!best || days[0] < best.earliest) best = { c, earliest: days[0], checked: common.length - 1 };
     }
     // an overlap link first; a gap link only when no candidate overlaps
@@ -238,28 +374,59 @@ export function joinFtseHistory(current: Record<string, number>, candidates: Fts
     for (const d of Object.keys(pick.c.levels).sort()) if (d < first) before[d] = pick.c.levels[d] * k;
     cur = Object.fromEntries(Object.entries({ ...before, ...cur }).sort(([a], [b]) => (a < b ? -1 : 1)));
     // the earlier series' analytics extend the calibration base for an older generation
-    if (pick.c.daily) curDaily = { ...Object.fromEntries(Object.entries(pick.c.daily).filter(([d]) => d < first).map(([d, x]) => [d, { ...x, level: x.level * k }])), ...curDaily };
-    if (best) used.push({ name: best.c.name, link: first, from: best.earliest, checked: best.checked, why: best.c.why, kind: "overlap" });
-    else used.push({ name: gapBest!.c.name, link: first, from: gapBest!.earliest, checked: 0, why: gapBest!.c.why, kind: "gap", gap: gapBest!.check });
+    if (pick.c.daily)
+      curDaily = {
+        ...Object.fromEntries(
+          Object.entries(pick.c.daily)
+            .filter(([d]) => d < first)
+            .map(([d, x]) => [d, { ...x, level: x.level * k }]),
+        ),
+        ...curDaily,
+      };
+    if (best)
+      used.push({
+        name: best.c.name,
+        link: first,
+        from: best.earliest,
+        checked: best.checked,
+        why: best.c.why,
+        kind: "overlap",
+      });
+    else
+      used.push({
+        name: gapBest!.c.name,
+        link: first,
+        from: gapBest!.earliest,
+        checked: 0,
+        why: gapBest!.c.why,
+        kind: "gap",
+        gap: gapBest!.check,
+      });
   }
   return { levels: cur, used, skipped };
 }
 
-const isWeekday = (t: number): boolean => { const w = new Date(t).getUTCDay(); return w !== 0 && w !== 6; };
+const isWeekday = (t: number): boolean => {
+  const w = new Date(t).getUTCDay();
+  return w !== 0 && w !== 6;
+};
 
 /** last weekday (Mon-Fri) of the month of `month`, and the weekday `back` weekdays before it */
 export function lastWeekdays(month: string, back = 2): { last: string; earliest: string } {
   let t = Date.parse(toMonthEnd(month));
   while (!isWeekday(t)) t -= 86_400_000;
   const last = new Date(t).toISOString().slice(0, 10);
-  for (let n = 0; n < back; ) {
+  for (let n = 0; n < back;) {
     t -= 86_400_000;
     if (isWeekday(t)) n++;
   }
   return { last, earliest: new Date(t).toISOString().slice(0, 10) };
 }
 
-interface MonthEndReturns { series: Series; dropped: { month: string; reason: string }[] }
+interface MonthEndReturns {
+  series: Series;
+  dropped: { month: string; reason: string }[];
+}
 
 /**
  * Daily levels -> month-end to month-end returns. A month's closing level is accepted only when
@@ -284,7 +451,10 @@ export function monthEndReturns(levels: Record<string, number>): MonthEndReturns
     const next = new Date(Date.parse(`${last[ym].d.slice(0, 10)}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
     const skipped = next <= toMonthEnd(ym) ? bondDays(next, toMonthEnd(ym)) : [];
     if (skipped.length) {
-      dropped.push({ month: toMonthEnd(ym), reason: `last level ${last[ym].d}: no level for the bond-market business day(s) ${skipped.slice(-3).join(", ")}${skipped.length > 3 ? " …" : ""} before the month-end` });
+      dropped.push({
+        month: toMonthEnd(ym),
+        reason: `last level ${last[ym].d}: no level for the bond-market business day(s) ${skipped.slice(-3).join(", ")}${skipped.length > 3 ? " …" : ""} before the month-end`,
+      });
       return;
     }
     closing.set(ym, last[ym].v);

@@ -9,7 +9,14 @@ import { withAuthSecret } from "./volume-secret.ts";
 
 type Env = Record<string, string | undefined>;
 
-const AUTH_ENV_KEYS = ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AUTH_SECRET", "PUBLIC_URL", "ADMIN_ALLOWED_DOMAINS"] as const;
+const AUTH_ENV_KEYS = [
+  "AZURE_TENANT_ID",
+  "AZURE_CLIENT_ID",
+  "AZURE_CLIENT_SECRET",
+  "AUTH_SECRET",
+  "PUBLIC_URL",
+  "ADMIN_ALLOWED_DOMAINS",
+] as const;
 
 /** "writable" or the error code (EACCES, EROFS …) for the data directory. */
 export function dataDirStatus(env: Env): string {
@@ -25,13 +32,23 @@ export function dataDirStatus(env: Env): string {
   }
 }
 
-const PIPELINE_ENV_KEYS = ["DATAPLATFORM_URL", "GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_DRIVE_ID", "GITHUB_TOKEN", "PIPELINE_ALERT_WEBHOOK"] as const;
+const PIPELINE_ENV_KEYS = [
+  "DATAPLATFORM_URL",
+  "GRAPH_TENANT_ID",
+  "GRAPH_CLIENT_ID",
+  "GRAPH_CLIENT_SECRET",
+  "GRAPH_DRIVE_ID",
+  "GITHUB_TOKEN",
+  "PIPELINE_ALERT_WEBHOOK",
+] as const;
 
 /** Which data-pipeline settings are present (names only). */
 export function pipelineDiagnostics(env: Env): string {
   const present = PIPELINE_ENV_KEYS.map((k) => `${k}=${(env[k] || "").trim() ? "set" : "missing"}`).join(" ");
   // env names are case-sensitive: flag a lowercase/mixed-case twin, the usual copy-paste slip
-  const twins = PIPELINE_ENV_KEYS.filter((k) => !(env[k] || "").trim() && Object.keys(env).some((e) => e !== k && e.toUpperCase() === k));
+  const twins = PIPELINE_ENV_KEYS.filter(
+    (k) => !(env[k] || "").trim() && Object.keys(env).some((e) => e !== k && e.toUpperCase() === k),
+  );
   return `[pipeline] settings: ${present}${twins.length ? ` (wrong letter case for: ${twins.join(", ")})` : ""}`;
 }
 

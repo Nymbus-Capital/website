@@ -1,0 +1,26 @@
+# .prettierignore — files Prettier must not rewrite (Prettier also skips everything in .gitignore)
+
+# Science at scale is frozen: tests/unit/site/scan-frozen.test.ts hashes these files byte for byte
+src/components/site/fx/scan-model.ts
+src/components/site/fx/scan-engine.ts
+src/components/site/fx/scan-copy.ts
+src/components/site/fx/fx.tsx
+src/components/site/fx/fx.css
+src/components/site/home/Home.tsx
+
+# Generated or fixture data (written by the pipeline or captured from the dataplatform); config JSON stays formatted
+*.json
+!/package.json
+!/tsconfig.json
+package-lock.json
+
+# Markdown: long hand-written docs and handoff log; reformatting them is churn with no reader benefit
+*.md
+
+# WordPress plugin assets follow the WordPress coding standards (tabs), not this repository's style
+wordpress/plugins/
+
+# Static files, build and CI outputs
+public/
+ci-out/
+*.lock

@@ -26,10 +26,17 @@ async function revalidate(request: APIRequestContext, page: { waitForTimeout(ms:
   return (await r.json()) as { ok: boolean; source: string | null };
 }
 
-test.beforeAll(async ({ request }) => { await setMode(request, "ok"); });
-test.afterAll(async ({ request }) => { await setMode(request, "ok"); });
+test.beforeAll(async ({ request }) => {
+  await setMode(request, "ok");
+});
+test.afterAll(async ({ request }) => {
+  await setMode(request, "ok");
+});
 
-test("news page: CMS items, newest first, markup stripped, image loads, French on request", async ({ page, context }) => {
+test("news page: CMS items, newest first, markup stripped, image loads, French on request", async ({
+  page,
+  context,
+}) => {
   await page.goto("/news");
   const cards = page.getByTestId("news-list").locator("article");
   await expect(cards).toHaveCount(4);
@@ -45,7 +52,9 @@ test("news page: CMS items, newest first, markup stripped, image loads, French o
   await expect(second).toHaveAttribute("rel", /noopener/);
   await context.addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.goto("/news");
-  await expect(page.getByTestId("news-list").locator("article").first()).toContainText("Test CMS : une annonce de partenariat");
+  await expect(page.getByTestId("news-list").locator("article").first()).toContainText(
+    "Test CMS : une annonce de partenariat",
+  );
 });
 
 test("news article: paragraphs, no script, 404 for an unknown item", async ({ page }) => {
@@ -65,14 +74,18 @@ test("home: three latest CMS news, link to all news, banner and AUM label from W
   await expect(page.getByTestId("news-cms-test-third")).toBeAttached();
   await expect(page.getByTestId("news-cms-test-fourth")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /all news/i })).toHaveAttribute("href", "/news");
-  await expect(page.getByTestId("announcement-banner")).toContainText("CMS test banner: scheduled maintenance tonight.");
+  await expect(page.getByTestId("announcement-banner")).toContainText(
+    "CMS test banner: scheduled maintenance tonight.",
+  );
   await expect(page.getByText("$9.9B+ (CMS test)").first()).toBeAttached();
 });
 
 const heroTitle = (page: import("@playwright/test").Page) => page.locator("h1.reveal-title").first();
 const heroLead = (page: import("@playwright/test").Page) => page.locator("header .lead").first();
 
-test("footer and contact page: address, phone and e-mail from WordPress; toll-free and the form endpoint stay built-in", async ({ page }) => {
+test("footer and contact page: address, phone and e-mail from WordPress; toll-free and the form endpoint stay built-in", async ({
+  page,
+}) => {
   await page.goto("/contact");
   const footer = page.getByTestId("site-footer");
   await expect(footer.locator('a[href="mailto:info@example.org"]')).toHaveText("info@example.org");
@@ -84,13 +97,19 @@ test("footer and contact page: address, phone and e-mail from WordPress; toll-fr
   await expect(main.locator('a[href="tel:+15145550100"]').first()).toBeVisible();
   await expect(main.locator('a[href="mailto:info@example.org"]').first()).toBeVisible();
   await expect(main.locator(".ct-office")).toContainText("1 CMS Test Street, Suite 100");
-  await expect(main.locator(".ct-office a.link").first()).toHaveAttribute("href", /1%20CMS%20Test%20Street|1\+CMS\+Test\+Street/);
+  await expect(main.locator(".ct-office a.link").first()).toHaveAttribute(
+    "href",
+    /1%20CMS%20Test%20Street|1\+CMS\+Test\+Street/,
+  );
   await expect(main).not.toContainText("1002 Sherbrooke");
   // the form posts to the site whatever WordPress says (no e-mail recipient to override)
   await expect(page.getByTestId("contact-form")).toHaveAttribute("action", "/api/contact");
 });
 
-test("page intros: WordPress headline / lead where filled, built-in copy elsewhere; Sustainability lead stays built-in", async ({ page, context }) => {
+test("page intros: WordPress headline / lead where filled, built-in copy elsewhere; Sustainability lead stays built-in", async ({
+  page,
+  context,
+}) => {
   await page.goto("/approach");
   await expect(heroTitle(page)).toHaveAttribute("aria-label", "CMS test approach headline in colour");
   await expect(heroLead(page)).toHaveText("CMS test approach lead.");
@@ -106,7 +125,10 @@ test("page intros: WordPress headline / lead where filled, built-in copy elsewhe
   // French: languages not filled in WordPress keep the built-in French copy
   await context.addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.goto("/approach");
-  await expect(heroTitle(page)).toHaveAttribute("aria-label", "À l’intersection de la technologie, des données et de la finance");
+  await expect(heroTitle(page)).toHaveAttribute(
+    "aria-label",
+    "À l’intersection de la technologie, des données et de la finance",
+  );
   await page.goto("/team");
   await expect(heroLead(page)).toHaveText("Chapeau de test CMS pour l’équipe.");
   await context.clearCookies();
@@ -132,7 +154,9 @@ test("CSP: the media origin is allowed for images, nothing else changed", async 
 
 test("revalidation route: authenticated, POST only", async ({ request }) => {
   expect((await request.post("/api/cms/revalidate")).status()).toBe(401);
-  expect((await request.post("/api/cms/revalidate", { headers: { authorization: "Bearer wrong" } })).status()).toBe(401);
+  expect((await request.post("/api/cms/revalidate", { headers: { authorization: "Bearer wrong" } })).status()).toBe(
+    401,
+  );
   expect((await request.post("/api/cms/revalidate", { headers: { authorization: SECRET } })).status()).toBe(401);
   expect((await request.get("/api/cms/revalidate")).status()).toBe(405);
   const ok = await request.post("/api/cms/revalidate", { headers: { authorization: `Bearer ${SECRET}` } });
@@ -151,7 +175,10 @@ test("hostile content from WordPress is neutralised", async ({ page, request }) 
   await setMode(request, "hostile");
   await revalidate(request, page);
   const dialogs: string[] = [];
-  page.on("dialog", (d) => { dialogs.push(d.message()); void d.dismiss(); });
+  page.on("dialog", (d) => {
+    dialogs.push(d.message());
+    void d.dismiss();
+  });
   const requested: string[] = [];
   page.on("request", (r) => requested.push(r.url()));
   await page.goto("/news");
@@ -194,7 +221,9 @@ test("without WP_BASE_URL the site is unchanged: static news and team", async ({
   expect(r.status()).toBe(404);
   await page.goto(`${MAIN}/news`);
   await expect(page.getByTestId("news-list").locator("article")).toHaveCount(3);
-  await expect(page.getByRole("heading", { name: "Mageska Capital and Nymbus Capital announce a partnership" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Mageska Capital and Nymbus Capital announce a partnership" }),
+  ).toBeVisible();
   await page.goto(`${MAIN}/team`);
   await expect(page.getByTestId("people")).toContainText("Jean Turmel");
 });
@@ -204,15 +233,32 @@ test("without WP_BASE_URL: built-in contact details and page intros, exactly as 
   const footer = page.getByTestId("site-footer");
   await expect(footer.locator('a[href="mailto:info@nymbus.ca"]')).toHaveText("info@nymbus.ca");
   await expect(footer.locator('a[href="tel:+15149851138"]')).toHaveText("514-985-1138");
-  await expect(footer.locator("address > span").first()).toHaveText("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", { useInnerText: false });
+  await expect(footer.locator("address > span").first()).toHaveText(
+    "1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6",
+    { useInnerText: false },
+  );
   const office = page.locator(".ct-office");
   await expect(office.locator('a[href="tel:+15149851138"]')).toHaveText("514-985-1138");
   await expect(office.locator('a[href="mailto:info@nymbus.ca"]')).toHaveText("info@nymbus.ca");
-  await expect(office.locator(".ct-pre")).toHaveText("1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6", { useInnerText: false });
-  await expect(office.locator("a.link").first()).toHaveAttribute("href", "https://www.google.com/maps/search/?api=1&query=1002%20Sherbrooke%20Street%20West%2C%20Suite%201900%2C%20Montreal%2C%20Quebec%20H3A%203L6");
+  await expect(office.locator(".ct-pre")).toHaveText(
+    "1002 Sherbrooke Street West, Suite 1900\nMontreal, Quebec H3A 3L6",
+    { useInnerText: false },
+  );
+  await expect(office.locator("a.link").first()).toHaveAttribute(
+    "href",
+    "https://www.google.com/maps/search/?api=1&query=1002%20Sherbrooke%20Street%20West%2C%20Suite%201900%2C%20Montreal%2C%20Quebec%20H3A%203L6",
+  );
   for (const [path, title, lead] of [
-    ["/approach", "At the intersection of technology, data and finance", "Systematic, with human oversight. Tested before use, monitored while it runs."],
-    ["/team", "Scientists and market veterans", "Systematic fixed income and protective overlays, from Montreal, since 2013."],
+    [
+      "/approach",
+      "At the intersection of technology, data and finance",
+      "Systematic, with human oversight. Tested before use, monitored while it runs.",
+    ],
+    [
+      "/team",
+      "Scientists and market veterans",
+      "Systematic fixed income and protective overlays, from Montreal, since 2013.",
+    ],
     ["/solutions", "Solutions tailored to your mandate", "Our systematic strategies, in the form your mandate needs."],
   ] as const) {
     await page.goto(`${MAIN}${path}`);

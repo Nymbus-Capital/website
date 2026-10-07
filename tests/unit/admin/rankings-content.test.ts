@@ -27,7 +27,10 @@ test("seeded rankings: well-formed, dated, sourced; Morningstar only for the two
         assert.ok(row.rank >= 1 && row.rank <= row.of, `${key} ${row.period}: rank within the category`);
         // quartile consistent with the rank (top quarter = 1 ...), allowing the source's own rounding at the edges
         const q = Math.ceil((row.rank / row.of) * 4);
-        assert.ok(row.quartile === null || Math.abs(row.quartile - q) <= 1, `${key} ${row.period}: quartile ${row.quartile} vs rank ${row.rank}/${row.of}`);
+        assert.ok(
+          row.quartile === null || Math.abs(row.quartile - q) <= 1,
+          `${key} ${row.period}: quartile ${row.quartile} vs rank ${row.rank}/${row.of}`,
+        );
       }
     }
   }
@@ -37,7 +40,17 @@ test("mergeContent: seeded rankings fill a fund with none stored; stored ranking
   const empty = mergeContent(null);
   assert.ok(empty.funds["sustainable-enhanced-bonds"]?.rankings?.fundLibrary?.length);
   assert.equal(empty.funds["global-minimum-volatility"], undefined, "no ranking for GMV");
-  const stored = { version: 3, updatedAt: "x", updatedBy: "x", firm: {}, funds: { "multi-strategy": { rankings: { fundLibrary: [] }, hide: { rankings: true } }, "monthly-income": { tagline: { en: "a", fr: "b" } } }, pipeline: { publishMode: "auto" } } as unknown as SiteContent;
+  const stored = {
+    version: 3,
+    updatedAt: "x",
+    updatedBy: "x",
+    firm: {},
+    funds: {
+      "multi-strategy": { rankings: { fundLibrary: [] }, hide: { rankings: true } },
+      "monthly-income": { tagline: { en: "a", fr: "b" } },
+    },
+    pipeline: { publishMode: "auto" },
+  } as unknown as SiteContent;
   const m = mergeContent(stored);
   assert.deepEqual(m.funds["multi-strategy"]!.rankings, { fundLibrary: [] }, "stored wins (even empty)");
   assert.equal(m.funds["multi-strategy"]!.hide?.rankings, true);
@@ -51,8 +64,12 @@ test("mergeContent: seeded rankings fill a fund with none stored; stored ranking
 test("cleanFundContent: empty class types, rankings without data and empty facts are dropped", () => {
   const c = cleanFundContent({
     classTypes: { LDM081: "prospectus", LDM001: "om", LDM999: "none", LDM998: "bogus" as never },
-    minSubsequent: "", liquidity: { en: "", fr: "" }, cifscCategory: { en: "", fr: "" },
-    rankings: { fundLibrary: [{ classLabel: "Class F", category: { en: "x", fr: "y" }, asOf: "2026-08-31", rows: [] }] },
+    minSubsequent: "",
+    liquidity: { en: "", fr: "" },
+    cifscCategory: { en: "", fr: "" },
+    rankings: {
+      fundLibrary: [{ classLabel: "Class F", category: { en: "x", fr: "y" }, asOf: "2026-08-31", rows: [] }],
+    },
   } as FundContent);
   assert.deepEqual(c, { classTypes: { LDM081: "prospectus", LDM001: "om", LDM999: "none" } });
   const r = cleanFundContent({ rankings: { morningstar: { stars: 5, asOf: "2026-08-31", classLabel: "Class F" } } });

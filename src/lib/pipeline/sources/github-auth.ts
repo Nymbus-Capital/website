@@ -33,7 +33,8 @@ export async function githubToken(env: Env, repo: string, fetchImpl: FetchImpl):
   const mode = env.GITHUB_AUTH_MODE || "pat";
   if (mode === "pat") return env.GITHUB_TOKEN || null;
   if (mode !== "app") throw new Error("GITHUB_AUTH_MODE must be pat or app");
-  if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/.test(repo) || [".", ".."].includes(repo.split("/")[1])) throw new Error("Invalid GitHub repository");
+  if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/.test(repo) || [".", ".."].includes(repo.split("/")[1]))
+    throw new Error("Invalid GitHub repository");
   const appId = positiveId(env.GITHUB_APP_ID, "GITHUB_APP_ID");
   const installationId = positiveId(env.GITHUB_APP_INSTALLATION_ID, "GITHUB_APP_INSTALLATION_ID");
   if (!env.GITHUB_APP_PRIVATE_KEY) throw new Error("GITHUB_APP_PRIVATE_KEY is required in app mode");
@@ -41,22 +42,48 @@ export async function githubToken(env: Env, repo: string, fetchImpl: FetchImpl):
   let response: Response;
   try {
     response = await fetchImpl(`https://api.github.com/app/installations/${installationId}/access_tokens`, {
-      method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
-      headers: { Authorization: `Bearer ${jwt}`, Accept: "application/vnd.github+json", "Content-Type": "application/json", "X-GitHub-Api-Version": "2026-03-10", "User-Agent": "nymbus-web-pipeline/1.0" },
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(15_000),
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2026-03-10",
+        "User-Agent": "nymbus-web-pipeline/1.0",
+      },
       body: JSON.stringify({ repositories: [repo.split("/")[1]], permissions: { contents: "read" } }),
     });
   } catch {
     throw new Error("GitHub App token request failed or timed out");
   }
   if (response.status !== 201) throw new Error(`GitHub App token request failed (HTTP ${response.status})`);
-  let data: { token?: unknown; expires_at?: unknown; permissions?: { contents?: unknown }; repositories?: { full_name?: unknown }[] };
-  try { data = await response.json(); } catch { throw new Error("GitHub App returned invalid JSON"); }
+  let data: {
+    token?: unknown;
+    expires_at?: unknown;
+    permissions?: { contents?: unknown };
+    repositories?: { full_name?: unknown }[];
+  };
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("GitHub App returned invalid JSON");
+  }
   const expires = typeof data?.expires_at === "string" ? Date.parse(data.expires_at) : NaN;
-  if (typeof data?.token !== "string" || !data.token || /[\r\n]/.test(data.token) ||
-      !Number.isFinite(expires) || expires - Date.now() < 300_000 || data.permissions?.contents !== "read") {
+  if (
+    typeof data?.token !== "string" ||
+    !data.token ||
+    /[\r\n]/.test(data.token) ||
+    !Number.isFinite(expires) ||
+    expires - Date.now() < 300_000 ||
+    data.permissions?.contents !== "read"
+  ) {
     throw new Error("GitHub App returned an invalid, expiring, or incorrectly scoped token");
   }
-  if (data.repositories !== undefined && (!Array.isArray(data.repositories) || data.repositories.length !== 1 || data.repositories[0]?.full_name !== repo)) {
+  if (
+    data.repositories !== undefined &&
+    (!Array.isArray(data.repositories) || data.repositories.length !== 1 || data.repositories[0]?.full_name !== repo)
+  ) {
     throw new Error("GitHub App token repository scope does not match the requested repository");
   }
   return data.token;

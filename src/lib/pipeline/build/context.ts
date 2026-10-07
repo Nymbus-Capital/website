@@ -43,7 +43,10 @@ export interface FundContext {
   advisories?: { code: string; message: string }[];
 }
 
-export interface BuildResult { data: SiteData; context: Partial<Record<FundKey, FundContext>> }
+export interface BuildResult {
+  data: SiteData;
+  context: Partial<Record<FundKey, FundContext>>;
+}
 
 /** Issues and provenance collected over one build run. */
 export class Ctx {
@@ -53,9 +56,15 @@ export class Ctx {
   prevGenerated = "";
   /** funds whose new fund-data endpoints answered 404 (reported once per run, see absentEndpoints) */
   absent: { portfolio: string[]; distributions: string[] } = { portfolio: [], distributions: [] };
-  info(key: string, message: string): void { this.issues.push({ key, level: "info", message }); }
-  warn(key: string, message: string): void { this.issues.push({ key, level: "warn", message }); }
-  error(key: string, message: string): void { this.issues.push({ key, level: "error", message }); }
+  info(key: string, message: string): void {
+    this.issues.push({ key, level: "info", message });
+  }
+  warn(key: string, message: string): void {
+    this.issues.push({ key, level: "warn", message });
+  }
+  error(key: string, message: string): void {
+    this.issues.push({ key, level: "error", message });
+  }
 }
 
 /** provenance of a part carried over from the previous publication */

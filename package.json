@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test \"tests/unit/**/*.test.ts\"",
     "pipeline": "node --experimental-strip-types src/lib/pipeline/cli.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "lucide-react": "^0.577.0",
@@ -29,7 +31,8 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "prettier": "3.9.9"
   },
   "engines": {
     "node": ">=22.12"

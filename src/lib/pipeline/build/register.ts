@@ -11,7 +11,11 @@ export function registerFund(raw: RawPayloads, spec: FundSpec): RegisteredFund |
   const refs: FundRef[] = raw.unitholderFunds.ok && raw.unitholderFunds.data ? raw.unitholderFunds.data : [];
   const acct = refs.find((r) => r.short_name === short)?.apex_account;
   const live = raw.apexFunds.data.filter((f) => f.status !== "wound_down");
-  return (acct ? live.find((f) => f.apex_account === acct) : undefined) ?? live.find((f) => f.key === PIPELINE_FUNDS[spec.key].apexKey) ?? null;
+  return (
+    (acct ? live.find((f) => f.apex_account === acct) : undefined) ??
+    live.find((f) => f.key === PIPELINE_FUNDS[spec.key].apexKey) ??
+    null
+  );
 }
 
 /**
@@ -25,5 +29,8 @@ export function effectiveNavStart(raw: RawPayloads, spec: FundSpec): { start: st
   const inc = registerFund(raw, spec)?.inception;
   const inception = typeof inc === "string" && /^\d{4}-\d{2}-\d{2}/.test(inc) ? inc.slice(0, 10) : null;
   if (!inception || inception === cfg) return { start: cfg, note: null };
-  return { start: inception > cfg ? inception : cfg, note: `register inception ${inception} differs from the configured data start ${cfg}: the later one is used` };
+  return {
+    start: inception > cfg ? inception : cfg,
+    note: `register inception ${inception} differs from the configured data start ${cfg}: the later one is used`,
+  };
 }

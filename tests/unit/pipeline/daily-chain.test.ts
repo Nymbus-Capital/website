@@ -1,6 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { apexMonth, bridgeMonth, caMarketHolidays, cibcMonth, classMonths, classStart, firstComputableMonth, isTradingDay, priorTradingDay, tradingDays, type DailyRow } from "../../../src/lib/pipeline/daily-chain.ts";
+import {
+  apexMonth,
+  bridgeMonth,
+  caMarketHolidays,
+  cibcMonth,
+  classMonths,
+  classStart,
+  firstComputableMonth,
+  isTradingDay,
+  priorTradingDay,
+  tradingDays,
+  type DailyRow,
+} from "../../../src/lib/pipeline/daily-chain.ts";
 import { bondDays, caBondHolidays, isBondDay } from "../../../src/lib/pipeline/market-calendar.ts";
 import { synthClassRows, monthsOf } from "../../fixtures/pipeline/nav-history.ts";
 
@@ -12,7 +24,11 @@ test("Canadian bond-market holidays (FTSE Canada): TSX holidays + Truth and Reco
   assert.ok(caBondHolidays(2023).has("2023-10-02"), "Sep 30 2023 is a Saturday: observed Monday Oct 2");
   assert.ok(caBondHolidays(2023).has("2023-11-13"), "Nov 11 2023 is a Saturday: observed Monday 13");
   assert.ok(!caBondHolidays(2020).has("2020-09-30"), "Truth and Reconciliation Day exists from 2021");
-  assert.ok(caBondHolidays(2026).has("2026-12-28") && caBondHolidays(2026).has("2026-07-01") && caBondHolidays(2026).has("2026-02-16"));
+  assert.ok(
+    caBondHolidays(2026).has("2026-12-28") &&
+      caBondHolidays(2026).has("2026-07-01") &&
+      caBondHolidays(2026).has("2026-02-16"),
+  );
   assert.deepEqual(bondDays("2025-09-26", "2025-10-01"), ["2025-09-26", "2025-09-29", "2025-10-01"]);
 });
 import type { Series } from "../../../src/lib/pipeline/metrics.ts";
@@ -24,7 +40,16 @@ const close = (a: number | null | undefined, b: number, eps = 1e-12): void => {
 
 test("TSX holidays (port of the dataplatform market calendar)", () => {
   assert.deepEqual([...caMarketHolidays(2026)].sort(), [
-    "2026-01-01", "2026-02-16", "2026-04-03", "2026-05-18", "2026-07-01", "2026-08-03", "2026-09-07", "2026-10-12", "2026-12-25", "2026-12-28",
+    "2026-01-01",
+    "2026-02-16",
+    "2026-04-03",
+    "2026-05-18",
+    "2026-07-01",
+    "2026-08-03",
+    "2026-09-07",
+    "2026-10-12",
+    "2026-12-25",
+    "2026-12-28",
   ]);
   // Christmas on a Saturday: Monday 27 and Tuesday 28; New Year on a Saturday observed Monday 3
   const h21 = caMarketHolidays(2021);
@@ -45,7 +70,16 @@ const months: Series = {};
 for (const [i, m] of monthsOf("2025-01-31", "2026-08-31").entries()) months[m] = 0.001 + 0.002 * Math.sin(i);
 
 const rows = (extra: Partial<Parameters<typeof synthClassRows>[0]> = {}): DailyRow[] =>
-  synthClassRows({ fundserv: "LDM901", monthly: months, navStart: "2025-01-02", end: "2026-09-28", nav0: 10, seed: 3, dist: (m) => (m.endsWith("-31") ? 0.03 : 0), ...extra });
+  synthClassRows({
+    fundserv: "LDM901",
+    monthly: months,
+    navStart: "2025-01-02",
+    end: "2026-09-28",
+    nav0: 10,
+    seed: 3,
+    dist: (m) => (m.endsWith("-31") ? 0.03 : 0),
+    ...extra,
+  });
 
 test("Apex month: compounds the distribution-aware chain exactly; any gap or other method is unavailable", () => {
   const rs = rows();
@@ -78,8 +112,22 @@ test("CIBC month: stored daily returns compounded over a complete month only", (
   assert.ok((m.navGap ?? 0) > 0.002, `navGap ${m.navGap}`);
   const apr = cibcMonth(rs, "2026-04-30", "2025-01-02");
   close(apr.navGap ?? NaN, 0, 1e-9); // no distribution at an April month-end in this synthetic set
-  assert.match(cibcMonth(rs.filter((r) => r.date !== "2026-03-17"), "2026-03-31", "2025-01-02").issue!, /missing 2026-03-17/);
-  assert.match(cibcMonth(rs.map((r) => (r.date === "2026-03-17" ? { ...r, net_return_method: "nav_price_ratio" } : r)), "2026-03-31", "2025-01-02").issue!, /not the stored CIBC net return/);
+  assert.match(
+    cibcMonth(
+      rs.filter((r) => r.date !== "2026-03-17"),
+      "2026-03-31",
+      "2025-01-02",
+    ).issue!,
+    /missing 2026-03-17/,
+  );
+  assert.match(
+    cibcMonth(
+      rs.map((r) => (r.date === "2026-03-17" ? { ...r, net_return_method: "nav_price_ratio" } : r)),
+      "2026-03-31",
+      "2025-01-02",
+    ).issue!,
+    /not the stored CIBC net return/,
+  );
   assert.match(cibcMonth(rs, "2026-03-31", "2026-03-05").issue!, /before the class's own data start/);
 });
 
@@ -89,34 +137,90 @@ test("cut-over month: NAV bridge equals the chain when nothing is distributed in
   assert.equal(july.status, "ready", july.issue ?? "");
   close(july.r, months["2026-07-31"], 1e-9);
   // a distribution inside the Apex part of the month: the Apex chain drifts from its NAV per unit
-  const withDist = rs.map((r) => (r.date >= "2026-07-20" && r.date <= "2026-07-31" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) - 0.05 } : r));
+  const withDist = rs.map((r) =>
+    r.date >= "2026-07-20" && r.date <= "2026-07-31"
+      ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) - 0.05 }
+      : r,
+  );
   assert.match(bridgeMonth(withDist, "2026-07-31").issue!, /Apex daily returns disagree/);
   // a CIBC day missing before the first Apex day
-  assert.match(bridgeMonth(rs.filter((r) => r.date !== "2026-07-02"), "2026-07-31").issue!, /Incomplete CIBC valuation-day coverage/);
+  assert.match(
+    bridgeMonth(
+      rs.filter((r) => r.date !== "2026-07-02"),
+      "2026-07-31",
+    ).issue!,
+    /Incomplete CIBC valuation-day coverage/,
+  );
   // no CIBC June month-end
-  assert.match(bridgeMonth(rs.filter((r) => r.date.slice(0, 7) !== "2026-06"), "2026-07-31").issue!, /No CIBC month-end NAV per unit/);
+  assert.match(
+    bridgeMonth(
+      rs.filter((r) => r.date.slice(0, 7) !== "2026-06"),
+      "2026-07-31",
+    ).issue!,
+    /No CIBC month-end NAV per unit/,
+  );
   // a broken Apex chain after the cut-over
-  assert.match(bridgeMonth(rs.map((r) => (r.date === "2026-07-15" ? { ...r, return_start_date: "2026-07-13" } : r)), "2026-07-31").issue!, /chain is unavailable after the cut-over/);
+  assert.match(
+    bridgeMonth(
+      rs.map((r) => (r.date === "2026-07-15" ? { ...r, return_start_date: "2026-07-13" } : r)),
+      "2026-07-31",
+    ).issue!,
+    /chain is unavailable after the cut-over/,
+  );
 });
 
 test("classMonths: rows of another strategy before navStart are ignored; first listed month is the first complete one", () => {
-  const rs = synthClassRows({ fundserv: "LDM902", monthly: months, navStart: "2025-03-05", end: "2026-09-28", nav0: 10, seed: 5, priorFrom: "2024-06-03" });
+  const rs = synthClassRows({
+    fundserv: "LDM902",
+    monthly: months,
+    navStart: "2025-03-05",
+    end: "2026-09-28",
+    nav0: 10,
+    seed: 5,
+    priorFrom: "2024-06-03",
+  });
   const out = classMonths(rs, { navStart: "2025-03-05", endMonth: "2026-08-31" });
   assert.equal(out[0].month, "2025-04-30");
-  assert.ok(out.every((m) => m.status === "ready"), out.filter((m) => m.status !== "ready").map((m) => `${m.month} ${m.issue}`).join("; "));
+  assert.ok(
+    out.every((m) => m.status === "ready"),
+    out
+      .filter((m) => m.status !== "ready")
+      .map((m) => `${m.month} ${m.issue}`)
+      .join("; "),
+  );
   for (const m of out) close(m.r, months[m.month], 1e-9);
-  assert.deepEqual(out.map((m) => m.source).filter((s, i, a) => a.indexOf(s) === i), ["cibc", "bridge", "apex"]);
+  assert.deepEqual(
+    out.map((m) => m.source).filter((s, i, a) => a.indexOf(s) === i),
+    ["cibc", "bridge", "apex"],
+  );
   // the open month (September) is never computed
   assert.equal(out.at(-1)!.month, "2026-08-31");
   // a class starting in the Apex era (after the first valuation day of July): its first computable month is August
-  const late = synthClassRows({ fundserv: "LDM903", monthly: months, navStart: "2026-07-06", end: "2026-09-28", nav0: 10, seed: 6 });
+  const late = synthClassRows({
+    fundserv: "LDM903",
+    monthly: months,
+    navStart: "2026-07-06",
+    end: "2026-09-28",
+    nav0: 10,
+    seed: 6,
+  });
   const lm = classMonths(late, { navStart: "2026-07-06", endMonth: "2026-08-31" });
-  assert.deepEqual(lm.map((m) => [m.month, m.status]), [["2026-08-31", "ready"]]);
+  assert.deepEqual(
+    lm.map((m) => [m.month, m.status]),
+    [["2026-08-31", "ready"]],
+  );
 });
 
 test("class start: the class's own first row on or after the fund's data start; first computable month", () => {
   // a class launched after the fund's data start: its months start at its own first valuation, not at the fund's start
-  const rs = synthClassRows({ fundserv: "LDM904", monthly: months, navStart: "2025-06-02", end: "2026-09-28", nav0: 10, seed: 7 });
+  const rs = synthClassRows({
+    fundserv: "LDM904",
+    monthly: months,
+    navStart: "2025-06-02",
+    end: "2026-09-28",
+    nav0: 10,
+    seed: 7,
+  });
   assert.equal(classStart(rs, "2025-01-02"), "2025-06-02");
   const out = classMonths(rs, { navStart: "2025-01-02", endMonth: "2026-08-31" });
   assert.equal(out[0].month, "2025-06-30");
@@ -145,10 +249,17 @@ test("cut-over seam (M2): the first Apex return must carry the last CIBC NAV per
   assert.equal(firstApex.return_start_date, lastCibc.date, "the synthetic chain starts on the last CIBC day");
   assert.equal(bridgeMonth(rs, "2026-07-31").status, "ready");
   // the Apex unit value re-based at the switch (every Apex NAV × 1.01, daily returns unchanged): the seam breaks
-  const rebased = rs.map((r) => (r.source === "apex" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.01 } : r));
-  assert.match(bridgeMonth(rebased, "2026-07-31").issue!, /seam discontinuity: CIBC NAV per unit of 2026-07-0\d × \(1 \+ Apex return of 2026-07-0\d\)/);
+  const rebased = rs.map((r) =>
+    r.source === "apex" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.01 } : r,
+  );
+  assert.match(
+    bridgeMonth(rebased, "2026-07-31").issue!,
+    /seam discontinuity: CIBC NAV per unit of 2026-07-0\d × \(1 \+ Apex return of 2026-07-0\d\)/,
+  );
   // within 1 bp: accepted
-  const tiny = rs.map((r) => (r.source === "apex" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.00005 } : r));
+  const tiny = rs.map((r) =>
+    r.source === "apex" ? { ...r, nav_per_share_cad: (r.nav_per_share_cad as number) * 1.00005 } : r,
+  );
   assert.equal(bridgeMonth(tiny, "2026-07-31").status, "ready");
   // the first Apex return starting elsewhere: no seam evidence, the other bridge gates decide
   const other = rs.map((r) => (r.date === firstApex.date ? { ...r, return_start_date: "2026-06-30" } : r));

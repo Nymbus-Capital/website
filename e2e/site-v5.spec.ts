@@ -9,7 +9,9 @@ import { expect, test } from "@playwright/test";
 
 const SHOTS = "e2e/screenshots";
 
-test("about: the people come before the values; the protective-overlay name keeps its qualifier", async ({ page }, info) => {
+test("about: the people come before the values; the protective-overlay name keeps its qualifier", async ({
+  page,
+}, info) => {
   await page.goto("/team");
   const people = page.locator("#ab-people-t");
   const values = page.locator("#ab-val-t");
@@ -18,7 +20,9 @@ test("about: the people come before the values; the protective-overlay name keep
   const yPeople = await people.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   const yValues = await values.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   expect(yPeople).toBeLessThan(yValues);
-  await expect(page.getByTestId("about-overlay-note")).toContainText("designed to offset part of losses; they may not do so");
+  await expect(page.getByTestId("about-overlay-note")).toContainText(
+    "designed to offset part of losses; they may not do so",
+  );
   const list = page.getByTestId("people");
   await list.scrollIntoViewIfNeeded();
   await expect(list).not.toContainText("Xavier Girard");
@@ -29,11 +33,18 @@ test("about: the people come before the values; the protective-overlay name keep
   await page.screenshot({ path: `${SHOTS}/v5-about-${info.project.name}.png`, fullPage: true });
 });
 
-test("approach: protective overlays named with the qualifier and the futures-exposure disclosure (FR too)", async ({ page, baseURL }) => {
+test("approach: protective overlays named with the qualifier and the futures-exposure disclosure (FR too)", async ({
+  page,
+  baseURL,
+}) => {
   await page.goto("/approach");
   await expect(page.getByRole("heading", { level: 2, name: /why add a protective overlay/i })).toBeAttached();
-  await expect(page.locator("body")).toContainText("Our protective overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.");
-  await expect(page.locator("body")).toContainText("The overlay adds futures exposure on top of the underlying portfolio");
+  await expect(page.locator("body")).toContainText(
+    "Our protective overlay is designed to have low correlation with bonds in down months and to offset part of bond losses when volatility rises; it may not do so and can lose money.",
+  );
+  await expect(page.locator("body")).toContainText(
+    "The overlay adds futures exposure on top of the underlying portfolio",
+  );
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: baseURL! }]);
   await page.goto("/approach");
   await expect(page.locator("body")).toContainText("Pourquoi ajouter une superposition protectrice");
@@ -46,11 +57,15 @@ test("solutions: no third-party rankings section", async ({ page }) => {
   await expect(page.locator("body")).toContainText("Protective overlay");
 });
 
-test("fund awards: Morningstar → Fundata → RBC, official logos sized like Morningstar's, no 'Fund Library' label", async ({ page }, info) => {
+test("fund awards: Morningstar → Fundata → RBC, official logos sized like Morningstar's, no 'Fund Library' label", async ({
+  page,
+}, info) => {
   await page.goto("/strategies/sustainable-enhanced-bonds#awards");
   const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
   await expect(tab).toBeVisible();
-  const order = await tab.locator('[data-testid="awards-morningstar"], [data-testid="ranking-LDM201"], [data-testid="tp-rbc-pfs"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+  const order = await tab
+    .locator('[data-testid="awards-morningstar"], [data-testid="ranking-LDM201"], [data-testid="tp-rbc-pfs"]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
   expect(order).toEqual(["awards-morningstar", "ranking-LDM201", "tp-rbc-pfs"]);
   const fundata = tab.getByTestId("logo-fundata");
   await expect(fundata).toHaveAttribute("src", "/brand/third-party/fundata-logo.png");
@@ -58,7 +73,8 @@ test("fund awards: Morningstar → Fundata → RBC, official logos sized like Mo
   const rbc = tab.getByTestId("logo-rbc-pfs");
   await expect(rbc).toHaveAttribute("src", "/brand/third-party/rbc-logo.png");
   await expect(rbc).toHaveAttribute("alt", "RBC Investor Services");
-  for (const img of [fundata, rbc]) expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
+  for (const img of [fundata, rbc])
+    expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
   const fb = (await fundata.boundingBox())!;
   expect(fb.width).toBeGreaterThanOrEqual(100);
   expect(fb.width).toBeLessThanOrEqual(130);
@@ -78,14 +94,19 @@ test("fund awards: Morningstar → Fundata → RBC, official logos sized like Mo
   }
 });
 
-test("Morningstar note: compact info button; hover / focus / tap opens the full text, Escape closes it", async ({ page, isMobile }, info) => {
+test("Morningstar note: compact info button; hover / focus / tap opens the full text, Escape closes it", async ({
+  page,
+  isMobile,
+}, info) => {
   await page.goto("/strategies/monthly-income");
   const block = page.locator('[role="tabpanel"][data-panel="overview"]').getByTestId("overview-morningstar");
   await block.scrollIntoViewIfNeeded();
   const btn = block.getByTestId("overview-morningstar-rating-info-button");
   const pop = block.getByTestId("overview-morningstar-rating-info-text");
   await expect(btn).toHaveAccessibleName("Rating methodology and attribution");
-  await expect(btn).toHaveAccessibleDescription(/Morningstar Rating™ reflects performance as of October 1, 2026.*© 2026 Morningstar Research Inc\./s);
+  await expect(btn).toHaveAccessibleDescription(
+    /Morningstar Rating™ reflects performance as of October 1, 2026.*© 2026 Morningstar Research Inc\./s,
+  );
   const id = await pop.getAttribute("id");
   await expect(btn).toHaveAttribute("aria-describedby", id!);
   await expect(btn).toHaveAttribute("aria-controls", id!);
@@ -130,7 +151,10 @@ test("Morningstar note: compact info button; hover / focus / tap opens the full 
   }
 });
 
-test("Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected on every page", async ({ page, baseURL }, info) => {
+test("Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected on every page", async ({
+  page,
+  baseURL,
+}, info) => {
   await page.goto("/strategies/global-minimum-volatility");
   const sel = page.getByTestId("variant-selector");
   await expect(sel.locator('[role="radio"]')).toHaveText([/3%/, /6%/, /9%/]);

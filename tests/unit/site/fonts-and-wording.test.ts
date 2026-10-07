@@ -20,13 +20,28 @@ function walk(dir: string, re: RegExp, out: string[] = []): string[] {
 
 /* ------------------------------------------------------------------ fonts: Poppins only */
 
-const GENERIC = new Set(["sans-serif", "system-ui", "ui-sans-serif", "inherit", "initial", "unset", "revert", "-apple-system"]);
+const GENERIC = new Set([
+  "sans-serif",
+  "system-ui",
+  "ui-sans-serif",
+  "inherit",
+  "initial",
+  "unset",
+  "revert",
+  "-apple-system",
+]);
 
 /** First family of a `font-family` value or of a `font` shorthand (after size / line-height). */
 function firstFamily(value: string): string | null {
-  const v = value.trim().replace(/!important$/, "").trim();
+  const v = value
+    .trim()
+    .replace(/!important$/, "")
+    .trim();
   if (/^(inherit|initial|unset|revert)$/i.test(v)) return "inherit";
-  return v.split(",")[0].trim().replace(/^["']|["']$/g, "");
+  return v
+    .split(",")[0]
+    .trim()
+    .replace(/^["']|["']$/g, "");
 }
 
 /** Value of `const <name> = …` in `code`, else in the relative module `code` imports it from. */
@@ -34,7 +49,9 @@ function constValue(code: string, name: string, file: string): string {
   const own = code.match(new RegExp(`const ${name}\\s*=\\s*([^;\\n]+)`))?.[1];
   if (own) return own;
   const from = code.match(new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "(\\.[^"]+)"`))?.[1];
-  return from ? (readFileSync(join(dirname(file), from), "utf8").match(new RegExp(`const ${name}\\s*=\\s*([^;\\n]+)`))?.[1] ?? "") : "";
+  return from
+    ? (readFileSync(join(dirname(file), from), "utf8").match(new RegExp(`const ${name}\\s*=\\s*([^;\\n]+)`))?.[1] ?? "")
+    : "";
 }
 
 test("every font-family declaration of CSS, TSX and the standalone pages starts with Poppins (or inherits)", () => {
@@ -75,7 +92,7 @@ test("every font-family declaration of CSS, TSX and the standalone pages starts 
 
 test("globals.css makes controls, code and SVG text inherit the Poppins body font", () => {
   const css = readFileSync(join(SRC, "app/globals.css"), "utf8");
-  assert.match(css, /button, input, select, textarea[^{]*\{\s*font-family:\s*inherit/);
+  assert.match(css, /button,\s*input,\s*select,\s*textarea[^{]*\{\s*font-family:\s*inherit/);
   assert.match(css, /svg text/);
   assert.match(css, /body\s*\{[^}]*font-family:\s*"Poppins"/);
 });
@@ -93,15 +110,20 @@ const FORBIDDEN = /leverag|effet de levier|à effet de levier|levier de crédit|
 
 test("no characteristic parsed from the factsheets is a leverage metric or a liquidity score", () => {
   for (const spec of [...BOND_CHARACTERISTICS, ...ESG_METRICS, ...MULTISTRAT_CHARACTERISTICS]) {
-    assert.ok(!FORBIDDEN.test(`${spec.id} ${spec.source} ${spec.label.en} ${spec.label.fr}`), `${spec.id} is a forbidden metric`);
+    assert.ok(
+      !FORBIDDEN.test(`${spec.id} ${spec.source} ${spec.label.en} ${spec.label.fr}`),
+      `${spec.id} is a forbidden metric`,
+    );
   }
 });
 
 test("no visitor-facing text of the funds mentions leverage or a liquidity score (EN or FR)", () => {
   const texts: string[] = [];
-  for (const f of FUNDS) texts.push(f.defaults.description.en, f.defaults.description.fr, f.defaults.tagline.en, f.defaults.tagline.fr);
+  for (const f of FUNDS)
+    texts.push(f.defaults.description.en, f.defaults.description.fr, f.defaults.tagline.en, f.defaults.tagline.fr);
   // every string of the fund texts (summary, approach, note, feature cards, whatever the copy keeps)
-  const leaves = (v: unknown): string[] => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : []);
+  const leaves = (v: unknown): string[] =>
+    typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(leaves) : [];
   for (const t of Object.values(FUND_TEXTS)) texts.push(...leaves(t));
   for (const s of texts) assert.ok(!FORBIDDEN.test(s), `forbidden wording in: ${s.slice(0, 80)}`);
 });

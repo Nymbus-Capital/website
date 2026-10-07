@@ -12,7 +12,14 @@ import { Readable } from "node:stream";
 import { contentDisposition, documentFileStat, getDocument, isDocumentId, parseRange } from "@/lib/data/documents";
 
 const notFound = () =>
-  new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+  new Response("Not found", {
+    status: 404,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 
 export async function serveDocument(request: Request, id: string, head = false): Promise<Response> {
   if (!isDocumentId(id)) return notFound();
@@ -33,7 +40,13 @@ export async function serveDocument(request: Request, id: string, head = false):
     "Cross-Origin-Resource-Policy": "same-origin",
   };
   const inm = request.headers.get("if-none-match");
-  if (inm && inm.split(",").map((s) => s.trim().replace(/^W\//, "")).some((t) => t === etag || t === "*")) {
+  if (
+    inm &&
+    inm
+      .split(",")
+      .map((s) => s.trim().replace(/^W\//, ""))
+      .some((t) => t === etag || t === "*")
+  ) {
     return new Response(null, { status: 304, headers });
   }
 

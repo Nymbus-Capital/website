@@ -31,12 +31,23 @@ test("every person and news item, unique slugs, order of the website, the import
   const slugs = doc.team.map((m) => m.slug);
   assert.equal(new Set(slugs).size, slugs.length);
   for (const s of [...slugs, ...doc.news.map((n) => n.slug)]) assert.match(s, /^[a-z0-9][a-z0-9-]{0,99}$/);
-  assert.deepEqual(doc.team.map((m) => m.name), team.map((m) => m.name));
-  assert.deepEqual(doc.team.map((m) => m.order), team.map((_, i) => (i + 1) * 10));
+  assert.deepEqual(
+    doc.team.map((m) => m.name),
+    team.map((m) => m.name),
+  );
+  assert.deepEqual(
+    doc.team.map((m) => m.order),
+    team.map((_, i) => (i + 1) * 10),
+  );
   const first = doc.team[0];
   assert.equal(first.role.en, team[0].title);
   assert.equal(first.bio.fr, team[0].bioFr ?? "");
   assert.ok(doc.team.every((m) => m.photo === null || m.photo.startsWith("https://")));
   assert.deepEqual(doc.news[0].title, NEWS[0].title);
-  assert.equal(buildImport(team, NEWS).team.every((m: { photo: string | null }) => m.photo === null || m.photo.startsWith("https://")), true);
+  assert.equal(
+    buildImport(team, NEWS).team.every(
+      (m: { photo: string | null }) => m.photo === null || m.photo.startsWith("https://"),
+    ),
+    true,
+  );
 });

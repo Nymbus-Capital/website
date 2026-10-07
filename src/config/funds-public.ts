@@ -31,9 +31,15 @@ export const PUBLIC_FUNDS: readonly PublicFund[] = FUNDS.map((f) => ({
 }));
 
 /** Funds not hidden in the admin (hidden keys come from the server layout). */
-export const visibleFunds = <T extends { key: string }>(funds: readonly T[], hidden: readonly string[] | null | undefined): T[] =>
-  funds.filter((f) => !(hidden ?? []).includes(f.key));
+export const visibleFunds = <T extends { key: string }>(
+  funds: readonly T[],
+  hidden: readonly string[] | null | undefined,
+): T[] => funds.filter((f) => !(hidden ?? []).includes(f.key));
 
 /** Keys of the funds the admin hid (content.funds[key].hidden), computed on the server for the site chrome and forms. */
-export const hiddenFundKeys = (content: { funds?: Partial<Record<string, { hidden?: boolean } | undefined>> } | null | undefined): string[] =>
-  Object.entries(content?.funds ?? {}).filter(([, f]) => f?.hidden).map(([k]) => k);
+export const hiddenFundKeys = (
+  content: { funds?: Partial<Record<string, { hidden?: boolean } | undefined>> } | null | undefined,
+): string[] =>
+  Object.entries(content?.funds ?? {})
+    .filter(([, f]) => f?.hidden)
+    .map(([k]) => k);

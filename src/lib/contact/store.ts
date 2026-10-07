@@ -29,7 +29,9 @@ export function retentionDaysOf(content: { inquiryPolicy?: { retentionDays?: unk
 
 /** The configured retention (admin settings on the volume; the default when unreadable). */
 export async function configuredRetentionDays(): Promise<number> {
-  const c = await readJson<{ inquiryPolicy?: { retentionDays?: unknown } } | null>(CONTENT_FILE, null).catch(() => null);
+  const c = await readJson<{ inquiryPolicy?: { retentionDays?: unknown } } | null>(CONTENT_FILE, null).catch(
+    () => null,
+  );
   return retentionDaysOf(c);
 }
 /** hard cap of stored inquiries (a flood cannot fill the volume); new ones are refused past it */
@@ -56,7 +58,10 @@ export class InquiryStoreFullError extends Error {
 const file = (id: string): string[] => [INQUIRY_DIR, `${id}.json`];
 
 async function ids(): Promise<string[]> {
-  return (await listDir([INQUIRY_DIR])).filter((n) => n.endsWith(".json")).map((n) => n.slice(0, -5)).filter(isInquiryId);
+  return (await listDir([INQUIRY_DIR]))
+    .filter((n) => n.endsWith(".json"))
+    .map((n) => n.slice(0, -5))
+    .filter(isInquiryId);
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -73,7 +78,14 @@ async function locked<T>(fn: () => Promise<T>): Promise<T> {
 
 function isRecord(r: unknown): r is InquiryRecord {
   const x = r as InquiryRecord | null;
-  return !!x && typeof x === "object" && isInquiryId(x.id) && typeof x.receivedAt === "string" && typeof x.name === "string" && typeof x.email === "string";
+  return (
+    !!x &&
+    typeof x === "object" &&
+    isInquiryId(x.id) &&
+    typeof x.receivedAt === "string" &&
+    typeof x.name === "string" &&
+    typeof x.email === "string"
+  );
 }
 
 /** a resubmission of the same inquiry within this window is not stored again (double click, reload, retry) */
@@ -82,7 +94,15 @@ export const DUPLICATE_WINDOW_MS = 24 * 3_600_000;
 /** The fields that make two inquiries "the same" (the sender's e-mail case-insensitively). */
 function sameInquiry(a: CleanInquiry, b: CleanInquiry): boolean {
   const key = (q: CleanInquiry) =>
-    JSON.stringify([q.email.toLowerCase(), q.name, q.profile, [...q.interests].sort(), q.phone ?? "", q.company ?? "", q.message ?? ""]);
+    JSON.stringify([
+      q.email.toLowerCase(),
+      q.name,
+      q.profile,
+      [...q.interests].sort(),
+      q.phone ?? "",
+      q.company ?? "",
+      q.message ?? "",
+    ]);
   return key(a) === key(b);
 }
 
@@ -90,7 +110,11 @@ function sameInquiry(a: CleanInquiry, b: CleanInquiry): boolean {
  * Store an inquiry (under the lock: the cap and the duplicate check see every concurrent save). An identical inquiry
  * received within DUPLICATE_WINDOW_MS is returned instead, with `duplicate: true`, and nothing is written.
  */
-export function saveInquiry(v: CleanInquiry, now = new Date(), max = MAX_STORED): Promise<{ record: InquiryRecord; duplicate: boolean }> {
+export function saveInquiry(
+  v: CleanInquiry,
+  now = new Date(),
+  max = MAX_STORED,
+): Promise<{ record: InquiryRecord; duplicate: boolean }> {
   return locked(async () => {
     const existing = await listInquiries();
     const t = now.getTime();
@@ -98,7 +122,13 @@ export function saveInquiry(v: CleanInquiry, now = new Date(), max = MAX_STORED)
     if (dup) return { record: dup, duplicate: true };
     if ((await ids()).length >= max) throw new InquiryStoreFullError();
     const at = now.toISOString();
-    const record: InquiryRecord = { id: newId(), receivedAt: at, ...v, consent: { at, version: CONSENT_VERSION }, handled: null };
+    const record: InquiryRecord = {
+      id: newId(),
+      receivedAt: at,
+      ...v,
+      consent: { at, version: CONSENT_VERSION },
+      handled: null,
+    };
     await writeJson(file(record.id), record);
     return { record, duplicate: false };
   });
@@ -118,10 +148,17 @@ export async function getInquiry(id: string): Promise<InquiryRecord | null> {
 /** Every stored inquiry, newest first (unreadable files skipped). */
 export async function listInquiries(): Promise<InquiryRecord[]> {
   const all = await Promise.all((await ids()).map((id) => getInquiry(id)));
-  return all.filter((r): r is InquiryRecord => !!r).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt) || b.id.localeCompare(a.id));
+  return all
+    .filter((r): r is InquiryRecord => !!r)
+    .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt) || b.id.localeCompare(a.id));
 }
 
-export function setInquiryHandled(id: string, handled: boolean, by: string, now = new Date()): Promise<InquiryRecord | null> {
+export function setInquiryHandled(
+  id: string,
+  handled: boolean,
+  by: string,
+  now = new Date(),
+): Promise<InquiryRecord | null> {
   return locked(async () => {
     const r = await getInquiry(id);
     if (!r) return null;

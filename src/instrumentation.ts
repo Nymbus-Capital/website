@@ -11,7 +11,10 @@ export async function register(): Promise<void> {
         const { authDiagnostics, pipelineDiagnostics, dataplatformProbe } = await import("./lib/auth/diagnostics.ts");
         for (const line of authDiagnostics(process.env)) console.log(line);
         console.log(pipelineDiagnostics(process.env));
-        void dataplatformProbe(process.env).then((l) => console.log(l), () => undefined);
+        void dataplatformProbe(process.env).then(
+          (l) => console.log(l),
+          () => undefined,
+        );
       } catch (e: unknown) {
         console.log(`[admin] diagnostics failed: ${(e as Error)?.message ?? e}`);
       }

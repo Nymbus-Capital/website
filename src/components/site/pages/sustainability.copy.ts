@@ -38,9 +38,21 @@ export const SU = {
       "Les filtres ESG et les exclusions présentés ici sont ceux du Fonds Obligations Durables Bonifiées.",
     ),
     items: [
-      { t: l("Accountability", "Responsabilité"), d: l("PRI signatory since 2018.", "Signataire des PRI depuis 2018.") },
-      { t: l("Engagement", "Engagement"), d: l("Tobacco-Free Finance Pledge signatory since 2024.", "Signataire de l’Engagement pour une finance sans tabac depuis 2024.") },
-      { t: l("Transparency", "Transparence"), d: l("The sustainable fund’s metrics, on its page.", "Les indicateurs du fonds durable, sur sa page.") },
+      {
+        t: l("Accountability", "Responsabilité"),
+        d: l("PRI signatory since 2018.", "Signataire des PRI depuis 2018."),
+      },
+      {
+        t: l("Engagement", "Engagement"),
+        d: l(
+          "Tobacco-Free Finance Pledge signatory since 2024.",
+          "Signataire de l’Engagement pour une finance sans tabac depuis 2024.",
+        ),
+      },
+      {
+        t: l("Transparency", "Transparence"),
+        d: l("The sustainable fund’s metrics, on its page.", "Les indicateurs du fonds durable, sur sa page."),
+      },
     ],
   },
   integration: {
@@ -48,9 +60,24 @@ export const SU = {
     title: l("Three layers,", "Trois couches,"),
     accent: l("in one fund’s process", "dans le processus d’un fonds"),
     steps: [
-      { t: l("Exclusion screening", "Filtrage d’exclusion"), d: l("Excluded issuers leave the fund’s universe first.", "Les émetteurs exclus quittent d’abord l’univers du fonds.") },
-      { t: l("Positive screening", "Filtrage positif"), d: l("Stronger ESG practices are favoured.", "Les meilleures pratiques ESG sont favorisées.") },
-      { t: l("Quantitative integration", "Intégration quantitative"), d: l("ESG metrics feed the fund’s credit models.", "Les mesures ESG alimentent les modèles de crédit du fonds.") },
+      {
+        t: l("Exclusion screening", "Filtrage d’exclusion"),
+        d: l(
+          "Excluded issuers leave the fund’s universe first.",
+          "Les émetteurs exclus quittent d’abord l’univers du fonds.",
+        ),
+      },
+      {
+        t: l("Positive screening", "Filtrage positif"),
+        d: l("Stronger ESG practices are favoured.", "Les meilleures pratiques ESG sont favorisées."),
+      },
+      {
+        t: l("Quantitative integration", "Intégration quantitative"),
+        d: l(
+          "ESG metrics feed the fund’s credit models.",
+          "Les mesures ESG alimentent les modèles de crédit du fonds.",
+        ),
+      },
     ],
   },
   exclusions: {
@@ -62,10 +89,28 @@ export const SU = {
       "Les critères ESG et les exclusions ci-dessous sont ceux du Fonds Obligations Durables Bonifiées, selon les modalités prévues dans ses documents de placement. Ils ne visent pas les contrats à terme cotés utilisés dans la stratégie de superposition du fonds.",
     ),
     items: [
-      { t: l("Coal and oil sands", "Charbon et sables bitumineux"), d: l("More than 5% of revenue from coal, oil sands or thermal coal power.", "Plus de 5 % des revenus tirés du charbon, des sables bitumineux ou de l’électricité au charbon.") },
+      {
+        t: l("Coal and oil sands", "Charbon et sables bitumineux"),
+        d: l(
+          "More than 5% of revenue from coal, oil sands or thermal coal power.",
+          "Plus de 5 % des revenus tirés du charbon, des sables bitumineux ou de l’électricité au charbon.",
+        ),
+      },
       { t: l("Tobacco", "Tabac"), d: l("Manufacturers and distributors.", "Fabricants et distributeurs.") },
-      { t: l("Controversial weapons", "Armes controversées"), d: l("Cluster munitions, landmines, biological, chemical and nuclear weapons.", "Armes à sous-munitions, mines terrestres, armes biologiques, chimiques et nucléaires.") },
-      { t: l("Severe ESG controversies", "Controverses ESG graves"), d: l("Rated “severe” by MSCI or an equivalent provider.", "Jugées « graves » par MSCI ou un fournisseur équivalent.") },
+      {
+        t: l("Controversial weapons", "Armes controversées"),
+        d: l(
+          "Cluster munitions, landmines, biological, chemical and nuclear weapons.",
+          "Armes à sous-munitions, mines terrestres, armes biologiques, chimiques et nucléaires.",
+        ),
+      },
+      {
+        t: l("Severe ESG controversies", "Controverses ESG graves"),
+        d: l(
+          "Rated “severe” by MSCI or an equivalent provider.",
+          "Jugées « graves » par MSCI ou un fournisseur équivalent.",
+        ),
+      },
     ],
   },
   green: {
@@ -76,8 +121,16 @@ export const SU = {
       "The Sustainable Enhanced Bonds Fund can hold green bonds labelled under frameworks such as the ICMA Green Bond Principles, on the same criteria as its other securities.",
       "Le Fonds Obligations Durables Bonifiées peut détenir des obligations vertes désignées selon des cadres comme les Principes de l’ICMA, selon les mêmes critères que ses autres titres.",
     ),
-    uses: [l("Renewable energy", "Énergie renouvelable"), l("Energy efficiency", "Efficacité énergétique"), l("Clean transportation", "Transport propre"), l("Green buildings", "Bâtiments écologiques")],
-    note: l("ESG measures, when published, are on the fund page.", "Les mesures ESG, si publiées, figurent sur la page du fonds."),
+    uses: [
+      l("Renewable energy", "Énergie renouvelable"),
+      l("Energy efficiency", "Efficacité énergétique"),
+      l("Clean transportation", "Transport propre"),
+      l("Green buildings", "Bâtiments écologiques"),
+    ],
+    note: l(
+      "ESG measures, when published, are on the fund page.",
+      "Les mesures ESG, si publiées, figurent sur la page du fonds.",
+    ),
     go: SEB,
   },
   fondaction: {
@@ -97,8 +150,22 @@ export const SU = {
     title: l("Commitments", "Des engagements"),
     accent: l("on the record", "publics"),
     items: [
-      { y: "2018", t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"), d: l("UN-supported Principles for Responsible Investment.", "Principes pour l’investissement responsable, soutenus par l’ONU.") },
-      { y: "2024", t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"), d: l("A firm-level signature. The pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI, encourages signatories to consider tobacco-free policies across lending, insurance and investment.", "Une signature de la firme. L’engagement, une initiative de Tobacco Free Portfolios menée avec l’IF du PNUE, invite les signataires à envisager des politiques sans tabac en matière de prêt, d’assurance et de placement.") },
+      {
+        y: "2018",
+        t: l("PRI signatory since 2018", "Signataire des PRI depuis 2018"),
+        d: l(
+          "UN-supported Principles for Responsible Investment.",
+          "Principes pour l’investissement responsable, soutenus par l’ONU.",
+        ),
+      },
+      {
+        y: "2024",
+        t: l("Tobacco-Free Finance Pledge", "Engagement pour une finance sans tabac"),
+        d: l(
+          "A firm-level signature. The pledge, an initiative of Tobacco Free Portfolios hosted with UNEP FI, encourages signatories to consider tobacco-free policies across lending, insurance and investment.",
+          "Une signature de la firme. L’engagement, une initiative de Tobacco Free Portfolios menée avec l’IF du PNUE, invite les signataires à envisager des politiques sans tabac en matière de prêt, d’assurance et de placement.",
+        ),
+      },
     ],
     fondaction: { t: l("Fondaction mandates", "Mandats de Fondaction") },
   },

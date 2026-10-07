@@ -10,14 +10,29 @@
 import type { ReactNode } from "react";
 import { Leaf } from "lucide-react";
 import { CountUp, Reveal } from "@/components/motion/motion";
-import type { Bucket, Characteristic, FundContent, PortfolioData, PortfolioHolding, PortfolioMetric } from "@/lib/data/types";
+import type {
+  Bucket,
+  Characteristic,
+  FundContent,
+  PortfolioData,
+  PortfolioHolding,
+  PortfolioMetric,
+} from "@/lib/data/types";
 import type { PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { T } from "./fund.copy";
 import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
 import { charCount, charValue, dateLabel, elide, fmt, monthLabel } from "./lib/format.ts";
-import { bucketRows, dailyBreakdowns, fullRowItems, hasDailyPortfolio, orderedBuckets, partialCoverage, topTotal } from "./lib/portfolio.ts";
+import {
+  bucketRows,
+  dailyBreakdowns,
+  fullRowItems,
+  hasDailyPortfolio,
+  orderedBuckets,
+  partialCoverage,
+  topTotal,
+} from "./lib/portfolio.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
 
 type BKey = "credit" | "sectors" | "curve" | "country" | "assetClass";
@@ -29,37 +44,73 @@ function isWhole(rows: Bucket[]) {
   return rows.length >= 2 && rows.length <= 8 && Math.abs(s - 1) < 0.03;
 }
 
-export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; content: FundContent; data: FundData | null; lang: Locale }) {
+export function PortfolioTab({
+  spec,
+  content,
+  data,
+  lang,
+}: {
+  spec: FundSpec;
+  content: FundContent;
+  data: FundData | null;
+  lang: Locale;
+}) {
   const h = content.hide ?? {};
   const esg = !data || h.esg ? [] : data.esg.filter((c) => c.fund != null && c.fund !== "");
   const daily = data && hasDailyPortfolio(data.portfolio) ? data.portfolio : null;
   const fundWord = tr(spec.vehicle === "fund" ? T.portfolio.fund : T.portfolio.strategy, lang);
   const names = { fund: fundWord, index: tr(T.portfolio.index, lang) };
-  const esgBlock = esg.length ? <EsgBlock esg={esg} month={data?.factsheetMonth ?? null} daily={!!daily} fundWord={fundWord} indexWord={names.index} lang={lang} /> : null;
+  const esgBlock = esg.length ? (
+    <EsgBlock
+      esg={esg}
+      month={data?.factsheetMonth ?? null}
+      daily={!!daily}
+      fundWord={fundWord}
+      indexWord={names.index}
+      lang={lang}
+    />
+  ) : null;
 
   if (daily) return <DailyPortfolio p={daily} esgBlock={esgBlock} names={names} lang={lang} />;
 
   const chars = !data || h.characteristics ? [] : data.characteristics.filter((c) => c.fund != null && c.fund !== "");
   const holdings = !data || h.holdings ? [] : data.topHoldings.filter((x) => Number.isFinite(x.weight)).slice(0, 10);
-  const bks: { key: BKey; rows: Bucket[] }[] = !data || h.breakdowns ? [] : (["assetClass", "credit", "sectors", "curve", "country"] as BKey[])
-    .map((key) => ({ key, rows: ORDERED.includes(key) ? orderedBuckets(data.breakdowns[key]) : bucketRows(data.breakdowns[key]) }))
-    .filter((b) => b.rows.length > 0);
+  const bks: { key: BKey; rows: Bucket[] }[] =
+    !data || h.breakdowns
+      ? []
+      : (["assetClass", "credit", "sectors", "curve", "country"] as BKey[])
+          .map((key) => ({
+            key,
+            rows: ORDERED.includes(key) ? orderedBuckets(data.breakdowns[key]) : bucketRows(data.breakdowns[key]),
+          }))
+          .filter((b) => b.rows.length > 0);
   const hasContent = chars.length || esg.length || holdings.length || bks.length;
   const full = fullRowItems(bks.map((b) => b.key === "assetClass" && isWhole(b.rows)));
 
-  if (!hasContent) return <div className="container fp"><p className="notice" data-testid="portfolio-soon">{tr(T.portfolio.none, lang)}</p></div>;
+  if (!hasContent)
+    return (
+      <div className="container fp">
+        <p className="notice" data-testid="portfolio-soon">
+          {tr(T.portfolio.none, lang)}
+        </p>
+      </div>
+    );
   return (
     <div className="container fp">
       {data?.factsheetMonth ? (
         <p className="fp-context pf-source" data-testid="portfolio-source" data-source="factsheet">
           <span className="fx-chip">{tr(T.portfolio.monthEnd, lang)}</span>
-          <span data-testid="factsheet-month">{tr(T.portfolio.asOf, lang)} {monthLabel(data.factsheetMonth, lang)}</span>
+          <span data-testid="factsheet-month">
+            {tr(T.portfolio.asOf, lang)} {monthLabel(data.factsheetMonth, lang)}
+          </span>
         </p>
       ) : null}
       {chars.length ? (
         <Block title={tr(T.portfolio.characteristics, lang)} testId="characteristics">
           <Reveal className="ch-grid" kind="pop" stagger={55}>
-            {chars.map((c) => <CharTile key={c.id} c={c} lang={lang} />)}
+            {chars.map((c) => (
+              <CharTile key={c.id} c={c} lang={lang} />
+            ))}
           </Reveal>
         </Block>
       ) : null}
@@ -69,11 +120,36 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
             const donut = b.key === "assetClass" && isWhole(b.rows);
             const hasIndex = b.rows.some((r) => r.index != null);
             return (
-              <Block key={b.key} title={tr(T.portfolio.breakdowns[b.key], lang)} className={full[i] ? "bk-wide" : undefined} testId={`breakdown-${b.key}`}
-                aside={hasIndex && !donut ? <div className="fx-legend"><span><i className="fund" />{names.fund}</span><span><i className="index" style={{ height: 5 }} />{names.index}</span></div> : null}>
-                {donut
-                  ? <Donut rows={b.rows} lang={lang} label={tr(T.portfolio.breakdowns[b.key], lang)} indexName={names.index} />
-                  : <HBars rows={b.rows} lang={lang} names={names} label={tr(T.portfolio.breakdowns[b.key], lang)} />}
+              <Block
+                key={b.key}
+                title={tr(T.portfolio.breakdowns[b.key], lang)}
+                className={full[i] ? "bk-wide" : undefined}
+                testId={`breakdown-${b.key}`}
+                aside={
+                  hasIndex && !donut ? (
+                    <div className="fx-legend">
+                      <span>
+                        <i className="fund" />
+                        {names.fund}
+                      </span>
+                      <span>
+                        <i className="index" style={{ height: 5 }} />
+                        {names.index}
+                      </span>
+                    </div>
+                  ) : null
+                }
+              >
+                {donut ? (
+                  <Donut
+                    rows={b.rows}
+                    lang={lang}
+                    label={tr(T.portfolio.breakdowns[b.key], lang)}
+                    indexName={names.index}
+                  />
+                ) : (
+                  <HBars rows={b.rows} lang={lang} names={names} label={tr(T.portfolio.breakdowns[b.key], lang)} />
+                )}
               </Block>
             );
           })}
@@ -95,34 +171,63 @@ export function PortfolioTab({ spec, content, data, lang }: { spec: FundSpec; co
 
 /* ------------------------------------------------------------------ daily book */
 
-function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlock: ReactNode; names: { fund: string; index: string }; lang: Locale }) {
+function DailyPortfolio({
+  p,
+  esgBlock,
+  names,
+  lang,
+}: {
+  p: PortfolioData;
+  esgBlock: ReactNode;
+  names: { fund: string; index: string };
+  lang: Locale;
+}) {
   const metrics = p.characteristics.filter((m) => m.value != null);
   const partial = partialCoverage(metrics);
   const count = p.totals?.holdings;
-  const bks = dailyBreakdowns(p).map((b) => ({ ...b, rows: b.rows.map((r) => ({ ...r, label: categoryLabel(r.label, lang, b.key === "term" ? "term" : undefined) })) }));
-  const green = typeof p.greenBondsWeight === "number" && Number.isFinite(p.greenBondsWeight) ? p.greenBondsWeight : null;
+  const bks = dailyBreakdowns(p).map((b) => ({
+    ...b,
+    rows: b.rows.map((r) => ({ ...r, label: categoryLabel(r.label, lang, b.key === "term" ? "term" : undefined) })),
+  }));
+  const green =
+    typeof p.greenBondsWeight === "number" && Number.isFinite(p.greenBondsWeight) ? p.greenBondsWeight : null;
   const full = fullRowItems(bks.map(() => false));
   const pctLabel = (v: number, d = 0) => fmt(v, { pct: true, decimals: d, lang });
   return (
     <div className="container fp">
       <p className="fp-context pf-source" data-testid="portfolio-source" data-source="daily">
-        <span className="fx-chip live"><span className="live-dot" aria-hidden="true" />{tr(T.portfolio.daily, lang)}</span>
-        <span data-testid="portfolio-asof">{tr(T.portfolio.dailyAsOf, lang)} {dateLabel(p.asOf, lang, true)}</span>
+        <span className="fx-chip live">
+          <span className="live-dot" aria-hidden="true" />
+          {tr(T.portfolio.daily, lang)}
+        </span>
+        <span data-testid="portfolio-asof">
+          {tr(T.portfolio.dailyAsOf, lang)} {dateLabel(p.asOf, lang, true)}
+        </span>
       </p>
       {metrics.length || count != null ? (
         <Block title={tr(T.portfolio.characteristics, lang)} testId="characteristics">
           <Reveal className="ch-grid pf-metrics" kind="pop" stagger={55}>
-            {metrics.map((m) => <MetricTile key={m.id} m={m} marked={partial.includes(m)} lang={lang} />)}
+            {metrics.map((m) => (
+              <MetricTile key={m.id} m={m} marked={partial.includes(m)} lang={lang} />
+            ))}
             {count != null ? (
               <div className="ch-tile" data-testid="metric-securities">
-                <span className="ch-v"><CountUp value={count} decimals={0} lang={lang} /></span>
+                <span className="ch-v">
+                  <CountUp value={count} decimals={0} lang={lang} />
+                </span>
                 <span className="ch-l">{tr(T.portfolio.securities, lang)}</span>
               </div>
             ) : null}
           </Reveal>
           {partial.length ? (
             <p className="fine pf-foot" data-testid="coverage-note">
-              <sup aria-hidden="true">*</sup> {tr(T.portfolio.coverage, lang).replace("{x}", partial.map((m) => `${tr(T.portfolio.metrics[m.id], lang).toLowerCase()} ${pctLabel(m.coverage)}`).join(", "))}
+              <sup aria-hidden="true">*</sup>{" "}
+              {tr(T.portfolio.coverage, lang).replace(
+                "{x}",
+                partial
+                  .map((m) => `${tr(T.portfolio.metrics[m.id], lang).toLowerCase()} ${pctLabel(m.coverage)}`)
+                  .join(", "),
+              )}
             </p>
           ) : null}
         </Block>
@@ -130,8 +235,13 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
       {green != null ? (
         <Block title={tr(T.portfolio.greenTitle, lang)} testId="green-bonds" className="pf-green">
           <div className="pf-green-body">
-            <p className="pf-green-v"><Leaf aria-hidden="true" /><b data-testid="green-weight">{pctLabel(green, 1)}</b> {tr(T.portfolio.greenOf, lang)}</p>
-            <span className="pf-meter" aria-hidden="true"><i style={{ width: `${Math.min(100, green * 100)}%` }} /></span>
+            <p className="pf-green-v">
+              <Leaf aria-hidden="true" />
+              <b data-testid="green-weight">{pctLabel(green, 1)}</b> {tr(T.portfolio.greenOf, lang)}
+            </p>
+            <span className="pf-meter" aria-hidden="true">
+              <i style={{ width: `${Math.min(100, green * 100)}%` }} />
+            </span>
             <p className="fxb-text sm">{tr(T.portfolio.greenLead, lang)}</p>
           </div>
         </Block>
@@ -143,7 +253,12 @@ function DailyPortfolio({ p, esgBlock, names, lang }: { p: PortfolioData; esgBlo
             // bars for every daily breakdown: exact values side by side (a donut hides the small slices); an odd last
             // breakdown takes the whole row rather than half of it
             return (
-              <Block key={b.key} title={title} testId={`breakdown-${b.key}`} className={full[i] ? "bk-wide" : undefined}>
+              <Block
+                key={b.key}
+                title={title}
+                testId={`breakdown-${b.key}`}
+                className={full[i] ? "bk-wide" : undefined}
+              >
                 <HBars rows={b.rows} lang={lang} names={names} label={title} />
               </Block>
             );
@@ -176,9 +291,22 @@ function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; 
       <span className="ch-v">
         {n ? <CountUp value={n.value} decimals={n.decimals} pct={n.pct} lang={lang} /> : m.value}
         {m.unit === "years" ? <small className="ch-u"> {tr(T.portfolio.years, lang)}</small> : null}
-        {marked ? <sup className="ch-mark" aria-hidden="true">*</sup> : null}
+        {marked ? (
+          <sup className="ch-mark" aria-hidden="true">
+            *
+          </sup>
+        ) : null}
       </span>
-      <span className="ch-l">{tr(T.portfolio.metrics[m.id], lang)}{m.scope === "bondHoldings" ? <span className="ch-scope" data-testid={`metric-scope-${m.id}`}> ({tr(T.portfolio.bondHoldingsOnly, lang)})</span> : null}{marked ? <span className="sr-only"> ({fmt(m.coverage, { pct: true, decimals: 0, lang })})</span> : null}</span>
+      <span className="ch-l">
+        {tr(T.portfolio.metrics[m.id], lang)}
+        {m.scope === "bondHoldings" ? (
+          <span className="ch-scope" data-testid={`metric-scope-${m.id}`}>
+            {" "}
+            ({tr(T.portfolio.bondHoldingsOnly, lang)})
+          </span>
+        ) : null}
+        {marked ? <span className="sr-only"> ({fmt(m.coverage, { pct: true, decimals: 0, lang })})</span> : null}
+      </span>
     </div>
   );
 }
@@ -186,7 +314,12 @@ function MetricTile({ m, marked, lang }: { m: PortfolioMetric; marked: boolean; 
 function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Locale }) {
   const max = Math.max(0.0001, ...items.map((h) => h.weight));
   const hasColumn = (k: "coupon" | "maturity" | "rating" | "sector") => items.some((h) => h[k] != null);
-  const cols = { coupon: hasColumn("coupon"), maturity: hasColumn("maturity"), rating: hasColumn("rating"), sector: hasColumn("sector") };
+  const cols = {
+    coupon: hasColumn("coupon"),
+    maturity: hasColumn("maturity"),
+    rating: hasColumn("rating"),
+    sector: hasColumn("sector"),
+  };
   const hasGreen = items.some((h) => h.green);
   const total = topTotal(items);
   return (
@@ -196,12 +329,24 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
         <thead>
           <tr>
             <th scope="col">#</th>
-            <th scope="col" className="hd-name">{tr(T.portfolio.holding, lang)}</th>
+            <th scope="col" className="hd-name">
+              {tr(T.portfolio.holding, lang)}
+            </th>
             {cols.coupon ? <th scope="col">{tr(T.portfolio.col.coupon, lang)}</th> : null}
-            {cols.maturity ? <th scope="col" className="hd-opt">{tr(T.portfolio.col.maturity, lang)}</th> : null}
+            {cols.maturity ? (
+              <th scope="col" className="hd-opt">
+                {tr(T.portfolio.col.maturity, lang)}
+              </th>
+            ) : null}
             {cols.rating ? <th scope="col">{tr(T.portfolio.col.rating, lang)}</th> : null}
-            {cols.sector ? <th scope="col" className="hd-opt hd-sector">{tr(T.portfolio.col.sector, lang)}</th> : null}
-            <th scope="col" className="hd-bar-h"><span className="sr-only">{tr(T.portfolio.weight, lang)}</span></th>
+            {cols.sector ? (
+              <th scope="col" className="hd-opt hd-sector">
+                {tr(T.portfolio.col.sector, lang)}
+              </th>
+            ) : null}
+            <th scope="col" className="hd-bar-h">
+              <span className="sr-only">{tr(T.portfolio.weight, lang)}</span>
+            </th>
             <th scope="col">{tr(T.portfolio.weight, lang)}</th>
           </tr>
         </thead>
@@ -211,13 +356,22 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
               <td className="hd-n">{String(i + 1).padStart(2, "0")}</td>
               <td className="hd-name">
                 {h.name}
-                {h.green ? <span className="hd-green" title={tr(T.portfolio.green, lang)} data-testid="green-marker"><Leaf aria-hidden="true" /><span className="sr-only">{` (${tr(T.portfolio.green, lang)})`}</span></span> : null}
+                {h.green ? (
+                  <span className="hd-green" title={tr(T.portfolio.green, lang)} data-testid="green-marker">
+                    <Leaf aria-hidden="true" />
+                    <span className="sr-only">{` (${tr(T.portfolio.green, lang)})`}</span>
+                  </span>
+                ) : null}
               </td>
               {cols.coupon ? <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : "—"}</td> : null}
               {cols.maturity ? <td className="hd-opt">{h.maturity ? dateLabel(h.maturity, lang) : "—"}</td> : null}
               {cols.rating ? <td>{h.rating ?? "—"}</td> : null}
-              {cols.sector ? <td className="hd-opt hd-sector">{h.sector ? categoryLabel(h.sector, lang) : "—"}</td> : null}
-              <td className="hd-bar" aria-hidden="true"><span style={{ width: `${(h.weight / max) * 100}%`, transitionDelay: `${i * 50}ms` }} /></td>
+              {cols.sector ? (
+                <td className="hd-opt hd-sector">{h.sector ? categoryLabel(h.sector, lang) : "—"}</td>
+              ) : null}
+              <td className="hd-bar" aria-hidden="true">
+                <span style={{ width: `${(h.weight / max) * 100}%`, transitionDelay: `${i * 50}ms` }} />
+              </td>
               <td className="strong">{fmt(h.weight, { pct: true, decimals: 2, lang })}</td>
             </tr>
           ))}
@@ -225,28 +379,59 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
         {total != null ? (
           <tfoot>
             <tr data-testid="holdings-total">
-              <th scope="row" colSpan={3 + Object.values(cols).filter(Boolean).length}>{tr(T.portfolio.topTotal, lang)}</th>
+              <th scope="row" colSpan={3 + Object.values(cols).filter(Boolean).length}>
+                {tr(T.portfolio.topTotal, lang)}
+              </th>
               <td className="strong">{fmt(total, { pct: true, decimals: 2, lang })}</td>
             </tr>
           </tfoot>
         ) : null}
       </table>
-      {hasGreen ? <p className="fine pf-legend"><Leaf aria-hidden="true" /> {tr(T.portfolio.green, lang)}</p> : null}
+      {hasGreen ? (
+        <p className="fine pf-legend">
+          <Leaf aria-hidden="true" /> {tr(T.portfolio.green, lang)}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ shared */
 
-function EsgBlock({ esg, month, daily, fundWord, indexWord, lang }: { esg: Characteristic[]; month: string | null; daily: boolean; fundWord: string; indexWord: string; lang: Locale }) {
+function EsgBlock({
+  esg,
+  month,
+  daily,
+  fundWord,
+  indexWord,
+  lang,
+}: {
+  esg: Characteristic[];
+  month: string | null;
+  daily: boolean;
+  fundWord: string;
+  indexWord: string;
+  lang: Locale;
+}) {
   const hasIndex = esg.some((c) => c.index != null);
   // next to the daily book, say that these figures come from the month-end factsheet
-  const lead = daily && month ? `${elide(tr(T.portfolio.esgMonth, lang), monthLabel(month, lang), lang)}.` : hasIndex ? tr(T.portfolio.esgLead, lang) : undefined;
+  const lead =
+    daily && month
+      ? `${elide(tr(T.portfolio.esgMonth, lang), monthLabel(month, lang), lang)}.`
+      : hasIndex
+        ? tr(T.portfolio.esgLead, lang)
+        : undefined;
   return (
     <Block title={tr(T.portfolio.esg, lang)} lead={lead} testId="esg">
       <table className="table ft-table">
         <caption className="sr-only">{tr(T.portfolio.esg, lang)}</caption>
-        <thead><tr><th scope="col">{tr(T.portfolio.metric, lang)}</th><th scope="col">{fundWord}</th>{hasIndex ? <th scope="col">{indexWord}</th> : null}</tr></thead>
+        <thead>
+          <tr>
+            <th scope="col">{tr(T.portfolio.metric, lang)}</th>
+            <th scope="col">{fundWord}</th>
+            {hasIndex ? <th scope="col">{indexWord}</th> : null}
+          </tr>
+        </thead>
         <tbody>
           {esg.map((c) => (
             <tr key={c.id}>
@@ -266,9 +451,19 @@ function CharTile({ c, lang }: { c: Characteristic; lang: Locale }) {
   const idx = charValue(c.index ?? null, c.unit, lang);
   return (
     <div className="ch-tile" data-testid={`char-${c.id}`}>
-      <span className="ch-v">{n ? <CountUp value={n.value} decimals={n.decimals} pct={n.pct} lang={lang} /> : charValue(c.fund, c.unit, lang)}</span>
+      <span className="ch-v">
+        {n ? (
+          <CountUp value={n.value} decimals={n.decimals} pct={n.pct} lang={lang} />
+        ) : (
+          charValue(c.fund, c.unit, lang)
+        )}
+      </span>
       <span className="ch-l">{tr(c.label, lang)}</span>
-      {idx ? <span className="ch-i">{tr(T.portfolio.index, lang)} <b>{idx}</b></span> : null}
+      {idx ? (
+        <span className="ch-i">
+          {tr(T.portfolio.index, lang)} <b>{idx}</b>
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -279,13 +474,26 @@ function HoldingsTable({ items, lang }: { items: { name: string; weight: number 
   return (
     <table className="table ft-table hd-table" data-testid="holdings-table">
       <caption className="sr-only">{tr(T.portfolio.holdings, lang)}</caption>
-      <thead><tr><th scope="col">#</th><th scope="col" className="hd-name">{tr(T.portfolio.holding, lang)}</th><th scope="col" className="hd-bar-h"><span className="sr-only">{tr(T.portfolio.weight, lang)}</span></th><th scope="col">{tr(T.portfolio.weight, lang)}</th></tr></thead>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col" className="hd-name">
+            {tr(T.portfolio.holding, lang)}
+          </th>
+          <th scope="col" className="hd-bar-h">
+            <span className="sr-only">{tr(T.portfolio.weight, lang)}</span>
+          </th>
+          <th scope="col">{tr(T.portfolio.weight, lang)}</th>
+        </tr>
+      </thead>
       <tbody>
         {items.map((h, i) => (
           <tr key={`${h.name}-${i}`}>
             <td className="hd-n">{String(i + 1).padStart(2, "0")}</td>
             <td className="hd-name">{h.name}</td>
-            <td className="hd-bar" aria-hidden="true"><span style={{ width: `${(h.weight / max) * 100}%`, transitionDelay: `${i * 50}ms` }} /></td>
+            <td className="hd-bar" aria-hidden="true">
+              <span style={{ width: `${(h.weight / max) * 100}%`, transitionDelay: `${i * 50}ms` }} />
+            </td>
             <td className="strong">{fmt(h.weight, { pct: true, decimals: 2, lang })}</td>
           </tr>
         ))}
@@ -293,7 +501,9 @@ function HoldingsTable({ items, lang }: { items: { name: string; weight: number 
       {total != null ? (
         <tfoot>
           <tr data-testid="holdings-total">
-            <th scope="row" colSpan={3}>{tr(T.portfolio.topTotal, lang)}</th>
+            <th scope="row" colSpan={3}>
+              {tr(T.portfolio.topTotal, lang)}
+            </th>
             <td className="strong">{fmt(total, { pct: true, decimals: 2, lang })}</td>
           </tr>
         </tfoot>

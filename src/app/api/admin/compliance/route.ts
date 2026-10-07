@@ -27,19 +27,32 @@ export async function POST(request: NextRequest) {
   if (isResponse(body)) return body;
   try {
     const current = currentDisclaimersHash(await getContent());
-    if (body.textsHash !== current) return fail(409, "texts_changed", "The disclaimer texts changed since the page was loaded. Reload and review them again.");
+    if (body.textsHash !== current)
+      return fail(
+        409,
+        "texts_changed",
+        "The disclaimer texts changed since the page was loaded. Reload and review them again.",
+      );
     const saved = await updateContent(
       body.version,
       (c) => {
         if (currentDisclaimersHash(c) !== body.textsHash) throw new Error("texts changed");
-        return { ...c, compliance: { approvedAt: new Date().toISOString(), approvedBy: user.email, textsHash: body.textsHash } };
+        return {
+          ...c,
+          compliance: { approvedAt: new Date().toISOString(), approvedBy: user.email, textsHash: body.textsHash },
+        };
       },
       user.email,
     );
-    await audit({ by: user.email, action: "compliance.disclaimers.reviewed", detail: { textsHash: body.textsHash, version: saved.version } });
+    await audit({
+      by: user.email,
+      action: "compliance.disclaimers.reviewed",
+      detail: { textsHash: body.textsHash, version: saved.version },
+    });
     return ok({ content: saved });
   } catch (e) {
-    if (e instanceof Error && e.message === "texts changed") return fail(409, "texts_changed", "The disclaimer texts changed; reload and review again.");
+    if (e instanceof Error && e.message === "texts changed")
+      return fail(409, "texts_changed", "The disclaimer texts changed; reload and review again.");
     return contentError("compliance", e);
   }
 }

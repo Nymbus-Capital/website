@@ -30,9 +30,13 @@ test("CSP refuses a malformed nonce (header injection)", () => {
 
 test("CSP img-src: CMS media origins are validated again (https, loopback http incl. [::1]); anything else is dropped", () => {
   const n = makeNonce();
-  const img = (o: string) => buildCsp(n, { imgOrigins: [o] }).split("; ").find((d) => d.startsWith("img-src"))!;
+  const img = (o: string) =>
+    buildCsp(n, { imgOrigins: [o] })
+      .split("; ")
+      .find((d) => d.startsWith("img-src"))!;
   assert.match(img("http://[::1]:3199"), / http:\/\/\[::1\]:3199/);
   assert.match(img("http://localhost:3199"), / http:\/\/localhost:3199/);
   assert.match(img("https://cms.example.org"), / https:\/\/cms\.example\.org/);
-  for (const bad of ["http://[fd00::1]:80", "http://cms.example.org", "https://a.example *", "http://[::1]/x"]) assert.doesNotMatch(img(bad), /fd00|cms\.example|\*|\/x/, bad);
+  for (const bad of ["http://[fd00::1]:80", "http://cms.example.org", "https://a.example *", "http://[::1]/x"])
+    assert.doesNotMatch(img(bad), /fd00|cms\.example|\*|\/x/, bad);
 });

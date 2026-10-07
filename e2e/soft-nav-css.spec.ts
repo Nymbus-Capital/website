@@ -5,14 +5,20 @@ import { expect, test, type Page } from "@playwright/test";
  * with :where(), so after a client-side (soft) navigation, when both stylesheets are loaded, each page still shows its
  * own chip height. A window marker proves no full reload happened.
  */
-const height = (page: Page, selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).height);
+const height = (page: Page, selector: string) =>
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => getComputedStyle(el).height);
 
 test("soft navigation home → fund → home keeps each page's .fx-chip height", async ({ page }) => {
   await page.goto("/");
   const tile = page.getByTestId("strategy-monthly-income").first();
   await tile.scrollIntoViewIfNeeded();
   expect(await height(page, '[data-testid="strategy-monthly-income"] .fx-chip')).toBe("26px");
-  await page.evaluate(() => { (window as unknown as { __soft: boolean }).__soft = true; });
+  await page.evaluate(() => {
+    (window as unknown as { __soft: boolean }).__soft = true;
+  });
 
   await tile.click();
   await expect(page).toHaveURL(/\/strategies\/monthly-income$/);

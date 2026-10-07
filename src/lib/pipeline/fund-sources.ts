@@ -17,7 +17,11 @@ import { ym } from "../data/dates.ts";
  */
 type ClassCode = "STRATEGY" | "STRATEGY_H" | `LDM${string}`;
 
-export interface FeeBand { minDiff: number; maxDiff: number; maxFromMedian: number }
+export interface FeeBand {
+  minDiff: number;
+  maxDiff: number;
+  maxFromMedian: number;
+}
 
 interface FundSources {
   /** dataplatform `short_name` for monthly-net-returns / nav-timeseries / aum / holdings (null: no fund vehicle) */
@@ -158,7 +162,11 @@ export const FUND_SOURCES: Record<FundKey, FundSources> = {
     classSpread: null,
     // target downside volatility 6 % (default), 3 % and 9 %: one factsheet block each. No dataplatform endpoint serves
     // these strategy series (their live track records sit in the dataplatform's internal bbg2 mirror only)
-    variants: [{ id: "6", key: "GMV_6pct" }, { id: "3", key: "GMV_3pct" }, { id: "9", key: "GMV_9pct" }],
+    variants: [
+      { id: "6", key: "GMV_6pct" },
+      { id: "3", key: "GMV_3pct" },
+      { id: "9", key: "GMV_9pct" },
+    ],
     factsheet: { file: "factsheet_data", key: "GMV_6pct" },
   },
 };
@@ -190,7 +198,12 @@ export interface ClassSeriesSource {
 }
 
 /** a share class as the fund register lists it (/api/apex/funds) */
-interface RegisterClass { fundserv: string; display: string; currency?: string | null; status?: string | null }
+interface RegisterClass {
+  fundserv: string;
+  display: string;
+  currency?: string | null;
+  status?: string | null;
+}
 
 /**
  * Classes of a fund that can have a monthly series: the configured classes (class code mapping of the dataplatform
@@ -204,15 +217,22 @@ export function classSeriesOf(key: FundKey, register?: RegisterClass[] | null): 
   if (!Object.keys(src.classLabels).length) return [];
   const out: ClassSeriesSource[] = [];
   const seen = new Set<string>();
-  const add = (c: ClassSeriesSource): void => { if (!seen.has(c.fundserv)) { seen.add(c.fundserv); out.push(c); } };
+  const add = (c: ClassSeriesSource): void => {
+    if (!seen.has(c.fundserv)) {
+      seen.add(c.fundserv);
+      out.push(c);
+    }
+  };
   for (const code of Object.keys(src.classLabels) as ClassCode[]) {
     const fundserv = src.classFundserv[code];
     const display = src.classLabels[code];
     if (fundserv && display) add({ fundserv, display, classCode: code });
   }
-  for (const c of FUNDS.find((f) => f.key === key)?.classes ?? []) add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
+  for (const c of FUNDS.find((f) => f.key === key)?.classes ?? [])
+    add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
   for (const c of register ?? []) {
-    if (c.status === "active" && /^LDM\d+$/.test(c.fundserv) && c.display) add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
+    if (c.status === "active" && /^LDM\d+$/.test(c.fundserv) && c.display)
+      add({ fundserv: c.fundserv, display: c.display, classCode: c.fundserv as ClassCode });
   }
   if (register) {
     const active = new Set(register.filter((c) => c.status === "active").map((c) => c.fundserv));
@@ -225,5 +245,5 @@ export function classSeriesOf(key: FundKey, register?: RegisterClass[] | null): 
 /** FundServ code of the track-record class (the headline series), or null. */
 export function trackFundserv(key: FundKey): string | null {
   const src = FUND_SOURCES[key];
-  return src.trackRecordClass ? src.classFundserv[src.trackRecordClass] ?? null : null;
+  return src.trackRecordClass ? (src.classFundserv[src.trackRecordClass] ?? null) : null;
 }

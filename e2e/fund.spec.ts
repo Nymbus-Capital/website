@@ -10,11 +10,51 @@ import { mkdirSync, readFileSync } from "node:fs";
 // series: radio buttons of the class selector (registry classes + classes with a NAV); dist: series with distributions;
 // returns: the default class (F) has its own return series (compounded by the website from the dataplatform daily NAV chain)
 const FUNDS = [
-  { slug: "monthly-income", en: "Nymbus Monthly Income Fund", fr: "Fonds Nymbus Revenu Mensuel", gross: false, series: 6, dist: 6, daily: true, green: false, returns: true },
-  { slug: "sustainable-enhanced-bonds", en: "Nymbus Sustainable Enhanced Bonds Fund", fr: "Fonds Nymbus Obligations Durables Bonifiées", gross: false, series: 6, dist: 6, daily: true, green: true, returns: true },
-  { slug: "multi-strategy", en: "Nymbus Multi-Strategy Fund", fr: "Fonds Nymbus Multistratégies", gross: false, series: 5, dist: 5, daily: false, green: false, returns: true },
+  {
+    slug: "monthly-income",
+    en: "Nymbus Monthly Income Fund",
+    fr: "Fonds Nymbus Revenu Mensuel",
+    gross: false,
+    series: 6,
+    dist: 6,
+    daily: true,
+    green: false,
+    returns: true,
+  },
+  {
+    slug: "sustainable-enhanced-bonds",
+    en: "Nymbus Sustainable Enhanced Bonds Fund",
+    fr: "Fonds Nymbus Obligations Durables Bonifiées",
+    gross: false,
+    series: 6,
+    dist: 6,
+    daily: true,
+    green: true,
+    returns: true,
+  },
+  {
+    slug: "multi-strategy",
+    en: "Nymbus Multi-Strategy Fund",
+    fr: "Fonds Nymbus Multistratégies",
+    gross: false,
+    series: 5,
+    dist: 5,
+    daily: false,
+    green: false,
+    returns: true,
+  },
   // managed accounts, not a fund: gross figures, no NAV / FundServ series, no distributions
-  { slug: "global-minimum-volatility", en: "Nymbus Global Minimum Volatility", fr: "Nymbus Global Minimum Volatility", gross: true, series: 0, dist: 0, daily: false, green: false, returns: true },
+  {
+    slug: "global-minimum-volatility",
+    en: "Nymbus Global Minimum Volatility",
+    fr: "Nymbus Global Minimum Volatility",
+    gross: true,
+    series: 0,
+    dist: 0,
+    daily: false,
+    green: false,
+    returns: true,
+  },
 ];
 const TABS = ["overview", "performance", "portfolio", "distributions", "awards", "documents"] as const;
 const GMV_TABS = ["overview", "performance", "portfolio", "documents"] as const;
@@ -86,20 +126,30 @@ for (const f of FUNDS) {
     await expect(page.getByTestId("provenance")).toContainText("Updated daily");
     // the provenance line names the source of the Portfolio tab: the daily holdings with their date, else the factsheet
     if (f.daily) {
-      await expect(page.getByTestId("provenance")).toContainText("portfolio data from the daily holdings as of September 28, 2026");
+      await expect(page.getByTestId("provenance")).toContainText(
+        "portfolio data from the daily holdings as of September 28, 2026",
+      );
       await expect(page.getByTestId("provenance")).not.toContainText("portfolio data from the monthly factsheet");
     } else {
-      await expect(page.getByTestId("provenance")).toContainText("portfolio data from the monthly factsheet of August 2026");
+      await expect(page.getByTestId("provenance")).toContainText(
+        "portfolio data from the monthly factsheet of August 2026",
+      );
     }
     await expect(page.locator("#disclosure")).toBeVisible();
     // Gabriel 2026-10-04: the disclosures are the last block of the page — after the call to action and the other
     // strategies, immediately above the site footer
     const bottom = await page.evaluate(() => {
       const d = document.getElementById("disclosure")!;
-      const after = (el: Element | null) => !!el && !!(d.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const after = (el: Element | null) =>
+        !!el && !!(d.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
       const main = document.querySelector("main")!;
-      const visibleAfter = [...main.querySelectorAll("*")].filter((el) => after(el) && !d.contains(el) && el.getBoundingClientRect().height > 0);
-      const before = (sel: string) => { const el = document.querySelector(sel); return !!el && !!(el.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING); };
+      const visibleAfter = [...main.querySelectorAll("*")].filter(
+        (el) => after(el) && !d.contains(el) && el.getBoundingClientRect().height > 0,
+      );
+      const before = (sel: string) => {
+        const el = document.querySelector(sel);
+        return !!el && !!(el.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING);
+      };
       return {
         afterCta: before(".cta-band"),
         afterOthers: before('[data-testid="other-funds"]'),
@@ -113,7 +163,10 @@ for (const f of FUNDS) {
     await shot(page, f.slug, info.project.name);
     // the bottom of the page (other strategies, disclosures, footer) for design review
     // the end of the disclosures and the top of the footer
-    await page.evaluate(() => { const f = document.querySelector("footer")!; window.scrollTo(0, f.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.6); });
+    await page.evaluate(() => {
+      const f = document.querySelector("footer")!;
+      window.scrollTo(0, f.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.6);
+    });
     await page.waitForTimeout(300);
     await page.screenshot({ path: `e2e/screenshots/fund-${f.slug}-bottom-${info.project.name}.png` });
 
@@ -138,7 +191,8 @@ for (const f of FUNDS) {
       await expect(page.getByTestId("metric-scope-duration")).toContainText("bond holdings only, excluding futures");
       await expect(page.getByTestId("metric-scope-rating")).toHaveCount(0);
       // a coverage footnote only where a characteristic is below full coverage (Monthly Income: one stale price)
-      if (f.slug === "monthly-income") await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
+      if (f.slug === "monthly-income")
+        await expect(page.getByTestId("coverage-note")).toContainText("share of the bond holdings, by market value");
       else await expect(page.getByTestId("coverage-note")).toHaveCount(0);
       await expect(page.getByTestId("breakdown-rating")).toBeVisible();
       await expect(page.getByTestId("holdings-table").locator("tbody tr")).toHaveCount(10);
@@ -184,7 +238,12 @@ for (const f of FUNDS) {
   });
 }
 
-for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatility", GMV_TABS], ["sustainable-enhanced-bonds", ["portfolio", "distributions"]], ["multi-strategy", ["portfolio"]]] as const) {
+for (const [slug, tabs] of [
+  ["monthly-income", TABS],
+  ["global-minimum-volatility", GMV_TABS],
+  ["sustainable-enhanced-bonds", ["portfolio", "distributions"]],
+  ["multi-strategy", ["portfolio"]],
+] as const) {
   test(`every tab at rest (screenshots): ${slug}`, async ({ page }, info) => {
     await page.goto(`/strategies/${slug}`);
     for (const id of tabs) {
@@ -195,7 +254,9 @@ for (const [slug, tabs] of [["monthly-income", TABS], ["global-minimum-volatilit
   });
 }
 
-test("distributions: per-series cards, history chart, calendar years and the full history behind a toggle", async ({ page }) => {
+test("distributions: per-series cards, history chart, calendar years and the full history behind a toggle", async ({
+  page,
+}) => {
   await page.goto("/strategies/monthly-income#distributions");
   // the latest distribution of the series shown (not the end of the requested window)
   await expect(page.getByTestId("distributions-asof")).toHaveText("Data as of September 28, 2026");
@@ -206,17 +267,48 @@ test("distributions: per-series cards, history chart, calendar years and the ful
   await expect(fp.getByTestId("dist-t12m")).toHaveText(/^\$0\.\d{6}$/);
   // the trailing 12 months end at the day the data were read (the response end date), not at the last distribution
   await expect(fp.getByTestId("dist-t12m-label")).toHaveText(/^12 months to Sept?\.? 29, 2026$/);
-  await expect(fp.getByTestId("dist-t12m-label")).toHaveAttribute("title", "Total per unit of the distributions paid in the 12 months to September 29, 2026");
+  await expect(fp.getByTestId("dist-t12m-label")).toHaveAttribute(
+    "title",
+    "Total per unit of the distributions paid in the 12 months to September 29, 2026",
+  );
   await expect(page.getByTestId("dist-class-LDM011").getByTestId("dist-last-amount")).toHaveText(/^US\$0\.\d{4,6}$/);
   // cards of one row: the amounts start at the same height even when a series header wraps
-  const tops = await page.getByTestId("distributions-summary").locator(".ds-amt").evaluateAll((els) => els.map((e) => [Math.round(e.getBoundingClientRect().top), Math.round((e.closest(".ds-card") as HTMLElement).getBoundingClientRect().top)]));
+  const tops = await page
+    .getByTestId("distributions-summary")
+    .locator(".ds-amt")
+    .evaluateAll((els) =>
+      els.map((e) => [
+        Math.round(e.getBoundingClientRect().top),
+        Math.round((e.closest(".ds-card") as HTMLElement).getBoundingClientRect().top),
+      ]),
+    );
   const byRow = new Map<number, number[]>();
   for (const [amt, card] of tops) byRow.set(card, [...(byRow.get(card) ?? []), amt]);
   for (const amts of byRow.values()) expect(Math.max(...amts) - Math.min(...amts)).toBeLessThanOrEqual(1);
   // nothing clipped inside a card (amounts with 6 decimals and a currency prefix fit on phones)
-  const overflow = await page.getByTestId("distributions-summary").locator(".ds-card").evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1 || [...e.querySelectorAll("*")].some((c) => c.getBoundingClientRect().right > e.getBoundingClientRect().right + 1)).map((e) => e.getAttribute("data-testid")));
+  const overflow = await page
+    .getByTestId("distributions-summary")
+    .locator(".ds-card")
+    .evaluateAll((els) =>
+      els
+        .filter(
+          (e) =>
+            e.scrollWidth > e.clientWidth + 1 ||
+            [...e.querySelectorAll("*")].some(
+              (c) => c.getBoundingClientRect().right > e.getBoundingClientRect().right + 1,
+            ),
+        )
+        .map((e) => e.getAttribute("data-testid")),
+    );
   expect(overflow).toEqual([]);
-  const wrapped = await page.getByTestId("distributions-summary").locator(".ds-amt").evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().height > 1.6 * parseFloat(getComputedStyle(e).lineHeight)).map((e) => e.textContent));
+  const wrapped = await page
+    .getByTestId("distributions-summary")
+    .locator(".ds-amt")
+    .evaluateAll((els) =>
+      els
+        .filter((e) => e.getBoundingClientRect().height > 1.6 * parseFloat(getComputedStyle(e).lineHeight))
+        .map((e) => e.textContent),
+    );
   expect(wrapped, "each amount on one line").toEqual([]);
   const history = page.getByTestId("distributions-history");
   await history.scrollIntoViewIfNeeded();
@@ -320,7 +412,9 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
   // a class without figures says why (here: launched less than 12 months ago), never another class's figures
   await page.getByTestId("series-LDM021").click();
-  await expect(page.getByTestId("figures-soon")).toContainText(/La série A a été lancée le 2 mars 2026\. Les rendements seront présentés lorsque la série aura 12\smois d’historique\./);
+  await expect(page.getByTestId("figures-soon")).toContainText(
+    /La série A a été lancée le 2 mars 2026\. Les rendements seront présentés lorsque la série aura 12\smois d’historique\./,
+  );
   await page.getByTestId("series-LDM001").click();
   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
   await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
@@ -332,12 +426,16 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("portfolio-asof")).toHaveText("au 28 septembre 2026");
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
-  await expect(page.getByTestId("provenance")).toContainText("données de portefeuille selon les positions quotidiennes au 28 septembre 2026");
+  await expect(page.getByTestId("provenance")).toContainText(
+    "données de portefeuille selon les positions quotidiennes au 28 septembre 2026",
+  );
 });
 
 /* ------------------------------------------------------------------ classes, variants, awards, calendar labels */
 
-test("class selector: returns follow the class; F is the default; a young class says when it launched", async ({ page }) => {
+test("class selector: returns follow the class; F is the default; a young class says when it launched", async ({
+  page,
+}) => {
   await page.goto("/strategies/sustainable-enhanced-bonds");
   const card = page.getByTestId("nav-card");
   const strip = page.getByTestId("return-strip");
@@ -350,7 +448,9 @@ test("class selector: returns follow the class; F is the default; a young class 
   expect(h, "class H shows its own returns").not.toBe(f);
   // a class launched less than 12 months ago: no figure at all (regulatory minimum), never F's
   await card.getByTestId("series-LDM205").click();
-  await expect(strip.getByTestId("figures-soon")).toHaveText("Series A launched on April 1, 2026. Performance will be shown once the series has 12 months of history.");
+  await expect(strip.getByTestId("figures-soon")).toHaveText(
+    "Series A launched on April 1, 2026. Performance will be shown once the series has 12 months of history.",
+  );
   await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
   await openTab(page, "performance");
   await expect(page.getByTestId("perf-soon")).toContainText("Series A launched on April 1, 2026");
@@ -363,7 +463,9 @@ test("class selector: returns follow the class; F is the default; a young class 
   await expect(page.getByTestId("risk")).toBeVisible();
 });
 
-test("every series of a fund: figures for a series with 12 months, a dash for a withheld figure, why a series shows none (EN + FR)", async ({ page }) => {
+test("every series of a fund: figures for a series with 12 months, a dash for a withheld figure, why a series shows none (EN + FR)", async ({
+  page,
+}) => {
   await page.goto("/strategies/monthly-income");
   const card = page.getByTestId("nav-card");
   const strip = page.getByTestId("return-strip");
@@ -376,8 +478,12 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   await expect(rows.filter({ hasText: "1 year" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
   await expect(rows.filter({ hasText: "3 years" }).locator("td").nth(1)).toHaveText("—");
   await expect(rows.filter({ hasText: "Since inception" }).locator("td").nth(1)).toHaveText("—");
-  await expect(rows.filter({ hasText: "Since inception" }).locator("td").first()).toContainText("Since inception (Oct 5, 2021)");
-  await expect(page.getByTestId("overview-withheld-note")).toContainText("figure not shown because a month in its period could not be verified");
+  await expect(rows.filter({ hasText: "Since inception" }).locator("td").first()).toContainText(
+    "Since inception (Oct 5, 2021)",
+  );
+  await expect(page.getByTestId("overview-withheld-note")).toContainText(
+    "figure not shown because a month in its period could not be verified",
+  );
   await expect(strip.getByTestId("badge-1Y")).toBeVisible();
   // a withheld period keeps its badge with a dash (AC3)
   await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toContainText("—");
@@ -386,7 +492,9 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   await expect(page.getByTestId("perf-inception")).toContainText("Series inception: October 5, 2021");
   await expect(page.getByTestId("perf-withheld-note")).toBeVisible();
   await page.getByTestId("growth").scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("growth-from")).toHaveText("Starts on September 30, 2023, after the last month whose return could not be verified.");
+  await expect(page.getByTestId("growth-from")).toHaveText(
+    "Starts on September 30, 2023, after the last month whose return could not be verified.",
+  );
   await page.getByTestId("heatmap").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("heat-withheld")).toHaveCount(2);
   // class F: a series with 12 months and no withheld month: every figure it has the history for
@@ -404,21 +512,29 @@ test("every series of a fund: figures for a series with 12 months, a dash for a 
   // the track-record series (FP): its since-inception figure names the track-record start, never a series inception
   await card.getByTestId("series-LDM001").click();
   await expect(card.getByTestId("nav-inception")).toHaveCount(0);
-  await expect(rows.filter({ hasText: "Since track-record start" }).locator("td").first()).toContainText("Since track-record start (Jan 2019)");
+  await expect(rows.filter({ hasText: "Since track-record start" }).locator("td").first()).toContainText(
+    "Since track-record start (Jan 2019)",
+  );
   // class A: launched less than 12 months ago
   await card.getByTestId("series-LDM021").click();
-  await expect(strip.getByTestId("figures-soon")).toHaveText("Series A launched on March 2, 2026. Performance will be shown once the series has 12 months of history.");
+  await expect(strip.getByTestId("figures-soon")).toHaveText(
+    "Series A launched on March 2, 2026. Performance will be shown once the series has 12 months of history.",
+  );
   await expect(page.getByTestId("overview-soon")).toContainText("Series A launched on March 2, 2026");
   // the US-dollar class: no distribution-aware returns, said so
   await card.getByTestId("series-LDM011").click();
-  await expect(strip.getByTestId("figures-soon")).toContainText("returns that account for distributions are not available for this series in USD");
+  await expect(strip.getByTestId("figures-soon")).toContainText(
+    "returns that account for distributions are not available for this series in USD",
+  );
   // the series table gives every series' inception
   await expect(page.getByTestId("class-inception-LDM031")).toHaveText("Mar 6, 2023");
   // French
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.reload();
   await page.getByTestId("nav-card").getByTestId("series-LDM021").click();
-  await expect(page.getByTestId("return-strip").getByTestId("figures-soon")).toHaveText("La série A a été lancée le 2 mars 2026. Les rendements seront présentés lorsque la série aura 12\u00a0mois d’historique.");
+  await expect(page.getByTestId("return-strip").getByTestId("figures-soon")).toHaveText(
+    "La série A a été lancée le 2 mars 2026. Les rendements seront présentés lorsque la série aura 12\u00a0mois d’historique.",
+  );
 });
 
 test("class types: only classes whose type is known are labelled, with a disclosure sentence", async ({ page }) => {
@@ -444,7 +560,9 @@ test("class types: only classes whose type is known are labelled, with a disclos
   await expect(page.getByTestId("classes-table").locator("thead")).not.toContainText("Offered under");
 });
 
-test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions", async ({ page }) => {
+test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions", async ({
+  page,
+}) => {
   await page.goto("/strategies/global-minimum-volatility");
   const sel = page.getByTestId("variant-selector");
   await expect(sel.getByTestId("variant-6")).toHaveAttribute("aria-checked", "true");
@@ -455,7 +573,17 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   // the value counts up: wait until it is non-zero and stable
   const si = async () => {
     let last = "";
-    await expect.poll(async () => { const v = await read(); const ok = v === last && !/^[+-]?0[.,]00/.test(v); last = v; return ok; }, { intervals: [300] }).toBe(true);
+    await expect
+      .poll(
+        async () => {
+          const v = await read();
+          const ok = v === last && !/^[+-]?0[.,]00/.test(v);
+          last = v;
+          return ok;
+        },
+        { intervals: [300] },
+      )
+      .toBe(true);
     return last;
   };
   const six = await si();
@@ -479,8 +607,13 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility)");
 });
 
-test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({ page }) => {
-  for (const [lang, name] of [["en", /^6% downside volatility$/], ["fr", /^volatilité à la baisse de 6\s%$/]] as const) {
+test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({
+  page,
+}) => {
+  for (const [lang, name] of [
+    ["en", /^6% downside volatility$/],
+    ["fr", /^volatilité à la baisse de 6\s%$/],
+  ] as const) {
     await page.goto("/");
     if (lang === "fr") {
       await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
@@ -503,7 +636,9 @@ test("Global Minimum Volatility performance always names its variant: home, stra
   }
 });
 
-test("awards and rankings: Morningstar, then Fundata rank and quartile with source and as-at date, then RBC; bond funds only (FundGrade A or B)", async ({ page }) => {
+test("awards and rankings: Morningstar, then Fundata rank and quartile with source and as-at date, then RBC; bond funds only (FundGrade A or B)", async ({
+  page,
+}) => {
   await page.goto("/strategies/sustainable-enhanced-bonds#awards");
   const tab = page.locator('[role="tabpanel"][data-panel="awards"]');
   await expect(tab).toBeVisible();
@@ -512,29 +647,42 @@ test("awards and rankings: Morningstar, then Fundata rank and quartile with sour
   await expect(tab.getByTestId("rank-1Y")).toContainText("1 of 465");
   await expect(tab.getByTestId("rank-1M")).toContainText("4 of 486");
   await expect(tab.getByTestId("fundgrade")).toContainText("A");
-  await expect(tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fundata \(FundLibrary\.com\)/ })).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
+  await expect(
+    tab.getByTestId("ranking-LDM201").getByRole("link", { name: /Fundata \(FundLibrary\.com\)/ }),
+  ).toHaveAttribute("href", /^https:\/\/www\.fundlibrary\.com\//);
   await expect(tab).not.toContainText("Fund Library");
   await expect(tab.getByTestId("morningstar")).toBeVisible();
   await expect(tab.getByTestId("morningstar")).toContainText("Series F");
   await expect(tab.getByTestId("awards-note")).toContainText("not guarantees");
   // the only images are the official files shipped in public/brand/third-party (Morningstar, Fundata, RBC; others: text)
-  for (const src of await tab.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src")))) expect(src).toMatch(/^\/brand\/third-party\/(morningstar-|fundata-logo\.png$|rbc-logo\.png$)/);
+  for (const src of await tab.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src"))))
+    expect(src).toMatch(/^\/brand\/third-party\/(morningstar-|fundata-logo\.png$|rbc-logo\.png$)/);
   // RBC Investor Services Pooled Fund Survey Q2 2026: fund-level, gross of management fees, percentiles per period
   const rbc = tab.getByTestId("tp-rbc-pfs");
   await expect(rbc).toContainText("RBC Investor Services Pooled Fund Survey — Q2 2026");
-  await expect(rbc.getByTestId("tp-scope")).toHaveText("Strategy track record since January 2019 (includes periods before the fund’s launch)");
+  await expect(rbc.getByTestId("tp-scope")).toHaveText(
+    "Strategy track record since January 2019 (includes periods before the fund’s launch)",
+  );
   await expect(rbc.getByTestId("tp-prelaunch")).toContainText("includes periods before the fund’s launch");
-  await expect(rbc.getByTestId("tp-prelaunch").getByRole("link", { name: "See the disclosures" })).toHaveAttribute("href", "#disclosure");
+  await expect(rbc.getByTestId("tp-prelaunch").getByRole("link", { name: "See the disclosures" })).toHaveAttribute(
+    "href",
+    "#disclosure",
+  );
   await expect(rbc).toContainText("Canadian Fixed Income");
   await expect(rbc).toContainText("June 30, 2026");
   await expect(rbc.getByTestId("tp-basis")).toContainText("gross of management fees, in Canadian dollars");
-  for (const p of ["3M", "1Y", "2Y", "3Y", "5Y"]) await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
+  for (const p of ["3M", "1Y", "2Y", "3Y", "5Y"])
+    await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
   await expect(rbc.getByTestId("tp-row-10Y")).toHaveCount(0);
   // "Four year periods ending June 30": rolling 4-year periods
-  for (const y of ["2026", "2025", "2024", "2023"]) await expect(rbc.getByTestId(`tp-rolling-4y-${y}`)).toContainText(`4 years to June 30, ${y}`);
+  for (const y of ["2026", "2025", "2024", "2023"])
+    await expect(rbc.getByTestId(`tp-rolling-4y-${y}`)).toContainText(`4 years to June 30, ${y}`);
   await expect(rbc).not.toContainText("1 year to June 30");
   await expect(page.getByTestId("tp-note")).toContainText("gross of management fees");
-  await expect(rbc.getByRole("link", { name: /RBC Investor Services/ })).toHaveAttribute("href", "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf");
+  await expect(rbc.getByRole("link", { name: /RBC Investor Services/ })).toHaveAttribute(
+    "href",
+    "https://www.rbcis.com/assets/rbcits/docs/FINAL_EN_Pooled_Fund_Survey_Q2_2026.pdf",
+  );
   // returns are stored for reference, never sent to the page
   expect(await page.content()).not.toMatch(/\bror\b|sourceRef/);
   // the CIFSC category line of the facts comes from the ranking category
@@ -552,7 +700,9 @@ test("awards and rankings: Morningstar, then Fundata rank and quartile with sour
   await expect(page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="awards"]')).toHaveCount(0);
 });
 
-test("Morningstar on the overview of both bond funds: official logo and stars images, text alternative, class, as-of, source, attribution", async ({ page }) => {
+test("Morningstar on the overview of both bond funds: official logo and stars images, text alternative, class, as-of, source, attribution", async ({
+  page,
+}) => {
   for (const slug of ["monthly-income", "sustainable-enhanced-bonds"]) {
     await page.goto(`/strategies/${slug}`);
     const block = page.locator('[role="tabpanel"][data-panel="overview"]').getByTestId("overview-morningstar");
@@ -564,7 +714,8 @@ test("Morningstar on the overview of both bond funds: official logo and stars im
     await expect(stars).toHaveAttribute("src", "/brand/third-party/morningstar-stars-5.png");
     await expect(stars).toHaveAttribute("alt", "Morningstar Rating™: 5 stars");
     // loaded, and sized for the layout (logo ~110-140 px wide, stars ~90-110 px)
-    for (const img of [logo, stars]) expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
+    for (const img of [logo, stars])
+      expect(await img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0)).toBe(true);
     const lb = (await logo.boundingBox())!;
     const sb = (await stars.boundingBox())!;
     expect(lb.width).toBeGreaterThanOrEqual(105);
@@ -578,11 +729,16 @@ test("Morningstar on the overview of both bond funds: official logo and stars im
     await expect(block.getByTestId("morningstar-text")).toHaveText("Morningstar Rating™: 5 stars");
     await expect(block.getByTestId("morningstar-class")).toContainText("Series F");
     await expect(block.getByTestId("morningstar-class")).toContainText("October 1, 2026");
-    await expect(block.getByTestId("morningstar-source")).toHaveAttribute("href", /^https:\/\/global\.morningstar\.com\//);
+    await expect(block.getByTestId("morningstar-source")).toHaveAttribute(
+      "href",
+      /^https:\/\/global\.morningstar\.com\//,
+    );
     // methodology and attribution in full behind the info note (site-v5.spec.ts tests its interaction)
     await expect(block.getByTestId("morningstar-attribution")).toBeHidden();
     await expect(block.getByTestId("morningstar-attribution")).toContainText("© 2026 Morningstar");
-    await expect(block.getByTestId("morningstar-attribution")).toContainText("Past performance does not predict future results");
+    await expect(block.getByTestId("morningstar-attribution")).toContainText(
+      "Past performance does not predict future results",
+    );
     // no drawn imitation
     await expect(block.locator(".ms-head svg, .aw-stars, [data-testid='morningstar-stars']")).toHaveCount(0);
   }
@@ -592,7 +748,10 @@ test("Morningstar on the overview of both bond funds: official logo and stars im
   expect(res.headers()["content-security-policy"]).toContain("sandbox");
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.reload();
-  await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-stars-img")).toHaveAttribute("alt", /^Cote Morningstar™\s:\s5 étoiles$/);
+  await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-stars-img")).toHaveAttribute(
+    "alt",
+    /^Cote Morningstar™\s:\s5 étoiles$/,
+  );
   await expect(page.getByTestId("overview-morningstar").getByTestId("morningstar-class")).toContainText("Série F");
   // not on the other funds
   for (const slug of ["multi-strategy", "global-minimum-volatility"]) {
@@ -601,12 +760,15 @@ test("Morningstar on the overview of both bond funds: official logo and stars im
   }
 });
 
-test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1st across all periods'); French labels", async ({ page }) => {
+test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1st across all periods'); French labels", async ({
+  page,
+}) => {
   await page.goto("/strategies/monthly-income#awards");
   const rbc = page.getByTestId("tp-rbc-pfs");
   await expect(rbc).toContainText("Canadian Short Term Fixed Income");
   await expect(rbc.getByTestId("tp-row-3M")).toContainText("4th percentile");
-  for (const p of ["1Y", "2Y", "3Y", "5Y"]) await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
+  for (const p of ["1Y", "2Y", "3Y", "5Y"])
+    await expect(rbc.getByTestId(`tp-row-${p}`)).toContainText("1st percentile");
   await expect(page.locator("body")).not.toContainText(/1st percentile (across|in) all periods/i);
   await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
   await page.reload();
@@ -618,7 +780,9 @@ test("Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1s
   await expect(rbc.getByTestId("tp-basis")).toContainText("avant déduction des frais de gestion");
 });
 
-test("calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll", async ({ page }) => {
+test("calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll", async ({
+  page,
+}) => {
   await page.goto("/strategies/global-minimum-volatility#performance");
   const chart = page.getByTestId("calendar");
   await chart.scrollIntoViewIfNeeded();
@@ -629,12 +793,22 @@ test("calendar-year chart: a value label on every bar, none overlapping, no hori
   const labels = chart.locator("svg text.vl");
   await expect(labels).toHaveCount(n);
   // each label sits above its bar (below a negative one) and the labels do not overlap each other
-  const boxes = await labels.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, text: e.textContent }; }));
+  const boxes = await labels.evaluateAll((els) =>
+    els.map((e) => {
+      const r = e.getBoundingClientRect();
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom, text: e.textContent };
+    }),
+  );
   for (const b of boxes) expect(b.text).toMatch(/^[+−-]?\d+\.\d%$/);
   const sorted = [...boxes].sort((a, b) => a.l - b.l);
-  for (let i = 1; i < sorted.length; i++) expect(sorted[i].l, `labels ${sorted[i - 1].text} / ${sorted[i].text}`).toBeGreaterThanOrEqual(sorted[i - 1].r - 0.5);
+  for (let i = 1; i < sorted.length; i++)
+    expect(sorted[i].l, `labels ${sorted[i - 1].text} / ${sorted[i].text}`).toBeGreaterThanOrEqual(
+      sorted[i - 1].r - 0.5,
+    );
   // the bars of the chart stay inside the card (it scrolls sideways when narrow), the page never does
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
   expect(overflow).toBeLessThanOrEqual(1);
   // accessible: every category keeps its text alternative with the value
   await expect(cats.first()).toHaveAttribute("aria-label", /\d/);
@@ -650,7 +824,10 @@ test("calendar-year chart: a value label on every bar, none overlapping, no hori
  */
 type PerfLite = { classCode?: string; returnClass?: string } | null;
 const SAMPLE = JSON.parse(readFileSync("src/lib/data/sample-site-data.json", "utf8")) as {
-  funds: Record<string, { defaultClass?: string; performance: PerfLite; performanceByClass?: Record<string, { performance: PerfLite }> }>;
+  funds: Record<
+    string,
+    { defaultClass?: string; performance: PerfLite; performanceByClass?: Record<string, { performance: PerfLite }> }
+  >;
 };
 /** classes visited per fund: the default (F) and the track-record class; letters of every class of the fund */
 const CLASS_OF: Record<string, { visit: string[]; letters: string[] }> = {
@@ -658,14 +835,18 @@ const CLASS_OF: Record<string, { visit: string[]; letters: string[] }> = {
   "sustainable-enhanced-bonds": { visit: ["LDM201", "LDM202"], letters: ["F", "H"] },
   "multi-strategy": { visit: ["LDM301"], letters: ["F"] },
 };
-const classLetter = (slug: string, fs: string): string => SAMPLE.funds[slug].performanceByClass![fs].performance!.returnClass!;
+const classLetter = (slug: string, fs: string): string =>
+  SAMPLE.funds[slug].performanceByClass![fs].performance!.returnClass!;
 /** "Series F" but not "Series FP" (and the other way round) */
 const seriesRe = (word: string, code: string): RegExp => new RegExp(`${word} ${code}(?![A-Za-z])`);
 
 for (const slug of Object.keys(CLASS_OF)) {
   test(`performance class label follows the data's class everywhere (EN + FR): ${slug}`, async ({ page }) => {
     expect(SAMPLE.funds[slug].defaultClass).toBe(CLASS_OF[slug].visit[0]);
-    for (const [lang, word, fund] of [["en", "Series", "Fund"], ["fr", "Série", "Fonds"]] as const) {
+    for (const [lang, word, fund] of [
+      ["en", "Series", "Fund"],
+      ["fr", "Série", "Fonds"],
+    ] as const) {
       await page.goto(`/strategies/${slug}`);
       if (lang === "fr") {
         await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
@@ -689,7 +870,9 @@ for (const slug of Object.keys(CLASS_OF)) {
         await expect(page.getByTestId("perf-context")).toContainText(exact);
         for (const o of others) await expect(page.getByTestId("perf-context")).not.toContainText(seriesRe(word, o));
         await page.getByTestId("growth").scrollIntoViewIfNeeded();
-        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fund} (${word} ${code})`);
+        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+          `${fund} (${word} ${code})`,
+        );
       }
       if (slug === "sustainable-enhanced-bonds") {
         // the NAV card is the register's class of the series selected, whatever the class of the returns
@@ -702,7 +885,10 @@ for (const slug of Object.keys(CLASS_OF)) {
 
 test("home tiles and the strategies index name the class of the returns (EN + FR)", async ({ page }) => {
   // the French label has a no-break space before « : » (matched as \s)
-  for (const [lang, returns] of [["en", "Returns: Series"], ["fr", "Rendements\\s:\\sSérie"]] as const) {
+  for (const [lang, returns] of [
+    ["en", "Returns: Series"],
+    ["fr", "Rendements\\s:\\sSérie"],
+  ] as const) {
     const label = (code: string): RegExp => new RegExp(`^${returns} ${code}$`);
     for (const p of ["/", "/strategies"]) {
       await page.goto(p);
@@ -722,6 +908,7 @@ test("home tiles and the strategies index name the class of the returns (EN + FR
     const cells = page.getByTestId("compare-table").getByTestId("perf-class");
     const shown = Object.keys(CLASS_OF);
     await expect(cells).toHaveCount(shown.length);
-    for (const [i, slug] of shown.entries()) await expect(cells.nth(i)).toHaveText(label(classLetter(slug, SAMPLE.funds[slug].defaultClass!)));
+    for (const [i, slug] of shown.entries())
+      await expect(cells.nth(i)).toHaveText(label(classLetter(slug, SAMPLE.funds[slug].defaultClass!)));
   }
 });

@@ -101,7 +101,9 @@ test("contact: French form, server-side field errors shown at their step", async
   const form = page.getByTestId("contact-form");
   await expect(form.getByText(/J’accepte que Nymbus Capital utilise ces renseignements uniquement/)).toBeVisible();
   await form.scrollIntoViewIfNeeded();
-  await page.getByTestId("contact-form").screenshot({ path: `${SHOTS}/contact-form-step3-fr-${info.project.name}.png` });
+  await page
+    .getByTestId("contact-form")
+    .screenshot({ path: `${SHOTS}/contact-form-step3-fr-${info.project.name}.png` });
   // the send button's label fits inside the button and the button inside the form (phones: its own row)
   const send = form.locator('button[type="submit"]');
   expect(await send.evaluate((b) => b.scrollWidth <= b.clientWidth + 1)).toBe(true);
@@ -109,18 +111,29 @@ test("contact: French form, server-side field errors shown at their step", async
   expect(sb!.x).toBeGreaterThanOrEqual(fb!.x - 1);
   expect(sb!.x + sb!.width).toBeLessThanOrEqual(fb!.x + fb!.width + 1);
   // the server is the authority: a field it refuses (here forced through the API shape) comes back to its step
-  await page.route("**/api/contact", (route) => route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "invalid_input", fields: ["interests"] }) }));
+  await page.route("**/api/contact", (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "invalid_input", fields: ["interests"] }),
+    }),
+  );
   await form.getByText(/J’accepte que Nymbus Capital/).click();
   await form.getByRole("button", { name: /envoyer mon message/i }).click();
   await expect(form.getByText("Veuillez choisir au moins un intérêt.")).toBeVisible();
   await page.unroute("**/api/contact");
   // a failure keeps the form and offers the e-mail instead
-  await page.route("**/api/contact", (route) => route.fulfill({ status: 429, contentType: "application/json", body: JSON.stringify({ error: "rate_limited" }) }));
+  await page.route("**/api/contact", (route) =>
+    route.fulfill({ status: 429, contentType: "application/json", body: JSON.stringify({ error: "rate_limited" }) }),
+  );
   await form.getByRole("button", { name: /^continuer/i }).click();
   await form.getByRole("button", { name: /envoyer mon message/i }).click();
   const fail = page.getByTestId("contact-fail");
   await expect(fail).toContainText("Trop de tentatives");
-  await expect(fail.getByRole("link")).toHaveAttribute("href", /^mailto:info@nymbus\.ca\?subject=Demande%20du%20site%20Web/);
+  await expect(fail.getByRole("link")).toHaveAttribute(
+    "href",
+    /^mailto:info@nymbus\.ca\?subject=Demande%20du%20site%20Web/,
+  );
   await expect(page.getByLabel("Nom complet")).toHaveValue(`E2E Visiteur ${info.project.name}`);
   await page.getByTestId("contact-form").screenshot({ path: `${SHOTS}/contact-fail-fr-${info.project.name}.png` });
   // once the server answers again, the same form is sent (French success state)
@@ -136,7 +149,12 @@ test("contact: French form, server-side field errors shown at their step", async
 });
 
 test("contact: works without JavaScript (native post, redirect back with the result)", async ({ browser }, info) => {
-  const ctx = await browser.newContext({ javaScriptEnabled: false, reducedMotion: "reduce", extraHTTPHeaders: { "x-forwarded-for": ip() }, ...(info.project.name === "mobile" ? { viewport: { width: 412, height: 915 } } : {}) });
+  const ctx = await browser.newContext({
+    javaScriptEnabled: false,
+    reducedMotion: "reduce",
+    extraHTTPHeaders: { "x-forwarded-for": ip() },
+    ...(info.project.name === "mobile" ? { viewport: { width: 412, height: 915 } } : {}),
+  });
   const page = await ctx.newPage();
   await page.goto("/contact");
   const form = page.getByTestId("contact-form");
@@ -175,18 +193,58 @@ test("contact: works without JavaScript (native post, redirect back with the res
 });
 
 test.describe("POST /api/contact guards", () => {
-  const valid = (t: string, name: string) => ({ profile: "Other", interests: ["General inquiry"], name, email: "api@example.com", phone: "", company: "", message: "From the API test", consent: true, website: "", t, lang: "en" });
+  const valid = (t: string, name: string) => ({
+    profile: "Other",
+    interests: ["General inquiry"],
+    name,
+    email: "api@example.com",
+    phone: "",
+    company: "",
+    message: "From the API test",
+    consent: true,
+    website: "",
+    t,
+    lang: "en",
+  });
 
   test("same origin, content type, size, method", async ({ request }) => {
     const xff = { "x-forwarded-for": ip() };
     const t = await token(request);
     const data = JSON.stringify(valid(t, "Guard Test"));
-    expect((await request.post("/api/contact", { headers: { ...xff, "content-type": "application/json" }, data })).status(), "no Origin").toBe(403);
-    expect((await request.post("/api/contact", { headers: { ...xff, origin: "https://evil.example", "content-type": "application/json" }, data })).status()).toBe(403);
-    expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "sec-fetch-site": "cross-site", "content-type": "application/json" }, data })).status()).toBe(403);
-    expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "content-type": "text/plain" }, data })).status()).toBe(415);
+    expect(
+      (await request.post("/api/contact", { headers: { ...xff, "content-type": "application/json" }, data })).status(),
+      "no Origin",
+    ).toBe(403);
+    expect(
+      (
+        await request.post("/api/contact", {
+          headers: { ...xff, origin: "https://evil.example", "content-type": "application/json" },
+          data,
+        })
+      ).status(),
+    ).toBe(403);
+    expect(
+      (
+        await request.post("/api/contact", {
+          headers: { ...xff, origin: BASE, "sec-fetch-site": "cross-site", "content-type": "application/json" },
+          data,
+        })
+      ).status(),
+    ).toBe(403);
+    expect(
+      (
+        await request.post("/api/contact", { headers: { ...xff, origin: BASE, "content-type": "text/plain" }, data })
+      ).status(),
+    ).toBe(415);
     const big = JSON.stringify({ ...valid(t, "Big"), message: "x".repeat(20_000) });
-    expect((await request.post("/api/contact", { headers: { "x-forwarded-for": ip(), origin: BASE, "content-type": "application/json" }, data: big })).status()).toBe(413);
+    expect(
+      (
+        await request.post("/api/contact", {
+          headers: { "x-forwarded-for": ip(), origin: BASE, "content-type": "application/json" },
+          data: big,
+        })
+      ).status(),
+    ).toBe(413);
     expect((await request.get("/api/contact")).status()).toBe(405);
   });
 
@@ -194,18 +252,30 @@ test.describe("POST /api/contact guards", () => {
     const h = { "x-forwarded-for": ip(), origin: BASE, "content-type": "application/json" };
     const t = await token(request);
     await new Promise((r) => setTimeout(r, 3200));
-    const bad = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, "<b>x</b>"), email: "nope", consent: false, interests: ["Bitcoin"] }) });
+    const bad = await request.post("/api/contact", {
+      headers: h,
+      data: JSON.stringify({ ...valid(t, "<b>x</b>"), email: "nope", consent: false, interests: ["Bitcoin"] }),
+    });
     expect(bad.status()).toBe(400);
     expect((await bad.json()).fields).toEqual(["interests", "name", "email", "consent"]);
     // honeypot filled, or posted too fast with a fresh token, or without a token: 200 { ok: true }, not stored
     // (admin.spec.ts checks that "E2E Bot" never reaches the inquiries)
-    const hp = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, `E2E Bot honeypot ${info.project.name}`), website: "http://spam.example" }) });
+    const hp = await request.post("/api/contact", {
+      headers: h,
+      data: JSON.stringify({ ...valid(t, `E2E Bot honeypot ${info.project.name}`), website: "http://spam.example" }),
+    });
     expect(hp.status()).toBe(200);
     expect(await hp.json()).toEqual({ ok: true });
     const fresh = await token(request);
-    const fast = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: JSON.stringify(valid(fresh, `E2E Bot fast ${info.project.name}`)) });
+    const fast = await request.post("/api/contact", {
+      headers: { ...h, "x-forwarded-for": ip() },
+      data: JSON.stringify(valid(fresh, `E2E Bot fast ${info.project.name}`)),
+    });
     expect(fast.status()).toBe(200);
-    const none = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: JSON.stringify(valid("", `E2E Bot token ${info.project.name}`)) });
+    const none = await request.post("/api/contact", {
+      headers: { ...h, "x-forwarded-for": ip() },
+      data: JSON.stringify(valid("", `E2E Bot token ${info.project.name}`)),
+    });
     expect(none.status()).toBe(200);
   });
 
@@ -216,15 +286,25 @@ test.describe("POST /api/contact guards", () => {
     const body = JSON.stringify({ name: "x" });
     for (let i = 0; i < 5; i++) {
       // a forged left part does not change the client: always the same bucket
-      const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
+      const r = await request.post("/api/contact", {
+        headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` },
+        data: body,
+      });
       expect(r.status(), `attempt ${i + 1}`).toBe(200);
     }
-    const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
+    const limited = await request.post("/api/contact", {
+      headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` },
+      data: body,
+    });
     expect(limited.status()).toBe(429);
     expect(limited.headers()["retry-after"]).toBe("900");
     // another address of the same IPv6 /64 is the same client
     const sibling = addr.replace(/::1$/, "::beef");
-    expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": sibling }, data: body })).status()).toBe(429);
-    expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: body })).status()).toBe(200);
+    expect(
+      (await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": sibling }, data: body })).status(),
+    ).toBe(429);
+    expect(
+      (await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: body })).status(),
+    ).toBe(200);
   });
 });

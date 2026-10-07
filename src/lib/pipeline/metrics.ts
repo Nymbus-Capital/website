@@ -100,7 +100,17 @@ const TRAILING_SPECS: { period: "1M" | "3M" | "1Y" | "2Y" | "3Y" | "5Y" | "10Y";
   { period: "10Y", months: 120, ann: true },
 ];
 
-type TrailingMap = { "1M": number | null; "3M": number | null; YTD: number | null; "1Y": number | null; "2Y": number | null; "3Y": number | null; "5Y": number | null; "10Y": number | null; SI: number | null };
+type TrailingMap = {
+  "1M": number | null;
+  "3M": number | null;
+  YTD: number | null;
+  "1Y": number | null;
+  "2Y": number | null;
+  "3Y": number | null;
+  "5Y": number | null;
+  "10Y": number | null;
+  SI: number | null;
+};
 
 /**
  * Trailing returns at `end`. `siStart` optionally restricts the SI window (e.g. an index aligned on
@@ -108,7 +118,17 @@ type TrailingMap = { "1M": number | null; "3M": number | null; YTD: number | nul
  */
 export function trailing(series: Series, end: string, opts: { method?: Method; siStart?: string } = {}): TrailingMap {
   const method = opts.method ?? "compounded";
-  const out: TrailingMap = { "1M": null, "3M": null, YTD: null, "1Y": null, "2Y": null, "3Y": null, "5Y": null, "10Y": null, SI: null };
+  const out: TrailingMap = {
+    "1M": null,
+    "3M": null,
+    YTD: null,
+    "1Y": null,
+    "2Y": null,
+    "3Y": null,
+    "5Y": null,
+    "10Y": null,
+    SI: null,
+  };
   for (const { period, months, ann } of TRAILING_SPECS) {
     const w = window(series, end, months);
     out[period] = w === null ? null : ann ? annualize(w, method) : periodReturn(w, method);
@@ -128,14 +148,23 @@ export function trailing(series: Series, end: string, opts: { method?: Method; s
   return out;
 }
 
-interface CalendarYear { year: number; value: number | null; months: number; partial: boolean }
+interface CalendarYear {
+  year: number;
+  value: number | null;
+  months: number;
+  partial: boolean;
+}
 
 /**
  * Calendar-year returns from `first` (month-end) to `end`. A year missing a month inside its expected
  * range (after inception, up to `end`) is null. `partial` marks the inception year when it does not
  * start in January and the current year when `end` is not December.
  */
-export function calendarYears(series: Series, end: string, opts: { method?: Method; first?: string } = {}): CalendarYear[] {
+export function calendarYears(
+  series: Series,
+  end: string,
+  opts: { method?: Method; first?: string } = {},
+): CalendarYear[] {
   const method = opts.method ?? "compounded";
   const keys = sortedKeys(series).filter((k) => k <= end && (!opts.first || k >= opts.first));
   if (!keys.length) return [];
@@ -160,7 +189,11 @@ export function calendarYears(series: Series, end: string, opts: { method?: Meth
  * Value of `start` invested at the end of the month before the first return, then month by month.
  * Returns [] when the series is not contiguous.
  */
-export function growth(series: Series, end: string, opts: { method?: Method; start?: number; first?: string } = {}): { date: string; value: number }[] {
+export function growth(
+  series: Series,
+  end: string,
+  opts: { method?: Method; start?: number; first?: string } = {},
+): { date: string; value: number }[] {
   const method = opts.method ?? "compounded";
   const start = opts.start ?? 10_000;
   const keys = sortedKeys(series).filter((k) => k <= end && (!opts.first || k >= opts.first));
@@ -213,7 +246,12 @@ export interface RiskResult {
 }
 
 /** Risk statistics over the SI or 3Y window ending at `end`; null when the window is shorter than 12 (SI) / 36 (3Y) months. */
-export function riskStats(series: Series, end: string, win: "SI" | "3Y", method: Method = "compounded"): RiskResult | null {
+export function riskStats(
+  series: Series,
+  end: string,
+  win: "SI" | "3Y",
+  method: Method = "compounded",
+): RiskResult | null {
   const rs = win === "3Y" ? window(series, end, 36) : window(series, end);
   if (!rs || rs.length < 12) return null;
   const annReturn = method === "arithmetic" ? (sum(rs) / rs.length) * 12 : annualize(rs);

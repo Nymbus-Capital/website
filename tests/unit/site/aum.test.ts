@@ -9,7 +9,8 @@ import { join } from "node:path";
 import { DEFAULT_CONTENT, mergeContent } from "../../../src/lib/data/defaults.ts";
 import type { SiteContent } from "../../../src/lib/data/types.ts";
 
-const stored = (aumLabel?: { en: string; fr: string }) => ({ ...DEFAULT_CONTENT, version: 3, firm: { aumLabel, announcement: null } }) as SiteContent;
+const stored = (aumLabel?: { en: string; fr: string }) =>
+  ({ ...DEFAULT_CONTENT, version: 3, firm: { aumLabel, announcement: null } }) as SiteContent;
 
 test("default AUM label is C$1.9 billion in both languages", () => {
   assert.deepEqual(DEFAULT_CONTENT.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
@@ -28,7 +29,12 @@ test("no source file mentions the previous AUM figure", () => {
     for (const f of readdirSync(d)) {
       const p = join(d, f);
       if (statSync(p).isDirectory()) walk(p);
-      else if (/\.(ts|tsx|json)$/.test(f) && p !== join("src", "lib", "data", "defaults.ts") && /1\.8\s?B|1,8\s?G\$/.test(readFileSync(p, "utf8"))) hits.push(p);
+      else if (
+        /\.(ts|tsx|json)$/.test(f) &&
+        p !== join("src", "lib", "data", "defaults.ts") &&
+        /1\.8\s?B|1,8\s?G\$/.test(readFileSync(p, "utf8"))
+      )
+        hits.push(p);
     }
   };
   walk("src");

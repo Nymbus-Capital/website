@@ -119,19 +119,34 @@ const SUMMARY_GROSS: Text = {
 };
 
 const BASIS_NET: Text = { en: "net of fees", fr: "après déduction des frais" };
-const BASIS_GROSS: Text = { en: "gross of fees · managed accounts, not a fund", fr: "avant déduction des frais · comptes gérés, pas un fonds" };
+const BASIS_GROSS: Text = {
+  en: "gross of fees · managed accounts, not a fund",
+  fr: "avant déduction des frais · comptes gérés, pas un fonds",
+};
 
 const SAMPLE: Text = {
   en: "The figures on this page are illustrative sample data used while the data platform is not connected. They are not the actual returns of the fund.",
   fr: "Les chiffres de cette page sont des données fictives utilisées tant que la plateforme de données n’est pas branchée. Il ne s’agit pas des rendements réels du fonds.",
 };
 
-const PROVENANCE: Text = { en: "Updated daily from Nymbus’ data platform", fr: "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus" };
-const PROVENANCE_FACTSHEET: Text = { en: "portfolio data from the monthly factsheet of", fr: "données de portefeuille selon la fiche mensuelle de" };
+const PROVENANCE: Text = {
+  en: "Updated daily from Nymbus’ data platform",
+  fr: "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus",
+};
+const PROVENANCE_FACTSHEET: Text = {
+  en: "portfolio data from the monthly factsheet of",
+  fr: "données de portefeuille selon la fiche mensuelle de",
+};
 /** when the Portfolio tab shows the daily book computed by the data platform */
-const PROVENANCE_DAILY: Text = { en: "portfolio data from the daily holdings as of", fr: "données de portefeuille selon les positions quotidiennes au" };
+const PROVENANCE_DAILY: Text = {
+  en: "portfolio data from the daily holdings as of",
+  fr: "données de portefeuille selon les positions quotidiennes au",
+};
 /** next to the daily book, the sustainability metrics still come from the factsheet */
-const PROVENANCE_ESG_FACTSHEET: Text = { en: "sustainability metrics from the monthly factsheet of", fr: "indicateurs de durabilité selon la fiche mensuelle de" };
+const PROVENANCE_ESG_FACTSHEET: Text = {
+  en: "sustainability metrics from the monthly factsheet of",
+  fr: "indicateurs de durabilité selon la fiche mensuelle de",
+};
 
 /** Every text of the public site that compliance must approve. */
 export const DISCLAIMERS: Disclaimer[] = [
@@ -139,7 +154,10 @@ export const DISCLAIMERS: Disclaimer[] = [
     id: "firm",
     label: "Firm disclaimer (registration, not advice, not an offer, offering documents)",
     text: FIRM,
-    where: [{ label: "footer of every public page (replaced by the admin firm disclaimer when set)", href: "/#disclaimers" }, { label: "fund pages, disclosure", href: "/strategies/monthly-income#disclosure" }],
+    where: [
+      { label: "footer of every public page (replaced by the admin firm disclaimer when set)", href: "/#disclaimers" },
+      { label: "fund pages, disclosure", href: "/strategies/monthly-income#disclosure" },
+    ],
     review: [
       "Registration categories and regulator(s): portfolio manager + investment fund manager with the AMF only? Other provinces (OSC…), exempt market dealer?",
       "How each fund is distributed: simplified prospectus + fund facts vs offering memorandum (prospectus-exempt); adapt the sentence per fund if needed.",
@@ -150,28 +168,54 @@ export const DISCLAIMERS: Disclaimer[] = [
     id: "fundStandard",
     label: "Mutual fund standard warning (NI 81-102 s. 15.4 style)",
     text: FUND_STANDARD,
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages (funds only), disclosure", href: "/strategies/monthly-income#disclosure" }],
-    review: ["Exact prescribed wording for prospectus funds vs OM funds; 'fund facts' only exists for prospectus funds."],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      { label: "fund pages (funds only), disclosure", href: "/strategies/monthly-income#disclosure" },
+    ],
+    review: [
+      "Exact prescribed wording for prospectus funds vs OM funds; 'fund facts' only exists for prospectus funds.",
+    ],
   },
   {
     id: "returnsNet",
     label: "Definition of the rates of return (net of fees)",
     text: RETURNS_NET,
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages (net-of-fees funds), disclosure", href: "/strategies/sustainable-enhanced-bonds#disclosure" }],
-    review: ["Net of which fees (management fee, fund expenses, MER)? Series shown per fund: Monthly Income FP, Multi-Strategy F; SEB series F once the dataplatform serves its full class F history, else series H — the label always follows the class of the data (Gabriel 2026-10-01). SEB series F for 2019-02 to 2023-07 covers pre-launch strategy returns net of current fees (same question as the Monthly Income pre-launch record).", "Annualization convention matches the site: periods of 12 months and more are annualized (since inception annualized once the track record covers 12 months); periods under one year are not annualized. Standard periods (1, 3, 5, 10 years and since inception) per NI 81-102 Part 15."],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      {
+        label: "fund pages (net-of-fees funds), disclosure",
+        href: "/strategies/sustainable-enhanced-bonds#disclosure",
+      },
+    ],
+    review: [
+      "Net of which fees (management fee, fund expenses, MER)? Series shown per fund: Monthly Income FP, Multi-Strategy F; SEB series F once the dataplatform serves its full class F history, else series H — the label always follows the class of the data (Gabriel 2026-10-01). SEB series F for 2019-02 to 2023-07 covers pre-launch strategy returns net of current fees (same question as the Monthly Income pre-launch record).",
+      "Annualization convention matches the site: periods of 12 months and more are annualized (since inception annualized once the track record covers 12 months); periods under one year are not annualized. Standard periods (1, 3, 5, 10 years and since inception) per NI 81-102 Part 15.",
+    ],
   },
   {
     id: "benchmark",
     label: "Benchmark (broad-based FTSE index, comparison only)",
     text: BENCHMARK,
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages with a benchmark, disclosure", href: "/strategies/monthly-income#disclosure" }],
-    review: ["Benchmark names per fund (Monthly Income: FTSE Canada Short Term Corporate; SEB: FTSE Canada Universe). Index figures are computed from FTSE data and can differ from factsheets before May 2026 (ETF proxies).", "Whether 'broad-based' is accurate for each benchmark."],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      { label: "fund pages with a benchmark, disclosure", href: "/strategies/monthly-income#disclosure" },
+    ],
+    review: [
+      "Benchmark names per fund (Monthly Income: FTSE Canada Short Term Corporate; SEB: FTSE Canada Universe). Index figures are computed from FTSE data and can differ from factsheets before May 2026 (ETF proxies).",
+      "Whether 'broad-based' is accurate for each benchmark.",
+    ],
   },
   {
     id: "preInception",
     label: "Performance before the fund's launch (strategy track record)",
     text: PRE_INCEPTION(FUND_INCEPTION["monthly-income"]!),
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "Monthly Income fund page, disclosure (unless the admin performance note replaces it)", href: "/strategies/monthly-income#disclosure" }],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      {
+        label: "Monthly Income fund page, disclosure (unless the admin performance note replaces it)",
+        href: "/strategies/monthly-income#disclosure",
+      },
+    ],
     review: [
       "Fund launch date (2021-10-05) and strategy start (2019-01) for Monthly Income.",
       "Launch dates of the other funds (Sustainable Enhanced Bonds, Multi-Strategy): do they also show pre-launch strategy history? If so add them to FUND_INCEPTION.",
@@ -182,21 +226,36 @@ export const DISCLAIMERS: Disclaimer[] = [
     id: "gmvGross",
     label: "Global Minimum Volatility: gross of fees, managed accounts, not a fund",
     text: GMV_GROSS,
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "GMV strategy page, hero + disclosure", href: "/strategies/global-minimum-volatility#disclosure" }],
-    review: ["Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).", "Target volatility variant shown (6 %); variant sentence added 2026-10-02: every GMV figure names its downside volatility variant.", "Arithmetic-returns sentence added 2026-09-30. Is the series actual accounts, a composite or a model? If model/hypothetical, it must be labelled as such."],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      { label: "GMV strategy page, hero + disclosure", href: "/strategies/global-minimum-volatility#disclosure" },
+    ],
+    review: [
+      "Gross/net wording; whether a net-of-fees series must be shown alongside (GIPS / performance advertising rules).",
+      "Target volatility variant shown (6 %); variant sentence added 2026-10-02: every GMV figure names its downside volatility variant.",
+      "Arithmetic-returns sentence added 2026-09-30. Is the series actual accounts, a composite or a model? If model/hypothetical, it must be labelled as such.",
+    ],
   },
   {
     id: "ftse",
     label: "FTSE Russell trademark and data notice",
     text: FTSE,
-    where: [{ label: "footer of every public page", href: "/#disclaimers" }, { label: "fund pages with a benchmark, disclosure", href: "/strategies/monthly-income#disclosure" }],
-    review: ["Exact notice required by the FTSE Russell data licence (year in the © line, 'LSE Group' wording), and whether index data may be redistributed on a public website."],
+    where: [
+      { label: "footer of every public page", href: "/#disclaimers" },
+      { label: "fund pages with a benchmark, disclosure", href: "/strategies/monthly-income#disclosure" },
+    ],
+    review: [
+      "Exact notice required by the FTSE Russell data licence (year in the © line, 'LSE Group' wording), and whether index data may be redistributed on a public website.",
+    ],
   },
   {
     id: "summaryNet",
     label: "Short performance note under return figures (home, strategies)",
     text: SUMMARY_NET,
-    where: [{ label: "home page, strategies", href: "/" }, { label: "strategies index", href: "/strategies" }],
+    where: [
+      { label: "home page, strategies", href: "/" },
+      { label: "strategies index", href: "/strategies" },
+    ],
     review: ["Short notes near figures must not contradict the full disclosure (net of which fees, class)."],
   },
   {
@@ -231,7 +290,10 @@ export const DISCLAIMERS: Disclaimer[] = [
     id: "summaryGross",
     label: "Short gross-of-fees note (home, strategies)",
     text: SUMMARY_GROSS,
-    where: [{ label: "home page, strategies", href: "/" }, { label: "strategies index", href: "/strategies" }],
+    where: [
+      { label: "home page, strategies", href: "/" },
+      { label: "strategies index", href: "/strategies" },
+    ],
     review: ["Gross/net wording."],
   },
 ];

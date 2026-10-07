@@ -20,7 +20,10 @@ export const PERIOD_MS = 460;
 export const CHART_PERIODS = 16;
 
 export interface Period {
-  n: number; core: number; overlay: number; combined: number;
+  n: number;
+  core: number;
+  overlay: number;
+  combined: number;
   /** generated market regime of the period: volatile (large moves either way) or calm */
   volatile: boolean;
 }
@@ -30,7 +33,8 @@ export interface Period {
  * short one in the second, placed by the seed, so every chart shows calm and volatile periods side by side.
  */
 function isVolatile(n: number, seed = 0): boolean {
-  const w = Math.floor(n / CHART_PERIODS), k = n - w * CHART_PERIODS;
+  const w = Math.floor(n / CHART_PERIODS),
+    k = n - w * CHART_PERIODS;
   const a = 3 + Math.floor(hash01(w, 61, seed) * 4); // 3..6, four periods
   const b = 11 + Math.floor(hash01(w, 62, seed) * 3); // 11..13, two periods
   return (k >= a && k < a + 4) || (k >= b && k < b + 2);
@@ -53,20 +57,27 @@ export function periodAt(n: number, seed = 0): Period {
 }
 
 /** Bar heights of a period in units: the positive stack (up) and the negative stack (down). */
-export const stackOf = (p: Period): { up: number; dn: number } =>
-  ({ up: Math.max(0, p.core) + Math.max(0, p.overlay), dn: Math.max(0, -p.core) + Math.max(0, -p.overlay) });
+export const stackOf = (p: Period): { up: number; dn: number } => ({
+  up: Math.max(0, p.core) + Math.max(0, p.overlay),
+  dn: Math.max(0, -p.core) + Math.max(0, -p.overlay),
+});
 
 /** Pixels per unit for a chart window: its tallest stack fills `half` with 15% headroom (constant while bars grow). */
 export function chartScale(ps: Period[], half: number): number {
   let m = 0.5;
-  for (const p of ps) { const s = stackOf(p); m = Math.max(m, s.up, s.dn); }
+  for (const p of ps) {
+    const s = stackOf(p);
+    m = Math.max(m, s.up, s.dn);
+  }
   return half / (m * 1.15);
 }
 
 /** Index of the largest overlay loss among `ps` (-1 when none loses). */
 export function largestLoss(ps: Period[]): number {
   let k = -1;
-  ps.forEach((p, i) => { if (p.overlay < 0 && (k < 0 || p.overlay < ps[k].overlay)) k = i; });
+  ps.forEach((p, i) => {
+    if (p.overlay < 0 && (k < 0 || p.overlay < ps[k].overlay)) k = i;
+  });
   return k;
 }
 
@@ -76,30 +87,46 @@ export function largestLoss(ps: Period[]): number {
  * not fit, so it never covers a bar. `line` is the pointer, from the bar to the text.
  */
 export function lossNoteSpot(
-  ps: Period[], i: number,
+  ps: Period[],
+  i: number,
   g: { x0: number; bw: number; w: number; mid: number; top: number; bottom: number; scale: number; textW: number },
 ): { x: number; y: number; align: "left" | "right"; box: Rect; line: [number, number] } {
   const x = g.x0 + g.bw * (i + 0.5);
   const right = i >= ps.length / 2;
-  const tx0 = right ? x - 4 - g.textW : x + 4, tx1 = tx0 + g.textW;
-  let up = 0, dn = 0;
+  const tx0 = right ? x - 4 - g.textW : x + 4,
+    tx1 = tx0 + g.textW;
+  let up = 0,
+    dn = 0;
   ps.forEach((p, k) => {
     const cx = g.x0 + g.bw * (k + 0.5);
     if (cx + g.w / 2 < tx0 - 2 && k !== i) return;
     if (cx - g.w / 2 > tx1 + 2 && k !== i) return;
     const s = stackOf(p);
-    up = Math.max(up, s.up * g.scale); dn = Math.max(dn, s.dn * g.scale);
+    up = Math.max(up, s.up * g.scale);
+    dn = Math.max(dn, s.dn * g.scale);
   });
   const own = stackOf(ps[i]);
-  let y = g.mid + dn + 14, line: [number, number] = [g.mid + own.dn * g.scale + 3, y - 6];
+  let y = g.mid + dn + 14,
+    line: [number, number] = [g.mid + own.dn * g.scale + 3, y - 6];
   if (y + 7 > g.bottom - 2) {
     y = Math.max(g.top + 7, g.mid - up - 14);
     line = [g.mid - own.up * g.scale - 3, y + 6];
   }
-  return { x: right ? x - 4 : x + 4, y, align: right ? "right" : "left", box: { x: tx0, y: y - 7, w: g.textW, h: 14 }, line };
+  return {
+    x: right ? x - 4 : x + 4,
+    y,
+    align: right ? "right" : "left",
+    box: { x: tx0, y: y - 7, w: g.textW, h: 14 },
+    line,
+  };
 }
 
-export interface Rect { x: number; y: number; w: number; h: number }
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /** Layout for a canvas size: the capital stack on the left (top on narrow screens), the return chart beside (below). */
 export function overlayStackLayout(W: number, H: number) {
@@ -137,14 +164,23 @@ export function stackBlocks(s: Rect, narrow: boolean) {
   const ovH = Math.max(30, free * 0.36);
   const coreY = s.y + labelH + (free - coreH);
   const core: Rect = { x: s.x, y: coreY, w: coreW, h: coreH };
-  const deposit: Rect = { x: s.x + coreW + gap, y: coreY + coreH - Math.max(18, coreH * 0.42), w: depW, h: Math.max(18, coreH * 0.42) };
+  const deposit: Rect = {
+    x: s.x + coreW + gap,
+    y: coreY + coreH - Math.max(18, coreH * 0.42),
+    w: depW,
+    h: Math.max(18, coreH * 0.42),
+  };
   const overlay: Rect = { x: s.x, y: coreY - 8 - ovH, w: coreW * EXPOSURE_SHARE, h: ovH };
   const bottom = coreY + coreH;
   const bracketY = bottom + under;
   const bracket = { x0: s.x, x1: s.x + s.w, y: bracketY };
   const right = s.x + s.w;
-  const box = (cx: number, cy: number, w: number, align: "left" | "center" | "right"): Rect =>
-    ({ x: align === "right" ? cx - w : align === "center" ? cx - w / 2 : cx, y: cy - 7, w, h: 14 });
+  const box = (cx: number, cy: number, w: number, align: "left" | "center" | "right"): Rect => ({
+    x: align === "right" ? cx - w : align === "center" ? cx - w / 2 : cx,
+    y: cy - 7,
+    w,
+    h: 14,
+  });
   const depLabelW = Math.min(120, s.w * 0.4);
   const labels = {
     depositA: box(right, bottom + 10, depLabelW, "right"),

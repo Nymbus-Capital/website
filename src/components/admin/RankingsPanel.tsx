@@ -19,8 +19,16 @@ export function RankingsPanel({ issues, months, rbc, latest }: RankingsPanelProp
   const check = async () => {
     setBusy(true);
     try {
-      const r = await api<{ state: { ok: boolean; latest?: { label: string } } }>("/api/admin/rankings/check", { method: "POST", json: {} });
-      toast(r.state.ok ? "ok" : "err", r.state.ok ? `Checked: latest RBC survey ${r.state.latest?.label ?? "not found"}.` : "Check failed: no source reachable (rankings unchanged).");
+      const r = await api<{ state: { ok: boolean; latest?: { label: string } } }>("/api/admin/rankings/check", {
+        method: "POST",
+        json: {},
+      });
+      toast(
+        r.state.ok ? "ok" : "err",
+        r.state.ok
+          ? `Checked: latest RBC survey ${r.state.latest?.label ?? "not found"}.`
+          : "Check failed: no source reachable (rankings unchanged).",
+      );
       router.refresh();
     } catch (e) {
       toast("err", (e as Error).message);
@@ -31,17 +39,27 @@ export function RankingsPanel({ issues, months, rbc, latest }: RankingsPanelProp
   return (
     <section className="adm-panel" aria-labelledby="rankings-title" data-testid="rankings-panel">
       <h2 id="rankings-title" className="adm-h2">
-        third-party rankings <span className="sp adm-small">hidden after {months} months · RBC survey checked {rbc ? rbc.checkedAt.slice(0, 10) : "never"}{(rbc?.latest ?? latest) ? ` · latest ${(rbc?.latest ?? latest)!.label}` : ""}</span>
+        third-party rankings{" "}
+        <span className="sp adm-small">
+          hidden after {months} months · RBC survey checked {rbc ? rbc.checkedAt.slice(0, 10) : "never"}
+          {(rbc?.latest ?? latest) ? ` · latest ${(rbc?.latest ?? latest)!.label}` : ""}
+        </span>
       </h2>
       {issues.length ? (
         <ul data-testid="rankings-issues" style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
           {issues.map((i) => (
-            <li key={i.key} className={`adm-alert${i.level === "warn" ? " warn" : ""}`} data-key={i.key}>{i.message}</li>
+            <li key={i.key} className={`adm-alert${i.level === "warn" ? " warn" : ""}`} data-key={i.key}>
+              {i.message}
+            </li>
           ))}
         </ul>
-      ) : <div className="adm-empty">Every ranking entered is confirmed and current.</div>}
+      ) : (
+        <div className="adm-empty">Every ranking entered is confirmed and current.</div>
+      )}
       <div className="adm-actions">
-        <button type="button" className="adm-btn ghost" onClick={check} disabled={busy} data-testid="rankings-check">{busy ? "checking…" : "check the RBC survey now"}</button>
+        <button type="button" className="adm-btn ghost" onClick={check} disabled={busy} data-testid="rankings-check">
+          {busy ? "checking…" : "check the RBC survey now"}
+        </button>
       </div>
     </section>
   );

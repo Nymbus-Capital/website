@@ -37,7 +37,13 @@ export interface SiteStatus {
   lastRun: { startedAt: string; finishedAt: string; status: RunReport["status"]; trigger: RunReport["trigger"] } | null;
   running: boolean;
   lastPublishAt: string | null;
-  scheduler: { active: boolean; schedule: string[]; timezone: string; nextRunAt: string | null; retryAt: string | null };
+  scheduler: {
+    active: boolean;
+    schedule: string[];
+    timezone: string;
+    nextRunAt: string | null;
+    retryAt: string | null;
+  };
   /** per fund: freshness, and which blocks the site shows (a hidden block or a fund without NAV is not checked) */
   funds: Record<string, Freshness["funds"][string] & { shows: { performance: boolean; nav: boolean } }>;
   thresholds: Freshness["thresholds"];
@@ -52,12 +58,22 @@ export function publicStatus(s: SiteStatus): PublicStatus {
       verdict: f.verdict,
     };
   }
-  return { ok: s.ok, verdict: s.verdict, checkedAt: s.checkedAt, lastPublishAt: s.lastPublishAt, stale: s.stale, funds };
+  return {
+    ok: s.ok,
+    verdict: s.verdict,
+    checkedAt: s.checkedAt,
+    lastPublishAt: s.lastPublishAt,
+    stale: s.stale,
+    funds,
+  };
 }
 
 /** NAV date of the fund's OLDEST class with a NAV (a class stuck behind the others makes the fund stale), else nav.asOf */
 export function oldestNavDate(nav: FundData["nav"] | undefined): string | null {
-  const dates = (nav?.classes ?? []).filter((c) => c.nav !== null && typeof c.date === "string" && c.date).map((c) => c.date as string).sort();
+  const dates = (nav?.classes ?? [])
+    .filter((c) => c.nav !== null && typeof c.date === "string" && c.date)
+    .map((c) => c.date as string)
+    .sort();
   return dates[0] ?? nav?.asOf ?? null;
 }
 
@@ -66,12 +82,19 @@ async function lastPublishAt(): Promise<{ at: string | null; site: SiteData | nu
     readJson<PublishedMeta | null>(["published", "meta.json"], null).catch(() => null),
     readJson<SiteData | null>(["published", "site-data.json"], null).catch(() => null),
   ]);
-  const at = [meta?.publishedAt, site?.publishedAt].filter((x): x is string => typeof x === "string" && Number.isFinite(Date.parse(x))).sort().pop() ?? null;
+  const at =
+    [meta?.publishedAt, site?.publishedAt]
+      .filter((x): x is string => typeof x === "string" && Number.isFinite(Date.parse(x)))
+      .sort()
+      .pop() ?? null;
   return { at, site: site && site.mode === "live" ? site : null };
 }
 
 /** Status of the public data: freshness verdict, last run, last publication, next scheduled run. */
-export async function siteStatus(now: Date = new Date(), env: Record<string, string | undefined> = process.env): Promise<SiteStatus> {
+export async function siteStatus(
+  now: Date = new Date(),
+  env: Record<string, string | undefined> = process.env,
+): Promise<SiteStatus> {
   const [{ at, site }, content, runs, running] = await Promise.all([
     lastPublishAt(),
     readJson<Partial<SiteContent> | null>(["content", "site-content.json"], null).catch(() => null),
@@ -80,13 +103,22 @@ export async function siteStatus(now: Date = new Date(), env: Record<string, str
   ]);
   // funds hidden by the admin are not on the site: not reported
   const shown = FUNDS.filter((f) => !content?.funds?.[f.key]?.hidden);
-  const showsOf = (f: (typeof FUNDS)[number]) => ({ performance: !content?.funds?.[f.key]?.hide?.performance, nav: f.vehicle === "fund" && !content?.funds?.[f.key]?.hide?.nav });
+  const showsOf = (f: (typeof FUNDS)[number]) => ({
+    performance: !content?.funds?.[f.key]?.hide?.performance,
+    nav: f.vehicle === "fund" && !content?.funds?.[f.key]?.hide?.nav,
+  });
   const fr = freshness({
     now,
     funds: shown.map((f) => {
       const d = site?.funds?.[f.key];
       const sh = showsOf(f);
-      return { key: f.key, hasNav: sh.nav, hasPerformance: sh.performance, performanceAsOf: d?.performance?.asOf ?? null, navAsOf: oldestNavDate(d?.nav) };
+      return {
+        key: f.key,
+        hasNav: sh.nav,
+        hasPerformance: sh.performance,
+        performanceAsOf: d?.performance?.asOf ?? null,
+        navAsOf: oldestNavDate(d?.nav),
+      };
     }),
   });
   const funds: SiteStatus["funds"] = {};
@@ -105,7 +137,9 @@ export async function siteStatus(now: Date = new Date(), env: Record<string, str
     checkedAt: now.toISOString(),
     stale: fr.codes,
     reasons: fr.reasons,
-    lastRun: last ? { startedAt: last.startedAt, finishedAt: last.finishedAt, status: last.status, trigger: last.trigger } : null,
+    lastRun: last
+      ? { startedAt: last.startedAt, finishedAt: last.finishedAt, status: last.status, trigger: last.trigger }
+      : null,
     running,
     lastPublishAt: at,
     scheduler: {
@@ -139,25 +173,41 @@ export async function runMonitor(opts: AlertOpts & { now?: Date } = {}): Promise
   const s = await siteStatus(now, env);
   if (s.verdict === "stale") {
     const fingerprint = JSON.stringify(s.stale);
-    await raiseAlert({
-      key: FRESHNESS_ALERT_KEY, fingerprint, remindAfterMs: REMIND_AFTER_MS,
-      message: (kind, open) => ({
-        title: `${kind === "reminder" ? `Reminder (daily, since ${open!.since.slice(0, 16).replace("T", " ")} UTC): ` : ""}Nymbus website: public fund data is STALE`,
-        severity: "error",
-        adminPath: "/admin/runs",
-        lines: [
-          ...(kind === "changed" ? ["What is stale changed since the last alert."] : []),
-          ...s.reasons,
-          `Last run: ${s.lastRun ? `${s.lastRun.status} (${s.lastRun.trigger}, started ${s.lastRun.startedAt.slice(0, 16).replace("T", " ")} UTC)` : "none"}; next scheduled run: ${s.scheduler.nextRunAt ?? plannedNext(now, env) ?? "none (scheduler off)"}.`,
-          "What to do: open /admin/runs. A run waiting for approval (pending-review, class change, unconfirmed month) needs \"publish\"; a blocked or failed run lists the source or gate at fault; if no run happened, check the service and \"run now\" from the dashboard.",
-        ],
-      }),
-    }, { ...opts, now });
+    await raiseAlert(
+      {
+        key: FRESHNESS_ALERT_KEY,
+        fingerprint,
+        remindAfterMs: REMIND_AFTER_MS,
+        message: (kind, open) => ({
+          title: `${kind === "reminder" ? `Reminder (daily, since ${open!.since.slice(0, 16).replace("T", " ")} UTC): ` : ""}Nymbus website: public fund data is STALE`,
+          severity: "error",
+          adminPath: "/admin/runs",
+          lines: [
+            ...(kind === "changed" ? ["What is stale changed since the last alert."] : []),
+            ...s.reasons,
+            `Last run: ${s.lastRun ? `${s.lastRun.status} (${s.lastRun.trigger}, started ${s.lastRun.startedAt.slice(0, 16).replace("T", " ")} UTC)` : "none"}; next scheduled run: ${s.scheduler.nextRunAt ?? plannedNext(now, env) ?? "none (scheduler off)"}.`,
+            'What to do: open /admin/runs. A run waiting for approval (pending-review, class change, unconfirmed month) needs "publish"; a blocked or failed run lists the source or gate at fault; if no run happened, check the service and "run now" from the dashboard.',
+          ],
+        }),
+      },
+      { ...opts, now },
+    );
   } else {
-    await resolveAlert({
-      key: FRESHNESS_ALERT_KEY,
-      message: (open) => ({ title: "Resolved: Nymbus website public fund data is fresh again", severity: "ok", adminPath: "/admin", lines: [`Stale since ${open.since.slice(0, 16).replace("T", " ")} UTC.`, `Last publication: ${s.lastPublishAt ?? "none"}.`] }),
-    }, { ...opts, now });
+    await resolveAlert(
+      {
+        key: FRESHNESS_ALERT_KEY,
+        message: (open) => ({
+          title: "Resolved: Nymbus website public fund data is fresh again",
+          severity: "ok",
+          adminPath: "/admin",
+          lines: [
+            `Stale since ${open.since.slice(0, 16).replace("T", " ")} UTC.`,
+            `Last publication: ${s.lastPublishAt ?? "none"}.`,
+          ],
+        }),
+      },
+      { ...opts, now },
+    );
   }
   return s;
 }

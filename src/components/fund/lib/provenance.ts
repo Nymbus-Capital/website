@@ -9,13 +9,17 @@ import { dateLabel, elide, monthLabel } from "./format.ts";
 import { portfolioOrigin } from "./portfolio.ts";
 import { tr, type Locale } from "../../../lib/i18n/config.ts";
 
-export function provenanceLine(data: Pick<FundData, "portfolio" | "factsheetMonth" | "esg"> | null | undefined, lang: Locale): string {
+export function provenanceLine(
+  data: Pick<FundData, "portfolio" | "factsheetMonth" | "esg"> | null | undefined,
+  lang: Locale,
+): string {
   const parts = [tr(T.disclosure.provenance, lang)];
   const origin = portfolioOrigin(data);
   if (origin?.kind === "daily") {
     parts.push(`${tr(T.disclosure.provenanceDaily, lang)} ${dateLabel(origin.asOf, lang, true)}`);
     const esg = (data?.esg ?? []).some((c) => c.fund != null && c.fund !== "");
-    if (esg && data?.factsheetMonth) parts.push(elide(tr(T.disclosure.provenanceEsgFactsheet, lang), monthLabel(data.factsheetMonth, lang), lang));
+    if (esg && data?.factsheetMonth)
+      parts.push(elide(tr(T.disclosure.provenanceEsgFactsheet, lang), monthLabel(data.factsheetMonth, lang), lang));
   } else if (origin?.kind === "factsheet") {
     parts.push(elide(tr(T.disclosure.provenanceFactsheet, lang), monthLabel(origin.month, lang), lang));
   }

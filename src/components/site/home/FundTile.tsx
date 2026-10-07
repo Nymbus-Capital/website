@@ -28,7 +28,11 @@ function siLabel(f: FundCard): L {
 
 export function SampleTag() {
   const { pick } = useTranslation();
-  return <span className="fx-sample" title={pick(F.sampleLong)}>{pick(F.sample)}</span>;
+  return (
+    <span className="fx-sample" title={pick(F.sampleLong)}>
+      {pick(F.sample)}
+    </span>
+  );
 }
 
 /** "Figures coming soon": a calm, static state (no placeholder number, no animation). */
@@ -51,7 +55,11 @@ export function RiskScale({ risk }: { risk: FundCard["risk"] }) {
   const idx = LEVELS.indexOf(risk);
   return (
     <span className="fx-risk">
-      <span className="fx-risk-bars" aria-hidden="true">{LEVELS.map((l, i) => <i key={l} className={i <= idx ? "on" : ""} />)}</span>
+      <span className="fx-risk-bars" aria-hidden="true">
+        {LEVELS.map((l, i) => (
+          <i key={l} className={i <= idx ? "on" : ""} />
+        ))}
+      </span>
       <span>{pick(RISK_COPY[risk])}</span>
     </span>
   );
@@ -65,32 +73,67 @@ function MiniBars({ f }: { f: FundCard }) {
   const g = miniBars(f.calendar);
   const ytdWord = locale === "fr" ? "CA" : "YTD";
   // YTD only for the as-of year; an earlier partial year is the launch year
-  const flag = (b: (typeof g.bars)[number]) => (b.kind === "ytd" ? ytdWord : b.kind === "launch" ? pick(HL.launchShort) : null);
-  const flagLong = (b: (typeof g.bars)[number]) => (b.kind === "ytd" ? pick(F.ytdMark) : b.kind === "launch" ? pick(HL.sinceLaunch) : null);
+  const flag = (b: (typeof g.bars)[number]) =>
+    b.kind === "ytd" ? ytdWord : b.kind === "launch" ? pick(HL.launchShort) : null;
+  const flagLong = (b: (typeof g.bars)[number]) =>
+    b.kind === "ytd" ? pick(F.ytdMark) : b.kind === "launch" ? pick(HL.sinceLaunch) : null;
   return (
     <figure className="fx-bars-w">
       <figcaption className="fx-lbl">{pick(F.calendar)}</figcaption>
-      <div ref={ref} className="fx-bars" data-shown={seen ? "" : undefined} aria-hidden="true" style={{ ["--zero" as string]: g.zero }}>
+      <div
+        ref={ref}
+        className="fx-bars"
+        data-shown={seen ? "" : undefined}
+        aria-hidden="true"
+        style={{ ["--zero" as string]: g.zero }}
+      >
         <span className="fx-bars-zero" />
         {g.bars.map((b, i) => (
           <span key={b.year} className={`fx-bar ${b.r < 0 ? "neg" : "pos"} ${b.partial ? "partial" : ""}`}>
-            <i style={{ top: `${b.top * 100}%`, height: `${Math.max(b.height * 100, 1.5)}%`, transitionDelay: `${i * 70}ms` }} />
-            <em style={{ top: b.r < 0 ? `calc(${(b.top + b.height) * 100}% + 3px)` : `calc(${b.top * 100}% - 17px)` }}>{pctText(b.r, locale, false)}</em>
+            <i
+              style={{
+                top: `${b.top * 100}%`,
+                height: `${Math.max(b.height * 100, 1.5)}%`,
+                transitionDelay: `${i * 70}ms`,
+              }}
+            />
+            <em style={{ top: b.r < 0 ? `calc(${(b.top + b.height) * 100}% + 3px)` : `calc(${b.top * 100}% - 17px)` }}>
+              {pctText(b.r, locale, false)}
+            </em>
           </span>
         ))}
       </div>
       <div className="fx-bars-x" aria-hidden="true">
-        {g.bars.map((b) => <span key={b.year}>{flag(b) ? `${b.year} ${flag(b)}` : b.year}</span>)}
+        {g.bars.map((b) => (
+          <span key={b.year}>{flag(b) ? `${b.year} ${flag(b)}` : b.year}</span>
+        ))}
       </div>
       <ul className="sr-only">
-        {g.bars.map((b) => <li key={b.year}>{b.year}{flagLong(b) ? ` (${flagLong(b)})` : ""}{locale === "fr" ? "\u00a0: " : ": "}{pctText(b.r, locale, false)}</li>)}
+        {g.bars.map((b) => (
+          <li key={b.year}>
+            {b.year}
+            {flagLong(b) ? ` (${flagLong(b)})` : ""}
+            {locale === "fr" ? "\u00a0: " : ": "}
+            {pctText(b.r, locale, false)}
+          </li>
+        ))}
       </ul>
     </figure>
   );
 }
 
-export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 }: {
-  f: FundCard; sample: boolean; index: number; variant?: "home" | "full"; headingLevel?: 2 | 3;
+export function FundTile({
+  f,
+  sample,
+  index,
+  variant = "home",
+  headingLevel = 3,
+}: {
+  f: FundCard;
+  sample: boolean;
+  index: number;
+  variant?: "home" | "full";
+  headingLevel?: 2 | 3;
 }) {
   const { locale, pick } = useTranslation();
   const tilt = useTilt<HTMLAnchorElement>(4);
@@ -98,18 +141,33 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
   const perf = hasPerf(f);
   const basis = pick(f.basis === "gross" ? F.gross : F.net);
   // the daily NAV belongs to the strategies pages: the home cards carry the returns only
-  const nav = f.nav && variant === "full" ? (
-    <div className="fx-kv-i">
-      <span className="fx-k">{pick(F.nav)} · {pick(F.navSeries)} {f.nav.display}</span>
-      <span className="fx-v tabnum">{navText(f.nav.nav, f.nav.currency, locale)}</span>
-      {f.nav.date ? <span className="fx-d">{pick(F.navAsOf)} {dayText(f.nav.date, locale)}</span> : null}
-    </div>
-  ) : null;
+  const nav =
+    f.nav && variant === "full" ? (
+      <div className="fx-kv-i">
+        <span className="fx-k">
+          {pick(F.nav)} · {pick(F.navSeries)} {f.nav.display}
+        </span>
+        <span className="fx-v tabnum">{navText(f.nav.nav, f.nav.currency, locale)}</span>
+        {f.nav.date ? (
+          <span className="fx-d">
+            {pick(F.navAsOf)} {dayText(f.nav.date, locale)}
+          </span>
+        ) : null}
+      </div>
+    ) : null;
   return (
-    <Link ref={tilt} href={`/strategies/${f.key}`} className={`fx-card fx-${variant}`} style={fundStyle(f)} data-testid={`strategy-${f.key}`}>
+    <Link
+      ref={tilt}
+      href={`/strategies/${f.key}`}
+      className={`fx-card fx-${variant}`}
+      style={fundStyle(f)}
+      data-testid={`strategy-${f.key}`}
+    >
       <span className="fx-light" aria-hidden="true" />
       <span className="fx-top">
-        <span className="fx-no" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+        <span className="fx-no" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
         <span className="fx-class">{pick(f.assetClass)}</span>
         <span className="fx-chips">
           {/* any sample figure on the card (returns or NAV) carries the tag */}
@@ -126,9 +184,17 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
             <span className="fx-main">
               {f.si !== null ? (
                 <>
-                  <span className="fig m g-fund"><Odometer value={f.si} pct sign decimals={1} lang={locale} /></span>
-                  <span className="fx-lbl">{pick(siLabel(f))} · {basis}</span>
-                  {f.perfVariant ? <span className="fx-lbl" data-testid="perf-variant-main">{pick(f.perfVariant)}</span> : null}
+                  <span className="fig m g-fund">
+                    <Odometer value={f.si} pct sign decimals={1} lang={locale} />
+                  </span>
+                  <span className="fx-lbl">
+                    {pick(siLabel(f))} · {basis}
+                  </span>
+                  {f.perfVariant ? (
+                    <span className="fx-lbl" data-testid="perf-variant-main">
+                      {pick(f.perfVariant)}
+                    </span>
+                  ) : null}
                 </>
               ) : null}
             </span>
@@ -156,8 +222,21 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
             <span className="fx-asof">
               {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
               {/* the class of the returns shown (may differ from the NAV series above) */}
-              {f.perfClass ? <> · <span data-testid="perf-class">{pick(F.perfClass)} {f.perfClass}</span></> : null}
-              {f.perfVariant ? <> · <span data-testid="perf-variant">{pick(f.perfVariant)}</span></> : null}
+              {f.perfClass ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <span data-testid="perf-class">
+                    {pick(F.perfClass)} {f.perfClass}
+                  </span>
+                </>
+              ) : null}
+              {f.perfVariant ? (
+                <>
+                  {" "}
+                  · <span data-testid="perf-variant">{pick(f.perfVariant)}</span>
+                </>
+              ) : null}
             </span>
           ) : null}
         </span>
@@ -171,10 +250,15 @@ export function FundTile({ f, sample, index, variant = "home", headingLevel = 3 
       {variant === "full" ? (
         <>
           {perf ? <MiniBars f={f} /> : null}
-          <span className="fx-meta"><span className="fx-k">{pick(F.risk)}</span><RiskScale risk={f.risk} /></span>
+          <span className="fx-meta">
+            <span className="fx-k">{pick(F.risk)}</span>
+            <RiskScale risk={f.risk} />
+          </span>
         </>
       ) : null}
-      <span className="fx-go">{pick(F.view)} <ArrowRight aria-hidden="true" /></span>
+      <span className="fx-go">
+        {pick(F.view)} <ArrowRight aria-hidden="true" />
+      </span>
     </Link>
   );
 }

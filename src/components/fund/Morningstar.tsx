@@ -18,8 +18,18 @@ const CLASS_WORD = /^(class|series|série|classe)\s+/i;
 const ratingText = (m: Pick<MorningstarRating, "stars">, lang: Locale): string =>
   m.stars === 1 ? tr(RK.ms.ratingOne, lang) : tr(RK.ms.rating, lang).replace("{n}", String(m.stars));
 
-export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testId = "morningstar" }: {
-  m: MorningstarRating; brand?: BrandAssets; lang: Locale; variant?: "overview" | "full"; testId?: string;
+export function MorningstarRatingBlock({
+  m,
+  brand,
+  lang,
+  variant = "full",
+  testId = "morningstar",
+}: {
+  m: MorningstarRating;
+  brand?: BrandAssets;
+  lang: Locale;
+  variant?: "overview" | "full";
+  testId?: string;
 }) {
   const logo = brand?.["morningstar-logo"];
   const stars = brand?.[`morningstar-stars-${m.stars}` as keyof BrandAssets];
@@ -29,27 +39,46 @@ export function MorningstarRatingBlock({ m, brand, lang, variant = "full", testI
   const detail = [
     series,
     m.category ? tr(RK.ms.category, lang).replace("{c}", tr(m.category, lang)) : null,
-    m.fundsInCategory ? tr(RK.ms.outOf, lang).replace("{n}", m.fundsInCategory.toLocaleString(lang === "fr" ? "fr-CA" : "en-CA")) : null,
+    m.fundsInCategory
+      ? tr(RK.ms.outOf, lang).replace("{n}", m.fundsInCategory.toLocaleString(lang === "fr" ? "fr-CA" : "en-CA"))
+      : null,
     tr(RK.ms.asOf, lang).replace("{date}", date),
-  ].filter(Boolean).join(", ");
+  ]
+    .filter(Boolean)
+    .join(", ");
   const year = m.asOf.slice(0, 4);
   return (
-    <section className={`ms-block ms-${variant}`} data-testid={testId} data-official={logo && stars ? "yes" : "no"} aria-label={tr(RK.ms.title, lang)}>
+    <section
+      className={`ms-block ms-${variant}`}
+      data-testid={testId}
+      data-official={logo && stars ? "yes" : "no"}
+      aria-label={tr(RK.ms.title, lang)}
+    >
       <div className="ms-head">
-        {logo ? <img className="ms-logo" src={logo} alt="Morningstar" height={26} data-testid="morningstar-logo" /> : null}
+        {logo ? (
+          <img className="ms-logo" src={logo} alt="Morningstar" height={26} data-testid="morningstar-logo" />
+        ) : null}
         {stars ? (
           <img className="ms-stars" src={stars} alt={text} height={19} data-testid="morningstar-stars-img" />
         ) : null}
         {/* the text rating is always in the page: it is the only rendering when the official images are missing */}
-        <p className={`ms-text ${stars ? "sr-only" : ""}`} data-testid="morningstar-text" data-stars={m.stars}>{text}</p>
+        <p className={`ms-text ${stars ? "sr-only" : ""}`} data-testid="morningstar-text" data-stars={m.stars}>
+          {text}
+        </p>
       </div>
-      <p className="ms-detail" data-testid="morningstar-class">{detail}</p>
+      <p className="ms-detail" data-testid="morningstar-class">
+        {detail}
+      </p>
       <div className="fine ms-source">
         {m.url ? (
           <a className="link" href={m.url} target="_blank" rel="noopener noreferrer" data-testid="morningstar-source">
-            {tr(RK.ms.source, lang)}<ExternalLink aria-hidden="true" /><span className="sr-only"> ({tr(RK.newTab, lang)})</span>
+            {tr(RK.ms.source, lang)}
+            <ExternalLink aria-hidden="true" />
+            <span className="sr-only"> ({tr(RK.newTab, lang)})</span>
           </a>
-        ) : tr(RK.ms.source, lang)}
+        ) : (
+          tr(RK.ms.source, lang)
+        )}
         {/* methodology and © attribution in full, behind a compact info note (compliance to confirm, docs/compliance-review.md W10) */}
         <InfoNote label={tr(RK.ms.info, lang)} testId={`${testId}-info`}>
           <span className="ms-legal" data-testid="morningstar-attribution">

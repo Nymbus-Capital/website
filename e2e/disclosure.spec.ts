@@ -13,12 +13,19 @@ const FIRM_END = "only where they may lawfully be sold";
 const box = (page: Page, id = "fund-disclosure") => page.getByTestId(id);
 const clip = (b: Locator) => b.locator(".disc-clip");
 /** hydrated: the site shell's effect runs after every child effect (the box's hash listener is attached) */
-const ready = (page: Page) => page.waitForFunction(() => (window as unknown as { __nyReady?: boolean }).__nyReady === true);
-const heights = (b: Locator) => clip(b).evaluate((c) => ({ shown: c.getBoundingClientRect().height, full: c.firstElementChild!.getBoundingClientRect().height }));
+const ready = (page: Page) =>
+  page.waitForFunction(() => (window as unknown as { __nyReady?: boolean }).__nyReady === true);
+const heights = (b: Locator) =>
+  clip(b).evaluate((c) => ({
+    shown: c.getBoundingClientRect().height,
+    full: c.firstElementChild!.getBoundingClientRect().height,
+  }));
 
 async function snap(page: Page, b: Locator, name: string, project: string) {
   mkdirSync("e2e/screenshots", { recursive: true });
-  await b.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35));
+  await b.evaluate((el) =>
+    window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35),
+  );
   await page.waitForTimeout(500);
   await page.screenshot({ path: `e2e/screenshots/disc-${name}-${project}.png` });
 }
@@ -27,11 +34,16 @@ test.beforeEach(async ({ page, baseURL }) => {
   await page.context().addCookies([{ name: "nymbus-locale", value: "en", url: baseURL! }]);
 });
 
-test("fund page: the bottom disclosures are collapsed with a fade and an arrow, the full text is in the HTML and the DOM", async ({ page, request }, info) => {
+test("fund page: the bottom disclosures are collapsed with a fade and an arrow, the full text is in the HTML and the DOM", async ({
+  page,
+  request,
+}, info) => {
   // server HTML: collapsed by default and the whole text present (indexable, no layout shift on hydration)
   const html = await (await request.get(FUND)).text();
   expect(html).toContain('data-testid="fund-disclosure"');
-  expect(html).toMatch(/data-disc="collapsed"[^>]*data-testid="fund-disclosure"|data-testid="fund-disclosure"[^>]*data-disc="collapsed"/);
+  expect(html).toMatch(
+    /data-disc="collapsed"[^>]*data-testid="fund-disclosure"|data-testid="fund-disclosure"[^>]*data-disc="collapsed"/,
+  );
   expect(html).toContain(FIRM_END);
 
   await page.goto(FUND);
@@ -42,7 +54,9 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   expect(h.shown).toBeLessThan(h.full - 40);
   expect(h.shown).toBeGreaterThan(80); // a few lines, the opening visible
   // fade (mask) on the clip; the clipped text is not hidden from assistive technology
-  const mask = await clip(b).evaluate((c) => getComputedStyle(c).maskImage || getComputedStyle(c).getPropertyValue("-webkit-mask-image"));
+  const mask = await clip(b).evaluate(
+    (c) => getComputedStyle(c).maskImage || getComputedStyle(c).getPropertyValue("-webkit-mask-image"),
+  );
   expect(mask).toContain("gradient");
   await expect(clip(b)).not.toHaveAttribute("aria-hidden", /.*/);
   await expect(page.getByTestId("firm-disclaimer")).toContainText(FIRM_END);
@@ -55,7 +69,10 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   expect(await page.locator(".fxd-sample").evaluate((n) => !!n.closest(".disc"))).toBe(false);
   await expect(page.getByTestId("ftse-notice")).toBeAttached();
   // the opening sentence is inside the visible part
-  const firstTop = await b.locator(".disc-inner > p").first().evaluate((p) => p.getBoundingClientRect().top - p.closest(".disc-clip")!.getBoundingClientRect().top);
+  const firstTop = await b
+    .locator(".disc-inner > p")
+    .first()
+    .evaluate((p) => p.getBoundingClientRect().top - p.closest(".disc-clip")!.getBoundingClientRect().top);
   expect(firstTop).toBeLessThan(10);
   // the arrow: a native button, centred on the bottom edge, static
   const t = page.getByTestId("fund-disclosure-toggle");
@@ -64,7 +81,15 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   await expect(t).toHaveAccessibleName("Show full text");
   const ctl = await t.getAttribute("aria-controls");
   expect(ctl && (await page.locator(`[id="${ctl}"]`).count())).toBe(1);
-  const pos = await t.evaluate((el) => { const r = el.getBoundingClientRect(), p = el.parentElement!.getBoundingClientRect(); return { dx: Math.abs(r.left + r.width / 2 - (p.left + p.width / 2)), dy: r.top + r.height / 2 - p.bottom, anim: getComputedStyle(el).animationName }; });
+  const pos = await t.evaluate((el) => {
+    const r = el.getBoundingClientRect(),
+      p = el.parentElement!.getBoundingClientRect();
+    return {
+      dx: Math.abs(r.left + r.width / 2 - (p.left + p.width / 2)),
+      dy: r.top + r.height / 2 - p.bottom,
+      anim: getComputedStyle(el).animationName,
+    };
+  });
   expect(pos.dx).toBeLessThan(2);
   expect(Math.abs(pos.dy)).toBeLessThan(4);
   expect(pos.anim).toBe("none");
@@ -75,11 +100,21 @@ test("fund page: the bottom disclosures are collapsed with a fade and an arrow, 
   await expect(b).toHaveAttribute("data-disc", "expanded");
   await expect(t).toHaveAttribute("aria-expanded", "true");
   await expect(t).toHaveAccessibleName("Show less");
-  await expect.poll(async () => { const x = await heights(b); return Math.abs(x.shown - x.full); }).toBeLessThan(2);
+  await expect
+    .poll(async () => {
+      const x = await heights(b);
+      return Math.abs(x.shown - x.full);
+    })
+    .toBeLessThan(2);
   await snap(page, b, "fund-expanded", info.project.name);
   await t.click();
   await expect(b).toHaveAttribute("data-disc", "collapsed");
-  await expect.poll(async () => { const x = await heights(b); return x.full - x.shown; }).toBeGreaterThan(40);
+  await expect
+    .poll(async () => {
+      const x = await heights(b);
+      return x.full - x.shown;
+    })
+    .toBeGreaterThan(40);
 
   // the collapsed box itself is clickable
   await clip(b).click({ position: { x: 40, y: 30 } });
@@ -108,13 +143,21 @@ test("#disclosure opens the box: on load, on hashchange and from a same-page lin
   await page.goto(FUND);
   await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
-  await page.evaluate(() => { location.hash = "disclosure"; });
+  await page.evaluate(() => {
+    location.hash = "disclosure";
+  });
   await expect(box(page)).toHaveAttribute("data-disc", "expanded");
 
   // a link to the hash already in the URL (no hashchange) still opens it after the reader closed it
   await page.getByTestId("fund-disclosure-toggle").click();
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
-  await page.evaluate(() => { const a = document.createElement("a"); a.href = "#disclosure"; a.id = "e2e-link"; a.textContent = "go"; document.body.prepend(a); });
+  await page.evaluate(() => {
+    const a = document.createElement("a");
+    a.href = "#disclosure";
+    a.id = "e2e-link";
+    a.textContent = "go";
+    document.body.prepend(a);
+  });
   await page.locator("#e2e-link").click();
   await expect(box(page)).toHaveAttribute("data-disc", "expanded");
 
@@ -124,7 +167,9 @@ test("#disclosure opens the box: on load, on hashchange and from a same-page lin
   await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
 });
 
-test("soft navigation: a client-side URL change to /#disclaimers opens the footer box that stays mounted", async ({ page }) => {
+test("soft navigation: a client-side URL change to /#disclaimers opens the footer box that stays mounted", async ({
+  page,
+}) => {
   // no Next <Link> on the site points at these anchors today; Next syncs native pushState into its router
   // (usePathname changes), which is what a <Link href="/#disclaimers"> does while the footer stays mounted
   await page.goto("/strategies");
@@ -135,7 +180,13 @@ test("soft navigation: a client-side URL change to /#disclaimers opens the foote
   // closed by the reader, a same-page link to the anchor (the hash already in the URL) opens it again
   await page.getByTestId("footer-disclosure-toggle").click();
   await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "collapsed");
-  await page.evaluate(() => { const a = document.createElement("a"); a.href = "#disclaimers"; a.id = "e2e-foot"; a.textContent = "legal"; document.body.prepend(a); });
+  await page.evaluate(() => {
+    const a = document.createElement("a");
+    a.href = "#disclaimers";
+    a.id = "e2e-foot";
+    a.textContent = "legal";
+    document.body.prepend(a);
+  });
   await page.locator("#e2e-foot").click();
   await expect(box(page, "footer-disclosure")).toHaveAttribute("data-disc", "expanded");
 });
@@ -145,10 +196,17 @@ test("a link inside a collapsed box navigates", async ({ page }) => {
   await page.goto(FUND);
   await ready(page);
   await expect(box(page)).toHaveAttribute("data-disc", "collapsed");
-  await box(page).locator(".disc-inner").evaluate((inner) => {
-    const p = document.createElement("p"); const a = document.createElement("a");
-    a.href = "/strategies"; a.id = "e2e-inner"; a.textContent = "All strategies"; p.append(a); inner.prepend(p);
-  });
+  await box(page)
+    .locator(".disc-inner")
+    .evaluate((inner) => {
+      const p = document.createElement("p");
+      const a = document.createElement("a");
+      a.href = "/strategies";
+      a.id = "e2e-inner";
+      a.textContent = "All strategies";
+      p.append(a);
+      inner.prepend(p);
+    });
   await page.locator("#e2e-inner").click();
   await expect(page).toHaveURL(/\/strategies$/);
 });
@@ -160,7 +218,10 @@ test("360 px: no horizontal overflow with the boxes", async ({ page }) => {
     await ready(page);
     const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, w: window.innerWidth }));
     expect(o.sw).toBeLessThanOrEqual(o.w);
-    const r = await box(page, url === FUND ? "fund-disclosure" : "footer-disclosure").evaluate((b) => { const x = b.getBoundingClientRect(); return { l: x.left, r: x.right }; });
+    const r = await box(page, url === FUND ? "fund-disclosure" : "footer-disclosure").evaluate((b) => {
+      const x = b.getBoundingClientRect();
+      return { l: x.left, r: x.right };
+    });
     expect(r.l).toBeGreaterThanOrEqual(0);
     expect(r.r).toBeLessThanOrEqual(360);
   }

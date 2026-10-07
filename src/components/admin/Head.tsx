@@ -1,9 +1,22 @@
 import type { ReactNode } from "react";
 
-export function Head({ crumb, title, lead, children }: { crumb?: string; title: string; lead?: ReactNode; children?: ReactNode }) {
+export function Head({
+  crumb,
+  title,
+  lead,
+  children,
+}: {
+  crumb?: string;
+  title: string;
+  lead?: ReactNode;
+  children?: ReactNode;
+}) {
   return (
     <header className="adm-head">
-      <div className="adm-crumb"><span className="adm-mark" />{crumb ?? "admin"}</div>
+      <div className="adm-crumb">
+        <span className="adm-mark" />
+        {crumb ?? "admin"}
+      </div>
       <div className="row">
         <div>
           <h1>{title}</h1>

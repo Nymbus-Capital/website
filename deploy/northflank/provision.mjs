@@ -49,7 +49,8 @@ const PORT = 3000;
 // overridable only for the unit test's local mock API
 const API = (process.env.NORTHFLANK_API_URL || "https://api.northflank.com").replace(/\/$/, "");
 
-for (const [k, v] of Object.entries({ PROJECT, SERVICE, BACKEND })) if (!/^[a-z][a-z0-9-]{1,52}$/.test(v)) fail(`invalid ${k}: ${v}`, 2);
+for (const [k, v] of Object.entries({ PROJECT, SERVICE, BACKEND }))
+  if (!/^[a-z][a-z0-9-]{1,52}$/.test(v)) fail(`invalid ${k}: ${v}`, 2);
 if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.test(BRANCH) || BRANCH.includes("..")) fail(`invalid branch: ${BRANCH}`, 2);
 if (!/^nf-[a-z0-9-]{2,40}$/.test(PLAN)) fail(`invalid plan: ${PLAN}`, 2);
 const TOKEN = process.env.NORTHFLANK_API_TOKEN;
@@ -60,7 +61,10 @@ const AUTH_SECRET = crypto.randomBytes(48).toString("base64url");
 const scrub = (s) => String(s).split(AUTH_SECRET).join("***").split(TOKEN).join("***");
 const summary = [];
 const log = (...m) => console.log(...m.map(scrub));
-const note = (line) => { summary.push(scrub(line)); log(line); };
+const note = (line) => {
+  summary.push(scrub(line));
+  log(line);
+};
 
 class NfError extends Error {
   constructor(method, path, status, detail) {
@@ -128,7 +132,9 @@ const hostOf = (port) => {
 };
 
 async function main() {
-  log(`${APPLY ? "APPLY" : "DRY RUN (add --apply to create)"} — project ${PROJECT}, service ${SERVICE}, branch ${BRANCH}, plan ${PLAN}`);
+  log(
+    `${APPLY ? "APPLY" : "DRY RUN (add --apply to create)"} — project ${PROJECT}, service ${SERVICE}, branch ${BRANCH}, plan ${PLAN}`,
+  );
 
   // 1. project, backend, and no unrestricted secret group (it would be injected into the public site)
   const project = await exists(`/v1/projects/${PROJECT}`);
@@ -143,7 +149,10 @@ async function main() {
   }
   if (shared.length) {
     const msg = `unrestricted secret group(s) in ${PROJECT}: ${shared.join(", ")} — Northflank injects them into every service, including this public website`;
-    if (!ACCEPT_SHARED) throw new Error(`${msg}. Restrict them to their services first (Secret group → Restrictions), or re-run with --accept-shared-secrets after checking their contents.`);
+    if (!ACCEPT_SHARED)
+      throw new Error(
+        `${msg}. Restrict them to their services first (Secret group → Restrictions), or re-run with --accept-shared-secrets after checking their contents.`,
+      );
     note(`- WARNING: ${msg} (accepted with --accept-shared-secrets)`);
   } else note("- no unrestricted secret groups in the project");
 
@@ -156,8 +165,11 @@ async function main() {
     if (p) dataplatformUrl = `http://${BACKEND}:${p.internalPort}`;
     // reuse the git link of a service that already builds from the Nymbus-Capital organisation
     const v = backend.vcsData ?? {};
-    for (const k of ["projectType", "accountLogin", "vcsLinkId", "selfHostedVcsId"]) if (v[k] !== undefined) vcsTemplate[k] = v[k];
-    note(`- backend \`${BACKEND}\` found (not modified); the site reads it privately at ${dataplatformUrl || "(no port found)"}`);
+    for (const k of ["projectType", "accountLogin", "vcsLinkId", "selfHostedVcsId"])
+      if (v[k] !== undefined) vcsTemplate[k] = v[k];
+    note(
+      `- backend \`${BACKEND}\` found (not modified); the site reads it privately at ${dataplatformUrl || "(no port found)"}`,
+    );
   } else note(`- backend \`${BACKEND}\` NOT found in ${PROJECT}: DATAPLATFORM_URL left empty`);
 
   // 2. service, created with 0 instances: it builds, but runs only once its volume and secrets exist
@@ -165,18 +177,28 @@ async function main() {
   const serviceIsNew = !service;
   if (service) note(`- service \`${SERVICE}\` already exists: left unchanged`);
   else {
-    await create(`combined service \`${SERVICE}\` (build ${REPO}@${BRANCH}, Dockerfile, plan ${PLAN}, 0 instances until wired)`, `/v1/projects/${PROJECT}/services/combined`, {
-      name: SERVICE,
-      description: "Nymbus Capital public website + fund data pipeline + admin (Next.js)",
-      billing: { deploymentPlan: PLAN },
-      deployment: { instances: 0, docker: { configType: "default" } },
-      ports: [{ name: "p01", internalPort: PORT, public: true, protocol: "HTTP" }],
-      vcsData: { projectType: "github", ...vcsTemplate, projectUrl: REPO, projectBranch: BRANCH },
-      buildSettings: { dockerfile: { buildEngine: "kaniko", dockerFilePath: "/Dockerfile", dockerWorkDir: "/", useCache: true } },
-      buildConfiguration: { pathIgnoreRules: ["docs/**", "e2e/**", "*.md"], isAllowList: false, ciIgnoreFlagsEnabled: false },
-      disabledCI: false,
-      disabledCD: false,
-    });
+    await create(
+      `combined service \`${SERVICE}\` (build ${REPO}@${BRANCH}, Dockerfile, plan ${PLAN}, 0 instances until wired)`,
+      `/v1/projects/${PROJECT}/services/combined`,
+      {
+        name: SERVICE,
+        description: "Nymbus Capital public website + fund data pipeline + admin (Next.js)",
+        billing: { deploymentPlan: PLAN },
+        deployment: { instances: 0, docker: { configType: "default" } },
+        ports: [{ name: "p01", internalPort: PORT, public: true, protocol: "HTTP" }],
+        vcsData: { projectType: "github", ...vcsTemplate, projectUrl: REPO, projectBranch: BRANCH },
+        buildSettings: {
+          dockerfile: { buildEngine: "kaniko", dockerFilePath: "/Dockerfile", dockerWorkDir: "/", useCache: true },
+        },
+        buildConfiguration: {
+          pathIgnoreRules: ["docs/**", "e2e/**", "*.md"],
+          isAllowList: false,
+          ciIgnoreFlagsEnabled: false,
+        },
+        disabledCI: false,
+        disabledCD: false,
+      },
+    );
     if (APPLY) service = await get(`/v1/projects/${PROJECT}/services/${SERVICE}`);
   }
 
@@ -184,12 +206,26 @@ async function main() {
   if (APPLY && service) {
     const current = (await exists(`/v1/projects/${PROJECT}/services/${SERVICE}/health-checks`))?.healthChecks ?? [];
     if (!current.length) {
-      const probe = (type) => ({ protocol: "HTTP", type, path: "/api/health", port: PORT, initialDelaySeconds: 15, periodSeconds: 15, timeoutSeconds: 5, failureThreshold: 4, successThreshold: 1 });
+      const probe = (type) => ({
+        protocol: "HTTP",
+        type,
+        path: "/api/health",
+        port: PORT,
+        initialDelaySeconds: 15,
+        periodSeconds: 15,
+        timeoutSeconds: 5,
+        failureThreshold: 4,
+        successThreshold: 1,
+      });
       try {
-        await nf("POST", `/v1/projects/${PROJECT}/services/${SERVICE}/health-checks`, { healthChecks: [probe("readinessProbe"), probe("livenessProbe")] });
+        await nf("POST", `/v1/projects/${PROJECT}/services/${SERVICE}/health-checks`, {
+          healthChecks: [probe("readinessProbe"), probe("livenessProbe")],
+        });
         note("- health checks set on /api/health");
       } catch (e) {
-        note(`- could not set health checks (${e.message.slice(0, 200)}): add an HTTP readiness check on /api/health port ${PORT} in the UI`);
+        note(
+          `- could not set health checks (${e.message.slice(0, 200)}): add an HTTP readiness check on /api/health port ${PORT} in the UI`,
+        );
       }
     } else note("- health checks already configured: left unchanged");
   }
@@ -209,7 +245,10 @@ async function main() {
   if (vol) {
     const detail = vol.attachedObjects ? vol : await exists(`/v1/projects/${PROJECT}/volumes/${vol.id}`);
     const attached = (detail?.attachedObjects ?? []).some((o) => o.id === SERVICE);
-    if (!attached) throw new Error(`volume \`${VOLUME}\` exists but is not attached to \`${SERVICE}\`: attach it at /data in the UI, then re-run`);
+    if (!attached)
+      throw new Error(
+        `volume \`${VOLUME}\` exists but is not attached to \`${SERVICE}\`: attach it at /data in the UI, then re-run`,
+      );
     note(`- volume \`${VOLUME}\` already exists and is attached: left unchanged`);
   } else {
     const body = (storageClassName) => ({
@@ -231,7 +270,9 @@ async function main() {
   if (group) {
     const r = group.restrictions;
     if (r?.restricted !== true || !(r.nfObjects ?? []).some((o) => o.id === SERVICE)) {
-      throw new Error(`secret group \`${SECRETS}\` exists but is not restricted to \`${SERVICE}\`: fix its restrictions in the UI, then re-run`);
+      throw new Error(
+        `secret group \`${SECRETS}\` exists but is not restricted to \`${SERVICE}\`: fix its restrictions in the UI, then re-run`,
+      );
     }
     note(`- secret group \`${SECRETS}\` already exists and is restricted: left unchanged (edit values in the UI)`);
   } else {
@@ -269,7 +310,11 @@ async function main() {
       // some API versions refuse empty values: create with the filled ones and list the rest to add
       const filled = Object.fromEntries(Object.entries(variables).filter(([, v]) => v !== ""));
       await create(label, `/v1/projects/${PROJECT}/secrets`, body(filled));
-      note(`  add these keys in the UI: ${Object.keys(variables).filter((k) => variables[k] === "").join(", ")}`);
+      note(
+        `  add these keys in the UI: ${Object.keys(variables)
+          .filter((k) => variables[k] === "")
+          .join(", ")}`,
+      );
     }
     if (!publicUrl) note("  PUBLIC_URL is empty: set it to the service's https address once the UI shows it");
   }
@@ -285,14 +330,19 @@ async function main() {
   }
 
   note("");
-  note("Next: paste the credentials into the secret group in the Northflank UI (docs/deploy.md §2), then restart the service.");
+  note(
+    "Next: paste the credentials into the secret group in the Northflank UI (docs/deploy.md §2), then restart the service.",
+  );
 }
 
 main()
   .then(async () => {
     if (process.env.GITHUB_STEP_SUMMARY) {
       const fs = await import("node:fs");
-      fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Northflank provisioning (${APPLY ? "applied" : "dry run"})\n\n${summary.join("\n")}\n`);
+      fs.appendFileSync(
+        process.env.GITHUB_STEP_SUMMARY,
+        `## Northflank provisioning (${APPLY ? "applied" : "dry run"})\n\n${summary.join("\n")}\n`,
+      );
     }
   })
   .catch((e) => fail(`FAILED: ${scrub(e.message)}`));

@@ -59,7 +59,11 @@ export interface RunReport {
   advisories?: { fund: FundKey; code: string; message: string }[];
 }
 
-export interface PublishedMeta { runId: string; publishedAt: string; publishedBy: string }
+export interface PublishedMeta {
+  runId: string;
+  publishedAt: string;
+  publishedBy: string;
+}
 
 const ID_RE = /^[0-9A-Za-z-]+$/;
 const LOCK = "pipeline";
@@ -71,7 +75,15 @@ export function runId(now: Date): string {
   return `${ts}-${crypto.randomBytes(4).toString("hex")}`;
 }
 
-const emptySite = (now: Date): SiteData => ({ schemaVersion: 1, generatedAt: now.toISOString(), mode: "live", asOf: { ...EMPTY_ASOF }, funds: {}, provenance: {}, issues: [] });
+const emptySite = (now: Date): SiteData => ({
+  schemaVersion: 1,
+  generatedAt: now.toISOString(),
+  mode: "live",
+  asOf: { ...EMPTY_ASOF },
+  funds: {},
+  provenance: {},
+  issues: [],
+});
 
 async function readContent(): Promise<Partial<SiteContent> | null> {
   return readJson<Partial<SiteContent> | null>(["content", "site-content.json"], null).catch(() => null);
@@ -87,7 +99,8 @@ async function publishMode(): Promise<"auto" | "review"> {
  * factsheet job is not a dependency, but a new month that no independent source confirms is never published by the
  * pipeline alone: in auto mode it waits for an admin (RunReport.reviewNeeded); review mode is unchanged.
  */
-export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean => (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "0").trim() === "1";
+export const requireFactsheetForNewMonth = (env: Record<string, string | undefined> = process.env): boolean =>
+  (env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH ?? "0").trim() === "1";
 
 /** sources summary for the report */
 function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
@@ -108,9 +121,11 @@ function sourcesSummary(raw: RawPayloads): RunReport["sources"] {
     if (h?.monthEnd) add(`dataplatform apex/holdings ${s} (month-end)`, h.monthEnd);
   }
   add("dataplatform instruments (batch + bond universe)", raw.instruments);
-  for (const [d, r] of Object.entries(raw.ftseBonds ?? {})) add(`dataplatform ftse index-constituents ${d} (pricing fallback)`, r);
+  for (const [d, r] of Object.entries(raw.ftseBonds ?? {}))
+    add(`dataplatform ftse index-constituents ${d} (pricing fallback)`, r);
   for (const [s, r] of Object.entries(raw.portfolio ?? {})) add(`dataplatform fund-portfolio ${s}`, r);
-  for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {})) add(`dataplatform fund-portfolio ${s} (month-end)`, r);
+  for (const [s, r] of Object.entries(raw.portfolioMonthEnd ?? {}))
+    add(`dataplatform fund-portfolio ${s} (month-end)`, r);
   for (const [s, r] of Object.entries(raw.distributions ?? {})) add(`dataplatform distributions ${s}`, r);
   add("factsheet archives", raw.factsheets);
   add("analytics fund_returns.json", raw.analytics);
@@ -124,7 +139,17 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
     "apex-funds.json": raw.apexFunds,
     "unitholders-funds.json": raw.unitholderFunds,
     // fund-level totals only: { snapshot_date, warningCount, totals: { short_name: cad } }
-    "aum.json": raw.aum.ok && raw.aum.data ? { ok: true, data: { snapshot_date: raw.aum.data.snapshot_date, warningCount: raw.aum.data.warningCount, totals: { ...raw.aum.data.totals } } } : { ok: false, error: raw.aum.error },
+    "aum.json":
+      raw.aum.ok && raw.aum.data
+        ? {
+            ok: true,
+            data: {
+              snapshot_date: raw.aum.data.snapshot_date,
+              warningCount: raw.aum.data.warningCount,
+              totals: { ...raw.aum.data.totals },
+            },
+          }
+        : { ok: false, error: raw.aum.error },
   };
   for (const [s, r] of Object.entries(raw.monthlyReturns)) files[`monthly-net-returns_${s}.json`] = r;
   for (const [s, r] of Object.entries(raw.navHistory ?? {})) files[`nav-history_${s}.json`] = r;
@@ -141,14 +166,26 @@ function rawFiles(raw: RawPayloads): Record<string, unknown> {
   for (const [s, r] of Object.entries(raw.distributions ?? {})) files[`distributions_${s}.json`] = r;
   if (raw.factsheets.ok && raw.factsheets.data) {
     for (const [fn, d] of Object.entries(raw.factsheets.data.files)) files[`factsheets_${fn}`] = d;
-    files["factsheets.json"] = { ok: true, where: raw.factsheets.data.where, tried: raw.factsheets.data.tried, found: Object.keys(raw.factsheets.data.files) };
+    files["factsheets.json"] = {
+      ok: true,
+      where: raw.factsheets.data.where,
+      tried: raw.factsheets.data.tried,
+      found: Object.keys(raw.factsheets.data.files),
+    };
   } else files["factsheets.json"] = { ok: false, error: raw.factsheets.error };
   files["analytics.json"] = raw.analytics;
   return files;
 }
 
-async function writeSnapshot(id: string, report: RunReport, data: SiteData | null, raw: RawPayloads | null): Promise<void> {
-  if (raw) for (const [name, v] of Object.entries(rawFiles(raw))) await writeJson(["snapshots", id, "raw", name.replace(/[^0-9A-Za-z._-]/g, "_")], v);
+async function writeSnapshot(
+  id: string,
+  report: RunReport,
+  data: SiteData | null,
+  raw: RawPayloads | null,
+): Promise<void> {
+  if (raw)
+    for (const [name, v] of Object.entries(rawFiles(raw)))
+      await writeJson(["snapshots", id, "raw", name.replace(/[^0-9A-Za-z._-]/g, "_")], v);
   if (data) await writeJson(["snapshots", id, "site-data.json"], data);
   await writeJson(["snapshots", id, "report.json"], report);
 }
@@ -159,19 +196,28 @@ async function publishedMeta(): Promise<PublishedMeta | null> {
     readJson<PublishedMeta | null>(["published", "meta.json"], null).catch(() => null),
     readJson<SiteData | null>(["published", "site-data.json"], null).catch(() => null),
   ]);
-  if (site?.runId && site.publishedAt && (!meta || meta.runId !== site.runId)) return { runId: site.runId, publishedAt: site.publishedAt, publishedBy: site.publishedBy ?? "" };
+  if (site?.runId && site.publishedAt && (!meta || meta.runId !== site.runId))
+    return { runId: site.runId, publishedAt: site.publishedAt, publishedBy: site.publishedBy ?? "" };
   return meta;
 }
 
 /** data first (self-describing), then meta; both writes are atomic (temp file + rename) */
 async function publishData(id: string, data: SiteData, by: string, at: string): Promise<void> {
-  await writeJson(["published", "site-data.json"], { ...data, runId: id, publishedAt: at, publishedBy: by } satisfies SiteData);
+  await writeJson(["published", "site-data.json"], {
+    ...data,
+    runId: id,
+    publishedAt: at,
+    publishedBy: by,
+  } satisfies SiteData);
   await writeJson(["published", "meta.json"], { runId: id, publishedAt: at, publishedBy: by } satisfies PublishedMeta);
 }
 
 /** Keep the newest `keep` snapshots; never the published one nor any snapshot a fund is pinned on. */
 export async function pruneSnapshots(keep = SNAPSHOT_RETENTION): Promise<string[]> {
-  const ids = (await listDir(["snapshots"])).filter((x) => ID_RE.test(x)).sort().reverse();
+  const ids = (await listDir(["snapshots"]))
+    .filter((x) => ID_RE.test(x))
+    .sort()
+    .reverse();
   const protect = new Set<string>();
   const pub = (await publishedMeta())?.runId;
   if (pub) protect.add(pub);
@@ -201,12 +247,18 @@ export const isReviewWait = (r: Pick<RunReport, "status" | "publishedAt" | "revi
   r.status === "pending-review" && !r.publishedAt && !r.reviewNeeded?.length && !r.classChanges?.length;
 
 /** a run that needs a human: nothing published, something blocked, or an approval gate (unconfirmed month) */
-export const runNeedsAttention = (r: Pick<RunReport, "status" | "publishedAt" | "reviewNeeded" | "classChanges">): boolean =>
-  r.status === "failed" || r.status === "blocked" || (r.status === "pending-review" && !isReviewWait(r));
+export const runNeedsAttention = (
+  r: Pick<RunReport, "status" | "publishedAt" | "reviewNeeded" | "classChanges">,
+): boolean => r.status === "failed" || r.status === "blocked" || (r.status === "pending-review" && !isReviewWait(r));
 
 /** digest of what a page shows from a dataset (as-of dates and funds): tells a run with new data from a repeat */
 export function dataDigest(d: Pick<SiteData, "asOf" | "funds"> | null | undefined): string | null {
-  return d ? crypto.createHash("sha256").update(JSON.stringify({ asOf: d.asOf, funds: d.funds })).digest("hex") : null;
+  return d
+    ? crypto
+        .createHash("sha256")
+        .update(JSON.stringify({ asOf: d.asOf, funds: d.funds }))
+        .digest("hex")
+    : null;
 }
 
 /**
@@ -215,8 +267,15 @@ export function dataDigest(d: Pick<SiteData, "asOf" | "funds"> | null | undefine
  */
 export function runAlertFingerprint(r: Pick<RunReport, "status" | "issues" | "reviewNeeded" | "classChanges">): string {
   const mask = (s: string): string => s.replace(/\d+(?:[.,]\d+)*/g, "#");
-  const errors = [...new Set(r.issues.filter((i) => i.level === "error").map((i) => `${i.key}|${mask(i.message)}`))].sort();
-  return JSON.stringify({ s: r.status, e: errors, r: [...(r.reviewNeeded ?? [])].sort(), c: [...(r.classChanges ?? [])].sort() });
+  const errors = [
+    ...new Set(r.issues.filter((i) => i.level === "error").map((i) => `${i.key}|${mask(i.message)}`)),
+  ].sort();
+  return JSON.stringify({
+    s: r.status,
+    e: errors,
+    r: [...(r.reviewNeeded ?? [])].sort(),
+    c: [...(r.classChanges ?? [])].sort(),
+  });
 }
 
 const advisoryId = (a: { fund: string; code?: string; message: string }): string => `${a.fund}|${a.code ?? a.message}`;
@@ -224,15 +283,23 @@ const advisoryId = (a: { fund: string; code?: string; message: string }): string
 /** what an admin has to do, by status */
 function runAction(r: RunReport): string[] {
   const path = `/admin/runs/${r.id}`;
-  if (r.status === "failed") return [`What to do: open ${path}, read the failed sources and errors (a source answering 5xx / timing out is retried once automatically about 30 minutes later), fix the cause, then "run now" from the dashboard. The site keeps its last published figures.`];
+  if (r.status === "failed")
+    return [
+      `What to do: open ${path}, read the failed sources and errors (a source answering 5xx / timing out is retried once automatically about 30 minutes later), fix the cause, then "run now" from the dashboard. The site keeps its last published figures.`,
+    ];
   if (r.status === "blocked") {
     return [
       `What to do: open ${path} and read the error issues. Blocked funds keep their previous figures${r.publishedAt ? " (the other funds were published)" : ""}.`,
-      ...(r.classChanges?.length ? [`Class change(s) for ${r.classChanges.join(", ")}: check them, then press "approve class change & publish" on the run.`] : []),
+      ...(r.classChanges?.length
+        ? [
+            `Class change(s) for ${r.classChanges.join(", ")}: check them, then press "approve class change & publish" on the run.`,
+          ]
+        : []),
       "A source problem clears by itself on the next run once the source is back; a revised or contradicted month needs a decision (publish the run, or wait for the fix).",
     ];
   }
-  if (r.status === "pending-review") return [`What to do: open ${path}, check the figures and issues, then publish the run (approve).`];
+  if (r.status === "pending-review")
+    return [`What to do: open ${path}, check the figures and issues, then publish the run (approve).`];
   return [];
 }
 
@@ -245,69 +312,115 @@ function runAction(r: RunReport): string[] {
  */
 async function notifyRun(report: RunReport, fetchImpl: typeof fetch, now: Date): Promise<void> {
   if (report.status === "dry-run") return;
-  const waiting = isReviewWait(report) && report.newData
-    ? await waitingRuns().catch(() => [report.id])
-    : [];
-  await withAlerts(async (ctx) => {
-    const attention = runNeedsAttention(report);
-    const fp = runAlertFingerprint(report);
-    const open = ctx.state.open[RUN_ALERT_KEY];
-    let kind: "new" | "changed" | "reminder" | "none" | "resolved" = "none";
-    if (attention) {
-      kind = alertDecision(open, fp, ctx.now, REMIND_AFTER_MS);
-      if (kind === "none" && open?.clean) ctx.state.open[RUN_ALERT_KEY] = { ...open, clean: 0 };
-    } else if (open) {
-      const clean = (open.clean ?? 0) + 1;
-      if (clean >= RESOLVE_AFTER_CLEAN_RUNS) kind = "resolved";
-      else ctx.state.open[RUN_ALERT_KEY] = { ...open, clean };
-    }
-    const advisories = report.advisories ?? [];
-    const ids = [...new Set(advisories.map(advisoryId))].sort();
-    const known = new Set(fingerprintList(ctx.state.open[ADVISORY_ALERT_KEY]?.fingerprint));
-    const fresh = advisories.filter((a, i) => !known.has(advisoryId(a)) && advisories.findIndex((b) => advisoryId(b) === advisoryId(a)) === i);
-    const keepKnown = (): void => {
-      const still = ids.filter((id) => known.has(id));
-      if (!still.length) delete ctx.state.open[ADVISORY_ALERT_KEY];
-      else if (still.length !== known.size) ctx.state.open[ADVISORY_ALERT_KEY] = { ...ctx.state.open[ADVISORY_ALERT_KEY]!, fingerprint: JSON.stringify(still) };
-    };
-    if (!ctx.configured) return keepKnown();
-    // review mode: a run waiting with new data, at most one message a day (an approval clears the open entry, not the clock)
-    if (!isReviewWait(report)) delete ctx.state.open[REVIEW_ALERT_KEY];
-    else if (waiting.length) {
-      const last = ctx.state.sentAt?.[REVIEW_ALERT_KEY];
-      if (!last || ctx.now.getTime() - Date.parse(last) >= REMIND_AFTER_MS) {
-        const title = `Nymbus website data pipeline: ${waiting.length} run${waiting.length === 1 ? "" : "s"} waiting for approval (review mode)`;
-        const ok = await ctx.send({
-          title, severity: "info", adminPath: `/admin/runs/${report.id}`,
-          lines: [
-            `The newest run (${report.id}) holds data the public site does not show yet.`,
-            `What to do: open /admin/runs/${report.id}, check the figures and issues, then publish it (approve). Publishing the newest run is enough; older waiting runs need nothing.`,
-          ],
-        });
-        if (ok) markSent(ctx.state, REVIEW_ALERT_KEY, "waiting", title, ctx.now, ctx.state.open[REVIEW_ALERT_KEY] ? "reminder" : "new");
+  const waiting = isReviewWait(report) && report.newData ? await waitingRuns().catch(() => [report.id]) : [];
+  await withAlerts(
+    async (ctx) => {
+      const attention = runNeedsAttention(report);
+      const fp = runAlertFingerprint(report);
+      const open = ctx.state.open[RUN_ALERT_KEY];
+      let kind: "new" | "changed" | "reminder" | "none" | "resolved" = "none";
+      if (attention) {
+        kind = alertDecision(open, fp, ctx.now, REMIND_AFTER_MS);
+        if (kind === "none" && open?.clean) ctx.state.open[RUN_ALERT_KEY] = { ...open, clean: 0 };
+      } else if (open) {
+        const clean = (open.clean ?? 0) + 1;
+        if (clean >= RESOLVE_AFTER_CLEAN_RUNS) kind = "resolved";
+        else ctx.state.open[RUN_ALERT_KEY] = { ...open, clean };
       }
-    }
-    if (kind === "none" && !fresh.length) return keepKnown();
-    const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
-    const errors = report.issues.filter((i) => i.level === "error").slice(0, 10).map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
-    const head = `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.status === "published" ? ", published" : report.publishedAt ? ", other funds published" : ", nothing published"})`;
-    const prefix = kind === "reminder" ? `Reminder (daily, since ${open!.since.slice(0, 16).replace("T", " ")} UTC): ` : kind === "resolved" ? "Resolved: " : "";
-    const lines = [
-      ...(kind === "resolved" ? [`The earlier alert is resolved: ${RESOLVE_AFTER_CLEAN_RUNS} runs in a row need no attention (${open!.title.slice(0, 160)}).`] : []),
-      ...(kind === "changed" ? ["The problem changed since the last alert."] : []),
-      ...(review ? [`new month(s) of ${report.reviewNeeded!.join(", ")} confirmed by no independent source: publish the run in the admin to approve them`] : []),
-      ...(attention && kind !== "none" ? runAction(report) : []),
-      ...fresh.map((a) => `attention (not blocking) ${a.fund}: ${a.message.slice(0, 300)}`),
-      ...Object.entries(report.funds).map(([k, v]) => `${k}: ${v}`),
-      ...errors,
-    ];
-    const msg: AlertMessage = { title: prefix + head, lines, severity: report.status === "failed" || report.status === "blocked" ? "error" : report.status === "pending-review" ? "warn" : kind === "resolved" ? "ok" : "info", adminPath: `/admin/runs/${report.id}` };
-    if (!(await ctx.send(msg))) return keepKnown();
-    if (kind === "resolved") delete ctx.state.open[RUN_ALERT_KEY];
-    else if (kind !== "none") markSent(ctx.state, RUN_ALERT_KEY, fp, head, ctx.now, kind);
-    if (ids.length) markSent(ctx.state, ADVISORY_ALERT_KEY, JSON.stringify(ids), "non-blocking notices", ctx.now, "new");
-    else delete ctx.state.open[ADVISORY_ALERT_KEY];
-  }, { fetchImpl, now });
+      const advisories = report.advisories ?? [];
+      const ids = [...new Set(advisories.map(advisoryId))].sort();
+      const known = new Set(fingerprintList(ctx.state.open[ADVISORY_ALERT_KEY]?.fingerprint));
+      const fresh = advisories.filter(
+        (a, i) => !known.has(advisoryId(a)) && advisories.findIndex((b) => advisoryId(b) === advisoryId(a)) === i,
+      );
+      const keepKnown = (): void => {
+        const still = ids.filter((id) => known.has(id));
+        if (!still.length) delete ctx.state.open[ADVISORY_ALERT_KEY];
+        else if (still.length !== known.size)
+          ctx.state.open[ADVISORY_ALERT_KEY] = {
+            ...ctx.state.open[ADVISORY_ALERT_KEY]!,
+            fingerprint: JSON.stringify(still),
+          };
+      };
+      if (!ctx.configured) return keepKnown();
+      // review mode: a run waiting with new data, at most one message a day (an approval clears the open entry, not the clock)
+      if (!isReviewWait(report)) delete ctx.state.open[REVIEW_ALERT_KEY];
+      else if (waiting.length) {
+        const last = ctx.state.sentAt?.[REVIEW_ALERT_KEY];
+        if (!last || ctx.now.getTime() - Date.parse(last) >= REMIND_AFTER_MS) {
+          const title = `Nymbus website data pipeline: ${waiting.length} run${waiting.length === 1 ? "" : "s"} waiting for approval (review mode)`;
+          const ok = await ctx.send({
+            title,
+            severity: "info",
+            adminPath: `/admin/runs/${report.id}`,
+            lines: [
+              `The newest run (${report.id}) holds data the public site does not show yet.`,
+              `What to do: open /admin/runs/${report.id}, check the figures and issues, then publish it (approve). Publishing the newest run is enough; older waiting runs need nothing.`,
+            ],
+          });
+          if (ok)
+            markSent(
+              ctx.state,
+              REVIEW_ALERT_KEY,
+              "waiting",
+              title,
+              ctx.now,
+              ctx.state.open[REVIEW_ALERT_KEY] ? "reminder" : "new",
+            );
+        }
+      }
+      if (kind === "none" && !fresh.length) return keepKnown();
+      const review = report.status === "pending-review" && !!report.reviewNeeded?.length && !!report.publishedAt;
+      const errors = report.issues
+        .filter((i) => i.level === "error")
+        .slice(0, 10)
+        .map((i) => `• ${i.key}: ${i.message.slice(0, 300)}`);
+      const head = `Nymbus website data pipeline: run ${report.id} ${report.status.toUpperCase()} (${report.trigger}${report.status === "published" ? ", published" : report.publishedAt ? ", other funds published" : ", nothing published"})`;
+      const prefix =
+        kind === "reminder"
+          ? `Reminder (daily, since ${open!.since.slice(0, 16).replace("T", " ")} UTC): `
+          : kind === "resolved"
+            ? "Resolved: "
+            : "";
+      const lines = [
+        ...(kind === "resolved"
+          ? [
+              `The earlier alert is resolved: ${RESOLVE_AFTER_CLEAN_RUNS} runs in a row need no attention (${open!.title.slice(0, 160)}).`,
+            ]
+          : []),
+        ...(kind === "changed" ? ["The problem changed since the last alert."] : []),
+        ...(review
+          ? [
+              `new month(s) of ${report.reviewNeeded!.join(", ")} confirmed by no independent source: publish the run in the admin to approve them`,
+            ]
+          : []),
+        ...(attention && kind !== "none" ? runAction(report) : []),
+        ...fresh.map((a) => `attention (not blocking) ${a.fund}: ${a.message.slice(0, 300)}`),
+        ...Object.entries(report.funds).map(([k, v]) => `${k}: ${v}`),
+        ...errors,
+      ];
+      const msg: AlertMessage = {
+        title: prefix + head,
+        lines,
+        severity:
+          report.status === "failed" || report.status === "blocked"
+            ? "error"
+            : report.status === "pending-review"
+              ? "warn"
+              : kind === "resolved"
+                ? "ok"
+                : "info",
+        adminPath: `/admin/runs/${report.id}`,
+      };
+      if (!(await ctx.send(msg))) return keepKnown();
+      if (kind === "resolved") delete ctx.state.open[RUN_ALERT_KEY];
+      else if (kind !== "none") markSent(ctx.state, RUN_ALERT_KEY, fp, head, ctx.now, kind);
+      if (ids.length)
+        markSent(ctx.state, ADVISORY_ALERT_KEY, JSON.stringify(ids), "non-blocking notices", ctx.now, "new");
+      else delete ctx.state.open[ADVISORY_ALERT_KEY];
+    },
+    { fetchImpl, now },
+  );
 }
 
 /** ids of the runs waiting for approval since the live publication (review mode), newest first */
@@ -326,13 +439,30 @@ async function settleRunAlerts(id: string): Promise<void> {
   });
 }
 
-export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: string; dryRun?: boolean; fetchImpl?: typeof fetch; now?: Date }): Promise<RunReport | { locked: true }> {
+export async function runPipeline(opts: {
+  trigger: RunReport["trigger"];
+  by: string;
+  dryRun?: boolean;
+  fetchImpl?: typeof fetch;
+  now?: Date;
+}): Promise<RunReport | { locked: true }> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   return withLock(LOCK, async () => {
     const now = opts.now ?? new Date();
     const id = runId(now);
     const startedAt = new Date().toISOString();
-    const report: RunReport = { id, trigger: opts.trigger, by: opts.by, startedAt, finishedAt: startedAt, status: "failed", asOf: { ...EMPTY_ASOF }, issues: [], sources: [], funds: {} };
+    const report: RunReport = {
+      id,
+      trigger: opts.trigger,
+      by: opts.by,
+      startedAt,
+      finishedAt: startedAt,
+      status: "failed",
+      asOf: { ...EMPTY_ASOF },
+      issues: [],
+      sources: [],
+      funds: {},
+    };
     let raw: RawPayloads | null = null;
     let data: SiteData | null = null;
     let autoPublish: SiteData | null = null;
@@ -350,26 +480,38 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
       report.asOf = data.asOf;
       if (v.classChanges.length) report.classChanges = v.classChanges;
       if (v.needsReview.length) report.reviewNeeded = v.needsReview;
-      const alerts = v.results.flatMap((r) => r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })));
-      const advisories = v.results.flatMap((r) => (r.advisories ?? []).map((a) => ({ fund: r.fund, code: a.code, message: a.message })));
+      const alerts = v.results.flatMap((r) =>
+        r.alerts.map((a) => ({ key: `funds.${r.fund}`, level: "error" as const, message: `needs attention: ${a}` })),
+      );
+      const advisories = v.results.flatMap((r) =>
+        (r.advisories ?? []).map((a) => ({ fund: r.fund, code: a.code, message: a.message })),
+      );
       if (advisories.length) report.advisories = advisories;
       report.issues = [
         ...data.issues,
         ...alerts.filter((a, i) => alerts.findIndex((b) => b.key === a.key && b.message === a.message) === i),
-        ...advisories.map((a) => ({ key: `funds.${a.fund}`, level: "warn" as const, message: `attention (not blocking): ${a.message}` })),
+        ...advisories.map((a) => ({
+          key: `funds.${a.fund}`,
+          level: "warn" as const,
+          message: `attention (not blocking): ${a.message}`,
+        })),
       ];
       const updated = Object.values(v.funds).some((s) => s === "updated");
       const blocked = v.results.some((r) => r.blocking.length > 0 || r.alerts.length > 0);
       const mode = await publishMode();
       if (!updated) {
         report.status = opts.dryRun ? "dry-run" : "failed";
-        report.issues = [...report.issues, { key: "run", level: "error", message: "no fund could be updated: nothing published" }];
+        report.issues = [
+          ...report.issues,
+          { key: "run", level: "error", message: "no fund could be updated: nothing published" },
+        ];
       } else if (opts.dryRun) report.status = "dry-run";
       else if (blocked) report.status = "blocked";
       // auto mode: what needs a human (unconfirmed new months) is kept out of the auto-published data and the run waits
       else report.status = mode === "auto" && !v.needsReview.length ? "published" : "pending-review";
       autoPublish = autoData;
-      if (report.status === "pending-review" && mode !== "auto") report.newData = dataDigest(data) !== dataDigest(previous);
+      if (report.status === "pending-review" && mode !== "auto")
+        report.newData = dataDigest(data) !== dataDigest(previous);
       if (!opts.dryRun && updated && mode === "auto") {
         report.publishedAt = new Date().toISOString();
         report.publishedBy = `pipeline (${opts.trigger}, ${opts.by})`;
@@ -382,24 +524,38 @@ export async function runPipeline(opts: { trigger: RunReport["trigger"]; by: str
     report.finishedAt = new Date().toISOString();
     try {
       await writeSnapshot(id, report, data, raw);
-      if (report.publishedAt && data) await publishData(id, autoPublish ?? data, report.publishedBy!, report.publishedAt);
-      await audit({ by: opts.by, action: "pipeline.run", target: id, detail: { trigger: opts.trigger, status: report.status, published: !!report.publishedAt, funds: report.funds } });
+      if (report.publishedAt && data)
+        await publishData(id, autoPublish ?? data, report.publishedBy!, report.publishedAt);
+      await audit({
+        by: opts.by,
+        action: "pipeline.run",
+        target: id,
+        detail: { trigger: opts.trigger, status: report.status, published: !!report.publishedAt, funds: report.funds },
+      });
       await pruneSnapshots();
     } catch (e: unknown) {
       report.status = "failed";
       delete report.publishedAt;
       delete report.publishedBy;
-      report.issues = [...report.issues, { key: "run", level: "error", message: `could not store the run: ${errMsg(e)}` }];
+      report.issues = [
+        ...report.issues,
+        { key: "run", level: "error", message: `could not store the run: ${errMsg(e)}` },
+      ];
       await writeJson(["snapshots", id, "report.json"], report).catch(() => undefined);
     }
     // a notice is posted once, when it first appears (keyed on fund + code: a notice whose wording changes is not posted again)
-    await notifyRun(report, fetchImpl, opts.now ?? new Date()).catch((e: unknown) => console.error(`[pipeline] alert failed: ${errMsg(e)}`));
+    await notifyRun(report, fetchImpl, opts.now ?? new Date()).catch((e: unknown) =>
+      console.error(`[pipeline] alert failed: ${errMsg(e)}`),
+    );
     return report;
   });
 }
 
 export async function listRuns(limit = 50): Promise<RunReport[]> {
-  const ids = (await listDir(["snapshots"])).filter((x) => ID_RE.test(x)).sort().reverse();
+  const ids = (await listDir(["snapshots"]))
+    .filter((x) => ID_RE.test(x))
+    .sort()
+    .reverse();
   const out: RunReport[] = [];
   for (const id of ids) {
     if (out.length >= limit) break;
@@ -429,18 +585,29 @@ export async function publishRun(id: string, by: string): Promise<RunReport> {
     const run = await getRun(id);
     if (!run) throw new Error(`run ${id} not found`);
     const { report, data } = run;
-    if (report.status === "failed" || report.status === "dry-run") throw new Error(`run ${id} is ${report.status}: it cannot be published`);
+    if (report.status === "failed" || report.status === "dry-run")
+      throw new Error(`run ${id} is ${report.status}: it cannot be published`);
     if (data.mode !== "live") throw new Error(`run ${id} does not contain live data`);
     const at = new Date().toISOString();
     const previousRunId = (await publishedMeta())?.runId ?? null;
     await publishData(id, data, by, at);
     const updated: RunReport = {
-      ...report, status: report.status === "pending-review" ? "published" : report.status, publishedAt: at, publishedBy: by,
+      ...report,
+      status: report.status === "pending-review" ? "published" : report.status,
+      publishedAt: at,
+      publishedBy: by,
       ...(report.classChanges?.length ? { classChangesApprovedAt: at, classChangesApprovedBy: by } : {}),
     };
     await writeJson(["snapshots", id, "report.json"], updated);
-    await audit({ by, action: previousRunId && previousRunId > id ? "pipeline.rollback" : "pipeline.publish", target: id, detail: { previousRunId, status: updated.status } });
-    await settleRunAlerts(id).catch((e: unknown) => console.error(`[pipeline] could not settle the alerts: ${errMsg(e)}`));
+    await audit({
+      by,
+      action: previousRunId && previousRunId > id ? "pipeline.rollback" : "pipeline.publish",
+      target: id,
+      detail: { previousRunId, status: updated.status },
+    });
+    await settleRunAlerts(id).catch((e: unknown) =>
+      console.error(`[pipeline] could not settle the alerts: ${errMsg(e)}`),
+    );
     return updated;
   });
   if ("locked" in res) throw new Error("a pipeline run is in progress: try again in a minute");
@@ -455,7 +622,14 @@ async function lockActive(staleMs = 30 * 60_000): Promise<boolean> {
 /** a pipeline run holds the lock (heartbeat younger than 30 min) */
 export const pipelineRunning = (): Promise<boolean> => lockActive();
 
-export async function pipelineStatus(now: Date = new Date()): Promise<{ running: boolean; schedule: string[]; timezone: "America/Toronto"; nextRunAt: string | null; lastRun: RunReport | null; publishedRunId: string | null }> {
+export async function pipelineStatus(now: Date = new Date()): Promise<{
+  running: boolean;
+  schedule: string[];
+  timezone: "America/Toronto";
+  nextRunAt: string | null;
+  lastRun: RunReport | null;
+  publishedRunId: string | null;
+}> {
   let times: ReturnType<typeof parseSchedule> = [];
   try {
     times = parseSchedule(process.env.PIPELINE_SCHEDULE ?? DEFAULT_SCHEDULE);

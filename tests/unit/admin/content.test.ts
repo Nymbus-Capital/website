@@ -7,13 +7,17 @@ import path from "node:path";
 const dir = mkdtempSync(path.join(tmpdir(), "nymbus-content-"));
 process.env.SITE_DATA_DIR = dir;
 
-const { saveContent, updateContent, currentVersion, ContentConflictError, EMPTY_CONTENT } = await import("../../../src/lib/data/content.ts");
+const { saveContent, updateContent, currentVersion, ContentConflictError, EMPTY_CONTENT } =
+  await import("../../../src/lib/data/content.ts");
 
 after(() => rmSync(dir, { recursive: true, force: true }));
 
 test("first save needs version 0 and produces version 1", async () => {
   assert.equal(await currentVersion(), 0);
-  const saved = await saveContent({ ...EMPTY_CONTENT, version: 0, pipeline: { publishMode: "review" } }, "alice@nymbus.ca");
+  const saved = await saveContent(
+    { ...EMPTY_CONTENT, version: 0, pipeline: { publishMode: "review" } },
+    "alice@nymbus.ca",
+  );
   assert.equal(saved.version, 1);
   assert.equal(saved.updatedBy, "alice@nymbus.ca");
   assert.equal(saved.pipeline.publishMode, "review");
@@ -29,7 +33,11 @@ test("a stale version is rejected with a 409 conflict and nothing is written", a
 });
 
 test("updates apply to the latest stored document and keep history", async () => {
-  const s2 = await updateContent(1, (c) => ({ ...c, funds: { ...c.funds, "multi-strategy": { mer: "1.2%" } } }), "alice@nymbus.ca");
+  const s2 = await updateContent(
+    1,
+    (c) => ({ ...c, funds: { ...c.funds, "multi-strategy": { mer: "1.2%" } } }),
+    "alice@nymbus.ca",
+  );
   assert.equal(s2.version, 2);
   assert.equal(s2.pipeline.publishMode, "review", "other fields preserved");
   assert.equal(s2.funds["multi-strategy"]?.mer, "1.2%");
@@ -57,7 +65,11 @@ test("defaults are the single source: first fund save on an empty store keeps pu
     assert.equal(DEFAULT_CONTENT.pipeline.publishMode, "review");
     assert.deepEqual(DEFAULT_CONTENT.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     assert.equal(EMPTY_CONTENT, DEFAULT_CONTENT);
-    const saved = await updateContent(0, (c) => ({ ...c, funds: { ...c.funds, "monthly-income": { tagline: { en: "x", fr: "y" } } } }), "a@nymbus.ca");
+    const saved = await updateContent(
+      0,
+      (c) => ({ ...c, funds: { ...c.funds, "monthly-income": { tagline: { en: "x", fr: "y" } } } }),
+      "a@nymbus.ca",
+    );
     assert.equal(saved.pipeline.publishMode, "review");
     assert.deepEqual(saved.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     // defaults object never mutated by a save

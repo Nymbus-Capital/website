@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # the last step pushes logs and screenshots to a throw-away ci/run-* branch
+  contents: write # the last step pushes logs and screenshots to a throw-away ci/run-* branch
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -54,6 +54,14 @@ jobs:
         run: set -o pipefail; npm run typecheck 2>&1 | tee ci-out/typecheck.log
       - name: Lint (blocking; eslint.config.mjs; warnings ratchet — lower the cap when warnings are fixed, never raise it)
         run: set -o pipefail; npm run lint -- --max-warnings=0 2>&1 | tee ci-out/lint.log
+      - name: Format check (blocking; Prettier, .prettierrc + .prettierignore; fix with npm run format)
+        run: |
+          set -o pipefail
+          npm run format:check 2>&1 | tee ci-out/format.log || {
+            npx prettier --write . > /dev/null && git diff > ci-out/prettier.diff
+            git diff --stat | tail -5
+            exit 1
+          }
       - name: Build
         run: set -o pipefail; npm run build 2>&1 | tee ci-out/build.log
       - name: Install Playwright browser

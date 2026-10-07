@@ -37,7 +37,12 @@ async function scrollThrough(page: Page) {
 const PAGES = [
   { path: "/", name: "home", en: /^scientific investing$/i, fr: /^investissement scientifique$/i },
   { path: "/strategies", name: "strategies", en: /^our funds and strategies$/i, fr: /^nos fonds et stratégies$/i },
-  { path: "/solutions", name: "solutions", en: /^solutions tailored to your mandate$/i, fr: /^des solutions adaptées à votre mandat$/i },
+  {
+    path: "/solutions",
+    name: "solutions",
+    en: /^solutions tailored to your mandate$/i,
+    fr: /^des solutions adaptées à votre mandat$/i,
+  },
 ];
 
 for (const p of PAGES) {
@@ -63,7 +68,9 @@ for (const p of PAGES) {
   });
 }
 
-test("home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page", async ({ page }) => {
+test("home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page", async ({
+  page,
+}) => {
   await page.goto("/");
   for (const key of KEYS) {
     const card = page.getByTestId(`strategy-${key}`);
@@ -143,8 +150,11 @@ test("reduced motion: every section of the three pages is visible without animat
   const page = await ctx.newPage();
   for (const path of ["/", "/strategies", "/solutions"]) {
     await page.goto(path);
-    const hidden = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *, .reveal-title .w")).filter((e) => getComputedStyle(e).opacity === "0").length,
+    const hidden = await page.evaluate(
+      () =>
+        Array.from(
+          document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *, .reveal-title .w"),
+        ).filter((e) => getComputedStyle(e).opacity === "0").length,
     );
     expect(hidden, path).toBe(0);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

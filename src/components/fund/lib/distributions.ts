@@ -3,9 +3,14 @@ import type { ClassDistribution, DistributionsData } from "../../../lib/data/typ
 import { isNum } from "./is-num.ts";
 
 /** Series with distribution data, the headline one first, then by FundServ code. */
-export function distributionClasses(d: DistributionsData | null | undefined, headline: string | null | undefined): ClassDistribution[] {
+export function distributionClasses(
+  d: DistributionsData | null | undefined,
+  headline: string | null | undefined,
+): ClassDistribution[] {
   const h = (headline ?? "").toUpperCase();
-  return [...(d?.classes ?? [])].sort((a, b) => (a.fundserv.toUpperCase() === h ? -1 : b.fundserv.toUpperCase() === h ? 1 : a.fundserv.localeCompare(b.fundserv)));
+  return [...(d?.classes ?? [])].sort((a, b) =>
+    a.fundserv.toUpperCase() === h ? -1 : b.fundserv.toUpperCase() === h ? 1 : a.fundserv.localeCompare(b.fundserv),
+  );
 }
 
 /**
@@ -15,7 +20,12 @@ export function distributionClasses(d: DistributionsData | null | undefined, hea
  */
 export function amountDecimals(c: ClassDistribution | null | undefined): number {
   if (!c) return 4;
-  const values = [...c.history.map((h) => h.amount), c.last?.amount, c.trailing12m, ...c.calendarYears.map((y) => y.amount)].filter(isNum);
+  const values = [
+    ...c.history.map((h) => h.amount),
+    c.last?.amount,
+    c.trailing12m,
+    ...c.calendarYears.map((y) => y.amount),
+  ].filter(isNum);
   for (let d = 4; d < 6; d++) if (values.every((v) => Math.abs(v - Number(v.toFixed(d))) < 5e-10)) return d;
   return 6;
 }
@@ -27,7 +37,11 @@ export function isYearToDate(year: number, ref: string | null | undefined): bool
 }
 
 /** History newest first: the last `limit` distributions, or all of them. */
-export function historyRows(c: ClassDistribution | null | undefined, all: boolean, limit = 12): { date: string; amount: number }[] {
+export function historyRows(
+  c: ClassDistribution | null | undefined,
+  all: boolean,
+  limit = 12,
+): { date: string; amount: number }[] {
   const rows = [...(c?.history ?? [])].filter((r) => isNum(r.amount)).reverse();
   return all ? rows : rows.slice(0, limit);
 }

@@ -4,8 +4,25 @@ import { mkdtemp, rm, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
-  ALERT_DELIVERY, envLabel, escapeTeamsMarkdown, resetTestAlertCooldown, scrubHosts, sendTestAlert, webhookUrl, alertChannelStatus, alertDecision, alertFormat, alertPayload, announceNew, deliverWebhook, messageText, raiseAlert,
-  readAlertState, resolveAlert, sendAlertNow, type AlertMessage,
+  ALERT_DELIVERY,
+  envLabel,
+  escapeTeamsMarkdown,
+  resetTestAlertCooldown,
+  scrubHosts,
+  sendTestAlert,
+  webhookUrl,
+  alertChannelStatus,
+  alertDecision,
+  alertFormat,
+  alertPayload,
+  announceNew,
+  deliverWebhook,
+  messageText,
+  raiseAlert,
+  readAlertState,
+  resolveAlert,
+  sendAlertNow,
+  type AlertMessage,
 } from "../../../src/lib/pipeline/alerts.ts";
 
 let dir = "";
@@ -21,7 +38,10 @@ afterEach(async () => {
 });
 
 const URL_ = "https://hooks.example.test/services/SECRET-PATH";
-const env = (extra: Record<string, string> = {}): Record<string, string> => ({ PIPELINE_ALERT_WEBHOOK: URL_, ...extra });
+const env = (extra: Record<string, string> = {}): Record<string, string> => ({
+  PIPELINE_ALERT_WEBHOOK: URL_,
+  ...extra,
+});
 const MSG: AlertMessage = { title: "T", lines: ["a", "b"], severity: "error", adminPath: "/admin/runs/x" };
 
 function hook(statuses: (number | Error)[] = [200]) {
@@ -37,39 +57,85 @@ function hook(statuses: (number | Error)[] = [200]) {
 }
 
 test("format: Teams detected from the webhook host (incoming webhook, Workflows), PIPELINE_ALERT_FORMAT wins, else generic JSON", () => {
-  assert.deepEqual(alertFormat("https://nymbus.webhook.office.com/webhookb2/abc", {}), { format: "teams", source: "auto" });
-  assert.equal(alertFormat("https://prod-12.canadacentral.logic.azure.com:443/workflows/abc/triggers/manual/paths/invoke?sig=x", {}).format, "teams");
-  assert.equal(alertFormat("https://default123.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/x", {}).format, "teams");
+  assert.deepEqual(alertFormat("https://nymbus.webhook.office.com/webhookb2/abc", {}), {
+    format: "teams",
+    source: "auto",
+  });
+  assert.equal(
+    alertFormat(
+      "https://prod-12.canadacentral.logic.azure.com:443/workflows/abc/triggers/manual/paths/invoke?sig=x",
+      {},
+    ).format,
+    "teams",
+  );
+  assert.equal(
+    alertFormat("https://default123.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/x", {})
+      .format,
+    "teams",
+  );
   assert.equal(alertFormat("https://hooks.slack.com/services/x", {}).format, "json");
-  assert.equal(alertFormat("https://evil-webhook.office.com.example.test/x", {}).format, "json", "suffix match on the host only");
-  assert.deepEqual(alertFormat("https://hooks.slack.com/x", { PIPELINE_ALERT_FORMAT: "Teams" }), { format: "teams", source: "env" });
-  assert.deepEqual(alertFormat("https://nymbus.webhook.office.com/x", { PIPELINE_ALERT_FORMAT: "json" }), { format: "json", source: "env" });
+  assert.equal(
+    alertFormat("https://evil-webhook.office.com.example.test/x", {}).format,
+    "json",
+    "suffix match on the host only",
+  );
+  assert.deepEqual(alertFormat("https://hooks.slack.com/x", { PIPELINE_ALERT_FORMAT: "Teams" }), {
+    format: "teams",
+    source: "env",
+  });
+  assert.deepEqual(alertFormat("https://nymbus.webhook.office.com/x", { PIPELINE_ALERT_FORMAT: "json" }), {
+    format: "json",
+    source: "env",
+  });
   assert.equal(alertFormat(null, { PIPELINE_ALERT_FORMAT: "bogus" }).format, "json");
 });
 
 test("payloads: Teams Adaptive Card with an Open-the-admin button (absolute with PUBLIC_URL); generic JSON keeps `text`", () => {
-  const t = alertPayload(MSG, "teams", { PUBLIC_URL: "https://www.example.test/" }) as { type: string; attachments: { contentType: string; content: { type: string; body: { text: string; color?: string }[]; actions?: { url: string }[] } }[] };
+  const t = alertPayload(MSG, "teams", { PUBLIC_URL: "https://www.example.test/" }) as {
+    type: string;
+    attachments: {
+      contentType: string;
+      content: { type: string; body: { text: string; color?: string }[]; actions?: { url: string }[] };
+    }[];
+  };
   assert.equal(t.type, "message");
   assert.equal(t.attachments[0].contentType, "application/vnd.microsoft.card.adaptive");
   assert.equal(t.attachments[0].content.type, "AdaptiveCard");
-  assert.deepEqual(t.attachments[0].content.body.map((b) => b.text), ["\\[www.example.test\\] T", "a", "b"], "environment label from PUBLIC_URL (Markdown-escaped)");
+  assert.deepEqual(
+    t.attachments[0].content.body.map((b) => b.text),
+    ["\\[www.example.test\\] T", "a", "b"],
+    "environment label from PUBLIC_URL (Markdown-escaped)",
+  );
   assert.equal(t.attachments[0].content.body[0].color, "Attention");
   assert.equal(t.attachments[0].content.actions![0].url, "https://www.example.test/admin/runs/x");
-  const noBase = alertPayload(MSG, "teams", {}) as { attachments: { content: { body: { text: string }[]; actions?: unknown } }[] };
+  const noBase = alertPayload(MSG, "teams", {}) as {
+    attachments: { content: { body: { text: string }[]; actions?: unknown } }[];
+  };
   assert.equal(noBase.attachments[0].content.actions, undefined, "no relative URL in an OpenUrl action");
   assert.equal(noBase.attachments[0].content.body.at(-1)!.text, "Admin: /admin/runs/x");
-  const j = alertPayload(MSG, "json", {}) as { text: string; title: string; severity: string; lines: string[]; adminUrl: string };
+  const j = alertPayload(MSG, "json", {}) as {
+    text: string;
+    title: string;
+    severity: string;
+    lines: string[];
+    adminUrl: string;
+  };
   assert.equal(j.text, "T\na\nb\nAdmin: /admin/runs/x");
   assert.deepEqual([j.title, j.severity, j.lines, j.adminUrl], ["T", "error", ["a", "b"], "/admin/runs/x"]);
   // long messages are capped
-  const long = messageText({ title: "x", lines: Array.from({ length: 40 }, (_, i) => `${i} ${"y".repeat(600)}`), severity: "info" }, {});
+  const long = messageText(
+    { title: "x", lines: Array.from({ length: 40 }, (_, i) => `${i} ${"y".repeat(600)}`), severity: "info" },
+    {},
+  );
   assert.ok(long.split("\n").length <= 28 && long.includes("… 15 more"));
   assert.ok(long.split("\n").every((l) => l.length <= 400));
 });
 
 test("delivery: retries 5xx / 429 / network errors with backoff, never a 4xx; the URL never appears in an error", async () => {
   const waits: number[] = [];
-  const sleep = async (ms: number): Promise<void> => { waits.push(ms); };
+  const sleep = async (ms: number): Promise<void> => {
+    waits.push(ms);
+  };
   let h = hook([500, 503, 200]);
   let r = await deliverWebhook(URL_, { a: 1 }, { fetchImpl: h.fetchImpl, sleep, delays: [10, 20, 30] });
   assert.deepEqual(r, { ok: true, attempts: 3, status: 200 });
@@ -85,7 +151,10 @@ test("delivery: retries 5xx / 429 / network errors with backoff, never a 4xx; th
   // 429 with Retry-After (seconds, up to 60) is honoured
   waits.length = 0;
   let n = 0;
-  const f429 = (async () => (n++ === 0 ? new Response("", { status: 429, headers: { "Retry-After": "7" } }) : new Response("", { status: 202 }))) as typeof fetch;
+  const f429 = (async () =>
+    n++ === 0
+      ? new Response("", { status: 429, headers: { "Retry-After": "7" } })
+      : new Response("", { status: 202 })) as typeof fetch;
   r = await deliverWebhook(URL_, {}, { fetchImpl: f429, sleep, delays: [10] });
   assert.deepEqual([r.ok, r.status, waits[0]], [true, 202, 7000]);
 });
@@ -95,7 +164,15 @@ test("dedup: posted when new or changed, a reminder once a day while it lasts, r
   const h = hook();
   const kinds: string[] = [];
   const raise = (fp: string, now: Date, e: Record<string, string> = env(), fetchImpl = h.fetchImpl) =>
-    raiseAlert({ key: "k", fingerprint: fp, remindAfterMs: 24 * 3_600_000, message: (kind) => (kinds.push(kind), { ...MSG, title: `T ${kind}` }) }, { fetchImpl, now, env: e });
+    raiseAlert(
+      {
+        key: "k",
+        fingerprint: fp,
+        remindAfterMs: 24 * 3_600_000,
+        message: (kind) => (kinds.push(kind), { ...MSG, title: `T ${kind}` }),
+      },
+      { fetchImpl, now, env: e },
+    );
   // not configured: nothing sent, nothing recorded
   assert.equal(await raise("A", t0, {}), "off");
   assert.deepEqual((await readAlertState()).open, {});
@@ -116,11 +193,26 @@ test("dedup: posted when new or changed, a reminder once a day while it lasts, r
   assert.equal(bad.calls(), 4, "4 attempts");
   const failed = await readAlertState();
   assert.equal(failed.open.k.fingerprint, "B");
-  assert.deepEqual([failed.lastDelivery!.ok, failed.lastDelivery!.status, failed.lastDelivery!.attempts], [false, 500, 4]);
+  assert.deepEqual(
+    [failed.lastDelivery!.ok, failed.lastDelivery!.status, failed.lastDelivery!.attempts],
+    [false, 500, 4],
+  );
   assert.equal(await raise("C", new Date(t0.getTime() + 28 * 3_600_000)), "sent");
   // resolved: posted once, then forgotten
-  assert.equal(await resolveAlert({ key: "k", message: (o) => ({ title: `resolved since ${o.since}`, lines: [], severity: "ok" }) }, { fetchImpl: h.fetchImpl, env: env() }), "sent");
-  assert.equal(await resolveAlert({ key: "k", message: () => ({ title: "x", lines: [], severity: "ok" }) }, { fetchImpl: h.fetchImpl, env: env() }), "none");
+  assert.equal(
+    await resolveAlert(
+      { key: "k", message: (o) => ({ title: `resolved since ${o.since}`, lines: [], severity: "ok" }) },
+      { fetchImpl: h.fetchImpl, env: env() },
+    ),
+    "sent",
+  );
+  assert.equal(
+    await resolveAlert(
+      { key: "k", message: () => ({ title: "x", lines: [], severity: "ok" }) },
+      { fetchImpl: h.fetchImpl, env: env() },
+    ),
+    "none",
+  );
   assert.deepEqual((await readAlertState()).open, {});
   const titles = h.bodies.map((b) => (b as { title: string }).title);
   assert.deepEqual(titles, ["T new", "T reminder", "T changed", "T changed", `resolved since ${t0.toISOString()}`]);
@@ -140,13 +232,24 @@ test("alertDecision", () => {
 
 test("announceNew: each item once while it lasts; an item that disappears and comes back is posted again", async () => {
   const h = hook();
-  const go = (ids: string[]) => announceNew({ key: "n", items: ids.map((id) => ({ id, line: `line ${id}` })), message: (fresh) => ({ title: "N", lines: fresh.map((f) => f.line), severity: "warn" }) }, { fetchImpl: h.fetchImpl, env: env() });
+  const go = (ids: string[]) =>
+    announceNew(
+      {
+        key: "n",
+        items: ids.map((id) => ({ id, line: `line ${id}` })),
+        message: (fresh) => ({ title: "N", lines: fresh.map((f) => f.line), severity: "warn" }),
+      },
+      { fetchImpl: h.fetchImpl, env: env() },
+    );
   assert.equal(await go(["a", "b"]), "sent");
   assert.equal(await go(["b", "a"]), "none");
   assert.equal(await go(["a", "b", "c"]), "sent");
   assert.equal(await go(["c"]), "none");
   assert.equal(await go(["a", "c"]), "sent");
-  assert.deepEqual(h.bodies.map((b) => (b as { lines: string[] }).lines), [["line a", "line b"], ["line c"], ["line a"]]);
+  assert.deepEqual(
+    h.bodies.map((b) => (b as { lines: string[] }).lines),
+    [["line a", "line b"], ["line c"], ["line a"]],
+  );
 });
 
 test("channel status for the admin: configured, format, host only (never the path), last delivery", async () => {
@@ -165,20 +268,37 @@ test("channel status for the admin: configured, format, host only (never the pat
 
 test("concurrent alerts of the process are serialised: no lost update of the state", async () => {
   const h = hook();
-  await Promise.all(["a", "b", "c", "d"].map((k) => raiseAlert({ key: k, fingerprint: "x", message: () => MSG }, { fetchImpl: h.fetchImpl, env: env() })));
+  await Promise.all(
+    ["a", "b", "c", "d"].map((k) =>
+      raiseAlert({ key: k, fingerprint: "x", message: () => MSG }, { fetchImpl: h.fetchImpl, env: env() }),
+    ),
+  );
   assert.deepEqual(Object.keys((await readAlertState()).open).sort(), ["a", "b", "c", "d"]);
 });
 
 test("hygiene: https webhooks only; hosts stripped from lines (paths kept, clock times untouched); Teams Markdown escaped; environment label", () => {
   assert.equal(webhookUrl({ PIPELINE_ALERT_WEBHOOK: "http://hooks.example.test/x" }), null, "never in clear");
-  assert.equal(webhookUrl({ PIPELINE_ALERT_WEBHOOK: " https://hooks.example.test/x " }), "https://hooks.example.test/x");
-  assert.equal(scrubHosts("HTTP 503 on http://dataplatform-staging:8000/api/apex/funds?x=1"), "HTTP 503 on /api/apex/funds?x=1");
-  assert.equal(scrubHosts("network error: connect ECONNREFUSED svc-a.internal:5432 at 14:00 UTC"), "network error: connect ECONNREFUSED <host> at 14:00 UTC");
+  assert.equal(
+    webhookUrl({ PIPELINE_ALERT_WEBHOOK: " https://hooks.example.test/x " }),
+    "https://hooks.example.test/x",
+  );
+  assert.equal(
+    scrubHosts("HTTP 503 on http://dataplatform-staging:8000/api/apex/funds?x=1"),
+    "HTTP 503 on /api/apex/funds?x=1",
+  );
+  assert.equal(
+    scrubHosts("network error: connect ECONNREFUSED svc-a.internal:5432 at 14:00 UTC"),
+    "network error: connect ECONNREFUSED <host> at 14:00 UTC",
+  );
   assert.equal(escapeTeamsMarkdown("- *x* _y_ [z](u) `c`"), "\\- \\*x\\* \\_y\\_ \\[z\\](u) \\`c\\`");
   assert.equal(escapeTeamsMarkdown("• a: 1.5 %"), "• a: 1.5 %");
   assert.equal(envLabel({ PUBLIC_URL: "https://p01--website--x.code.run" }), "p01--website--x.code.run");
   assert.equal(envLabel({}), null);
-  const j = alertPayload({ title: "T", lines: ["HTTP 500 on https://dp.internal:8000/api/x"], severity: "error", adminPath: "/admin" }, "json", { PUBLIC_URL: "https://www.example.test" }) as { text: string; lines: string[] };
+  const j = alertPayload(
+    { title: "T", lines: ["HTTP 500 on https://dp.internal:8000/api/x"], severity: "error", adminPath: "/admin" },
+    "json",
+    { PUBLIC_URL: "https://www.example.test" },
+  ) as { text: string; lines: string[] };
   assert.deepEqual(j.lines, ["HTTP 500 on /api/x"]);
   assert.ok(!j.text.includes("dp.internal") && j.text.includes("https://www.example.test/admin"), j.text);
 });

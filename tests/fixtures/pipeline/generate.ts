@@ -26,7 +26,21 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { addMonths, annualize, calendarYears, compound, downsideDeviation, maxDrawdown, monthEnd, pstdev, sum, trailing, window, type Method, type Series } from "../../../src/lib/pipeline/metrics.ts";
+import {
+  addMonths,
+  annualize,
+  calendarYears,
+  compound,
+  downsideDeviation,
+  maxDrawdown,
+  monthEnd,
+  pstdev,
+  sum,
+  trailing,
+  window,
+  type Method,
+  type Series,
+} from "../../../src/lib/pipeline/metrics.ts";
 import { synthClassRows } from "./nav-history.ts";
 import { CLASS_SHARE, holdingsPayload, instrumentsPayload, netAssetsOf, type Short } from "./holdings.ts";
 
@@ -90,7 +104,8 @@ for (const m of months("2019-02-28", LAST_MONTH)) sebF[m] = r8(seb[m] + 0.0012);
 const sestF: Series = {};
 for (const m of months("2019-01-31", LAST_MONTH)) sestF[m] = r8(sest[m] - 0.00025);
 /** the other classes of each book: the same daily path with their own fee load (synthetic); see NAV_HISTORY */
-const plus = (s0: Series, d: number, extra: Record<string, number> = {}): Series => Object.fromEntries(Object.keys(s0).map((m) => [m, r8(s0[m] + d + (extra[m] ?? 0))]));
+const plus = (s0: Series, d: number, extra: Record<string, number> = {}): Series =>
+  Object.fromEntries(Object.keys(s0).map((m) => [m, r8(s0[m] + d + (extra[m] ?? 0))]));
 /**
  * class I of Monthly Income drifts away from the other classes in 2023-09 (an inconsistent distribution adjustment: a
  * cross-class outlier month, withheld for every class; synthetic)
@@ -116,11 +131,18 @@ for (const m of months("2015-01-31", LAST_MONTH)) gmv[m] = r8(0.0042 + 0.016 * g
 
 /* ------------------------------------------------------------------ formatting like convert_to_percent_str */
 const pyRound1 = (x: number): string => (Math.round(x * 10) / 10).toFixed(1);
-const pctStr = (x: number | null, plus = false): string => (x === null ? "nan" : `${plus && x > 0 ? "+" : ""}${pyRound1(x * 100)}%`);
+const pctStr = (x: number | null, plus = false): string =>
+  x === null ? "nan" : `${plus && x > 0 ? "+" : ""}${pyRound1(x * 100)}%`;
 const numStr = (x: number | null): string => (x === null ? "nan" : pyRound1(x * 100));
 
 let END = LAST_MONTH;
-const upTo = (s: Series, end: string): Series => Object.fromEntries(Object.keys(s).filter((k) => k <= end).sort().map((k) => [k, s[k]]));
+const upTo = (s: Series, end: string): Series =>
+  Object.fromEntries(
+    Object.keys(s)
+      .filter((k) => k <= end)
+      .sort()
+      .map((k) => [k, s[k]]),
+  );
 
 function trailingStrings(s: Series, method: Method, withPct: boolean, plus = false): Record<string, string> {
   const t = trailing(s, END, { method });
@@ -138,7 +160,16 @@ function vaStrings(f: Series, i: Series): Record<string, string> {
   const first = Object.keys(f).sort()[0];
   const ti = trailing(i, END, { siStart: first });
   const out: Record<string, string> = {};
-  const labels: [string, keyof typeof tf][] = [["1M", "1M"], ["3M", "3M"], [END.slice(0, 4), "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
+  const labels: [string, keyof typeof tf][] = [
+    ["1M", "1M"],
+    ["3M", "3M"],
+    [END.slice(0, 4), "YTD"],
+    ["1Y", "1Y"],
+    ["2Y", "2Y"],
+    ["3Y", "3Y"],
+    ["5Y", "5Y"],
+    ["SI", "SI"],
+  ];
   for (const [lab, k] of labels) {
     const a = tf[k];
     const b = ti[k];
@@ -153,11 +184,25 @@ function indexTrailingStrings(f: Series, i: Series): Record<string, string> {
   const ti = trailing(i, END, { siStart: first });
   const tf = trailing(f, END);
   const out: Record<string, string> = {};
-  const labels: [string, keyof typeof ti][] = [["1M", "1M"], ["3M", "3M"], [END.slice(0, 4), "YTD"], ["1Y", "1Y"], ["2Y", "2Y"], ["3Y", "3Y"], ["5Y", "5Y"], ["SI", "SI"]];
+  const labels: [string, keyof typeof ti][] = [
+    ["1M", "1M"],
+    ["3M", "3M"],
+    [END.slice(0, 4), "YTD"],
+    ["1Y", "1Y"],
+    ["2Y", "2Y"],
+    ["3Y", "3Y"],
+    ["5Y", "5Y"],
+    ["SI", "SI"],
+  ];
   for (const [lab, k] of labels) if (tf[k] !== null) out[lab] = pctStr(ti[k]);
   return out;
 }
-function calendarStrings(f: Series, i: Series | null, fundName: string, indexName: string | null): Record<string, Record<string, string>> {
+function calendarStrings(
+  f: Series,
+  i: Series | null,
+  fundName: string,
+  indexName: string | null,
+): Record<string, Record<string, string>> {
   const first = Object.keys(f).sort()[0];
   const cf = calendarYears(f, END, { first });
   const ci = i ? new Map(calendarYears(i, END, { first }).map((y) => [y.year, y.value])) : null;
@@ -223,10 +268,40 @@ function statistics(s: Series, method: Method, months?: number): Record<string, 
 /** Apex cutover: the distribution-aware daily chain exists from this month on */
 export const APEX_READY_FROM = "2026-08-31";
 function mnr(short: string, s: Series, first: string): unknown {
-  const rows = months(first, LAST_MONTH).map((m) => (m >= APEX_READY_FROM
-    ? { month: m, net_return: s[m], status: "ready", method: "compounded_apex_net_daily", source_dates: [], source_row_ids: [], issue: null }
-    : { month: m, net_return: null, status: "unavailable", method: m >= "2026-06-30" ? "compounded_apex_net_daily" : null, source_dates: [], source_row_ids: [], issue: m >= "2026-06-30" ? "Incomplete Apex valuation-day coverage; no partial-month compounding" : "A complete distribution-aware Apex net-return chain is unavailable" }));
-  return { short_name: short, class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY", currency: "CAD", return_basis: "net_of_fees", methodology_version: "apex-daily-net-v1", as_of: FIXTURE_NOW.slice(0, 10), row_count: rows.length, rows };
+  const rows = months(first, LAST_MONTH).map((m) =>
+    m >= APEX_READY_FROM
+      ? {
+          month: m,
+          net_return: s[m],
+          status: "ready",
+          method: "compounded_apex_net_daily",
+          source_dates: [],
+          source_row_ids: [],
+          issue: null,
+        }
+      : {
+          month: m,
+          net_return: null,
+          status: "unavailable",
+          method: m >= "2026-06-30" ? "compounded_apex_net_daily" : null,
+          source_dates: [],
+          source_row_ids: [],
+          issue:
+            m >= "2026-06-30"
+              ? "Incomplete Apex valuation-day coverage; no partial-month compounding"
+              : "A complete distribution-aware Apex net-return chain is unavailable",
+        },
+  );
+  return {
+    short_name: short,
+    class_code: short === "SEB" ? "STRATEGY_H" : "STRATEGY",
+    currency: "CAD",
+    return_basis: "net_of_fees",
+    methodology_version: "apex-daily-net-v1",
+    as_of: FIXTURE_NOW.slice(0, 10),
+    row_count: rows.length,
+    rows,
+  };
 }
 
 function businessDays(from: string, to: string): string[] {
@@ -238,33 +313,34 @@ function businessDays(from: string, to: string): string[] {
   return out;
 }
 
-const CLASSES: Record<string, { fundserv: string; display: string; currency: string; nav: number; status?: string }[]> = {
-  // the classes added later come last, so the synthetic NAV draws of the earlier ones do not move
-  SEST: [
-    { fundserv: "LDM001", display: "FP", currency: "CAD", nav: 10.2413 },
-    { fundserv: "LDM021", display: "A", currency: "CAD", nav: 9.8712 },
-    { fundserv: "LDM081", display: "F", currency: "CAD", nav: 10.0536 },
-    { fundserv: "LDM011", display: "F USD", currency: "USD", nav: 10.4127 },
-    { fundserv: "LDM031", display: "I", currency: "CAD", nav: 10.9 },
-    { fundserv: "LDM061", display: "J", currency: "CAD", nav: 10.3151 },
-    { fundserv: "LDM091", display: "O", currency: "CAD", nav: 10.9, status: "dormant" },
-  ],
-  SEB: [
-    { fundserv: "LDM201", display: "F", currency: "CAD", nav: 9.6124 },
-    { fundserv: "LDM205", display: "A", currency: "CAD", nav: 9.3318 },
-    { fundserv: "LDM206", display: "FP", currency: "CAD", nav: 9.7045 },
-    { fundserv: "LDM202", display: "H", currency: "CAD", nav: 9.5873 },
-    { fundserv: "LDM203", display: "I", currency: "CAD", nav: 9.6533 },
-    { fundserv: "LDM204", display: "J", currency: "CAD", nav: 9.6418 },
-  ],
-  Multistrat: [
-    { fundserv: "LDM300", display: "A", currency: "CAD", nav: 12.3187 },
-    { fundserv: "LDM301", display: "F", currency: "CAD", nav: 12.9542 },
-    { fundserv: "LDM305", display: "FP", currency: "CAD", nav: 13.1076 },
-    { fundserv: "LDM303", display: "I", currency: "CAD", nav: 13.0215 },
-    { fundserv: "LDM304", display: "J", currency: "CAD", nav: 13.0047 },
-  ],
-};
+const CLASSES: Record<string, { fundserv: string; display: string; currency: string; nav: number; status?: string }[]> =
+  {
+    // the classes added later come last, so the synthetic NAV draws of the earlier ones do not move
+    SEST: [
+      { fundserv: "LDM001", display: "FP", currency: "CAD", nav: 10.2413 },
+      { fundserv: "LDM021", display: "A", currency: "CAD", nav: 9.8712 },
+      { fundserv: "LDM081", display: "F", currency: "CAD", nav: 10.0536 },
+      { fundserv: "LDM011", display: "F USD", currency: "USD", nav: 10.4127 },
+      { fundserv: "LDM031", display: "I", currency: "CAD", nav: 10.9 },
+      { fundserv: "LDM061", display: "J", currency: "CAD", nav: 10.3151 },
+      { fundserv: "LDM091", display: "O", currency: "CAD", nav: 10.9, status: "dormant" },
+    ],
+    SEB: [
+      { fundserv: "LDM201", display: "F", currency: "CAD", nav: 9.6124 },
+      { fundserv: "LDM205", display: "A", currency: "CAD", nav: 9.3318 },
+      { fundserv: "LDM206", display: "FP", currency: "CAD", nav: 9.7045 },
+      { fundserv: "LDM202", display: "H", currency: "CAD", nav: 9.5873 },
+      { fundserv: "LDM203", display: "I", currency: "CAD", nav: 9.6533 },
+      { fundserv: "LDM204", display: "J", currency: "CAD", nav: 9.6418 },
+    ],
+    Multistrat: [
+      { fundserv: "LDM300", display: "A", currency: "CAD", nav: 12.3187 },
+      { fundserv: "LDM301", display: "F", currency: "CAD", nav: 12.9542 },
+      { fundserv: "LDM305", display: "FP", currency: "CAD", nav: 13.1076 },
+      { fundserv: "LDM303", display: "I", currency: "CAD", nav: 13.0215 },
+      { fundserv: "LDM304", display: "J", currency: "CAD", nav: 13.0047 },
+    ],
+  };
 
 /**
  * NAV rows over the last 3 weeks. Apex rows carry the distribution-aware daily return
@@ -278,7 +354,8 @@ function navPayload(short: string): unknown {
   const rows: Record<string, unknown>[] = [];
   // earlier weeks (separate stream: the last weeks above are unchanged): the month-end book date and the net assets
   const early = gauss(mulberry32(short.length * 104723 + 5));
-  const na = (fundserv: string, d: string): number => Math.round(netAssetsOf(short as Short, d) * (CLASS_SHARE[fundserv] ?? 0) * 100) / 100;
+  const na = (fundserv: string, d: string): number =>
+    Math.round(netAssetsOf(short as Short, d) * (CLASS_SHARE[fundserv] ?? 0) * 100) / 100;
   for (const k of CLASSES[short]) {
     let w = Math.round(k.nav * 0.99 * 1e4) / 1e4;
     let prev: string | null = "2026-08-13";
@@ -286,7 +363,27 @@ function navPayload(short: string): unknown {
       const r = 0.001 * early();
       w = Math.round(w * (1 + r) * 1e4) / 1e4;
       const usd = k.currency === "USD";
-      rows.push({ date: d, fundserv: k.fundserv, class_display: k.display, class_code: k.display, currency: k.currency, short_name: short, nav_type: "FINAL_NAV", fund_mapped: true, account: "SYNTHETIC", fund_name: `SYNTHETIC ${short}`, class_name_raw: k.display, source: "apex", nav_per_share_local: w, nav_per_share_cad: usd ? Math.round(w * 1.37 * 1e4) / 1e4 : w, net_daily_return: r8(r), net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: prev, return_source_count: 1, net_asset_value_cad: na(k.fundserv, d) });
+      rows.push({
+        date: d,
+        fundserv: k.fundserv,
+        class_display: k.display,
+        class_code: k.display,
+        currency: k.currency,
+        short_name: short,
+        nav_type: "FINAL_NAV",
+        fund_mapped: true,
+        account: "SYNTHETIC",
+        fund_name: `SYNTHETIC ${short}`,
+        class_name_raw: k.display,
+        source: "apex",
+        nav_per_share_local: w,
+        nav_per_share_cad: usd ? Math.round(w * 1.37 * 1e4) / 1e4 : w,
+        net_daily_return: r8(r),
+        net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware",
+        return_start_date: prev,
+        return_source_count: 1,
+        net_asset_value_cad: na(k.fundserv, d),
+      });
       prev = d;
     }
   }
@@ -306,13 +403,54 @@ function navPayload(short: string): unknown {
       prevDay = d;
       if (k.fundserv === "LDM205" && d === "2026-09-25") continue;
       const usd = k.currency === "USD";
-      const base = { date: d, fundserv: k.fundserv, class_display: k.display, class_code: k.display, currency: k.currency, short_name: short, nav_type: "FINAL_NAV", fund_mapped: true, account: "SYNTHETIC", fund_name: `SYNTHETIC ${short}`, class_name_raw: k.display };
-      rows.push({ ...base, source: "apex", nav_per_share_local: v, nav_per_share_cad: usd ? Math.round(v * 1.37 * 1e4) / 1e4 : v, net_daily_return: ret, net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware", return_start_date: start, return_source_count: 1, net_asset_value_cad: na(k.fundserv, d) });
+      const base = {
+        date: d,
+        fundserv: k.fundserv,
+        class_display: k.display,
+        class_code: k.display,
+        currency: k.currency,
+        short_name: short,
+        nav_type: "FINAL_NAV",
+        fund_mapped: true,
+        account: "SYNTHETIC",
+        fund_name: `SYNTHETIC ${short}`,
+        class_name_raw: k.display,
+      };
+      rows.push({
+        ...base,
+        source: "apex",
+        nav_per_share_local: v,
+        nav_per_share_cad: usd ? Math.round(v * 1.37 * 1e4) / 1e4 : v,
+        net_daily_return: ret,
+        net_return_method: usd ? "nav_price_ratio" : "apex_distribution_aware",
+        return_start_date: start,
+        return_source_count: 1,
+        net_asset_value_cad: na(k.fundserv, d),
+      });
       // a lagging second source on some days: must lose against apex
-      if (d >= "2026-09-24") rows.push({ ...base, source: "cibc", nav_per_share_local: Math.round(v * 1.003 * 1e4) / 1e4, nav_per_share_cad: null, net_daily_return: null, net_return_method: "nav_price_ratio", return_start_date: null });
+      if (d >= "2026-09-24")
+        rows.push({
+          ...base,
+          source: "cibc",
+          nav_per_share_local: Math.round(v * 1.003 * 1e4) / 1e4,
+          nav_per_share_cad: null,
+          net_daily_return: null,
+          net_return_method: "nav_price_ratio",
+          return_start_date: null,
+        });
     }
   }
-  return { short_name: short, start_date: "2026-08-14", end_date: "2026-09-29", nav_type: "FINAL_NAV", include_unmapped: true, sources: ["apex", "cibc"], row_count: rows.length, rows, warnings: [] };
+  return {
+    short_name: short,
+    start_date: "2026-08-14",
+    end_date: "2026-09-29",
+    nav_type: "FINAL_NAV",
+    include_unmapped: true,
+    sources: ["apex", "cibc"],
+    row_count: rows.length,
+    rows,
+    warnings: [],
+  };
 }
 
 /* ------------------------------------------------------------------ nav-timeseries daily history per class */
@@ -324,11 +462,26 @@ function navPayload(short: string): unknown {
  * series above, so the website's chain reproduces the analytics history and monthly-net-returns.
  */
 type NavHistorySpec = {
-  fundserv: string; short: string; monthly: Series; navStart: string; nav0: number; dist?: (m: string) => number; priorFrom?: string; priorTo?: string; seed: number;
-  shocks?: Record<string, number>; currency?: string;
+  fundserv: string;
+  short: string;
+  monthly: Series;
+  navStart: string;
+  nav0: number;
+  dist?: (m: string) => number;
+  priorFrom?: string;
+  priorTo?: string;
+  seed: number;
+  shocks?: Record<string, number>;
+  currency?: string;
 };
-const quarterly = (amt: number) => (m: string): number => (["03", "06", "09", "12"].includes(m.slice(5, 7)) ? amt : 0);
-const december = (amt: number) => (m: string): number => (m.slice(5, 7) === "12" ? amt : 0);
+const quarterly =
+  (amt: number) =>
+  (m: string): number =>
+    ["03", "06", "09", "12"].includes(m.slice(5, 7)) ? amt : 0;
+const december =
+  (amt: number) =>
+  (m: string): number =>
+    m.slice(5, 7) === "12" ? amt : 0;
 /** a bad valuation print in every Monthly Income class: +3 % then −2.95 % on two consecutive days (synthetic) */
 const SEST_SPIKE = { "2022-03-15": 0.03, "2022-03-16": -0.0295 };
 /**
@@ -338,54 +491,293 @@ const SEST_SPIKE = { "2022-03-15": 0.03, "2022-03-16": -0.0295 };
  * 2023-06, A since 2024-09, FP launched in 2026. The classes of one fund share their daily path (NOISE_SEED).
  */
 export const NAV_HISTORY: NavHistorySpec[] = [
-  { fundserv: "LDM001", short: "SEST", monthly: sest, navStart: "2021-10-05", nav0: 10, dist: () => 0.0415, priorFrom: "2021-06-01", seed: 101, shocks: SEST_SPIKE },
-  { fundserv: "LDM011", short: "SEST", monthly: sestF, navStart: "2025-06-02", nav0: 10, dist: () => 0.03, seed: 106, currency: "USD", shocks: SEST_SPIKE },
-  { fundserv: "LDM021", short: "SEST", monthly: sestA, navStart: "2026-03-02", nav0: 10, dist: () => 0.039, seed: 107, shocks: SEST_SPIKE },
-  { fundserv: "LDM031", short: "SEST", monthly: sestI, navStart: "2023-03-06", nav0: 10, dist: () => 0.042, priorFrom: "2022-01-04", priorTo: "2022-06-30", seed: 108, shocks: SEST_SPIKE },
-  { fundserv: "LDM061", short: "SEST", monthly: sestJ, navStart: "2021-10-05", nav0: 10, dist: () => 0.0418, priorFrom: "2021-06-01", seed: 109, shocks: SEST_SPIKE },
-  { fundserv: "LDM081", short: "SEST", monthly: sestF, navStart: "2024-03-01", nav0: 10, dist: () => 0.04, seed: 102, shocks: SEST_SPIKE },
-  { fundserv: "LDM201", short: "SEB", monthly: sebF, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.072), seed: 103 },
-  { fundserv: "LDM202", short: "SEB", monthly: seb, navStart: "2023-07-05", nav0: 10, dist: quarterly(0.07), seed: 104 },
-  { fundserv: "LDM203", short: "SEB", monthly: sebI, navStart: "2023-11-06", nav0: 10, dist: quarterly(0.073), seed: 110 },
-  { fundserv: "LDM204", short: "SEB", monthly: sebJ, navStart: "2023-08-01", nav0: 10, dist: quarterly(0.073), seed: 111 },
-  { fundserv: "LDM205", short: "SEB", monthly: sebA, navStart: "2026-04-01", nav0: 10, dist: quarterly(0.068), seed: 112 },
-  { fundserv: "LDM206", short: "SEB", monthly: sebFP, navStart: "2026-07-27", nav0: 10, dist: quarterly(0.072), seed: 113 },
-  { fundserv: "LDM300", short: "Multistrat", monthly: multiA, navStart: "2024-09-03", nav0: 10, dist: december(0.24), seed: 114 },
-  { fundserv: "LDM301", short: "Multistrat", monthly: multi, navStart: "2023-06-12", nav0: 10, dist: december(0.25), seed: 105 },
-  { fundserv: "LDM303", short: "Multistrat", monthly: multiI, navStart: "2023-06-12", nav0: 10, dist: december(0.25), seed: 115 },
-  { fundserv: "LDM304", short: "Multistrat", monthly: multiJ, navStart: "2023-06-19", nav0: 10, dist: december(0.25), seed: 116 },
-  { fundserv: "LDM305", short: "Multistrat", monthly: multiFP, navStart: "2026-07-27", nav0: 10, dist: december(0.25), seed: 117 },
+  {
+    fundserv: "LDM001",
+    short: "SEST",
+    monthly: sest,
+    navStart: "2021-10-05",
+    nav0: 10,
+    dist: () => 0.0415,
+    priorFrom: "2021-06-01",
+    seed: 101,
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM011",
+    short: "SEST",
+    monthly: sestF,
+    navStart: "2025-06-02",
+    nav0: 10,
+    dist: () => 0.03,
+    seed: 106,
+    currency: "USD",
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM021",
+    short: "SEST",
+    monthly: sestA,
+    navStart: "2026-03-02",
+    nav0: 10,
+    dist: () => 0.039,
+    seed: 107,
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM031",
+    short: "SEST",
+    monthly: sestI,
+    navStart: "2023-03-06",
+    nav0: 10,
+    dist: () => 0.042,
+    priorFrom: "2022-01-04",
+    priorTo: "2022-06-30",
+    seed: 108,
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM061",
+    short: "SEST",
+    monthly: sestJ,
+    navStart: "2021-10-05",
+    nav0: 10,
+    dist: () => 0.0418,
+    priorFrom: "2021-06-01",
+    seed: 109,
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM081",
+    short: "SEST",
+    monthly: sestF,
+    navStart: "2024-03-01",
+    nav0: 10,
+    dist: () => 0.04,
+    seed: 102,
+    shocks: SEST_SPIKE,
+  },
+  {
+    fundserv: "LDM201",
+    short: "SEB",
+    monthly: sebF,
+    navStart: "2023-07-05",
+    nav0: 10,
+    dist: quarterly(0.072),
+    seed: 103,
+  },
+  {
+    fundserv: "LDM202",
+    short: "SEB",
+    monthly: seb,
+    navStart: "2023-07-05",
+    nav0: 10,
+    dist: quarterly(0.07),
+    seed: 104,
+  },
+  {
+    fundserv: "LDM203",
+    short: "SEB",
+    monthly: sebI,
+    navStart: "2023-11-06",
+    nav0: 10,
+    dist: quarterly(0.073),
+    seed: 110,
+  },
+  {
+    fundserv: "LDM204",
+    short: "SEB",
+    monthly: sebJ,
+    navStart: "2023-08-01",
+    nav0: 10,
+    dist: quarterly(0.073),
+    seed: 111,
+  },
+  {
+    fundserv: "LDM205",
+    short: "SEB",
+    monthly: sebA,
+    navStart: "2026-04-01",
+    nav0: 10,
+    dist: quarterly(0.068),
+    seed: 112,
+  },
+  {
+    fundserv: "LDM206",
+    short: "SEB",
+    monthly: sebFP,
+    navStart: "2026-07-27",
+    nav0: 10,
+    dist: quarterly(0.072),
+    seed: 113,
+  },
+  {
+    fundserv: "LDM300",
+    short: "Multistrat",
+    monthly: multiA,
+    navStart: "2024-09-03",
+    nav0: 10,
+    dist: december(0.24),
+    seed: 114,
+  },
+  {
+    fundserv: "LDM301",
+    short: "Multistrat",
+    monthly: multi,
+    navStart: "2023-06-12",
+    nav0: 10,
+    dist: december(0.25),
+    seed: 105,
+  },
+  {
+    fundserv: "LDM303",
+    short: "Multistrat",
+    monthly: multiI,
+    navStart: "2023-06-12",
+    nav0: 10,
+    dist: december(0.25),
+    seed: 115,
+  },
+  {
+    fundserv: "LDM304",
+    short: "Multistrat",
+    monthly: multiJ,
+    navStart: "2023-06-19",
+    nav0: 10,
+    dist: december(0.25),
+    seed: 116,
+  },
+  {
+    fundserv: "LDM305",
+    short: "Multistrat",
+    monthly: multiFP,
+    navStart: "2026-07-27",
+    nav0: 10,
+    dist: december(0.25),
+    seed: 117,
+  },
 ];
 const NOISE_SEED: Record<string, number> = { SEST: 501, SEB: 502, Multistrat: 503 };
 
 function navHistoryPayload(h: (typeof NAV_HISTORY)[number]): string {
-  const rows = synthClassRows({ fundserv: h.fundserv, monthly: h.monthly, navStart: h.navStart, end: "2026-09-28", nav0: h.nav0, dist: h.dist, priorFrom: h.priorFrom, priorTo: h.priorTo, seed: h.seed, noiseSeed: NOISE_SEED[h.short], shocks: h.shocks, currency: h.currency })
-    .map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
+  const rows = synthClassRows({
+    fundserv: h.fundserv,
+    monthly: h.monthly,
+    navStart: h.navStart,
+    end: "2026-09-28",
+    nav0: h.nav0,
+    dist: h.dist,
+    priorFrom: h.priorFrom,
+    priorTo: h.priorTo,
+    seed: h.seed,
+    noiseSeed: NOISE_SEED[h.short],
+    shocks: h.shocks,
+    currency: h.currency,
+  }).map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
   // one row per line: the file stays readable and diffs stay small
   return `{"short_name": "${h.short}", "fundserv": "${h.fundserv}", "nav_type": "FINAL_NAV", "include_unmapped": false, "row_count": ${rows.length}, "warnings": [], "rows": [\n${rows.map((r) => JSON.stringify(r)).join(",\n")}\n]}\n`;
 }
 
 const APEX_ACCOUNTS: Record<string, string> = { SEST: "SYN-APX-01", SEB: "SYN-APX-02", Multistrat: "SYN-APX-03" };
 const apexFunds = [
-  { key: "monthly_income", name: "NYMBUS MONTHLY INCOME FUND", status: "active", apex_account: APEX_ACCOUNTS.SEST, cibc_account: null, cibc_short: "SEST", inception: "2021-10-05", classes: CLASSES.SEST.map((c) => ({ fundserv: c.fundserv, display: c.display, currency: c.currency, status: c.status ?? "active", apex_token: c.display, nav_token: null, tb_fund_id: null })) },
-  { key: "sustainable_enhanced_bonds", name: "NYMBUS SUSTAINABLE ENHANCED BONDS FUND", status: "active", apex_account: APEX_ACCOUNTS.SEB, cibc_account: null, cibc_short: "SEB", inception: null, classes: CLASSES.SEB.map((c) => ({ fundserv: c.fundserv, display: c.display, currency: c.currency, status: "active", apex_token: c.display, nav_token: null, tb_fund_id: null })) },
-  { key: "multistrategy", name: "NYMBUS MULTI-STRATEGY FUND", status: "active", apex_account: APEX_ACCOUNTS.Multistrat, cibc_account: null, cibc_short: "MULTI", inception: null, classes: CLASSES.Multistrat.map((c) => ({ fundserv: c.fundserv, display: c.display, currency: c.currency, status: "active", apex_token: c.display, nav_token: null, tb_fund_id: null })) },
+  {
+    key: "monthly_income",
+    name: "NYMBUS MONTHLY INCOME FUND",
+    status: "active",
+    apex_account: APEX_ACCOUNTS.SEST,
+    cibc_account: null,
+    cibc_short: "SEST",
+    inception: "2021-10-05",
+    classes: CLASSES.SEST.map((c) => ({
+      fundserv: c.fundserv,
+      display: c.display,
+      currency: c.currency,
+      status: c.status ?? "active",
+      apex_token: c.display,
+      nav_token: null,
+      tb_fund_id: null,
+    })),
+  },
+  {
+    key: "sustainable_enhanced_bonds",
+    name: "NYMBUS SUSTAINABLE ENHANCED BONDS FUND",
+    status: "active",
+    apex_account: APEX_ACCOUNTS.SEB,
+    cibc_account: null,
+    cibc_short: "SEB",
+    inception: null,
+    classes: CLASSES.SEB.map((c) => ({
+      fundserv: c.fundserv,
+      display: c.display,
+      currency: c.currency,
+      status: "active",
+      apex_token: c.display,
+      nav_token: null,
+      tb_fund_id: null,
+    })),
+  },
+  {
+    key: "multistrategy",
+    name: "NYMBUS MULTI-STRATEGY FUND",
+    status: "active",
+    apex_account: APEX_ACCOUNTS.Multistrat,
+    cibc_account: null,
+    cibc_short: "MULTI",
+    inception: null,
+    classes: CLASSES.Multistrat.map((c) => ({
+      fundserv: c.fundserv,
+      display: c.display,
+      currency: c.currency,
+      status: "active",
+      apex_token: c.display,
+      nav_token: null,
+      tb_fund_id: null,
+    })),
+  },
 ];
 const unitholderFunds = [
   { short_name: "SEST", name: "Nymbus Monthly Income Fund", apex_account: APEX_ACCOUNTS.SEST, cibc_account: null },
-  { short_name: "SEB", name: "Nymbus Sustainable Enhanced Bonds Fund", apex_account: APEX_ACCOUNTS.SEB, cibc_account: null },
-  { short_name: "Multistrat", name: "Nymbus Multi-Strategy Fund", apex_account: APEX_ACCOUNTS.Multistrat, cibc_account: null },
+  {
+    short_name: "SEB",
+    name: "Nymbus Sustainable Enhanced Bonds Fund",
+    apex_account: APEX_ACCOUNTS.SEB,
+    cibc_account: null,
+  },
+  {
+    short_name: "Multistrat",
+    name: "Nymbus Multi-Strategy Fund",
+    apex_account: APEX_ACCOUNTS.Multistrat,
+    cibc_account: null,
+  },
   { short_name: "OTHER", name: "Synthetic unmapped fund", apex_account: null, cibc_account: "SYN-CIBC-9" },
 ];
 const aumRow = (short: string, source: string, v: number, n: number): Record<string, unknown> => ({
-  source, short_name: short, holding_value_cad: v, holding_value_local: v, units_held: Math.round(v / 10), n_holders: n, n_holdings: n + 3,
+  source,
+  short_name: short,
+  holding_value_cad: v,
+  holding_value_local: v,
+  units_held: Math.round(v / 10),
+  n_holders: n,
+  n_holdings: n + 3,
   // fields that would be investor-level with another grouping: must never reach a snapshot
-  investor_no: "SYN-INV-0001", shareholder_id: "SYN-SH-01", agent_name: "Synthetic Advisor", dealer_name: "Synthetic Dealer", cibc_account: "SYN-ACCT-1",
+  investor_no: "SYN-INV-0001",
+  shareholder_id: "SYN-SH-01",
+  agent_name: "Synthetic Advisor",
+  dealer_name: "Synthetic Dealer",
+  cibc_account: "SYN-ACCT-1",
 });
 const aum = {
-  snapshot_date: "2026-09-28", group_by: ["short_name"], sources: ["APEX", "CIBC"], row_count: 6,
+  snapshot_date: "2026-09-28",
+  group_by: ["short_name"],
+  sources: ["APEX", "CIBC"],
+  row_count: 6,
   warnings: ["Results span both feeds (synthetic)"],
-  rows: [aumRow("SEST", "APEX", 212_345_678.9, 812), aumRow("SEST", "CIBC", 1_234_567.1, 9), aumRow("SEB", "APEX", 148_765_432.1, 402), aumRow("Multistrat", "APEX", 61_234_567.5, 233), aumRow("OTHER", "CIBC", 5_000_000, 12)],
+  rows: [
+    aumRow("SEST", "APEX", 212_345_678.9, 812),
+    aumRow("SEST", "CIBC", 1_234_567.1, 9),
+    aumRow("SEB", "APEX", 148_765_432.1, 402),
+    aumRow("Multistrat", "APEX", 61_234_567.5, 233),
+    aumRow("OTHER", "CIBC", 5_000_000, 12),
+  ],
 };
 
 /**
@@ -393,12 +785,28 @@ const aum = {
  * on the last 3 weekdays of each month. `split`: rows before that date are published under `oldName`
  * (a rename with the same index_id: the history must be joined).
  */
-function ftseRows(short: string, indexName: string, s: Series, opts: { from?: string; old?: { name: string; indexName: string; until: string; rebase: number } } = {}): { current: unknown[]; old: unknown[] } {
+function ftseRows(
+  short: string,
+  indexName: string,
+  s: Series,
+  opts: { from?: string; old?: { name: string; indexName: string; until: string; rebase: number } } = {},
+): { current: unknown[]; old: unknown[] } {
   const current: unknown[] = [];
   const old: unknown[] = [];
   let level = 1000;
   const rows = (into: unknown[], name: string, label: string, d: string, v: number): void => {
-    const base = { date: d, short_name: name, index_name: label, index_content: "synthetic", term: null, industry_sector: null, industry_group: null, price_index: Math.round(v * 0.62 * 1000) / 1000, average_yield: 3.9, modified_duration: short === "univ" ? 7.1 : 2.7 };
+    const base = {
+      date: d,
+      short_name: name,
+      index_name: label,
+      index_content: "synthetic",
+      term: null,
+      industry_sector: null,
+      industry_group: null,
+      price_index: Math.round(v * 0.62 * 1000) / 1000,
+      average_yield: 3.9,
+      modified_duration: short === "univ" ? 7.1 : 2.7,
+    };
     into.push({ ...base, rating: null, total_return: Math.round(v * 1e6) / 1e6 });
     into.push({ ...base, rating: "All", term: "Short", total_return: Math.round(v * 1.01 * 1e6) / 1e6 });
     into.push({ ...base, rating: "AAA", total_return: Math.round(v * 0.97 * 1e6) / 1e6 });
@@ -434,8 +842,18 @@ function analyticsPayload(): unknown {
   return {
     funds: [
       { name: "Nymbus Monthly Income", category: "nymbus", start_date: "2019-01-31", end_date: ANALYTICS_LAST },
-      { name: "Nymbus Sustainable Enhanced Bonds", category: "nymbus", start_date: "2019-02-28", end_date: ANALYTICS_LAST },
-      { name: "Nymbus Multistrategy (Inc. discretionary strats history)", category: "nymbus", start_date: "2019-01-31", end_date: ANALYTICS_LAST },
+      {
+        name: "Nymbus Sustainable Enhanced Bonds",
+        category: "nymbus",
+        start_date: "2019-02-28",
+        end_date: ANALYTICS_LAST,
+      },
+      {
+        name: "Nymbus Multistrategy (Inc. discretionary strats history)",
+        category: "nymbus",
+        start_date: "2019-01-31",
+        end_date: ANALYTICS_LAST,
+      },
       { name: "Synthetic Peer ETF", category: "peer", start_date: "2015-01-31", end_date: ANALYTICS_LAST },
     ],
     dates,
@@ -453,17 +871,36 @@ function analyticsPayload(): unknown {
 const r4 = (x: number): number => Math.round(x * 1e4) / 1e4;
 
 /** label -> weight rows that add up to exactly 1 (4 decimals), in the given order, with synthetic counts */
-function rows(parts: [string, number][], order: "desc" | "given" = "desc"): { label: string; weight: number; count: number }[] {
+function rows(
+  parts: [string, number][],
+  order: "desc" | "given" = "desc",
+): { label: string; weight: number; count: number }[] {
   // the cash row keeps its weight (the same in every breakdown); the securities share the rest
   const cash = parts.find(([label]) => label === "Cash")?.[1] ?? 0;
   const total = parts.reduce((a, [label, w]) => a + (label === "Cash" ? 0 : w), 0);
-  const out = parts.map(([label, w], i) => ({ label, weight: label === "Cash" ? cash : r4((w / total) * (1 - cash)), count: label === "Cash" ? 0 : 2 + ((i * 7) % 13) }));
+  const out = parts.map(([label, w], i) => ({
+    label,
+    weight: label === "Cash" ? cash : r4((w / total) * (1 - cash)),
+    count: label === "Cash" ? 0 : 2 + ((i * 7) % 13),
+  }));
   const drift = r4(1 - out.reduce((a, r) => a + r.weight, 0));
   out[out[0].label === "Cash" ? 1 : 0].weight = r4(out[out[0].label === "Cash" ? 1 : 0].weight + drift);
   return order === "desc" ? out.sort((a, b) => b.weight - a.weight) : out;
 }
 
-interface BookSpec { asOf: string; duration: number; ytm: number; coupon: number; maturity: number; rating: string; priced: number; resolved: number; covYtm: number; covMaturity: number; shift: number }
+interface BookSpec {
+  asOf: string;
+  duration: number;
+  ytm: number;
+  coupon: number;
+  maturity: number;
+  rating: string;
+  priced: number;
+  resolved: number;
+  covYtm: number;
+  covMaturity: number;
+  shift: number;
+}
 
 /**
  * Synthetic fund-portfolio books. SEST / SEB: covered (primary source), month-end values consistent with the factsheet
@@ -474,43 +911,188 @@ function portfolioPayload(short: "SEST" | "SEB" | "Multistrat", b: BookSpec): un
   const seb = short === "SEB";
   const k = 1 + b.shift;
   const sector = seb
-    ? rows([["Financials", 0.379 * k], ["Government", 0.29], ["Energy", 0.118], ["Utilities", 0.092], ["Communications", 0.05], ["Real estate", 0.03], ["Cash", 0.041]])
+    ? rows([
+        ["Financials", 0.379 * k],
+        ["Government", 0.29],
+        ["Energy", 0.118],
+        ["Utilities", 0.092],
+        ["Communications", 0.05],
+        ["Real estate", 0.03],
+        ["Cash", 0.041],
+      ])
     : short === "SEST"
-      ? rows([["Financials", 0.383 * k], ["Government", 0.176], ["Energy", 0.118], ["Utilities", 0.093], ["Communications", 0.087], ["Industrials", 0.061], ["Cash", 0.042]])
-      : rows([["Equities", 0.55], ["Government", 0.2], ["Financials", 0.15], ["Cash", 0.1]]);
-  const rating = rows(seb
-    ? [["AAA", 0.214 * k], ["AA", 0.331], ["A", 0.286], ["BBB", 0.121], ["BB", 0.007], ["Not rated", 0.0], ["Cash", 0.041]]
-    : [["AAA", 0.081 * k], ["AA", 0.146], ["A", 0.428], ["BBB", 0.262], ["BB", 0.031], ["Not rated", 0.01], ["Cash", 0.042]], "given").filter((r) => r.weight > 0);
-  const term = rows(seb
-    ? [["0-1", 0.03], ["1-3", 0.211 * k], ["3-5", 0.18], ["5-7", 0.14], ["7-10", 0.126], ["10+", 0.272], ["Cash", 0.041]]
-    : [["0-1", 0.184 * k], ["1-3", 0.579], ["3-5", 0.152], ["5-7", 0.043], ["7-10", 0.0], ["Cash", 0.042]], "given").filter((r) => r.weight > 0);
-  const country = rows([["Canada", 0.914 * k], ["United States", 0.037], ["Other", 0.007], ["Cash", seb ? 0.041 : short === "SEST" ? 0.042 : 0.1]]);
-  const assetType = rows(seb
-    ? [["Federal bonds", 0.228 * k], ["Provincial bonds", 0.297], ["Corporate bonds", 0.413], ["Municipal bonds", 0.021], ["Cash", 0.041]]
-    : [["Corporate bonds", 0.782 * k], ["Provincial bonds", 0.091], ["Federal bonds", 0.064], ["Municipal bonds", 0.021], ["Cash", 0.042]]);
+      ? rows([
+          ["Financials", 0.383 * k],
+          ["Government", 0.176],
+          ["Energy", 0.118],
+          ["Utilities", 0.093],
+          ["Communications", 0.087],
+          ["Industrials", 0.061],
+          ["Cash", 0.042],
+        ])
+      : rows([
+          ["Equities", 0.55],
+          ["Government", 0.2],
+          ["Financials", 0.15],
+          ["Cash", 0.1],
+        ]);
+  const rating = rows(
+    seb
+      ? [
+          ["AAA", 0.214 * k],
+          ["AA", 0.331],
+          ["A", 0.286],
+          ["BBB", 0.121],
+          ["BB", 0.007],
+          ["Not rated", 0.0],
+          ["Cash", 0.041],
+        ]
+      : [
+          ["AAA", 0.081 * k],
+          ["AA", 0.146],
+          ["A", 0.428],
+          ["BBB", 0.262],
+          ["BB", 0.031],
+          ["Not rated", 0.01],
+          ["Cash", 0.042],
+        ],
+    "given",
+  ).filter((r) => r.weight > 0);
+  const term = rows(
+    seb
+      ? [
+          ["0-1", 0.03],
+          ["1-3", 0.211 * k],
+          ["3-5", 0.18],
+          ["5-7", 0.14],
+          ["7-10", 0.126],
+          ["10+", 0.272],
+          ["Cash", 0.041],
+        ]
+      : [
+          ["0-1", 0.184 * k],
+          ["1-3", 0.579],
+          ["3-5", 0.152],
+          ["5-7", 0.043],
+          ["7-10", 0.0],
+          ["Cash", 0.042],
+        ],
+    "given",
+  ).filter((r) => r.weight > 0);
+  const country = rows([
+    ["Canada", 0.914 * k],
+    ["United States", 0.037],
+    ["Other", 0.007],
+    ["Cash", seb ? 0.041 : short === "SEST" ? 0.042 : 0.1],
+  ]);
+  const assetType = rows(
+    seb
+      ? [
+          ["Federal bonds", 0.228 * k],
+          ["Provincial bonds", 0.297],
+          ["Corporate bonds", 0.413],
+          ["Municipal bonds", 0.021],
+          ["Cash", 0.041],
+        ]
+      : [
+          ["Corporate bonds", 0.782 * k],
+          ["Provincial bonds", 0.091],
+          ["Federal bonds", 0.064],
+          ["Municipal bonds", 0.021],
+          ["Cash", 0.042],
+        ],
+  );
   const issuers = seb
-    ? ["Synthetic Province East", "Synthetic Canada Housing", "Synthetic Green Utility", "Synthetic Bank North", "Synthetic Province West", "Synthetic Transit Authority", "Synthetic Hydro", "Synthetic Bank South", "Synthetic Telecom", "Synthetic Pipeline"]
-    : ["Synthetic Bank North", "Synthetic Bank South", "Synthetic Pipeline", "Synthetic Telecom", "Synthetic Province East", "Synthetic Power Co", "Synthetic Insurance", "Synthetic Rail", "Synthetic Grocer", "Synthetic Hydro"];
-  const sectors = seb ? ["Government", "Government", "Utilities", "Financials", "Government", "Government", "Utilities", "Financials", "Communications", "Energy"] : ["Financials", "Financials", "Energy", "Communications", "Government", "Utilities", "Financials", "Industrials", "Consumer staples", "Utilities"];
+    ? [
+        "Synthetic Province East",
+        "Synthetic Canada Housing",
+        "Synthetic Green Utility",
+        "Synthetic Bank North",
+        "Synthetic Province West",
+        "Synthetic Transit Authority",
+        "Synthetic Hydro",
+        "Synthetic Bank South",
+        "Synthetic Telecom",
+        "Synthetic Pipeline",
+      ]
+    : [
+        "Synthetic Bank North",
+        "Synthetic Bank South",
+        "Synthetic Pipeline",
+        "Synthetic Telecom",
+        "Synthetic Province East",
+        "Synthetic Power Co",
+        "Synthetic Insurance",
+        "Synthetic Rail",
+        "Synthetic Grocer",
+        "Synthetic Hydro",
+      ];
+  const sectors = seb
+    ? [
+        "Government",
+        "Government",
+        "Utilities",
+        "Financials",
+        "Government",
+        "Government",
+        "Utilities",
+        "Financials",
+        "Communications",
+        "Energy",
+      ]
+    : [
+        "Financials",
+        "Financials",
+        "Energy",
+        "Communications",
+        "Government",
+        "Utilities",
+        "Financials",
+        "Industrials",
+        "Consumer staples",
+        "Utilities",
+      ];
   const ratings = ["AA", "AAA", "A+", "A", "AA-", "AA", "A", "A-", "BBB+", "BBB"];
   const top = issuers.map((issuer, j) => {
     const coupon = r4(0.021 + ((j * 37) % 29) / 1000);
     const maturity = `${seb ? 2030 + ((j * 3) % 18) : 2027 + (j % 5)}-${String(1 + ((j * 5) % 12)).padStart(2, "0")}-01`;
     return {
-      name: `${issuer} ${(coupon * 100).toFixed(2)}% ${maturity}`, issuer, isin: `XS${String(100000000 + j * 7919 + (seb ? 5 : 0)).padStart(10, "0")}`,
-      weight: r4((seb ? 0.046 : 0.041) - j * 0.0027 + (j === 0 ? b.shift / 10 : 0)), coupon, maturity, rating: ratings[j], sector: sectors[j], green_bond: seb ? j === 2 || j === 5 || j === 6 : false,
+      name: `${issuer} ${(coupon * 100).toFixed(2)}% ${maturity}`,
+      issuer,
+      isin: `XS${String(100000000 + j * 7919 + (seb ? 5 : 0)).padStart(10, "0")}`,
+      weight: r4((seb ? 0.046 : 0.041) - j * 0.0027 + (j === 0 ? b.shift / 10 : 0)),
+      coupon,
+      maturity,
+      rating: ratings[j],
+      sector: sectors[j],
+      green_bond: seb ? j === 2 || j === 5 || j === 6 : false,
     };
   });
   return {
-    fund: short, fund_name: `SYNTHETIC ${short}`, as_of: b.asOf, nav_type: "FINAL_NAV", currency: "CAD",
+    fund: short,
+    fund_name: `SYNTHETIC ${short}`,
+    as_of: b.asOf,
+    nav_type: "FINAL_NAV",
+    currency: "CAD",
     method: {
-      weights: "market_value_cad / net_assets_cad (signed)", denominator: "net_assets_cad",
-      duration: "modified duration, market-value weighted over bond positions with a value, renormalised over covered weight",
-      yield: "yield to maturity, same weighting", coupon: "coupon rate, same weighting",
-      rating: "composite rating, notch-scored AAA=1…D=22", term_buckets: ["0-1", "1-3", "3-5", "5-7", "7-10", "10+"], prices_as_of: "market_data price_as_of(as_of) per instrument",
+      weights: "market_value_cad / net_assets_cad (signed)",
+      denominator: "net_assets_cad",
+      duration:
+        "modified duration, market-value weighted over bond positions with a value, renormalised over covered weight",
+      yield: "yield to maturity, same weighting",
+      coupon: "coupon rate, same weighting",
+      rating: "composite rating, notch-scored AAA=1…D=22",
+      term_buckets: ["0-1", "1-3", "3-5", "5-7", "7-10", "10+"],
+      prices_as_of: "market_data price_as_of(as_of) per instrument",
     },
     net_assets_cad: null,
-    totals: { holdings_count: seb ? 112 : 86, bonds_count: seb ? 110 : 84, cash_weight: seb ? 0.041 : 0.042, derivatives_count: 2, other_weight: 0 },
+    totals: {
+      holdings_count: seb ? 112 : 86,
+      bonds_count: seb ? 110 : 84,
+      cash_weight: seb ? 0.041 : 0.042,
+      derivatives_count: 2,
+      other_weight: 0,
+    },
     characteristics: {
       modified_duration: { value: b.duration, unit: "years", coverage: b.priced },
       yield_to_maturity: { value: b.ytm, unit: "fraction", coverage: b.covYtm },
@@ -528,16 +1110,88 @@ function portfolioPayload(short: "SEST" | "SEB" | "Multistrat", b: BookSpec): un
 
 const BOOKS: Record<"SEST" | "SEB" | "Multistrat", { latest: BookSpec; monthEnd: BookSpec }> = {
   SEST: {
-    latest: { asOf: "2026-09-28", duration: 2.38, ytm: 0.0414, coupon: 0.0398, maturity: 2.71, rating: "A-", priced: 0.97, resolved: 0.99, covYtm: 0.97, covMaturity: 1, shift: 0.01 },
-    monthEnd: { asOf: "2026-08-31", duration: 2.43, ytm: 0.0418, coupon: 0.0401, maturity: 2.78, rating: "A-", priced: 0.98, resolved: 0.99, covYtm: 0.98, covMaturity: 1, shift: 0 },
+    latest: {
+      asOf: "2026-09-28",
+      duration: 2.38,
+      ytm: 0.0414,
+      coupon: 0.0398,
+      maturity: 2.71,
+      rating: "A-",
+      priced: 0.97,
+      resolved: 0.99,
+      covYtm: 0.97,
+      covMaturity: 1,
+      shift: 0.01,
+    },
+    monthEnd: {
+      asOf: "2026-08-31",
+      duration: 2.43,
+      ytm: 0.0418,
+      coupon: 0.0401,
+      maturity: 2.78,
+      rating: "A-",
+      priced: 0.98,
+      resolved: 0.99,
+      covYtm: 0.98,
+      covMaturity: 1,
+      shift: 0,
+    },
   },
   SEB: {
-    latest: { asOf: "2026-09-28", duration: 7.28, ytm: 0.0429, coupon: 0.0362, maturity: 9.84, rating: "AA-", priced: 0.96, resolved: 0.98, covYtm: 0.96, covMaturity: 0.85, shift: 0.012 },
-    monthEnd: { asOf: "2026-08-31", duration: 7.31, ytm: 0.0433, coupon: 0.0364, maturity: 9.9, rating: "AA-", priced: 0.97, resolved: 0.98, covYtm: 0.97, covMaturity: 0.85, shift: 0 },
+    latest: {
+      asOf: "2026-09-28",
+      duration: 7.28,
+      ytm: 0.0429,
+      coupon: 0.0362,
+      maturity: 9.84,
+      rating: "AA-",
+      priced: 0.96,
+      resolved: 0.98,
+      covYtm: 0.96,
+      covMaturity: 0.85,
+      shift: 0.012,
+    },
+    monthEnd: {
+      asOf: "2026-08-31",
+      duration: 7.31,
+      ytm: 0.0433,
+      coupon: 0.0364,
+      maturity: 9.9,
+      rating: "AA-",
+      priced: 0.97,
+      resolved: 0.98,
+      covYtm: 0.97,
+      covMaturity: 0.85,
+      shift: 0,
+    },
   },
   Multistrat: {
-    latest: { asOf: "2026-09-28", duration: 4.1, ytm: 0.0371, coupon: 0.0322, maturity: 5.2, rating: "AA", priced: 0.62, resolved: 0.81, covYtm: 0.62, covMaturity: 0.62, shift: 0 },
-    monthEnd: { asOf: "2026-08-31", duration: 4.2, ytm: 0.0375, coupon: 0.0322, maturity: 5.3, rating: "AA", priced: 0.6, resolved: 0.8, covYtm: 0.6, covMaturity: 0.6, shift: 0 },
+    latest: {
+      asOf: "2026-09-28",
+      duration: 4.1,
+      ytm: 0.0371,
+      coupon: 0.0322,
+      maturity: 5.2,
+      rating: "AA",
+      priced: 0.62,
+      resolved: 0.81,
+      covYtm: 0.62,
+      covMaturity: 0.62,
+      shift: 0,
+    },
+    monthEnd: {
+      asOf: "2026-08-31",
+      duration: 4.2,
+      ytm: 0.0375,
+      coupon: 0.0322,
+      maturity: 5.3,
+      rating: "AA",
+      priced: 0.6,
+      resolved: 0.8,
+      covYtm: 0.6,
+      covMaturity: 0.6,
+      shift: 0,
+    },
   },
 };
 
@@ -558,25 +1212,64 @@ function lastWeekday(monthEndDate: string): string {
 function distributionsPayload(short: "SEST" | "SEB" | "Multistrat"): unknown {
   const endDate = FIXTURE_NOW.slice(0, 10);
   const base: Record<string, number> = {
-    LDM001: 0.0415, LDM011: 0.041, LDM021: 0.035, LDM031: 0.039, LDM061: 0.0412, LDM081: 0.04, LDM091: 0.038,
-    LDM201: 0.072, LDM202: 0.07, LDM203: 0.073, LDM204: 0.0728, LDM205: 0.063, LDM206: 0.074,
-    LDM300: 0.21, LDM301: 0.25, LDM303: 0.255, LDM304: 0.253, LDM305: 0.26,
+    LDM001: 0.0415,
+    LDM011: 0.041,
+    LDM021: 0.035,
+    LDM031: 0.039,
+    LDM061: 0.0412,
+    LDM081: 0.04,
+    LDM091: 0.038,
+    LDM201: 0.072,
+    LDM202: 0.07,
+    LDM203: 0.073,
+    LDM204: 0.0728,
+    LDM205: 0.063,
+    LDM206: 0.074,
+    LDM300: 0.21,
+    LDM301: 0.25,
+    LDM303: 0.255,
+    LDM304: 0.253,
+    LDM305: 0.26,
   };
   const freq = short === "SEST" ? 1 : short === "SEB" ? 3 : 12;
-  const rowsOut: { date: string; fundserv: string; class_display: string; currency: string; amount_per_unit: number; source: string }[] = [];
+  const rowsOut: {
+    date: string;
+    fundserv: string;
+    class_display: string;
+    currency: string;
+    amount_per_unit: number;
+    source: string;
+  }[] = [];
   for (const k of CLASSES[short]) {
     const first = short === "SEB" ? "2019-03-31" : "2019-01-31";
     for (const m of months(first, LAST_MONTH)) {
-      if ((+m.slice(5, 7)) % freq !== 0) continue;
+      if (+m.slice(5, 7) % freq !== 0) continue;
       if (k.fundserv === "LDM091" && m > "2021-06-30") continue;
       if (short === "Multistrat" && m.startsWith("2022")) continue; // a year without distribution
       const i = +m.slice(0, 4) - 2019;
-      const amount = r6(base[k.fundserv] * (1 + 0.012 * i) + (short === "Multistrat" ? 0 : 0.0004 * Math.sin(+m.slice(5, 7))));
+      const amount = r6(
+        base[k.fundserv] * (1 + 0.012 * i) + (short === "Multistrat" ? 0 : 0.0004 * Math.sin(+m.slice(5, 7))),
+      );
       const date = lastWeekday(m);
-      rowsOut.push({ date, fundserv: k.fundserv, class_display: k.display, currency: k.currency, amount_per_unit: amount, source: date > "2026-07-05" ? "apex" : "cibc" });
+      rowsOut.push({
+        date,
+        fundserv: k.fundserv,
+        class_display: k.display,
+        currency: k.currency,
+        amount_per_unit: amount,
+        source: date > "2026-07-05" ? "apex" : "cibc",
+      });
     }
   }
-  if (short === "SEST") rowsOut.push({ date: "2026-09-28", fundserv: "LDM021", class_display: "A", currency: "CAD", amount_per_unit: 0.04, source: "apex" });
+  if (short === "SEST")
+    rowsOut.push({
+      date: "2026-09-28",
+      fundserv: "LDM021",
+      class_display: "A",
+      currency: "CAD",
+      amount_per_unit: 0.04,
+      source: "apex",
+    });
   rowsOut.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.fundserv.localeCompare(b.fundserv)));
   const yearAgo = `${+endDate.slice(0, 4) - 1}${endDate.slice(4)}`;
   const classes = CLASSES[short].map((k) => {
@@ -587,16 +1280,28 @@ function distributionsPayload(short: "SEST" | "SEB" | "Multistrat"): unknown {
       return { year, per_unit: r6(ys.reduce((a, r) => a + r.amount_per_unit, 0)), count: ys.length };
     });
     return {
-      fundserv: k.fundserv, class_display: k.display, currency: k.currency, frequency_observed: short === "SEST" ? "monthly" : short === "SEB" ? "quarterly" : "annual",
-      last_date: last?.date ?? null, last_amount_per_unit: last?.amount_per_unit ?? null,
-      trailing_12m_per_unit: r6(own.filter((r) => r.date > yearAgo && r.date <= endDate).reduce((a, r) => a + r.amount_per_unit, 0)),
+      fundserv: k.fundserv,
+      class_display: k.display,
+      currency: k.currency,
+      frequency_observed: short === "SEST" ? "monthly" : short === "SEB" ? "quarterly" : "annual",
+      last_date: last?.date ?? null,
+      last_amount_per_unit: last?.amount_per_unit ?? null,
+      trailing_12m_per_unit: r6(
+        own.filter((r) => r.date > yearAgo && r.date <= endDate).reduce((a, r) => a + r.amount_per_unit, 0),
+      ),
       calendar_years: years,
     };
   });
   return {
-    short_name: short, start_date: "2019-01-01", end_date: endDate,
-    method: "SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution",
-    rows: rowsOut, classes, row_count: rowsOut.length, warnings: [],
+    short_name: short,
+    start_date: "2019-01-01",
+    end_date: endDate,
+    method:
+      "SYNTHETIC per unit: Apex era valuation.distribution / shares_outstanding; CIBC era funds_nav_ts.distribution",
+    rows: rowsOut,
+    classes,
+    row_count: rowsOut.length,
+    warnings: [],
   };
 }
 
@@ -616,16 +1321,32 @@ function bondBlock(kind: "SEST" | "SEB"): unknown {
   const iAligned: Series = {};
   for (const k of Object.keys(i)) if (k >= first) iAligned[k] = i[k];
   void iAligned;
-  const trailingNet = { [name]: trailingStrings(f, "compounded", true), [idx]: indexTrailingStrings(f, i), "Value Added": vaStrings(f, i) };
+  const trailingNet = {
+    [name]: trailingStrings(f, "compounded", true),
+    [idx]: indexTrailingStrings(f, i),
+    "Value Added": vaStrings(f, i),
+  };
   const short = kind === "SEST";
   return {
     Characteristics: {
       "Credit Quality": { Fund: short ? "A" : "A+", Index: short ? "A" : "AA", "+/-": "nan" },
       Duration: { Fund: short ? "2.41" : "7.35", Index: short ? "2.68" : "7.12", "+/-": short ? "-0.27" : "+0.23" },
-      "Number of Securities": { Fund: short ? "86" : "112", Index: short ? "742" : "1784", "+/-": short ? "-656" : "-1672" },
-      "Portfolio Yield": { Fund: short ? "4.21%" : "4.37%", Index: short ? "3.48%" : "3.91%", "+/-": short ? "+0.73%" : "+0.46%" },
+      "Number of Securities": {
+        Fund: short ? "86" : "112",
+        Index: short ? "742" : "1784",
+        "+/-": short ? "-656" : "-1672",
+      },
+      "Portfolio Yield": {
+        Fund: short ? "4.21%" : "4.37%",
+        Index: short ? "3.48%" : "3.91%",
+        "+/-": short ? "+0.73%" : "+0.46%",
+      },
       "Probability of Defaults (5Y)": { Fund: "0.62%", Index: "0.48%", "+/-": "+0.14%" },
-      "% of Portfolio Rated Investment Grade": { Fund: short ? "93%" : "97%", Index: "100%", "+/-": short ? "-7%" : "-3%" },
+      "% of Portfolio Rated Investment Grade": {
+        Fund: short ? "93%" : "97%",
+        Index: "100%",
+        "+/-": short ? "-7%" : "-3%",
+      },
       "Current Yield": { Fund: short ? "4.02%" : "3.88%", Index: short ? "3.31%" : "3.52%", "+/-": "+0.71%" },
     },
     "ESG Metrics": {
@@ -641,14 +1362,78 @@ function bondBlock(kind: "SEST" | "SEB"): unknown {
     "Trailing Returns Net": trailingNet,
     "Portfolio Snapshot": {
       Curve: short
-        ? { Nymbus: { "Money Market (0-1 yr)": "18.4%", "Ultra Short-Term (1-3 yrs)": "57.9%", "Short-Term (>3 yrs)": "23.7%" }, Index: { "Money Market (0-1 yr)": "0.0%", "Ultra Short-Term (1-3 yrs)": "61.3%", "Short-Term (>3 yrs)": "38.7%" }, "Nymbus vs Index": {} }
-        : { Nymbus: { "Short-Term (1-3 yrs)": "24.1%", "Mid-Term (3-10 yrs)": "44.6%", "Long-Term (>10 yrs)": "31.3%" }, Index: { "Short-Term (1-3 yrs)": "26.9%", "Mid-Term (3-10 yrs)": "40.2%", "Long-Term (>10 yrs)": "32.9%" }, "Nymbus vs Index": {} },
-      Sectors: { Nymbus: { Corporate: short ? "78.2%" : "41.3%", Provincial: short ? "9.1%" : "29.7%", Federal: short ? "6.4%" : "22.8%", Municipal: "2.1%", Cash: short ? "4.2%" : "4.1%" }, Index: { Corporate: short ? "100.0%" : "27.9%", Provincial: short ? "0.0%" : "34.8%", Federal: short ? "0.0%" : "35.6%", Municipal: short ? "0.0%" : "1.7%" }, "Nymbus vs Index": {} },
-      Country: { Nymbus: { Canada: "91.4%", "United States": "6.2%", Other: "2.4%" }, Index: { Canada: "100.0%" }, "Nymbus vs Index": {} },
-      Industry: { Nymbus: { Financial: "38.2%", Energy: "12.1%", Utilities: "9.4%", Communications: "8.8%", Other: "31.5%" }, Index: { Financial: "41.0%", Energy: "10.2%", Utilities: "8.1%", Communications: "7.5%", Other: "33.2%" }, "Nymbus vs Index": {} },
-      "Credit Ratings": { Nymbus: { AAA: short ? "8.1%" : "21.4%", AA: short ? "14.6%" : "33.2%", A: short ? "42.8%" : "28.6%", BBB: short ? "27.5%" : "13.8%", "BB & below": short ? "7.0%" : "3.0%", NR: "nan" }, Index: { AAA: short ? "3.2%" : "36.1%", AA: short ? "16.8%" : "31.4%", A: short ? "41.9%" : "20.3%", BBB: short ? "38.1%" : "12.2%", "BB & below": "0.0%" }, "Nymbus vs Index": {} },
+        ? {
+            Nymbus: {
+              "Money Market (0-1 yr)": "18.4%",
+              "Ultra Short-Term (1-3 yrs)": "57.9%",
+              "Short-Term (>3 yrs)": "23.7%",
+            },
+            Index: {
+              "Money Market (0-1 yr)": "0.0%",
+              "Ultra Short-Term (1-3 yrs)": "61.3%",
+              "Short-Term (>3 yrs)": "38.7%",
+            },
+            "Nymbus vs Index": {},
+          }
+        : {
+            Nymbus: { "Short-Term (1-3 yrs)": "24.1%", "Mid-Term (3-10 yrs)": "44.6%", "Long-Term (>10 yrs)": "31.3%" },
+            Index: { "Short-Term (1-3 yrs)": "26.9%", "Mid-Term (3-10 yrs)": "40.2%", "Long-Term (>10 yrs)": "32.9%" },
+            "Nymbus vs Index": {},
+          },
+      Sectors: {
+        Nymbus: {
+          Corporate: short ? "78.2%" : "41.3%",
+          Provincial: short ? "9.1%" : "29.7%",
+          Federal: short ? "6.4%" : "22.8%",
+          Municipal: "2.1%",
+          Cash: short ? "4.2%" : "4.1%",
+        },
+        Index: {
+          Corporate: short ? "100.0%" : "27.9%",
+          Provincial: short ? "0.0%" : "34.8%",
+          Federal: short ? "0.0%" : "35.6%",
+          Municipal: short ? "0.0%" : "1.7%",
+        },
+        "Nymbus vs Index": {},
+      },
+      Country: {
+        Nymbus: { Canada: "91.4%", "United States": "6.2%", Other: "2.4%" },
+        Index: { Canada: "100.0%" },
+        "Nymbus vs Index": {},
+      },
+      Industry: {
+        Nymbus: { Financial: "38.2%", Energy: "12.1%", Utilities: "9.4%", Communications: "8.8%", Other: "31.5%" },
+        Index: { Financial: "41.0%", Energy: "10.2%", Utilities: "8.1%", Communications: "7.5%", Other: "33.2%" },
+        "Nymbus vs Index": {},
+      },
+      "Credit Ratings": {
+        Nymbus: {
+          AAA: short ? "8.1%" : "21.4%",
+          AA: short ? "14.6%" : "33.2%",
+          A: short ? "42.8%" : "28.6%",
+          BBB: short ? "27.5%" : "13.8%",
+          "BB & below": short ? "7.0%" : "3.0%",
+          NR: "nan",
+        },
+        Index: {
+          AAA: short ? "3.2%" : "36.1%",
+          AA: short ? "16.8%" : "31.4%",
+          A: short ? "41.9%" : "20.3%",
+          BBB: short ? "38.1%" : "12.2%",
+          "BB & below": "0.0%",
+        },
+        "Nymbus vs Index": {},
+      },
       "Top 10 Holdings": {
-        Nymbus: Object.fromEntries(Array.from({ length: 10 }, (_, j) => [String(j + 1), { Name: `Synthetic Issuer ${String.fromCharCode(65 + j)} ${short ? "3.1" : "4.2"}% 20${28 + (j % 7)}`, "Market Value %": `${(4.9 - j * 0.31).toFixed(1)}%` }])),
+        Nymbus: Object.fromEntries(
+          Array.from({ length: 10 }, (_, j) => [
+            String(j + 1),
+            {
+              Name: `Synthetic Issuer ${String.fromCharCode(65 + j)} ${short ? "3.1" : "4.2"}% 20${28 + (j % 7)}`,
+              "Market Value %": `${(4.9 - j * 0.31).toFixed(1)}%`,
+            },
+          ]),
+        ),
         Index: {},
       },
     },
@@ -661,10 +1446,21 @@ function multiBlock(): unknown {
   const multi = upTo(multiAll, END);
   const trailingNet = trailingStrings(multi, "compounded", false);
   return {
-    "Calendar Performance Gross": Object.fromEntries(calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value! + 0.012)])),
-    "Trailing Returns Gross": trailingStrings(Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])), "compounded", false),
-    "Monthly Returns Gross": monthlyTable(Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])), "compounded"),
-    "Calendar Performance Net": Object.fromEntries(calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value)])),
+    "Calendar Performance Gross": Object.fromEntries(
+      calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value! + 0.012)]),
+    ),
+    "Trailing Returns Gross": trailingStrings(
+      Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])),
+      "compounded",
+      false,
+    ),
+    "Monthly Returns Gross": monthlyTable(
+      Object.fromEntries(Object.entries(multi).map(([k, v]) => [k, v + 0.001])),
+      "compounded",
+    ),
+    "Calendar Performance Net": Object.fromEntries(
+      calendarYears(multi, END).map((y) => [String(y.year), numStr(y.value)]),
+    ),
     "Trailing Returns Net": trailingNet,
     "Monthly Returns Net": monthlyTable(multi, "compounded"),
     "Portfolio Snapshot": {
@@ -672,17 +1468,44 @@ function multiBlock(): unknown {
       "Statistics Gross 3Y": statistics(multi, "compounded", 36),
       "Statistics Net": statistics(multi, "compounded"),
       "Statistics Net 3Y": statistics(multi, "compounded", 36),
-      "Top 10 Holdings": Object.fromEntries(Array.from({ length: 10 }, (_, j) => [String(j + 1), { Name: j === 0 ? "Cash" : `Synthetic Equity ${String.fromCharCode(65 + j)} Inc`, "Market Value %": Math.round((9.8 - j * 0.7) * 10) / 10 }])),
+      "Top 10 Holdings": Object.fromEntries(
+        Array.from({ length: 10 }, (_, j) => [
+          String(j + 1),
+          {
+            Name: j === 0 ? "Cash" : `Synthetic Equity ${String.fromCharCode(65 + j)} Inc`,
+            "Market Value %": Math.round((9.8 - j * 0.7) * 10) / 10,
+          },
+        ]),
+      ),
       "Top 10 Futures": {},
-      "Equity Sectors Allocation": { "Information Technology": "18.2%", Financials: "15.6%", "Health Care": "11.4%", Industrials: "10.9%", "Consumer Staples": "8.1%", Other: "12.3%" },
-      "Equity Country Allocation": { "United States": "48.7%", Canada: "21.9%", Japan: "6.2%", "United Kingdom": "4.8%", Other: "5.1%" },
+      "Equity Sectors Allocation": {
+        "Information Technology": "18.2%",
+        Financials: "15.6%",
+        "Health Care": "11.4%",
+        Industrials: "10.9%",
+        "Consumer Staples": "8.1%",
+        Other: "12.3%",
+      },
+      "Equity Country Allocation": {
+        "United States": "48.7%",
+        Canada: "21.9%",
+        Japan: "6.2%",
+        "United Kingdom": "4.8%",
+        Other: "5.1%",
+      },
       "Systematic Strategies Allocation": {
         "2026-06-01": { EQUITIES: "41.25%", BONDS: "28.50%", CURRENCIES: "18.75%", COMMODITIES: "11.50%" },
         "2026-07-06": { EQUITIES: "39.75%", BONDS: "30.25%", CURRENCIES: "17.50%", COMMODITIES: "12.50%" },
         "2026-08-03": { EQUITIES: "40.50%", BONDS: "29.25%", CURRENCIES: "19.00%", COMMODITIES: "11.25%" },
       },
     },
-    Characteristics: { "Dividend Yield": "2.14%", "Price/Earnings Ratio": "17.83", "Number of Equity Holdings": "54", "Number of Holdings": "71", "Largest Equity Sector Exposure": "18%" },
+    Characteristics: {
+      "Dividend Yield": "2.14%",
+      "Price/Earnings Ratio": "17.83",
+      "Number of Equity Holdings": "54",
+      "Number of Holdings": "71",
+      "Largest Equity Sector Exposure": "18%",
+    },
   };
 }
 
@@ -690,14 +1513,21 @@ function gmvBlock(scale = 1): unknown {
   const gmv: Series = Object.fromEntries(Object.entries(upTo(gmvAll, END)).map(([m, r]) => [m, r8(r * scale)]));
   const t = trailingStrings(gmv, "arithmetic", false);
   return {
-    "Calendar Performance Gross": Object.fromEntries(calendarYears(gmv, END, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)])),
+    "Calendar Performance Gross": Object.fromEntries(
+      calendarYears(gmv, END, { method: "arithmetic" }).map((y) => [String(y.year), numStr(y.value)]),
+    ),
     "Trailing Returns Gross": t,
     "Value of $10M Investment Gross": {},
     "Monthly Returns Gross": monthlyTable(gmv, "arithmetic"),
     "Portfolio Snapshot": {
       "Statistics Gross": statistics(gmv, "arithmetic"),
       "Statistics Gross 3Y": statistics(gmv, "arithmetic", 36),
-      "Top 10 Futures": Object.fromEntries(Array.from({ length: 8 }, (_, j) => [String(j + 1), { Name: `Synthetic Future ${j + 1}`, "Instrument Exposure %": `${(12.5 - j * 1.2).toFixed(1)}%` }])),
+      "Top 10 Futures": Object.fromEntries(
+        Array.from({ length: 8 }, (_, j) => [
+          String(j + 1),
+          { Name: `Synthetic Future ${j + 1}`, "Instrument Exposure %": `${(12.5 - j * 1.2).toFixed(1)}%` },
+        ]),
+      ),
       "Systematic Strategies Allocation": {
         "2026-06-01": { EQUITIES: "35.00%", BONDS: "32.00%", CURRENCIES: "21.00%", COMMODITIES: "12.00%" },
         "2026-07-06": { EQUITIES: "33.00%", BONDS: "34.00%", CURRENCIES: "20.00%", COMMODITIES: "13.00%" },
@@ -725,7 +1555,8 @@ export function generate(dir = HERE): void {
   const fs = path.join(dir, "factsheets");
   mkdirSync(dp, { recursive: true });
   mkdirSync(fs, { recursive: true });
-  for (const f of ["ftse_short_overall.json", "mnr_SEB_STRATEGY_full.json", "ftse_ftse_tmx_canada_univ.json"]) rmSync(path.join(dp, f), { force: true });
+  for (const f of ["ftse_short_overall.json", "mnr_SEB_STRATEGY_full.json", "ftse_ftse_tmx_canada_univ.json"])
+    rmSync(path.join(dp, f), { force: true });
   const w = (p: string, v: unknown): void => writeFileSync(p, JSON.stringify(v, null, 1) + "\n");
   w(path.join(dp, "mnr_SEST.json"), mnr("SEST", sest, "2019-01-31"));
   w(path.join(dp, "mnr_SEB.json"), mnr("SEB", seb, "2019-02-28"));
@@ -736,25 +1567,50 @@ export function generate(dir = HERE): void {
   w(path.join(dp, "unitholders_funds.json"), unitholderFunds);
   w(path.join(dp, "aum.json"), aum);
   w(path.join(dp, "ftse_short_names.json"), FTSE_SHORT_NAMES);
-  w(path.join(dp, "ftse_short_corp.json"), ftseRows("short_corp", "FTSE Canada Short Term Corporate Bond Index (synthetic)", ftseShortCorp, { from: "2024-12-02" }).current);
-  const univ = ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", ftseUniv, { from: "2024-11-25", old: { name: "univ_overall", indexName: "FTSE Canada Universe Overall Bond Index (synthetic)", until: "2024-12-06", rebase: 0.87 } });
+  w(
+    path.join(dp, "ftse_short_corp.json"),
+    ftseRows("short_corp", "FTSE Canada Short Term Corporate Bond Index (synthetic)", ftseShortCorp, {
+      from: "2024-12-02",
+    }).current,
+  );
+  const univ = ftseRows("univ", "FTSE Canada Universe Bond Index (synthetic)", ftseUniv, {
+    from: "2024-11-25",
+    old: {
+      name: "univ_overall",
+      indexName: "FTSE Canada Universe Overall Bond Index (synthetic)",
+      until: "2024-12-06",
+      rebase: 0.87,
+    },
+  });
   w(path.join(dp, "ftse_univ.json"), univ.current);
   w(path.join(dp, "ftse_univ_overall.json"), univ.old);
   w(path.join(dir, "analytics_fund_returns.json"), analyticsPayload());
   // one instrument per line
   const inst = instrumentsPayload();
-  writeFileSync(path.join(dp, "instruments.json"), `{"details": [\n${inst.details.map((x) => JSON.stringify(x)).join(",\n")}\n], "universe": [\n${inst.universe.map((x) => JSON.stringify(x)).join(",\n")}\n]}\n`);
+  writeFileSync(
+    path.join(dp, "instruments.json"),
+    `{"details": [\n${inst.details.map((x) => JSON.stringify(x)).join(",\n")}\n], "universe": [\n${inst.universe.map((x) => JSON.stringify(x)).join(",\n")}\n]}\n`,
+  );
   for (const short of ["SEST", "SEB", "Multistrat"] as const) {
     w(path.join(dp, `portfolio_${short}.json`), portfolioPayload(short, BOOKS[short].latest));
-    w(path.join(dp, `portfolio_${short}_${BOOKS[short].monthEnd.asOf}.json`), portfolioPayload(short, BOOKS[short].monthEnd));
+    w(
+      path.join(dp, `portfolio_${short}_${BOOKS[short].monthEnd.asOf}.json`),
+      portfolioPayload(short, BOOKS[short].monthEnd),
+    );
     w(path.join(dp, `distributions_${short}.json`), distributionsPayload(short));
-    for (const d of ["2026-09-28", "2026-08-31"]) w(path.join(dp, `holdings_${short}_${d}.json`), holdingsPayload(short, d));
+    for (const d of ["2026-09-28", "2026-08-31"])
+      w(path.join(dp, `holdings_${short}_${d}.json`), holdingsPayload(short, d));
   }
   for (const end of ["2026-07-31", LAST_MONTH]) {
     END = end;
     const ymd = end.slice(0, 7);
     w(path.join(fs, `bonds_data_${ymd}.json`), { SEST: bondBlock("SEST"), "QCFI-SEB": bondBlock("SEB") });
-    w(path.join(fs, `factsheet_data_${ymd}.json`), { Multistrategy: multiBlock(), GMV_6pct: gmvBlock(), GMV_3pct: gmvBlock(0.5), GMV_9pct: gmvBlock(1.5) });
+    w(path.join(fs, `factsheet_data_${ymd}.json`), {
+      Multistrategy: multiBlock(),
+      GMV_6pct: gmvBlock(),
+      GMV_3pct: gmvBlock(0.5),
+      GMV_9pct: gmvBlock(1.5),
+    });
   }
   END = LAST_MONTH;
 }

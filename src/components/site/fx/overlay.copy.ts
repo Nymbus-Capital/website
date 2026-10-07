@@ -47,8 +47,23 @@ export const OVERLAY_COPY = {
     `Stratégies de nos fonds; valeurs générées, ni positions ni résultats réels. Les lignes de marché ne sont pas un indice. Faible corrélation en mois de baisse : un objectif, pas une garantie. Les superpositions et les stratégies peuvent subir des pertes. ${OVERLAY_EXPOSURE.fr}`,
   ),
   trio: [
-    { title: l("Protective overlay", "Superposition protectrice"), text: l("Futures designed to offset part of bond losses. They may not.", "Des contrats à terme conçus pour compenser une partie des pertes obligataires. Ils peuvent ne pas y parvenir.") },
-    { title: l("Distinct engines", "Moteurs distincts"), text: l("Each engine seeks a different source of return.", "Chaque moteur cherche une source de rendement différente.") },
-    { title: l("Down months first", "Les mois de baisse d’abord"), text: l("Diversification is judged when markets fall.", "La diversification se juge quand les marchés baissent.") },
+    {
+      title: l("Protective overlay", "Superposition protectrice"),
+      text: l(
+        "Futures designed to offset part of bond losses. They may not.",
+        "Des contrats à terme conçus pour compenser une partie des pertes obligataires. Ils peuvent ne pas y parvenir.",
+      ),
+    },
+    {
+      title: l("Distinct engines", "Moteurs distincts"),
+      text: l(
+        "Each engine seeks a different source of return.",
+        "Chaque moteur cherche une source de rendement différente.",
+      ),
+    },
+    {
+      title: l("Down months first", "Les mois de baisse d’abord"),
+      text: l("Diversification is judged when markets fall.", "La diversification se juge quand les marchés baissent."),
+    },
   ] as { title: L; text: L }[],
 };

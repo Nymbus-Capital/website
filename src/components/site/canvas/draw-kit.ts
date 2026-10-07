@@ -9,10 +9,20 @@ import { fitText } from "../fx/scan-model.ts";
 export const SANS = `"Poppins", ui-sans-serif, system-ui, sans-serif`;
 
 export const COL = {
-  ink: "#1f1f1f", ink2: "#444746", mute: "#5f6368",
-  blue: "#1a73e8", blueD: "#0b57d0", cyan: "#00a3e0", sky: "#4fd1ff",
-  teal: "#0f9d8a", violet: "#6d5bd0", orange: "#c2410c", amber: "#e37400",
-  slate: "#8a94a6", slateL: "#c9d2e0", line: "rgba(95,99,104,.16)",
+  ink: "#1f1f1f",
+  ink2: "#444746",
+  mute: "#5f6368",
+  blue: "#1a73e8",
+  blueD: "#0b57d0",
+  cyan: "#00a3e0",
+  sky: "#4fd1ff",
+  teal: "#0f9d8a",
+  violet: "#6d5bd0",
+  orange: "#c2410c",
+  amber: "#e37400",
+  slate: "#8a94a6",
+  slateL: "#c9d2e0",
+  line: "rgba(95,99,104,.16)",
 };
 
 export const rgba = (hex: string, a: number): string => {
@@ -47,7 +57,9 @@ export function makePen(ctx: CanvasRenderingContext2D): Pen {
     return v;
   };
   return {
-    font(weight, size) { ctx.font = `${weight} ${size}px ${SANS}`; },
+    font(weight, size) {
+      ctx.font = `${weight} ${size}px ${SANS}`;
+    },
     fit(s, maxW, weight, size, min = 8) {
       let z = size;
       ctx.font = `${weight} ${z}px ${SANS}`;
@@ -69,15 +81,20 @@ export function makePen(ctx: CanvasRenderingContext2D): Pen {
     round(x, y, w, h, r) {
       ctx.beginPath();
       const rr = Math.max(0, Math.min(r, w / 2, h / 2));
-      if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, Math.max(0, w), Math.max(0, h), rr); else ctx.rect(x, y, Math.max(0, w), Math.max(0, h));
+      if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, Math.max(0, w), Math.max(0, h), rr);
+      else ctx.rect(x, y, Math.max(0, w), Math.max(0, h));
     },
     glowDot(x, y, r, color, k = 1) {
       for (let h = 0; h < 3; h++) {
         ctx.fillStyle = rgba(color, (0.1 + h * 0.1) * k);
-        ctx.beginPath(); ctx.arc(x, y, r * (3.2 - h * 0.9), 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x, y, r * (3.2 - h * 0.9), 0, Math.PI * 2);
+        ctx.fill();
       }
       ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
     },
     watermark(mark, W, H, pad) {
       ctx.font = `600 10.5px ${SANS}`;
@@ -88,7 +105,9 @@ export function makePen(ctx: CanvasRenderingContext2D): Pen {
       ctx.fillText(s, pad, H - 13);
       return measure(s);
     },
-    reset() { widths = new Map(); },
+    reset() {
+      widths = new Map();
+    },
   };
 }
 
@@ -96,10 +115,14 @@ export function makePen(ctx: CanvasRenderingContext2D): Pen {
 export function splitLabel(s: string): [string, string] | null {
   const parts = s.split(" ");
   if (parts.length < 2) return null;
-  let best = 1, diff = Infinity;
+  let best = 1,
+    diff = Infinity;
   for (let k = 1; k < parts.length; k++) {
     const d = Math.abs(parts.slice(0, k).join(" ").length - parts.slice(k).join(" ").length);
-    if (d < diff) { diff = d; best = k; }
+    if (d < diff) {
+      diff = d;
+      best = k;
+    }
   }
   return [parts.slice(0, best).join(" "), parts.slice(best).join(" ")];
 }

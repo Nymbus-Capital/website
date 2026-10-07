@@ -11,7 +11,9 @@ export function startInquiryRetention(log: (m: string) => void = (m) => console.
   if (G.__nymbusInquiryRetention) return;
   const tick = (): void => {
     purgeExpiredInquiries().then(
-      (n) => { if (n) log(`deleted ${n} expired inquir${n === 1 ? "y" : "ies"}`); },
+      (n) => {
+        if (n) log(`deleted ${n} expired inquir${n === 1 ? "y" : "ies"}`);
+      },
       (e: unknown) => log(`retention purge failed: ${(e as Error)?.message ?? e}`),
     );
   };

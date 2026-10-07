@@ -12,5 +12,9 @@ export const metadata: Metadata = { title: "404", robots: { index: false } };
 
 export default async function NotFound() {
   const locale = await getLocale();
-  return <SiteShell locale={locale}><NotFoundScreen /></SiteShell>;
+  return (
+    <SiteShell locale={locale}>
+      <NotFoundScreen />
+    </SiteShell>
+  );
 }

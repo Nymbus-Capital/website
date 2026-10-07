@@ -15,7 +15,9 @@ const text = (max: number) => z.string().trim().max(max);
  * French page never silently shows English (or an empty string) for an admin override.
  */
 export const l10n = (max: number) =>
-  z.strictObject({ en: text(max), fr: text(max) }).refine(bothOrNeither, "both EN and FR are required (or leave both empty)");
+  z
+    .strictObject({ en: text(max), fr: text(max) })
+    .refine(bothOrNeither, "both EN and FR are required (or leave both empty)");
 
 /** ISO date YYYY-MM-DD that is a real calendar date. */
 export const isoDate = z
@@ -32,22 +34,35 @@ export const runIdSchema = z.string().regex(/^[0-9A-Za-z][0-9A-Za-z-]{0,79}$/, "
 export { HIDE_BLOCKS };
 const RISK_RATINGS = ["low", "low-medium", "medium", "medium-high", "high"] as const;
 
-const httpsUrl = z.string().trim().max(300).regex(/^https:\/\/[^\s]+$/, "expected an https:// address");
-const fundservCode = z.string().trim().regex(/^[A-Za-z0-9]{0,12}$/, "invalid FundServ code");
+const httpsUrl = z
+  .string()
+  .trim()
+  .max(300)
+  .regex(/^https:\/\/[^\s]+$/, "expected an https:// address");
+const fundservCode = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9]{0,12}$/, "invalid FundServ code");
 
-const rankingRowSchema = z.strictObject({
-  period: z.enum(RANKING_PERIODS),
-  rank: z.number().int().min(1).max(5000),
-  of: z.number().int().min(1).max(5000),
-  quartile: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).nullable(),
-}).refine((r) => r.rank <= r.of, "rank cannot exceed the number of funds");
+const rankingRowSchema = z
+  .strictObject({
+    period: z.enum(RANKING_PERIODS),
+    rank: z.number().int().min(1).max(5000),
+    of: z.number().int().min(1).max(5000),
+    quartile: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).nullable(),
+  })
+  .refine((r) => r.rank <= r.of, "rank cannot exceed the number of funds");
 
 const fundLibraryRankingSchema = z.strictObject({
   classLabel: text(40).min(1),
   fundserv: fundservCode.optional(),
   category: l10n(120).refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required"),
   asOf: isoDate,
-  fundGrade: z.string().trim().regex(/^[A-E]$/, "A to E").optional(),
+  fundGrade: z
+    .string()
+    .trim()
+    .regex(/^[A-E]$/, "A to E")
+    .optional(),
   rows: z.array(rankingRowSchema).max(RANKING_PERIODS.length),
   url: httpsUrl.optional(),
 });
@@ -56,18 +71,22 @@ const morningstarSchema = z.strictObject({
   stars: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   asOf: isoDate,
   classLabel: text(40).min(1),
-  category: l10n(120).refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required").optional(),
+  category: l10n(120)
+    .refine((t) => t.en.length > 0 && t.fr.length > 0, "category (EN and FR) is required")
+    .optional(),
   fundsInCategory: z.number().int().min(1).max(100_000).optional(),
   url: httpsUrl.optional(),
 });
 
-const percentileRowSchema = z.strictObject({
-  period: z.enum(RANKING_PERIODS),
-  percentile: z.number().int().min(1).max(100).nullable(),
-  rank: z.number().int().min(1).max(100_000).nullable().optional(),
-  of: z.number().int().min(1).max(100_000).nullable().optional(),
-  ror: z.number().min(-100).max(1000).nullable().optional(),
-}).refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
+const percentileRowSchema = z
+  .strictObject({
+    period: z.enum(RANKING_PERIODS),
+    percentile: z.number().int().min(1).max(100).nullable(),
+    rank: z.number().int().min(1).max(100_000).nullable().optional(),
+    of: z.number().int().min(1).max(100_000).nullable().optional(),
+    ror: z.number().min(-100).max(1000).nullable().optional(),
+  })
+  .refine((r) => r.rank == null || r.of == null || r.rank <= r.of, "rank cannot exceed the number of funds");
 
 const rollingRowSchema = z.strictObject({
   end: isoDate,
@@ -81,34 +100,61 @@ const rollingRowSchema = z.strictObject({
  * entry needs everything the public page shows with it: class, category EN + FR, as-of date, https source and a figure
  * (percentile, or rank out of N) for every period.
  */
-const thirdPartyRankingSchema = z.strictObject({
-  provider: z.enum(THIRD_PARTY_PROVIDERS),
-  classLabel: text(40),
-  scope: z.literal("fund").optional(),
-  basis: z.strictObject({ en: text(160), fr: text(160) }).refine(bothOrNeither, "basis: both EN and FR (or neither)").optional(),
-  fundserv: fundservCode.optional(),
-  category: z.strictObject({ en: text(120), fr: text(120) }),
-  asOf: z.union([isoDate, z.literal("")]),
-  edition: text(40).optional(),
-  rows: z.array(percentileRowSchema).max(RANKING_PERIODS.length),
-  rolling: z.array(rollingRowSchema).max(10).optional(),
-  trackSince: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "expected YYYY-MM").optional(),
-  sourceRef: text(80).optional(),
-  url: httpsUrl.optional(),
-  confirmed: z.boolean().optional(),
-  note: text(600).optional(),
-}).superRefine((e, ctx) => {
-  if (new Set(e.rows.map((r) => r.period)).size !== e.rows.length) ctx.addIssue({ code: "custom", message: "each period once", path: ["rows"] });
-  if (!e.confirmed) return;
-  const need = (ok: boolean, path: string, message: string) => { if (!ok) ctx.addIssue({ code: "custom", message, path: [path] }); };
-  need(e.classLabel.length > 0 || e.scope === "fund", "classLabel", "class (or “fund as a whole”) is required to confirm");
-  need((e.rolling ?? []).every((a) => a.percentile != null && (e.asOf === "" || a.end <= e.asOf)), "rolling", "every rolling period needs a percentile and must end by the as-of date");
-  need(e.category.en.length > 0 && e.category.fr.length > 0, "category", "category (EN and FR) is required to confirm");
-  need(e.asOf !== "", "asOf", "as-of date is required to confirm");
-  need(!!e.url, "url", "source URL (https) is required to confirm");
-  need(e.rows.length > 0, "rows", "at least one period is required to confirm");
-  need(e.rows.every((r) => r.percentile != null || (r.rank != null && r.of != null)), "rows", "every period needs a percentile or a rank out of N to confirm");
-});
+const thirdPartyRankingSchema = z
+  .strictObject({
+    provider: z.enum(THIRD_PARTY_PROVIDERS),
+    classLabel: text(40),
+    scope: z.literal("fund").optional(),
+    basis: z
+      .strictObject({ en: text(160), fr: text(160) })
+      .refine(bothOrNeither, "basis: both EN and FR (or neither)")
+      .optional(),
+    fundserv: fundservCode.optional(),
+    category: z.strictObject({ en: text(120), fr: text(120) }),
+    asOf: z.union([isoDate, z.literal("")]),
+    edition: text(40).optional(),
+    rows: z.array(percentileRowSchema).max(RANKING_PERIODS.length),
+    rolling: z.array(rollingRowSchema).max(10).optional(),
+    trackSince: z
+      .string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "expected YYYY-MM")
+      .optional(),
+    sourceRef: text(80).optional(),
+    url: httpsUrl.optional(),
+    confirmed: z.boolean().optional(),
+    note: text(600).optional(),
+  })
+  .superRefine((e, ctx) => {
+    if (new Set(e.rows.map((r) => r.period)).size !== e.rows.length)
+      ctx.addIssue({ code: "custom", message: "each period once", path: ["rows"] });
+    if (!e.confirmed) return;
+    const need = (ok: boolean, path: string, message: string) => {
+      if (!ok) ctx.addIssue({ code: "custom", message, path: [path] });
+    };
+    need(
+      e.classLabel.length > 0 || e.scope === "fund",
+      "classLabel",
+      "class (or “fund as a whole”) is required to confirm",
+    );
+    need(
+      (e.rolling ?? []).every((a) => a.percentile != null && (e.asOf === "" || a.end <= e.asOf)),
+      "rolling",
+      "every rolling period needs a percentile and must end by the as-of date",
+    );
+    need(
+      e.category.en.length > 0 && e.category.fr.length > 0,
+      "category",
+      "category (EN and FR) is required to confirm",
+    );
+    need(e.asOf !== "", "asOf", "as-of date is required to confirm");
+    need(!!e.url, "url", "source URL (https) is required to confirm");
+    need(e.rows.length > 0, "rows", "at least one period is required to confirm");
+    need(
+      e.rows.every((r) => r.percentile != null || (r.rank != null && r.of != null)),
+      "rows",
+      "every period needs a percentile or a rank out of N to confirm",
+    );
+  });
 
 const fundRankingsSchema = z.strictObject({
   fundLibrary: z.array(fundLibraryRankingSchema).max(6).optional(),
@@ -128,8 +174,14 @@ const fundContentSchema = z.strictObject({
   mer: text(60).optional(),
   minInvestment: text(80).optional(),
   distributions: l10n(300).optional(),
-  headlineClass: z.string().trim().regex(/^[A-Za-z0-9]{0,12}$/, "invalid FundServ code").optional(),
-  classTypes: z.record(z.string().regex(/^[A-Za-z0-9]{1,12}$/, "invalid FundServ code"), z.enum(["prospectus", "om", "none"])).optional(),
+  headlineClass: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9]{0,12}$/, "invalid FundServ code")
+    .optional(),
+  classTypes: z
+    .record(z.string().regex(/^[A-Za-z0-9]{1,12}$/, "invalid FundServ code"), z.enum(["prospectus", "om", "none"]))
+    .optional(),
   minSubsequent: text(80).optional(),
   rspEligible: z.enum(["yes", "no"]).optional(),
   liquidity: l10n(200).optional(),
@@ -160,7 +212,18 @@ export const saveSettingsSchema = z.strictObject({
 export const runPipelineSchema = z.strictObject({ dryRun: z.boolean().default(false) });
 
 const DOC_TYPE_VALUES = [
-  "factsheet", "fund-facts", "prospectus", "annual-report", "interim-report", "mrfp", "proxy-voting", "tax-factors", "commentary", "presentation", "esg", "other",
+  "factsheet",
+  "fund-facts",
+  "prospectus",
+  "annual-report",
+  "interim-report",
+  "mrfp",
+  "proxy-voting",
+  "tax-factors",
+  "commentary",
+  "presentation",
+  "esg",
+  "other",
 ] as const;
 
 const docScopeSchema = z.union([fundKeySchema, z.literal("firm")]);

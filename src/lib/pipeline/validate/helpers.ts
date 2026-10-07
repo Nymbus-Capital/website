@@ -1,8 +1,8 @@
 // helpers.ts — small shared checks of the validation (age in days, finite numbers, ISO dates)
 
-
 /** Whole and fractional days from the date `a` to `b`. */
-export const days = (a: string, b: Date): number => (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
+export const days = (a: string, b: Date): number =>
+  (b.getTime() - Date.parse(`${a.slice(0, 10)}T00:00:00Z`)) / 86_400_000;
 
 /** paths of non-finite numbers inside a value */
 export function nonFinitePaths(v: unknown, path: string, out: string[] = []): string[] {

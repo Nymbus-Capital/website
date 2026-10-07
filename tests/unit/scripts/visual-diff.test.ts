@@ -16,7 +16,7 @@ const image = (w: number, h: number, f: (x: number, y: number) => number[]) => {
 /** Rewrite the IDAT of a PNG produced by encodePng (single IDAT) and recompute nothing but the payload. */
 function withChunk(png: Buffer, type: string, edit: (data: Buffer) => Buffer): Buffer {
   const out: Buffer[] = [png.subarray(0, 8)];
-  for (let at = 8; at < png.length; ) {
+  for (let at = 8; at < png.length;) {
     const len = png.readUInt32BE(at);
     const t = png.toString("latin1", at + 4, at + 8);
     let data = png.subarray(at + 8, at + 8 + len);
@@ -50,7 +50,11 @@ test("one changed pixel is counted with its box", () => {
 
 test("a filter byte above 4 is a corrupt file, not a silent mis-decode", () => {
   const png = encodePng(image(2, 2, () => [1, 2, 3, 255]));
-  const bad = withChunk(png, "IDAT", (d) => { const raw = inflateSync(d); raw[0] = 7; return deflateSync(raw); });
+  const bad = withChunk(png, "IDAT", (d) => {
+    const raw = inflateSync(d);
+    raw[0] = 7;
+    return deflateSync(raw);
+  });
   assert.throws(() => decodePng(bad), /filter type 7/);
 });
 
@@ -60,7 +64,10 @@ test("a tRNS key on a truecolour image is refused (its transparency would be ign
   const trns = Buffer.alloc(12 + 6);
   trns.writeUInt32BE(6, 0);
   trns.write("tRNS", 4, "latin1");
-  const rgb = withChunk(png, "IHDR", (d) => { d[9] = 2; return d; }); // colour type 2 (RGB) before the tRNS
+  const rgb = withChunk(png, "IHDR", (d) => {
+    d[9] = 2;
+    return d;
+  }); // colour type 2 (RGB) before the tRNS
   assert.throws(() => decodePng(Buffer.concat([rgb.subarray(0, ihdrEnd), trns, rgb.subarray(ihdrEnd)])), /tRNS/);
 });
 
@@ -71,15 +78,27 @@ test("options: invalid values exit 2, identical folders exit 0, a changed pixel 
   mkdirSync(b);
   writeFileSync(join(a, "p.png"), encodePng(image(3, 3, () => [5, 5, 5, 255])));
   writeFileSync(join(b, "p.png"), encodePng(image(3, 3, (x) => (x === 0 ? [6, 5, 5, 255] : [5, 5, 5, 255]))));
-  const quiet = console.log, err = console.error;
-  console.log = () => {}; console.error = () => {};
+  const quiet = console.log,
+    err = console.error;
+  console.log = () => {};
+  console.error = () => {};
   try {
     assert.equal(main([a, a]), 0);
     assert.equal(main([a, b]), 1);
     assert.equal(main([a, b, "--max-ratio=0.5"]), 0);
-    for (const bad of ["--max-ratio=abc", "--max-ratio", "--max-ratio=2", "--tolerance=1.5", "--tolerance=-1", "--out=", "--nope=1"]) assert.equal(main([a, b, bad]), 2, bad);
+    for (const bad of [
+      "--max-ratio=abc",
+      "--max-ratio",
+      "--max-ratio=2",
+      "--tolerance=1.5",
+      "--tolerance=-1",
+      "--out=",
+      "--nope=1",
+    ])
+      assert.equal(main([a, b, bad]), 2, bad);
     assert.equal(main([a]), 2);
   } finally {
-    console.log = quiet; console.error = err;
+    console.log = quiet;
+    console.error = err;
   }
 });

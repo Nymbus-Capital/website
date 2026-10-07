@@ -19,7 +19,9 @@ export function Rail({ email, name }: { email: string; name: string }) {
     <aside className="adm-rail" aria-label="admin navigation">
       <div className="adm-brand">
         <span className="adm-mark" />
-        <b>nymbus <span>admin</span></b>
+        <b>
+          nymbus <span>admin</span>
+        </b>
       </div>
       <nav className="adm-nav">
         {ITEMS.map(({ href, label, icon: Icon, exact }) => {
@@ -38,9 +40,13 @@ export function Rail({ email, name }: { email: string; name: string }) {
           <div>{email}</div>
         </div>
         <form method="post" action="/api/auth/logout">
-          <button type="submit" className="adm-btn ghost xs">sign out</button>
+          <button type="submit" className="adm-btn ghost xs">
+            sign out
+          </button>
         </form>
-        <a className="adm-link adm-small" href="/" target="_blank" rel="noopener">open the public site ↗</a>
+        <a className="adm-link adm-small" href="/" target="_blank" rel="noopener">
+          open the public site ↗
+        </a>
       </div>
     </aside>
   );

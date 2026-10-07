@@ -11,12 +11,37 @@ import { signIn } from "./helpers";
 const ROUTES = [
   { path: "/", name: "home", en: /scientific investing/i, fr: /investissement scientifique/i },
   { path: "/strategies", name: "strategies", en: /our funds and strategies/i, fr: /nos fonds et stratégies/i },
-  { path: "/core-concepts", name: "core-concepts", en: /three ideas behind our funds/i, fr: /trois idées derrière nos fonds/i },
-  { path: "/approach", name: "approach", en: /at the intersection of technology, data and finance/i, fr: /à l’intersection de la technologie, des données et de la finance/i },
-  { path: "/sustainability", name: "sustainability", en: /our commitments, and a sustainable bond fund/i, fr: /nos engagements, et un fonds obligataire durable/i },
-  { path: "/team", name: "team", en: /scientists and market veterans/i, fr: /des scientifiques et des vétérans des marchés/i },
+  {
+    path: "/core-concepts",
+    name: "core-concepts",
+    en: /three ideas behind our funds/i,
+    fr: /trois idées derrière nos fonds/i,
+  },
+  {
+    path: "/approach",
+    name: "approach",
+    en: /at the intersection of technology, data and finance/i,
+    fr: /à l’intersection de la technologie, des données et de la finance/i,
+  },
+  {
+    path: "/sustainability",
+    name: "sustainability",
+    en: /our commitments, and a sustainable bond fund/i,
+    fr: /nos engagements, et un fonds obligataire durable/i,
+  },
+  {
+    path: "/team",
+    name: "team",
+    en: /scientists and market veterans/i,
+    fr: /des scientifiques et des vétérans des marchés/i,
+  },
   { path: "/contact", name: "contact", en: /get in touch/i, fr: /communiquez avec nous/i },
-  { path: "/solutions", name: "solutions", en: /solutions tailored to your mandate/i, fr: /des solutions adaptées à votre mandat/i },
+  {
+    path: "/solutions",
+    name: "solutions",
+    en: /solutions tailored to your mandate/i,
+    fr: /des solutions adaptées à votre mandat/i,
+  },
   { path: "/legal", name: "legal", en: /^legal$/i, fr: /^juridique$/i },
   { path: "/privacy", name: "privacy", en: /^privacy policy$/i, fr: /^politique de confidentialité$/i },
 ];
@@ -55,7 +80,9 @@ async function settle(page: Page) {
       try {
         const end = a.effect?.getComputedTiming().endTime;
         if (typeof end === "number" && Number.isFinite(end)) a.finish();
-      } catch { /* infinite or detached: leave it */ }
+      } catch {
+        /* infinite or detached: leave it */
+      }
     }
   });
   // CSS entrances end on the element's own styles: drop them so a re-layout during the capture cannot replay them
@@ -128,7 +155,9 @@ test("language toggle switches the page to French and back", async ({ page, isMo
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 }).first()).toHaveAccessibleName(/scientific investing/i);
   if (isMobile) await page.getByTestId("menu-toggle").click();
-  const toggle = isMobile ? page.getByTestId("mobile-menu").getByTestId("lang-toggle") : page.getByTestId("site-nav").getByTestId("lang-toggle");
+  const toggle = isMobile
+    ? page.getByTestId("mobile-menu").getByTestId("lang-toggle")
+    : page.getByTestId("site-nav").getByTestId("lang-toggle");
   await toggle.click();
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   if (isMobile) await page.keyboard.press("Escape");
@@ -177,8 +206,11 @@ test("reduced motion: content is visible without animations", async ({ browser, 
     expect(opacity, sel).toBe(1);
   }
   // revealed blocks are visible even before they scroll in
-  const hiddenHome = await page.evaluate(() =>
-    Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *")).filter((e) => getComputedStyle(e).opacity === "0").length,
+  const hiddenHome = await page.evaluate(
+    () =>
+      Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *")).filter(
+        (e) => getComputedStyle(e).opacity === "0",
+      ).length,
   );
   expect(hiddenHome).toBe(0);
   for (const path of ["/approach", "/sustainability", "/team", "/contact", "/legal", "/privacy"]) {
@@ -186,9 +218,13 @@ test("reduced motion: content is visible without animations", async ({ browser, 
     // the H1 words and every revealed block are visible at once, even before they scroll into view
     const h1 = page.getByRole("heading", { level: 1 }).first();
     expect(await h1.evaluate((n) => Number(getComputedStyle(n.querySelector(".w") ?? n).opacity)), path).toBe(1);
-    const hidden = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-kids] > *, .ap-node, .ap-risks li, .ap-seg, .ab-person, .ab-tl-i, .ct-opt, .lg2-sec"))
-        .filter((e) => getComputedStyle(e).opacity === "0").length,
+    const hidden = await page.evaluate(
+      () =>
+        Array.from(
+          document.querySelectorAll<HTMLElement>(
+            "[data-reveal], [data-reveal-kids] > *, .ap-node, .ap-risks li, .ap-seg, .ab-person, .ab-tl-i, .ct-opt, .lg2-sec",
+          ),
+        ).filter((e) => getComputedStyle(e).opacity === "0").length,
     );
     expect(hidden, path).toBe(0);
   }
@@ -233,8 +269,26 @@ test("approach: the pipeline and the risk flow draw themselves in when scrolled 
   await expect(flow).toHaveAttribute("data-on", "");
   await page.waitForTimeout(3500);
   const probe = await page.evaluate(() => {
-    const cs = (sel: string) => { const e = document.querySelector(sel); if (!e) return null; const c = getComputedStyle(e); return { off: c.strokeDashoffset, clip: c.clipPath, op: c.opacity, anim: c.animationName, disp: c.display, w: (e as Element).getBoundingClientRect().width }; };
-    return { wave: cs(".ap-wave"), loop: cs(".ap-loop-line"), conv: cs(".ap-conv path"), arrow: cs(".ap-arrow path"), vol: cs(".ap-vol path") };
+    const cs = (sel: string) => {
+      const e = document.querySelector(sel);
+      if (!e) return null;
+      const c = getComputedStyle(e);
+      return {
+        off: c.strokeDashoffset,
+        clip: c.clipPath,
+        op: c.opacity,
+        anim: c.animationName,
+        disp: c.display,
+        w: (e as Element).getBoundingClientRect().width,
+      };
+    };
+    return {
+      wave: cs(".ap-wave"),
+      loop: cs(".ap-loop-line"),
+      conv: cs(".ap-conv path"),
+      arrow: cs(".ap-arrow path"),
+      vol: cs(".ap-vol path"),
+    };
   });
   console.log("approach probe", JSON.stringify(probe));
   for (const k of ["wave", "conv", "arrow", "vol"] as const) expect(probe[k]?.off, k).toMatch(/^0(px)?$/);

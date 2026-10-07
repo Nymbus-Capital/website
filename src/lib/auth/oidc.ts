@@ -9,7 +9,10 @@ import { timingSafeEqualStr } from "./guards.ts";
 
 const OIDC_SCOPE = "openid profile email";
 
-export async function authorizeUrl(cfg: AuthConfig, f: { state: string; nonce: string; verifier: string }): Promise<string> {
+export async function authorizeUrl(
+  cfg: AuthConfig,
+  f: { state: string; nonce: string; verifier: string },
+): Promise<string> {
   const u = new URL(cfg.authorizeEndpoint);
   u.searchParams.set("client_id", cfg.clientId);
   u.searchParams.set("response_type", "code");
@@ -27,7 +30,14 @@ export async function authorizeUrl(cfg: AuthConfig, f: { state: string; nonce: s
 let jwks: { uri: string; set: ReturnType<typeof createRemoteJWKSet> } | null = null;
 function keySet(cfg: AuthConfig) {
   if (!jwks || jwks.uri !== cfg.jwksUri) {
-    jwks = { uri: cfg.jwksUri, set: createRemoteJWKSet(new URL(cfg.jwksUri), { timeoutDuration: 5000, cooldownDuration: 30_000, cacheMaxAge: 6 * 3600_000 }) };
+    jwks = {
+      uri: cfg.jwksUri,
+      set: createRemoteJWKSet(new URL(cfg.jwksUri), {
+        timeoutDuration: 5000,
+        cooldownDuration: 30_000,
+        cacheMaxAge: 6 * 3600_000,
+      }),
+    };
   }
   return jwks.set;
 }
@@ -72,7 +82,8 @@ export async function exchangeCode(cfg: AuthConfig, code: string, verifier: stri
   }
   if (!res.ok) {
     // only the error code (never the body, which may contain correlation data / tokens)
-    const code = typeof data.error === "string" ? data.error.replace(/[^a-z_]/gi, "").slice(0, 60) : `http_${res.status}`;
+    const code =
+      typeof data.error === "string" ? data.error.replace(/[^a-z_]/gi, "").slice(0, 60) : `http_${res.status}`;
     throw new OidcError("token_error", `The Microsoft token endpoint refused the code (${code}).`);
   }
   if (typeof data.id_token !== "string") throw new OidcError("no_id_token", "The token response has no id_token.");
@@ -96,11 +107,13 @@ export async function verifyIdToken(cfg: AuthConfig, idToken: string, expectedNo
     throw new OidcError("id_token_invalid", "The sign-in token could not be verified.");
   }
   const nonce = typeof payload.nonce === "string" ? payload.nonce : "";
-  if (!timingSafeEqualStr(nonce, expectedNonce)) throw new OidcError("nonce", "The sign-in token nonce does not match.");
+  if (!timingSafeEqualStr(nonce, expectedNonce))
+    throw new OidcError("nonce", "The sign-in token nonce does not match.");
   if (typeof payload.tid !== "string" || payload.tid.toLowerCase() !== cfg.tenantId) {
     throw new OidcError("tenant", "This account does not belong to the Nymbus Microsoft tenant.");
   }
   // azp, when present, must be our client (single audience token)
-  if (payload.azp !== undefined && payload.azp !== cfg.clientId) throw new OidcError("azp", "The sign-in token was issued to another client.");
+  if (payload.azp !== undefined && payload.azp !== cfg.clientId)
+    throw new OidcError("azp", "The sign-in token was issued to another client.");
   return payload;
 }
