@@ -1,0 +1,87 @@
+diff --git a/src/lib/pipeline/daily-chain.ts b/src/lib/pipeline/daily-chain.ts
+index 3080226..bdbb463 100644
+--- a/src/lib/pipeline/daily-chain.ts
++++ b/src/lib/pipeline/daily-chain.ts
+@@ -145,7 +145,8 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
+     return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
+   const all = monthRows(dropHolidayFiller(rows), monthKey);
+   const days0 = all.map((r) => r.date);
+-  if (new Set(days0).size !== days0.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
++  if (new Set(days0).size !== days0.length)
++    return { ...out, status: "conflict", issue: "Duplicate daily observations" };
+   // a valuation day served without NAV and return is a missing day
+   const blank = (r: DailyRow): boolean =>
+     !finite(r.nav_per_share_cad) && (r.net_daily_return === null || r.net_daily_return === undefined);
+@@ -164,10 +165,7 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
+     // when verified: a short run of missing days inside the month, NAVs per unit on both sides, and the next day's stored
+     // return equal to their ratio − 1 (no distribution, nothing lost); otherwise the month stays unavailable.
+     const prevYm = ym(addMonths(month, -1));
+-    const before = [
+-      ...monthRows(dropHolidayFiller(rows), prevYm).filter((r) => finite(r.nav_per_share_cad)),
+-      ...rs,
+-    ];
++    const before = [...monthRows(dropHolidayFiller(rows), prevYm).filter((r) => finite(r.nav_per_share_cad)), ...rs];
+     let i = 0;
+     while (i < expected.length) {
+       if (have.has(expected[i])) {
+@@ -176,7 +174,8 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
+       }
+       let j = i;
+       while (j < expected.length && !have.has(expected[j])) j++;
+-      if (j - i > CIBC_GAP_MAX_DAYS) return incomplete(`: ${j - i} consecutive days, at most ${CIBC_GAP_MAX_DAYS} bridgeable`);
++      if (j - i > CIBC_GAP_MAX_DAYS)
++        return incomplete(`: ${j - i} consecutive days, at most ${CIBC_GAP_MAX_DAYS} bridgeable`);
+       if (j >= expected.length) return incomplete(": the month's last valuation day has no NAV");
+       const next = rs.find((r) => r.date === expected[j])!;
+       const prev = [...before].reverse().find((r) => r.date < expected[i]);
+@@ -184,7 +183,10 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
+       const nn = next.nav_per_share_cad;
+       if (!prev || prev.date < priorTradingDay(expected[i])! || !finite(pn) || !finite(nn) || !(pn > 0) || !(nn > 0))
+         return incomplete(": no NAV per unit on both sides of the gap");
+-      if (!validReturn(next.net_daily_return) || Math.abs((next.net_daily_return as number) - (nn / pn - 1)) > CIBC_GAP_TOL)
++      if (
++        !validReturn(next.net_daily_return) ||
++        Math.abs((next.net_daily_return as number) - (nn / pn - 1)) > CIBC_GAP_TOL
++      )
+         return incomplete(
+           `: the stored return of ${next.date} does not equal the NAV-per-unit ratio across the gap (${prev.date} → ${next.date})`,
+         );
+diff --git a/tests/unit/pipeline/class-returns.test.ts b/tests/unit/pipeline/class-returns.test.ts
+index bcd7f89..120d859 100644
+--- a/tests/unit/pipeline/class-returns.test.ts
++++ b/tests/unit/pipeline/class-returns.test.ts
+@@ -985,10 +985,18 @@ test("CIBC month with a valuation day without NAV: bridged only when the next da
+   assert.equal(m.status, "ready", m.issue ?? "");
+   assert.deepEqual(m.bridged, ["2026-02-09"]);
+   const febDays = days.filter((d) => d >= "2026-02-01" && d !== "2026-02-09");
+-  const expected = febDays.reduce((g, d) => g * (1 + (rows.find((r) => r.date === d)!.net_daily_return as number)), 1) - 1;
++  const expected =
++    febDays.reduce((g, d) => g * (1 + (rows.find((r) => r.date === d)!.net_daily_return as number)), 1) - 1;
+   assert.ok(Math.abs(m.r! - expected) < 1e-12);
+   // the same gap with the row absent altogether
+-  assert.equal(cibcMonth(rows.filter((r) => r.date !== "2026-02-09"), "2026-02-27", "2024-01-01").status, "ready");
++  assert.equal(
++    cibcMonth(
++      rows.filter((r) => r.date !== "2026-02-09"),
++      "2026-02-27",
++      "2024-01-01",
++    ).status,
++    "ready",
++  );
+   // the next day's return covers one day only (the gap's move is lost): withheld
+   const lost = rows.map((r) => (r.date === "2026-02-10" ? { ...r, net_daily_return: 0.001 } : r));
+   const l = cibcMonth(lost, "2026-02-27", "2024-01-01");
+@@ -1001,5 +1009,12 @@ test("CIBC month with a valuation day without NAV: bridged only when the next da
+   const three = rows.filter((r) => !["2026-02-09", "2026-02-10", "2026-02-11"].includes(r.date));
+   assert.equal(cibcMonth(three, "2026-02-27", "2024-01-01").r, null);
+   // the month's last valuation day missing: withheld (nothing after it carries its move)
+-  assert.equal(cibcMonth(rows.filter((r) => r.date !== "2026-02-27"), "2026-02-27", "2024-01-01").r, null);
++  assert.equal(
++    cibcMonth(
++      rows.filter((r) => r.date !== "2026-02-27"),
++      "2026-02-27",
++      "2024-01-01",
++    ).r,
++    null,
++  );
+ });

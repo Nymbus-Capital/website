@@ -1,0 +1,4427 @@
+
+> nymbus-web@0.1.0 test
+> node --experimental-strip-types --test "tests/unit/**/*.test.ts"
+
+TAP version 13
+# (node:2438) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/content.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: first save needs version 0 and produces version 1
+ok 1 - first save needs version 0 and produces version 1
+  ---
+  duration_ms: 21.67361
+  type: 'test'
+  ...
+# Subtest: a stale version is rejected with a 409 conflict and nothing is written
+ok 2 - a stale version is rejected with a 409 conflict and nothing is written
+  ---
+  duration_ms: 9.122137
+  type: 'test'
+  ...
+# Subtest: updates apply to the latest stored document and keep history
+ok 3 - updates apply to the latest stored document and keep history
+  ---
+  duration_ms: 6.529339
+  type: 'test'
+  ...
+# Subtest: two concurrent saves on the same version: exactly one wins
+ok 4 - two concurrent saves on the same version: exactly one wins
+  ---
+  duration_ms: 65.558518
+  type: 'test'
+  ...
+# Subtest: defaults are the single source: first fund save on an empty store keeps publish mode review
+ok 5 - defaults are the single source: first fund save on an empty store keeps publish mode review
+  ---
+  duration_ms: 4.740658
+  type: 'test'
+  ...
+# (node:2439) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/disclaimers.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: every disclaimer is bilingual, located and has review points
+ok 6 - every disclaimer is bilingual, located and has review points
+  ---
+  duration_ms: 1.85979
+  type: 'test'
+  ...
+# Subtest: required boilerplate elements are present (EN and FR)
+ok 7 - required boilerplate elements are present (EN and FR)
+  ---
+  duration_ms: 1.714978
+  type: 'test'
+  ...
+# Subtest: fund page copy uses the single disclaimers module
+ok 8 - fund page copy uses the single disclaimers module
+  ---
+  duration_ms: 0.302917
+  type: 'test'
+  ...
+# Subtest: pre-launch note only where configured
+ok 9 - pre-launch note only where configured
+  ---
+  duration_ms: 0.246731
+  type: 'test'
+  ...
+# Subtest: admin firm override replaces the boilerplate firm text in the footer
+ok 10 - admin firm override replaces the boilerplate firm text in the footer
+  ---
+  duration_ms: 0.236873
+  type: 'test'
+  ...
+# Subtest: hash changes with overrides, ignores empty ones and key order
+ok 11 - hash changes with overrides, ignores empty ones and key order
+  ---
+  duration_ms: 35.181594
+  type: 'test'
+  ...
+# Subtest: compliance state: never → approved → changed when an override changes
+ok 12 - compliance state: never → approved → changed when an override changes
+  ---
+  duration_ms: 7.357065
+  type: 'test'
+  ...
+# Subtest: pre-launch footer paragraph is omitted when its fund is hidden
+ok 13 - pre-launch footer paragraph is omitted when its fund is hidden
+  ---
+  duration_ms: 0.237835
+  type: 'test'
+  ...
+# Subtest: other regulatory-sounding fund strings come from the module (covered by the compliance hash)
+ok 14 - other regulatory-sounding fund strings come from the module (covered by the compliance hash)
+  ---
+  duration_ms: 0.441686
+  type: 'test'
+  ...
+# (node:2445) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/documents.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: magic bytes: only %PDF- at offset 0
+ok 15 - magic bytes: only %PDF- at offset 0
+  ---
+  duration_ms: 1.700352
+  type: 'test'
+  ...
+# Subtest: upload validation: empty, size, type, magic
+ok 16 - upload validation: empty, size, type, magic
+  ---
+  duration_ms: 6.45139
+  type: 'test'
+  ...
+# Subtest: file names are sanitised
+ok 17 - file names are sanitised
+  ---
+  duration_ms: 1.246141
+  type: 'test'
+  ...
+# Subtest: content disposition is inline with an RFC 5987 name
+ok 18 - content disposition is inline with an RFC 5987 name
+  ---
+  duration_ms: 0.508231
+  type: 'test'
+  ...
+# Subtest: document ids reject traversal and garbage
+ok 19 - document ids reject traversal and garbage
+  ---
+  duration_ms: 0.433551
+  type: 'test'
+  ...
+# Subtest: create, publish filter, update, replace, delete
+ok 20 - create, publish filter, update, replace, delete
+  ---
+  duration_ms: 45.356901
+  type: 'test'
+  ...
+# Subtest: concurrent creates do not lose index entries
+ok 21 - concurrent creates do not lose index entries
+  ---
+  duration_ms: 925.607088
+  type: 'test'
+  ...
+# Subtest: single byte-range parsing
+ok 22 - single byte-range parsing
+  ---
+  duration_ms: 1.089228
+  type: 'test'
+  ...
+# Subtest: public DTO drops internal fields
+ok 23 - public DTO drops internal fields
+  ---
+  duration_ms: 3.040139
+  type: 'test'
+  ...
+# Subtest: file stat for streaming
+ok 24 - file stat for streaming
+  ---
+  duration_ms: 21.076511
+  type: 'test'
+  ...
+# (node:2467) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/fund-content.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: hide keeps true entries and an explicit aum:false (AUM published)
+ok 25 - hide keeps true entries and an explicit aum:false (AUM published)
+  ---
+  duration_ms: 2.316123
+  type: 'test'
+  ...
+# Subtest: empty strings / L10n / lists are dropped
+ok 26 - empty strings / L10n / lists are dropped
+  ---
+  duration_ms: 0.40614
+  type: 'test'
+  ...
+# Subtest: tr falls back to EN for an empty FR string
+ok 27 - tr falls back to EN for an empty FR string
+  ---
+  duration_ms: 0.257301
+  type: 'test'
+  ...
+# Subtest: benchmark label: localized registry name in FR, published index name in EN
+ok 28 - benchmark label: localized registry name in FR, published index name in EN
+  ---
+  duration_ms: 0.256389
+  type: 'test'
+  ...
+# Subtest: bilingual overrides need both languages (or neither)
+ok 29 - bilingual overrides need both languages (or neither)
+  ---
+  duration_ms: 0.554137
+  type: 'test'
+  ...
+# (node:2474) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/pin.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: only published live runs can be pinned
+ok 30 - only published live runs can be pinned
+  ---
+  duration_ms: 0.926524
+  type: 'test'
+  ...
+# (node:2481) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/public-dto.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public fund spec keeps only the basis of the internal sources
+ok 31 - public fund spec keeps only the basis of the internal sources
+  ---
+  duration_ms: 2.242627
+  type: 'test'
+  ...
+# Subtest: public fund data drops sourceName
+ok 32 - public fund data drops sourceName
+  ---
+  duration_ms: 0.234368
+  type: 'test'
+  ...
+# (node:2488) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/admin/rankings-content.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: seeded rankings: well-formed, dated, sourced; Morningstar only for the two bond funds
+ok 33 - seeded rankings: well-formed, dated, sourced; Morningstar only for the two bond funds
+  ---
+  duration_ms: 2.099828
+  type: 'test'
+  ...
+# Subtest: mergeContent: seeded rankings fill a fund with none stored; stored rankings win; hide.rankings is kept
+ok 34 - mergeContent: seeded rankings fill a fund with none stored; stored rankings win; hide.rankings is kept
+  ---
+  duration_ms: 1.489918
+  type: 'test'
+  ...
+# Subtest: cleanFundContent: empty class types, rankings without data and empty facts are dropped
+ok 35 - cleanFundContent: empty class types, rankings without data and empty facts are dropped
+  ---
+  duration_ms: 0.58774
+  type: 'test'
+  ...
+# (node:2495) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/csp.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: nonces are random base64 of 128 bits
+ok 36 - nonces are random base64 of 128 bits
+  ---
+  duration_ms: 2.9827
+  type: 'test'
+  ...
+# Subtest: CSP: nonce + strict-dynamic, no script unsafe-inline, framing denied
+ok 37 - CSP: nonce + strict-dynamic, no script unsafe-inline, framing denied
+  ---
+  duration_ms: 0.484626
+  type: 'test'
+  ...
+# Subtest: CSP refuses a malformed nonce (header injection)
+ok 38 - CSP refuses a malformed nonce (header injection)
+  ---
+  duration_ms: 0.303327
+  type: 'test'
+  ...
+# Subtest: CSP img-src: CMS media origins are validated again (https, loopback http incl. [::1]); anything else is dropped
+ok 39 - CSP img-src: CMS media origins are validated again (https, loopback http incl. [::1]); anything else is dropped
+  ---
+  duration_ms: 0.555059
+  type: 'test'
+  ...
+# (node:2502) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/diagnostics.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: configured: says so, marks the generated AUTH_SECRET, prints no value
+ok 40 - configured: says so, marks the generated AUTH_SECRET, prints no value
+  ---
+  duration_ms: 3.88053
+  type: 'test'
+  ...
+# Subtest: missing client secret: names the missing setting
+ok 41 - missing client secret: names the missing setting
+  ---
+  duration_ms: 0.668641
+  type: 'test'
+  ...
+# Subtest: unwritable data directory reports the error code
+ok 42 - unwritable data directory reports the error code
+  ---
+  duration_ms: 0.565669
+  type: 'test'
+  ...
+# Subtest: an AUTH_SECRET from the environment, or a weak one, is never printed
+ok 43 - an AUTH_SECRET from the environment, or a weak one, is never printed
+  ---
+  duration_ms: 0.852996
+  type: 'test'
+  ...
+# Subtest: pipeline settings: names only, flags a wrong-case key
+ok 44 - pipeline settings: names only, flags a wrong-case key
+  ---
+  duration_ms: 0.363069
+  type: 'test'
+  ...
+# Subtest: dataplatform probe reports status or error kind, never the URL
+ok 45 - dataplatform probe reports status or error kind, never the URL
+  ---
+  duration_ms: 27.287154
+  type: 'test'
+  ...
+# (node:2509) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/guards.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: returnTo: same-site admin paths are kept
+ok 46 - returnTo: same-site admin paths are kept
+  ---
+  duration_ms: 1.429856
+  type: 'test'
+  ...
+# Subtest: returnTo: open redirect attempts fall back to /admin
+ok 47 - returnTo: open redirect attempts fall back to /admin
+  ---
+  duration_ms: 0.3742
+  type: 'test'
+  ...
+# Subtest: cookie options: secure __Host- by default
+ok 48 - cookie options: secure __Host- by default
+  ---
+  duration_ms: 0.316552
+  type: 'test'
+  ...
+# Subtest: cookie options: insecure only with the opt-in AND a localhost PUBLIC_URL
+ok 49 - cookie options: insecure only with the opt-in AND a localhost PUBLIC_URL
+  ---
+  duration_ms: 0.17116
+  type: 'test'
+  ...
+# Subtest: serializeCookie includes the security attributes
+ok 50 - serializeCookie includes the security attributes
+  ---
+  duration_ms: 0.356717
+  type: 'test'
+  ...
+# Subtest: CSRF: safe methods pass
+ok 51 - CSRF: safe methods pass
+  ---
+  duration_ms: 0.779879
+  type: 'test'
+  ...
+# Subtest: CSRF: mutations need a matching Origin and the custom header or JSON
+ok 52 - CSRF: mutations need a matching Origin and the custom header or JSON
+  ---
+  duration_ms: 0.552835
+  type: 'test'
+  ...
+# Subtest: timingSafeEqualStr
+ok 53 - timingSafeEqualStr
+  ---
+  duration_ms: 0.203541
+  type: 'test'
+  ...
+# Subtest: PKCE S256 challenge = base64url(sha256(verifier))
+ok 54 - PKCE S256 challenge = base64url(sha256(verifier))
+  ---
+  duration_ms: 9.498985
+  type: 'test'
+  ...
+# Subtest: auth config: endpoints derived from the tenant, fails closed on weak / missing settings
+ok 55 - auth config: endpoints derived from the tenant, fails closed on weak / missing settings
+  ---
+  duration_ms: 1.383569
+  type: 'test'
+  ...
+# Subtest: auth config: the committed e2e secret and a localhost PUBLIC_URL are refused outside the e2e setup
+ok 56 - auth config: the committed e2e secret and a localhost PUBLIC_URL are refused outside the e2e setup
+  ---
+  duration_ms: 0.460221
+  type: 'test'
+  ...
+# Subtest: auth config carries the role and a policy version
+ok 57 - auth config carries the role and a policy version
+  ---
+  duration_ms: 0.236513
+  type: 'test'
+  ...
+# (node:2517) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/matcher.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: proxy matcher covers pages and admin API, skips assets, downloads and uploads
+ok 58 - proxy matcher covers pages and admin API, skips assets, downloads and uploads
+  ---
+  duration_ms: 0.889805
+  type: 'test'
+  ...
+# (node:2528) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/policy.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: member of the tenant in the allowed domain is allowed
+ok 59 - member of the tenant in the allowed domain is allowed
+  ---
+  duration_ms: 1.727482
+  type: 'test'
+  ...
+# Subtest: tenant mismatch / missing / malformed tid is denied
+ok 60 - tenant mismatch / missing / malformed tid is denied
+  ---
+  duration_ms: 0.230401
+  type: 'test'
+  ...
+# Subtest: tid comparison is case-insensitive for GUIDs
+ok 61 - tid comparison is case-insensitive for GUIDs
+  ---
+  duration_ms: 0.897098
+  type: 'test'
+  ...
+# Subtest: missing oid is denied
+ok 62 - missing oid is denied
+  ---
+  duration_ms: 0.177833
+  type: 'test'
+  ...
+# Subtest: guest accounts (\#EXT\#) are denied whatever the claim
+ok 63 - guest accounts (\#EXT\#) are denied whatever the claim
+  ---
+  duration_ms: 0.300793
+  type: 'test'
+  ...
+# Subtest: foreign idp is denied, own-tenant idp is accepted
+ok 64 - foreign idp is denied, own-tenant idp is accepted
+  ---
+  duration_ms: 0.336539
+  type: 'test'
+  ...
+# Subtest: acct = 1 (guest) is denied, acct = 0 allowed, unexpected values denied
+ok 65 - acct = 1 (guest) is denied, acct = 0 allowed, unexpected values denied
+  ---
+  duration_ms: 0.193191
+  type: 'test'
+  ...
+# Subtest: missing acct claim fails closed with a configuration hint
+ok 66 - missing acct claim fails closed with a configuration hint
+  ---
+  duration_ms: 0.290333
+  type: 'test'
+  ...
+# Subtest: domain must match exactly: look-alikes, suffixes, subdomains are denied
+ok 67 - domain must match exactly: look-alikes, suffixes, subdomains are denied
+  ---
+  duration_ms: 0.475028
+  type: 'test'
+  ...
+# Subtest: domain match is case-insensitive
+ok 68 - domain match is case-insensitive
+  ---
+  duration_ms: 0.447557
+  type: 'test'
+  ...
+# Subtest: the domain is checked on preferred_username, else upn; the email claim is never trusted
+ok 69 - the domain is checked on preferred_username, else upn; the email claim is never trusted
+  ---
+  duration_ms: 0.247763
+  type: 'test'
+  ...
+# Subtest: required app role
+ok 70 - required app role
+  ---
+  duration_ms: 0.464689
+  type: 'test'
+  ...
+# Subtest: policy version changes when the policy changes, not with ordering / case
+ok 71 - policy version changes when the policy changes, not with ordering / case
+  ---
+  duration_ms: 0.453508
+  type: 'test'
+  ...
+# Subtest: listed subdomains are allowed only when explicitly configured
+ok 72 - listed subdomains are allowed only when explicitly configured
+  ---
+  duration_ms: 0.319879
+  type: 'test'
+  ...
+# Subtest: group allow-list requires an intersection with the groups claim
+ok 73 - group allow-list requires an intersection with the groups claim
+  ---
+  duration_ms: 0.242925
+  type: 'test'
+  ...
+# Subtest: group overage is denied with an explicit message (not guessed)
+ok 74 - group overage is denied with an explicit message (not guessed)
+  ---
+  duration_ms: 0.15479
+  type: 'test'
+  ...
+# Subtest: session re-check applies tenant and domain policy
+ok 75 - session re-check applies tenant and domain policy
+  ---
+  duration_ms: 0.206086
+  type: 'test'
+  ...
+# Subtest: config parsing: defaults, normalisation, invalid entries fail closed
+ok 76 - config parsing: defaults, normalisation, invalid entries fail closed
+  ---
+  duration_ms: 0.859478
+  type: 'test'
+  ...
+# Subtest: isAllowedEmail direct checks
+ok 77 - isAllowedEmail direct checks
+  ---
+  duration_ms: 0.103454
+  type: 'test'
+  ...
+# (node:2535) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/session.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: jti format
+ok 78 - jti format
+  ---
+  duration_ms: 3.064754
+  type: 'test'
+  ...
+# Subtest: revoke → isRevoked; invalid ids count as revoked (fail closed)
+ok 79 - revoke → isRevoked; invalid ids count as revoked (fail closed)
+  ---
+  duration_ms: 7.952469
+  type: 'test'
+  ...
+# Subtest: expired entries are pruned, live ones kept
+ok 80 - expired entries are pruned, live ones kept
+  ---
+  duration_ms: 5.324723
+  type: 'test'
+  ...
+# Subtest: revocation write failures propagate (logout must not report success)
+ok 81 - revocation write failures propagate (logout must not report success)
+  ---
+  duration_ms: 1.684762
+  type: 'test'
+  ...
+# (node:2546) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/auth/volume-secret.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generates a strong secret once, stores it 0600, and reuses it
+ok 82 - generates a strong secret once, stores it 0600, and reuses it
+  ---
+  duration_ms: 2.277702
+  type: 'test'
+  ...
+# Subtest: an existing file (e.g. after a restart) is read, not replaced
+ok 83 - an existing file (e.g. after a restart) is read, not replaced
+  ---
+  duration_ms: 0.558795
+  type: 'test'
+  ...
+# Subtest: an AUTH_SECRET from the environment always wins
+ok 84 - an AUTH_SECRET from the environment always wins
+  ---
+  duration_ms: 0.44904
+  type: 'test'
+  ...
+# Subtest: the generated secret satisfies the auth config checks
+ok 85 - the generated secret satisfies the auth config checks
+  ---
+  duration_ms: 1.34739
+  type: 'test'
+  ...
+# (node:2553) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/config-client.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: no WP_BASE_URL (unset, empty, blank) disables the CMS
+ok 86 - no WP_BASE_URL (unset, empty, blank) disables the CMS
+  ---
+  duration_ms: 1.279514
+  type: 'test'
+  ...
+# Subtest: invalid base URLs disable the CMS (and say why)
+ok 87 - invalid base URLs disable the CMS (and say why)
+  ---
+  duration_ms: 0.270766
+  type: 'test'
+  ...
+# Subtest: https base: endpoint built from the base, media origin = base origin, secrets and ttl read
+ok 88 - https base: endpoint built from the base, media origin = base origin, secrets and ttl read
+  ---
+  duration_ms: 0.266388
+  type: 'test'
+  ...
+# Subtest: a path prefix is kept; ttl is clamped and defaults to 60 s
+ok 89 - a path prefix is kept; ttl is clamped and defaults to 60 s
+  ---
+  duration_ms: 0.350756
+  type: 'test'
+  ...
+# Subtest: http is allowed for loopback and single-label private hosts only; images then need an explicit https media origin
+ok 90 - http is allowed for loopback and single-label private hosts only; images then need an explicit https media origin
+  ---
+  duration_ms: 0.276478
+  type: 'test'
+  ...
+# Subtest: plain http to an IPv6 literal is rejected unless it is ::1
+ok 91 - plain http to an IPv6 literal is rejected unless it is ::1
+  ---
+  duration_ms: 0.248144
+  type: 'test'
+  ...
+# Subtest: a bad media origin disables images but not the CMS
+ok 92 - a bad media origin disables images but not the CMS
+  ---
+  duration_ms: 0.19241
+  type: 'test'
+  ...
+# Subtest: client: fixed endpoint, secret header, no redirects, no cache, timeout signal
+ok 93 - client: fixed endpoint, secret header, no redirects, no cache, timeout signal
+  ---
+  duration_ms: 28.995139
+  type: 'test'
+  ...
+# Subtest: client: no secret header when none is configured
+ok 94 - client: no secret header when none is configured
+  ---
+  duration_ms: 1.236283
+  type: 'test'
+  ...
+# Subtest: client: transport errors, HTTP errors, wrong type, invalid JSON, oversize and wrong schema all throw
+ok 95 - client: transport errors, HTTP errors, wrong type, invalid JSON, oversize and wrong schema all throw
+  ---
+  duration_ms: 4.870953
+  type: 'test'
+  ...
+# Subtest: client: a real redirect is refused by fetch itself (redirect: error)
+ok 96 - client: a real redirect is refused by fetch itself (redirect: error)
+  ---
+  duration_ms: 33.913522
+  type: 'test'
+  ...
+# (node:2560) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/import-export.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: slugs: accents and punctuation folded, WordPress-safe
+ok 97 - slugs: accents and punctuation folded, WordPress-safe
+  ---
+  duration_ms: 1.173636
+  type: 'test'
+  ...
+# Subtest: photo URLs: absolute https on the site, nothing without a site
+ok 98 - photo URLs: absolute https on the site, nothing without a site
+  ---
+  duration_ms: 0.179676
+  type: 'test'
+  ...
+# Subtest: every person and news item, unique slugs, order of the website, the import format
+ok 99 - every person and news item, unique slugs, order of the website, the import format
+  ---
+  duration_ms: 2.7953
+  type: 'test'
+  ...
+# (node:2568) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/intros-contact.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: intro pages are the four agreed pages, nothing compliance-reviewed
+ok 100 - intro pages are the four agreed pages, nothing compliance-reviewed
+  ---
+  duration_ms: 2.052991
+  type: 'test'
+  ...
+# Subtest: no intro: exactly the coded copy (same object, identical rendering)
+ok 101 - no intro: exactly the coded copy (same object, identical rendering)
+  ---
+  duration_ms: 0.550761
+  type: 'test'
+  ...
+# Subtest: headline replaces title AND accent per language; lead replaces lead per language; empty keeps coded
+ok 102 - headline replaces title AND accent per language; lead replaces lead per language; empty keeps coded
+  ---
+  duration_ms: 0.354403
+  type: 'test'
+  ...
+# Subtest: validation: page intros whitelisted, trimmed, capped, markup stripped
+ok 103 - validation: page intros whitelisted, trimmed, capped, markup stripped
+  ---
+  duration_ms: 6.204539
+  type: 'test'
+  ...
+# Subtest: phone link: dialable form
+ok 104 - phone link: dialable form
+  ---
+  duration_ms: 0.338474
+  type: 'test'
+  ...
+# Subtest: contact overrides: only what WordPress gives; nothing = built-in everywhere
+ok 105 - contact overrides: only what WordPress gives; nothing = built-in everywhere
+  ---
+  duration_ms: 0.967029
+  type: 'test'
+  ...
+# Subtest: one-line address for the map link matches the coded one
+ok 106 - one-line address for the map link matches the coded one
+  ---
+  duration_ms: 0.408694
+  type: 'test'
+  ...
+# Subtest: contact e-mail: strict pattern (same as the plugin)
+ok 107 - contact e-mail: strict pattern (same as the plugin)
+  ---
+  duration_ms: 3.501071
+  type: 'test'
+  ...
+# (node:2576) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/map-auth.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a CMS member maps to the TeamMember shape the pages use
+ok 108 - a CMS member maps to the TeamMember shape the pages use
+  ---
+  duration_ms: 2.77411
+  type: 'test'
+  ...
+# Subtest: a member with only a French role / bio still shows text (pick falls back to English)
+ok 109 - a member with only a French role / bio still shows text (pick falls back to English)
+  ---
+  duration_ms: 0.244728
+  type: 'test'
+  ...
+# Subtest: the mapped shape is a superset of the static one (same required fields)
+ok 110 - the mapped shape is a superset of the static one (same required fields)
+  ---
+  duration_ms: 0.484286
+  type: 'test'
+  ...
+# Subtest: initials and colour are deterministic
+ok 111 - initials and colour are deterministic
+  ---
+  duration_ms: 0.201127
+  type: 'test'
+  ...
+# Subtest: news entries keep image and link; the static news have the same fields the pages need
+ok 112 - news entries keep image and link; the static news have the same fields the pages need
+  ---
+  duration_ms: 0.386072
+  type: 'test'
+  ...
+# Subtest: precedence: admin value > CMS text > built-in default (AUM label)
+ok 113 - precedence: admin value > CMS text > built-in default (AUM label)
+  ---
+  duration_ms: 0.432258
+  type: 'test'
+  ...
+# Subtest: precedence: announcement banner — admin banner wins, else CMS banner, else none
+ok 114 - precedence: announcement banner — admin banner wins, else CMS banner, else none
+  ---
+  duration_ms: 0.332652
+  type: 'test'
+  ...
+# Subtest: overlayTexts never mutates its inputs
+ok 115 - overlayTexts never mutates its inputs
+  ---
+  duration_ms: 0.322163
+  type: 'test'
+  ...
+# Subtest: revalidate secret: bearer parsing and constant-time comparison
+ok 116 - revalidate secret: bearer parsing and constant-time comparison
+  ---
+  duration_ms: 1.231845
+  type: 'test'
+  ...
+# Subtest: failure limiter blocks after max failures inside the window and recovers
+ok 117 - failure limiter blocks after max failures inside the window and recovers
+  ---
+  duration_ms: 0.670545
+  type: 'test'
+  ...
+# Subtest: CSP: the media origin joins img-src; nothing else can be injected through it
+ok 118 - CSP: the media origin joins img-src; nothing else can be injected through it
+  ---
+  duration_ms: 1.947874
+  type: 'test'
+  ...
+# Subtest: revalidate: a correct secret is never limited; only failures count, per source (first X-Forwarded-For hop)
+ok 119 - revalidate: a correct secret is never limited; only failures count, per source (first X-Forwarded-For hop)
+  ---
+  duration_ms: 1.153518
+  type: 'test'
+  ...
+# (node:2577) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/sanitize.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: tags are stripped, including script bodies, comments and rebuilt tags
+ok 120 - tags are stripped, including script bodies, comments and rebuilt tags
+  ---
+  duration_ms: 3.164571
+  type: 'test'
+  ...
+# Subtest: entities are decoded once, then tags stripped (encoded markup cannot survive as markup)
+ok 121 - entities are decoded once, then tags stripped (encoded markup cannot survive as markup)
+  ---
+  duration_ms: 1.22419
+  type: 'test'
+  ...
+# Subtest: control and bidi characters are removed, whitespace collapsed, length capped
+ok 122 - control and bidi characters are removed, whitespace collapsed, length capped
+  ---
+  duration_ms: 0.447367
+  type: 'test'
+  ...
+# Subtest: paragraphs keep blank-line breaks only
+ok 123 - paragraphs keep blank-line breaks only
+  ---
+  duration_ms: 0.597919
+  type: 'test'
+  ...
+# Subtest: lines: one entry per non-empty line, bounded
+ok 124 - lines: one entry per non-empty line, bounded
+  ---
+  duration_ms: 1.208431
+  type: 'test'
+  ...
+# Subtest: stripTags never leaves a tag behind on nested input
+ok 125 - stripTags never leaves a tag behind on nested input
+  ---
+  duration_ms: 0.422501
+  type: 'test'
+  ...
+# Subtest: URLs: https only, no credentials, no control characters
+ok 126 - URLs: https only, no credentials, no control characters
+  ---
+  duration_ms: 2.140154
+  type: 'test'
+  ...
+# Subtest: images: only the exact media origin (scheme, host, port)
+ok 127 - images: only the exact media origin (scheme, host, port)
+  ---
+  duration_ms: 0.461864
+  type: 'test'
+  ...
+# Subtest: images: only under /wp-content/uploads/ (no other page, script or endpoint of the WordPress site)
+ok 128 - images: only under /wp-content/uploads/ (no other page, script or endpoint of the WordPress site)
+  ---
+  duration_ms: 0.793705
+  type: 'test'
+  ...
+# Subtest: LinkedIn links: linkedin.com over https only
+ok 129 - LinkedIn links: linkedin.com over https only
+  ---
+  duration_ms: 0.659233
+  type: 'test'
+  ...
+# (node:2590) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/source.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: first request fetches, validates and stores the last good copy
+ok 130 - first request fetches, validates and stores the last good copy
+  ---
+  duration_ms: 51.903479
+  type: 'test'
+  ...
+# Subtest: within the TTL nothing is refetched; after it the stale copy is served while ONE refresh runs
+ok 131 - within the TTL nothing is refetched; after it the stale copy is served while ONE refresh runs
+  ---
+  duration_ms: 59.676392
+  type: 'test'
+  ...
+# Subtest: WordPress down on a cold start with an empty volume: null (callers use the static sources)
+ok 132 - WordPress down on a cold start with an empty volume: null (callers use the static sources)
+  ---
+  duration_ms: 2.305894
+  type: 'test'
+  ...
+# Subtest: WordPress down on a cold start: the last good copy on the volume is used and re-validated
+ok 133 - WordPress down on a cold start: the last good copy on the volume is used and re-validated
+  ---
+  duration_ms: 59.061102
+  type: 'test'
+  ...
+# Subtest: a damaged or hostile last good file is ignored
+ok 134 - a damaged or hostile last good file is ignored
+  ---
+  duration_ms: 6.724972
+  type: 'test'
+  ...
+# Subtest: a bad response (wrong schema, hostile or oversized) never replaces a good document
+ok 135 - a bad response (wrong schema, hostile or oversized) never replaces a good document
+  ---
+  duration_ms: 157.343464
+  type: 'test'
+  ...
+# Subtest: the last good file is only rewritten when the document changed
+ok 136 - the last good file is only rewritten when the document changed
+  ---
+  duration_ms: 54.247846
+  type: 'test'
+  ...
+# Subtest: revalidate forces a refetch, coalesces concurrent calls and is rate limited
+ok 137 - revalidate forces a refetch, coalesces concurrent calls and is rate limited
+  ---
+  duration_ms: 6.281392
+  type: 'test'
+  ...
+# Subtest: log lines never contain the content secret
+ok 138 - log lines never contain the content secret
+  ---
+  duration_ms: 1.46459
+  type: 'test'
+  ...
+# Subtest: inside the back-off with nothing in memory (no volume copy) the source answers null at once, without a request
+ok 139 - inside the back-off with nothing in memory (no volume copy) the source answers null at once, without a request
+  ---
+  duration_ms: 3.759507
+  type: 'test'
+  ...
+# Subtest: an empty or much smaller document never replaces a non-empty one (memory and volume)
+ok 140 - an empty or much smaller document never replaces a non-empty one (memory and volume)
+  ---
+  duration_ms: 183.18509
+  type: 'test'
+  ...
+# Subtest: a copy older than maxStale (72 h) is not served: null, the callers use the static sources
+ok 141 - a copy older than maxStale (72 h) is not served: null, the callers use the static sources
+  ---
+  duration_ms: 57.452521
+  type: 'test'
+  ...
+# (node:2596) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/cms/validate.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: the fixture parses: markup stripped, images on the media origin kept, newest news first, team by order
+ok 142 - the fixture parses: markup stripped, images on the media origin kept, newest news first, team by order
+  ---
+  duration_ms: 13.777848
+  type: 'test'
+  ...
+# Subtest: hostile content is neutralised field by field
+ok 143 - hostile content is neutralised field by field
+  ---
+  duration_ms: 1.112181
+  type: 'test'
+  ...
+# Subtest: unknown fields never pass through (whitelist)
+ok 144 - unknown fields never pass through (whitelist)
+  ---
+  duration_ms: 2.331222
+  type: 'test'
+  ...
+# Subtest: invalid items are dropped and reported, the rest survives
+ok 145 - invalid items are dropped and reported, the rest survives
+  ---
+  duration_ms: 0.890686
+  type: 'test'
+  ...
+# Subtest: an unsupported or malformed document is rejected as a whole
+ok 146 - an unsupported or malformed document is rejected as a whole
+  ---
+  duration_ms: 0.766774
+  type: 'test'
+  ...
+# Subtest: images are refused when there is no media origin
+ok 147 - images are refused when there is no media origin
+  ---
+  duration_ms: 0.581327
+  type: 'test'
+  ...
+# Subtest: bounds: item counts and text lengths are capped
+ok 148 - bounds: item counts and text lengths are capped
+  ---
+  duration_ms: 20.233186
+  type: 'test'
+  ...
+# Subtest: category falls back to community; order, year and departments are normalised
+ok 149 - category falls back to community; order, year and departments are normalised
+  ---
+  duration_ms: 0.890446
+  type: 'test'
+  ...
+# Subtest: the team is ordered by `order`, then name
+ok 150 - the team is ordered by `order`, then name
+  ---
+  duration_ms: 14.636405
+  type: 'test'
+  ...
+# Subtest: placeholder content ([Sample] / [Exemple], as created by `wp nymbus seed`) is never published
+ok 151 - placeholder content ([Sample] / [Exemple], as created by `wp nymbus seed`) is never published
+  ---
+  duration_ms: 1.952623
+  type: 'test'
+  ...
+# (node:2604) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/contact/store.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: store: save, list newest first, get, ids are validated
+ok 152 - store: save, list newest first, get, ids are validated
+  ---
+  duration_ms: 45.995858
+  type: 'test'
+  ...
+# Subtest: store: mark handled / open again, delete; a deleted inquiry is never brought back
+ok 153 - store: mark handled / open again, delete; a deleted inquiry is never brought back
+  ---
+  duration_ms: 69.710145
+  type: 'test'
+  ...
+# Subtest: retention: deleted no later than 180 days (default) after receipt, damaged files too, orphaned temp files after 1 h
+ok 154 - retention: deleted no later than 180 days (default) after receipt, damaged files too, orphaned temp files after 1 h
+  ---
+  duration_ms: 22.960838
+  type: 'test'
+  ...
+# Subtest: retention: the setting is clamped to 30-180 days (the privacy policy promises at most 180)
+ok 155 - retention: the setting is clamped to 30-180 days (the privacy policy promises at most 180)
+  ---
+  duration_ms: 0.295132
+  type: 'test'
+  ...
+# Subtest: alert: only the first name and profile, a link to the admin; off without a webhook
+ok 156 - alert: only the first name and profile, a link to the admin; off without a webhook
+  ---
+  duration_ms: 38.378295
+  type: 'test'
+  ...
+# Subtest: alert: a failed delivery logs and stores the redacted title only (no first name)
+ok 157 - alert: a failed delivery logs and stores the redacted title only (no first name)
+  ---
+  duration_ms: 9.189062
+  type: 'test'
+  ...
+# Subtest: store: refuses new inquiries past the hard cap
+ok 158 - store: refuses new inquiries past the hard cap
+  ---
+  duration_ms: 14.842561
+  type: 'test'
+  ...
+# Subtest: store: an identical inquiry within 24 hours is not stored again; a changed one or a later one is
+ok 159 - store: an identical inquiry within 24 hours is not stored again; a changed one or a later one is
+  ---
+  duration_ms: 75.753143
+  type: 'test'
+  ...
+# Subtest: csv: header, quoting, formula cells neutralised, BOM
+ok 160 - csv: header, quoting, formula cells neutralised, BOM
+  ---
+  duration_ms: 0.730457
+  type: 'test'
+  ...
+# (node:2616) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/contact/token-guards.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: token: too fast, ok, expired, forged
+ok 161 - token: too fast, ok, expired, forged
+  ---
+  duration_ms: 3.13219
+  type: 'test'
+  ...
+# Subtest: token: key derived from AUTH_SECRET, stable, never the secret itself
+ok 162 - token: key derived from AUTH_SECRET, stable, never the secret itself
+  ---
+  duration_ms: 1.572151
+  type: 'test'
+  ...
+# Subtest: same origin: Origin, else Referer; Sec-Fetch-Site; unconfigured
+ok 163 - same origin: Origin, else Referer; Sec-Fetch-Site; unconfigured
+  ---
+  duration_ms: 0.671517
+  type: 'test'
+  ...
+# Subtest: client key: rightmost non-internal X-Forwarded-For entry (the left part is forgeable)
+ok 164 - client key: rightmost non-internal X-Forwarded-For entry (the left part is forgeable)
+  ---
+  duration_ms: 1.320591
+  type: 'test'
+  ...
+# Subtest: rate limit: per client within its window, site-wide on stored inquiries with refunds
+ok 165 - rate limit: per client within its window, site-wide on stored inquiries with refunds
+  ---
+  duration_ms: 0.638855
+  type: 'test'
+  ...
+# Subtest: rate limit: table overflow forgets the least recently used bucket, never a shared bucket
+ok 166 - rate limit: table overflow forgets the least recently used bucket, never a shared bucket
+  ---
+  duration_ms: 0.88781
+  type: 'test'
+  ...
+# Subtest: rate limit: IPv6 by /64 (rotating inside one's own prefix does not help), IPv4 per address
+ok 167 - rate limit: IPv6 by /64 (rotating inside one's own prefix does not help), IPv4 per address
+  ---
+  duration_ms: 2.256823
+  type: 'test'
+  ...
+# Subtest: screen: honeypot, forged or too fast token = bot (fake success); old page = expired; else ok
+ok 168 - screen: honeypot, forged or too fast token = bot (fake success); old page = expired; else ok
+  ---
+  duration_ms: 0.60904
+  type: 'test'
+  ...
+# Subtest: xff diagnostic: hop count and classes only, never an address
+ok 169 - xff diagnostic: hop count and classes only, never an address
+  ---
+  duration_ms: 0.813482
+  type: 'test'
+  ...
+# (node:2627) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/contact/validate.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: contact: the page's investor types and interests are the ones the server accepts
+ok 170 - contact: the page's investor types and interests are the ones the server accepts
+  ---
+  duration_ms: 1.354283
+  type: 'test'
+  ...
+# Subtest: contact: a complete inquiry is accepted and cleaned
+ok 171 - contact: a complete inquiry is accepted and cleaned
+  ---
+  duration_ms: 1.658563
+  type: 'test'
+  ...
+# Subtest: contact: each field is checked
+ok 172 - contact: each field is checked
+  ---
+  duration_ms: 1.109345
+  type: 'test'
+  ...
+# Subtest: contact: email pattern (safe in a mailto: link)
+ok 173 - contact: email pattern (safe in a mailto: link)
+  ---
+  duration_ms: 0.167473
+  type: 'test'
+  ...
+# Subtest: contact: text cleaning removes control, invisible and bidi-override characters
+ok 174 - contact: text cleaning removes control, invisible and bidi-override characters
+  ---
+  duration_ms: 0.220984
+  type: 'test'
+  ...
+# Subtest: contact: JSON and form bodies
+ok 175 - contact: JSON and form bodies
+  ---
+  duration_ms: 0.521326
+  type: 'test'
+  ...
+# Subtest: contact: duplicate interests are stored once
+ok 176 - contact: duplicate interests are stored once
+  ---
+  duration_ms: 0.217747
+  type: 'test'
+  ...
+# (node:2635) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/data/cache.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: cache: a missing file gives the fallback; the file is parsed once and reused
+ok 177 - cache: a missing file gives the fallback; the file is parsed once and reused
+  ---
+  duration_ms: 18.709405
+  type: 'test'
+  ...
+# Subtest: cache: values are frozen (callers cannot corrupt what the next request sees)
+ok 178 - cache: values are frozen (callers cannot corrupt what the next request sees)
+  ---
+  duration_ms: 5.460055
+  type: 'test'
+  ...
+# Subtest: cache: a publish / rollback / content save through the store invalidates immediately (even within the re-check window)
+ok 179 - cache: a publish / rollback / content save through the store invalidates immediately (even within the re-check window)
+  ---
+  duration_ms: 7.110002
+  type: 'test'
+  ...
+# Subtest: cache: a write by another process is seen at the next re-check, not before
+ok 180 - cache: a write by another process is seen at the next re-check, not before
+  ---
+  duration_ms: 6.801766
+  type: 'test'
+  ...
+# Subtest: cache: concurrent requests share one load and all see the same value
+ok 181 - cache: concurrent requests share one load and all see the same value
+  ---
+  duration_ms: 5.628611
+  type: 'test'
+  ...
+# Subtest: cache: a request after a write never gets the value of a load started before it
+ok 182 - cache: a request after a write never gets the value of a load started before it
+  ---
+  duration_ms: 6.719823
+  type: 'test'
+  ...
+# Subtest: cache: invalid JSON throws and is not cached
+ok 183 - cache: invalid JSON throws and is not cached
+  ---
+  duration_ms: 7.516353
+  type: 'test'
+  ...
+# Subtest: cache: pinned snapshots are bounded (least recently used evicted); published data and content are never evicted
+ok 184 - cache: pinned snapshots are bounded (least recently used evicted); published data and content are never evicted
+  ---
+  duration_ms: 35.814438
+  type: 'test'
+  ...
+# (node:2642) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/data/freshness.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: freshness: whole calendar days, 7 days still daily, 8 not, one day of future slack; the config uses the same value
+ok 185 - freshness: whole calendar days, 7 days still daily, 8 not, one day of future slack; the config uses the same value
+  ---
+  duration_ms: 1.797273
+  type: 'test'
+  ...
+# Subtest: freshness: selection, validation gate and render gate agree at the boundary (exactly 8 days at midnight)
+ok 186 - freshness: selection, validation gate and render gate agree at the boundary (exactly 8 days at midnight)
+  ---
+  duration_ms: 5.377171
+  type: 'test'
+  ...
+# Subtest: render gate: a stale book is dropped (copy, input untouched); a fresh one keeps the same object
+ok 187 - render gate: a stale book is dropped (copy, input untouched); a fresh one keeps the same object
+  ---
+  duration_ms: 11.989703
+  type: 'test'
+  ...
+# (node:2653) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/deploy/provision.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: dry run changes nothing and never prints the generated secret
+ok 188 - dry run changes nothing and never prints the generated secret
+  ---
+  duration_ms: 269.822773
+  type: 'test'
+  ...
+# Subtest: apply creates service, health checks, volume, restricted secret group and starts a build
+ok 189 - apply creates service, health checks, volume, restricted secret group and starts a build
+  ---
+  duration_ms: 244.274585
+  type: 'test'
+  ...
+# Subtest: re-running is idempotent: existing resources are left unchanged
+ok 190 - re-running is idempotent: existing resources are left unchanged
+  ---
+  duration_ms: 239.221747
+  type: 'test'
+  ...
+# Subtest: secret group falls back to filled values when the API refuses empty ones
+ok 191 - secret group falls back to filled values when the API refuses empty ones
+  ---
+  duration_ms: 204.939765
+  type: 'test'
+  ...
+# Subtest: refuses to run without a token or against a missing project
+ok 192 - refuses to run without a token or against a missing project
+  ---
+  duration_ms: 254.228162
+  type: 'test'
+  ...
+# Subtest: refuses when an unrestricted secret group would leak into the public site
+ok 193 - refuses when an unrestricted secret group would leak into the public site
+  ---
+  duration_ms: 310.198273
+  type: 'test'
+  ...
+# Subtest: existing resources that are wired wrongly fail loudly
+ok 194 - existing resources that are wired wrongly fail loudly
+  ---
+  duration_ms: 204.059438
+  type: 'test'
+  ...
+# Subtest: options are strict: a value cannot smuggle --apply, bad branch or plan are refused
+ok 195 - options are strict: a value cannot smuggle --apply, bad branch or plan are refused
+  ---
+  duration_ms: 148.097024
+  type: 'test'
+  ...
+# Subtest: API error bodies never surface the generated secret
+ok 196 - API error bodies never surface the generated secret
+  ---
+  duration_ms: 193.777718
+  type: 'test'
+  ...
+# (node:2660) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/fund/data-fixes.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: growthRange: an arithmetic series (GMV, 10 000 × (1 + Σr)) is rebased additively
+ok 197 - growthRange: an arithmetic series (GMV, 10 000 × (1 + Σr)) is rebased additively
+  ---
+  duration_ms: 2.494588
+  type: 'test'
+  ...
+# Subtest: growthRange: a compounded series is rebased by ratio; SI is the published series untouched
+ok 198 - growthRange: a compounded series is rebased by ratio; SI is the published series untouched
+  ---
+  duration_ms: 1.197681
+  type: 'test'
+  ...
+# Subtest: growthRange: an index line is rebased with the same method
+ok 199 - growthRange: an index line is rebased with the same method
+  ---
+  duration_ms: 0.364221
+  type: 'test'
+  ...
+# Subtest: growthMethod: the published method, else arithmetic for a gross series, else compounded
+ok 200 - growthMethod: the published method, else arithmetic for a gross series, else compounded
+  ---
+  duration_ms: 0.238807
+  type: 'test'
+  ...
+# Subtest: visibleBlocks: hide.performance hides every returns-derived block, the portfolio stays
+ok 201 - visibleBlocks: hide.performance hides every returns-derived block, the portfolio stays
+  ---
+  duration_ms: 1.205075
+  type: 'test'
+  ...
+# Subtest: visibleBlocks: growth / calendar / risk hide individually
+ok 202 - visibleBlocks: growth / calendar / risk hide individually
+  ---
+  duration_ms: 0.531804
+  type: 'test'
+  ...
+# Subtest: stripHidden: hidden blocks are removed from the data (not in the RSC props), input untouched
+ok 203 - stripHidden: hidden blocks are removed from the data (not in the RSC props), input untouched
+  ---
+  duration_ms: 0.650317
+  type: 'test'
+  ...
+# Subtest: home / strategies / solutions props: hidden blocks never reach the cards
+ok 204 - home / strategies / solutions props: hidden blocks never reach the cards
+  ---
+  duration_ms: 15.048325
+  type: 'test'
+  ...
+# Subtest: partialKind: YTD only for the as-of year, a partial inception year is 'launch'
+ok 205 - partialKind: YTD only for the as-of year, a partial inception year is 'launch'
+  ---
+  duration_ms: 0.533598
+  type: 'test'
+  ...
+# Subtest: heatmap rows and mini bars carry the partial-year kind
+ok 206 - heatmap rows and mini bars carry the partial-year kind
+  ---
+  duration_ms: 1.05842
+  type: 'test'
+  ...
+# Subtest: SI is annualized from 12 monthly returns, like the pipeline (si.length >= 12)
+ok 207 - SI is annualized from 12 monthly returns, like the pipeline (si.length >= 12)
+  ---
+  duration_ms: 0.484046
+  type: 'test'
+  ...
+# Subtest: NAV per unit: 4 decimals everywhere (cards and tables like the fund page)
+ok 208 - NAV per unit: 4 decimals everywhere (cards and tables like the fund page)
+  ---
+  duration_ms: 9.95238
+  type: 'test'
+  ...
+# (node:2667) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/fund/helpers.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: fmt: unicode minus, FR spacing and decimal comma
+ok 209 - fmt: unicode minus, FR spacing and decimal comma
+  ---
+  duration_ms: 45.830274
+  type: 'test'
+  ...
+# Subtest: money and compact money
+ok 210 - money and compact money
+  ---
+  duration_ms: 1.096772
+  type: 'test'
+  ...
+# Subtest: dates and months
+ok 211 - dates and months
+  ---
+  duration_ms: 0.449962
+  type: 'test'
+  ...
+# Subtest: characteristics
+ok 212 - characteristics
+  ---
+  duration_ms: 1.068819
+  type: 'test'
+  ...
+# Subtest: ticks and file size
+ok 213 - ticks and file size
+  ---
+  duration_ms: 0.541824
+  type: 'test'
+  ...
+# Subtest: nice scale covers the data with round steps
+ok 214 - nice scale covers the data with round steps
+  ---
+  duration_ms: 0.354844
+  type: 'test'
+  ...
+# Subtest: bar path: rounded far end, empty for zero height
+ok 215 - bar path: rounded far end, empty for zero height
+  ---
+  duration_ms: 0.445795
+  type: 'test'
+  ...
+# Subtest: monotone path passes through every point
+ok 216 - monotone path passes through every point
+  ---
+  duration_ms: 0.330899
+  type: 'test'
+  ...
+# Subtest: bands, nearest index, ticks
+ok 217 - bands, nearest index, ticks
+  ---
+  duration_ms: 0.794636
+  type: 'test'
+  ...
+# Subtest: trailing periods and annualisation
+ok 218 - trailing periods and annualisation
+  ---
+  duration_ms: 0.553366
+  type: 'test'
+  ...
+# Subtest: headline class: admin choice, then default, then first with a NAV
+ok 219 - headline class: admin choice, then default, then first with a NAV
+  ---
+  duration_ms: 0.291736
+  type: 'test'
+  ...
+# Subtest: growth ranges rebase to 10 000 and never invent points
+ok 220 - growth ranges rebase to 10 000 and never invent points
+  ---
+  duration_ms: 0.470961
+  type: 'test'
+  ...
+# Subtest: heatmap grid and colours
+ok 221 - heatmap grid and colours
+  ---
+  duration_ms: 0.55599
+  type: 'test'
+  ...
+# Subtest: calendar rows and buckets drop empty values
+ok 222 - calendar rows and buckets drop empty values
+  ---
+  duration_ms: 0.241782
+  type: 'test'
+  ...
+# Subtest: risk windows accept one object or several
+ok 223 - risk windows accept one object or several
+  ---
+  duration_ms: 0.441977
+  type: 'test'
+  ...
+# Subtest: documents grouped by type, newest first, unpublished dropped
+ok 224 - documents grouped by type, newest first, unpublished dropped
+  ---
+  duration_ms: 0.994089
+  type: 'test'
+  ...
+# Subtest: visible blocks follow data and admin switches
+ok 225 - visible blocks follow data and admin switches
+  ---
+  duration_ms: 0.380852
+  type: 'test'
+  ...
+# Subtest: value added rounds to the displayed precision
+ok 226 - value added rounds to the displayed precision
+  ---
+  duration_ms: 0.147576
+  type: 'test'
+  ...
+# Subtest: performance class label
+ok 227 - performance class label
+  ---
+  duration_ms: 0.30458
+  type: 'test'
+  ...
+# Subtest: money parts rebuild money() around fmt()
+ok 228 - money parts rebuild money() around fmt()
+  ---
+  duration_ms: 0.99405
+  type: 'test'
+  ...
+# Subtest: return badges: published periods only, in order, annualized flag, hidden by the admin
+ok 229 - return badges: published periods only, in order, annualized flag, hidden by the admin
+  ---
+  duration_ms: 0.40635
+  type: 'test'
+  ...
+# Subtest: trailing rows carry benchmark and value added only when published
+ok 230 - trailing rows carry benchmark and value added only when published
+  ---
+  duration_ms: 0.488694
+  type: 'test'
+  ...
+# Subtest: nav direction rounds like the display
+ok 231 - nav direction rounds like the display
+  ---
+  duration_ms: 0.230842
+  type: 'test'
+  ...
+# Subtest: managers resolve against the team registry
+ok 232 - managers resolve against the team registry
+  ---
+  duration_ms: 0.599321
+  type: 'test'
+  ...
+# Subtest: series sorted with the headline class first
+ok 233 - series sorted with the headline class first
+  ---
+  duration_ms: 0.273332
+  type: 'test'
+  ...
+# Subtest: horizontal bar width: clamped to [0, 100 %]; a negative weight (negative cash) draws no bar, never an invalid width
+ok 234 - horizontal bar width: clamped to [0, 100 %]; a negative weight (negative cash) draws no bar, never an invalid width
+  ---
+  duration_ms: 0.310781
+  type: 'test'
+  ...
+# Subtest: labelSlot: the widest label plus 6 px (never narrower than the longest value)
+ok 235 - labelSlot: the widest label plus 6 px (never narrower than the longest value)
+  ---
+  duration_ms: 0.674121
+  type: 'test'
+  ...
+# (node:2683) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/fund/portfolio-dist.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: sample: daily portfolio for the bond funds, factsheet for the multi-strategy fund, distributions for the three funds
+ok 236 - sample: daily portfolio for the bond funds, factsheet for the multi-strategy fund, distributions for the three funds
+  ---
+  duration_ms: 32.577721
+  type: 'test'
+  ...
+# Subtest: stripHidden: the portfolio flags apply to the daily block too; `distributions` hides the series data
+ok 237 - stripHidden: the portfolio flags apply to the daily block too; `distributions` hides the series data
+  ---
+  duration_ms: 9.215231
+  type: 'test'
+  ...
+# Subtest: visibleBlocks: portfolio visible with a daily book only; distributions follow data and flag
+ok 238 - visibleBlocks: portfolio visible with a daily book only; distributions follow data and flag
+  ---
+  duration_ms: 2.986478
+  type: 'test'
+  ...
+# Subtest: daily breakdowns: display order, rating and term order kept, weights as the bar value; FR labels
+ok 239 - daily breakdowns: display order, rating and term order kept, weights as the bar value; FR labels
+  ---
+  duration_ms: 2.711262
+  type: 'test'
+  ...
+# Subtest: distributions: headline first, newest-first history (12 or all), last 24 bars oldest first
+ok 240 - distributions: headline first, newest-first history (12 or all), last 24 bars oldest first
+  ---
+  duration_ms: 14.709962
+  type: 'test'
+  ...
+# Subtest: provenance line: daily holdings with their date when the daily book is shown, else the factsheet month (EN / FR)
+ok 241 - provenance line: daily holdings with their date when the daily book is shown, else the factsheet month (EN / FR)
+  ---
+  duration_ms: 5.855746
+  type: 'test'
+  ...
+# Subtest: distribution amounts: one precision per series (4 to 6 decimals) at which rows add up to the calendar totals
+ok 242 - distribution amounts: one precision per series (4 to 6 decimals) at which rows add up to the calendar totals
+  ---
+  duration_ms: 1.874376
+  type: 'test'
+  ...
+# Subtest: year-to-date tag: the reference year only, and only while it is not over
+ok 243 - year-to-date tag: the reference year only, and only while it is not over
+  ---
+  duration_ms: 1.470712
+  type: 'test'
+  ...
+# Subtest: breakdown grid: an item left alone in a row spans it (odd count, or before a wide item)
+ok 244 - breakdown grid: an item left alone in a row spans it (odd count, or before a wide item)
+  ---
+  duration_ms: 1.92327
+  type: 'test'
+  ...
+# (node:2697) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/fund/rankings.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: rankingsToShow: seeded Fundata data and the 5-star Morningstar rating
+ok 245 - rankingsToShow: seeded Fundata data and the 5-star Morningstar rating
+  ---
+  duration_ms: 3.972913
+  type: 'test'
+  ...
+# Subtest: rankingsToShow: hidden, empty or malformed entries show nothing
+ok 246 - rankingsToShow: hidden, empty or malformed entries show nothing
+  ---
+  duration_ms: 0.5771
+  type: 'test'
+  ...
+# Subtest: cifscCategory: the admin's, else the Fundata category when unambiguous, in the page language
+ok 247 - cifscCategory: the admin's, else the Fundata category when unambiguous, in the page language
+  ---
+  duration_ms: 0.728994
+  type: 'test'
+  ...
+# Subtest: new copy: EN and FR present and short; FR keeps non-breaking spaces before : and %
+ok 248 - new copy: EN and FR present and short; FR keeps non-breaking spaces before : and %
+  ---
+  duration_ms: 2.780442
+  type: 'test'
+  ...
+# Subtest: rankingsToShow: Fundata entries of a class the fund does not have are dropped; blocks older than ~6 months are hidden
+ok 249 - rankingsToShow: Fundata entries of a class the fund does not have are dropped; blocks older than ~6 months are hidden
+  ---
+  duration_ms: 2.335109
+  type: 'test'
+  ...
+# Subtest: awards gate: the tab and the overview rating block need a shown Fundata FundGrade of A or B
+ok 250 - awards gate: the tab and the overview rating block need a shown Fundata FundGrade of A or B
+  ---
+  duration_ms: 4.615239
+  type: 'test'
+  ...
+# Subtest: awards gate, server side: a fund that does not qualify receives no rankings, its CIFSC category line survives
+ok 251 - awards gate, server side: a fund that does not qualify receives no rankings, its CIFSC category line survives
+  ---
+  duration_ms: 1.367449
+  type: 'test'
+  ...
+# Subtest: awards order: Morningstar, then Fundata, then RBC Investor Services before the other percentile rankings
+ok 252 - awards order: Morningstar, then Fundata, then RBC Investor Services before the other percentile rankings
+  ---
+  duration_ms: 0.704448
+  type: 'test'
+  ...
+# (node:2712) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/fund/select.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: classType: admin choice, else registry, else unknown (no label)
+ok 253 - classType: admin choice, else registry, else unknown (no label)
+  ---
+  duration_ms: 1.531545
+  type: 'test'
+  ...
+# Subtest: classOptions: default class first, registry + NAV + returns classes, types attached
+ok 254 - classOptions: default class first, registry + NAV + returns classes, types attached
+  ---
+  duration_ms: 14.410271
+  type: 'test'
+  ...
+# Subtest: pickData: each class gets its own series; a class without one is 'coming soon'
+ok 255 - pickData: each class gets its own series; a class without one is 'coming soon'
+  ---
+  duration_ms: 1.002966
+  type: 'test'
+  ...
+# Subtest: pickData: data published before class series: only the class the series says it is
+ok 256 - pickData: data published before class series: only the class the series says it is
+  ---
+  duration_ms: 0.387285
+  type: 'test'
+  ...
+# Subtest: pickData: variants switch returns, risk, characteristics, allocation and holdings; the default is the fund's own
+ok 257 - pickData: variants switch returns, risk, characteristics, allocation and holdings; the default is the fund's own
+  ---
+  duration_ms: 0.540812
+  type: 'test'
+  ...
+# Subtest: opening class: the headline when it has returns, else the data's default, else the first class offered that has returns
+ok 258 - opening class: the headline when it has returns, else the data's default, else the first class offered that has returns
+  ---
+  duration_ms: 1.375233
+  type: 'test'
+  ...
+# Subtest: notices: a young series says when it launched and the minimum; a non-CAD series says why; others 'coming soon'
+ok 259 - notices: a young series says when it launched and the minimum; a non-CAD series says why; others 'coming soon'
+  ---
+  duration_ms: 28.68893
+  type: 'test'
+  ...
+# Subtest: withheld figures keep their row ('—'); periods longer than the history do not appear
+ok 260 - withheld figures keep their row ('—'); periods longer than the history do not appear
+  ---
+  duration_ms: 6.776669
+  type: 'test'
+  ...
+# Subtest: since-inception label of a class entry names its inception (EN / FR); other periods and the track record unchanged
+ok 261 - since-inception label of a class entry names its inception (EN / FR); other periods and the track record unchanged
+  ---
+  duration_ms: 0.843057
+  type: 'test'
+  ...
+# (node:2713) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/alerts.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: format: Teams detected from the webhook host (incoming webhook, Workflows), PIPELINE_ALERT_FORMAT wins, else generic JSON
+ok 262 - format: Teams detected from the webhook host (incoming webhook, Workflows), PIPELINE_ALERT_FORMAT wins, else generic JSON
+  ---
+  duration_ms: 9.875677
+  type: 'test'
+  ...
+# Subtest: payloads: Teams Adaptive Card with an Open-the-admin button (absolute with PUBLIC_URL); generic JSON keeps `text`
+ok 263 - payloads: Teams Adaptive Card with an Open-the-admin button (absolute with PUBLIC_URL); generic JSON keeps `text`
+  ---
+  duration_ms: 3.312147
+  type: 'test'
+  ...
+# Subtest: delivery: retries 5xx / 429 / network errors with backoff, never a 4xx; the URL never appears in an error
+ok 264 - delivery: retries 5xx / 429 / network errors with backoff, never a 4xx; the URL never appears in an error
+  ---
+  duration_ms: 31.596393
+  type: 'test'
+  ...
+# [alerts] alert webhook failed after 4 attempt(s): HTTP 500 (T changed)
+# Subtest: dedup: posted when new or changed, a reminder once a day while it lasts, resolved once; nothing recorded when not delivered
+ok 265 - dedup: posted when new or changed, a reminder once a day while it lasts, resolved once; nothing recorded when not delivered
+  ---
+  duration_ms: 34.939359
+  type: 'test'
+  ...
+# Subtest: alertDecision
+ok 266 - alertDecision
+  ---
+  duration_ms: 3.513093
+  type: 'test'
+  ...
+# Subtest: announceNew: each item once while it lasts; an item that disappears and comes back is posted again
+ok 267 - announceNew: each item once while it lasts; an item that disappears and comes back is posted again
+  ---
+  duration_ms: 8.261677
+  type: 'test'
+  ...
+# Subtest: channel status for the admin: configured, format, host only (never the path), last delivery
+ok 268 - channel status for the admin: configured, format, host only (never the path), last delivery
+  ---
+  duration_ms: 4.318088
+  type: 'test'
+  ...
+# Subtest: concurrent alerts of the process are serialised: no lost update of the state
+ok 269 - concurrent alerts of the process are serialised: no lost update of the state
+  ---
+  duration_ms: 11.470745
+  type: 'test'
+  ...
+# Subtest: hygiene: https webhooks only; hosts stripped from lines (paths kept, clock times untouched); Teams Markdown escaped; environment label
+ok 270 - hygiene: https webhooks only; hosts stripped from lines (paths kept, clock times untouched); Teams Markdown escaped; environment label
+  ---
+  duration_ms: 9.662969
+  type: 'test'
+  ...
+# Subtest: test alert: delivered at once (one attempt), not queued behind other alerts; one a minute
+ok 271 - test alert: delivered at once (one attempt), not queued behind other alerts; one a minute
+  ---
+  duration_ms: 60.940114
+  type: 'test'
+  ...
+# (node:2740) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/build.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: end to end: history from analytics + the dataplatform daily NAV chain + ready months, published index, every block
+ok 272 - end to end: history from analytics + the dataplatform daily NAV chain + ready months, published index, every block
+  ---
+  duration_ms: 1315.56245
+  type: 'test'
+  ...
+# Subtest: SEST benchmark default is short_corp; FTSE_INDEX_SEST overrides it
+ok 273 - SEST benchmark default is short_corp; FTSE_INDEX_SEST overrides it
+  ---
+  duration_ms: 180.507026
+  type: 'test'
+  ...
+# Subtest: FTSE history: an earlier naming generation is chain-linked only on equal daily returns over a common period
+ok 274 - FTSE history: an earlier naming generation is chain-linked only on equal daily returns over a common period
+  ---
+  duration_ms: 752.924061
+  type: 'test'
+  ...
+# Subtest: ftseFamily: publisher prefixes, Bond Index, Overall and Term do not change the family
+ok 275 - ftseFamily: publisher prefixes, Bond Index, Overall and Term do not change the family
+  ---
+  duration_ms: 0.378648
+  type: 'test'
+  ...
+# Subtest: H1: a month missing from every source interrupts the track record (error); analytics vs dataplatform difference warns
+ok 276 - H1: a month missing from every source interrupts the track record (error); analytics vs dataplatform difference warns
+  ---
+  duration_ms: 2015.276876
+  type: 'test'
+  ...
+# Subtest: H1: analytics unavailable -> track record cannot start in 2019: performance not built (error)
+ok 277 - H1: analytics unavailable -> track record cannot start in 2019: performance not built (error)
+  ---
+  duration_ms: 711.082656
+  type: 'test'
+  ...
+# Subtest: H3: by default a new month does not wait for its factsheet; opt-in waits (held, info); an inconsistent factsheet blocks the new month
+ok 278 - H3: by default a new month does not wait for its factsheet; opt-in waits (held, info); an inconsistent factsheet blocks the new month
+  ---
+  duration_ms: 4377.612337
+  type: 'test'
+  ...
+# Subtest: H3 tolerances: 1Y rounding (0.05 %) + 0.05 %; 5Y 0.05 % + 0.1 %
+ok 279 - H3 tolerances: 1Y rounding (0.05 %) + 0.05 %; 5Y 0.05 % + 0.1 %
+  ---
+  duration_ms: 1784.791029
+  type: 'test'
+  ...
+# Subtest: track record < 12 months: performance and risk withheld (compliance), info only
+ok 280 - track record < 12 months: performance and risk withheld (compliance), info only
+  ---
+  duration_ms: 667.318654
+  type: 'test'
+  ...
+# Subtest: a memoised baseline refuses to serve while the pipeline config is mutated
+ok 281 - a memoised baseline refuses to serve while the pipeline config is mutated
+  ---
+  duration_ms: 1.116645
+  type: 'test'
+  ...
+# Subtest: C3 navChange unit cases
+ok 282 - C3 navChange unit cases
+  ---
+  duration_ms: 0.373137
+  type: 'test'
+  ...
+# Subtest: M5 revisions: months up to the previous as-of changed by more than 1e-6
+ok 283 - M5 revisions: months up to the previous as-of changed by more than 1e-6
+  ---
+  duration_ms: 0.155581
+  type: 'test'
+  ...
+# Subtest: failed sources carry over previous values, with error issues and alerts
+ok 284 - failed sources carry over previous values, with error issues and alerts
+  ---
+  duration_ms: 827.849976
+  type: 'test'
+  ...
+# Subtest: N1: a same-month factsheet whose fund trailing row is all nan is not a cross-check (new month waits)
+ok 285 - N1: a same-month factsheet whose fund trailing row is all nan is not a cross-check (new month waits)
+  ---
+  duration_ms: 1663.337178
+  type: 'test'
+  ...
+# Subtest: N1: a same-month factsheet whose fund trailing row is empty strings is not a cross-check (new month waits)
+ok 286 - N1: a same-month factsheet whose fund trailing row is empty strings is not a cross-check (new month waits)
+  ---
+  duration_ms: 1903.94972
+  type: 'test'
+  ...
+# Subtest: N1: a same-month factsheet whose fund trailing row is 1Y missing is not a cross-check (new month waits)
+ok 287 - N1: a same-month factsheet whose fund trailing row is 1Y missing is not a cross-check (new month waits)
+  ---
+  duration_ms: 1251.069395
+  type: 'test'
+  ...
+# Subtest: N1: renamed fund trailing row (fund name changed) -> not cross-checkable
+ok 288 - N1: renamed fund trailing row (fund name changed) -> not cross-checkable
+  ---
+  duration_ms: 1264.917995
+  type: 'test'
+  ...
+# Subtest: N1: fund monthly-table mismatch beyond print precision: blocking after the previous as-of, alert for older months
+ok 289 - N1: fund monthly-table mismatch beyond print precision: blocking after the previous as-of, alert for older months
+  ---
+  duration_ms: 3330.37558
+  type: 'test'
+  ...
+# Subtest: N0: by default a new month the dataplatform views disagree on is withheld (chain vs monthly-net-returns)
+ok 290 - N0: by default a new month the dataplatform views disagree on is withheld (chain vs monthly-net-returns)
+  ---
+  duration_ms: 1931.256802
+  type: 'test'
+  ...
+# Subtest: N4: analytics unavailable -> factsheet-rebuilt history alerts, risk statistics withheld
+ok 291 - N4: analytics unavailable -> factsheet-rebuilt history alerts, risk statistics withheld
+  ---
+  duration_ms: 882.557398
+  type: 'test'
+  ...
+# Subtest: FTSE for all benchmarks: a published index month after the cutover that differs -> warn; FTSE still shown
+ok 292 - FTSE for all benchmarks: a published index month after the cutover that differs -> warn; FTSE still shown
+  ---
+  duration_ms: 815.035506
+  type: 'test'
+  ...
+# Subtest: FTSE for all benchmarks: no factsheet index table / published VA changed -> index still from FTSE; VA = fund − FTSE
+ok 293 - FTSE for all benchmarks: no factsheet index table / published VA changed -> index still from FTSE; VA = fund − FTSE
+  ---
+  duration_ms: 780.054615
+  type: 'test'
+  ...
+# Subtest: FTSE for all benchmarks: a period FTSE does not cover is null with an issue (never filled from the factsheet)
+ok 294 - FTSE for all benchmarks: a period FTSE does not cover is null with an issue (never filled from the factsheet)
+  ---
+  duration_ms: 1822.261714
+  type: 'test'
+  ...
+# Subtest: no test leaves the pipeline config mutated (memoised baselines stay valid)
+ok 295 - no test leaves the pipeline config mutated (memoised baselines stay valid)
+  ---
+  duration_ms: 0.246711
+  type: 'test'
+  ...
+# Subtest: short record: fewer than 12 monthly returns (inclusive count, no double +1)
+ok 296 - short record: fewer than 12 monthly returns (inclusive count, no double +1)
+  ---
+  duration_ms: 0.087674
+  type: 'test'
+  ...
+# (node:2747) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/class-returns.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: inception = first price of the current run: a gap of more than 10 days ends an earlier life; the floor cuts a run; an unknown start
+ok 297 - inception = first price of the current run: a gap of more than 10 days ends an earlier life; the floor cuts a run; an unknown start
+  ---
+  duration_ms: 13.664826
+  type: 'test'
+  ...
+# Subtest: the first month runs from the inception NAV: the inception day's own return (relative to an old life) is never used
+ok 298 - the first month runs from the inception NAV: the inception day's own return (relative to an old life) is never used
+  ---
+  duration_ms: 6.027237
+  type: 'test'
+  ...
+# Subtest: bad valuation print: opposite daily moves ≥ 2 % that cancel out flag both months, for the fund
+ok 299 - bad valuation print: opposite daily moves ≥ 2 % that cancel out flag both months, for the fund
+  ---
+  duration_ms: 3.695835
+  type: 'test'
+  ...
+# Subtest: fit per class: a fee-free class scaling with the median is expected (no breach); clipping and the < 12-month fallback
+ok 300 - fit per class: a fee-free class scaling with the median is expected (no breach); clipping and the < 12-month fallback
+  ---
+  duration_ms: 17.716156
+  type: 'test'
+  ...
+# Subtest: fit per class: separate up / down slopes (performance fee in up months only); a short side is never pooled
+ok 301 - fit per class: separate up / down slopes (performance fee in up months only); a short side is never pooled
+  ---
+  duration_ms: 0.756435
+  type: 'test'
+  ...
+# Subtest: cross-class: a single outlier with no adjustment day → that class only; with an adjustment day → every class; two breaching → every class
+ok 302 - cross-class: a single outlier with no adjustment day → that class only; with an adjustment day → every class; two breaching → every class
+  ---
+  duration_ms: 31.963964
+  type: 'test'
+  ...
+# Subtest: cross-class: a December distribution-day error where the majority is wrong is withheld for every class (adjustment day)
+ok 303 - cross-class: a December distribution-day error where the majority is wrong is withheld for every class (adjustment day)
+  ---
+  duration_ms: 8.150159
+  type: 'test'
+  ...
+# Subtest: B1: an error in the fund's strongest month cannot bend its own fit (leave-one-out, Theil–Sen)
+ok 304 - B1: an error in the fund's strongest month cannot bend its own fit (leave-one-out, Theil–Sen)
+  ---
+  duration_ms: 2.013928
+  type: 'test'
+  ...
+# Subtest: adjustment days: stored return vs NAV ratio beyond 0.10 % (a distribution), not otherwise
+ok 305 - adjustment days: stored return vs NAV ratio beyond 0.10 % (a distribution), not otherwise
+  ---
+  duration_ms: 0.589693
+  type: 'test'
+  ...
+# Subtest: cross-class: partial months stay outside the median and the fit; compared over their own days, withheld alone
+ok 306 - cross-class: partial months stay outside the median and the fit; compared over their own days, withheld alone
+  ---
+  duration_ms: 0.701593
+  type: 'test'
+  ...
+# Subtest: computeFundClasses: one class off in a month without an adjustment day → that class only; with a distribution day → every class
+ok 307 - computeFundClasses: one class off in a month without an adjustment day → that class only; with a distribution day → every class
+  ---
+  duration_ms: 109.635303
+  type: 'test'
+  ...
+# Subtest: computeFundClasses: non-CAD class without figures; withheld months keep their place with the reason
+ok 308 - computeFundClasses: non-CAD class without figures; withheld months keep their place with the reason
+  ---
+  duration_ms: 8.235719
+  type: 'test'
+  ...
+# Subtest: 12-month minimum: counted from the inception day (same day 12 months later, clamped to the month's end)
+ok 309 - 12-month minimum: counted from the inception day (same day 12 months later, clamped to the month's end)
+  ---
+  duration_ms: 0.290543
+  type: 'test'
+  ...
+# Subtest: M1: a print on the newest month's last day reversed on the next valuation day is caught; without a next day the newest month waits
+ok 310 - M1: a print on the newest month's last day reversed on the next valuation day is caught; without a next day the newest month waits
+  ---
+  duration_ms: 62.432325
+  type: 'test'
+  ...
+# Subtest: M3: the cut-over month's NAV bridge must equal the class's compounded daily returns
+ok 311 - M3: the cut-over month's NAV bridge must equal the class's compounded daily returns
+  ---
+  duration_ms: 55.310725
+  type: 'test'
+  ...
+# Subtest: leave-class-out reference: the class with the injected error is the one withheld, never the correct fee-free class
+ok 312 - leave-class-out reference: the class with the injected error is the one withheld, never the correct fee-free class
+  ---
+  duration_ms: 152.381952
+  type: 'test'
+  ...
+# Subtest: Multi-Strategy-like fund: a 20 % performance fee in up months only is an expected spread; ±0.6 % errors are still caught
+ok 313 - Multi-Strategy-like fund: a 20 % performance fee in up months only is an expected spread; ±0.6 % errors are still caught
+  ---
+  duration_ms: 376.132189
+  type: 'test'
+  ...
+# Subtest: side counts: a fee-free class with exactly 6 down months keeps its own down slope in every leave-one-out fit
+ok 314 - side counts: a fee-free class with exactly 6 down months keeps its own down slope in every leave-one-out fit
+  ---
+  duration_ms: 211.555353
+  type: 'test'
+  ...
+# Subtest: side counts: with 3–5 down months the fee-free class's down months are withheld (not checkable), the fee classes checked at slope 1
+ok 315 - side counts: with 3–5 down months the fee-free class's down months are withheld (not checkable), the fee classes checked at slope 1
+  ---
+  duration_ms: 375.865221
+  type: 'test'
+  ...
+# Subtest: convergence: the fits settle (same result for any round cap above the rounds needed); unsettled → every checked month for the fund
+ok 316 - convergence: the fits settle (same result for any round cap above the rounds needed); unsettled → every checked month for the fund
+  ---
+  duration_ms: 49.262708
+  type: 'test'
+  ...
+# Subtest: second leave-out pass: a real breach is never cleared (unstable class → first-pass verdicts; explained only on the same side)
+ok 317 - second leave-out pass: a real breach is never cleared (unstable class → first-pass verdicts; explained only on the same side)
+  ---
+  duration_ms: 132.64815
+  type: 'test'
+  ...
+# Subtest: a class whose other classes are all not checkable on that side this month is not checkable either (never slope 1)
+ok 318 - a class whose other classes are all not checkable on that side this month is not checkable either (never slope 1)
+  ---
+  duration_ms: 69.315978
+  type: 'test'
+  ...
+# Subtest: a class without a fit, next to fitted classes, is never checked at slope 1: its months wait for a fit of its own
+ok 319 - a class without a fit, next to fitted classes, is never checked at slope 1: its months wait for a fit of its own
+  ---
+  duration_ms: 17.318934
+  type: 'test'
+  ...
+# Subtest: CIBC holiday filler rows (NAV carried over, no return, market holiday) are not valuation days; a moving holiday row stays
+ok 320 - CIBC holiday filler rows (NAV carried over, no return, market holiday) are not valuation days; a moving holiday row stays
+  ---
+  duration_ms: 1.851193
+  type: 'test'
+  ...
+# Subtest: CIBC month with a valuation day without NAV: bridged only when the next day's stored return equals the NAV ratio across the gap
+ok 321 - CIBC month with a valuation day without NAV: bridged only when the next day's stored return equals the NAV ratio across the gap
+  ---
+  duration_ms: 2.352922
+  type: 'test'
+  ...
+# (node:2828) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/classes.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: classes of a fund: configured codes, then the registry's classes, then the register's other active classes
+ok 322 - classes of a fund: configured codes, then the registry's classes, then the register's other active classes
+  ---
+  duration_ms: 3.446819
+  type: 'test'
+  ...
+# Subtest: every active class from its own daily chain since its inception: shown, young (< 12 months) or non-CAD
+ok 323 - every active class from its own daily chain since its inception: shown, young (< 12 months) or non-CAD
+  ---
+  duration_ms: 1104.357244
+  type: 'test'
+  ...
+# Subtest: source defects in the fixtures: a bad valuation print and a drift in a distribution month withhold every class; a lone outlier only itself
+ok 324 - source defects in the fixtures: a bad valuation print and a drift in a distribution month withhold every class; a lone outlier only itself
+  ---
+  duration_ms: 5.097838
+  type: 'test'
+  ...
+# Subtest: a failed history leaves the class out ("coming soon"); a class published before that disappears is a blocking alert; a hole withholds one month only
+ok 325 - a failed history leaves the class out ("coming soon"); a class published before that disappears is a blocking alert; a hole withholds one month only
+  ---
+  duration_ms: 2398.026766
+  type: 'test'
+  ...
+# Subtest: buildClassEntry: per-figure withholding, growth after the last withheld month, the 12-month rule, non-CAD
+ok 326 - buildClassEntry: per-figure withholding, growth after the last withheld month, the 12-month rule, non-CAD
+  ---
+  duration_ms: 3.026198
+  type: 'test'
+  ...
+# Subtest: classFundTrailing: YTD needs the year's January; fixed periods never reach into the partial first month
+ok 327 - classFundTrailing: YTD needs the year's January; fixed periods never reach into the partial first month
+  ---
+  duration_ms: 0.534152
+  type: 'test'
+  ...
+# Subtest: pickDefaultClass: the headline class when it has returns, else the first class in register order that has
+ok 328 - pickDefaultClass: the headline class when it has returns, else the first class in register order that has
+  ---
+  duration_ms: 0.174955
+  type: 'test'
+  ...
+# Subtest: a young headline class: the page opens on the first class (register order) that has returns
+ok 329 - a young headline class: the page opens on the first class (register order) that has returns
+  ---
+  duration_ms: 716.757048
+  type: 'test'
+  ...
+# Subtest: GMV variants 3 / 6 / 9: each has its own returns; the default (6) is the fund's own data
+ok 330 - GMV variants 3 / 6 / 9: each has its own returns; the default (6) is the fund's own data
+  ---
+  duration_ms: 5.151632
+  type: 'test'
+  ...
+# Subtest: GMV: a missing variant block drops that variant only
+ok 331 - GMV: a missing variant block drops that variant only
+  ---
+  duration_ms: 691.674425
+  type: 'test'
+  ...
+# Subtest: validation drops a class whose own numbers are implausible (also the default class F), never the fund
+ok 332 - validation drops a class whose own numbers are implausible (also the default class F), never the fund
+  ---
+  duration_ms: 29.715407
+  type: 'test'
+  ...
+# Subtest: a performance held by validation holds every class, never new classes next to an old headline; NAV and the rest still publish
+ok 333 - a performance held by validation holds every class, never new classes next to an old headline; NAV and the rest still publish
+  ---
+  duration_ms: 33.641389
+  type: 'test'
+  ...
+# Subtest: a held GMV performance holds every variant with it
+ok 334 - a held GMV performance holds every variant with it
+  ---
+  duration_ms: 34.8899
+  type: 'test'
+  ...
+# Subtest: performanceProblems: gap, wrong end, huge month, trailing mismatch
+ok 335 - performanceProblems: gap, wrong end, huge month, trailing mismatch
+  ---
+  duration_ms: 0.364941
+  type: 'test'
+  ...
+# Subtest: a failing headline class holds the performance (never dropped by the class gate alone); a stale variant is dropped
+ok 336 - a failing headline class holds the performance (never dropped by the class gate alone); a stale variant is dropped
+  ---
+  duration_ms: 52.715061
+  type: 'test'
+  ...
+# Subtest: a class not launched yet (no own row up to the as-of): info only, no alert
+ok 337 - a class not launched yet (no own row up to the as-of): info only, no alert
+  ---
+  duration_ms: 773.533868
+  type: 'test'
+  ...
+# Subtest: M2: a month withheld for every class applies to the track record where it comes from its own NAV chain; an official figure stays
+ok 338 - M2: a month withheld for every class applies to the track record where it comes from its own NAV chain; an official figure stays
+  ---
+  duration_ms: 748.025211
+  type: 'test'
+  ...
+# Subtest: new classes are gated even when the previous publication had no performance
+ok 339 - new classes are gated even when the previous publication had no performance
+  ---
+  duration_ms: 6.932678
+  type: 'test'
+  ...
+# Subtest: YTD of a class whose first complete month is January (priced since the previous December's last day); growth starts at the inception day
+ok 340 - YTD of a class whose first complete month is January (priced since the previous December's last day); growth starts at the inception day
+  ---
+  duration_ms: 5.024615
+  type: 'test'
+  ...
+# Subtest: headline: a print on the newest month's last day reversed on the next valuation day in every class is never published, even with monthly-net-returns matching
+ok 341 - headline: a print on the newest month's last day reversed on the next valuation day in every class is never published, even with monthly-net-returns matching
+  ---
+  duration_ms: 643.561288
+  type: 'test'
+  ...
+# Subtest: headline: the track class's own newest-month hold reaches the track record (its months come from the same NAVs)
+ok 342 - headline: the track class's own newest-month hold reaches the track record (its months come from the same NAVs)
+  ---
+  duration_ms: 651.549019
+  type: 'test'
+  ...
+# Subtest: a fund new to a live site: every series gated (its page goes live without performance until approved); the very first site publication is not gated
+ok 343 - a fund new to a live site: every series gated (its page goes live without performance until approved); the very first site publication is not gated
+  ---
+  duration_ms: 28.29261
+  type: 'test'
+  ...
+# Subtest: class histories are fetched one at a time (twenty in parallel ran the dataplatform out of memory)
+ok 344 - class histories are fetched one at a time (twenty in parallel ran the dataplatform out of memory)
+  ---
+  duration_ms: 230.665142
+  type: 'test'
+  ...
+# Subtest: class histories: after 3 failures in a row the rest are not requested (a failing dataplatform cannot hold the run)
+ok 345 - class histories: after 3 failures in a row the rest are not requested (a failing dataplatform cannot hold the run)
+  ---
+  duration_ms: 60.729719
+  type: 'test'
+  ...
+# Subtest: no test leaves the pipeline config mutated (memoised baselines stay valid)
+ok 346 - no test leaves the pipeline config mutated (memoised baselines stay valid)
+  ---
+  duration_ms: 0.443578
+  type: 'test'
+  ...
+# Subtest: indexSinceInception: from the inception-day close to the as-of month-end, same closing levels as the monthly series, 365-day annualization
+ok 347 - indexSinceInception: from the inception-day close to the as-of month-end, same closing levels as the monthly series, 365-day annualization
+  ---
+  duration_ms: 0.741315
+  type: 'test'
+  ...
+# Subtest: buildClassEntry: a class launched mid-month gets its since-inception index from the daily levels, value added against the fund
+ok 348 - buildClassEntry: a class launched mid-month gets its since-inception index from the daily levels, value added against the fund
+  ---
+  duration_ms: 3.323767
+  type: 'test'
+  ...
+# (node:2840) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/daily-chain.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Canadian bond-market holidays (FTSE Canada): TSX holidays + Truth and Reconciliation Day + Remembrance Day, weekend-observed
+ok 349 - Canadian bond-market holidays (FTSE Canada): TSX holidays + Truth and Reconciliation Day + Remembrance Day, weekend-observed
+  ---
+  duration_ms: 2.962392
+  type: 'test'
+  ...
+# Subtest: TSX holidays (port of the dataplatform market calendar)
+ok 350 - TSX holidays (port of the dataplatform market calendar)
+  ---
+  duration_ms: 0.5984
+  type: 'test'
+  ...
+# Subtest: Apex month: compounds the distribution-aware chain exactly; any gap or other method is unavailable
+ok 351 - Apex month: compounds the distribution-aware chain exactly; any gap or other method is unavailable
+  ---
+  duration_ms: 10.966067
+  type: 'test'
+  ...
+# Subtest: CIBC month: stored daily returns compounded over a complete month only
+ok 352 - CIBC month: stored daily returns compounded over a complete month only
+  ---
+  duration_ms: 14.88577
+  type: 'test'
+  ...
+# Subtest: cut-over month: NAV bridge equals the chain when nothing is distributed inside the month
+ok 353 - cut-over month: NAV bridge equals the chain when nothing is distributed inside the month
+  ---
+  duration_ms: 8.406478
+  type: 'test'
+  ...
+# Subtest: classMonths: rows of another strategy before navStart are ignored; first listed month is the first complete one
+ok 354 - classMonths: rows of another strategy before navStart are ignored; first listed month is the first complete one
+  ---
+  duration_ms: 27.84662
+  type: 'test'
+  ...
+# Subtest: class start: the class's own first row on or after the fund's data start; first computable month
+ok 355 - class start: the class's own first row on or after the fund's data start; first computable month
+  ---
+  duration_ms: 20.692245
+  type: 'test'
+  ...
+# Subtest: CAD only: a CIBC row in another currency makes the CIBC month and the bridge unavailable (m7)
+ok 356 - CAD only: a CIBC row in another currency makes the CIBC month and the bridge unavailable (m7)
+  ---
+  duration_ms: 7.35448
+  type: 'test'
+  ...
+# Subtest: cut-over seam (M2): the first Apex return must carry the last CIBC NAV per unit to the first Apex NAV per unit
+ok 357 - cut-over seam (M2): the first Apex return must carry the last CIBC NAV per unit to the first Apex NAV per unit
+  ---
+  duration_ms: 10.556291
+  type: 'test'
+  ...
+# (node:2847) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/freshness.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Toronto calendar date
+ok 358 - Toronto calendar date
+  ---
+  duration_ms: 23.903283
+  type: 'test'
+  ...
+# Subtest: expected performance month: the last month-end closed for more than 15 business days
+ok 359 - expected performance month: the last month-end closed for more than 15 business days
+  ---
+  duration_ms: 1.728053
+  type: 'test'
+  ...
+# Subtest: verdict ok: last expected month, NAV a day old; a strategy without NAV is fine; no publication-age rule (review mode)
+ok 360 - verdict ok: last expected month, NAV a day old; a strategy without NAV is fine; no publication-age rule (review mode)
+  ---
+  duration_ms: 1.477775
+  type: 'test'
+  ...
+# Subtest: verdict stale: performance month, NAV age, missing data — each with a stable code; hidden blocks are not checked
+ok 361 - verdict stale: performance month, NAV age, missing data — each with a stable code; hidden blocks are not checked
+  ---
+  duration_ms: 1.596227
+  type: 'test'
+  ...
+# (node:2854) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/ftse-gap.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: gap link accepted: the earlier name ends on the bond-market day before the current one, same base, implied return = estimate
+ok 362 - gap link accepted: the earlier name ends on the bond-market day before the current one, same base, implied return = estimate
+  ---
+  duration_ms: 16.069025
+  type: 'test'
+  ...
+# Subtest: gap link rejected: re-based levels, a two-day gap, a gap-day return off the estimate
+ok 363 - gap link rejected: re-based levels, a two-day gap, a gap-day return off the estimate
+  ---
+  duration_ms: 20.097121
+  type: 'test'
+  ...
+# Subtest: ftseDaily keeps the index row's average yield and modified duration (numbers or numeric strings)
+ok 364 - ftseDaily keeps the index row's average yield and modified duration (numbers or numeric strings)
+  ---
+  duration_ms: 0.606304
+  type: 'test'
+  ...
+# Subtest: ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', prefixes and 'overall' do not change the family
+ok 365 - ftseFamily: word order, 'short term' / 'short', 'corporate' / 'corp', prefixes and 'overall' do not change the family
+  ---
+  duration_ms: 0.964986
+  type: 'test'
+  ...
+# Subtest: gap tolerance is capped at 5 bp; a copied level (zero implied return) is never a link
+ok 366 - gap tolerance is capped at 5 bp; a copied level (zero implied return) is never a link
+  ---
+  duration_ms: 22.976329
+  type: 'test'
+  ...
+# Subtest: same short_name renamed (2024-12): ftseDaily keeps the latest signature only; ftseEarlierGenerations returns the older one
+ok 367 - same short_name renamed (2024-12): ftseDaily keeps the latest signature only; ftseEarlierGenerations returns the older one
+  ---
+  duration_ms: 7.825922
+  type: 'test'
+  ...
+# Subtest: same short_name: a re-based earlier generation is returned but the gap link refuses it (levels never compared blindly)
+ok 368 - same short_name: a re-based earlier generation is returned but the gap link refuses it (levels never compared blindly)
+  ---
+  duration_ms: 3.108115
+  type: 'test'
+  ...
+# Subtest: same short_name: rows of another index_id are never taken as an earlier generation
+ok 369 - same short_name: rows of another index_id are never taken as an earlier generation
+  ---
+  duration_ms: 0.645839
+  type: 'test'
+  ...
+# Subtest: same short_name: nothing earlier → no generation; a single generation is unchanged
+ok 370 - same short_name: nothing earlier → no generation; a single generation is unchanged
+  ---
+  duration_ms: 2.194476
+  type: 'test'
+  ...
+# (node:2861) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/ftse-grouping.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: summarises the grouping values of the latest date
+ok 371 - summarises the grouping values of the latest date
+  ---
+  duration_ms: 2.673101
+  type: 'test'
+  ...
+# Subtest: one row per day is the index itself (dataplatform shape: short_corp = Short / Corporate)
+ok 372 - one row per day is the index itself (dataplatform shape: short_corp = Short / Corporate)
+  ---
+  duration_ms: 0.261079
+  type: 'test'
+  ...
+# Subtest: a day from another index (same slug) never enters the series
+ok 373 - a day from another index (same slug) never enters the series
+  ---
+  duration_ms: 0.40122
+  type: 'test'
+  ...
+# Subtest: no single-row day to anchor the signature: nothing is used
+ok 374 - no single-row day to anchor the signature: nothing is used
+  ---
+  duration_ms: 0.314388
+  type: 'test'
+  ...
+# (node:2868) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/fund-data.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: parseFundPortfolio: the fixture parses; numeric strings accepted; bad rows dropped and noted; never a 0 default
+ok 375 - parseFundPortfolio: the fixture parses; numeric strings accepted; bad rows dropped and noted; never a 0 default
+  ---
+  duration_ms: 4.769474
+  type: 'test'
+  ...
+# Subtest: parseDistributions: rows sorted, invalid rows / classes / years dropped and noted; shape required
+ok 376 - parseDistributions: rows sorted, invalid rows / classes / years dropped and noted; shape required
+  ---
+  duration_ms: 0.820924
+  type: 'test'
+  ...
+# Subtest: fetchers: 404 route (not deployed) and 404 resource are `absent`; 5xx / network / garbage are failures
+ok 377 - fetchers: 404 route (not deployed) and 404 resource are `absent`; 5xx / network / garbage are failures
+  ---
+  duration_ms: 56.507392
+  type: 'test'
+  ...
+# Subtest: ordering: ratings AAA → D, then not rated, then cash; terms in bucket order; others largest first, cash last
+ok 378 - ordering: ratings AAA → D, then not rated, then cash; terms in bucket order; others largest first, cash last
+  ---
+  duration_ms: 0.926971
+  type: 'test'
+  ...
+# Subtest: selectPortfolio: thresholds (priced >= 90 %, resolved >= 95 %), freshness, per-characteristic coverage >= 90 %
+ok 379 - selectPortfolio: thresholds (priced >= 90 %, resolved >= 95 %), freshness, per-characteristic coverage >= 90 %
+  ---
+  duration_ms: 2.936912
+  type: 'test'
+  ...
+# Subtest: cross-check: month-end book vs the factsheet of the same month (duration, yield, top sectors)
+ok 380 - cross-check: month-end book vs the factsheet of the same month (duration, yield, top sectors)
+  ---
+  duration_ms: 1.503761
+  type: 'test'
+  ...
+# Subtest: distributions: per live series by FundServ code; non-live series hidden; register labels win
+ok 381 - distributions: per live series by FundServ code; non-live series hidden; register labels win
+  ---
+  duration_ms: 14.774845
+  type: 'test'
+  ...
+# Subtest: distributions gates: amount vs NAV, dates, last row, trailing 12 months, calendar-year totals
+ok 382 - distributions gates: amount vs NAV, dates, last row, trailing 12 months, calendar-year totals
+  ---
+  duration_ms: 1.191041
+  type: 'test'
+  ...
+# Subtest: portfolio gates: implausible parts dropped one by one, the block when nothing is left, never the fund
+ok 383 - portfolio gates: implausible parts dropped one by one, the block when nothing is left, never the fund
+  ---
+  duration_ms: 1217.853703
+  type: 'test'
+  ...
+# Subtest: build: daily book computed by the website for covered funds, factsheet kept for the others; distributions only when supplied
+ok 384 - build: daily book computed by the website for covered funds, factsheet kept for the others; distributions only when supplied
+  ---
+  duration_ms: 927.133385
+  type: 'test'
+  ...
+# Subtest: build: the month-end book is cross-checked with the factsheet of the month (sectors; no duration: latest prices only)
+ok 385 - build: the month-end book is cross-checked with the factsheet of the month (sectors; no duration: latest prices only)
+  ---
+  duration_ms: 1085.304764
+  type: 'test'
+  ...
+# Subtest: build: holdings or the instrument master failing → factsheet figures (warn), everything else unchanged
+ok 386 - build: holdings or the instrument master failing → factsheet figures (warn), everything else unchanged
+  ---
+  duration_ms: 2581.650424
+  type: 'test'
+  ...
+# Subtest: build: a failing source keeps the previous daily book and distributions; validation drops a book once too old
+ok 387 - build: a failing source keeps the previous daily book and distributions; validation drops a book once too old
+  ---
+  duration_ms: 875.791918
+  type: 'test'
+  ...
+# Subtest: distributions: a capped history drops the calendar years it no longer fully holds
+ok 388 - distributions: a capped history drops the calendar years it no longer fully holds
+  ---
+  duration_ms: 3.722482
+  type: 'test'
+  ...
+# Subtest: carried-over funds pass the daily-book age gate again (fund missing from the run, or blocked)
+ok 389 - carried-over funds pass the daily-book age gate again (fund missing from the run, or blocked)
+  ---
+  duration_ms: 1047.278897
+  type: 'test'
+  ...
+# Subtest: fetchers: a payload for another fund than the one requested is rejected (identity check)
+ok 390 - fetchers: a payload for another fund than the one requested is rejected (identity check)
+  ---
+  duration_ms: 12.359032
+  type: 'test'
+  ...
+# Subtest: distributions: the currency is never defaulted; a series is dropped when it is unknown or register and payload disagree
+ok 391 - distributions: the currency is never defaulted; a series is dropped when it is unknown or register and payload disagree
+  ---
+  duration_ms: 2.138264
+  type: 'test'
+  ...
+# Subtest: distributions gates: the trailing 12 months are checked over the data platform's window, ending at the response end date
+ok 392 - distributions gates: the trailing 12 months are checked over the data platform's window, ending at the response end date
+  ---
+  duration_ms: 2.049558
+  type: 'test'
+  ...
+# Subtest: distributions carried over after failed reads are dropped after 10 days without a successful read
+ok 393 - distributions carried over after failed reads are dropped after 10 days without a successful read
+  ---
+  duration_ms: 2067.845657
+  type: 'test'
+  ...
+# Subtest: no test leaves the pipeline config mutated (memoised baselines stay valid)
+ok 394 - no test leaves the pipeline config mutated (memoised baselines stay valid)
+  ---
+  duration_ms: 0.350745
+  type: 'test'
+  ...
+# (node:2880) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/fund-portfolio.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: computeFundPortfolio: weights over net assets, characteristics with coverage, breakdowns with a cash row (hand-computed)
+ok 395 - computeFundPortfolio: weights over net assets, characteristics with coverage, breakdowns with a cash row (hand-computed)
+  ---
+  duration_ms: 18.774223
+  type: 'test'
+  ...
+# Subtest: computeFundPortfolio: stale prices are unpriced; no net assets → positions plus cash; ambiguous identifiers stay unresolved
+ok 396 - computeFundPortfolio: stale prices are unpriced; no net assets → positions plus cash; ambiguous identifiers stay unresolved
+  ---
+  duration_ms: 2.642366
+  type: 'test'
+  ...
+# Subtest: ratings: composite, else the lowest agency; DBRS, Moody's, watch and unsolicited markers; short-term ignored
+ok 397 - ratings: composite, else the lowest agency; DBRS, Moody's, watch and unsolicited markers; short-term ignored
+  ---
+  duration_ms: 0.332331
+  type: 'test'
+  ...
+# Subtest: M6: no open future → no scope; short bonds offset longs (signed), above 0.5 % of net assets duration and yield are withheld
+ok 398 - M6: no open future → no scope; short bonds offset longs (signed), above 0.5 % of net assets duration and yield are withheld
+  ---
+  duration_ms: 2.748012
+  type: 'test'
+  ...
+# Subtest: m11: an ambiguous ISIN falls back to the CUSIP; unresolved contracts never enter the weights
+ok 399 - m11: an ambiguous ISIN falls back to the CUSIP; unresolved contracts never enter the weights
+  ---
+  duration_ms: 0.758516
+  type: 'test'
+  ...
+# Subtest: pricing fallback: a bond without a current master price takes its FTSE constituent yield and duration (within 7 days)
+ok 400 - pricing fallback: a bond without a current master price takes its FTSE constituent yield and duration (within 7 days)
+  ---
+  duration_ms: 1.736523
+  type: 'test'
+  ...
+# Subtest: FTSE fallback: matched by CUSIP when the position has no ISIN; a row without yield or duration, or out of range, does not price
+ok 401 - FTSE fallback: matched by CUSIP when the position has no ISIN; a row without yield or duration, or out of range, does not price
+  ---
+  duration_ms: 1.683053
+  type: 'test'
+  ...
+# (node:2887) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/github-app-source.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: analytics source uses the issued App token and retains the requested data branch
+ok 402 - analytics source uses the issued App token and retains the requested data branch
+  ---
+  duration_ms: 27.815359
+  type: 'test'
+  ...
+# Subtest: issuer failure prevents content retrieval and cannot use the existing PAT
+ok 403 - issuer failure prevents content retrieval and cannot use the existing PAT
+  ---
+  duration_ms: 1.767972
+  type: 'test'
+  ...
+# (node:2895) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/github-auth.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: signed App JWT requests only analytics contents read
+ok 404 - signed App JWT requests only analytics contents read
+  ---
+  duration_ms: 32.905655
+  type: 'test'
+  ...
+# Subtest: every refresh mints a fresh token; PAT rollback performs no network call
+ok 405 - every refresh mints a fresh token; PAT rollback performs no network call
+  ---
+  duration_ms: 3.894433
+  type: 'test'
+  ...
+# Subtest: invalid App config fails before issuing a request and never falls back to PAT
+ok 406 - invalid App config fails before issuing a request and never falls back to PAT
+  ---
+  duration_ms: 0.92632
+  type: 'test'
+  ...
+# Subtest: expiry, malformed payload, scope, and issuer errors fail closed without revealing response secrets
+ok 407 - expiry, malformed payload, scope, and issuer errors fail closed without revealing response secrets
+  ---
+  duration_ms: 17.938673
+  type: 'test'
+  ...
+# (node:2903) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/http-safeurl.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: drops host and userinfo, redacts credential-like query values, keeps the rest
+ok 408 - drops host and userinfo, redacts credential-like query values, keeps the rest
+  ---
+  duration_ms: 1.903535
+  type: 'test'
+  ...
+# (node:2910) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/metrics.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: month helpers
+ok 409 - month helpers
+  ---
+  duration_ms: 1.22041
+  type: 'test'
+  ...
+# Subtest: compound and annualize (hand-checked)
+ok 410 - compound and annualize (hand-checked)
+  ---
+  duration_ms: 0.314868
+  type: 'test'
+  ...
+# Subtest: window requires contiguity and the end month
+ok 411 - window requires contiguity and the end month
+  ---
+  duration_ms: 0.795956
+  type: 'test'
+  ...
+# Subtest: trailing: 1M/3M/YTD/1Y compounded, 2Y+ annualized, longer than track record -> null
+ok 412 - trailing: 1M/3M/YTD/1Y compounded, 2Y+ annualized, longer than track record -> null
+  ---
+  duration_ms: 0.662136
+  type: 'test'
+  ...
+# Subtest: trailing: SI < 12 months is compounded, not annualized
+ok 413 - trailing: SI < 12 months is compounded, not annualized
+  ---
+  duration_ms: 0.201908
+  type: 'test'
+  ...
+# Subtest: trailing: YTD is null when January is missing for an older fund
+ok 414 - trailing: YTD is null when January is missing for an older fund
+  ---
+  duration_ms: 0.371454
+  type: 'test'
+  ...
+# Subtest: trailing: siStart aligns an index on the fund inception
+ok 415 - trailing: siStart aligns an index on the fund inception
+  ---
+  duration_ms: 0.398073
+  type: 'test'
+  ...
+# Subtest: calendar years: partial first and current years, gaps -> null
+ok 416 - calendar years: partial first and current years, gaps -> null
+  ---
+  duration_ms: 1.138567
+  type: 'test'
+  ...
+# Subtest: growth of 10 000 starts the month before the first return
+ok 417 - growth of 10 000 starts the month before the first return
+  ---
+  duration_ms: 0.535941
+  type: 'test'
+  ...
+# Subtest: max drawdown from the running peak, including a first-month loss
+ok 418 - max drawdown from the running peak, including a first-month loss
+  ---
+  duration_ms: 0.462924
+  type: 'test'
+  ...
+# Subtest: downside deviation: population st.dev. of negative months ×√12
+ok 419 - downside deviation: population st.dev. of negative months ×√12
+  ---
+  duration_ms: 0.244176
+  type: 'test'
+  ...
+# Subtest: risk statistics (SI and 3Y), Sharpe without risk-free rate
+ok 420 - risk statistics (SI and 3Y), Sharpe without risk-free rate
+  ---
+  duration_ms: 0.421407
+  type: 'test'
+  ...
+# Subtest: FTSE: only fully aggregate rows count (no sub-index fallback)
+ok 421 - FTSE: only fully aggregate rows count (no sub-index fallback)
+  ---
+  duration_ms: 0.431094
+  type: 'test'
+  ...
+# Subtest: FTSE month-end: closing level on the last bond-market business day (skipped days must be holidays), month closed, no open-month return
+ok 422 - FTSE month-end: closing level on the last bond-market business day (skipped days must be holidays), month closed, no open-month return
+  ---
+  duration_ms: 1.27975
+  type: 'test'
+  ...
+# Subtest: m8: a month-end skipped on a bond-market holiday is accepted, a skipped business day is not
+ok 423 - m8: a month-end skipped on a bond-market holiday is accepted, a skipped business day is not
+  ---
+  duration_ms: 0.684659
+  type: 'test'
+  ...
+# (node:2917) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/monitor.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: status: fresh data → ok; the public projection holds only publication time, verdict and as-of dates
+ok 424 - status: fresh data → ok; the public projection holds only publication time, verdict and as-of dates
+  ---
+  duration_ms: 39.583665
+  type: 'test'
+  ...
+# Subtest: status: old NAV → stale (no publication-age rule); hidden fund / hidden blocks not reported nor checked; no data → stale
+ok 425 - status: old NAV → stale (no publication-age rule); hidden fund / hidden blocks not reported nor checked; no data → stale
+  ---
+  duration_ms: 10.93937
+  type: 'test'
+  ...
+# Subtest: NAV freshness uses the fund's oldest class with a NAV
+ok 426 - NAV freshness uses the fund's oldest class with a NAV
+  ---
+  duration_ms: 1.98149
+  type: 'test'
+  ...
+# Subtest: stale-data alert: posted when it turns stale, not again, reminded daily, re-posted when what is stale changes, resolved once
+ok 427 - stale-data alert: posted when it turns stale, not again, reminded daily, re-posted when what is stale changes, resolved once
+  ---
+  duration_ms: 63.571446
+  type: 'test'
+  ...
+# (node:2929) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/parse.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: monthly table keys: fund vs index
+ok 428 - monthly table keys: fund vs index
+  ---
+  duration_ms: 2.148783
+  type: 'test'
+  ...
+# Subtest: parseNumber / parsePct: every string format seen in the archives
+ok 429 - parseNumber / parsePct: every string format seen in the archives
+  ---
+  duration_ms: 1.017099
+  type: 'test'
+  ...
+# Subtest: parseText
+ok 430 - parseText
+  ---
+  duration_ms: 0.327662
+  type: 'test'
+  ...
+# Subtest: characteristics table (Fund / Index / +/-)
+ok 431 - characteristics table (Fund / Index / +/-)
+  ---
+  duration_ms: 1.845597
+  type: 'test'
+  ...
+# Subtest: buckets: Nymbus/Index columns, index-only rows, flat tables, nan
+ok 432 - buckets: Nymbus/Index columns, index-only rows, flat tables, nan
+  ---
+  duration_ms: 0.5191
+  type: 'test'
+  ...
+# Subtest: holdings: ranks sorted numerically, string or numeric weights, futures
+ok 433 - holdings: ranks sorted numerically, string or numeric weights, futures
+  ---
+  duration_ms: 0.490426
+  type: 'test'
+  ...
+# Subtest: systematic allocation averaged over the dates
+ok 434 - systematic allocation averaged over the dates
+  ---
+  duration_ms: 0.532554
+  type: 'test'
+  ...
+# Subtest: trailing tables: nested (bonds) and flat (strategies), YTD label = year
+ok 435 - trailing tables: nested (bonds) and flat (strategies), YTD label = year
+  ---
+  duration_ms: 1.016478
+  type: 'test'
+  ...
+# Subtest: monthly returns table -> sorted month-end points
+ok 436 - monthly returns table -> sorted month-end points
+  ---
+  duration_ms: 0.978738
+  type: 'test'
+  ...
+# Subtest: calendar tables (nested / flat) and statistics
+ok 437 - calendar tables (nested / flat) and statistics
+  ---
+  duration_ms: 1.140741
+  type: 'test'
+  ...
+# Subtest: Python json.dump NaN / Infinity tokens are read as null (not inside strings)
+ok 438 - Python json.dump NaN / Infinity tokens are read as null (not inside strings)
+  ---
+  duration_ms: 0.487611
+  type: 'test'
+  ...
+# (node:2936) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/perf-class.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: SEB headline: class H data (analytics + LDM202 chain + STRATEGY_H Apex months) labelled H; class F next to it
+ok 439 - SEB headline: class H data (analytics + LDM202 chain + STRATEGY_H Apex months) labelled H; class F next to it
+  ---
+  duration_ms: 993.804407
+  type: 'test'
+  ...
+# Subtest: classSpreadProblem: class − track must stay in the fee band and near its median
+ok 440 - classSpreadProblem: class − track must stay in the fee band and near its median
+  ---
+  duration_ms: 0.777622
+  type: 'test'
+  ...
+# Subtest: the track-record answer must be the track-record class: another or a missing class_code withholds the performance
+ok 441 - the track-record answer must be the track-record class: another or a missing class_code withholds the performance
+  ---
+  duration_ms: 5270.524917
+  type: 'test'
+  ...
+# Subtest: a class history answering rows of another class is a failure, never compounded into this class
+ok 442 - a class history answering rows of another class is a failure, never compounded into this class
+  ---
+  duration_ms: 959.190963
+  type: 'test'
+  ...
+# Subtest: validate: a performance whose label is not the label of its data's class is blocked
+ok 443 - validate: a performance whose label is not the label of its data's class is blocked
+  ---
+  duration_ms: 75.330367
+  type: 'test'
+  ...
+# Subtest: factsheet class by archive month: SEB archives up to 2026-07 are class F, later ones class H
+ok 444 - factsheet class by archive month: SEB archives up to 2026-07 are class F, later ones class H
+  ---
+  duration_ms: 0.25165
+  type: 'test'
+  ...
+# Subtest: factsheet cross-checks run only against an archive of the same class
+ok 445 - factsheet cross-checks run only against an archive of the same class
+  ---
+  duration_ms: 968.646275
+  type: 'test'
+  ...
+# Subtest: class H with only class F archives: not cross-checked with a factsheet (info: the factsheet is optional), never filled from class F
+ok 446 - class H with only class F archives: not cross-checked with a factsheet (info: the factsheet is optional), never filled from class F
+  ---
+  duration_ms: 981.257549
+  type: 'test'
+  ...
+# Subtest: class change F -> H (a publication of a class F headline, e.g. built from the unmerged PR \#626): blocking, needs approval
+ok 447 - class change F -> H (a publication of a class F headline, e.g. built from the unmerged PR \#626): blocking, needs approval
+  ---
+  duration_ms: 1454.542006
+  type: 'test'
+  ...
+# Subtest: legacy publication (before 2026-10-01: SEB class H labelled F) is relabelled by its data when carried or rendered
+ok 448 - legacy publication (before 2026-10-01: SEB class H labelled F) is relabelled by its data when carried or rendered
+  ---
+  duration_ms: 864.341565
+  type: 'test'
+  ...
+# Subtest: NAV card and performance label are independent: SEB NAV LDM201 is class F (register) whatever the performance class
+ok 449 - NAV card and performance label are independent: SEB NAV LDM201 is class F (register) whatever the performance class
+  ---
+  duration_ms: 4.530001
+  type: 'test'
+  ...
+# Subtest: no test leaves the pipeline config mutated (memoised baselines stay valid)
+ok 450 - no test leaves the pipeline config mutated (memoised baselines stay valid)
+  ---
+  duration_ms: 0.228737
+  type: 'test'
+  ...
+# (node:2949) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/review-fixes.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: M2: without an analytics July, the bridge needs a same-class factsheet printing July; a disagreement withholds the month
+ok 451 - M2: without an analytics July, the bridge needs a same-class factsheet printing July; a disagreement withholds the month
+  ---
+  duration_ms: 2664.289816
+  type: 'test'
+  ...
+# Subtest: M4: a class entry changing class needs an approval like the headline; its revised months are reported (warn + alert)
+ok 452 - M4: a class entry changing class needs an approval like the headline; its revised months are reported (warn + alert)
+  ---
+  duration_ms: 3581.637693
+  type: 'test'
+  ...
+# Subtest: m9: net assets need every active register class of the day; a partial sum is never the denominator
+ok 453 - m9: net assets need every active register class of the day; a partial sum is never the denominator
+  ---
+  duration_ms: 259.162934
+  type: 'test'
+  ...
+# Subtest: m10: the data start is the register's fund_data_start, never before the register inception (later one used, warned)
+ok 454 - m10: the data start is the register's fund_data_start, never before the register inception (later one used, warned)
+  ---
+  duration_ms: 841.436561
+  type: 'test'
+  ...
+# Subtest: m12: monthly-net-returns unavailable because the dataplatform aggregates two Apex classes: explained by an alert
+ok 455 - m12: monthly-net-returns unavailable because the dataplatform aggregates two Apex classes: explained by an alert
+  ---
+  duration_ms: 1608.379666
+  type: 'test'
+  ...
+# (node:2963) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/run.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: auto mode: run is snapshotted and published; audit and meta written
+ok 456 - auto mode: run is snapshotted and published; audit and meta written
+  ---
+  duration_ms: 1471.715962
+  type: 'test'
+  ...
+# Subtest: raw folder: AUM contains fund totals only (no investor-level fields)
+ok 457 - raw folder: AUM contains fund totals only (no investor-level fields)
+  ---
+  duration_ms: 982.597144
+  type: 'test'
+  ...
+# Subtest: review mode: run waits, publishRun approves it; rollback to an older run
+ok 458 - review mode: run waits, publishRun approves it; rollback to an older run
+  ---
+  duration_ms: 1893.896843
+  type: 'test'
+  ...
+# Subtest: dry run: stored, never published, cannot be published
+ok 459 - dry run: stored, never published, cannot be published
+  ---
+  duration_ms: 810.108714
+  type: 'test'
+  ...
+# Subtest: lock: a concurrent run is refused; a stale lock is taken over
+ok 460 - lock: a concurrent run is refused; a stale lock is taken over
+  ---
+  duration_ms: 1045.791042
+  type: 'test'
+  ...
+# Subtest: a failed source produces issues and a BLOCKED (not silently published) run; everything down -> failed
+ok 461 - a failed source produces issues and a BLOCKED (not silently published) run; everything down -> failed
+  ---
+  duration_ms: 2570.391505
+  type: 'test'
+  ...
+# Subtest: H1/H3: with the opt-in factsheet gate a held month is published without alert; stale performance alerts
+ok 462 - H1/H3: with the opt-in factsheet gate a held month is published without alert; stale performance alerts
+  ---
+  duration_ms: 1410.65079
+  type: 'test'
+  ...
+# Subtest: source defects withholding a month of every class: published (not blocked), one non-blocking notice, posted once
+ok 463 - source defects withholding a month of every class: published (not blocked), one non-blocking notice, posted once
+  ---
+  duration_ms: 1259.171065
+  type: 'test'
+  ...
+# Subtest: M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged
+ok 464 - M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged
+  ---
+  duration_ms: 1932.627402
+  type: 'test'
+  ...
+# Subtest: M5: revision of an already published month -> blocked (auto: published + alert; review: waits)
+ok 465 - M5: revision of an already published month -> blocked (auto: published + alert; review: waits)
+  ---
+  duration_ms: 1262.082957
+  type: 'test'
+  ...
+# Subtest: H2: retention never deletes a pinned snapshot
+ok 466 - H2: retention never deletes a pinned snapshot
+  ---
+  duration_ms: 18.063781
+  type: 'test'
+  ...
+# Subtest: LOW: lock owner token; a taken-over holder does not delete its successor's lock; published meta tolerant
+ok 467 - LOW: lock owner token; a taken-over holder does not delete its successor's lock; published meta tolerant
+  ---
+  duration_ms: 637.937148
+  type: 'test'
+  ...
+# Subtest: blocked fund: others published (auto), blocked fund keeps previous, alert posted without secrets
+ok 468 - blocked fund: others published (auto), blocked fund keeps previous, alert posted without secrets
+  ---
+  duration_ms: 1249.038774
+  type: 'test'
+  ...
+# Subtest: listRuns newest first; retention keeps 120 and never the published run
+ok 469 - listRuns newest first; retention keeps 120 and never the published run
+  ---
+  duration_ms: 686.026922
+  type: 'test'
+  ...
+# Subtest: pipelineStatus: schedule, timezone, next run, last run, published run
+ok 470 - pipelineStatus: schedule, timezone, next run, last run, published run
+  ---
+  duration_ms: 639.262867
+  type: 'test'
+  ...
+# Subtest: N2/N4 end to end: bad NAV without a daily return, or analytics down -> run blocked and alerted
+ok 471 - N2/N4 end to end: bad NAV without a daily return, or analytics down -> run blocked and alerted
+  ---
+  duration_ms: 706.916679
+  type: 'test'
+  ...
+# Subtest: N6: stale-lock takeover renames the stale dir atomically; concurrent takeovers yield exactly one holder
+ok 472 - N6: stale-lock takeover renames the stale dir atomically; concurrent takeovers yield exactly one holder
+  ---
+  duration_ms: 39.37957
+  type: 'test'
+  ...
+# Subtest: without admin content, runs wait for approval (review is the default)
+ok 473 - without admin content, runs wait for approval (review is the default)
+  ---
+  duration_ms: 621.487682
+  type: 'test'
+  ...
+# Subtest: class change (SEB F -> H): never published without an admin, even in auto mode; publishing the run approves it
+ok 474 - class change (SEB F -> H): never published without an admin, even in auto mode; publishing the run approves it
+  ---
+  duration_ms: 2578.150072
+  type: 'test'
+  ...
+# Subtest: many classes published for the first time at once: held in auto mode until an admin approves them all in one go
+ok 475 - many classes published for the first time at once: held in auto mode until an admin approves them all in one go
+  ---
+  duration_ms: 1912.921955
+  type: 'test'
+  ...
+# [alerts] alert webhook failed after 4 attempt(s): HTTP 500 (Nymbus website data pipeline: run 20261002T140000-b90f556b BLOCKED (manual, other funds published))
+# Subtest: run alerts: posted when a run needs attention, deduped while the problem is the same, reminded daily, resolved after 2 clean runs (no flapping); Teams format; failed delivery retried at the next run
+ok 476 - run alerts: posted when a run needs attention, deduped while the problem is the same, reminded daily, resolved after 2 clean runs (no flapping); Teams format; failed delivery retried at the next run
+  ---
+  duration_ms: 8815.083971
+  type: 'test'
+  ...
+# Subtest: review mode: a clean waiting run is not a problem alert; "N runs waiting for approval" only with new data, at most once a day; publishing settles it
+ok 477 - review mode: a clean waiting run is not a problem alert; "N runs waiting for approval" only with new data, at most once a day; publishing settles it
+  ---
+  duration_ms: 1895.318871
+  type: 'test'
+  ...
+# (node:2975) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/sample-sync.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: sample-site-data.json and the e2e class H fixture are in sync with the fixtures
+ok 478 - sample-site-data.json and the e2e class H fixture are in sync with the fixtures
+  ---
+  duration_ms: 1932.007196
+  type: 'test'
+  ...
+# (node:2988) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/schedule.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: parseSchedule
+ok 479 - parseSchedule
+  ---
+  duration_ms: 2.847549
+  type: 'test'
+  ...
+# Subtest: next run in EDT (UTC-4) and EST (UTC-5)
+ok 480 - next run in EDT (UTC-4) and EST (UTC-5)
+  ---
+  duration_ms: 24.509839
+  type: 'test'
+  ...
+# Subtest: across DST: spring forward (2026-03-08) and fall back (2026-11-01)
+ok 481 - across DST: spring forward (2026-03-08) and fall back (2026-11-01)
+  ---
+  duration_ms: 2.603903
+  type: 'test'
+  ...
+# Subtest: scheduler starts once (hot-reload guard) and honours off
+ok 482 - scheduler starts once (hot-reload guard) and honours off
+  ---
+  duration_ms: 1.308544
+  type: 'test'
+  ...
+# Subtest: previousRun: latest slot at or before now, DST-aware
+ok 483 - previousRun: latest slot at or before now, DST-aware
+  ---
+  duration_ms: 1.981882
+  type: 'test'
+  ...
+# Subtest: catch-up on start: only when a slot was missed since the last run, nothing runs, and the next slot is not close
+ok 484 - catch-up on start: only when a slot was missed since the last run, nothing runs, and the next slot is not close
+  ---
+  duration_ms: 1.852379
+  type: 'test'
+  ...
+# Subtest: retry: once for a run a source made fail or block (5xx, timeout, network), never for approval gates or a crash
+ok 485 - retry: once for a run a source made fail or block (5xx, timeout, network), never for approval gates or a crash
+  ---
+  duration_ms: 1.014886
+  type: 'test'
+  ...
+# (node:2988) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# Subtest: runtime: a missed slot is caught up after boot, a source outage is retried once, the monitor runs after each run
+ok 486 - runtime: a missed slot is caught up after boot, a source outage is retried once, the monitor runs after each run
+  ---
+  duration_ms: 403.66167
+  type: 'test'
+  ...
+# Subtest: a scheduled slot run that a source outage blocked is retried once ~30 min later (the next slot is armed first)
+ok 487 - a scheduled slot run that a source outage blocked is retried once ~30 min later (the next slot is armed first)
+  ---
+  duration_ms: 5.848804
+  type: 'test'
+  ...
+# Subtest: dry runs do not count as the last run for the catch-up
+ok 488 - dry runs do not count as the last run for the catch-up
+  ---
+  duration_ms: 0.700779
+  type: 'test'
+  ...
+# (node:2995) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/sources.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: fetchRetry: retries 5xx and network errors twice, then gives up; 4xx not retried
+ok 489 - fetchRetry: retries 5xx and network errors twice, then gives up; 4xx not retried
+  ---
+  duration_ms: 62.04748
+  type: 'test'
+  ...
+# Subtest: fetchRetry: timeout through AbortSignal
+ok 490 - fetchRetry: timeout through AbortSignal
+  ---
+  duration_ms: 41.931857
+  type: 'test'
+  ...
+# Subtest: dataplatform: no DATAPLATFORM_URL -> no client; 422 is a clean failure
+ok 491 - dataplatform: no DATAPLATFORM_URL -> no client; 422 is a clean failure
+  ---
+  duration_ms: 4.542374
+  type: 'test'
+  ...
+# Subtest: AUM is reduced to fund totals: no investor-level field survives
+ok 492 - AUM is reduced to fund totals: no investor-level field survives
+  ---
+  duration_ms: 2.227582
+  type: 'test'
+  ...
+# Subtest: factsheets: local folder, target month then up to 2 previous months
+ok 493 - factsheets: local folder, target month then up to 2 previous months
+  ---
+  duration_ms: 9.758445
+  type: 'test'
+  ...
+# Subtest: factsheets through Graph: client credentials, encoded path, 429 Retry-After, redirect without bearer, 404 = missing
+ok 494 - factsheets through Graph: client credentials, encoded path, 429 Retry-After, redirect without bearer, 404 = missing
+  ---
+  duration_ms: 5.765248
+  type: 'test'
+  ...
+# Subtest: analytics: GitHub contents API (raw media type, bearer token), only registry series kept; errors explained
+ok 495 - analytics: GitHub contents API (raw media type, bearer token), only registry series kept; errors explained
+  ---
+  duration_ms: 13.250559
+  type: 'test'
+  ...
+# (node:3007) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/pipeline/validate.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: clean fixtures pass every gate
+ok 496 - clean fixtures pass every gate
+  ---
+  duration_ms: 1237.096276
+  type: 'test'
+  ...
+# Subtest: blocking: performance as-of going backwards
+ok 497 - blocking: performance as-of going backwards
+  ---
+  duration_ms: 32.030749
+  type: 'test'
+  ...
+# Subtest: blocking: monthly return beyond ±25 % (fund and index)
+ok 498 - blocking: monthly return beyond ±25 % (fund and index)
+  ---
+  duration_ms: 66.654899
+  type: 'test'
+  ...
+# Subtest: blocking: trailing in data differs from recomputation
+ok 499 - blocking: trailing in data differs from recomputation
+  ---
+  duration_ms: 61.708693
+  type: 'test'
+  ...
+# Subtest: blocking: computed trailing vs factsheet beyond the per-period tolerance (1Y: 0.1 %, 3Y: 0.15 %)
+ok 500 - blocking: computed trailing vs factsheet beyond the per-period tolerance (1Y: 0.1 %, 3Y: 0.15 %)
+  ---
+  duration_ms: 160.712553
+  type: 'test'
+  ...
+# Subtest: blocking: non-finite number anywhere
+ok 501 - blocking: non-finite number anywhere
+  ---
+  duration_ms: 95.163995
+  type: 'test'
+  ...
+# Subtest: performance blocked without a previous publication: performance withheld, the rest of the fund published
+ok 502 - performance blocked without a previous publication: performance withheld, the rest of the fund published
+  ---
+  duration_ms: 10.908489
+  type: 'test'
+  ...
+# Subtest: a blocking issue outside the performance still withholds the whole fund
+ok 503 - a blocking issue outside the performance still withholds the whole fund
+  ---
+  duration_ms: 12.194203
+  type: 'test'
+  ...
+# Subtest: NAV day change > 10 %: class dropped, previous value kept, rest of the fund published
+ok 504 - NAV day change > 10 %: class dropped, previous value kept, rest of the fund published
+  ---
+  duration_ms: 73.842782
+  type: 'test'
+  ...
+# Subtest: NAV / AUM older than 7 days: alert-level issue (not blocking), per-class dates kept
+ok 505 - NAV / AUM older than 7 days: alert-level issue (not blocking), per-class dates kept
+  ---
+  duration_ms: 19.497185
+  type: 'test'
+  ...
+# Subtest: AUM negative or NaN: dropped (previous kept when available)
+ok 506 - AUM negative or NaN: dropped (previous kept when available)
+  ---
+  duration_ms: 42.825077
+  type: 'test'
+  ...
+# Subtest: input is not mutated
+ok 507 - input is not mutated
+  ---
+  duration_ms: 22.945982
+  type: 'test'
+  ...
+# Subtest: N2: NAV gate applies when changePct is null: price ratio vs previous valuation and vs published NAV
+ok 508 - N2: NAV gate applies when changePct is null: price ratio vs previous valuation and vs published NAV
+  ---
+  duration_ms: 56.284771
+  type: 'test'
+  ...
+# Subtest: held performance: unknown class of the previous publication -> nothing kept, provenance says so; stale kept performance alerts; risk3Y is held too
+ok 509 - held performance: unknown class of the previous publication -> nothing kept, provenance says so; stale kept performance alerts; risk3Y is held too
+  ---
+  duration_ms: 54.777377
+  type: 'test'
+  ...
+# Subtest: no test leaves the pipeline config mutated (memoised baselines stay valid)
+ok 510 - no test leaves the pipeline config mutated (memoised baselines stay valid)
+  ---
+  duration_ms: 0.263512
+  type: 'test'
+  ...
+# (node:3019) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/rankings/brand-advisor.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: validateBrandImage: PNG / WebP / plain SVG only, size-capped; SVG with active or external content refused
+ok 511 - validateBrandImage: PNG / WebP / plain SVG only, size-capped; SVG with active or external content refused
+  ---
+  duration_ms: 3.630236
+  type: 'test'
+  ...
+# Subtest: brand assets: shipped files in public/brand/third-party, uploads on the volume win; nothing → no slot
+ok 512 - brand assets: shipped files in public/brand/third-party, uploads on the volume win; nothing → no slot
+  ---
+  duration_ms: 27.539887
+  type: 'test'
+  ...
+# Subtest: brand assets: Fund Library is now Fundata — an upload stored under the former slot name is listed, served, replaced and removed as fundata-logo
+ok 513 - brand assets: Fund Library is now Fundata — an upload stored under the former slot name is listed, served, replaced and removed as fundata-logo
+  ---
+  duration_ms: 22.431207
+  type: 'test'
+  ...
+# Subtest: admin issues: Morningstar assets missing, drafts, stale entries; network state only adds issues
+ok 514 - admin issues: Morningstar assets missing, drafts, stale entries; network state only adds issues
+  ---
+  duration_ms: 3.298937
+  type: 'test'
+  ...
+# Subtest: rankings copy: EN and FR for every string, same placeholders, Québec typography
+ok 515 - rankings copy: EN and FR for every string, same placeholders, Québec typography
+  ---
+  duration_ms: 0.910121
+  type: 'test'
+  ...
+# (node:3034) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/rankings/brand-files.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: shipped brand files: slot names only, valid PNG / WebP / allow-listed SVG matching their extension
+ok 516 - shipped brand files: slot names only, valid PNG / WebP / allow-listed SVG matching their extension
+  ---
+  duration_ms: 2.24161
+  type: 'test'
+  ...
+# Subtest: next.config.ts serves /brand/third-party/* with a sandboxing CSP and nosniff
+ok 517 - next.config.ts serves /brand/third-party/* with a sandboxing CSP and nosniff
+  ---
+  duration_ms: 0.352319
+  type: 'test'
+  ...
+# Subtest: official provider logos shipped (Fundata, RBC Investor Services) beside the Morningstar files
+ok 518 - official provider logos shipped (Fundata, RBC Investor Services) beside the Morningstar files
+  ---
+  duration_ms: 0.367236
+  type: 'test'
+  ...
+# Subtest: Morningstar 1–4 star images are exact left crops of the official 5-star image (no redraw)
+ok 519 - Morningstar 1–4 star images are exact left crops of the official 5-star image (no redraw)
+  ---
+  duration_ms: 0.474698
+  type: 'test'
+  ...
+# (node:3041) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/rankings/expiry.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: expiries: shown entries within 30 days of their last day, then just-hidden ones; drafts and hidden rankings ignored
+ok 520 - expiries: shown entries within 30 days of their last day, then just-hidden ones; drafts and hidden rankings ignored
+  ---
+  duration_ms: 10.173014
+  type: 'test'
+  ...
+# Subtest: expiry alert: each entry once per phase, with what to do
+ok 521 - expiry alert: each entry once per phase, with what to do
+  ---
+  duration_ms: 42.602691
+  type: 'test'
+  ...
+# (node:3047) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/rankings/policy.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: staleness: same day N months later (clamped to month end), future dates never fresh
+ok 522 - staleness: same day N months later (clamped to month end), future dates never fresh
+  ---
+  duration_ms: 5.09837
+  type: 'test'
+  ...
+# Subtest: policyMonths: default 6, clamped to 1..24, integers only
+ok 523 - policyMonths: default 6, clamped to 1..24, integers only
+  ---
+  duration_ms: 0.35294
+  type: 'test'
+  ...
+# Subtest: third-party entries: shown only when confirmed, complete, sourced and fresh
+ok 524 - third-party entries: shown only when confirmed, complete, sourced and fresh
+  ---
+  duration_ms: 1.142345
+  type: 'test'
+  ...
+# Subtest: publicRankings: drafts, notes and stale entries never reach the page; network state plays no part
+ok 525 - publicRankings: drafts, notes and stale entries never reach the page; network state plays no part
+  ---
+  duration_ms: 3.694826
+  type: 'test'
+  ...
+# Subtest: seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact percentiles; old drafts migrate; removal sticks
+ok 526 - seeded RBC Q2 2026 entries: confirmed, fund-level, gross of fees, exact percentiles; old drafts migrate; removal sticks
+  ---
+  duration_ms: 2.747184
+  type: 'test'
+  ...
+# Subtest: fund-level entries: no class needed when scope is fund; basis needs EN and FR; rolling periods valid and within as-of
+ok 527 - fund-level entries: no class needed when scope is fund; basis needs EN and FR; rolling periods valid and within as-of
+  ---
+  duration_ms: 0.383607
+  type: 'test'
+  ...
+# Subtest: migration: entries saved with the previous 'annual' list become rolling 4-year periods; the seeded RBC copy gets its strategy scope and English categories
+ok 528 - migration: entries saved with the previous 'annual' list become rolling 4-year periods; the seeded RBC copy gets its strategy scope and English categories
+  ---
+  duration_ms: 0.567069
+  type: 'test'
+  ...
+# Subtest: cleanFundContent keeps third-party drafts and drops their empty optional fields
+ok 529 - cleanFundContent keeps third-party drafts and drops their empty optional fields
+  ---
+  duration_ms: 1.468625
+  type: 'test'
+  ...
+# Subtest: ordinal: EN st/nd/rd/th (11-13th), FR 1er / Ne
+ok 530 - ordinal: EN st/nd/rd/th (11-13th), FR 1er / Ne
+  ---
+  duration_ms: 0.619607
+  type: 'test'
+  ...
+# (node:3055) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/rankings/rbc-survey.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: quarter helpers
+ok 531 - quarter helpers
+  ---
+  duration_ms: 2.550207
+  type: 'test'
+  ...
+# Subtest: parseSurveyRefs: article links, PDF links and titles; newest first; junk ignored
+ok 532 - parseSurveyRefs: article links, PDF links and titles; newest first; junk ignored
+  ---
+  duration_ms: 3.413962
+  type: 'test'
+  ...
+# Subtest: detectLatestSurvey: listing + PDF probe of the next quarters; failures reported, never thrown
+ok 533 - detectLatestSurvey: listing + PDF probe of the next quarters; failures reported, never thrown
+  ---
+  duration_ms: 40.883256
+  type: 'test'
+  ...
+# Subtest: rbcIssues: new edition → warn per fund; failures warn but change nothing; none entered → info
+ok 534 - rbcIssues: new edition → warn per fund; failures warn but change nothing; none entered → info
+  ---
+  duration_ms: 1.201135
+  type: 'test'
+  ...
+# Subtest: runRbcSurveyCheck: stores state, keeps the last edition after a failure, alerts once per edition
+ok 535 - runRbcSurveyCheck: stores state, keeps the last edition after a failure, alerts once per edition
+  ---
+  duration_ms: 32.387658
+  type: 'test'
+  ...
+# Subtest: weekly schedule: due when never run or older than the interval
+ok 536 - weekly schedule: due when never run or older than the interval
+  ---
+  duration_ms: 0.4279
+  type: 'test'
+  ...
+# Subtest: detection: a quarter not over (+ publication lag) or without a link never counts; foreign hosts refused
+ok 537 - detection: a quarter not over (+ publication lag) or without a link never counts; foreign hosts refused
+  ---
+  duration_ms: 2.840269
+  type: 'test'
+  ...
+# Subtest: listing pages are read up to 3 MB, then the download is cancelled
+ok 538 - listing pages are read up to 3 MB, then the download is cancelled
+  ---
+  duration_ms: 33.788405
+  type: 'test'
+  ...
+# Subtest: self-heal: a stored edition in the future or without a link is dropped; one check at a time
+ok 539 - self-heal: a stored edition in the future or without a link is dropped; one check at a time
+  ---
+  duration_ms: 22.5239
+  type: 'test'
+  ...
+# Subtest: seeded latest edition: Q2 2026 with its link is the floor; a confirmed Q2 entry raises no update issue
+ok 540 - seeded latest edition: Q2 2026 with its link is the floor; a confirmed Q2 entry raises no update issue
+  ---
+  duration_ms: 0.816125
+  type: 'test'
+  ...
+# (node:3067) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/scripts/visual-diff.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: decode(encode(x)) gives back the same pixels
+ok 541 - decode(encode(x)) gives back the same pixels
+  ---
+  duration_ms: 3.706267
+  type: 'test'
+  ...
+# Subtest: one changed pixel is counted with its box
+ok 542 - one changed pixel is counted with its box
+  ---
+  duration_ms: 1.101228
+  type: 'test'
+  ...
+# Subtest: a filter byte above 4 is a corrupt file, not a silent mis-decode
+ok 543 - a filter byte above 4 is a corrupt file, not a silent mis-decode
+  ---
+  duration_ms: 4.763304
+  type: 'test'
+  ...
+# Subtest: a tRNS key on a truecolour image is refused (its transparency would be ignored)
+ok 544 - a tRNS key on a truecolour image is refused (its transparency would be ignored)
+  ---
+  duration_ms: 0.597015
+  type: 'test'
+  ...
+# Subtest: options: invalid values exit 2, identical folders exit 0, a changed pixel exits 1 at the default ratio 0
+ok 545 - options: invalid values exit 2, identical folders exit 0, a changed pixel exits 1 at the default ratio 0
+  ---
+  duration_ms: 3.115293
+  type: 'test'
+  ...
+# (node:3079) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/aum.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: default AUM label is C$1.9 billion in both languages
+ok 546 - default AUM label is C$1.9 billion in both languages
+  ---
+  duration_ms: 2.5946
+  type: 'test'
+  ...
+# Subtest: a stored copy of the previous default follows the new default; an edited value is kept
+ok 547 - a stored copy of the previous default follows the new default; an edited value is kept
+  ---
+  duration_ms: 0.860499
+  type: 'test'
+  ...
+# Subtest: no source file mentions the previous AUM figure
+ok 548 - no source file mentions the previous AUM figure
+  ---
+  duration_ms: 24.976585
+  type: 'test'
+  ...
+# (node:3086) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/client-imports.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: client components exist (sanity) and the scanner sees Nav, Footer, Contact
+ok 549 - client components exist (sanity) and the scanner sees Nav, Footer, Contact
+  ---
+  duration_ms: 1.574694
+  type: 'test'
+  ...
+# Subtest: no client component imports the full fund registry (@/config/funds) directly
+ok 550 - no client component imports the full fund registry (@/config/funds) directly
+  ---
+  duration_ms: 5.725853
+  type: 'test'
+  ...
+# Subtest: no client component reaches the internal fund sources or the pipeline, even transitively
+ok 551 - no client component reaches the internal fund sources or the pipeline, even transitively
+  ---
+  duration_ms: 127.718593
+  type: 'test'
+  ...
+# Subtest: the scanner flags a client file importing the registry (self-check)
+ok 552 - the scanner flags a client file importing the registry (self-check)
+  ---
+  duration_ms: 0.535661
+  type: 'test'
+  ...
+# Subtest: the public fund modules carry no internal source name or key
+ok 553 - the public fund modules carry no internal source name or key
+  ---
+  duration_ms: 0.846543
+  type: 'test'
+  ...
+# Subtest: hidden funds: keys from the admin content, filtered out of lists
+ok 554 - hidden funds: keys from the admin content, filtered out of lists
+  ---
+  duration_ms: 0.40126
+  type: 'test'
+  ...
+# (node:3093) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/concise-copy.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: concise copy: page leads are short (15 words or fewer)
+ok 555 - concise copy: page leads are short (15 words or fewer)
+  ---
+  duration_ms: 1.308365
+  type: 'test'
+  ...
+# Subtest: concise copy: bullet lists have 3 to 5 short items, in both languages
+ok 556 - concise copy: bullet lists have 3 to 5 short items, in both languages
+  ---
+  duration_ms: 0.510955
+  type: 'test'
+  ...
+# Subtest: concise copy: biographies are one or two sentences
+ok 557 - concise copy: biographies are one or two sentences
+  ---
+  duration_ms: 0.402362
+  type: 'test'
+  ...
+# Subtest: concise copy: overlay and distribution disclosures survive the cut, word for word
+ok 558 - concise copy: overlay and distribution disclosures survive the cut, word for word
+  ---
+  duration_ms: 1.158465
+  type: 'test'
+  ...
+# Subtest: concise copy: the same disclosures in French, and the other condensed blocks' caveats
+ok 559 - concise copy: the same disclosures in French, and the other condensed blocks' caveats
+  ---
+  duration_ms: 0.526293
+  type: 'test'
+  ...
+# (node:3100) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/content-v3.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: team: self-hosted photos exist, are small WebP portraits, and only portraits are in public/team (no logos)
+ok 560 - team: self-hosted photos exist, are small WebP portraits, and only portraits are in public/team (no logos)
+  ---
+  duration_ms: 5.422346
+  type: 'test'
+  ...
+# Subtest: team: LinkedIn links are https linkedin.com profiles, each person's own (no duplicate URL)
+ok 561 - team: LinkedIn links are https linkedin.com profiles, each person's own (no duplicate URL)
+  ---
+  duration_ms: 0.492841
+  type: 'test'
+  ...
+# Subtest: team: credential counts are computed from the data, never typed
+ok 562 - team: credential counts are computed from the data, never typed
+  ---
+  duration_ms: 4.575732
+  type: 'test'
+  ...
+# Subtest: team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 6 CFA or CIM; 2026-10-04)
+ok 563 - team: the counters see what the data holds today (2 PhDs, 3 engineering / CS degrees, 6 CFA or CIM; 2026-10-04)
+  ---
+  duration_ms: 0.350084
+  type: 'test'
+  ...
+# Subtest: team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French
+ok 564 - team: badges are short text credentials, key ones (PhD, CFA, CIM) flagged, French forms in French
+  ---
+  duration_ms: 1.756263
+  type: 'test'
+  ...
+# Subtest: team: wording gives the futures overlays room next to fixed income (about intro, overlay lead's bio)
+ok 565 - team: wording gives the futures overlays room next to fixed income (about intro, overlay lead's bio)
+  ---
+  duration_ms: 0.274924
+  type: 'test'
+  ...
+# Subtest: approach: risk-first and multi-strategy sections keep low correlation as an objective, with the overlay disclosure
+ok 566 - approach: risk-first and multi-strategy sections keep low correlation as an objective, with the overlay disclosure
+  ---
+  duration_ms: 3.348859
+  type: 'test'
+  ...
+# Subtest: solutions: three illustrative use cases; overlay ones carry the futures-exposure disclosure; no ranking claim in the copy
+ok 567 - solutions: three illustrative use cases; overlay ones carry the futures-exposure disclosure; no ranking claim in the copy
+  ---
+  duration_ms: 0.585975
+  type: 'test'
+  ...
+# Subtest: solutions: no third-party rankings section (removed 2026-10-04, Gabriel); the AdvisorRankings component is gone
+ok 568 - solutions: no third-party rankings section (removed 2026-10-04, Gabriel); the AdvisorRankings component is gone
+  ---
+  duration_ms: 0.832826
+  type: 'test'
+  ...
+# Subtest: GMV: any copy that pairs the strategy with a percentage names the downside-volatility variant
+ok 569 - GMV: any copy that pairs the strategy with a percentage names the downside-volatility variant
+  ---
+  duration_ms: 1.989388
+  type: 'test'
+  ...
+# Subtest: GMV: the cards show the default variant's own figures and name it (6% downside volatility)
+ok 570 - GMV: the cards show the default variant's own figures and name it (6% downside volatility)
+  ---
+  duration_ms: 22.508652
+  type: 'test'
+  ...
+# (node:3107) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/copy-typography.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: copy typography: the French strings were collected from every copy module
+ok 571 - copy typography: the French strings were collected from every copy module
+  ---
+  duration_ms: 14.480857
+  type: 'test'
+  ...
+# Subtest: copy typography: French strings use non-breaking spaces before : % $ and inside « » (Québec convention)
+ok 572 - copy typography: French strings use non-breaking spaces before : % $ and inside « » (Québec convention)
+  ---
+  duration_ms: 10.642292
+  type: 'test'
+  ...
+# Subtest: copy typography: the check catches a regular space (self-test)
+ok 573 - copy typography: the check catches a regular space (self-test)
+  ---
+  duration_ms: 0.328755
+  type: 'test'
+  ...
+# (node:3114) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/core-concepts.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeline: steps cover the cycle in order and wrap around
+ok 574 - timeline: steps cover the cycle in order and wrap around
+  ---
+  duration_ms: 5.273427
+  type: 'test'
+  ...
+# Subtest: overlay: periods are deterministic, bounded, and combined = core + overlay exactly
+ok 575 - overlay: periods are deterministic, bounded, and combined = core + overlay exactly
+  ---
+  duration_ms: 26.901349
+  type: 'test'
+  ...
+# Subtest: overlay: driven by volatility (vega) — small in calm periods, larger in volatile ones (up or down moves), never a promise
+ok 576 - overlay: driven by volatility (vega) — small in calm periods, larger in volatile ones (up or down moves), never a promise
+  ---
+  duration_ms: 7.416693
+  type: 'test'
+  ...
+# Subtest: overlay chart: the scale uses the window's tallest stack; the loss note points at the largest loss and covers no bar
+ok 577 - overlay chart: the scale uses the window's tallest stack; the loss note points at the largest loss and covers no bar
+  ---
+  duration_ms: 5.648598
+  type: 'test'
+  ...
+# Subtest: overlay: the deposit is drawn to scale (about 10% of the full exposure) and the overlay spans the whole core
+ok 578 - overlay: the deposit is drawn to scale (about 10% of the full exposure) and the overlay spans the whole core
+  ---
+  duration_ms: 1.640045
+  type: 'test'
+  ...
+# Subtest: futures: each close is the next open; long and short settlements are opposite every day
+ok 579 - futures: each close is the next open; long and short settlements are opposite every day
+  ---
+  duration_ms: 0.852334
+  type: 'test'
+  ...
+# Subtest: futures: the daily settlements add up to the cumulative gain or loss
+ok 580 - futures: the daily settlements add up to the cumulative gain or loss
+  ---
+  duration_ms: 0.537966
+  type: 'test'
+  ...
+# Subtest: futures: only one day is ever unsettled, and the margin buffer covers it and scales with volatility
+ok 581 - futures: only one day is ever unsettled, and the margin buffer covers it and scales with volatility
+  ---
+  duration_ms: 2.695709
+  type: 'test'
+  ...
+# Subtest: futures: a tiny bit faster than 5 s, still slower than 1.25 s (Gabriel 2026-10-04) — 3.5–4 s a day, a settlement pause, each message held long enough to read comfortably
+ok 582 - futures: a tiny bit faster than 5 s, still slower than 1.25 s (Gabriel 2026-10-04) — 3.5–4 s a day, a settlement pause, each message held long enough to read comfortably
+  ---
+  duration_ms: 1.959222
+  type: 'test'
+  ...
+# Subtest: futures: four focus steps over one loop; layouts fit
+ok 583 - futures: four focus steps over one loop; layouts fit
+  ---
+  duration_ms: 1.072284
+  type: 'test'
+  ...
+# Subtest: coverage: about 2,000 bonds; the liquidity filter is ≥ $200 MM outstanding
+ok 584 - coverage: about 2,000 bonds; the liquidity filter is ≥ $200 MM outstanding
+  ---
+  duration_ms: 10.210295
+  type: 'test'
+  ...
+# Subtest: coverage: a team of six analysts × ~30 securities covers 180 bonds — a small fraction of the universe
+ok 585 - coverage: a team of six analysts × ~30 securities covers 180 bonds — a small fraction of the universe
+  ---
+  duration_ms: 3.279139
+  type: 'test'
+  ...
+# Subtest: coverage: one large shared graphic (Gabriel 2026-10-04) — the methods column beside it (a strip above it under 700 px), VS between the two methods
+ok 586 - coverage: one large shared graphic (Gabriel 2026-10-04) — the methods column beside it (a strip above it under 700 px), VS between the two methods
+  ---
+  duration_ms: 50.721907
+  type: 'test'
+  ...
+# Subtest: coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (≈ 50 %); both in the compare step
+ok 587 - coverage: a two-act sequence — the method on the graphic is highlighted, the other faded (≈ 50 %); both in the compare step
+  ---
+  duration_ms: 10.256161
+  type: 'test'
+  ...
+# Subtest: coverage: steps read as a comparison of two methods — universe, conventional team, our systems, compare
+ok 588 - coverage: steps read as a comparison of two methods — universe, conventional team, our systems, compare
+  ---
+  duration_ms: 0.558464
+  type: 'test'
+  ...
+# Subtest: coverage: card labels fit (EN and FR) at every width — titles, scan claim, legends
+ok 589 - coverage: card labels fit (EN and FR) at every width — titles, scan claim, legends
+  ---
+  duration_ms: 1.311721
+  type: 'test'
+  ...
+# Subtest: coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width
+ok 590 - coverage: six named sector clusters — each analyst's bonds sit in their sector's cluster; names fit at every width
+  ---
+  duration_ms: 17.374586
+  type: 'test'
+  ...
+# Subtest: coverage: texts and shapes never overlap (methods, VS badge, title row, grid and history sheets, legend, watermark)
+ok 591 - coverage: texts and shapes never overlap (methods, VS badge, title row, grid and history sheets, legend, watermark)
+  ---
+  duration_ms: 2.24684
+  type: 'test'
+  ...
+# Subtest: copy: every string exists in English and French; three concepts with four steps each
+ok 592 - copy: every string exists in English and French; three concepts with four steps each
+  ---
+  duration_ms: 3.865816
+  type: 'test'
+  ...
+# Subtest: copy: the overlay caption ends with the verbatim futures-exposure disclosure; futures say losses can exceed the deposit
+ok 593 - copy: the overlay caption ends with the verbatim futures-exposure disclosure; futures say losses can exceed the deposit
+  ---
+  duration_ms: 0.314227
+  type: 'test'
+  ...
+# Subtest: copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no performance figure
+ok 594 - copy: no guarantee, no 'uncorrelated' as a fact, no leverage wording, no performance figure
+  ---
+  duration_ms: 1.854686
+  type: 'test'
+  ...
+# Subtest: copy: concept 1 is "protective overlays" (Gabriel 2026-10-03), always with the qualifier next to the name
+ok 595 - copy: concept 1 is "protective overlays" (Gabriel 2026-10-03), always with the qualifier next to the name
+  ---
+  duration_ms: 1.045895
+  type: 'test'
+  ...
+# Subtest: copy: concept 3 is named "Ultra-micro analysis, at scale" (Gabriel's phrase), heading "Why machines see more"
+ok 596 - copy: concept 3 is named "Ultra-micro analysis, at scale" (Gabriel's phrase), heading "Why machines see more"
+  ---
+  duration_ms: 0.61003
+  type: 'test'
+  ...
+# Subtest: copy: the coverage figures are Gabriel's illustrative estimates and match the model
+ok 597 - copy: the coverage figures are Gabriel's illustrative estimates and match the model
+  ---
+  duration_ms: 0.23531
+  type: 'test'
+  ...
+# Subtest: copy: very little visible prose (titles, takeaways, steps, note)
+ok 598 - copy: very little visible prose (titles, takeaways, steps, note)
+  ---
+  duration_ms: 0.934647
+  type: 'test'
+  ...
+# Subtest: nav and footer link the page as "Core concepts"; route and labels exist in both languages; the old URL redirects
+ok 599 - nav and footer link the page as "Core concepts"; route and labels exist in both languages; the old URL redirects
+  ---
+  duration_ms: 0.998256
+  type: 'test'
+  ...
+# Subtest: engines keep the motion contract: DPR cap, fps cap, still frames, pause off screen and in hidden tabs, test hooks
+ok 600 - engines keep the motion contract: DPR cap, fps cap, still frames, pause off screen and in hidden tabs, test hooks
+  ---
+  duration_ms: 1.350675
+  type: 'test'
+  ...
+# (node:3120) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/disclosure.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: textLength: strings, numbers and nested elements; nothing for booleans / null
+ok 601 - textLength: strings, numbers and nested elements; nothing for booleans / null
+  ---
+  duration_ms: 1.697042
+  type: 'test'
+  ...
+# Subtest: collapse threshold on the English text: the fund boilerplate / footer collapse, the qualifiers never would
+ok 602 - collapse threshold on the English text: the fund boilerplate / footer collapse, the qualifiers never would
+  ---
+  duration_ms: 0.960445
+  type: 'test'
+  ...
+# Subtest: state: plain / collapsed / fits / expanded
+ok 603 - state: plain / collapsed / fits / expanded
+  ---
+  duration_ms: 0.227576
+  type: 'test'
+  ...
+# Subtest: toggle labels EN / FR
+ok 604 - toggle labels EN / FR
+  ---
+  duration_ms: 0.229308
+  type: 'test'
+  ...
+# Subtest: hash: only the box's own anchors open it
+ok 605 - hash: only the box's own anchors open it
+  ---
+  duration_ms: 0.369671
+  type: 'test'
+  ...
+# Subtest: only the boilerplate is collapsed: performance qualifiers stay outside the box
+ok 606 - only the boilerplate is collapsed: performance qualifiers stay outside the box
+  ---
+  duration_ms: 1.269743
+  type: 'test'
+  ...
+# Subtest: CSS contract: clipped not hidden, collapsed only with JS, open in print
+ok 607 - CSS contract: clipped not hidden, collapsed only with JS, open in print
+  ---
+  duration_ms: 0.823059
+  type: 'test'
+  ...
+# (node:3128) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/esg-scope.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: ESG scope: exclusion / ESG-screen wording on firm-level pages always names the Sustainable Enhanced Bonds Fund (EN + FR)
+ok 608 - ESG scope: exclusion / ESG-screen wording on firm-level pages always names the Sustainable Enhanced Bonds Fund (EN + FR)
+  ---
+  duration_ms: 6.322849
+  type: 'test'
+  ...
+# Subtest: ESG scope: the sustainability page says the criteria are the fund's, and keeps the firm commitments firm-level
+ok 609 - ESG scope: the sustainability page says the criteria are the fund's, and keeps the firm commitments firm-level
+  ---
+  duration_ms: 0.851792
+  type: 'test'
+  ...
+# Subtest: ESG scope: the check catches firm-wide wording and accepts a scoped block (self-test)
+ok 610 - ESG scope: the check catches firm-wide wording and accepts a scoped block (self-test)
+  ---
+  duration_ms: 0.394747
+  type: 'test'
+  ...
+# (node:3135) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/figures.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: pctText / cell: signed, FR spacing, em dash when not published
+ok 611 - pctText / cell: signed, FR spacing, em dash when not published
+  ---
+  duration_ms: 27.863572
+  type: 'test'
+  ...
+# Subtest: dates: sentence case in English, French as written
+ok 612 - dates: sentence case in English, French as written
+  ---
+  duration_ms: 0.538445
+  type: 'test'
+  ...
+# Subtest: navText: class currency
+ok 613 - navText: class currency
+  ---
+  duration_ms: 0.671083
+  type: 'test'
+  ...
+# Subtest: filterFunds: every registered fund has a category; filters keep order
+ok 614 - filterFunds: every registered fund has a category; filters keep order
+  ---
+  duration_ms: 1.230057
+  type: 'test'
+  ...
+# Subtest: lastYears: the most recent years, oldest first, only published values
+ok 615 - lastYears: the most recent years, oldest first, only published values
+  ---
+  duration_ms: 0.535851
+  type: 'test'
+  ...
+# Subtest: miniBars: zero line and bar geometry stay inside the plot
+ok 616 - miniBars: zero line and bar geometry stay inside the plot
+  ---
+  duration_ms: 0.547883
+  type: 'test'
+  ...
+# Subtest: latest: ignores missing and malformed dates
+ok 617 - latest: ignores missing and malformed dates
+  ---
+  duration_ms: 0.298066
+  type: 'test'
+  ...
+# Subtest: toFundCard: published figures pass through; internal fields never do
+ok 618 - toFundCard: published figures pass through; internal fields never do
+  ---
+  duration_ms: 2.661291
+  type: 'test'
+  ...
+# Subtest: toFundCard: nothing published or hidden in the admin → nulls (the UI shows 'figures coming soon')
+ok 619 - toFundCard: nothing published or hidden in the admin → nulls (the UI shows 'figures coming soon')
+  ---
+  duration_ms: 1.080879
+  type: 'test'
+  ...
+# Subtest: toFundCard: a 1-year figure needs a year of track record
+ok 620 - toFundCard: a 1-year figure needs a year of track record
+  ---
+  duration_ms: 0.736125
+  type: 'test'
+  ...
+# Subtest: toFundCard: admin minimum investment is passed as written, blank is none
+ok 621 - toFundCard: admin minimum investment is passed as written, blank is none
+  ---
+  duration_ms: 0.565606
+  type: 'test'
+  ...
+# Subtest: toHomeData: firm AUM label only when filled; team size only when positive; latest dates
+ok 622 - toHomeData: firm AUM label only when filled; team size only when positive; latest dates
+  ---
+  duration_ms: 0.694367
+  type: 'test'
+  ...
+# Subtest: parseCountLabel: the AUM label splits into prefix, number and suffix; anything else stays text
+ok 623 - parseCountLabel: the AUM label splits into prefix, number and suffix; anything else stays text
+  ---
+  duration_ms: 0.616922
+  type: 'test'
+  ...
+# (node:3141) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/fonts-and-wording.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: every font-family declaration of CSS, TSX and the standalone pages starts with Poppins (or inherits)
+ok 624 - every font-family declaration of CSS, TSX and the standalone pages starts with Poppins (or inherits)
+  ---
+  duration_ms: 31.988267
+  type: 'test'
+  ...
+# Subtest: globals.css makes controls, code and SVG text inherit the Poppins body font
+ok 625 - globals.css makes controls, code and SVG text inherit the Poppins body font
+  ---
+  duration_ms: 0.450912
+  type: 'test'
+  ...
+# Subtest: Poppins is the only family loaded (self-hosted @font-face in the root layout)
+ok 626 - Poppins is the only family loaded (self-hosted @font-face in the root layout)
+  ---
+  duration_ms: 0.417189
+  type: 'test'
+  ...
+# Subtest: no characteristic parsed from the factsheets is a leverage metric or a liquidity score
+ok 627 - no characteristic parsed from the factsheets is a leverage metric or a liquidity score
+  ---
+  duration_ms: 0.38533
+  type: 'test'
+  ...
+# Subtest: no visitor-facing text of the funds mentions leverage or a liquidity score (EN or FR)
+ok 628 - no visitor-facing text of the funds mentions leverage or a liquidity score (EN or FR)
+  ---
+  duration_ms: 0.504782
+  type: 'test'
+  ...
+# Subtest: no source file of the public site carries leverage / liquidity-score wording (copy, pipeline, admin, content)
+ok 629 - no source file of the public site carries leverage / liquidity-score wording (copy, pipeline, admin, content)
+  ---
+  duration_ms: 17.094427
+  type: 'test'
+  ...
+# Subtest: the sample dataset has no leverage / liquidity-score characteristic
+ok 630 - the sample dataset has no leverage / liquidity-score characteristic
+  ---
+  duration_ms: 2.067231
+  type: 'test'
+  ...
+# (node:3150) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/french-terms.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: French: « volatilité à la baisse », never « baissière », anywhere in the source
+ok 631 - French: « volatilité à la baisse », never « baissière », anywhere in the source
+  ---
+  duration_ms: 29.749083
+  type: 'test'
+  ...
+# Subtest: visitor copy writes Fundserv (not FundServ)
+ok 632 - visitor copy writes Fundserv (not FundServ)
+  ---
+  duration_ms: 1.336957
+  type: 'test'
+  ...
+# Subtest: about, approach, home and science-at-scale copy never call the team « ingénieurs » (FR)
+ok 633 - about, approach, home and science-at-scale copy never call the team « ingénieurs » (FR)
+  ---
+  duration_ms: 0.92607
+  type: 'test'
+  ...
+# (node:3157) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/gmv-variant.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: variants: shown in the order 3 %, 6 %, 9 % (Gabriel, 2026-10-04); selector label and full name (EN / FR); the default is 6
+ok 634 - variants: shown in the order 3 %, 6 %, 9 % (Gabriel, 2026-10-04); selector label and full name (EN / FR); the default is 6
+  ---
+  duration_ms: 2.677592
+  type: 'test'
+  ...
+# Subtest: home / strategies cards and the admin summary name the variant of the published returns
+ok 635 - home / strategies cards and the admin summary name the variant of the published returns
+  ---
+  duration_ms: 15.590579
+  type: 'test'
+  ...
+# Subtest: disclaimers: the GMV texts name the 6 % downside volatility variant (EN + FR)
+ok 636 - disclaimers: the GMV texts name the 6 % downside volatility variant (EN + FR)
+  ---
+  duration_ms: 0.376834
+  type: 'test'
+  ...
+# (node:3164) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/overlay.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: months are deterministic for a seed and differ between seeds
+ok 637 - months are deterministic for a seed and differ between seeds
+  ---
+  duration_ms: 24.150968
+  type: 'test'
+  ...
+# Subtest: every generated value is bounded; smoothed paths stay within their bound
+ok 638 - every generated value is bounded; smoothed paths stay within their bound
+  ---
+  duration_ms: 74.325216
+  type: 'test'
+  ...
+# Subtest: stress episodes are short clusters; down months are a minority; equities fall deeper than bonds, bonds usually fall too
+ok 639 - stress episodes are short clusters; down months are a minority; equities fall deeper than bonds, bonds usually fall too
+  ---
+  duration_ms: 6.212934
+  type: 'test'
+  ...
+# Subtest: down months are clear equity falls: DOWN_CUT is about −0.5σ of the monthly equity move
+ok 640 - down months are clear equity falls: DOWN_CUT is about −0.5σ of the monthly equity move
+  ---
+  duration_ms: 35.808292
+  type: 'test'
+  ...
+# Subtest: down-month correlation: symmetric, unit diagonal, in [-1, 1]; order equities, bonds, engines
+ok 641 - down-month correlation: symmetric, unit diagonal, in [-1, 1]; order equities, bonds, engines
+  ---
+  duration_ms: 19.08382
+  type: 'test'
+  ...
+# Subtest: traditional markets move together in down months; strategies have low correlation with each other
+ok 642 - traditional markets move together in down months; strategies have low correlation with each other
+  ---
+  duration_ms: 86.498093
+  type: 'test'
+  ...
+# Subtest: hedging and the protective overlay: designed to offset part of the falls (negative down-month ρ vs equities and bonds)
+ok 643 - hedging and the protective overlay: designed to offset part of the falls (negative down-month ρ vs equities and bonds)
+  ---
+  duration_ms: 29.933367
+  type: 'test'
+  ...
+# Subtest: the heatmap as shown (production seed 0, months 300–1500): no window shows a strong strategy correlation
+ok 644 - the heatmap as shown (production seed 0, months 300–1500): no window shows a strong strategy correlation
+  ---
+  duration_ms: 32.014594
+  type: 'test'
+  ...
+# Subtest: down-month correlation only uses down months
+ok 645 - down-month correlation only uses down months
+  ---
+  duration_ms: 0.650505
+  type: 'test'
+  ...
+# Subtest: lit engines: a strategy moving up in a down month for equities
+ok 646 - lit engines: a strategy moving up in a down month for equities
+  ---
+  duration_ms: 1.269902
+  type: 'test'
+  ...
+# Subtest: layout fits every width: two groups, rows and heatmap inside the canvas, never overlapping
+ok 647 - layout fits every width: two groups, rows and heatmap inside the canvas, never overlapping
+  ---
+  duration_ms: 0.83023
+  type: 'test'
+  ...
+# Subtest: heat colours: pale near zero, stronger when far from it
+ok 648 - heat colours: pale near zero, stronger when far from it
+  ---
+  duration_ms: 0.290272
+  type: 'test'
+  ...
+# Subtest: copy: EN and FR, short lines, labelled as an illustration, low correlation as an objective only
+ok 649 - copy: EN and FR, short lines, labelled as an illustration, low correlation as an objective only
+  ---
+  duration_ms: 1.903014
+  type: 'test'
+  ...
+# Subtest: lanes: the Multi-Strategy Fund's four strategies as named on /approach, plus the overlay on its own lane
+ok 650 - lanes: the Multi-Strategy Fund's four strategies as named on /approach, plus the overlay on its own lane
+  ---
+  duration_ms: 0.319547
+  type: 'test'
+  ...
+# Subtest: zero drift: no lane, blend or market trends over time (nothing reads as performance)
+ok 651 - zero drift: no lane, blend or market trends over time (nothing reads as performance)
+  ---
+  duration_ms: 134.352913
+  type: 'test'
+  ...
+# (node:3171) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/pages.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: people: a person shows in every department they belong to
+ok 652 - people: a person shows in every department they belong to
+  ---
+  duration_ms: 1.762532
+  type: 'test'
+  ...
+# Subtest: people: 'everyone' lists all members once, by primary department in the site order
+ok 653 - people: 'everyone' lists all members once, by primary department in the site order
+  ---
+  duration_ms: 1.33306
+  type: 'test'
+  ...
+# Subtest: people: a department filter keeps only its members (additional departments included)
+ok 654 - people: a department filter keeps only its members (additional departments included)
+  ---
+  duration_ms: 0.295071
+  type: 'test'
+  ...
+# Subtest: people: counts are computed from the data, never typed
+ok 655 - people: counts are computed from the data, never typed
+  ---
+  duration_ms: 0.653862
+  type: 'test'
+  ...
+# Subtest: people: initials never carry a numeric suffix (the old site showed 'JL2')
+ok 656 - people: initials never carry a numeric suffix (the old site showed 'JL2')
+  ---
+  duration_ms: 0.638502
+  type: 'test'
+  ...
+# Subtest: inquiry: each step validates its own fields
+ok 657 - inquiry: each step validates its own fields
+  ---
+  duration_ms: 2.893083
+  type: 'test'
+  ...
+# Subtest: inquiry: email pattern
+ok 658 - inquiry: email pattern
+  ---
+  duration_ms: 0.281205
+  type: 'test'
+  ...
+# Subtest: inquiry: prepared email in the visitor's language, optional lines omitted
+ok 659 - inquiry: prepared email in the visitor's language, optional lines omitted
+  ---
+  duration_ms: 0.646958
+  type: 'test'
+  ...
+# Subtest: inquiry: mailto link is percent-encoded and addressed to info@
+ok 660 - inquiry: mailto link is percent-encoded and addressed to info@
+  ---
+  duration_ms: 0.763506
+  type: 'test'
+  ...
+# Subtest: maps link is a search link, never an embed
+ok 661 - maps link is a search link, never an embed
+  ---
+  duration_ms: 0.623525
+  type: 'test'
+  ...
+# Subtest: contact lines: phone numbers and emails become links
+ok 662 - contact lines: phone numbers and emails become links
+  ---
+  duration_ms: 0.979549
+  type: 'test'
+  ...
+# Subtest: legal: EN and FR documents have the same structure (same section ids, same block kinds)
+ok 663 - legal: EN and FR documents have the same structure (same section ids, same block kinds)
+  ---
+  duration_ms: 1.644321
+  type: 'test'
+  ...
+# Subtest: legal: section ids are unique across the pages that show them together
+ok 664 - legal: section ids are unique across the pages that show them together
+  ---
+  duration_ms: 0.382243
+  type: 'test'
+  ...
+# Subtest: legal: one firm phone number everywhere (the old complaints policy had 514-931-1138)
+ok 665 - legal: one firm phone number everywhere (the old complaints policy had 514-931-1138)
+  ---
+  duration_ms: 0.685119
+  type: 'test'
+  ...
+# Subtest: legal: complaints policy keeps the AMF and OBSI escalation and its deadlines
+ok 666 - legal: complaints policy keeps the AMF and OBSI escalation and its deadlines
+  ---
+  duration_ms: 0.288789
+  type: 'test'
+  ...
+# Subtest: privacy: PIPEDA, the missing section 3.3 and a Law 25 section, both marked for compliance review
+ok 667 - privacy: PIPEDA, the missing section 3.3 and a Law 25 section, both marked for compliance review
+  ---
+  duration_ms: 3.618659
+  type: 'test'
+  ...
+# (node:3178) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/scan-frozen.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: science at scale: model, engine and copy are unchanged
+ok 668 - science at scale: model, engine and copy are unchanged
+  ---
+  duration_ms: 2.514416
+  type: 'test'
+  ...
+# Subtest: science at scale: the AnalysisScan markup and the panel styles are unchanged
+ok 669 - science at scale: the AnalysisScan markup and the panel styles are unchanged
+  ---
+  duration_ms: 0.688506
+  type: 'test'
+  ...
+# Subtest: science at scale: its home section is unchanged and the new band comes right after it
+ok 670 - science at scale: its home section is unchanged and the new band comes right after it
+  ---
+  duration_ms: 0.467253
+  type: 'test'
+  ...
+# (node:3185) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/scan.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: hash01 is deterministic and in [0, 1)
+ok 671 - hash01 is deterministic and in [0, 1)
+  ---
+  duration_ms: 4.393486
+  type: 'test'
+  ...
+# Subtest: rows are deterministic, generic and self-consistent
+ok 672 - rows are deterministic, generic and self-consistent
+  ---
+  duration_ms: 8.069752
+  type: 'test'
+  ...
+# Subtest: about 12 % of the rows are flagged
+ok 673 - about 12 % of the rows are flagged
+  ---
+  duration_ms: 8.229971
+  type: 'test'
+  ...
+# Subtest: the table names no issuer: sectors are generic labels, EN and FR
+ok 674 - the table names no issuer: sectors are generic labels, EN and FR
+  ---
+  duration_ms: 0.394987
+  type: 'test'
+  ...
+# Subtest: columns: compact and medium widths keep the identifier and the signal; layout fills the width
+ok 675 - columns: compact and medium widths keep the identifier and the signal; layout fills the width
+  ---
+  duration_ms: 0.820061
+  type: 'test'
+  ...
+# Subtest: number formatting: true minus, French decimal comma, no negative zero
+ok 676 - number formatting: true minus, French decimal comma, no negative zero
+  ---
+  duration_ms: 0.505484
+  type: 'test'
+  ...
+# Subtest: flicker settles on the true value and only moves unsettled cells
+ok 677 - flicker settles on the true value and only moves unsettled cells
+  ---
+  duration_ms: 0.224019
+  type: 'test'
+  ...
+# Subtest: counters count only the rows the animation has scanned
+ok 678 - counters count only the rows the animation has scanned
+  ---
+  duration_ms: 0.501917
+  type: 'test'
+  ...
+# Subtest: scan progress runs 0 → 1, rests, then starts a new cycle; it never leaves [0, 1]
+ok 679 - scan progress runs 0 → 1, rests, then starts a new cycle; it never leaves [0, 1]
+  ---
+  duration_ms: 1.051695
+  type: 'test'
+  ...
+# Subtest: scan copy exists in English and French and labels the animation as an illustration
+ok 680 - scan copy exists in English and French and labels the animation as an illustration
+  ---
+  duration_ms: 2.985206
+  type: 'test'
+  ...
+# Subtest: fitText: whole when it fits, else the longest prefix with an ellipsis that fits, else nothing
+ok 681 - fitText: whole when it fits, else the longest prefix with an ellipsis that fits, else nothing
+  ---
+  duration_ms: 0.615821
+  type: 'test'
+  ...
+# Subtest: the illustration says so on the canvas; no simulated counters, no copy about them (EN and FR)
+ok 682 - the illustration says so on the canvas; no simulated counters, no copy about them (EN and FR)
+  ---
+  duration_ms: 0.335437
+  type: 'test'
+  ...
+# (node:3192) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/website/website/tests/unit/site/word-budget.test.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/runner/work/website/website/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: word budget: every page stays within its English ceiling, French within 25% more
+ok 683 - word budget: every page stays within its English ceiling, French within 25% more
+  ---
+  duration_ms: 6.220538
+  type: 'test'
+  ...
+1..683
+# tests 683
+# suites 0
+# pass 683
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60623.678931
