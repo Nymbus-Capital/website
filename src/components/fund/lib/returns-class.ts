@@ -89,7 +89,9 @@ export function returnsCandidates(
   push(data.defaultClass);
   const track = data.performance;
   const trackEntry = track
-    ? Object.values(data.performanceByClass ?? {}).find((c) => !!track.returnClass && up(c.display) === up(track.returnClass))
+    ? Object.values(data.performanceByClass ?? {}).find(
+        (c) => !!track.returnClass && up(c.display) === up(track.returnClass),
+      )
     : undefined;
   push(trackEntry?.fundserv);
   const rest = new Set<string>();

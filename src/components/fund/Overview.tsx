@@ -78,75 +78,77 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
             ) : null}
           </Block>
           {rows.length && perf ? (
-          <Block
-            title={tr(T.overview.returns, lang)}
-            testId="overview-returns"
-            aside={
-              rows.length ? (
-                <a className="link" href="#performance">
-                  {tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" />
-                </a>
-              ) : null
-            }
-            lead={
-              rows.length && perf ? (
-                <>
-                  {variant ? (
-                    <>
-                      <span data-testid="overview-variant">{tr(variant.name, lang)}</span>,{" "}
-                    </>
-                  ) : null}
-                  {cl
-                    ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}`
-                    : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}
-                  {" · "}
-                  {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
-                </>
-              ) : null
-            }
-          >
-            {rows.length ? (
-              <div className="fx-scroll">
-                <table className="table ft-table">
-                  <caption className="sr-only">{tr(T.overview.returns, lang)}</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">{tr(T.perf.period, lang)}</th>
-                      <th scope="col">{fundWord}</th>
-                      {hasIndex ? <th scope="col">{tr(T.perf.index, lang)}</th> : null}
-                      {hasVa ? <th scope="col">{tr(T.perf.va, lang)}</th> : null}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r) => (
-                      <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
-                        <td>
-                          <span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span>
-                          <span className="fx-short" aria-hidden="true">
-                            {tr(T.perf.periods[r.period], lang)}
-                          </span>
-                          {r.annualized ? "*" : ""}
-                        </td>
-                        <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
-                        {hasIndex ? <td>{P(r.index, lang)}</td> : null}
-                        {hasVa ? (
-                          <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td>
-                        ) : null}
+            <Block
+              title={tr(T.overview.returns, lang)}
+              testId="overview-returns"
+              aside={
+                rows.length ? (
+                  <a className="link" href="#performance">
+                    {tr(T.overview.returnsMore, lang)} <ArrowRight aria-hidden="true" />
+                  </a>
+                ) : null
+              }
+              lead={
+                rows.length && perf ? (
+                  <>
+                    {variant ? (
+                      <>
+                        <span data-testid="overview-variant">{tr(variant.name, lang)}</span>,{" "}
+                      </>
+                    ) : null}
+                    {cl
+                      ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}`
+                      : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}
+                    {" · "}
+                    {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+                  </>
+                ) : null
+              }
+            >
+              {rows.length ? (
+                <div className="fx-scroll">
+                  <table className="table ft-table">
+                    <caption className="sr-only">{tr(T.overview.returns, lang)}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">{tr(T.perf.period, lang)}</th>
+                        <th scope="col">{fundWord}</th>
+                        {hasIndex ? <th scope="col">{tr(T.perf.index, lang)}</th> : null}
+                        {hasVa ? <th scope="col">{tr(T.perf.va, lang)}</th> : null}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {rows.some((r) => r.annualized) ? (
-                  <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p>
-                ) : null}
-                {perf?.shortRecord && perf.firstMonth ? (
-                  <p className="fine fxb-foot">
-                    {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </Block>
+                    </thead>
+                    <tbody>
+                      {rows.map((r) => (
+                        <tr key={r.period} className={r.period === "SI" ? "hl" : undefined}>
+                          <td>
+                            <span className="fx-long">{periodLong(r.period, perf, lang, !!spec.classes?.length)}</span>
+                            <span className="fx-short" aria-hidden="true">
+                              {tr(T.perf.periods[r.period], lang)}
+                            </span>
+                            {r.annualized ? "*" : ""}
+                          </td>
+                          <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
+                          {hasIndex ? <td>{P(r.index, lang)}</td> : null}
+                          {hasVa ? (
+                            <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>
+                              {P(r.va, lang, true)}
+                            </td>
+                          ) : null}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {rows.some((r) => r.annualized) ? (
+                    <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p>
+                  ) : null}
+                  {perf?.shortRecord && perf.firstMonth ? (
+                    <p className="fine fxb-foot">
+                      {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </Block>
           ) : null}
         </div>
         <aside className="fxov-side">

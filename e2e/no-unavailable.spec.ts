@@ -59,9 +59,9 @@ for (const lang of ["en", "fr"] as const) {
     }
     // every news item
     await page.goto("/news");
-    const items = await page.locator('a[href^="/news/"]').evaluateAll((as) => [
-      ...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!)),
-    ]);
+    const items = await page
+      .locator('a[href^="/news/"]')
+      .evaluateAll((as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!))]);
     for (const href of items) {
       await page.goto(href);
       await check(page, `${lang} ${href}`);
@@ -78,7 +78,9 @@ for (const lang of ["en", "fr"] as const) {
       await expect(page.locator("h1")).toBeVisible();
       await check(page, `${lang} ${slug} (opening class)`);
       const tabs = page.getByTestId("fund-tabs").locator('[role="tab"]');
-      const radios = page.locator('[data-testid="nav-card"] [role="radio"], [data-testid="variant-selector"] [role="radio"]');
+      const radios = page.locator(
+        '[data-testid="nav-card"] [role="radio"], [data-testid="variant-selector"] [role="radio"]',
+      );
       const n = await radios.count();
       for (let i = 0; i < Math.max(n, 1); i++) {
         if (n) await radios.nth(i).click();
@@ -88,8 +90,7 @@ for (const lang of ["en", "fr"] as const) {
           await check(page, `${lang} ${slug} class/variant ${label} tab ${await tabs.nth(t).getAttribute("data-tab")}`);
         }
         // the returns strip, when shown, always names the class / variant of its figures
-        if (await page.getByTestId("basis").count())
-          await expect(page.getByTestId("basis")).toContainText(/\S/);
+        if (await page.getByTestId("basis").count()) await expect(page.getByTestId("basis")).toContainText(/\S/);
       }
     });
   }

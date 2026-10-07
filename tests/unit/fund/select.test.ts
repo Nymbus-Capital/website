@@ -241,9 +241,7 @@ test("young / non-CAD / no-series classes: never offered for returns, their NAV 
 });
 
 test("withheld figures: no row, no year, no dash; periods longer than the history do not appear", async () => {
-  const { trailingRows, calendarRows, returnBadges } = await import(
-    "../../../src/components/fund/lib/performance.ts"
-  );
+  const { trailingRows, calendarRows, returnBadges } = await import("../../../src/components/fund/lib/performance.ts");
   const p = perf("I", 0.05, {
     firstMonth: "2023-03-31",
     inception: "2023-03-06",

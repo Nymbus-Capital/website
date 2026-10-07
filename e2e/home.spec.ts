@@ -122,7 +122,9 @@ test("strategies: the filter shows fixed income or alternatives only", async ({ 
   }
 });
 
-test("strategies: the comparison table lists every fund; a missing figure is a blank cell, never a dash", async ({ page }) => {
+test("strategies: the comparison table lists every fund; a missing figure is a blank cell, never a dash", async ({
+  page,
+}) => {
   await page.goto("/strategies");
   const table = page.getByTestId("compare-table");
   await table.scrollIntoViewIfNeeded();

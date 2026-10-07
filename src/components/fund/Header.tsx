@@ -415,53 +415,53 @@ export function ReturnStrip({
               {tr(T.badges.title, lang)}
             </h2>
             <p className="fr-sub" data-testid="basis">
-                {variant ? (
-                  <>
-                    <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
-                  </>
-                ) : null}
-                {cl ? (
-                  <>
-                    {cl}, {basis}
-                  </>
-                ) : (
-                  cap(basis)
-                )}{" "}
-                · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
-                {ctx.returnsType && !variant ? (
-                  <>
-                    {" "}
-                    <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="returns-class-type" />
-                  </>
-                ) : null}
+              {variant ? (
+                <>
+                  <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
+                </>
+              ) : null}
+              {cl ? (
+                <>
+                  {cl}, {basis}
+                </>
+              ) : (
+                cap(basis)
+              )}{" "}
+              · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+              {ctx.returnsType && !variant ? (
+                <>
+                  {" "}
+                  <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="returns-class-type" />
+                </>
+              ) : null}
             </p>
           </div>
           <>
-              <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
-                {badges.map((b) => (
-                  <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
-                    <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
-                      <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
-                      <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
-                      {b.annualized ? <sup aria-hidden="true">*</sup> : null}
-                    </span>
-                    <CountUp
-                      value={b.value}
-                      pct
-                      sign
-                      decimals={2}
-                      lang={lang}
-                      className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
-                    />
-                  </div>
-                ))}
-              </Reveal>
-              {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
-              {perf?.shortRecord && perf.firstMonth ? (
-                <p className="fr-note" data-testid="since-class-inception">
-                  {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
-                </p>
-              ) : null}
+            <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
+              {badges.map((b) => (
+                <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
+                  <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
+                    <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
+                    <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
+                    {b.annualized ? <sup aria-hidden="true">*</sup> : null}
+                  </span>
+                  <CountUp
+                    value={b.value}
+                    pct
+                    sign
+                    decimals={2}
+                    lang={lang}
+                    className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
+                  />
+                </div>
+              ))}
+            </Reveal>
+            {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+            {perf?.shortRecord && perf.firstMonth ? (
+              <p className="fr-note" data-testid="since-class-inception">
+                {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
+              </p>
+            ) : null}
           </>
         </div>
       </div>

@@ -409,7 +409,9 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.getByTestId("series-LDM021").click();
   await expect(page.getByTestId("nav-fundserv")).toHaveText("LDM021");
   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
-  await expect(page.locator("body")).not.toContainText(/bientôt|à venir|non disponible|pas disponible|seront présentés lorsque/);
+  await expect(page.locator("body")).not.toContainText(
+    /bientôt|à venir|non disponible|pas disponible|seront présentés lorsque/,
+  );
   await page.getByTestId("series-LDM001").click();
   await expect(page.getByTestId("basis")).toContainText("après déduction des frais");
   await expect(page.getByTestId("class-type")).toHaveText("Série à notice d’offre");
@@ -448,7 +450,9 @@ test("class selector: returns follow the class; F is the default; a young class 
   await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
   await expect(page.getByTestId("basis")).not.toContainText(/Series A(?![A-Za-z])/);
   await expect(strip.getByTestId("badge-SI").locator(".fr-v")).toHaveText(f);
-  await expect(page.locator("body")).not.toContainText(/coming soon|will be shown once|not available|could not be verified/i);
+  await expect(page.locator("body")).not.toContainText(
+    /coming soon|will be shown once|not available|could not be verified/i,
+  );
   await openTab(page, "performance");
   await expect(page.getByTestId("perf-context")).toContainText(/Series F(?![A-Za-z])/);
   await expect(page.getByTestId("growth")).toBeVisible();
@@ -519,7 +523,9 @@ test("every series of a fund: own figures when it has them, a withheld period / 
     await expect(page.getByTestId("basis")).toContainText(/Series F(?![A-Za-z])/);
     await expect(strip.getByTestId("badge-SI")).toBeVisible();
     await expect(page.getByTestId("overview-returns")).toBeVisible();
-    await expect(page.locator("body")).not.toContainText(/coming soon|will be shown once|not available|figures are not shown/i);
+    await expect(page.locator("body")).not.toContainText(
+      /coming soon|will be shown once|not available|figures are not shown/i,
+    );
   }
   // the series table gives every series' inception
   await expect(page.getByTestId("class-inception-LDM031")).toHaveText("Mar 6, 2023");
@@ -528,7 +534,9 @@ test("every series of a fund: own figures when it has them, a withheld period / 
   await page.reload();
   await page.getByTestId("nav-card").getByTestId("series-LDM021").click();
   await expect(page.getByTestId("basis")).toContainText(/Série F(?![A-Za-z])/);
-  await expect(page.locator("body")).not.toContainText(/bientôt|à venir|non disponible|pas disponible|seront présentés lorsque|n’a pas pu être vérifié/);
+  await expect(page.locator("body")).not.toContainText(
+    /bientôt|à venir|non disponible|pas disponible|seront présentés lorsque|n’a pas pu être vérifié/,
+  );
 });
 
 test("class types: only classes whose type is known are labelled, with a disclosure sentence", async ({ page }) => {

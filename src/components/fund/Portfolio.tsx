@@ -357,7 +357,9 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
                   </span>
                 ) : null}
               </td>
-              {cols.coupon ? <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : null}</td> : null}
+              {cols.coupon ? (
+                <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : null}</td>
+              ) : null}
               {cols.maturity ? <td className="hd-opt">{h.maturity ? dateLabel(h.maturity, lang) : null}</td> : null}
               {cols.rating ? <td>{h.rating ?? null}</td> : null}
               {cols.sector ? (
