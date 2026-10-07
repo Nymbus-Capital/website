@@ -109,8 +109,8 @@ const FTSE: Text = {
 };
 
 const SUMMARY_NET: Text = {
-  en: "Net of fees, in CAD. Past performance may not be repeated. See the important information below.",
-  fr: "Après déduction des frais, en CAD. Le rendement passé pourrait ne pas se reproduire. Voir les renseignements importants ci-dessous.",
+  en: "Fund returns are net of fees, in CAD; benchmark indices bear no fees. Past performance may not be repeated. See the important information below.",
+  fr: "Les rendements des fonds sont présentés après déduction des frais, en CAD; les indices de référence n’assument aucuns frais. Le rendement passé pourrait ne pas se reproduire. Voir les renseignements importants ci-dessous.",
 };
 
 const SUMMARY_GROSS: Text = {

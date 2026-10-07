@@ -48,8 +48,11 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const windows = riskWindows([data?.risk, data?.risk3Y]);
   const isFund = spec.vehicle === "fund";
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
+  // the fee basis is in the series name of every chart legend, tooltip and table header of the tab
+  const basisShort = tr(gross ? T.perf.grossShort : T.perf.netShort, lang);
+  const fundName = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
   const names = {
-    fund: tr(isFund ? T.perf.fund : T.perf.strategy, lang),
+    fund: `${fundName} (${basisShort})`,
     index: tr(T.perf.index, lang),
     va: tr(T.perf.va, lang),
   };
@@ -57,7 +60,7 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   // the growth chart legend / tooltip names the class (or the strategy variant) of the series drawn
   const tag = variant ? tr(variant.name, lang) : cl;
-  const growthNames = tag ? { ...names, fund: `${names.fund} (${tag})` } : names;
+  const growthNames = tag ? { ...names, fund: `${fundName} (${tag}, ${basisShort})` } : names;
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
   const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const soon = noFiguresText(ctx, lang, T.perf.none);
