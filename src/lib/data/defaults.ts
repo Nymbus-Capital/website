@@ -204,7 +204,8 @@ export const DEFAULT_CONTENT: SiteContent = {
     announcement: null,
   },
   funds: {},
-  pipeline: { publishMode: "review" },
+  // owner's decision 2026-10-07: auto publishing, gated by the automatic validation (validate/*, completeness.ts)
+  pipeline: { publishMode: "auto" },
 };
 
 /** Previous default of the firm AUM label: a stored copy of it was never edited by hand, so it follows the new default. */

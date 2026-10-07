@@ -13,13 +13,15 @@ test("Toronto calendar date", () => {
   assert.equal(localDate(t("2026-10-06T03:00:00Z")), "2026-10-05", "23:00 EDT is still the 5th in Toronto");
 });
 
-test("expected performance month: the last month-end closed for more than 15 business days", () => {
+test("expected performance month: the last month-end closed for more than 7 business days", () => {
   assert.equal(expectedPerformanceMonthEnd("2026-10-05"), "2026-08-31");
-  // Oct 1–22 without Thanksgiving (Oct 12) = 15 business days: not yet
-  assert.equal(expectedPerformanceMonthEnd("2026-10-22"), "2026-08-31");
-  assert.equal(expectedPerformanceMonthEnd("2026-10-23"), "2026-09-30");
+  // Oct 1–9 = 7 business days: not yet; Oct 13 (Thanksgiving Oct 12 skipped) is the 8th
+  assert.equal(expectedPerformanceMonthEnd("2026-10-09"), "2026-08-31");
+  assert.equal(expectedPerformanceMonthEnd("2026-10-13"), "2026-09-30");
   assert.equal(expectedPerformanceMonthEnd("2027-01-04"), "2026-11-30", "across the year end");
-  assert.equal(expectedPerformanceMonthEnd("2027-01-25"), "2026-12-31");
+  // Jan 4–12 = 7 business days (Jan 1 holiday): Dec due on Jan 13
+  assert.equal(expectedPerformanceMonthEnd("2027-01-12"), "2026-11-30");
+  assert.equal(expectedPerformanceMonthEnd("2027-01-13"), "2026-12-31");
   assert.equal(businessDaysSince("2026-10-02", "2026-10-05"), 1, "Friday's NAV on Monday");
   assert.equal(businessDaysSince("2026-10-09", "2026-10-13"), 1, "holiday Monday skipped");
   assert.equal(businessDaysSince("2026-10-05", "2026-10-05"), 0);
@@ -65,12 +67,12 @@ test("verdict stale: performance month, NAV age, missing data — each with a st
     "multi-strategy:nav",
     "multi-strategy:performance",
   ]);
-  assert.ok(f.reasons.includes("monthly-income: NAV as of 2026-09-29, 6 business days old (limit 4)"));
+  assert.ok(f.reasons.includes("monthly-income: NAV as of 2026-09-29, 6 business days old (limit 2)"));
   assert.ok(f.reasons.some((r) => r.startsWith("monthly-income: performance as of 2026-07-31, 2026-08 expected")));
   assert.equal(f.funds["global-minimum-volatility"].verdict, "ok");
-  // NAV exactly 4 business days old is still fine
-  assert.equal(freshness({ now: NOW, funds: [fund("x", "2026-08-31", "2026-10-01")] }).verdict, "ok");
-  assert.equal(freshness({ now: NOW, funds: [fund("x", "2026-08-31", "2026-09-30")] }).verdict, "stale");
+  // NAV exactly 2 business days old is still fine
+  assert.equal(freshness({ now: NOW, funds: [fund("x", "2026-08-31", "2026-10-05")] }).verdict, "ok");
+  assert.equal(freshness({ now: NOW, funds: [fund("x", "2026-08-31", "2026-10-02")] }).verdict, "stale");
   // hidden by the admin: performance and NAV not checked
   const hidden = freshness({ now: NOW, funds: [fund("x", null, null, false, false)] });
   assert.equal(hidden.verdict, "ok");

@@ -55,6 +55,14 @@ export function validateSite(
   context: Partial<Record<FundKey, FundContext>>,
   previous: SiteData | null,
   now: Date,
+  opts: {
+    /**
+     * PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1: a new month that no source independent of the dataplatform confirms
+     * waits for an admin in auto mode (the former default). Off by default (owner's decision, 2026-10-07): it is
+     * published with an internal note and cross-checked by the next runs, so the site never waits for a factsheet.
+     */
+    confirmNewMonths?: boolean;
+  } = {},
 ): ValidationOutcome {
   const data: SiteData = structuredClone(input); // keeps NaN / Infinity, so they can be caught below
   const prevLive = previous && previous.mode === "live" ? previous : null;
@@ -281,7 +289,16 @@ export function validateSite(
   }
   // unconfirmed new months: auto mode publishes the fund with its previous performance (every class with it); the new
   // month goes live when an admin publishes this run
-  const needsReview = review.filter((k) => !held[k]);
+  const needsReview = opts.confirmNewMonths ? review.filter((k) => !held[k]) : [];
+  if (!opts.confirmNewMonths)
+    for (const key of review.filter((k) => !held[k])) {
+      const months = context[key]?.unconfirmed ?? [];
+      data.issues.push({
+        key: `funds.${key}.performance.review`,
+        level: "info",
+        message: `published: new month(s) ${months.map(ym).join(", ")} from the dataplatform, not yet confirmed by an independent source (analytics month or same-class factsheet); the next runs cross-check them when that source arrives`,
+      });
+    }
   if (needsReview.length) {
     if (autoData === data) autoData = structuredClone(data);
     for (const key of needsReview) {

@@ -304,7 +304,7 @@ test("a class disagreeing with the others in a distribution month: published (no
   delete process.env.PIPELINE_ALERT_WEBHOOK;
 });
 
-test("M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
+test("M3 (opt-in PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1): a new month no independent source confirms is not auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
   // a first publication with the July archives only (performance as of 2026-07, confirmed by the July factsheets)
   const fsDir = path.join(dir, "fs-m3");
   await mkdir(fsDir, { recursive: true });
@@ -322,6 +322,26 @@ test("M3: a new month no independent source confirms is never auto-published: au
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) =>
     u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined;
+  // default (owner's decision 2026-10-07): published at once, with an internal note — the site never waits
+  const d = await run({ routes: [hook] });
+  assert.equal(d.status, "published", JSON.stringify(d.issues.filter((x) => x.level === "error")));
+  assert.equal(
+    (await readJ<SiteData>("published", "site-data.json")).funds["monthly-income"]!.performance!.asOf,
+    "2026-08-31",
+    "the dataplatform's new month is live",
+  );
+  assert.ok(
+    d.issues.some(
+      (x) =>
+        x.key === "funds.monthly-income.performance.review" &&
+        x.level === "info" &&
+        /published: new month\(s\) 2026-08 from the dataplatform, not yet confirmed/.test(x.message),
+    ),
+  );
+  // back to the July publication, then the opt-in confirmation gate
+  await publishRun(first.id, "admin@nymbus.ca");
+  posted.length = 0;
+  process.env.PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION = "1";
   const r = await run({ routes: [hook] });
   assert.equal(r.status, "pending-review", JSON.stringify(r.issues.filter((x) => x.level === "error")));
   assert.ok(r.reviewNeeded?.includes("monthly-income"), JSON.stringify(r.reviewNeeded));
@@ -364,6 +384,7 @@ test("M3: a new month no independent source confirms is never auto-published: au
   assert.equal(rv.status, "pending-review");
   assert.equal(rv.publishedAt, undefined);
   delete process.env.PIPELINE_ALERT_WEBHOOK;
+  delete process.env.PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION;
 });
 
 test("M5: revision of an already published month -> blocked (auto: published + alert; review: waits)", async () => {

@@ -56,13 +56,13 @@ test("two concurrent saves on the same version: exactly one wins", async () => {
   assert.equal(await currentVersion(), v + 1);
 });
 
-test("defaults are the single source: first fund save on an empty store keeps publish mode review", async () => {
+test("defaults are the single source: first fund save on an empty store keeps publish mode auto (the default)", async () => {
   const { mkdtempSync } = await import("node:fs");
   const prev = process.env.SITE_DATA_DIR;
   process.env.SITE_DATA_DIR = mkdtempSync(path.join(tmpdir(), "nymbus-content-empty-"));
   try {
     const { DEFAULT_CONTENT } = await import("../../../src/lib/data/defaults.ts");
-    assert.equal(DEFAULT_CONTENT.pipeline.publishMode, "review");
+    assert.equal(DEFAULT_CONTENT.pipeline.publishMode, "auto");
     assert.deepEqual(DEFAULT_CONTENT.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     assert.equal(EMPTY_CONTENT, DEFAULT_CONTENT);
     const saved = await updateContent(
@@ -70,7 +70,7 @@ test("defaults are the single source: first fund save on an empty store keeps pu
       (c) => ({ ...c, funds: { ...c.funds, "monthly-income": { tagline: { en: "x", fr: "y" } } } }),
       "a@nymbus.ca",
     );
-    assert.equal(saved.pipeline.publishMode, "review");
+    assert.equal(saved.pipeline.publishMode, "auto");
     assert.deepEqual(saved.firm.aumLabel, { en: "$1.9B", fr: "1,9 G$" });
     // defaults object never mutated by a save
     assert.deepEqual(DEFAULT_CONTENT.funds, {});
