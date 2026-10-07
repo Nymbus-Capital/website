@@ -1,0 +1,100 @@
+# static checks
+ok   - apache configuration is valid
+ok   - upload limit is 8M
+ok   - plugin nymbus-site-content baked in
+ok   - plugin limit-login-attempts-reloaded baked in
+ok   - plugin daggerhart-openid-connect-generic baked in
+ok   - WP-CLI baked in (pinned)
+ok   - Apache takes the visitor IP from the right of X-Forwarded-For (mod_remoteip)
+ok   - must-use plugins baked in
+# start
+Unable to find image 'mariadb:11.4' locally
+11.4: Pulling from library/mariadb
+a60ef8ec184e: Already exists
+07afc4eb8b2c: Pulling fs layer
+086135ab0fe5: Pulling fs layer
+47af3a184ea1: Pulling fs layer
+927fa4a58571: Pulling fs layer
+a76bc7c95d1e: Pulling fs layer
+36f84c3d5a21: Pulling fs layer
+fc90ba8e9eef: Pulling fs layer
+a76bc7c95d1e: Waiting
+36f84c3d5a21: Waiting
+fc90ba8e9eef: Waiting
+927fa4a58571: Waiting
+47af3a184ea1: Verifying Checksum
+47af3a184ea1: Download complete
+07afc4eb8b2c: Verifying Checksum
+07afc4eb8b2c: Download complete
+07afc4eb8b2c: Pull complete
+927fa4a58571: Verifying Checksum
+086135ab0fe5: Verifying Checksum
+086135ab0fe5: Download complete
+36f84c3d5a21: Verifying Checksum
+36f84c3d5a21: Download complete
+fc90ba8e9eef: Download complete
+a76bc7c95d1e: Verifying Checksum
+a76bc7c95d1e: Download complete
+086135ab0fe5: Pull complete
+47af3a184ea1: Pull complete
+927fa4a58571: Pull complete
+a76bc7c95d1e: Pull complete
+36f84c3d5a21: Pull complete
+fc90ba8e9eef: Pull complete
+Digest: sha256:1292844148b311e4ed4300022a996d39083f415a963e970cf47cad1b3b18e3a6
+Status: Downloaded newer image for mariadb:11.4
+# hardening
+ok   - login page answers
+ok   - PHP in uploads is refused (403)
+ok   - PHP in uploads never runs
+ok   - a .htaccess in uploads cannot turn PHP on
+ok   - dot files in uploads are refused
+ok   - no file mods (installs / updates) from wp-admin
+ok   - automatic updates off
+ok   - application passwords off
+ok   - XML-RPC refused (403)
+# sign-in
+ok   - emergency administrator signs in with a password
+ok   - plugin nymbus-site-content active
+ok   - plugin limit-login-attempts-reloaded active
+ok   - plugin daggerhart-openid-connect-generic active
+ok   - plugin limit-login-attempts-reloaded is the pinned version 3.3.10
+ok   - plugin daggerhart-openid-connect-generic is the pinned version 3.11.3
+ok   - login page offers Sign in with Microsoft
+ok   - Microsoft sign-in points at our tenant
+ok   - Microsoft sign-in uses our client id
+ok   - the login page says passwords are for the emergency administrator
+ok   - an editor cannot sign in with a password once SSO is on
+ok   - a Microsoft sign-in never opens the emergency administrator
+ok   - a Microsoft sign-in never takes over an existing account (no SSO marker)
+ok   - a Microsoft sign-in opens the account it created (same sub + tid/oid)
+ok   - forced OIDC settings apply even before the settings are saved
+ok   - password sessions were ended when Microsoft sign-in was switched on
+ok   - the login limiter cannot be deactivated (WP-CLI / bulk / screen)
+# raw HTML / uploads
+ok   - editors have no unfiltered_html
+ok   - administrators have no unfiltered_html either
+ok   - an editor cannot upload an .html file
+ok   - an editor cannot upload a .js file
+ok   - an editor can upload a picture
+ok   - uploaded pictures are served, never MIME-sniffed, sandboxed
+ok   - a evil.html in uploads is refused (403)
+ok   - a evil.js in uploads is refused (403)
+ok   - a evil.svg in uploads is refused (403)
+ok   - WordPress code is root-owned
+ok   - the web server cannot rewrite WordPress code
+ok   - the web server can write uploads
+# content endpoint
+ok   - content document served
+# import of the website's team and news (wp nymbus import)
+ok   - dry run lists everything to create
+ok   - dry run changes nothing
+ok   - import creates every team member (18)
+ok   - import creates every news item (3)
+ok   - a second import skips what exists
+ok   - imported team served by the endpoint
+# brute force (last: it locks the test client out)
+ok   - after repeated failures even the right password is refused, whatever the forged part of X-Forwarded-For says
+ok   - another visitor is not locked out by it
+
+all checks passed

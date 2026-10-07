@@ -1,0 +1,24 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+tests/unit/fund/returns-class.test.ts(125,36): error TS2345: Argument of type '{ headlineClass: string; classes: { fundserv: string; }[]; }' is not assignable to parameter of type 'SpecLike'.
+  Types of property 'classes' are incompatible.
+    Type '{ fundserv: string; }[]' is not assignable to type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }[]'.
+      Property 'display' is missing in type '{ fundserv: string; }' but required in type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }'.
+tests/unit/fund/returns-class.test.ts(126,25): error TS2345: Argument of type '{ headlineClass: string; classes: { fundserv: string; }[]; }' is not assignable to parameter of type 'SpecLike'.
+  Types of property 'classes' are incompatible.
+    Type '{ fundserv: string; }[]' is not assignable to type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }[]'.
+      Property 'display' is missing in type '{ fundserv: string; }' but required in type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }'.
+tests/unit/fund/returns-class.test.ts(150,27): error TS2345: Argument of type '{ headlineClass: string; classes: { fundserv: string; }[]; }' is not assignable to parameter of type 'SpecLike'.
+  Types of property 'classes' are incompatible.
+    Type '{ fundserv: string; }[]' is not assignable to type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }[]'.
+      Property 'display' is missing in type '{ fundserv: string; }' but required in type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }'.
+tests/unit/fund/returns-class.test.ts(155,25): error TS2345: Argument of type '{ headlineClass: string; classes: { fundserv: string; }[]; }' is not assignable to parameter of type 'SpecLike'.
+  Types of property 'classes' are incompatible.
+    Type '{ fundserv: string; }[]' is not assignable to type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }[]'.
+      Property 'display' is missing in type '{ fundserv: string; }' but required in type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }'.
+tests/unit/fund/returns-class.test.ts(160,26): error TS2345: Argument of type '{ headlineClass: string; classes: { fundserv: string; }[]; }' is not assignable to parameter of type 'SpecLike'.
+  Types of property 'classes' are incompatible.
+    Type '{ fundserv: string; }[]' is not assignable to type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }[]'.
+      Property 'display' is missing in type '{ fundserv: string; }' but required in type '{ fundserv: string; display: string; type?: "prospectus" | "om" | undefined; }'.
