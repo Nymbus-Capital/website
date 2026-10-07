@@ -19,7 +19,12 @@ export interface AlertMessage {
   severity: AlertSeverity;
   /** admin path to open (e.g. "/admin/runs/<id>"); made absolute with PUBLIC_URL when that is set */
   adminPath?: string;
+  /** title kept in the server logs and the stored alert state instead of `title` (when the title holds personal data) */
+  logTitle?: string;
 }
+
+/** The title that may be logged or stored (never personal data: see `logTitle`). */
+const recordedTitle = (msg: AlertMessage): string => (msg.logTitle ?? msg.title);
 
 export interface DeliveryResult {
   ok: boolean;
@@ -250,9 +255,9 @@ export function withAlerts<T>(fn: (ctx: AlertCtx) => Promise<T>, opts: AlertOpts
         const { format } = alertFormat(url, env);
         const r = await deliverWebhook(url, alertPayload(msg, format, env), { fetchImpl: opts.fetchImpl, sleep: opts.sleep, delays: opts.delays });
         const at = new Date().toISOString();
-        state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: msg.title.slice(0, 200) };
+        state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: recordedTitle(msg).slice(0, 200) };
         if (r.ok) state.lastSuccessAt = at;
-        else log(`alert webhook failed after ${r.attempts} attempt(s): ${r.error ?? "unknown error"} (${msg.title.slice(0, 120)})`);
+        else log(`alert webhook failed after ${r.attempts} attempt(s): ${r.error ?? "unknown error"} (${recordedTitle(msg).slice(0, 120)})`);
         return r.ok;
       },
     };
@@ -378,7 +383,7 @@ export async function sendTestAlert(msg: AlertMessage, opts: AlertOpts = {}): Pr
   const r = await deliverWebhook(url, alertPayload(msg, alertFormat(url, env).format, env), { fetchImpl: opts.fetchImpl, delays: [], timeoutMs: 8_000 });
   const at = new Date().toISOString();
   void withAlerts(async (ctx) => {
-    ctx.state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: msg.title.slice(0, 200) };
+    ctx.state.lastDelivery = { at, ok: r.ok, attempts: r.attempts, ...(r.status !== undefined ? { status: r.status } : {}), ...(r.error ? { error: r.error } : {}), title: recordedTitle(msg).slice(0, 200) };
     if (r.ok) ctx.state.lastSuccessAt = at;
   }, opts).catch(() => undefined);
   return r.ok ? "sent" : "failed";

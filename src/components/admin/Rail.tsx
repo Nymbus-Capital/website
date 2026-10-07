@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, FileText, History, LayoutDashboard, Settings, Wallet } from "lucide-react";
+import { Activity, FileText, History, Inbox, LayoutDashboard, Settings, Wallet } from "lucide-react";
 
 const ITEMS = [
   { href: "/admin", label: "dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/runs", label: "pipeline runs", icon: Activity },
   { href: "/admin/funds", label: "funds", icon: Wallet },
   { href: "/admin/documents", label: "documents", icon: FileText },
+  { href: "/admin/inquiries", label: "messages", icon: Inbox },
   { href: "/admin/settings", label: "site settings", icon: Settings },
   { href: "/admin/audit", label: "audit log", icon: History },
 ];

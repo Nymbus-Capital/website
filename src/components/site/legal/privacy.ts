@@ -4,6 +4,7 @@
  * docs/compliance-review.md, "website legal pages"):
  *  - 3.3 Service providers: section 3.2 referred to a section 3.3 that did not exist;
  *  - 10. Québec privacy law (Law 25): the policy cited PIPEDA only, while Nymbus is a Québec firm.
+ *  - 11. Contact form on this website (2026-10-06, form sent to the site instead of the visitor's mail app).
  * Website copy review 2026-09-30 (intro citing both laws, one title for the person in charge, 30-day response,
  * CAI / federal commissioner, governance policies, de-indexation, cookie sentence): also pending compliance approval.
  * Do not edit the wording without compliance approval.
@@ -15,6 +16,7 @@ import type { Locale } from "../../../lib/i18n/config.ts";
 const PRIVACY_REVIEW = {
   serviceProviders: "3.3 Service providers: added by the website team (section 3.2 referred to a missing 3.3).",
   law25: "10. Québec privacy law (Law 25): added by the website team (the policy only cited PIPEDA); extended on 2026-09-30 to all personal information held, governance policies and de-indexation.",
+  contactForm: "11. Contact form on this website: added by the website team on 2026-10-06 (the /contact form now sends inquiries to the website instead of preparing an e-mail): what is collected, sole purpose (answer the request, no marketing), internal notification (first name and profile only), deletion within 180 days (backups rotated within 30 more days), address not kept. Updated the same day: first name only in the notice, 180 days instead of 12 months.",
 };
 
 export function privacyPolicy(lang: Locale): LegalDoc {
@@ -266,6 +268,33 @@ export function privacyPolicy(lang: Locale): LegalDoc {
             href: "https://www.cai.gouv.qc.ca/",
             after: fr ? " (cai.gouv.qc.ca). Vous pouvez aussi vous adresser au Commissariat à la protection de la vie privée du Canada (priv.gc.ca)." : " (cai.gouv.qc.ca). You may also contact the Office of the Privacy Commissioner of Canada (priv.gc.ca).",
           },
+        ],
+      },
+      {
+        id: "privacy-contact-form",
+        title: fr ? "11. Formulaire de contact de ce site Web" : "11. Contact form on this website",
+        review: PRIVACY_REVIEW.contactForm,
+        blocks: [
+          { kind: "p", text: fr
+            ? "Lorsque vous utilisez le formulaire de la page Nous joindre, nous recueillons votre nom, votre adresse courriel, votre profil (conseiller, institution, particulier ou autre) et les sujets choisis, ainsi que, si vous les fournissez, votre numéro de téléphone, votre organisation et votre message. Vous y consentez en cochant la case prévue à cet effet."
+            : "When you use the form on our Contact page, we collect your name, email address, profile (advisor, institution, individual investor or other) and the subjects you choose and, if you provide them, your phone number, organization and message. You consent to this by ticking the box provided." },
+          {
+            kind: "list",
+            items: fr ? [
+              "Nous utilisons ces renseignements uniquement pour répondre à votre demande, jamais à des fins de marketing, et nous ne les vendons pas.",
+              "Seuls les membres autorisés de notre personnel peuvent les consulter. Un avis indiquant votre prénom et votre profil peut être publié dans notre outil de messagerie interne; votre nom de famille, vos coordonnées et votre message n’y figurent pas.",
+              "Ils sont conservés chez notre fournisseur d’hébergement du site Web (voir 3.3) et supprimés automatiquement au plus tard 180 jours après leur réception, ou plus tôt sur demande. Une copie peut subsister dans les sauvegardes du site pendant au plus 30 jours de plus, après quoi ces sauvegardes sont remplacées.",
+              "Votre adresse IP sert brièvement à limiter les abus; elle n’est pas conservée avec votre demande.",
+            ] : [
+              "We use this information only to answer your request, never for marketing, and we do not sell it.",
+              "Only authorized members of our staff can read it. A notice with your first name and profile may be posted in our internal messaging tool; your last name, contact details and message are not included.",
+              "It is kept with our website hosting provider (see 3.3) and deleted automatically no later than 180 days after we receive it, or sooner on request. A copy may remain in the website's backups for at most 30 more days, after which those backups are overwritten.",
+              "Your IP address is used briefly to limit abuse; it is not kept with your request.",
+            ],
+          },
+          { kind: "p", text: fr
+            ? "Vous pouvez demander l’accès à ces renseignements, leur rectification ou leur suppression aux coordonnées de la section 8."
+            : "You may ask to access, correct or delete this information using the contact details in section 8." },
         ],
       },
     ],

@@ -154,6 +154,7 @@ export const saveSettingsSchema = z.strictObject({
   }),
   publishMode: z.enum(["auto", "review"]),
   rankingPolicy: z.strictObject({ maxAgeMonths: z.number().int().min(1).max(24) }).optional(),
+  inquiryPolicy: z.strictObject({ retentionDays: z.number().int().min(30).max(180) }).optional(),
 });
 
 export const runPipelineSchema = z.strictObject({ dryRun: z.boolean().default(false) });

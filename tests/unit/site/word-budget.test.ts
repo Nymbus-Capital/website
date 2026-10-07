@@ -39,7 +39,8 @@ const BUDGET: [string, unknown, number][] = [
   // + the protective-overlay qualifier (2026-10-04, compliance: the name never stands alone)
   ["about", AB, 285],
   ["approach", AP, 690],
-  ["contact", CT, 295],
+  // 2026-10-06 contact form backend: + consent sentence, sending / sent / error states (mailto "ready" state removed)
+  ["contact", CT, 305],
   ["sustainability", SU, 350],
   ["solutions", [SOL_COPY, AUDIENCES], 520],
   ["strategies", STRAT_COPY, 120],

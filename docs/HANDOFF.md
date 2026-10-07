@@ -78,7 +78,7 @@ Everything is merged on `redesign/v3-keynote-live-data` and live. No feature bra
 
 | Area | Where | State |
 | --- | --- | --- |
-| Public pages | `src/app/(site)/**`, `src/components/site/**` | home (Science at scale, engines band), strategies, core concepts, approach, sustainability, team, solutions, contact (mailto), legal, privacy, 404; EN/FR |
+| Public pages | `src/app/(site)/**`, `src/components/site/**` | home (Science at scale, engines band), strategies, core concepts, approach, sustainability, team, solutions, contact (form sent to the site on branch `feat/contact-form`, mailto on the main branch until merged), legal, privacy, 404; EN/FR |
 | Fund pages | `src/app/(site)/strategies/[slug]`, `src/components/fund/**` | 4 funds; every active CAD series with its own returns (§ 5 B1 for Multi-Strategy), awards (Morningstar, Fundata, RBC), disclosures last and collapsed (performance qualifiers visible) |
 | Data pipeline | `src/lib/pipeline/**`, scheduler `src/instrumentation.ts` | dataplatform main endpoints only (+ analytics history, factsheet archives); runs 06:45 / 12:45 / 18:45 Toronto with catch-up and one retry; publish mode **review** |
 | Monitoring | `src/lib/pipeline/{alerts,monitor,freshness}.ts`, `GET /api/status` | deduped Teams / JSON alerts — **no webhook configured yet** (§ 5 A2) |
@@ -169,16 +169,94 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    `export function AnalysisScan()` (outside the hashed slice, covers only the panel to the end of fx.tsx).
 4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
    variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
-5. Nice to have: contact form backend (mailto today), team LinkedIn in the WordPress team modal, fund managers from
-   WordPress, News in the navigation.
+5. Nice to have: ~~contact form backend~~ [done 2026-10-06, branch `feat/contact-form`, not merged: `POST /api/contact`
+   (JS + no-JS), messages on the data volume, `/admin/inquiries` (messages: mark handled, delete, CSV export, open count
+   on the dashboard), duplicate suppression, retention set in admin settings (default 180 days, 30–180), Teams alert with
+   first name + profile only; "I am" = advisor / institution / individual investor / other; privacy § 11 and
+   `docs/compliance-review.md` CF1–CF8 to review; independent security review done 2026-10-06, findings M1, m1–m7 fixed; Gabriel: set the volume backup retention to ≤ 30 days and check the X-Forwarded-For log line after deploy (`docs/deploy.md` § Contact form)], ~~team LinkedIn in the team modal~~
+   (already rendered from `team.ts` / WordPress `linkedin`, e2e-tested), fund managers from WordPress, News in the
+   navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (sub-agent, branch `feat/contact-form`, fourth pass; **not merged**): rebased on
+  `chore/react-compiler-warnings` (Contact uses `useMountValue` and one ref per step, no lint disable; lint cap 0).
+  Independent security review (coordinator, on `e940b62`): no blockers; every finding fixed — M1 limiter: IPv6 bucketed
+  by /64, IPv4 per address, LRU eviction past 5 000 buckets instead of a shared overflow bucket (unit tests: overflow,
+  IPv6 rotation); m1 one-time X-Forwarded-For shape log (first 10 posts: hop count + classes, never addresses) and how to
+  verify it on Northflank (`docs/deploy.md`); m2 `AlertMessage.logTitle`: logs and the stored alert state say "New
+  website inquiry" (no first name; tested on a failed delivery); m3 purge deletes within a day of the limit (so "no
+  later than 180 days" holds), removes orphaned `*.tmp` older than 1 h, privacy § 11 EN/FR one sentence on backups
+  (≤ 30 more days; set the volume backup retention accordingly), Teams-history point in CF7; m4 site-wide cap refunded
+  for duplicates and failed writes; m5 token max age 24 h, "not a CAPTCHA" documented; m6 one summary live region
+  ("Please check: …") + aria-describedby per field, no-JS redirect carries field codes only
+  (`?error=invalid_input&fields=phone`) and shows the per-field messages (e2e); m7 www ↔ apex must redirect to
+  `PUBLIC_URL` (`docs/deploy.md`).
 
 - 2026-10-06 (sub-agent, branch `chore/react-compiler-warnings`, **not merged**): § 5 B3 — lint warnings 25 → 0, CI
   `--max-warnings=0`; the frozen AnalysisScan keeps its render-time language ref under a region disable placed outside
   the hashed slice. Visual proof: baseline run 264 (empty `[ci-logs]` commit on `5b2f067`) vs the final run,
   `scripts/visual-diff.mjs --max-ratio=0` vs run 268 (`7787479`): visual 44, visual-fr 6, visual-motion 10 images,
   all byte-identical (0 changed).
+- 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
+  a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
+  independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
+  never pooled with the other — slope 1 when the other side is within 0.10 of 1, else its months are withheld ("not
+  checkable"); fits iterated to a fixed point (damped, decaying step, normalised median a → 0 / slopes → 1, tolerance 0.01 %
+  at ±10 %, ≤ 400 rounds; unsettled → checked months withheld for the fund); second leave-out pass without the class's
+  other first-pass breaches. Verifier round: stability rule of the second pass (`robustResiduals`: an unstable class keeps
+  its first-pass verdicts; a cleared breach stands unless another on the same side is confirmed); a class-month whose other
+  classes are all not checkable that month is not checkable (no slope-1 fallback next to fitted classes). Stress scripts
+  (20 random 30-month funds per row, ±0.6/0.8/1.0 % errors, 4 classes, 5 target months): misses 0 / 0 / 5 / 2 / 0 / 2 of
+  2 400 at 3 / 5 / 6 / 7 / 8 / 11 down months (two-error: 0 / 0 / 4 / 1 / 0 / 2), every one a ±0.6 % error in a deep
+  down month (the residual tolerance's noise floor); every month as target at ±0.8 / 1.0 % (10 funds, 4 800 cases per
+  row, single and two-error): 0 misses at 6 / 7 / 8 / 11; never an unsettled fit; result independent of class order
+  (720 permutations × 3 scripts); ≈ 150 ms for 6 classes × 60 months.
+  Sample data messages regenerated (same withheld months).
+- 2026-10-06 (sub-agent, branch `refactor/split-modules`; **not merged**): § 5 B2 split by responsibility with no
+  behaviour or visual change — functions moved verbatim (checked line by line against the originals), public exports kept
+  through `build/index.ts` and `validate/index.ts`, pipeline output on the fixtures byte-identical, `npm test` green;
+  Contact.tsx shim and `contact.copy.ts` done. Visual proof: run 252 (base `d62a263`, pushed to the helper branch
+  `refactor/split-modules-base` because the branch's own baseline run was cancelled by the next push) vs run 253
+  (`239f4e9`): `scripts/visual-diff.mjs --max-ratio=0` → 44 + 6 + 10 images (visual, visual-fr, visual-motion), all
+  byte-identical. Run 253 green (its first attempt failed only on the flaky WordPress smoke check "login page offers
+  Sign in with Microsoft"; nothing under `wordpress/` changed; the re-run passed). The helper branch can be deleted.
+
+- 2026-10-06 (sub-agent, branch `feat/contact-form`, third pass; **not merged**): contact form brought to the brief.
+  "I am" choices = financial advisor / institution (family offices in its description) / individual investor / other
+  (step "Profile"); the Teams / JSON notice carries the **first name** and profile only ("New website inquiry: <first
+  name> (<profile>)" + admin link); retention is an admin setting `inquiryPolicy.retentionDays` (default **180**, clamped
+  30–180 because privacy § 11 now says "no later than 180 days"), purged by the existing 12-hour retention timer (kept
+  separate from the pipeline scheduler, which `PIPELINE_SCHEDULE=off` stops) and on every admin listing; honeypot /
+  timing screen extracted to `screenSubmission` (unit-tested). Privacy § 11 EN/FR updated (first name, profile list,
+  180 days); compliance CF2 amended, CF6 (individual investors), CF7 (Teams notice), CF8 (retention) added. Decisions
+  kept from the earlier passes: no zod in the shared rule module (plain-Node tests, browser bundle), native no-JS post
+  with 303 back (mailto stays as the alternative and as the fallback on failure), in-memory per-client limiter (single
+  instance). Phones: the send button takes its own row above "Back" (« Envoyer mon message »
+  overflowed half a row; e2e checks it fits). CI run 272 green; independent review done in the fourth
+  pass.
+
+- 2026-10-06 (sub-agent, branch `feat/contact-form`; **not merged**): § 5 B5 contact form backend, no e-mail service and
+  no new credential or env var. The three-step form (unchanged design) now posts to `POST /api/contact` (JSON with
+  JavaScript; native urlencoded post + 303 back to `/contact?sent=1|error=<code>` without), with a required consent tile
+  (link to /privacy), sending / sent / error states (error keeps the form and offers a prepared mailto:), an aria-live
+  status and focus on the result. Guards (`src/lib/contact/`): same origin (Origin/Referer = `PUBLIC_URL`,
+  Sec-Fetch-Site), 5 attempts / 15 min per client (rightmost non-internal X-Forwarded-For), 16 KB, strict shared field
+  rules (pure module, no zod, so `npm test` stays install-free), honeypot + HMAC form timing token (≥ 3 s, ≤ 7 days;
+  bots get a fake 200), 40 stored / hour site-wide, 5 000 cap. One JSON file per inquiry (`inquiries/<id>.json`), no IP
+  kept, purged 12 months after receipt (12-hour timer + every admin listing). Admin `/admin/inquiries` (rail item):
+  newest first, filter, mark handled / open, delete; audit `inquiries.view` (count), `inquiry.handled|reopened|delete`
+  (id only). Privacy policy § 11 added (flagged for review), compliance CF1–CF4. Team LinkedIn: already in the bio
+  dialog, nothing to do. Word budget for /contact 295 → 305 (consent + states). Second pass (same day, sub-agent): an
+  identical message within 24 h is answered OK but stored / alerted once (check + cap + write under the `inquiries`
+  lock); admin renamed "messages" (route unchanged), CSV export (`/api/admin/inquiries/export`, formula cells
+  neutralised, audited `inquiries.export`), open-message count on the dashboard, alert "New website message from …";
+  focus moves to the first field to fix; e2e: French success, focus, duplicate, CSV; `docs/deploy.md` § Contact form
+  (nothing to configure), compliance CF5 (export). Judgement calls: no zod (shared browser / plain-Node module), "I am"
+  kept as the page's four investor types (individuals under "Other"), in-memory per-client limit (single instance).
+  Independent adversarial review by separate reviewer agents still to run (none available to the sub-agent; self-review
+  only).
+
 - 2026-10-06 (sub-agent, branch `feat/multi-fee-fit`, **not merged**): § 5 B1 — the cross-class fit of a class is
   a + b⁺·max(m, 0) + b⁻·min(m, 0) (`class-fit.ts`: Theil–Sen per side, each slope clipped to [0.6, 1.4]). After the
   independent review: side kinds decided on the full sample and kept in every leave-one-out fit; a side with < 6 months is
