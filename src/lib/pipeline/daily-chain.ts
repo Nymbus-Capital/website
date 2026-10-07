@@ -145,7 +145,8 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
     return { ...out, issue: `before the class's own data start (${navStart}): partial or other-strategy month` };
   const all = monthRows(dropHolidayFiller(rows), monthKey);
   const days0 = all.map((r) => r.date);
-  if (new Set(days0).size !== days0.length) return { ...out, status: "conflict", issue: "Duplicate daily observations" };
+  if (new Set(days0).size !== days0.length)
+    return { ...out, status: "conflict", issue: "Duplicate daily observations" };
   // a valuation day served without NAV and return is a missing day
   const blank = (r: DailyRow): boolean =>
     !finite(r.nav_per_share_cad) && (r.net_daily_return === null || r.net_daily_return === undefined);
@@ -191,7 +192,8 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
       }
       let j = i;
       while (j < expected.length && !have.has(expected[j])) j++;
-      if (j - i > CIBC_GAP_MAX_DAYS) return incomplete(`: ${j - i} consecutive days, at most ${CIBC_GAP_MAX_DAYS} bridgeable`);
+      if (j - i > CIBC_GAP_MAX_DAYS)
+        return incomplete(`: ${j - i} consecutive days, at most ${CIBC_GAP_MAX_DAYS} bridgeable`);
       if (j >= expected.length) return incomplete(": the month's last valuation day has no NAV");
       const next = rs.find((r) => r.date === expected[j])!;
       const prevDay = [...before].reverse().find((r) => r.date < expected[i])?.date;
@@ -201,7 +203,10 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
       const nn = next.nav_per_share_cad;
       if (!prev || prev.date < priorTradingDay(expected[i])! || !finite(pn) || !finite(nn) || !(pn > 0) || !(nn > 0))
         return incomplete(": no NAV per unit on both sides of the gap");
-      if (!validReturn(next.net_daily_return) || Math.abs((next.net_daily_return as number) - (nn / pn - 1)) > CIBC_GAP_TOL)
+      if (
+        !validReturn(next.net_daily_return) ||
+        Math.abs((next.net_daily_return as number) - (nn / pn - 1)) > CIBC_GAP_TOL
+      )
         return incomplete(
           `: the stored return of ${next.date} does not equal the NAV-per-unit ratio across the gap (${prev.date} → ${next.date})`,
         );

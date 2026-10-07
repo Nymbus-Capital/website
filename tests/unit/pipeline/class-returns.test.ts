@@ -985,10 +985,18 @@ test("CIBC month with a valuation day without NAV: bridged only when the next da
   assert.equal(m.status, "ready", m.issue ?? "");
   assert.deepEqual(m.bridged, ["2026-02-09"]);
   const febDays = days.filter((d) => d >= "2026-02-01" && d !== "2026-02-09");
-  const expected = febDays.reduce((g, d) => g * (1 + (rows.find((r) => r.date === d)!.net_daily_return as number)), 1) - 1;
+  const expected =
+    febDays.reduce((g, d) => g * (1 + (rows.find((r) => r.date === d)!.net_daily_return as number)), 1) - 1;
   assert.ok(Math.abs(m.r! - expected) < 1e-12);
   // the same gap with the row absent altogether
-  assert.equal(cibcMonth(rows.filter((r) => r.date !== "2026-02-09"), "2026-02-27", "2024-01-01").status, "ready");
+  assert.equal(
+    cibcMonth(
+      rows.filter((r) => r.date !== "2026-02-09"),
+      "2026-02-27",
+      "2024-01-01",
+    ).status,
+    "ready",
+  );
   // the next day's return covers one day only (the gap's move is lost): withheld
   const lost = rows.map((r) => (r.date === "2026-02-10" ? { ...r, net_daily_return: 0.001 } : r));
   const l = cibcMonth(lost, "2026-02-27", "2024-01-01");
@@ -1001,7 +1009,14 @@ test("CIBC month with a valuation day without NAV: bridged only when the next da
   const three = rows.filter((r) => !["2026-02-09", "2026-02-10", "2026-02-11"].includes(r.date));
   assert.equal(cibcMonth(three, "2026-02-27", "2024-01-01").r, null);
   // the month's last valuation day missing: withheld (nothing after it carries its move)
-  assert.equal(cibcMonth(rows.filter((r) => r.date !== "2026-02-27"), "2026-02-27", "2024-01-01").r, null);
+  assert.equal(
+    cibcMonth(
+      rows.filter((r) => r.date !== "2026-02-27"),
+      "2026-02-27",
+      "2024-01-01",
+    ).r,
+    null,
+  );
 });
 
 test("CIBC month after a previous month whose last valuation day has no NAV: withheld (its first return would carry that move); a day-1 gap bridged from the previous month", async () => {
