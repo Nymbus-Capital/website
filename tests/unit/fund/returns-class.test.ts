@@ -72,7 +72,13 @@ const base = (extra: Partial<Data>): Data => ({
   ...extra,
 });
 
-const sebSpec = { headlineClass: "LDM201", classes: [{ fundserv: "LDM201" }, { fundserv: "LDM202" }] };
+const sebSpec = {
+  headlineClass: "LDM201",
+  classes: [
+    { fundserv: "LDM201", display: "F" },
+    { fundserv: "LDM202", display: "H" },
+  ],
+};
 
 /** SEB as reported on 2026-10-07: F (headline) has withheld months, the track record (H) is complete. */
 const seb = (): Data =>
