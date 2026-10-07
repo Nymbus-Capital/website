@@ -776,7 +776,7 @@ export function fetchFtse(
         name,
         levels: levelsOf(g.daily),
         daily: g.daily,
-        why: `same short_name${me?.index_id != null ? ` and index_id ${me.index_id}` : ""}, earlier published name`,
+        why: `same short_name${g.indexId != null ? ` and index_id ${g.indexId}` : " (index_id not filtered: none or several on the current rows)"}, earlier published name`,
         gapOk: true,
       });
     });

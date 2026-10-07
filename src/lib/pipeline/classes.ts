@@ -280,7 +280,8 @@ export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
     // withheld ("—" for a month that could not be verified): the index has its own checks. Value added needs both.
     const covers = (k: keyof PeriodMap): boolean => {
       if (k === "SI") return true;
-      if (k === "YTD") return `${asOf.slice(0, 4)}-01-31` >= firstFull;
+      // the index YTD must also start in January (its series may start later in the year)
+      if (k === "YTD") return `${asOf.slice(0, 4)}-01-31` >= firstFull && `${asOf.slice(0, 4)}-01-31` in idx;
       const n = PERIOD_MONTHS_OF[k];
       return n !== undefined && addMonths(asOf, -(n - 1)) >= firstFull;
     };
@@ -292,7 +293,9 @@ export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
         iv =
           k === "SI" && partialFirst
             ? indexSinceInception(idx, inp.idxLevels, res.inception, firstMonth, asOf)
-            : (ti[k as keyof typeof ti] ?? null);
+            : k === "YTD" && !(`${asOf.slice(0, 4)}-01-31` in idx)
+              ? null
+              : (ti[k as keyof typeof ti] ?? null);
       index[k] = iv;
       va[k] = fv != null && iv != null ? clean(fv - iv) : null;
     }

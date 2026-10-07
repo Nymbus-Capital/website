@@ -97,13 +97,13 @@ export function ftseEarlierGenerations(
   rows: FtseRow[],
   currentFirst: string,
   max = 5,
-): { indexName: string | null; daily: Record<string, FtseDay> }[] {
+): { indexName: string | null; indexId: string | null; daily: Record<string, FtseDay> }[] {
   const ids = rows
     .filter((r) => String(r.date).slice(0, 10) >= currentFirst && r.index_id != null)
     .map((r) => String(r.index_id));
   const id = ids.length && ids.every((x) => x === ids[0]) ? ids[0] : null;
   const pool = id === null ? rows : rows.filter((r) => r.index_id != null && String(r.index_id) === id);
-  const out: { indexName: string | null; daily: Record<string, FtseDay> }[] = [];
+  const out: { indexName: string | null; indexId: string | null; daily: Record<string, FtseDay> }[] = [];
   let before = currentFirst;
   for (let i = 0; i < max; i++) {
     const sub = pool.filter((r) => String(r.date).slice(0, 10) < before);
@@ -114,7 +114,7 @@ export function ftseEarlierGenerations(
     const named = sub.find(
       (r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level,
     );
-    out.push({ indexName: named?.index_name == null ? null : String(named.index_name), daily });
+    out.push({ indexName: named?.index_name == null ? null : String(named.index_name), indexId: id, daily });
     before = days[0];
   }
   return out;
