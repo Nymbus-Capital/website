@@ -33,6 +33,16 @@ jobs:
           name: package-lock
           path: package-lock.json
           retention-days: 7
+      # TEMPORARY (branch chore/prettier only, removed once the patch is applied): format the repository and publish the diff
+      - name: TEMPORARY Prettier --write patch
+        if: github.ref == 'refs/heads/chore/prettier'
+        run: |
+          mkdir -p ci-out
+          npx prettier --version | tee ci-out/prettier-version.txt
+          npx prettier --write . > ci-out/prettier-write.log 2>&1; echo "exit $?" >> ci-out/prettier-write.log
+          git diff --binary > ci-out/prettier.patch
+          git diff --stat | tail -3
+          git checkout -- .
       - name: Unit tests (pipeline, metrics, auth policy, storage)
         run: set -o pipefail; mkdir -p ci-out; npm test 2>&1 | tee ci-out/unit.log
       - name: WordPress plugin (PHP lint + plain-PHP tests)
