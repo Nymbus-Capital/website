@@ -763,7 +763,9 @@ test.describe("admin flows", () => {
     await page.goto("/admin/settings");
     await expect(page.getByTestId("brand-gmr-logo")).toContainText("uploaded");
     await expect(page.getByTestId("brand-morningstar-logo")).toContainText("shipped");
-    await expect(page.getByTestId("brand-morningstar-stars-4")).toContainText("missing");
+    // every Morningstar star count ships (1–4 are crops of the official 5-star file); a slot without any file says missing
+    await expect(page.getByTestId("brand-morningstar-stars-4")).toContainText("shipped");
+    await expect(page.getByTestId("brand-evestment-logo")).toContainText("missing");
     const del = await request.delete("/api/admin/brand/gmr-logo", { headers: adminHeaders(token, false) });
     expect(del.status()).toBe(200);
     expect((await request.get("/api/brand/gmr-logo")).status()).toBe(404);

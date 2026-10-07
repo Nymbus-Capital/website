@@ -65,9 +65,9 @@ Commit trailers used so far (keep them):
   The one-time repository pass is listed in `.git-blame-ignore-revs` (`git config blame.ignoreRevsFile
   .git-blame-ignore-revs`; GitHub applies it automatically). Prettier is pinned to an exact version (no lockfile yet), so
   a newer 3.x cannot fail the check on its own; bump it deliberately with a fresh `format` pass.
-- **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
-  (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
-  the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
+- **Lockfile**: `package-lock.json` is committed (2026-10-06, from CI run 286). CI and the Dockerfile use `npm ci`. After
+  changing `package.json` from a sandbox without the npm registry: push, take the `package-lock` artifact (or, with
+  `[ci-logs]`, `package-lock.json` on the `ci/run-<n>` branch) of that run and commit it.
 - **Environment differences**: the cloud workspace (home session) cannot reach the npm registry,
   Northflank, the dataplatform or SharePoint — it relies on CI. A local office machine can
   `npm install`, `npm run dev`, `npm run build`, `npm run e2e` directly (Node ≥ 22.12). Neither
@@ -147,8 +147,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 6. **Admin to fill** (shown only when filled): minimum investments, RSP eligibility, CIFSC category, managers, fees /
    MER, documents (fund facts, prospectus, proxy voting, tax factors); rankings: eVestment / LSEG Lipper / GMR figures
    with their sources.
-7. **Repository chores** the sandbox cannot do: commit a lockfile from a green CI run (`package-lock` artifact); delete
-   the old `ci/run-*` branches (`git push origin --delete …`, keep the last ten).
+7. **Repository chores** the sandbox cannot do: delete the old `ci/run-*` branches and the `*-base` helper branches
+   (GitHub → Branches, filter `ci/run-`; keep the last ten). Lockfile: done 2026-10-06.
 
 ### B. Development (Claude or a developer)
 
@@ -186,6 +186,9 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (home session): lockfile committed; Morningstar 1–4 star images = exact left crops of the official 5-star
+  file (unit test checks the sizes); Teams set-up steps shown in the admin alerts panel while no webhook is set.
 
 - 2026-10-06 (sub-agent, branch `chore/prettier`, **not merged**): § 5 B2 — one Prettier 3.9.9 pass over the repository
   (`style: Prettier over the repository (no code change)` `84f3ff5`, 378 files, + a 3-file second pass `3d802d3` where
