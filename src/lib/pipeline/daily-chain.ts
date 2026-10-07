@@ -159,13 +159,28 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
     ...out,
     issue: `Incomplete CIBC valuation-day coverage (missing ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ", …" : ""})${why}; no partial-month compounding`,
   });
+  // the previous month's last valuation day without a NAV: this month's first stored return would carry its move
+  // (the previous month is withheld for it, this one must be too). Not applicable at the start of the data.
+  const prevYm0 = ym(addMonths(month, -1));
+  const prevAll = monthRows(rows, prevYm0).filter((r) => r.source === "cibc" && r.date >= navStart);
+  const lastPrev = priorTradingDay(`${monthKey}-01`);
+  if (prevAll.length && lastPrev && lastPrev >= navStart) {
+    const at = prevAll.filter((r) => r.date === lastPrev);
+    if (at.length !== 1 || !finite(at[0].nav_per_share_cad) || !((at[0].nav_per_share_cad as number) > 0))
+      return {
+        ...out,
+        issue: `Incomplete CIBC valuation-day coverage (previous month's last valuation day ${lastPrev} without a single NAV per unit: this month's first return would carry its move); no partial-month compounding`,
+      };
+  }
   if (missing.length) {
     // CIBC sometimes strikes no NAV on a valuation day and the next day's stored return spans both days. Accepted only
     // when verified: a short run of missing days inside the month, NAVs per unit on both sides, and the next day's stored
     // return equal to their ratio − 1 (no distribution, nothing lost); otherwise the month stays unavailable.
     const prevYm = ym(addMonths(month, -1));
     const before = [
-      ...monthRows(dropHolidayFiller(rows), prevYm).filter((r) => finite(r.nav_per_share_cad)),
+      ...monthRows(dropHolidayFiller(rows), prevYm).filter(
+        (r) => r.source === "cibc" && r.currency === "CAD" && r.date >= navStart && finite(r.nav_per_share_cad),
+      ),
       ...rs,
     ];
     let i = 0;
@@ -179,7 +194,9 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
       if (j - i > CIBC_GAP_MAX_DAYS) return incomplete(`: ${j - i} consecutive days, at most ${CIBC_GAP_MAX_DAYS} bridgeable`);
       if (j >= expected.length) return incomplete(": the month's last valuation day has no NAV");
       const next = rs.find((r) => r.date === expected[j])!;
-      const prev = [...before].reverse().find((r) => r.date < expected[i]);
+      const prevDay = [...before].reverse().find((r) => r.date < expected[i])?.date;
+      const atPrev = before.filter((r) => r.date === prevDay);
+      const prev = atPrev.length === 1 ? atPrev[0] : undefined;
       const pn = prev?.nav_per_share_cad;
       const nn = next.nav_per_share_cad;
       if (!prev || prev.date < priorTradingDay(expected[i])! || !finite(pn) || !finite(nn) || !(pn > 0) || !(nn > 0))
@@ -210,7 +227,7 @@ export function cibcMonth(rows: DailyRow[], month: string, navStart: string): Ch
   const prevRows = monthRows(rows, prevYm).filter(
     (r) => finite(r.nav_per_share_cad) && (r.nav_per_share_cad as number) > 0,
   );
-  const base = prevRows[prevRows.length - 1]?.nav_per_share_cad ?? null;
+  const base = prevRows.find((r) => r.date === lastPrev)?.nav_per_share_cad ?? null;
   const end = rs[rs.length - 1].nav_per_share_cad;
   const navGap = finite(base) && finite(end) && end > 0 ? (1 + value) / (end / base) - 1 : null;
   return { ...out, status: "ready", r: value, navGap, ...(missing.length ? { bridged: missing } : {}) };
