@@ -29,6 +29,8 @@ export function periodStart(p: string, asOf: string, firstMonth: string): string
 export interface IndexBuild {
   /** FTSE monthly returns (month-end to month-end levels), first month to as-of */
   monthly: Series;
+  /** daily FTSE total-return levels (joined history): the since-inception figure of a series launched mid-month */
+  levels: Record<string, number> | null;
   name: string | null;
   source: string | null;
   prov: string;
@@ -66,11 +68,12 @@ export function buildIndex(
 ): IndexBuild {
   const key = `${base}.performance.index`;
   const ftseName = raw.ftseIndex[spec.key] ?? null;
-  const out: IndexBuild = { monthly: {}, name: null, source: ftseName, prov: "", pub: null };
+  const out: IndexBuild = { monthly: {}, levels: null, name: null, source: ftseName, prov: "", pub: null };
   if (ftseName) {
     const res = raw.ftse[ftseName];
     if (res?.ok && res.data) {
       out.name = res.data.indexName ?? null;
+      out.levels = res.data.levels;
       const me = monthEndReturns(res.data.levels);
       for (const d of me.dropped)
         if (d.month >= firstMonth && d.month <= asOf)

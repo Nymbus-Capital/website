@@ -31,6 +31,7 @@ import type {
 import { parseDistributions, parseFundPortfolio } from "./contracts.ts";
 import {
   ftseDaily,
+  ftseEarlierGenerations,
   ftseFamily,
   ftseGroupingSummary,
   joinFtseHistory,
@@ -763,6 +764,22 @@ export function fetchFtse(
       why.set(n.short_name, { why: `name contains "${words.join(" ")}" (${n.index_name})`, strict: false });
     const cands: FtseCandidate[] = [];
     const skipped: string[] = [];
+    // earlier generations under the same short_name (same index_id, earlier published name): strict candidates
+    const curFirst = Object.keys(cur).sort()[0];
+    ftseEarlierGenerations(lastRows, curFirst).forEach((g, i) => {
+      const name = `${short} (earlier name${g.indexName ? ` "${g.indexName}"` : ""}${i ? ` #${i + 1}` : ""})`;
+      if (/synthetic/i.test(g.indexName ?? "")) {
+        skipped.push(`${name} (synthetic series)`);
+        return;
+      }
+      cands.push({
+        name,
+        levels: levelsOf(g.daily),
+        daily: g.daily,
+        why: `same short_name${g.indexId != null ? ` and index_id ${g.indexId}` : " (index_id not filtered: none or several on the current rows)"}, earlier published name`,
+        gapOk: true,
+      });
+    });
     for (const [name, w] of [...why].slice(0, FTSE_MAX_CANDIDATES)) {
       try {
         const daily = await rowsOf(name);

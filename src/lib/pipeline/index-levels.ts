@@ -86,6 +86,38 @@ export function ftseDaily(rows: FtseRow[]): Record<string, FtseDay> {
   return out;
 }
 
+/**
+ * Earlier naming generations kept under the SAME short_name (FTSE's 2024-12 renaming kept `short_corp` and its index_id
+ * but changed the published name and `index_content`): ftseDaily keeps only the latest signature, so the older days are
+ * returned here, newest generation first, each read with the same anchoring rule on the rows dated before the next
+ * generation's first day. Only rows of the current index_id count (when the rows carry one). The caller treats each as a
+ * strict candidate (verified overlap or one-day gap link, never a level comparison).
+ */
+export function ftseEarlierGenerations(
+  rows: FtseRow[],
+  currentFirst: string,
+  max = 5,
+): { indexName: string | null; indexId: string | null; daily: Record<string, FtseDay> }[] {
+  const ids = rows
+    .filter((r) => String(r.date).slice(0, 10) >= currentFirst && r.index_id != null)
+    .map((r) => String(r.index_id));
+  const id = ids.length && ids.every((x) => x === ids[0]) ? ids[0] : null;
+  const pool = id === null ? rows : rows.filter((r) => r.index_id != null && String(r.index_id) === id);
+  const out: { indexName: string | null; indexId: string | null; daily: Record<string, FtseDay> }[] = [];
+  let before = currentFirst;
+  for (let i = 0; i < max; i++) {
+    const sub = pool.filter((r) => String(r.date).slice(0, 10) < before);
+    const daily = ftseDaily(sub);
+    const days = Object.keys(daily).sort();
+    if (!days.length) break;
+    const lastDay = days[days.length - 1];
+    const named = sub.find((r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level);
+    out.push({ indexName: named?.index_name == null ? null : String(named.index_name), indexId: id, daily });
+    before = days[0];
+  }
+  return out;
+}
+
 /** Why no aggregate row was found: row count and the grouping values seen on the latest date (FTSE metadata only). */
 export function ftseGroupingSummary(rows: FtseRow[]): string {
   if (!rows.length) return "0 rows";

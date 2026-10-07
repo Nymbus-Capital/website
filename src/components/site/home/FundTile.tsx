@@ -71,7 +71,7 @@ function MiniBars({ f }: { f: FundCard }) {
   const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.3 });
   if (!f.calendar.length) return null;
   const g = miniBars(f.calendar);
-  const ytdWord = locale === "fr" ? "CA" : "YTD";
+  const ytdWord = pick(F.ytd);
   // YTD only for the as-of year; an earlier partial year is the launch year
   const flag = (b: (typeof g.bars)[number]) =>
     b.kind === "ytd" ? ytdWord : b.kind === "launch" ? pick(HL.launchShort) : null;

@@ -600,11 +600,15 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await openTab(page, "performance");
   await expect(page.getByTestId("perf-context").getByTestId("perf-variant")).toHaveText("9% downside volatility");
   await page.getByTestId("growth").scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(9% downside volatility)");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+    "(9% downside volatility, gross of fees)",
+  );
   await sel.getByTestId("variant-6").click();
   expect(await si()).toBe(six);
   await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility)");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+    "(6% downside volatility, gross of fees)",
+  );
 });
 
 test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({
@@ -843,9 +847,9 @@ const seriesRe = (word: string, code: string): RegExp => new RegExp(`${word} ${c
 for (const slug of Object.keys(CLASS_OF)) {
   test(`performance class label follows the data's class everywhere (EN + FR): ${slug}`, async ({ page }) => {
     expect(SAMPLE.funds[slug].defaultClass).toBe(CLASS_OF[slug].visit[0]);
-    for (const [lang, word, fund] of [
-      ["en", "Series", "Fund"],
-      ["fr", "Série", "Fonds"],
+    for (const [lang, word, fund, net] of [
+      ["en", "Series", "Fund", "net of fees"],
+      ["fr", "Série", "Fonds", "après déduction des frais"],
     ] as const) {
       await page.goto(`/strategies/${slug}`);
       if (lang === "fr") {
@@ -871,7 +875,7 @@ for (const slug of Object.keys(CLASS_OF)) {
         for (const o of others) await expect(page.getByTestId("perf-context")).not.toContainText(seriesRe(word, o));
         await page.getByTestId("growth").scrollIntoViewIfNeeded();
         await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
-          `${fund} (${word} ${code})`,
+          `${fund} (${word} ${code}, ${net})`,
         );
       }
       if (slug === "sustainable-enhanced-bonds") {
@@ -911,4 +915,36 @@ test("home tiles and the strategies index name the class of the returns (EN + FR
     for (const [i, slug] of shown.entries())
       await expect(cells.nth(i)).toHaveText(label(classLetter(slug, SAMPLE.funds[slug].defaultClass!)));
   }
+});
+
+test("fee basis stated everywhere a return is shown: net for the funds, gross for Global Minimum Volatility (EN + FR)", async ({
+  page,
+}) => {
+  for (const [slug, en, fr] of [
+    ["sustainable-enhanced-bonds", "net of fees", "après déduction des frais"],
+    ["global-minimum-volatility", "gross of fees", "avant déduction des frais"],
+  ] as const) {
+    for (const [lang, text] of [
+      ["en", en],
+      ["fr", fr],
+    ] as const) {
+      await page.context().clearCookies();
+      await page.goto(`/strategies/${slug}`);
+      if (lang === "fr") {
+        await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
+        await page.reload();
+      }
+      await openTab(page, "performance");
+      await expect(page.getByTestId("perf-context")).toContainText(text);
+      await expect(page.getByTestId("trailing-table").locator("thead")).toContainText(text);
+      if (await page.getByTestId("calendar-table").count())
+        await expect(page.getByTestId("calendar-table").locator("thead")).toContainText(text);
+    }
+  }
+  // the comparison table: every figure carries its basis marker
+  await page.context().clearCookies();
+  await page.goto("/strategies");
+  await expect(page.getByTestId("net-marker").first()).toBeAttached();
+  await expect(page.getByTestId("gross-marker").first()).toBeAttached();
+  await expect(page.getByTestId("net-marker").first()).toHaveAttribute("title", "net of fees");
 });

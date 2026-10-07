@@ -12,4 +12,7 @@ export const HL = {
   /** inline marker next to a gross-of-fees figure shown among net ones */
   gross: l("gross", "brut"),
   grossLong: l("gross of fees", "avant déduction des frais"),
+  /** inline marker next to a net-of-fees figure (every fund figure states its basis) */
+  net: l("net", "net"),
+  netLong: l("net of fees", "après déduction des frais"),
 };

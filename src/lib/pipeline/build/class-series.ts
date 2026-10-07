@@ -193,6 +193,7 @@ export function buildClasses(
       result: r,
       asOf,
       idx: ref.idx,
+      idxLevels: ref.idxLevels ?? null,
       indexName: ref.indexName,
       minMonths: CLASS_CHECKS.minHistoryMonths,
     });

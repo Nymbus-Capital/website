@@ -588,9 +588,9 @@ test.describe("admin flows", () => {
     });
     expect(pin.status(), await pin.text()).toBe(200);
     try {
-      for (const [lang, word, fundWord, returns] of [
-        ["en", "Series", "Fund", "Returns: Series"],
-        ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie"],
+      for (const [lang, word, fundWord, returns, net] of [
+        ["en", "Series", "Fund", "Returns: Series", "net of fees"],
+        ["fr", "Série", "Fonds", "Rendements\\s:\\sSérie", "après déduction des frais"],
       ] as const) {
         await page.goto(`/strategies/${fund}`);
         if (lang === "fr") {
@@ -616,7 +616,9 @@ test.describe("admin flows", () => {
         await expect(page.getByTestId("perf-context")).toContainText(h);
         await expect(page.getByTestId("perf-context")).not.toContainText(f);
         await page.getByTestId("growth").scrollIntoViewIfNeeded();
-        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fundWord} (${word} H)`);
+        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+          `${fundWord} (${word} H, ${net})`,
+        );
         // home tile and strategies index
         for (const p of ["/", "/strategies"]) {
           await page.goto(p);

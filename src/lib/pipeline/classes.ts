@@ -41,6 +41,7 @@ import {
   type Series,
 } from "./metrics.ts";
 import { monthsBetween, ym } from "../data/dates.ts";
+import { bondDays } from "./market-calendar.ts";
 
 const PERIOD_LIST = PERIODS as readonly string[];
 const dayDiff = (a: string, b: string): number =>
@@ -112,6 +113,16 @@ function shapeOf(p: Performance): ClassSeriesShape | null {
   return { all, asOf: p.asOf, firstMonth: p.firstMonth, inception: p.inception, partialFirst: !!p.partialFirstMonth };
 }
 
+const PERIOD_MONTHS_OF: Partial<Record<keyof PeriodMap, number>> = {
+  "1M": 1,
+  "3M": 3,
+  "1Y": 12,
+  "2Y": 24,
+  "3Y": 36,
+  "5Y": 60,
+  "10Y": 120,
+};
+
 interface ClassEntryInput {
   /** dotted key base of the issues, e.g. `funds.sustainable-enhanced-bonds.performance.classes.LDM202` */
   key: string;
@@ -121,8 +132,50 @@ interface ClassEntryInput {
   asOf: string;
   /** benchmark monthly returns (FTSE), null when the fund has none */
   idx: Series | null;
+  /** daily FTSE levels (joined history): the since-inception index figure of a series launched mid-month */
+  idxLevels?: Record<string, number> | null;
   indexName?: string;
   minMonths: number;
+}
+
+/**
+ * Index return over the same span as a class's since-inception figure when its first month is partial: from the index
+ * level at the close of the inception day (the fund's first month runs from the inception NAV) to the as-of month-end,
+ * annualized like the fund (365 days). The inception-day level is the last level on or before that day with no
+ * bond-market business day in between (the index does not move on a bond-market holiday); the first month's closing
+ * level is the previous month's closing level × (1 + the index return of that month), i.e. the same closing levels as
+ * the monthly series. Null when a level or a month is missing.
+ */
+export function indexSinceInception(
+  idx: Series,
+  levels: Record<string, number> | null | undefined,
+  inception: string,
+  firstMonth: string,
+  asOf: string,
+): number | null {
+  if (!levels) return null;
+  const days = Object.keys(levels)
+    .filter((d) => d <= inception && Number.isFinite(levels[d]) && levels[d] > 0)
+    .sort();
+  const d0 = days[days.length - 1];
+  if (!d0) return null;
+  const after = new Date(Date.parse(`${d0}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+  if (after <= inception && bondDays(after, inception).length) return null;
+  // previous month's closing level: its last level (the monthly series exists only when that month closed cleanly)
+  const prev = addMonths(firstMonth, -1).slice(0, 7);
+  const prevDays = Object.keys(levels)
+    .filter((d) => d.slice(0, 7) === prev)
+    .sort();
+  const pd = prevDays[prevDays.length - 1];
+  if (!pd || !(firstMonth in idx) || d0 < pd) return null;
+  let growth = (levels[pd] * (1 + idx[firstMonth])) / levels[d0];
+  for (let m = addMonths(firstMonth, 1); m <= asOf; m = addMonths(m, 1)) {
+    if (!(m in idx)) return null;
+    growth *= 1 + idx[m];
+  }
+  const total = growth - 1;
+  const span = dayDiff(inception, asOf);
+  return span >= 365 ? Math.pow(1 + total, 365 / span) - 1 : total;
 }
 
 interface ClassEntryBuild {
@@ -223,10 +276,26 @@ export function buildClassEntry(inp: ClassEntryInput): ClassEntryBuild {
     const ti = trailingOf(idx, asOf, { siStart: firstMonth });
     const index: PeriodMap = {};
     const va: PeriodMap = {};
+    // the index figure is shown whenever the class's own history covers the period, even when the fund figure is
+    // withheld ("—" for a month that could not be verified): the index has its own checks. Value added needs both.
+    const covers = (k: keyof PeriodMap): boolean => {
+      if (k === "SI") return true;
+      // the index YTD must also start in January (its series may start later in the year)
+      if (k === "YTD") return `${asOf.slice(0, 4)}-01-31` >= firstFull && `${asOf.slice(0, 4)}-01-31` in idx;
+      const n = PERIOD_MONTHS_OF[k];
+      return n !== undefined && addMonths(asOf, -(n - 1)) >= firstFull;
+    };
     for (const p of PERIOD_LIST) {
       const k = p as keyof PeriodMap;
       const fv = fund[k];
-      const iv = fv == null || (k === "SI" && partialFirst) ? null : (ti[k as keyof typeof ti] ?? null);
+      let iv: number | null = null;
+      if (fv != null || (withheld.length && covers(k)))
+        iv =
+          k === "SI" && partialFirst
+            ? indexSinceInception(idx, inp.idxLevels, res.inception, firstMonth, asOf)
+            : k === "YTD" && !(`${asOf.slice(0, 4)}-01-31` in idx)
+              ? null
+              : (ti[k as keyof typeof ti] ?? null);
       index[k] = iv;
       va[k] = fv != null && iv != null ? clean(fv - iv) : null;
     }

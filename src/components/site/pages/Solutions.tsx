@@ -61,16 +61,16 @@ function FundLink({ f }: { f: FundCard }) {
           <span className="sl-fund-f">
             <b className="tabnum">{si}</b>
             <span>
-              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)}
+              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)} ·{" "}
               {f.basis === "gross" ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
-                    {pick(HL.gross)}
-                  </abbr>
-                </>
-              ) : null}
+                <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
+                  {pick(HL.gross)}
+                </abbr>
+              ) : (
+                <abbr title={pick(HL.netLong)} data-testid="net-marker">
+                  {pick(HL.net)}
+                </abbr>
+              )}
             </span>
             {/* each fund has its own as-of month: never one date for several funds */}
             {f.asOf ? (

@@ -40,11 +40,17 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
   const anyGross = data.funds.some((f) => f.basis === "gross" && (f.si !== null || f.y1 !== null || f.ytd !== null));
   // gross-of-fees figures sit among net ones in the table: each carries an inline marker
   const gross = (f: HomeData["funds"][number]) => f.basis === "gross";
-  const mark = (
-    <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
-      {pick(HL.gross)}
-    </abbr>
-  );
+  // every figure states its basis: "net" for the funds, "gross" for the Global Minimum Volatility variants
+  const mark = (f: HomeData["funds"][number]) =>
+    gross(f) ? (
+      <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
+        {pick(HL.gross)}
+      </abbr>
+    ) : (
+      <abbr title={pick(HL.netLong)} data-testid="net-marker">
+        {pick(HL.net)}
+      </abbr>
+    );
   return (
     <div className="hm">
       <Intro
@@ -170,18 +176,18 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                     <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>
                     <td>
                       {cell(f.ytd, locale)}
-                      {gross(f) && f.ytd !== null ? <span className="xs-sub">{mark}</span> : null}
+                      {f.ytd !== null ? <span className="xs-sub">{mark(f)}</span> : null}
                     </td>
                     <td>
                       {cell(f.y1, locale)}
-                      {gross(f) && f.y1 !== null ? <span className="xs-sub">{mark}</span> : null}
+                      {f.y1 !== null ? <span className="xs-sub">{mark(f)}</span> : null}
                     </td>
                     <td>
                       {cell(f.si, locale)}
                       {f.si !== null ? (
                         <span className="xs-sub">
                           {f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}
-                          {gross(f) ? <> · {mark}</> : null}
+                          <> · {mark(f)}</>
                         </span>
                       ) : null}
                     </td>

@@ -9,6 +9,7 @@ import { buildSiteData } from "../../../src/lib/pipeline/build/index.ts";
 import { fetchAll } from "../../../src/lib/pipeline/sources/index.ts";
 import {
   buildClassEntry,
+  indexSinceInception,
   classFundTrailing,
   performanceProblems,
   pickDefaultClass,
@@ -278,7 +279,11 @@ test("buildClassEntry: per-figure withholding, growth after the last withheld mo
   assert.equal(t["3Y"], null, "3 years contain the withheld month");
   assert.equal(t["5Y"], null, "longer than the history");
   assert.equal(t.SI, null);
-  assert.equal(p.trailing.index!["3Y"], null);
+  // the index is shown over a period the class covers even when the fund figure is withheld; value added needs both
+  assert.ok(Math.abs(p.trailing.index!["3Y"]! - (Math.pow(1.002, 12) - 1)) < 1e-12, "index 3Y shown");
+  assert.equal(p.trailing.va!["3Y"], null, "no value added against a withheld fund figure");
+  assert.equal(p.trailing.index!["5Y"], null, "longer than the class's history: no index either");
+  assert.equal(p.trailing.index!.SI, null, "partial first month and no daily levels: no index since inception");
   assert.ok(p.trailing.index!["1Y"] != null);
   assert.equal(p.calendar.find((y) => y.year === 2024)!.fund, null);
   assert.ok(p.calendar.find((y) => y.year === 2025)!.fund != null);
@@ -749,4 +754,66 @@ test("class histories: after 3 failures in a row the rest are not requested (a f
 
 test("no test leaves the pipeline config mutated (memoised baselines stay valid)", () => {
   assertConfigUntouched();
+});
+
+test("indexSinceInception: from the inception-day close to the as-of month-end, same closing levels as the monthly series, 365-day annualization", () => {
+  // daily levels: 100 on 2023-06-30 (June close), 101 on 2023-07-24 (inception), 102 on 2023-07-31 (July close)
+  const levels: Record<string, number> = {
+    "2023-06-29": 99.9,
+    "2023-06-30": 100,
+    "2023-07-24": 101,
+    "2023-07-31": 102,
+  };
+  const idx: Record<string, number> = { "2023-07-31": 0.02 };
+  for (let m = "2023-08-31"; m <= "2026-09-30"; m = addMonths(m, 1)) idx[m] = 0.001;
+  const n = Object.keys(idx).length - 1;
+  const total = (102 / 101) * Math.pow(1.001, n) - 1;
+  const days = (Date.parse("2026-09-30") - Date.parse("2023-07-24")) / 86_400_000;
+  const r = indexSinceInception(idx, levels, "2023-07-24", "2023-07-31", "2026-09-30")!;
+  assert.ok(Math.abs(r - (Math.pow(1 + total, 365 / days) - 1)) < 1e-12);
+  // inception on a bond-market holiday is not used blindly: a missing bond day before it → null
+  assert.equal(
+    indexSinceInception(idx, { ...levels, "2023-07-24": NaN }, "2023-07-24", "2023-07-31", "2026-09-30"),
+    null,
+  );
+  // a missing month → null; no levels → null
+  const gap = { ...idx };
+  delete gap["2025-03-31"];
+  assert.equal(indexSinceInception(gap, levels, "2023-07-24", "2023-07-31", "2026-09-30"), null);
+  assert.equal(indexSinceInception(idx, null, "2023-07-24", "2023-07-31", "2026-09-30"), null);
+  // a weekend inception takes the Friday close (no bond day in between)
+  const wk = { "2023-06-30": 100, "2023-07-21": 101, "2023-07-31": 102 };
+  assert.ok(indexSinceInception(idx, wk, "2023-07-23", "2023-07-31", "2026-09-30") != null);
+});
+
+test("buildClassEntry: a class launched mid-month gets its since-inception index from the daily levels, value added against the fund", () => {
+  const months: ClassResult["months"] = [];
+  for (let m = "2023-07-31"; m <= "2026-09-30"; m = addMonths(m, 1))
+    months.push({ month: m, r: 0.004, partial: m === "2023-07-31", source: "cibc", reason: null });
+  const res: ClassResult = {
+    fundserv: "LDM998",
+    display: "Y",
+    currency: "CAD",
+    inception: "2023-07-24",
+    status: "ok",
+    why: null,
+    previousRunEnd: null,
+    months,
+  };
+  const cls = { fundserv: "LDM998", display: "Y", classCode: "LDM998" as const };
+  const idx = Object.fromEntries(months.map((m) => [m.month, 0.002]));
+  const levels = { "2023-06-30": 100, "2023-07-24": 101, "2023-07-31": 100 * 1.002 };
+  const e = buildClassEntry({
+    key: "k",
+    cls,
+    result: res,
+    asOf: "2026-09-30",
+    idx,
+    idxLevels: levels,
+    minMonths: 12,
+  }).entry!;
+  const t = e.performance.trailing;
+  assert.ok(t.fund.SI != null && t.index!.SI != null);
+  assert.ok(Math.abs(t.va!.SI! - (t.fund.SI! - t.index!.SI!)) < 1e-12);
+  assert.deepEqual(performanceProblems(e.performance, "compounded", true), []);
 });

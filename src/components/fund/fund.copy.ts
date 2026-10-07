@@ -230,8 +230,8 @@ export const T = {
     asOf: l("as of", "au"),
     growth: l("Growth of $10,000", "Croissance de 10 000 $"),
     growthLead: l(
-      "A hypothetical $10,000 investment, distributions reinvested.",
-      "Un placement hypothétique de 10 000 $, distributions réinvesties.",
+      "A hypothetical $10,000 investment, net of fees, distributions reinvested.",
+      "Un placement hypothétique de 10 000 $, après déduction des frais, distributions réinvesties.",
     ),
     growthLeadGross: l(
       "A hypothetical $10,000 invested in the strategy. Returns are arithmetic (simple sums of monthly returns on notional exposure, not compounded) and gross of fees; the growth chart is illustrative.",
@@ -263,7 +263,10 @@ export const T = {
     period: l("Period", "Période"),
     fund: l("Fund", "Fonds"),
     strategy: l("Strategy", "Stratégie"),
-    index: l("Benchmark", "Indice"),
+    index: l("Benchmark", "Indice de référence"),
+    /** basis of the fund / strategy figures, in the series names of every chart, table and tooltip of the tab */
+    netShort: l("net of fees", "après déduction des frais"),
+    grossShort: l("gross of fees", "avant déduction des frais"),
     va: l("Value added", "Valeur ajoutée"),
     negative: l("Negative", "Négatif"),
     positive: l("Positive", "Positif"),
