@@ -928,6 +928,7 @@ test("fee basis stated everywhere a return is shown: net for the funds, gross fo
       ["en", en],
       ["fr", fr],
     ] as const) {
+      await page.context().clearCookies();
       await page.goto(`/strategies/${slug}`);
       if (lang === "fr") {
         await page.context().addCookies([{ name: "nymbus-locale", value: "fr", url: page.url() }]);
