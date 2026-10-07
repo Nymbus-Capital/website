@@ -1,0 +1,40 @@
+#13 85.71 ├ ƒ /solutions
+#13 85.71 ├ ƒ /strategies
+#13 85.71 ├ ƒ /strategies/[slug]
+#13 85.71 ├ ƒ /sustainability
+#13 85.71 └ ƒ /team
+#13 85.71 
+#13 85.71 
+#13 85.71 ƒ Proxy (Middleware)
+#13 85.71 
+#13 85.71 ƒ  (Dynamic)  server-rendered on demand
+#13 85.71 
+#13 DONE 85.8s
+
+#14 [run  4/10] COPY --from=build --chown=nymbus:nymbus /app/.next/standalone ./
+#14 DONE 0.4s
+
+#15 [run  5/10] COPY --from=build --chown=nymbus:nymbus /app/.next/static ./.next/static
+#15 DONE 0.0s
+
+#16 [run  6/10] COPY --from=build --chown=nymbus:nymbus /app/public ./public
+#16 DONE 0.1s
+
+#17 [run  7/10] COPY --from=build --chown=nymbus:nymbus /app/src/lib/pipeline ./src/lib/pipeline
+#17 DONE 0.0s
+
+#18 [run  8/10] COPY --from=build --chown=nymbus:nymbus /app/src/lib/data ./src/lib/data
+#18 DONE 0.0s
+
+#19 [run  9/10] COPY --from=build --chown=nymbus:nymbus /app/src/config ./src/config
+#19 DONE 0.0s
+
+#20 [run 10/10] COPY --chown=root:root docker/start.mjs ./start.mjs
+#20 DONE 0.0s
+
+#21 exporting to image
+#21 exporting layers
+#21 exporting layers 1.5s done
+#21 writing image sha256:890e4f6a4bc95a8d78d53e30d557384df2d442b9ebdec1b15771a71e889497d8 done
+#21 naming to docker.io/library/nymbus-web:ci done
+#21 DONE 1.5s
