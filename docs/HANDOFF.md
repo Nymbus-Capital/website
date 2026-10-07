@@ -139,7 +139,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 4. **Dataplatform team** (the coordinator holds the details, not kept in this public repository): source defects listed
    by the runs (month-end bad prints, inconsistent distribution adjustments between series, duplicate Apex records and a
    NAV seam at the switch to Apex, missing valuation days); a
-   distributions endpoint on main (USD series, distribution yields); `nav-timeseries` loads the whole legacy table per
+   distributions endpoint on main (USD series, distribution yields; Linear **NYM-1532**, the source columns exist:
+   `performance.funds_nav_ts.distribution` per unit, `apex.valuation.distribution` / `post_distr_nav`); `nav-timeseries` loads the whole legacy table per
    call (the 4 GB service ran out of memory under ~20 parallel calls — the website now calls one at a time); record
    the website as a read-only consumer (dataplatform CLAUDE.md).
 5. **Custom domain** `www.nymbus.ca` (`docs/deploy.md`), then switch off GitHub Pages.
