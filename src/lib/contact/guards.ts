@@ -58,48 +58,95 @@ export function clientKey(forwardedFor: string | null | undefined): string {
   return "unknown";
 }
 
+/**
+ * Shape of an X-Forwarded-For header for the boot diagnostic: the hop count and each hop's class (public / internal,
+ * v4 / v6), never an address. Lets ops confirm on the platform that the rightmost public hop is the visitor.
+ */
+export function forwardedShape(forwardedFor: string | null | undefined): string {
+  const parts = (forwardedFor ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const cls = (a: string): string => {
+    const v = a.replace(/^\[|\]$/g, "");
+    const fam = /^\d{1,3}(\.\d{1,3}){3}$/.test(v) ? "v4" : expandIPv6(v) ? "v6" : null;
+    return fam ? `${isInternalAddress(v) ? "internal" : "public"}-${fam}` : "invalid";
+  };
+  return `hops=${parts.length}${parts.length ? ` [${parts.map(cls).join(", ")}]` : ""}`;
+}
+
+/** Full 8-group form of an IPv6 address (lower case, no zero compression), or null when it is not one. */
+export function expandIPv6(a: string): string[] | null {
+  let v = a.toLowerCase().replace(/^\[|\]$/g, "").replace(/%.*$/, "");
+  const v4 = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
+  if (v4) {
+    const n = v4.slice(1).map(Number);
+    if (n.some((x) => x > 255)) return null;
+    v = v.slice(0, v4.index) + `${((n[0] << 8) | n[1]).toString(16)}:${((n[2] << 8) | n[3]).toString(16)}`;
+  }
+  if (!/^[0-9a-f:]+$/.test(v) || (v.match(/::/g) ?? []).length > 1) return null;
+  const [head, tail] = v.includes("::") ? v.split("::") : [v, null];
+  const h = head ? head.split(":") : [];
+  const t = tail ? tail.split(":") : [];
+  const fill = tail === null ? 0 : 8 - h.length - t.length;
+  if (fill < 0 || (tail !== null && fill < 1)) return null;
+  const g = [...h, ...Array<string>(fill).fill("0"), ...t];
+  if (g.length !== 8 || g.some((x) => !/^[0-9a-f]{1,4}$/.test(x))) return null;
+  return g.map((x) => x.replace(/^0+(?=.)/, ""));
+}
+
+/**
+ * Rate-limit bucket of a client address: an IPv4 address on its own; an IPv6 address by its /64 (one subscriber's
+ * network: rotating through the 2^64 addresses of one's own prefix does not open new buckets); IPv4-mapped IPv6 as IPv4.
+ */
+export function limiterKey(addr: string): string {
+  const a = addr.toLowerCase();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(a)) return a;
+  const g = expandIPv6(a);
+  if (!g) return a;
+  if (g.slice(0, 5).every((x) => x === "0") && g[5] === "ffff") {
+    const n = parseInt(g[6], 16), m = parseInt(g[7], 16);
+    return `${n >> 8}.${n & 255}.${m >> 8}.${m & 255}`;
+  }
+  return `${g.slice(0, 4).join(":")}::/64`;
+}
+
 export interface ContactLimits {
-  /** attempts (valid or not) per client address and window */
+  /** attempts (valid or not) per client bucket and window */
   perClient: number;
   perClientWindowMs: number;
   /** stored inquiries for the whole site and window (bounds what a spoofed or distributed flood can write) */
   global: number;
   globalWindowMs: number;
-  /** tracked addresses; past it, new ones share one bucket */
+  /** tracked buckets; past it, the least recently used one is forgotten (never a shared bucket) */
   maxClients: number;
 }
 
-export const CONTACT_LIMITS: ContactLimits = { perClient: 5, perClientWindowMs: 15 * 60_000, global: 40, globalWindowMs: 60 * 60_000, maxClients: 2000 };
+export const CONTACT_LIMITS: ContactLimits = { perClient: 5, perClientWindowMs: 15 * 60_000, global: 40, globalWindowMs: 60 * 60_000, maxClients: 5000 };
 
 export interface ContactLimiter {
-  /** count an attempt of `key`; false when the client is over its budget (the refused attempt is not counted) */
+  /** count an attempt of `key` (an address: bucketed by limiterKey); false when over budget (the refused attempt is not counted) */
   take(key: string, now?: number): boolean;
-  /** count one stored inquiry; false when the site-wide budget is spent */
+  /** reserve one stored inquiry; false when the site-wide budget is spent */
   takeGlobal(now?: number): boolean;
+  /** give back a reservation that stored nothing (duplicate, refused, failed write) */
+  refundGlobal(): void;
+  /** tracked buckets (tests, diagnostics) */
+  size(): number;
 }
 
-/** In-memory limiter (one instance; a restart resets it). */
+/** In-memory limiter (one instance; a restart resets it). Buckets live in a Map kept in least-recently-used order. */
 export function contactLimiter(o: ContactLimits = CONTACT_LIMITS): ContactLimiter {
   const by = new Map<string, number[]>();
   let global: number[] = [];
-  const OVERFLOW = "*";
-  const live = (k: string, now: number): number[] => {
-    const t = (by.get(k) ?? []).filter((x) => now - x < o.perClientWindowMs);
-    if (t.length) by.set(k, t);
-    else by.delete(k);
-    return t;
-  };
-  const slot = (k: string, now: number): string => {
-    if (by.has(k) || by.size < o.maxClients) return k;
-    for (const key of [...by.keys()]) live(key, now);
-    return by.size < o.maxClients ? k : OVERFLOW;
-  };
   return {
-    take(key, now = Date.now()) {
-      const k = slot(key, now);
-      const t = live(k, now);
-      if (t.length >= o.perClient) return false;
+    take(addr, now = Date.now()) {
+      const k = limiterKey(addr);
+      const t = (by.get(k) ?? []).filter((x) => now - x < o.perClientWindowMs);
+      by.delete(k); // re-inserted last: most recently used
+      if (t.length >= o.perClient) {
+        by.set(k, t);
+        return false;
+      }
       t.push(now);
+      while (by.size >= o.maxClients) by.delete(by.keys().next().value as string);
       by.set(k, t);
       return true;
     },
@@ -109,5 +156,9 @@ export function contactLimiter(o: ContactLimits = CONTACT_LIMITS): ContactLimite
       global.push(now);
       return true;
     },
+    refundGlobal() {
+      global.pop();
+    },
+    size: () => by.size,
   };
 }

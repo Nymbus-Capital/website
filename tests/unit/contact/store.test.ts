@@ -1,6 +1,6 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, readdirSync, readFileSync, writeFileSync, mkdirSync, utimesSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -55,18 +55,30 @@ test("store: mark handled / open again, delete; a deleted inquiry is never broug
   assert.equal(await store.deleteInquiry(r.id), null);
 });
 
-test("retention: inquiries older than 180 days (default) are purged, damaged files too (by the date in their id)", async () => {
+test("retention: deleted no later than 180 days (default) after receipt, damaged files too, orphaned temp files after 1 h", async () => {
   const now = new Date("2027-04-04T12:00:00Z");
   const old = await save(V, new Date("2026-10-05T12:00:00Z")); // 181 days before
-  const recent = await save(V, new Date("2026-10-07T12:00:00Z")); // 179 days before
+  const edge = await save({ ...V, name: "Edge Person" }, new Date("2026-10-07T00:00:00Z")); // 179.5 days: inside the margin
+  const recent = await save({ ...V, name: "Recent Person" }, new Date("2026-10-08T12:00:00Z")); // 178 days before
   mkdirSync(path.join(dir, "inquiries"), { recursive: true });
   writeFileSync(path.join(dir, "inquiries", "20250101T000000-0123abcd.json"), "{ damaged");
   writeFileSync(path.join(dir, "inquiries", "notes.txt"), "not an inquiry");
+  const staleTmp = path.join(dir, "inquiries", "20261006T100000-0123abcd.json.1.abcdef.tmp");
+  const freshTmp = path.join(dir, "inquiries", "20261006T100000-0123abce.json.1.abcdef.tmp");
+  writeFileSync(staleTmp, "{ half");
+  writeFileSync(freshTmp, "{ half");
+  utimesSync(staleTmp, new Date(now.getTime() - 2 * 3_600_000), new Date(now.getTime() - 2 * 3_600_000));
+  utimesSync(freshTmp, new Date(now.getTime() - 60_000), new Date(now.getTime() - 60_000));
   assert.equal(store.RETENTION_DAYS, 180);
   assert.equal(await store.configuredRetentionDays(), 180, "no settings stored: the default");
-  assert.equal(await store.purgeExpiredInquiries(now), 2);
+  assert.equal(await store.purgeExpiredInquiries(now), 3);
   assert.equal(await store.getInquiry(old.id), null);
+  assert.equal(await store.getInquiry(edge.id), null, "within a day of 180: deleted now, not after the limit");
   assert.ok(await store.getInquiry(recent.id));
+  const left = readdirSync(path.join(dir, "inquiries"));
+  assert.ok(!left.includes(path.basename(staleTmp)), "orphaned temp file removed");
+  assert.ok(left.includes(path.basename(freshTmp)), "a write in progress is left alone");
+  rmSync(freshTmp);
   assert.equal(await store.purgeExpiredInquiries(now), 0);
   // a shorter retention set in the admin settings applies on the next purge
   mkdirSync(path.join(dir, "content"), { recursive: true });
@@ -75,6 +87,7 @@ test("retention: inquiries older than 180 days (default) are purged, damaged fil
   assert.equal(await store.purgeExpiredInquiries(now), 1);
   assert.equal(await store.getInquiry(recent.id), null);
   rmSync(path.join(dir, "content"), { recursive: true, force: true });
+  rmSync(path.join(dir, "inquiries", "notes.txt"));
 });
 
 test("retention: the setting is clamped to 30-180 days (the privacy policy promises at most 180)", () => {
@@ -102,6 +115,19 @@ test("alert: only the first name and profile, a link to the admin; off without a
   const sent = JSON.stringify(posted);
   assert.ok(sent.includes("Test") && sent.includes("/admin/inquiries"));
   for (const secret of ["test@example.com", "Hello", "Person", "Secret Co", "514 555 0100"]) assert.ok(!sent.includes(secret), secret);
+  await store.deleteInquiry(r.id);
+});
+
+test("alert: a failed delivery logs and stores the redacted title only (no first name)", async () => {
+  const r = await save({ ...V, name: "Zelda Person", message: "Failure case" });
+  const logs: string[] = [];
+  const failing = (async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
+  const out = await notifyInquiry(r, { env: { PIPELINE_ALERT_WEBHOOK: "https://example.webhook.office.com/x" }, fetchImpl: failing, delays: [], sleep: async () => {}, log: (m) => logs.push(m) });
+  assert.equal(out, "failed");
+  assert.ok(logs.length > 0);
+  const state = readFileSync(path.join(dir, "alerts", "state.json"), "utf8");
+  for (const text of [...logs, state]) assert.ok(!text.includes("Zelda"), text);
+  assert.ok(state.includes("New website inquiry"));
   await store.deleteInquiry(r.id);
 });
 

@@ -34,13 +34,13 @@ export type ContactFailure = keyof typeof CT.form.fail;
 export type ContactStatus = "sent" | ContactFailure | null;
 const isFailure = (c: unknown): c is ContactFailure => typeof c === "string" && Object.hasOwn(CT.form.fail, c);
 
-function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: string[]; token: string; initialStatus: ContactStatus }) {
+function InquiryForm({ hiddenFunds, token, initialStatus, initialFields }: { hiddenFunds: string[]; token: string; initialStatus: ContactStatus; initialFields: InquiryField[] }) {
   const { locale, pick } = useTranslation();
   const F = CT.form;
   const live = useMountValue(() => true, false); // the steps show one at a time once the script runs
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(() => (initialFields.length ? (Math.min(...initialFields.map((f) => FIELD_STEP[f])) as 1 | 2 | 3) : 1));
   const [q, setQ] = useState<Inquiry>(EMPTY);
-  const [errs, setErrs] = useState<InquiryErrors>({});
+  const [errs, setErrs] = useState<InquiryErrors>(() => Object.fromEntries(initialFields.map((f) => [f, true])) as InquiryErrors);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(initialStatus === "sent");
   const [fail, setFail] = useState<ContactFailure | null>(initialStatus && initialStatus !== "sent" ? initialStatus : null);
@@ -118,7 +118,15 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
     try { window.history.replaceState(null, "", "/contact#contact-form"); } catch { /* ignore */ }
   };
 
-  const err = (k: InquiryField, id: string) => errs[k] ? <p id={id} className="ct-err" role="alert">{pick(F.errs[k])}</p> : null;
+  // per-field messages are linked by aria-describedby; one summary live region announces what to fix
+  const err = (k: InquiryField, id: string) => errs[k] ? <p id={id} className="ct-err">{pick(F.errs[k])}</p> : null;
+  const fieldLabel: Record<InquiryField, typeof F.name> = { profile: F.steps[0], interests: F.steps[1], name: F.name, email: F.email, phone: F.phone, company: F.company, message: F.message, consent: F.consentLabel };
+  const errList = (Object.keys(FIELD_STEP) as InquiryField[]).filter((f) => errs[f]);
+  const summary = (
+    <div className="ct-sum" role="alert" data-testid="contact-errors">
+      {errList.length ? <p>{pick(F.fix)} {errList.map((f) => pick(fieldLabel[f]).replace(/\s*\((optional|facultatif)\)$/i, "")).join(", ")}</p> : null}
+    </div>
+  );
   const shown = (s: 1 | 2 | 3) => !live || step === s;
   const failure = fail ? (
     <div className="ct-fail" role="alert" data-testid="contact-fail">
@@ -151,6 +159,7 @@ function InquiryForm({ hiddenFunds, token, initialStatus }: { hiddenFunds: strin
             <input id="ct-website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
           </div>
           {!live ? failure : null}
+          {summary}
           <ol className="ct-progress" aria-label={pick(F.stepsLabel)}>
             {F.steps.map((s, i) => {
               const n = (i + 1) as 1 | 2 | 3;
@@ -289,7 +298,7 @@ function VisitMap({ address, mapsAddress }: { address: { en: string; fr: string 
   );
 }
 
-export function Contact({ hiddenFunds = [], contact = {}, formToken = "", initialStatus = null }: { hiddenFunds?: string[]; contact?: CmsContact; formToken?: string; initialStatus?: ContactStatus }) {
+export function Contact({ hiddenFunds = [], contact = {}, formToken = "", initialStatus = null, initialFields = [] }: { hiddenFunds?: string[]; contact?: CmsContact; formToken?: string; initialStatus?: ContactStatus; initialFields?: InquiryField[] }) {
   const { locale, pick } = useTranslation();
   const O = CT.office;
   const address = contact.address ?? O.address;
@@ -310,7 +319,7 @@ export function Contact({ hiddenFunds = [], contact = {}, formToken = "", initia
           <Reveal self kind="pop" className="card ct-card">
             <h2 id="ct-form-t" className="h2">{pick(CT.form.title)}</h2>
             <p className="ct-lead">{pick(CT.form.lead)}</p>
-            <InquiryForm hiddenFunds={hiddenFunds} token={formToken} initialStatus={initialStatus} />
+            <InquiryForm hiddenFunds={hiddenFunds} token={formToken} initialStatus={initialStatus} initialFields={initialFields} />
           </Reveal>
           <Reveal as="aside" className="ct-side" stagger={120} aria-label={pick(O.title)}>
             <div className="card ct-office">

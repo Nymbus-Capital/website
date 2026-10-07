@@ -7,6 +7,7 @@ import { hiddenFundKeys } from "@/config/funds-public";
 import { getSiteTexts } from "@/lib/cms";
 import { contactOverrides } from "@/lib/cms/map";
 import { issueFormToken } from "@/lib/contact/token";
+import { INQUIRY_FIELDS, type InquiryField } from "@/lib/contact/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +26,16 @@ function statusOf(sp: Record<string, string | string[] | undefined>): ContactSta
   return Object.hasOwn(CT.form.fail, e) ? (e as ContactStatus) : "error";
 }
 
+/** Field codes of a refused post without JavaScript (?fields=name,email): known codes only, in form order. */
+function fieldsOf(sp: Record<string, string | string[] | undefined>): InquiryField[] {
+  const raw = typeof sp.fields === "string" ? sp.fields.split(",") : [];
+  return INQUIRY_FIELDS.filter((f) => raw.includes(f));
+}
+
 export default async function Page({ searchParams }: { searchParams: Search }) {
   // funds hidden in the admin are not offered as an interest
   const [content, texts, sp] = await Promise.all([getContent().catch(() => null), getSiteTexts(), searchParams]);
   const hiddenFunds = hiddenFundKeys(content);
   // address, phone and e-mail from WordPress where set, else the built-in ones; the form timing token is issued per render
-  return <Contact hiddenFunds={hiddenFunds} contact={contactOverrides(texts)} formToken={issueFormToken()} initialStatus={statusOf(sp)} />;
+  return <Contact hiddenFunds={hiddenFunds} contact={contactOverrides(texts)} formToken={issueFormToken()} initialStatus={statusOf(sp)} initialFields={fieldsOf(sp)} />;
 }

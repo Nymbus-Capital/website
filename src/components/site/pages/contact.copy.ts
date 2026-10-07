@@ -51,6 +51,8 @@ export const CT = {
     privacy: l("Privacy policy", "Politique de confidentialité"),
     send: l("Send my message", "Envoyer mon message"),
     sending: l("Sending…", "Envoi…"),
+    fix: l("Please check:", "Veuillez vérifier :"),
+    consentLabel: l("Consent", "Consentement"),
     errs: {
       profile: l("Please choose a profile.", "Veuillez choisir un profil."),
       interests: l("Please choose at least one interest.", "Veuillez choisir au moins un intérêt."),

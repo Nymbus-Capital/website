@@ -173,11 +173,25 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    (JS + no-JS), messages on the data volume, `/admin/inquiries` (messages: mark handled, delete, CSV export, open count
    on the dashboard), duplicate suppression, retention set in admin settings (default 180 days, 30–180), Teams alert with
    first name + profile only; "I am" = advisor / institution / individual investor / other; privacy § 11 and
-   `docs/compliance-review.md` CF1–CF8 to review], ~~team LinkedIn in the team modal~~
+   `docs/compliance-review.md` CF1–CF8 to review; independent security review done 2026-10-06, findings M1, m1–m7 fixed; Gabriel: set the volume backup retention to ≤ 30 days and check the X-Forwarded-For log line after deploy (`docs/deploy.md` § Contact form)], ~~team LinkedIn in the team modal~~
    (already rendered from `team.ts` / WordPress `linkedin`, e2e-tested), fund managers from WordPress, News in the
    navigation.
 
 ## 6. Session log
+
+- 2026-10-06 (sub-agent, branch `feat/contact-form`, fourth pass; **not merged**): rebased on
+  `chore/react-compiler-warnings` (Contact uses `useMountValue` and one ref per step, no lint disable; lint cap 0).
+  Independent security review (coordinator, on `e940b62`): no blockers; every finding fixed — M1 limiter: IPv6 bucketed
+  by /64, IPv4 per address, LRU eviction past 5 000 buckets instead of a shared overflow bucket (unit tests: overflow,
+  IPv6 rotation); m1 one-time X-Forwarded-For shape log (first 10 posts: hop count + classes, never addresses) and how to
+  verify it on Northflank (`docs/deploy.md`); m2 `AlertMessage.logTitle`: logs and the stored alert state say "New
+  website inquiry" (no first name; tested on a failed delivery); m3 purge deletes within a day of the limit (so "no
+  later than 180 days" holds), removes orphaned `*.tmp` older than 1 h, privacy § 11 EN/FR one sentence on backups
+  (≤ 30 more days; set the volume backup retention accordingly), Teams-history point in CF7; m4 site-wide cap refunded
+  for duplicates and failed writes; m5 token max age 24 h, "not a CAPTCHA" documented; m6 one summary live region
+  ("Please check: …") + aria-describedby per field, no-JS redirect carries field codes only
+  (`?error=invalid_input&fields=phone`) and shows the per-field messages (e2e); m7 www ↔ apex must redirect to
+  `PUBLIC_URL` (`docs/deploy.md`).
 
 - 2026-10-06 (sub-agent, branch `chore/react-compiler-warnings`, **not merged**): § 5 B3 — lint warnings 25 → 0, CI
   `--max-warnings=0`; the frozen AnalysisScan keeps its render-time language ref under a region disable placed outside
@@ -219,8 +233,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
   kept from the earlier passes: no zod in the shared rule module (plain-Node tests, browser bundle), native no-JS post
   with 303 back (mailto stays as the alternative and as the fallback on failure), in-memory per-client limiter (single
   instance). Phones: the send button takes its own row above "Back" (« Envoyer mon message »
-  overflowed half a row; e2e checks it fits). CI run 272 green; adversarial review by separate
-  reviewer agents still to run.
+  overflowed half a row; e2e checks it fits). CI run 272 green; independent review done in the fourth
+  pass.
 
 - 2026-10-06 (sub-agent, branch `feat/contact-form`; **not merged**): § 5 B5 contact form backend, no e-mail service and
   no new credential or env var. The three-step form (unchanged design) now posts to `POST /api/contact` (JSON with

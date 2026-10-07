@@ -9,7 +9,8 @@
  * (purge on a 12-hour timer, see retention.ts, and whenever the admin lists them). No IP address, user agent or tracking data is kept.
  * Dependency-free (Node built-ins + relative `.ts` imports), unit tested under plain Node.
  */
-import { listDir, newId, readJson, removePath, withLock, writeJson } from "../data/store.ts";
+import fs from "node:fs/promises";
+import { listDir, newId, p, readJson, removePath, withLock, writeJson } from "../data/store.ts";
 import type { CleanInquiry } from "./validate.ts";
 
 export const INQUIRY_DIR = "inquiries";
@@ -147,17 +148,32 @@ function receivedMs(id: string, rec: InquiryRecord | null): number {
   return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
 }
 
-/** Delete inquiries received more than `days` ago (default: the configured retention); returns how many were deleted. */
+/**
+ * the purge runs every 12 hours: an inquiry is deleted once it is within this margin of its retention, so it is gone
+ * no later than `days` after receipt (the privacy policy's "no later than") even if one run is late
+ */
+export const PURGE_MARGIN_MS = 24 * 3_600_000;
+/** a temporary file of an interrupted atomic write (`<name>.<pid>.<hex>.tmp`) older than this is removed */
+export const TMP_MAX_AGE_MS = 3_600_000;
+
+/**
+ * Delete inquiries received more than `days` (default: the configured retention) minus PURGE_MARGIN_MS ago, and the
+ * orphaned temporary files of interrupted writes older than an hour; returns how many inquiries were deleted.
+ */
 export async function purgeExpiredInquiries(now = new Date(), days?: number): Promise<number> {
   if (days === undefined) days = await configuredRetentionDays();
   return locked(async () => {
-    const limit = now.getTime() - days * 86_400_000;
+    const limit = now.getTime() - days * 86_400_000 + PURGE_MARGIN_MS;
     let n = 0;
     for (const id of await ids()) {
       if (receivedMs(id, await getInquiry(id)) < limit) {
         await removePath(file(id));
         n++;
       }
+    }
+    for (const name of (await listDir([INQUIRY_DIR])).filter((x) => x.endsWith(".tmp"))) {
+      const st = await fs.stat(p(INQUIRY_DIR, name)).catch(() => null);
+      if (st?.isFile() && now.getTime() - st.mtimeMs > TMP_MAX_AGE_MS) await removePath([INQUIRY_DIR, name]);
     }
     return n;
   });

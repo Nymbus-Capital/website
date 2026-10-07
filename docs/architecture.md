@@ -548,9 +548,14 @@ dashboard shows the number of open messages).
   `X-Forwarded-For` entry, the left part being forgeable), JSON or urlencoded only, 16 KB body, strict field rules shared
   with the browser (no zod: the module is unit tested under plain Node), honeypot field and a signed form timing token
   (HMAC of the render time, key derived from `AUTH_SECRET`; a post < 3 s after render or with a forged / missing token is
-  answered as a success and dropped; a page older than 7 days asks for a reload), 40 stored inquiries / hour site-wide,
-  hard cap of 5 000 stored. The per-client limit is in memory, like the CMS revalidation limiter: enough for the single
-  instance (`docs/deploy.md`); a restart resets it, the site-wide and volume caps still hold.
+  answered as a success and dropped — `screenSubmission`; a page older than 24 hours asks for a reload; not a CAPTCHA),
+  40 stored inquiries / hour site-wide (counted only for a stored, non-duplicate inquiry: refunded otherwise), hard cap
+  of 5 000 stored. The per-client limit is in memory, like the CMS revalidation limiter: enough for the single instance
+  (`docs/deploy.md`); a restart resets it, the site-wide and volume caps still hold. Buckets: an IPv4 address, or an
+  IPv6 **/64** (rotating addresses inside one's own prefix opens no new bucket); up to 5 000 buckets, the least recently
+  used forgotten first (never a shared overflow bucket that one flood could exhaust for everyone). The first 10 posts
+  after a start log the X-Forwarded-For shape (hop count and address classes, never addresses) to verify the proxy
+  assumption on the platform (`docs/deploy.md`).
 - **Duplicates**: an inquiry identical to one received in the last 24 hours (same e-mail, case-insensitive, name, type,
   interests, phone, organisation and message) is answered OK but not stored again nor alerted (double click, reload,
   retry). The check and the cap run under the `inquiries` lock with the write, so concurrent posts cannot both pass.
@@ -559,7 +564,9 @@ dashboard shows the number of open messages).
   removed), rendered escaped by React.
 - **Retention**: deleted `inquiryPolicy.retentionDays` after receipt (admin settings; default 180, clamped to 30–180
   because privacy policy § 11 promises deletion within 180 days — pending compliance review), by a 12-hour timer started
-  in `src/instrumentation.ts` (`retention.ts`) and on every admin listing. Its own timer rather than the pipeline
+  in `src/instrumentation.ts` (`retention.ts`) and on every admin listing; a message is deleted once it is within one
+  day of its limit (`PURGE_MARGIN_MS`), so it is gone no later than the limit even if a run is late. The same purge
+  removes orphaned `*.tmp` files of interrupted writes older than an hour. Volume backups: ≤ 30 days (privacy § 11). Its own timer rather than the pipeline
   scheduler's tick: the scheduler is switched off by `PIPELINE_SCHEDULE=off`, and the deletion promised in the privacy
   policy must not depend on the data pipeline being on.
 - **CSV export** (`GET /api/admin/inquiries/export`, `csv.ts`): UTF-8 with BOM, RFC 4180 quoting, cells starting with
@@ -567,12 +574,13 @@ dashboard shows the number of open messages).
 - **Alert**: when `PIPELINE_ALERT_WEBHOOK` is set, "New website inquiry: <first name> (<profile>)" with a link to
   `/admin/inquiries`, after the response (`notify.ts`, through `sendAlertNow` of the pipeline alerts: same Teams / JSON
   format detection and retries); never the last name, e-mail, phone, organisation, interests or message (a Teams channel
-  keeps its history). Otherwise nothing is sent and the admin dashboard shows the open count.
+  keeps its history). Server logs and the stored alert state get the redacted `logTitle` ("New website inquiry") only. Otherwise nothing is sent and the admin dashboard shows the open count.
 - Logs carry outcomes and error codes only, never a submitted field.
-- **Accessibility / no JavaScript**: labelled fields, errors as `role="alert"` next to their field (`aria-invalid`,
-  `aria-describedby`), focus moved to the first field to fix (or to the step / result heading), an `aria-live` status
+- **Accessibility / no JavaScript**: labelled fields, each error next to its field (`aria-invalid`, `aria-describedby`)
+  and one summary live region (`role="alert"`, "Please check: <fields>"), focus moved to the first field to fix (or to the step / result heading), an `aria-live` status
   for sending / sent. Without JavaScript the three steps are shown at once and the browser posts the form natively (same
-  endpoint, same guards, result shown after the redirect): the form works, it is not a "JavaScript required" message.
+  endpoint, same guards, result shown after the redirect; a refused field comes back as its code only —
+  `?error=invalid_input&fields=phone`, never a value — and shows its message and the summary; the visitor retypes): the form works, it is not a "JavaScript required" message.
 - **Validation without zod** (judgement call): the API's admin routes use zod via `_lib/http.ts`, but the contact rules
   are shared with the browser bundle and unit tested under plain Node (`npm test` has no install step), so they are a
   dependency-free module; the body cap reuses `readBodyCapped` from the same `_lib`.

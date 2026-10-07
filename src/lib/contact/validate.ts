@@ -23,7 +23,8 @@ const NAME_RE = /^[\p{L}\p{M}\p{N} '’.,()&-]+$/u;
 /** organisation names may also hold `/`, `+` and `#` ("A/B Capital"), never `<` or `>` */
 const COMPANY_RE = /^[^<>]*$/;
 
-export type InquiryField = "profile" | "interests" | "name" | "email" | "phone" | "company" | "message" | "consent";
+export const INQUIRY_FIELDS = ["profile", "interests", "name", "email", "phone", "company", "message", "consent"] as const;
+export type InquiryField = (typeof INQUIRY_FIELDS)[number];
 
 export interface InquiryInput {
   profile: string;

@@ -5,12 +5,16 @@
  *
  * The key is derived from AUTH_SECRET (or the volume secret that replaces it), else a per-process random key (tokens
  * then expire on restart, the visitor reloads). Dependency-free, Node only.
+ *
+ * Not a CAPTCHA: it only stops naive scripts that post without loading the page or post at once. A script that fetches
+ * /contact, waits 3 s and posts gets through; the rate limits, the site-wide cap and the duplicate check bound what it
+ * can store.
  */
 import crypto from "node:crypto";
 import { withAuthSecret } from "../auth/volume-secret.ts";
 
 export const MIN_FILL_MS = 3_000;
-export const MAX_AGE_MS = 7 * 86_400_000;
+export const MAX_AGE_MS = 24 * 3_600_000;
 
 let processKey: Buffer | null = null;
 

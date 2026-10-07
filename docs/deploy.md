@@ -140,7 +140,19 @@ after receipt by default — *Admin → settings*, 30 to 180). There is no e-mai
   Without it nothing is sent: the dashboard shows the number of open messages.
 - The per-client rate limit (5 attempts / 15 min) is kept in memory: right for the **one instance** above (a restart
   resets it; the site-wide cap of 40 stored messages / hour and the 5 000-message hard cap still bound a flood).
-- Backups of the volume include the messages (personal information): keep them under the same access and retention.
+- Backups of the volume include the messages (personal information): **set the `website-data` backup retention to 30 days
+  or less** — privacy § 11 says a copy may remain in backups for at most 30 days after the 180-day deletion.
+- The form timing token (≤ 24 h, ≥ 3 s) and the honeypot are **not a CAPTCHA**: they stop naive scripts only; the per-client
+  and site-wide limits and the duplicate check bound what a determined script can store.
+- **Client address (X-Forwarded-For) check, once after each deploy**: the first 10 contact posts after a start log a
+  line `[contact] x-forwarded-for shape (n/10): hops=<n> [public-v4, internal-v4, …]` — hop count and classes only, never
+  an address. Post the form once from outside (or `curl -X POST <PUBLIC_URL>/api/contact` with an `Origin` header) and read
+  the service logs: the **rightmost `public-*` entry must be the visitor** (typically `hops=1 [public-v4]` or
+  `hops=2 [public-v4, internal-v4]`). If the platform appends nothing (`hops=0`) or a client-supplied extra public entry
+  appears to the right of the visitor, the per-client limit is not keyed on the visitor: report it before relying on it.
+- **Canonical host**: the form's same-origin check accepts only `PUBLIC_URL`'s origin. When the custom domain goes live,
+  make `www.nymbus.ca` ↔ `nymbus.ca` (whichever is not `PUBLIC_URL`) a **redirect** to `PUBLIC_URL`, never a second
+  host serving the site, or posts from the other host are refused (403).
 
 ### Status endpoint and monitoring (`/api/status`)
 

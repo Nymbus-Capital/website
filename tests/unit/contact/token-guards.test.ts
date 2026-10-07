@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { checkFormToken, formKey, issueFormToken, MAX_AGE_MS, MIN_FILL_MS, screenSubmission } from "../../../src/lib/contact/token.ts";
-import { checkSameOrigin, clientKey, contactLimiter, isInternalAddress } from "../../../src/lib/contact/guards.ts";
+import { checkSameOrigin, clientKey, contactLimiter, expandIPv6, forwardedShape, isInternalAddress, limiterKey } from "../../../src/lib/contact/guards.ts";
 
 const KEY = crypto.randomBytes(32);
 
@@ -60,19 +60,52 @@ test("client key: rightmost non-internal X-Forwarded-For entry (the left part is
   for (const a of ["8.8.8.8", "172.32.0.1", "100.128.0.1", "2001:db8::1", "203.0.113.9"]) assert.ok(!isInternalAddress(a), a);
 });
 
-test("rate limit: per client within its window, site-wide on stored inquiries, bounded memory", () => {
-  const lim = contactLimiter({ perClient: 3, perClientWindowMs: 1000, global: 2, globalWindowMs: 5000, maxClients: 2 });
-  assert.ok(lim.take("a", 0) && lim.take("a", 1) && lim.take("a", 2));
-  assert.equal(lim.take("a", 3), false);
-  assert.equal(lim.take("a", 500), false, "refused attempts are not counted, but the window still runs");
-  assert.ok(lim.take("a", 1001), "window passed for the first attempt");
-  assert.ok(lim.take("b", 10));
-  // past maxClients, new addresses share one bucket
-  assert.ok(lim.take("c", 20) && lim.take("d", 21) && lim.take("e", 22));
-  assert.equal(lim.take("f", 23), false);
+test("rate limit: per client within its window, site-wide on stored inquiries with refunds", () => {
+  const lim = contactLimiter({ perClient: 3, perClientWindowMs: 1000, global: 2, globalWindowMs: 5000, maxClients: 100 });
+  assert.ok(lim.take("203.0.113.1", 0) && lim.take("203.0.113.1", 1) && lim.take("203.0.113.1", 2));
+  assert.equal(lim.take("203.0.113.1", 3), false);
+  assert.equal(lim.take("203.0.113.1", 500), false, "refused attempts are not counted, but the window still runs");
+  assert.ok(lim.take("203.0.113.1", 1001), "window passed for the first attempt");
+  assert.ok(lim.take("203.0.113.2", 10), "another IPv4 address is its own bucket");
   assert.ok(lim.takeGlobal(0) && lim.takeGlobal(1));
   assert.equal(lim.takeGlobal(2), false);
+  lim.refundGlobal(); // e.g. a duplicate: nothing stored
+  assert.ok(lim.takeGlobal(3), "a refunded reservation frees its slot");
+  assert.equal(lim.takeGlobal(4), false);
   assert.ok(lim.takeGlobal(5001));
+});
+
+test("rate limit: table overflow forgets the least recently used bucket, never a shared bucket", () => {
+  const lim = contactLimiter({ perClient: 2, perClientWindowMs: 60_000, global: 99, globalWindowMs: 1, maxClients: 3 });
+  assert.ok(lim.take("198.51.100.1", 0) && lim.take("198.51.100.1", 1));
+  assert.equal(lim.take("198.51.100.1", 2), false, "victim over budget");
+  // a flood of new addresses: each gets its own fresh bucket (no shared "*" bucket that would lock everyone out)
+  for (let i = 10; i < 200; i++) assert.ok(lim.take(`192.0.2.${i % 250}`, 3 + i), `flood ${i}`);
+  assert.ok(lim.size() <= 3);
+  // a recently active client keeps its count while older ones are evicted
+  const lim2 = contactLimiter({ perClient: 2, perClientWindowMs: 60_000, global: 99, globalWindowMs: 1, maxClients: 3 });
+  lim2.take("198.51.100.7", 0); lim2.take("198.51.100.7", 1);
+  lim2.take("192.0.2.1", 2); lim2.take("192.0.2.2", 3);
+  assert.equal(lim2.take("198.51.100.7", 4), false, "touched: now most recently used");
+  lim2.take("192.0.2.3", 5); // evicts 192.0.2.1, the least recently used
+  assert.equal(lim2.take("198.51.100.7", 6), false, "still limited");
+  assert.equal(lim2.size(), 3);
+});
+
+test("rate limit: IPv6 by /64 (rotating inside one's own prefix does not help), IPv4 per address", () => {
+  assert.deepEqual(expandIPv6("2001:db8::1"), ["2001", "db8", "0", "0", "0", "0", "0", "1"]);
+  assert.deepEqual(expandIPv6("[::ffff:192.0.2.5]"), ["0", "0", "0", "0", "0", "ffff", "c000", "205"]);
+  for (const bad of ["1::2::3", "2001:db8:::1", "g::1", "1:2:3:4:5:6:7:8:9", "::1.2.3.999"]) assert.equal(expandIPv6(bad), null, bad);
+  assert.equal(limiterKey("2001:DB8:0:1:aaaa::1"), "2001:db8:0:1::/64");
+  assert.equal(limiterKey("2001:db8:0:1:ffff:1:2:3"), "2001:db8:0:1::/64");
+  assert.notEqual(limiterKey("2001:db8:0:2::1"), limiterKey("2001:db8:0:1::1"));
+  assert.equal(limiterKey("::ffff:192.0.2.5"), "192.0.2.5");
+  assert.equal(limiterKey("192.0.2.5"), "192.0.2.5");
+  assert.equal(limiterKey("unknown"), "unknown");
+  const lim = contactLimiter({ perClient: 2, perClientWindowMs: 60_000, global: 99, globalWindowMs: 1, maxClients: 100 });
+  assert.ok(lim.take("2001:db8:0:1::1", 0) && lim.take("2001:db8:0:1::2", 1));
+  for (let i = 3; i < 50; i++) assert.equal(lim.take(`2001:db8:0:1:${i.toString(16)}::9`, i), false, "same /64, rotated address");
+  assert.ok(lim.take("2001:db8:0:2::1", 60), "another /64");
 });
 
 test("screen: honeypot, forged or too fast token = bot (fake success); old page = expired; else ok", () => {
@@ -86,4 +119,11 @@ test("screen: honeypot, forged or too fast token = bot (fake success); old page 
   assert.equal(screenSubmission({ honeypot: "", token: "v1.abc.forged" }, later, KEY), "bot");
   assert.equal(screenSubmission({ honeypot: "", token: "" }, later, KEY), "bot");
   assert.equal(screenSubmission({ honeypot: "", token }, t0 + MAX_AGE_MS + 1, KEY), "expired");
+});
+
+test("xff diagnostic: hop count and classes only, never an address", () => {
+  const out = forwardedShape("198.51.100.23, 2001:db8::7, 10.0.0.4, [fd00::1], junk");
+  assert.equal(out, "hops=5 [public-v4, public-v6, internal-v4, internal-v6, invalid]");
+  for (const a of ["198.51.100.23", "2001:db8", "10.0.0.4", "fd00", "junk"]) assert.ok(!out.includes(a), a);
+  assert.equal(forwardedShape(null), "hops=0");
 });

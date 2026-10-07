@@ -60,6 +60,8 @@ test("contact: three steps validated, consent required, sent to the site (EN)", 
   await send.click();
   await expect(form.getByText("Please enter a valid email address.")).toBeVisible();
   await expect(form.getByText("Please give your consent.")).toBeVisible();
+  await expect(form.getByTestId("contact-errors")).toHaveText("Please check: Full name, Email address, Consent");
+  await expect(form.getByTestId("contact-errors")).toHaveAttribute("role", "alert");
   await expect(page.getByLabel("Full name")).toBeFocused(); // focus goes to the first field to fix
   await expect(form.getByRole("link", { name: /privacy policy/i })).toHaveAttribute("href", "/privacy");
   await page.getByLabel("Full name").fill(`E2E Visitor ${info.project.name}`);
@@ -148,6 +150,21 @@ test("contact: works without JavaScript (native post, redirect back with the res
   await form.getByRole("button", { name: /send my message/i }).click();
   await expect(page).toHaveURL(/\/contact\?sent=1/);
   await expect(page.getByTestId("contact-sent")).toBeVisible();
+  // a field the server refuses comes back as its code only (never the value), with its message and the summary
+  await page.goto("/contact");
+  await form.getByText("Other", { exact: true }).click();
+  await form.getByText("General inquiry", { exact: true }).click();
+  await page.getByLabel("Full name").fill(`E2E NoScript bad phone ${info.project.name}`);
+  await page.getByLabel("Email address").fill("noscript@example.com");
+  await page.getByLabel(/^Phone/).fill("call me maybe");
+  await form.getByText(/I agree that Nymbus Capital uses these details/).click();
+  await page.waitForTimeout(3200);
+  await form.getByRole("button", { name: /send my message/i }).click();
+  await expect(page).toHaveURL(/\/contact\?error=invalid_input&fields=phone#contact-form$/);
+  expect(page.url()).not.toMatch(/call|maybe|noscript/i);
+  await expect(page.getByTestId("contact-errors")).toHaveText("Please check: Phone");
+  await expect(page.getByText("Please check the phone number.")).toBeVisible();
+  await expect(page.getByLabel(/^Phone/)).toHaveAttribute("aria-describedby", "ct-e-phone");
   // an error comes back the same way
   await page.goto("/contact?error=rate_limited");
   await expect(page.getByTestId("contact-fail")).toContainText("Too many attempts");
