@@ -14,7 +14,8 @@ const SHOTS = "e2e/screenshots";
 mkdirSync(SHOTS, { recursive: true });
 
 /** a fresh documentation-range (2001:db8::/32) client address: tests run in parallel workers and must never share one */
-const ip = () => `2001:db8::${randomBytes(2).toString("hex")}:${randomBytes(2).toString("hex")}`;
+/** a fresh client per call: the server buckets IPv6 by /64, so each call gets its own /64 */
+const ip = () => `2001:db8:${randomBytes(2).toString("hex")}:${randomBytes(2).toString("hex")}::1`;
 
 /** the form timing token rendered in the page (the server refuses posts made within 3 s of rendering) */
 async function token(request: import("@playwright/test").APIRequestContext): Promise<string> {
@@ -221,6 +222,9 @@ test.describe("POST /api/contact guards", () => {
     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
     expect(limited.status()).toBe(429);
     expect(limited.headers()["retry-after"]).toBe("900");
+    // another address of the same IPv6 /64 is the same client
+    const sibling = addr.replace(/::1$/, "::beef");
+    expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": sibling }, data: body })).status()).toBe(429);
     expect((await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: body })).status()).toBe(200);
   });
 });

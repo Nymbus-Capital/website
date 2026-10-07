@@ -578,7 +578,7 @@ test.describe("admin flows", () => {
     await page.waitForTimeout(3200);
     const name = `E2E Admin ${info.project.name}`;
     const post = () => request.post("/api/contact", {
-      headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a::2" : "2001:db8:a::1" },
+      headers: { origin: BASE, "content-type": "application/json", "x-forwarded-for": info.project.name === "admin-mobile" ? "2001:db8:a:2::1" : "2001:db8:a:1::1" },
       data: JSON.stringify({ profile: "Institution", interests: ["General inquiry"], name, email: "admin-test@example.com", phone: "+1 514 555 0100", company: "=E2E Pension", message: "Line one\n<script>alert(1)</script>", consent: true, website: "", t, lang: "fr" }),
     });
     expect((await post()).status()).toBe(200);
