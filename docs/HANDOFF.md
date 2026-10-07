@@ -175,7 +175,7 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    (ConceptPanel, overlay), no ref written during render (Team bio, Contact steps, chart `hostRef`). The frozen
    AnalysisScan still writes its language ref during render: one `eslint-disable react-hooks/refs` line right before
    `export function AnalysisScan()` (outside the hashed slice, covers only the panel to the end of fx.tsx).
-4. **Known source gaps** (no workaround on main endpoints): distributions, `short_corp` before 2024-12, GMV live
+4. **Known source gaps** (no workaround on main endpoints): distributions, GMV live
    variants (factsheet), ESG metrics and Multi-Strategy allocation (factsheet), month-end duration / yield.
 5. Nice to have: ~~contact form backend~~ [done 2026-10-06, branch `feat/contact-form`, not merged: `POST /api/contact`
    (JS + no-JS), messages on the data volume, `/admin/inquiries` (messages: mark handled, delete, CSV export, open count
@@ -186,6 +186,22 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    navigation.
 
 ## 6. Session log
+
+- 2026-10-07 (home session, branch `fix/benchmark-history-and-fee-basis`, merged): (1) **FTSE `short_corp` before
+  2024-12**: FTSE's earlier generation is kept under the SAME short_name and index_id (old name "Short Corporate Bond
+  Index", `index_content` null); `ftseDaily` kept the latest signature only. `ftseEarlierGenerations` (index-levels.ts)
+  feeds it to `joinFtseHistory` as a strict candidate (verified one-day gap 2024-12-04 → 05: implied −3.93 bp, estimate
+  −4.40 bp). Monthly Income's 2Y / 3Y / 5Y / since-start benchmark figures come back. (2) **Series benchmark** shown for
+  every period the series covers even when its own figure is withheld (value added stays "—"); since-inception index of
+  a mid-month launch from the inception-day FTSE level (`indexSinceInception`, classes.ts). (3) **CIBC one-day gaps**:
+  a valuation day served without NAV (SEB 2026-02-09, older SEST days) is bridged only when the next day's stored return
+  equals the NAV-per-unit ratio across the gap (≤ 2 days, inside the month); a month after a previous month-end without
+  NAV is withheld (its first return carries that move). (4) **Fee basis next to every return**: Performance tab series
+  names "Fund (net of fees)" / "Strategy (… , gross of fees)", growth lead, net / gross markers in the comparison table
+  and Solutions, `summaryNet` text (compliance row 8 updated), FR « Indice de référence ». Adversarial reviews: 2, findings
+  fixed. SEB still has 2024-12 (distribution adjustment inconsistent between series, class I) and 2026-07 (Apex rows
+  duplicated 07-08..07-10 by the fund rename "Nymbus SEB Fund" → "Nymbus Sustainable Enhanced Bond Fund": the
+  dataplatform's overlap dedup only merges different sources) withheld: dataplatform defects (§ 5 A4).
 
 - 2026-10-06 (home session): lockfile committed; Morningstar 1–4 star images = exact left crops of the official 5-star
   file (unit test checks the sizes); Teams set-up steps shown in the admin alerts panel while no webhook is set.
