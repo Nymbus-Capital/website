@@ -75,7 +75,7 @@ test("every font-family declaration of CSS, TSX and the standalone pages starts 
 
 test("globals.css makes controls, code and SVG text inherit the Poppins body font", () => {
   const css = readFileSync(join(SRC, "app/globals.css"), "utf8");
-  assert.match(css, /button, input, select, textarea[^{]*\{\s*font-family:\s*inherit/);
+  assert.match(css, /button,\s*input,\s*select,\s*textarea[^{]*\{\s*font-family:\s*inherit/);
   assert.match(css, /svg text/);
   assert.match(css, /body\s*\{[^}]*font-family:\s*"Poppins"/);
 });

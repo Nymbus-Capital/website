@@ -29,8 +29,8 @@ test("next.config.ts serves /brand/third-party/* with a sandboxing CSP and nosni
   const i = cfg.indexOf('source: "/brand/third-party/:path*"');
   assert.ok(i > 0, "header rule present");
   const block = cfg.slice(i, i + 600);
-  assert.match(block, /Content-Security-Policy[^\n]*default-src 'none'[^\n]*sandbox/);
-  assert.match(block, /X-Content-Type-Options[^\n]*nosniff/);
+  assert.match(block, /Content-Security-Policy",\s*value: "default-src 'none'[^"]*sandbox"/);
+  assert.match(block, /X-Content-Type-Options",\s*value: "nosniff"/);
 });
 
 test("official provider logos shipped (Fundata, RBC Investor Services) beside the Morningstar files", () => {

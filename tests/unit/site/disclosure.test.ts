@@ -67,7 +67,7 @@ test("hash: only the box's own anchors open it", () => {
 test("only the boilerplate is collapsed: performance qualifiers stay outside the box", () => {
   const closing = read("components/fund/Closing.tsx");
   const open = closing.indexOf("<Disclosure");
-  assert.match(closing, /<Disclosure lang=\{lang\} anchors=\{\["disclosure"\]\} testId="fund-disclosure"\n\s+en=\{\[/);
+  assert.match(closing, /<Disclosure\s+lang=\{lang\}\s+anchors=\{\["disclosure"\]\}\s+testId="fund-disclosure"\s+en=\{\[/);
   for (const q of ['className="fxd-sample"', 'data-testid="perf-note"', 'data-testid="perf-class"', "T.disclosure.gross, lang) : tr(T.disclosure.net"]) {
     assert.ok(closing.indexOf(q) > 0 && closing.indexOf(q) < open, `${q} before the box`);
   }
@@ -75,7 +75,7 @@ test("only the boilerplate is collapsed: performance qualifiers stay outside the
     assert.ok(closing.indexOf(b) > open && closing.indexOf(b) < closing.indexOf("</Disclosure>"), `${b} inside the box`);
   }
   const footer = read("components/site/Footer.tsx");
-  assert.match(footer, /<Disclosure anchors=\{\["disclaimers"\]\} className="footer-disc-body" testId="footer-disclosure" en=\{texts\.map/);
+  assert.match(footer, /<Disclosure\s+anchors=\{\["disclaimers"\]\}\s+className="footer-disc-body"\s+testId="footer-disclosure"\s+en=\{texts\.map/);
   // qualifiers next to figures are never wrapped (performance notes, rankings notes, tile / table summaries)
   for (const f of ["components/fund/Performance.tsx", "components/fund/Awards.tsx", "components/site/pages/StrategiesIndex.tsx",
     "components/site/pages/Solutions.tsx", "components/site/home/Sections.tsx"]) {
@@ -88,11 +88,11 @@ test("CSS contract: clipped not hidden, collapsed only with JS, open in print", 
   const block = css.slice(css.indexOf("collapsible disclosures"));
   // the text is clipped (max-height + overflow), never display:none / visibility:hidden
   assert.doesNotMatch(block.replace(/\.disc-toggle[^{]*\{[^}]*\}/g, "").replace(/\.disc\[data-disc="plain"\] \{[^}]*\}/, ""), /display:\s*none|visibility:\s*hidden/);
-  assert.match(block, /\.js \.disc\[data-disc="fits"\] \{ border-color: transparent; background: none; \}/);
-  assert.match(block, /\.js \.disc:is\(\[data-disc="collapsed"\], \[data-disc="fits"\]\) > \.disc-clip \{ max-height: var\(--disc-max\); \}/);
-  assert.match(block, /@media print \{[\s\S]*max-height: none !important[\s\S]*\.disc-toggle, \.js \.disc-toggle \{ display: none !important; \}/);
-  assert.match(block, /@media \(prefers-reduced-motion: reduce\) \{ \.disc-clip, \.disc-toggle svg \{ transition: none; \} \}/);
+  assert.match(block, /\.js \.disc\[data-disc="fits"\] \{\s*border-color: transparent;\s*background: none;\s*\}/);
+  assert.match(block, /\.js \.disc:is\(\[data-disc="collapsed"\], \[data-disc="fits"\]\) > \.disc-clip \{\s*max-height: var\(--disc-max\);\s*\}/);
+  assert.match(block, /@media print \{[\s\S]*max-height: none !important[\s\S]*\.disc-toggle,\s*\.js \.disc-toggle \{\s*display: none !important;\s*\}/);
+  assert.match(block, /@media \(prefers-reduced-motion: reduce\) \{\s*\.disc-clip,\s*\.disc-toggle svg \{\s*transition: none;\s*\}\s*\}/);
   const comp = read("components/site/Disclosure.tsx");
   assert.doesNotMatch(comp, /aria-hidden=\{|aria-hidden="true"[^>]*disc-clip/);
-  assert.match(comp, /aria-expanded=\{expanded\} aria-controls=\{bodyId\}/);
+  assert.match(comp, /aria-expanded=\{expanded\}\s+aria-controls=\{bodyId\}/);
 });
