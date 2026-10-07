@@ -36,7 +36,7 @@ Commit trailers used so far (keep them):
   (`src/lib/pipeline/**`, `src/lib/data/{types,store}.ts`, `src/config/funds.ts`, `src/lib/auth/policy.ts`,
   `src/content/disclaimers.ts`, `deploy/northflank/provision.mjs`) use relative imports with explicit
   `.ts` extensions and erasable TypeScript only, so they run under Node type stripping.
-- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (**blocking**, `eslint.config.mjs`) → build →
+- **CI** (`.github/workflows/ci.yml`, every push): unit → typecheck → lint (**blocking**, `eslint.config.mjs`) → format check (**blocking**) → build →
   Playwright e2e (desktop + Pixel 7; admin tests run after public ones) → Docker build.
   Add `[ci-logs]` to a commit message to have CI push logs + screenshots to a `ci/run-<n>` branch
   (useful from sandboxes that cannot download Actions artifacts:
@@ -58,6 +58,13 @@ Commit trailers used so far (keep them):
   Extract a run with `git archive origin/ci/run-<n> screenshots | tar -x -C <dir>`.
 - **Lint**: blocking, with a warnings ratchet (`--max-warnings` in `ci.yml`, 0 since § 5 B3: no warning may be added).
   Fixing warnings → lower the cap in the same commit; never raise it.
+- **Formatting**: Prettier 3 (`.prettierrc`: printWidth 120; `.prettierignore`: the frozen Science-at-scale files, all
+  data / fixture JSON except `package.json` and `tsconfig.json`, Markdown, the WordPress plugin, `public/`). CI runs
+  `npm run format:check` (**blocking**, after lint); on failure it writes the needed diff to `ci-out/prettier.diff`
+  (published with `[ci-logs]`, so a sandbox without `node_modules` can `git apply` it). Locally: `npm run format`.
+  The one-time repository pass is listed in `.git-blame-ignore-revs` (`git config blame.ignoreRevsFile
+  .git-blame-ignore-revs`; GitHub applies it automatically). Prettier is pinned to an exact version (no lockfile yet), so
+  a newer 3.x cannot fail the check on its own; bump it deliberately with a fresh `format` pass.
 - **Lockfile**: none is committed (the cloud workspace cannot reach the npm registry). CI resolves one on every run
   (`npm install`), uploads it as the `package-lock` artifact and, with `[ci-logs]`, copies it to the `ci/run-<n>` branch;
   the Dockerfile uses `npm ci` when a lockfile exists. Gabriel or the office session can commit one from a green run.
@@ -155,7 +162,7 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    `portfolio`, `distributions`, `site`, `helpers`); FTSE level code out of `metrics.ts` into `index-levels.ts`;
    `components/fund/lib/data.ts` → `performance`, `growth`, `heatmap`, `portfolio`, `distributions`, `documents`,
    `visibility`, `facts`, `is-num`; Contact.tsx imports `components/motion/motion` (shim deleted), `contact.copy.ts`.
-   Remaining: run Prettier once over the repository (separate commit, visual diff byte-identical); `class-returns.ts`
+   Prettier pass done on branch `chore/prettier` (not merged, 2026-10-06; § 2 Formatting). Remaining: `class-returns.ts`
    (≈ 500 lines) left whole while B1 changes it; `fund.copy.ts` and `data/types.ts` (≈ 530 lines each) are copy / the
    data contract and read best in one file; references to `build.ts` in `config.ts` comments left (CLASS_CHECKS is being
    changed on another branch).
