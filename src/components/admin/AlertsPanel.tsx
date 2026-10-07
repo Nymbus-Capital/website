@@ -71,8 +71,25 @@ export function AlertsPanel({
       </h2>
       {!status.configured ? (
         <div className="adm-alert err" data-testid="alerts-off">
-          Alerts are off: blocked, failed or stale data is only visible here. Set <code>PIPELINE_ALERT_WEBHOOK</code> (a
-          Teams channel webhook, see docs/deploy.md) in the Northflank secret group and restart the service.
+          <p>Alerts are off: blocked, failed or stale data is only visible here. To post them to a Teams channel:</p>
+          <ol className="adm-steps" data-testid="alerts-howto">
+            <li>
+              In Teams, open the channel → <strong>⋯ → Workflows</strong> → template{" "}
+              <strong>“Post to a channel when a webhook request is received”</strong> → choose the team and channel →{" "}
+              <strong>Add workflow</strong>, then copy the URL it shows.
+            </li>
+            <li>
+              In Northflank (project <em>ETL</em> → <strong>Secrets</strong> → <em>website-secrets</em>), paste it into{" "}
+              <code>PIPELINE_ALERT_WEBHOOK</code> and save. The URL is a secret: do not share it.
+            </li>
+            <li>
+              Restart the <em>website</em> service, come back here and press <strong>send a test alert</strong>.
+            </li>
+          </ol>
+          <p className="adm-small">
+            The channel receives: runs needing attention (once, a daily reminder, then “resolved”), stale data, rankings
+            about to expire, and new contact inquiries (first name and profile only). Details: docs/deploy.md § Alerts.
+          </p>
         </div>
       ) : (
         <div className={`adm-alert${failing ? " warn" : d ? " ok" : ""}`} data-testid="alerts-last">
