@@ -49,8 +49,8 @@ async function fsCopy(): Promise<string> {
   await cp(FIXTURE_FACTSHEETS_DIR, dir, { recursive: true });
   return dir;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function editJson(file: string, fn: (j: any) => void): Promise<void> {
-  // eslint-disable-line @typescript-eslint/no-explicit-any
   const j = JSON.parse(await readFile(file, "utf8"));
   fn(j);
   await writeFile(file, JSON.stringify(j));

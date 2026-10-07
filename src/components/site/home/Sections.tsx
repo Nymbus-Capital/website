@@ -153,8 +153,8 @@ const PLATFORMS = [
 export function Partners() {
   const { pick } = useTranslation();
   const logo = (l: { src: string; alt: string; h: number }) => (
-    // eslint-disable-next-line @next/next/no-img-element
     <li key={l.src}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={l.src} alt={l.alt} loading="lazy" decoding="async" style={{ height: l.h }} />
     </li>
   );
