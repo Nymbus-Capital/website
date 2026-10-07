@@ -163,7 +163,7 @@ function ThirdPartyEntry({
                   <strong>
                     {a.percentile != null
                       ? tr(RK.tp.percentile, lang).replace("{ord}", ordinal(a.percentile, lang))
-                      : "—"}
+                      : null}
                   </strong>
                 </td>
               </tr>
@@ -232,9 +232,7 @@ function Entry({ e, lang, brand }: { e: FundLibraryRanking; lang: Locale; brand?
                       >
                         Q{r.quartile}
                       </span>
-                    ) : (
-                      "—"
-                    )}
+                    ) : null}
                   </td>
                 </tr>
               ))}

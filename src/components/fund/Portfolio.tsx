@@ -87,14 +87,8 @@ export function PortfolioTab({
   const hasContent = chars.length || esg.length || holdings.length || bks.length;
   const full = fullRowItems(bks.map((b) => b.key === "assetClass" && isWhole(b.rows)));
 
-  if (!hasContent)
-    return (
-      <div className="container fp">
-        <p className="notice" data-testid="portfolio-soon">
-          {tr(T.portfolio.none, lang)}
-        </p>
-      </div>
-    );
+  // nothing to show: no panel content (the page omits the tab), never a "will appear" message
+  if (!hasContent) return null;
   return (
     <div className="container fp">
       {data?.factsheetMonth ? (
@@ -363,11 +357,11 @@ function DailyHoldings({ items, lang }: { items: PortfolioHolding[]; lang: Local
                   </span>
                 ) : null}
               </td>
-              {cols.coupon ? <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : "—"}</td> : null}
-              {cols.maturity ? <td className="hd-opt">{h.maturity ? dateLabel(h.maturity, lang) : "—"}</td> : null}
-              {cols.rating ? <td>{h.rating ?? "—"}</td> : null}
+              {cols.coupon ? <td>{h.coupon != null ? fmt(h.coupon, { pct: true, decimals: 2, lang }) : null}</td> : null}
+              {cols.maturity ? <td className="hd-opt">{h.maturity ? dateLabel(h.maturity, lang) : null}</td> : null}
+              {cols.rating ? <td>{h.rating ?? null}</td> : null}
               {cols.sector ? (
-                <td className="hd-opt hd-sector">{h.sector ? categoryLabel(h.sector, lang) : "—"}</td>
+                <td className="hd-opt hd-sector">{h.sector ? categoryLabel(h.sector, lang) : null}</td>
               ) : null}
               <td className="hd-bar" aria-hidden="true">
                 <span style={{ width: `${(h.weight / max) * 100}%`, transitionDelay: `${i * 50}ms` }} />
@@ -437,7 +431,7 @@ function EsgBlock({
             <tr key={c.id}>
               <td className="wrap">{tr(c.label, lang)}</td>
               <td className="strong">{charValue(c.fund, c.unit, lang)}</td>
-              {hasIndex ? <td>{charValue(c.index ?? null, c.unit, lang) ?? "—"}</td> : null}
+              {hasIndex ? <td>{charValue(c.index ?? null, c.unit, lang) ?? null}</td> : null}
             </tr>
           ))}
         </tbody>

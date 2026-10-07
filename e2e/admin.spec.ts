@@ -547,7 +547,7 @@ test.describe("admin flows", () => {
     expect(bad.status()).toBe(400);
   });
 
-  test("SEB pinned to a class H run: opens on class H, F says coming soon; with class H selected every performance label says Series H / Série H", async ({
+  test("SEB pinned to a class H run: opens on class H; F shows its NAV and H's returns labelled H; tiles show H labelled H (EN / FR)", async ({
     page,
     context,
     request,
@@ -599,13 +599,18 @@ test.describe("admin flows", () => {
           await page.reload();
         }
         // class F (LDM201) has no series in this run: the page opens on class H, the first series with returns (never an
-        // empty performance block); F itself says "coming soon", never H's numbers under F
-        await expect(page.getByTestId("nav-card").getByTestId("series-LDM202")).toHaveAttribute("aria-checked", "true");
-        await page.getByTestId("nav-card").getByTestId("series-LDM201").click();
-        await expect(page.getByTestId("figures-soon")).toBeVisible();
-        await page.getByTestId("nav-card").getByTestId("series-LDM202").click();
+        // empty performance block); selecting F shows F's NAV and H's returns under H's own label (never H's numbers
+        // under F, never a "coming soon" message)
         const h = new RegExp(`${word} H(?![A-Za-z])`);
         const f = new RegExp(`(Series|Série) F(?![A-Za-z])`);
+        await expect(page.getByTestId("nav-card").getByTestId("series-LDM202")).toHaveAttribute("aria-checked", "true");
+        if (await page.getByTestId("nav-card").getByTestId("series-LDM201").count()) {
+          await page.getByTestId("nav-card").getByTestId("series-LDM201").click();
+          await expect(page.getByTestId("figures-soon")).toHaveCount(0);
+          await expect(page.getByTestId("basis")).toContainText(h);
+          await expect(page.getByTestId("basis")).not.toContainText(f);
+          await page.getByTestId("nav-card").getByTestId("series-LDM202").click();
+        }
         for (const tid of ["basis", "overview-returns", "perf-class"]) {
           await expect(page.getByTestId(tid)).toContainText(h);
           await expect(page.getByTestId(tid)).not.toContainText(f);
@@ -619,18 +624,20 @@ test.describe("admin flows", () => {
         await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
           `${fundWord} (${word} H, ${net})`,
         );
-        // home tile and strategies index
+        // home tile and strategies index: F has no series here, so the tile shows H's own returns, labelled H
         for (const p of ["/", "/strategies"]) {
           await page.goto(p);
-          // the tile shows only the headline class's own returns: F has no series here, so no class H figure appears
-          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveCount(0);
+          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("perf-class")).toHaveText(
+            new RegExp(`^${returns} H$`),
+          );
+          await expect(page.getByTestId(`strategy-${fund}`).getByTestId("figures-soon")).toHaveCount(0);
         }
         await expect(
           page
             .getByTestId("compare-table")
             .getByTestId("perf-class")
             .filter({ hasText: new RegExp(`${returns} H$`) }),
-        ).toHaveCount(0);
+        ).toHaveCount(1);
       }
       await shot(page, "seb-class-h-strategies", info.project.name);
     } finally {

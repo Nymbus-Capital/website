@@ -18,7 +18,7 @@ import { bigMoney, dateLabel, fmt, money, monthLabel, NAV_DECIMALS } from "./lib
 import { initials, navDirection, resolveManagers, riskIndex, sortedClasses } from "./lib/facts.ts";
 import { benchmarkLabel, perfClassLabel, trailingRows } from "./lib/performance.ts";
 import { classInfoOf, classType, defaultClassCode, type ClassCtx } from "./lib/select.ts";
-import { noFiguresText, periodLong } from "./lib/notice.ts";
+import { periodLong } from "./lib/notice.ts";
 import { ClassTypeBadge } from "./ClassBadge";
 import { cifscCategory, rankingsToShow } from "./lib/rankings.ts";
 import type { BrandAssets } from "@/lib/data/brand-assets";
@@ -37,8 +37,9 @@ interface Props {
   brand?: BrandAssets;
 }
 
+/** A figure; a benchmark / value-added cell without one stays blank (no dash, no explanation). */
 const P = (v: number | null | undefined, lang: Locale, sign = false) =>
-  v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang });
+  v == null ? "" : fmt(v, { pct: true, decimals: 2, sign, lang });
 
 export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
   const texts = FUND_TEXTS[spec.key];
@@ -50,7 +51,6 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const fundWord = tr(isFund ? T.perf.fund : T.perf.strategy, lang);
-  const soon = noFiguresText(ctx, lang, T.perf.none);
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   // Morningstar rating of the fund, prominently on the overview (bond funds); the server removed a stale one
   const ms = isFund ? (rankingsToShow(content, spec.classes)?.morningstar ?? null) : null;
@@ -77,6 +77,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
               </p>
             ) : null}
           </Block>
+          {rows.length && perf ? (
           <Block
             title={tr(T.overview.returns, lang)}
             testId="overview-returns"
@@ -126,7 +127,7 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                           </span>
                           {r.annualized ? "*" : ""}
                         </td>
-                        <td className={r.fund != null && r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
+                        <td className={r.fund < 0 ? "neg" : undefined}>{P(r.fund, lang)}</td>
                         {hasIndex ? <td>{P(r.index, lang)}</td> : null}
                         {hasVa ? (
                           <td className={r.va == null ? undefined : r.va < 0 ? "neg" : "pos"}>{P(r.va, lang, true)}</td>
@@ -138,23 +139,15 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                 {rows.some((r) => r.annualized) ? (
                   <p className="fine fxb-foot">* {tr(T.badges.annualized, lang)}</p>
                 ) : null}
-                {rows.some((r) => r.fund == null) ? (
-                  <p className="fine fxb-foot" data-testid="overview-withheld-note">
-                    {tr(T.classes.withheld, lang)}
-                  </p>
-                ) : null}
                 {perf?.shortRecord && perf.firstMonth ? (
                   <p className="fine fxb-foot">
                     {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
                   </p>
                 ) : null}
               </div>
-            ) : (
-              <p className="notice" data-testid="overview-soon">
-                {soon}
-              </p>
-            )}
+            ) : null}
           </Block>
+          ) : null}
         </div>
         <aside className="fxov-side">
           {ms ? (
@@ -329,9 +322,7 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
                   </td>
                   {showType ? (
                     <td data-label={tr(T.classes.type, lang)} data-testid={`class-type-cell-${c.fundserv}`}>
-                      {type === "none" ? (
-                        <span aria-hidden="true">—</span>
-                      ) : (
+                      {type === "none" ? null : (
                         <ClassTypeBadge type={type} lang={lang} testId={`class-type-${c.fundserv}`} />
                       )}
                     </td>
@@ -339,19 +330,19 @@ function SeriesTable({ spec, content, data, lang, ctx }: Props) {
                   <td data-label={tr(T.facts.currency, lang)}>{c.currency}</td>
                   {showInception ? (
                     <td data-label={tr(T.classes.launch, lang)} data-testid={`class-inception-${c.fundserv}`}>
-                      {inception(c.fundserv) ? dateLabel(inception(c.fundserv), lang) : "—"}
+                      {inception(c.fundserv) ? dateLabel(inception(c.fundserv), lang) : null}
                     </td>
                   ) : null}
                   <td data-label={tr(T.facts.nav, lang)}>
-                    {c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : "—"}
+                    {c.nav != null ? money(c.nav, c.currency, lang, NAV_DECIMALS) : null}
                   </td>
                   <td
                     data-label={tr(T.facts.change, lang)}
                     className={dir === "up" ? "pos" : dir === "down" ? "neg" : undefined}
                   >
-                    {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : "—"}
+                    {c.changePct != null ? fmt(c.changePct, { pct: true, decimals: 2, sign: true, lang }) : null}
                   </td>
-                  <td data-label={tr(T.facts.date, lang)}>{c.date ? dateLabel(c.date, lang) : "—"}</td>
+                  <td data-label={tr(T.facts.date, lang)}>{c.date ? dateLabel(c.date, lang) : null}</td>
                 </tr>
               );
             })}

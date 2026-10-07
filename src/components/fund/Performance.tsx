@@ -27,7 +27,7 @@ import {
 } from "./lib/performance.ts";
 import { visibleBlocks } from "./lib/visibility.ts";
 import { ClassTypeBadge } from "./ClassBadge";
-import { nextMonth, noFiguresText, periodLong } from "./lib/notice.ts";
+import { nextMonth, periodLong } from "./lib/notice.ts";
 import type { ClassCtx } from "./lib/select.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
 
@@ -39,8 +39,9 @@ interface Props {
   ctx?: ClassCtx;
 }
 
+/** A figure; a benchmark / value-added cell without one stays blank (no dash, no explanation). */
 const P = (v: number | null | undefined, lang: Locale, sign = false) =>
-  v == null ? "—" : fmt(v, { pct: true, decimals: 2, sign, lang });
+  v == null ? "" : fmt(v, { pct: true, decimals: 2, sign, lang });
 
 export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const v = visibleBlocks(data, content, 0);
@@ -62,8 +63,6 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
   const tag = variant ? tr(variant.name, lang) : cl;
   const growthNames = tag ? { ...names, fund: `${fundName} (${tag}, ${basisShort})` } : names;
   const any = v.growth || v.trailing || v.calendar || v.heatmap || v.risk;
-  const sel = ctx?.options.find((o) => o.fundserv === ctx.selected) ?? null;
-  const soon = noFiguresText(ctx, lang, T.perf.none);
   const withheld = new Set(perf?.withheldMonths ?? []);
 
   return (
@@ -89,10 +88,10 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
               · <span data-testid="perf-variant">{tr(variant.name, lang)}</span>
             </>
           ) : null}
-          {sel && !variant ? (
+          {ctx?.returnsType && !variant ? (
             <>
               {" "}
-              <ClassTypeBadge type={sel.type} lang={lang} testId="perf-class-type" />
+              <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="perf-class-type" />
             </>
           ) : null}
         </p>
@@ -110,16 +109,6 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
       {perf && any && perf.shortRecord && perf.firstMonth ? (
         <p className="fine fp-since" data-testid="perf-since-class">
           {tr(T.classes.since, lang).replace("{date}", dateLabel(perf.firstMonth, lang, true))}
-        </p>
-      ) : null}
-      {!any ? (
-        <p className="notice" data-testid="perf-soon">
-          {soon}
-        </p>
-      ) : null}
-      {perf && any && withheld.size ? (
-        <p className="fine fp-since" data-testid="perf-withheld-note">
-          {tr(T.classes.withheld, lang)}
         </p>
       ) : null}
       {v.growth && perf ? (
@@ -152,7 +141,7 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
             <p className="fine fxb-foot" data-testid="growth-from">
               {(perf.growthFrom === perf.inception
                 ? tr(T.classes.growthFromInception, lang)
-                : tr(T.classes.growthFromAfter, lang)
+                : tr(T.classes.growthFrom, lang)
               ).replace("{date}", dateLabel(perf.growthFrom, lang, true))}
             </p>
           ) : null}
@@ -187,7 +176,6 @@ export function PerformanceTab({ spec, content, data, lang, ctx }: Props) {
               neg: tr(T.perf.negative, lang),
               pos: tr(T.perf.positive, lang),
               fund: names.fund,
-              withheld: tr(T.classes.withheldMonth, lang),
             }}
           />
         </Block>
@@ -311,8 +299,8 @@ function CalendarBlock({
   names: { fund: string; index: string; va: string };
   lang: Locale;
 }) {
-  // a class with withheld months keeps its years without a figure ("—")
-  const rows = calendarRows(perf.calendar, !!perf.withheldMonths?.length);
+  // a year without a fund figure is not shown
+  const rows = calendarRows(perf.calendar);
   const hasIndex = rows.some((r) => r.index != null);
   const hasVa = rows.some((r) => r.va != null);
   const kind = (r: (typeof rows)[number]) => partialKind(r.year, r.partial, perf.asOf);

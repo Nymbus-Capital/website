@@ -89,7 +89,8 @@ export interface Performance {
   /** `firstMonth` is a partial month starting at `inception` (index figures over it are not shown). Optional. */
   partialFirstMonth?: boolean;
   /**
-   * months between `firstMonth` and `asOf` withheld because a check failed (shown "—"; reasons in the admin issues): they are
+   * months between `firstMonth` and `asOf` withheld because a check failed (reasons in the admin issues; the site omits
+   * every figure, year and heatmap row they touch and never says why): they are
    * absent from `monthly`, and every figure whose window contains one is null. Optional (absent: none).
    */
   withheldMonths?: string[];
@@ -272,7 +273,8 @@ export interface DistributionsData {
 
 /**
  * Returns of one selectable class (series), keyed by FundServ code in `FundData.performanceByClass`. The series is the
- * class's own: never another class's numbers (a class without data has no entry and the page says "coming soon").
+ * class's own: never another class's numbers (a class without data has no entry; the page shows another class's own
+ * series under that class's label, or no returns block).
  */
 export interface ClassPerformance {
   fundserv: string;
@@ -288,7 +290,8 @@ export interface ClassPerformance {
  *  - "shown": its returns are in performanceByClass;
  *  - "young": less than `minMonths` months since its inception: no performance figure (regulatory minimum);
  *  - "currency": a non-CAD series without distribution-aware returns: no performance figure;
- *  - "unavailable": no usable daily history yet ("coming soon").
+ *  - "unavailable": no usable daily history yet.
+ * The site never offers a "young" / "currency" / "unavailable" class for returns and never says why (NAV only).
  */
 export interface ClassInfo {
   fundserv: string;

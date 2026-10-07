@@ -43,8 +43,6 @@ export const fr: Record<DictKey, string> = {
   "footer.top": "Retour en haut",
 
   // shared UI
-  "ui.soon": "Chiffres à venir",
-  "ui.soonLong": "Les rendements sont publiés ici une fois validés.",
   "ui.sample": "Données fictives",
   "ui.sampleLong": "Chiffres illustratifs seulement, pas des rendements réels.",
   "ui.asOf": "au {date}",

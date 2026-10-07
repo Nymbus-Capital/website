@@ -30,8 +30,8 @@ export function pctText(v: number | null | undefined, lang: Locale, sign = true)
   return isNum(v) ? fmt(v, { pct: true, decimals: 1, sign, lang }) : null;
 }
 
-/** Table cell: the figure, or an em dash when it is not published. */
-export const cell = (v: number | null | undefined, lang: Locale): string => pctText(v, lang) ?? "—";
+/** Table cell: the figure, or blank when it is not published (no dash, no explanation). */
+export const cell = (v: number | null | undefined, lang: Locale): string => pctText(v, lang) ?? "";
 
 /** NAV per unit in its class currency: "$10.1905" / "10,1905 $"; "US$…" for a USD class. */
 export const navText = (nav: number, currency: string, lang: Locale): string =>

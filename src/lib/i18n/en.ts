@@ -45,8 +45,6 @@ export const en = {
   "footer.top": "Back to top",
 
   // shared UI
-  "ui.soon": "Figures coming soon",
-  "ui.soonLong": "Performance figures are published here once validated.",
   "ui.sample": "Sample data",
   "ui.sampleLong": "Illustrative figures only, not actual performance.",
   "ui.asOf": "as of {date}",

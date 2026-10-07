@@ -2,7 +2,8 @@
 /**
  * /strategies: our funds and strategies. Hero · filter (all / fixed income / alternatives) · one card per fund with
  * its published figures (NAV, YTD, 1 year, since inception, calendar years) · comparison table. Every figure comes
- * from the published data; a missing one is "figures coming soon" on a card and an em dash in the table.
+ * from the published data; a missing one is not shown on a card and leaves its table cell blank (a column without
+ * any figure is not shown).
  */
 import Link from "next/link";
 import { useState } from "react";
@@ -35,7 +36,13 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
     history.replaceState(null, "", f === "all" ? window.location.pathname : `#${f}`);
   };
   const shown = filterFunds(data.funds, filter);
-  const missing = data.funds.some((f) => f.ytd === null || f.y1 === null || f.si === null || !f.nav);
+  // a column with no figure at all is not shown
+  const col = {
+    ytd: data.funds.some((f) => f.ytd !== null),
+    y1: data.funds.some((f) => f.y1 !== null),
+    si: data.funds.some((f) => f.si !== null),
+    nav: data.funds.some((f) => !!f.nav),
+  };
   const anyFig = data.funds.some((f) => f.si !== null || f.y1 !== null || f.ytd !== null);
   const anyGross = data.funds.some((f) => f.basis === "gross" && (f.si !== null || f.y1 !== null || f.ytd !== null));
   // gross-of-fees figures sit among net ones in the table: each carries an inline marker
@@ -132,11 +139,11 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                   <th scope="col">{pick(S.cols.fund)}</th>
                   <th scope="col">{pick(S.cols.vehicle)}</th>
                   <th scope="col">{pick(S.cols.bench)}</th>
-                  <th scope="col">{pick(F.ytd)}</th>
-                  <th scope="col">{pick(F.y1)}</th>
-                  <th scope="col">{pick(S.cols.si)}</th>
+                  {col.ytd ? <th scope="col">{pick(F.ytd)}</th> : null}
+                  {col.y1 ? <th scope="col">{pick(F.y1)}</th> : null}
+                  {col.si ? <th scope="col">{pick(S.cols.si)}</th> : null}
                   <th scope="col">{pick(S.cols.risk)}</th>
-                  <th scope="col">{pick(S.cols.nav)}</th>
+                  {col.nav ? <th scope="col">{pick(S.cols.nav)}</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -174,39 +181,45 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
                       {f.code ? <span className="xs-sub tabnum">{f.code}</span> : null}
                     </td>
                     <td className="xs-l xs-bench">{f.benchmark ? pick(f.benchmark) : pick(S.noBench)}</td>
-                    <td>
-                      {cell(f.ytd, locale)}
-                      {f.ytd !== null ? <span className="xs-sub">{mark(f)}</span> : null}
-                    </td>
-                    <td>
-                      {cell(f.y1, locale)}
-                      {f.y1 !== null ? <span className="xs-sub">{mark(f)}</span> : null}
-                    </td>
-                    <td>
-                      {cell(f.si, locale)}
-                      {f.si !== null ? (
-                        <span className="xs-sub">
-                          {f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}
-                          <> · {mark(f)}</>
-                        </span>
-                      ) : null}
-                    </td>
+                    {col.ytd ? (
+                      <td>
+                        {cell(f.ytd, locale)}
+                        {f.ytd !== null ? <span className="xs-sub">{mark(f)}</span> : null}
+                      </td>
+                    ) : null}
+                    {col.y1 ? (
+                      <td>
+                        {cell(f.y1, locale)}
+                        {f.y1 !== null ? <span className="xs-sub">{mark(f)}</span> : null}
+                      </td>
+                    ) : null}
+                    {col.si ? (
+                      <td>
+                        {cell(f.si, locale)}
+                        {f.si !== null ? (
+                          <span className="xs-sub">
+                            {f.siAnnualized ? pick(F.annualized) : pick(S.cumulative)}
+                            <> · {mark(f)}</>
+                          </span>
+                        ) : null}
+                      </td>
+                    ) : null}
                     <td className="xs-l">
                       <RiskScale risk={f.risk} />
                     </td>
-                    <td>
-                      {f.nav ? (
-                        <>
-                          {navText(f.nav.nav, f.nav.currency, locale)}
-                          <span className="xs-sub">
-                            {pick(F.navSeries)} {f.nav.display}
-                            {f.nav.date ? ` · ${dayText(f.nav.date, locale)}` : ""}
-                          </span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
+                    {col.nav ? (
+                      <td>
+                        {f.nav ? (
+                          <>
+                            {navText(f.nav.nav, f.nav.currency, locale)}
+                            <span className="xs-sub">
+                              {pick(F.navSeries)} {f.nav.display}
+                              {f.nav.date ? ` · ${dayText(f.nav.date, locale)}` : ""}
+                            </span>
+                          </>
+                        ) : null}
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -225,7 +238,6 @@ export function StrategiesIndex({ data }: { data: HomeData }) {
               {anyGross ? ` ${pick(F.grossNote)}` : ""}
             </p>
           ) : null}
-          {missing ? <p className="fine">{pick(S.dashNote)}</p> : null}
           {anyFig ? <p className="fine">{pick(S.siNote)}</p> : null}
         </div>
       </Section>

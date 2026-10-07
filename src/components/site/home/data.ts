@@ -1,15 +1,16 @@
 /**
  * Server → client props for the home page, the strategies index and the solutions page: plain JSON built from
  * the read model (getAllFundViews + getContent). Every figure comes from the published data; null means "not
- * published", and the UI then shows a "figures coming soon" state (cards) or an em dash (tables) instead of a
- * number. Internal fields (source names, fund AUM, snapshot pins) never reach these props.
+ * published", and the UI then omits it (cards) or leaves the cell blank (tables), never with a message. The returns
+ * are one class's own series (the chosen class: lib/returns-class.ts), labelled with it, and the NAV is the same
+ * class's when it has one. Internal fields (source names, fund AUM, snapshot pins) never reach these props.
  */
 import type { FundView } from "@/lib/data/site";
 import type { FundKey, NavClass, SiteContent } from "@/lib/data/types";
 import { lastYears, latest, type YearBar } from "./figures.ts";
 import { siAnnualized, trackMonths } from "../../fund/lib/performance.ts";
 import { stripHidden } from "../../fund/lib/visibility.ts";
-import { defaultClassCode, initialSelection, pickData } from "../../fund/lib/select.ts";
+import { initialSelection, pickData } from "../../fund/lib/select.ts";
 import { shownVariant } from "../../../config/funds.ts";
 import type { L } from "@/lib/i18n/config";
 
@@ -25,7 +26,7 @@ export interface FundCard {
   vehicle: "fund" | "strategy";
   color: { solid: string; from: string; to: string };
   risk: RiskRating;
-  /** FundServ code of the headline class (null for strategies without a fund vehicle) */
+  /** FundServ code of the class shown (returns, else headline; null for strategies without a fund vehicle) */
   code: string | null;
   benchmark: L | null;
   /** since-inception return (decimal), annualized when the record is at least 12 months */
@@ -83,24 +84,20 @@ function pickClass(classes: NavClass[] | undefined, preferred: (string | null | 
 
 export function toFundCard(v: FundView): FundCard {
   const { spec, content } = v;
-  // every block the admin hid is removed first (same rule as the fund page): hidden figures never reach the props
+  // the class / variant shown, exactly as the fund page opens: the chosen class's own series (complete first), or
+  // the default variant's own figures (GMV 3 / 6 / 9 %), always shown with its name
+  const sel = initialSelection(v.data, spec, content);
+  const picked = pickData(v.data, spec, content, sel);
+  // then every block the admin hid is removed (same rule as the fund page): hidden figures never reach the props
   const data = stripHidden(v.data, content);
-  // returns are the headline class's own series: none when it has none (never another class's next to its NAV)
-  const head = defaultClassCode(data, spec, content);
-  // a strategy with variants (GMV 3 / 6 / 9 %): the default variant's own figures, always shown with its name
-  const variantId = spec.variants?.length ? initialSelection(data, spec, content).variant : null;
-  const perfData = variantId
-    ? pickData(data, spec, content, { classCode: null, variant: variantId }).data
-    : data && spec.classes?.length
-      ? head
-        ? pickData(data, spec, content, { classCode: head, variant: null }).data
-        : { ...data, performance: null, risk: null, risk3Y: null }
-      : data;
+  const perfData = stripHidden(picked.data, content);
+  const variantId = spec.variants?.length ? sel.variant : null;
   const perf = perfData?.performance ?? null;
   const si = perf?.trailing.fund.SI;
   const ytd = perf?.trailing.fund.YTD;
   const y1 = perf?.trailing.fund["1Y"];
-  const cls = pickClass(data?.nav?.classes, [content.headlineClass, spec.headlineClass]);
+  // the NAV of the class whose returns are shown, when it has one (never another class's NAV next to them)
+  const cls = pickClass(data?.nav?.classes, [picked.returnsClass, content.headlineClass, spec.headlineClass]);
   return {
     key: spec.key,
     name: spec.name,
@@ -111,7 +108,7 @@ export function toFundCard(v: FundView): FundCard {
     vehicle: spec.vehicle,
     color: spec.color,
     risk: content.riskRating ?? spec.defaults.riskRating,
-    code: content.headlineClass ?? spec.headlineClass,
+    code: picked.returnsClass ?? content.headlineClass ?? spec.headlineClass,
     benchmark: spec.benchmark,
     si: isNum(si) ? si : null,
     siAnnualized: perf ? siAnnualized(perf.firstMonth, perf.asOf) : true,

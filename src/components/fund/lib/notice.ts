@@ -1,39 +1,9 @@
 /**
- * The sentence a fund page shows instead of figures for the selected series: a young series (regulatory minimum of
- * months since its inception), a non-CAD series without distribution-aware returns, or "coming soon". Pure.
+ * Period labels of a fund page (pure): the long label of a trailing period, the month after a month-end.
  */
 import { T } from "../fund.copy.ts";
 import { dateLabel, monthLabel } from "./format.ts";
-import type { ClassNotice } from "./select.ts";
-import { tr, type L, type Locale } from "../../../lib/i18n/config.ts";
-
-export function noticeText(notice: ClassNotice, lang: Locale): string {
-  if (notice.kind === "young") {
-    return tr(T.classes.young, lang)
-      .replace("{x}", notice.display)
-      .replace("{date}", dateLabel(notice.inception, lang, true))
-      .replace("{n}", String(notice.minMonths));
-  }
-  return tr(T.classes.currency, lang).replace("{x}", notice.display).replace("{cur}", notice.currency);
-}
-
-/** What to say when the selected series shows no figure (`fallback` when nothing more specific is known). */
-export function noFiguresText(
-  ctx:
-    | {
-        returnsSoon?: boolean;
-        notice?: ClassNotice | null;
-        options?: { fundserv: string; display: string }[];
-        selected?: string | null;
-      }
-    | undefined,
-  lang: Locale,
-  fallback: L,
-): string {
-  if (ctx?.notice) return noticeText(ctx.notice, lang);
-  const sel = ctx?.options?.find((o) => o.fundserv === ctx.selected) ?? null;
-  return ctx?.returnsSoon && sel ? tr(T.classes.soon, lang).replace("{x}", sel.display) : tr(fallback, lang);
-}
+import { tr, type Locale } from "../../../lib/i18n/config.ts";
 
 /**
  * Long label of a trailing period. A class entry's since-inception row names its inception: "Since inception (Oct 5, 2021)";

@@ -13,12 +13,15 @@ interface HeatRow {
 
 /**
  * Years × 12 months grid of monthly returns, with the calendar-year return when published. A partial row is
- * "ytd" only for the as-of year (default: the last published month), "launch" for a partial inception year.
+ * "ytd" only for the as-of year (default: the last published month), "launch" for a partial inception year. A year
+ * with a month without a figure inside the record (between its first and last months, or listed in `withheld`) is
+ * not shown: the grid never has an empty month inside the record.
  */
 export function heatmapGrid(
   monthly: MonthlyPoint[] | undefined | null,
   calendar?: CalendarRow[] | null,
   asOf?: string | null,
+  withheld?: Iterable<string> | null,
 ): HeatRow[] {
   const byYear = new Map<number, (number | null)[]>();
   for (const p of monthly ?? []) {
@@ -37,7 +40,21 @@ export function heatmapGrid(
       .sort()
       .pop() ?? null;
   const end = asOf ?? lastMonth;
+  const firstMonth =
+    (monthly ?? [])
+      .filter((p) => isNum(p.r))
+      .map((p) => p.month)
+      .sort()[0] ?? null;
+  const first = firstMonth?.slice(0, 7) ?? null;
+  const last = lastMonth?.slice(0, 7) ?? null;
+  const held = new Set([...(withheld ?? [])].map((m) => m.slice(0, 7)));
+  const gap = (year: number, cells: (number | null)[]): boolean =>
+    cells.some((c, i) => {
+      const k = `${year}-${String(i + 1).padStart(2, "0")}`;
+      return held.has(k) || (c == null && first != null && last != null && k > first && k < last);
+    });
   return [...byYear.keys()]
+    .filter((year) => !gap(year, byYear.get(year)!))
     .sort((a, b) => b - a)
     .map((year) => {
       const c = cal.get(year);

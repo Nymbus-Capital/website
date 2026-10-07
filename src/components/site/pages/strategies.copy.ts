@@ -36,10 +36,6 @@ export const STRAT_COPY = {
     "Since-inception returns are annualized when the track record covers at least 12 months, cumulative otherwise. Year to date and 1 year are not annualized.",
     "Les rendements depuis la création sont annualisés lorsque l’historique couvre au moins 12 mois, cumulatifs sinon. Les rendements depuis le début de l’année et sur 1 an ne sont pas annualisés.",
   ),
-  dashNote: l(
-    "— : not published yet; we never show an estimate in its place.",
-    "— : pas encore publié; nous n’affichons jamais d’estimation à sa place.",
-  ),
   ctaTitle: l("Which strategy fits", "Quelle stratégie convient à"),
   ctaAccent: l("your mandate?", "votre mandat?"),
   ctaText: l(
