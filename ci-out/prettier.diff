@@ -1,0 +1,147 @@
+diff --git a/e2e/admin.spec.ts b/e2e/admin.spec.ts
+index 914536b..c6ea2cf 100644
+--- a/e2e/admin.spec.ts
++++ b/e2e/admin.spec.ts
+@@ -616,7 +616,9 @@ test.describe("admin flows", () => {
+         await expect(page.getByTestId("perf-context")).toContainText(h);
+         await expect(page.getByTestId("perf-context")).not.toContainText(f);
+         await page.getByTestId("growth").scrollIntoViewIfNeeded();
+-        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fundWord} (${word} H, ${net})`);
++        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
++          `${fundWord} (${word} H, ${net})`,
++        );
+         // home tile and strategies index
+         for (const p of ["/", "/strategies"]) {
+           await page.goto(p);
+diff --git a/e2e/fund.spec.ts b/e2e/fund.spec.ts
+index a32a72a..ebcdf5e 100644
+--- a/e2e/fund.spec.ts
++++ b/e2e/fund.spec.ts
+@@ -600,11 +600,15 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
+   await openTab(page, "performance");
+   await expect(page.getByTestId("perf-context").getByTestId("perf-variant")).toHaveText("9% downside volatility");
+   await page.getByTestId("growth").scrollIntoViewIfNeeded();
+-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(9% downside volatility, gross of fees)");
++  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
++    "(9% downside volatility, gross of fees)",
++  );
+   await sel.getByTestId("variant-6").click();
+   expect(await si()).toBe(six);
+   await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
+-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility, gross of fees)");
++  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
++    "(6% downside volatility, gross of fees)",
++  );
+ });
+ 
+ test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({
+diff --git a/src/components/site/pages/Solutions.tsx b/src/components/site/pages/Solutions.tsx
+index 6b7afd9..40c725c 100644
+--- a/src/components/site/pages/Solutions.tsx
++++ b/src/components/site/pages/Solutions.tsx
+@@ -61,9 +61,7 @@ function FundLink({ f }: { f: FundCard }) {
+           <span className="sl-fund-f">
+             <b className="tabnum">{si}</b>
+             <span>
+-              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)}
+-              {" "}
+-              ·{" "}
++              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)} ·{" "}
+               {f.basis === "gross" ? (
+                 <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
+                   {pick(HL.gross)}
+diff --git a/src/lib/pipeline/index-levels.ts b/src/lib/pipeline/index-levels.ts
+index dea5781..2b394a4 100644
+--- a/src/lib/pipeline/index-levels.ts
++++ b/src/lib/pipeline/index-levels.ts
+@@ -111,9 +111,7 @@ export function ftseEarlierGenerations(
+     const days = Object.keys(daily).sort();
+     if (!days.length) break;
+     const lastDay = days[days.length - 1];
+-    const named = sub.find(
+-      (r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level,
+-    );
++    const named = sub.find((r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level);
+     out.push({ indexName: named?.index_name == null ? null : String(named.index_name), indexId: id, daily });
+     before = days[0];
+   }
+diff --git a/tests/unit/pipeline/classes.test.ts b/tests/unit/pipeline/classes.test.ts
+index 8299166..95d4d8f 100644
+--- a/tests/unit/pipeline/classes.test.ts
++++ b/tests/unit/pipeline/classes.test.ts
+@@ -758,7 +758,12 @@ test("no test leaves the pipeline config mutated (memoised baselines stay valid)
+ 
+ test("indexSinceInception: from the inception-day close to the as-of month-end, same closing levels as the monthly series, 365-day annualization", () => {
+   // daily levels: 100 on 2023-06-30 (June close), 101 on 2023-07-24 (inception), 102 on 2023-07-31 (July close)
+-  const levels: Record<string, number> = { "2023-06-29": 99.9, "2023-06-30": 100, "2023-07-24": 101, "2023-07-31": 102 };
++  const levels: Record<string, number> = {
++    "2023-06-29": 99.9,
++    "2023-06-30": 100,
++    "2023-07-24": 101,
++    "2023-07-31": 102,
++  };
+   const idx: Record<string, number> = { "2023-07-31": 0.02 };
+   for (let m = "2023-08-31"; m <= "2026-09-30"; m = addMonths(m, 1)) idx[m] = 0.001;
+   const n = Object.keys(idx).length - 1;
+@@ -767,7 +772,10 @@ test("indexSinceInception: from the inception-day close to the as-of month-end,
+   const r = indexSinceInception(idx, levels, "2023-07-24", "2023-07-31", "2026-09-30")!;
+   assert.ok(Math.abs(r - (Math.pow(1 + total, 365 / days) - 1)) < 1e-12);
+   // inception on a bond-market holiday is not used blindly: a missing bond day before it → null
+-  assert.equal(indexSinceInception(idx, { ...levels, "2023-07-24": NaN }, "2023-07-24", "2023-07-31", "2026-09-30"), null);
++  assert.equal(
++    indexSinceInception(idx, { ...levels, "2023-07-24": NaN }, "2023-07-24", "2023-07-31", "2026-09-30"),
++    null,
++  );
+   // a missing month → null; no levels → null
+   const gap = { ...idx };
+   delete gap["2025-03-31"];
+@@ -795,8 +803,15 @@ test("buildClassEntry: a class launched mid-month gets its since-inception index
+   const cls = { fundserv: "LDM998", display: "Y", classCode: "LDM998" as const };
+   const idx = Object.fromEntries(months.map((m) => [m.month, 0.002]));
+   const levels = { "2023-06-30": 100, "2023-07-24": 101, "2023-07-31": 100 * 1.002 };
+-  const e = buildClassEntry({ key: "k", cls, result: res, asOf: "2026-09-30", idx, idxLevels: levels, minMonths: 12 })
+-    .entry!;
++  const e = buildClassEntry({
++    key: "k",
++    cls,
++    result: res,
++    asOf: "2026-09-30",
++    idx,
++    idxLevels: levels,
++    minMonths: 12,
++  }).entry!;
+   const t = e.performance.trailing;
+   assert.ok(t.fund.SI != null && t.index!.SI != null);
+   assert.ok(Math.abs(t.va!.SI! - (t.fund.SI! - t.index!.SI!)) < 1e-12);
+diff --git a/tests/unit/pipeline/ftse-gap.test.ts b/tests/unit/pipeline/ftse-gap.test.ts
+index 542dc75..52a45ac 100644
+--- a/tests/unit/pipeline/ftse-gap.test.ts
++++ b/tests/unit/pipeline/ftse-gap.test.ts
+@@ -211,7 +211,9 @@ function rowsOf(
+     return {
+       date,
+       index_id: isNew ? (opts.id ?? 26029) : (opts.oldId ?? opts.id ?? 26029),
+-      index_name: isNew ? "FTSE Canada Short Term Corporate Bond Index" : (opts.oldName ?? "Short Corporate Bond Index"),
++      index_name: isNew
++        ? "FTSE Canada Short Term Corporate Bond Index"
++        : (opts.oldName ?? "Short Corporate Bond Index"),
+       total_return: x.level,
+       average_yield: x.ytm,
+       modified_duration: x.dur,
+@@ -238,7 +240,15 @@ test("same short_name renamed (2024-12): ftseDaily keeps the latest signature on
+   const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
+   const j = joinFtseHistory(
+     lv(cur),
+-    [{ name: "short_corp (earlier name)", levels: lv(gens[0].daily), daily: gens[0].daily, why: "same short_name", gapOk: true }],
++    [
++      {
++        name: "short_corp (earlier name)",
++        levels: lv(gens[0].daily),
++        daily: gens[0].daily,
++        why: "same short_name",
++        gapOk: true,
++      },
++    ],
+     undefined,
+     cur,
+   );

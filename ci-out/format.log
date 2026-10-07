@@ -1,0 +1,12 @@
+
+> nymbus-web@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+[[33mwarn[39m] e2e/admin.spec.ts
+[[33mwarn[39m] e2e/fund.spec.ts
+[[33mwarn[39m] src/components/site/pages/Solutions.tsx
+[[33mwarn[39m] src/lib/pipeline/index-levels.ts
+[[33mwarn[39m] tests/unit/pipeline/classes.test.ts
+[[33mwarn[39m] tests/unit/pipeline/ftse-gap.test.ts
+[[33mwarn[39m] Code style issues found in 6 files. Run Prettier with --write to fix.
