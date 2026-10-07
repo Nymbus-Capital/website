@@ -46,7 +46,7 @@ export function HBars({
           </span>
           <span className="val" aria-hidden="true">
             {r.fund != null ? pctF(r.fund, lang) : "—"}
-            {hasIndex ? <small>{r.index != null ? pctF(r.index, lang) : "—"}</small> : null}
+            {hasIndex ? <small>{r.index != null ? pctF(r.index, lang) : null}</small> : null}
           </span>
         </div>
       ))}

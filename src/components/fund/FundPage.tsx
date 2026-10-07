@@ -3,10 +3,11 @@
  * Fund detail page (/strategies/<key>): informational, light. Header band with the NAV card, return badges,
  * sticky tabs (overview, performance, portfolio, distributions, awards and rankings, documents), the fund's own section,
  * call to action, the other funds and, last (just above the site footer), the disclosures. Receives plain JSON from the server page; every block whose data is
- * missing or hidden by the admin is omitted or says "figures coming soon".
+ * missing or hidden by the admin is omitted (the page never says figures are missing).
  *
- * The selected share class (default F) drives the NAV card and every return figure of the page; a strategy with
- * variants (Global Minimum Volatility 3 / 6 / 9 %) switches all its figures. See lib/select.ts.
+ * The selected share class drives the NAV card; the returns are the selected class's own series when it has one to
+ * show, else the chosen class's (complete series first), always labelled with their class. A strategy with variants
+ * (Global Minimum Volatility 3 / 6 / 9 %) switches all its figures. See lib/select.ts and lib/returns-class.ts.
  */
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "@/lib/i18n";
@@ -20,8 +21,16 @@ import { DistributionsTab, DocumentsTab } from "./DocsDist";
 import { AwardsTab } from "./Awards";
 import { rankingsToShow } from "./lib/rankings.ts";
 import { Disclosures, FeatureSection, FundCta, OtherFunds } from "./Closing";
-import { stripHidden } from "./lib/visibility.ts";
-import { classInfoOf, classOptions, initialSelection, pickData, type ClassCtx, type Selection } from "./lib/select.ts";
+import { stripHidden, visibleBlocks } from "./lib/visibility.ts";
+import {
+  classInfoOf,
+  classType,
+  initialSelection,
+  pickData,
+  selectableClasses,
+  type ClassCtx,
+  type Selection,
+} from "./lib/select.ts";
 import type { FundPageProps } from "./types";
 import "./fund.css";
 import { tr, type Locale } from "@/lib/i18n/config";
@@ -48,26 +57,32 @@ export function FundPage({
   // class / variant first (their own series, or none), then what the admin hid: hidden figures never reach a block
   const picked = useMemo(() => pickData(published, spec, content, sel), [published, spec, content, sel]);
   const data = stripHidden(picked.data, content);
+  const own = !!picked.returnsClass && picked.returnsClass.toUpperCase() === (sel.classCode ?? "").toUpperCase();
   const ctx: ClassCtx = {
-    options: isFund ? classOptions(published, spec, content) : [],
+    options: isFund ? selectableClasses(published, spec, content) : [],
     selected: sel.classCode,
     select: (code) => setSel((s) => ({ ...s, classCode: code })),
     variant: sel.variant,
     selectVariant: (id) => setSel((s) => ({ ...s, variant: id })),
-    returnsSoon: picked.returnsSoon,
+    returnsClass: picked.returnsClass,
+    returnsType: picked.returnsClass ? classType(picked.returnsClass, spec, content) : null,
     shortRecord: picked.shortRecord,
-    notice: picked.notice ?? null,
-    // the series' own inception next to its figures only when they start there (never next to the track record)
-    inception: picked.data?.performance
-      ? (picked.data.performance.inception ?? null)
-      : (classInfoOf(published, sel.classCode)?.inception ?? null),
+    // the series' own inception next to its figures only when they start there (never next to the track record);
+    // a selected class whose returns come from another class: its own inception, from the register
+    inception:
+      own && picked.data?.performance
+        ? (picked.data.performance.inception ?? null)
+        : (classInfoOf(published, sel.classCode)?.inception ?? null),
   };
   const props = { spec, content, data, lang, ctx };
   const hasAwards = !!rankingsToShow(content, spec.classes);
   const tabs = [
     { id: "overview", label: tr(T.tabs.overview, lang), content: <Overview {...props} brand={brand} /> },
     { id: "performance", label: tr(T.tabs.performance, lang), content: <PerformanceTab {...props} /> },
-    { id: "portfolio", label: tr(T.tabs.portfolio, lang), content: <PortfolioTab {...props} /> },
+    // a fund without portfolio data has no portfolio tab (nothing says it is missing)
+    ...(visibleBlocks(data, content, 0).portfolio
+      ? [{ id: "portfolio", label: tr(T.tabs.portfolio, lang), content: <PortfolioTab {...props} /> }]
+      : []),
     // managed accounts (no fund units) make no distributions
     ...(isFund
       ? [

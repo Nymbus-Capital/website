@@ -263,8 +263,12 @@ test("home / strategies / solutions props: hidden blocks never reach the cards",
       performanceByClass: { LDM001: { ...byCls.LDM081, fundserv: "LDM001", display: "FP" } },
     },
   } as never);
-  assert.equal(noSeries.si, null);
-  assert.equal(noSeries.perfClass, null);
+  // the headline class has no series: the card shows another class's own series, labelled with that class, and the
+  // NAV of that same class (never a "coming soon" state, never a figure under another class's name)
+  assert.equal(noSeries.si, 0.03);
+  assert.equal(noSeries.perfClass, "FP");
+  assert.equal(noSeries.nav?.code, "LDM001");
+  assert.equal(noSeries.code, "LDM001");
   const content = {
     version: 1,
     updatedAt: "",
@@ -288,11 +292,10 @@ test("partialKind: YTD only for the as-of year, a partial inception year is 'lau
 });
 
 test("heatmap rows and mini bars carry the partial-year kind", () => {
+  // contiguous months inside each year shown (a year with a gap inside the record is not shown)
   const monthly = [
-    { month: "2019-03-31", r: 0.01 },
-    { month: "2019-12-31", r: 0.01 },
-    { month: "2026-01-31", r: 0.002 },
-    { month: "2026-08-31", r: 0.003 },
+    ...[3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => ({ month: `2019-${String(m).padStart(2, "0")}-28`, r: 0.001 })),
+    ...[1, 2, 3, 4, 5, 6, 7, 8].map((m) => ({ month: `2026-${String(m).padStart(2, "0")}-28`, r: 0.0005 })),
   ];
   const cal = [
     { year: 2019, fund: 0.02, partial: true },

@@ -25,7 +25,7 @@ test("pctText / cell: signed, FR spacing, em dash when not published", () => {
   assert.equal(pctText(0.0523, "en", false), "5.2%");
   assert.equal(pctText(null, "en"), null);
   assert.equal(pctText(Number.NaN, "en"), null);
-  assert.equal(cell(undefined, "en"), "—");
+  assert.equal(cell(undefined, "en"), "");
   assert.equal(cell(0, "en"), "0.0%");
 });
 

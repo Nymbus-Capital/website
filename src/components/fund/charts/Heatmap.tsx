@@ -27,10 +27,9 @@ interface HeatmapProps {
     neg: string;
     pos: string;
     fund: string;
-    withheld?: string;
   };
   caption: string;
-  /** month-ends whose return was withheld (a check failed): shown "—" with `labels.withheld` */
+  /** month-ends whose return was withheld (a check failed): their year is not shown */
   withheld?: Set<string>;
   /** a partial first month (YYYY-MM) of a series: its cell is marked, with `label` as its title */
   partial?: { month: string; label: string } | null;
@@ -46,8 +45,7 @@ export function Heatmap({
   withheld,
   partial = null,
 }: HeatmapProps) {
-  const held = useMemo(() => new Set([...(withheld ?? [])].map((m) => m.slice(0, 7))), [withheld]);
-  const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf), [monthly, calendar, asOf]);
+  const rows = useMemo(() => heatmapGrid(monthly, calendar, asOf, withheld), [monthly, calendar, asOf, withheld]);
   const scale = useMemo(() => heatScale(rows.flatMap((r) => r.cells.filter((c): c is number => c != null))), [rows]);
   const [ref, near, seen] = useNear<HTMLDivElement>("200px 0px");
   const tableRef = useRef<HTMLTableElement>(null);
@@ -106,16 +104,7 @@ export function Heatmap({
                   </th>
                   {row.cells.map((r, m) => {
                     const c = heatCell(r, scale);
-                    if (r == null && held.has(`${row.year}-${String(m + 1).padStart(2, "0")}`)) {
-                      return (
-                        <td key={m} data-testid="heat-withheld">
-                          <div className="c none hm-held" title={labels.withheld}>
-                            <span aria-hidden="true">—</span>
-                            <span className="sr-only">{labels.withheld}</span>
-                          </div>
-                        </td>
-                      );
-                    }
+                    // only months outside the record (before its start, after its last month) have no figure
                     if (r == null)
                       return (
                         <td key={m}>
@@ -149,9 +138,7 @@ export function Heatmap({
                       <span className={row.total >= 0 ? undefined : "neg"}>
                         {fmt(row.total, { pct: true, decimals: 1, lang })}
                       </span>
-                    ) : (
-                      "—"
-                    )}
+                    ) : null}
                     {row.kind ? <small>{row.kind === "ytd" ? labels.ytd : labels.launch}</small> : null}
                   </td>
                 </tr>
