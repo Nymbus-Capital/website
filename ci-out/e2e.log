@@ -1,0 +1,913 @@
+
+> nymbus-web@0.1.0 e2e
+> playwright test
+
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+[WebServer] ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+
+Running 385 tests using 2 workers
+
+  ✓    2 [desktop] › e2e/contact.spec.ts:94:5 › contact: French form, server-side field errors shown at their step (5.9s)
+  ✓    1 [desktop] › e2e/contact.spec.ts:40:5 › contact: three steps validated, consent required, sent to the site (EN) (6.2s)
+  ✓    4 [desktop] › e2e/contact.spec.ts:179:7 › POST /api/contact guards › same origin, content type, size, method (156ms)
+  ✘    5 [desktop] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored (3.3s)
+  ✘    6 [desktop] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored (retry #1) (3.3s)
+  ✘    7 [desktop] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address (66ms)
+  ✘    8 [desktop] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address (retry #1) (64ms)
+  ✓    9 [desktop] › e2e/content-v3.spec.ts:9:5 › approach: risk-first section and the multi-strategy diagram, with links to the three ways in (1.2s)
+  ✓   10 [desktop] › e2e/content-v3.spec.ts:32:5 › approach (fr): the new sections are translated (632ms)
+  ✓   11 [desktop] › e2e/content-v3.spec.ts:39:5 › team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio (1.2s)
+  ✓   12 [desktop] › e2e/content-v3.spec.ts:67:5 › solutions: three illustrative use cases, overlay disclosures, no ranking claim in the copy (1.0s)
+  ✘    3 [desktop] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) (13.9s)
+  ✓   13 [desktop] › e2e/content-v3.spec.ts:85:5 › GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant (1.9s)
+  ✓   15 [desktop] › e2e/content-v3.spec.ts:99:5 › sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only (996ms)
+  ✓   16 [desktop] › e2e/core-concepts.spec.ts:22:5 › core concepts (EN): three panels drawn, advancing, labelled, with captions and figures (2.6s)
+  ✓   17 [desktop] › e2e/core-concepts.spec.ts:61:5 › core concepts (FR): French headings, steps and captions (966ms)
+  ✓   18 [desktop] › e2e/core-concepts.spec.ts:75:5 › nav and footer link to core concepts; jump links reach each concept (1.4s)
+  ✓   19 [desktop] › e2e/core-concepts.spec.ts:100:5 › old URL /critical-concepts redirects permanently to /core-concepts (636ms)
+  ✓   20 [desktop] › e2e/core-concepts.spec.ts:109:5 › controls: pause / play, steps by click and arrow keys (1.9s)
+  ✓   21 [desktop] › e2e/core-concepts.spec.ts:148:5 › off screen and hidden tab: the animations pause (1.7s)
+  ✓   22 [desktop] › e2e/core-concepts.spec.ts:167:5 › reduced motion: one still frame per panel, steps switch still frames, live change restarts (2.5s)
+  ✓   23 [desktop] › e2e/core-concepts.spec.ts:196:5 › 360 px phone: no horizontal scroll, panels inside the viewport, captions visible (1.1s)
+  ✘   14 [desktop] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) (retry #1) (14.4s)
+  ✓   24 [desktop] › e2e/core-concepts.spec.ts:219:5 › desktop nav: seven links fit without overlapping the logo or the tools, in both languages (6.7s)
+  ✓   26 [desktop] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (1.9s)
+  ✓   27 [desktop] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (2.9s)
+  ✓   25 [desktop] › e2e/core-concepts.spec.ts:259:5 › still frame of every step, captured for review (e2e/screenshots/concepts-*) (11.4s)
+  ✓   28 [desktop] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (2.0s)
+  ✓   29 [desktop] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (1.9s)
+  ✓   31 [desktop] › e2e/disclosure.spec.ts:89:5 › fund page: keyboard (Enter / Space) opens and closes the disclosures (1.4s)
+  ✓   30 [desktop] › e2e/disclosure.spec.ts:30:5 › fund page: the bottom disclosures are collapsed with a fade and an arrow, the full text is in the HTML and the DOM (5.0s)
+  ✓   32 [desktop] › e2e/disclosure.spec.ts:102:5 › #disclosure opens the box: on load, on hashchange and from a same-page link (3.3s)
+  ✓   33 [desktop] › e2e/disclosure.spec.ts:127:5 › soft navigation: a client-side URL change to /#disclaimers opens the footer box that stays mounted (1.8s)
+  ✓   34 [desktop] › e2e/disclosure.spec.ts:143:5 › a link inside a collapsed box navigates (2.1s)
+  ✓   35 [desktop] › e2e/disclosure.spec.ts:156:5 › 360 px: no horizontal overflow with the boxes (1.5s)
+  ✓   36 [desktop] › e2e/disclosure.spec.ts:169:5 › find-in-page / focus: scrolling the clipped text into view opens the box (1.3s)
+  ✓   37 [desktop] › e2e/disclosure.spec.ts:179:5 › print shows every disclosure in full, with no fade and no arrow (2.1s)
+  ✓   38 [desktop] › e2e/disclosure.spec.ts:194:5 › short notes are not wrapped: no box, no fade, no arrow (1.6s)
+  ✓   40 [desktop] › e2e/disclosure.spec.ts:223:7 › without JavaScript › every disclosure is open and no arrow is shown (1.5s)
+  ✓   39 [desktop] › e2e/disclosure.spec.ts:204:5 › another page (strategies) and French labels (2.7s)
+  ✓   42 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (13.5s)
+  ✓   41 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (14.2s)
+  ✓   44 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (9.9s)
+  ✓   43 [desktop] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (10.9s)
+  ✓   46 [desktop] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): global-minimum-volatility (24.9s)
+  ✓   45 [desktop] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): monthly-income (38.1s)
+  ✓   47 [desktop] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (13.6s)
+  ✓   49 [desktop] › e2e/fund.spec.ts:198:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (3.6s)
+  ✓   48 [desktop] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): multi-strategy (7.2s)
+  ✓   50 [desktop] › e2e/fund.spec.ts:253:5 › series selector switches the NAV card (2.8s)
+  ✓   52 [desktop] › e2e/fund.spec.ts:283:5 › without JavaScript every panel is on the page (1.6s)
+  ✓   51 [desktop] › e2e/fund.spec.ts:268:5 › tabs follow the URL hash and the keyboard (3.3s)
+  ✓   53 [desktop] › e2e/fund.spec.ts:296:5 › legacy slug redirects to monthly income (1.2s)
+  ✓   55 [desktop] › e2e/fund.spec.ts:308:5 › unknown slug is a 404 (430ms)
+  ✓   54 [desktop] › e2e/fund.spec.ts:303:5 › registry alias redirects to the canonical slug (921ms)
+  ✓   56 [desktop] › e2e/fund.spec.ts:313:5 › French: labels, names and number formatting (4.5s)
+  ✓   57 [desktop] › e2e/fund.spec.ts:340:5 › class selector: returns follow the class; F is the default; a young class says when it launched (4.4s)
+  ✓   59 [desktop] › e2e/fund.spec.ts:424:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (3.8s)
+  ✓   58 [desktop] › e2e/fund.spec.ts:366:5 › every series of a fund: figures for a series with 12 months, a dash for a withheld figure, why a series shows none (EN + FR) (11.2s)
+  ✓   60 [desktop] › e2e/fund.spec.ts:447:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (9.3s)
+  ✓   61 [desktop] › e2e/fund.spec.ts:482:5 › Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR) (5.6s)
+  ✓   62 [desktop] › e2e/fund.spec.ts:506:5 › awards and rankings: Morningstar, then Fundata rank and quartile with source and as-at date, then RBC; bond funds only (FundGrade A or B) (4.5s)
+  ✓   64 [desktop] › e2e/fund.spec.ts:604:5 › Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1st across all periods'); French labels (2.5s)
+  ✓   63 [desktop] › e2e/fund.spec.ts:555:5 › Morningstar on the overview of both bond funds: official logo and stars images, text alternative, class, as-of, source, attribution (5.9s)
+  ✓   65 [desktop] › e2e/fund.spec.ts:621:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (2.8s)
+  ✓   66 [desktop] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (11.0s)
+  ✓   67 [desktop] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (12.5s)
+  ✓   68 [desktop] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (4.2s)
+  ✓   69 [desktop] › e2e/fund.spec.ts:703:5 › home tiles and the strategies index name the class of the returns (EN + FR) (4.4s)
+  ✓   70 [desktop] › e2e/home-engines.spec.ts:27:5 › engines band: drawn, advancing, labelled as an illustration, paused off screen (3.5s)
+  ✓   71 [desktop] › e2e/home-engines.spec.ts:60:5 › engines band: paused while the tab is hidden (1.4s)
+  ✓   73 [desktop] › e2e/home-engines.spec.ts:91:5 › reduced motion: the engines band is one still frame, and follows a live change of the preference (2.8s)
+  ✓   72 [desktop] › e2e/home-engines.spec.ts:71:5 › engines band (FR): French labels and caption (3.2s)
+  ✓   74 [desktop] › e2e/home-engines.spec.ts:117:5 › engines band: no horizontal scroll at 360 px, panel inside the viewport (862ms)
+  ✓   75 [desktop] › e2e/home-engines.spec.ts:134:5 › science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-04 counters removal), and the engines band comes right after it (1.2s)
+  ✓   77 [desktop] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (2.3s)
+  ✓   78 [desktop] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.5s)
+  ✓   79 [desktop] › e2e/home-v2.spec.ts:47:5 › home: the analysis scan is drawn, has no counters strip and stops when it leaves the screen (2.3s)
+  ✓   80 [desktop] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (1.0s)
+  ✓   81 [desktop] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.4s)
+  ✓   82 [desktop] › e2e/home-v2.spec.ts:99:5 › home: no horizontal overflow, the scan fits the viewport (910ms)
+  ✓   83 [desktop] › e2e/home-v2.spec.ts:109:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (1.1s)
+  ✓   76 [desktop] › e2e/home-engines.spec.ts:159:5 › engines band: screenshots at several animation moments (13.2s)
+  ✓   84 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (5.7s)
+  ✓   85 [desktop] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (6.1s)
+  ✓   87 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (4.3s)
+  ✓   86 [desktop] › e2e/home.spec.ts:57:7 › home: screenshot (7.4s)
+  ✓   88 [desktop] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.2s)
+  ✓   89 [desktop] › e2e/home.spec.ts:57:7 › strategies: screenshot (5.5s)
+  ✓   90 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (5.0s)
+  ✓   91 [desktop] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (5.1s)
+  ✓   93 [desktop] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (3.1s)
+  ✓   92 [desktop] › e2e/home.spec.ts:57:7 › solutions: screenshot (6.4s)
+  ✓   94 [desktop] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (1.5s)
+  ✓   96 [desktop] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.2s)
+  ✓   95 [desktop] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.5s)
+  ✓   97 [desktop] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.8s)
+  ✓   98 [desktop] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.2s)
+  ✓   99 [desktop] › e2e/site-v5.spec.ts:12:5 › about: the people come before the values; the protective-overlay name keeps its qualifier (2.8s)
+  ✓  100 [desktop] › e2e/site-v5.spec.ts:32:5 › approach: protective overlays named with the qualifier and the futures-exposure disclosure (FR too) (1.5s)
+  ✓  101 [desktop] › e2e/site-v5.spec.ts:42:5 › solutions: no third-party rankings section (1.1s)
+  ✓  103 [desktop] › e2e/site-v5.spec.ts:81:5 › Morningstar note: compact info button; hover / focus / tap opens the full text, Escape closes it (4.0s)
+  ✓  102 [desktop] › e2e/site-v5.spec.ts:49:5 › fund awards: Morningstar → Fundata → RBC, official logos sized like Morningstar's, no 'Fund Library' label (5.6s)
+  ✓  105 [desktop] › e2e/site.spec.ts:68:9 › / renders its heading (en) (1.5s)
+  ✓  106 [desktop] › e2e/site.spec.ts:68:9 › / renders its heading (fr) (1.4s)
+  ✓  104 [desktop] › e2e/site-v5.spec.ts:133:5 › Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected on every page (3.9s)
+  ✓  108 [desktop] › e2e/site.spec.ts:68:9 › /strategies renders its heading (en) (1.1s)
+  ✓  109 [desktop] › e2e/site.spec.ts:68:9 › /strategies renders its heading (fr) (1.2s)
+  ✓  107 [desktop] › e2e/site.spec.ts:82:7 › / full-page screenshot (7.4s)
+  ✓  110 [desktop] › e2e/site.spec.ts:82:7 › /strategies full-page screenshot (4.8s)
+  ✓  111 [desktop] › e2e/site.spec.ts:68:9 › /core-concepts renders its heading (en) (1.1s)
+  ✓  112 [desktop] › e2e/site.spec.ts:68:9 › /core-concepts renders its heading (fr) (1.3s)
+  ✓  114 [desktop] › e2e/site.spec.ts:68:9 › /approach renders its heading (en) (1.2s)
+  ✓  115 [desktop] › e2e/site.spec.ts:68:9 › /approach renders its heading (fr) (1.1s)
+  ✓  113 [desktop] › e2e/site.spec.ts:82:7 › /core-concepts full-page screenshot (5.2s)
+  ✓  117 [desktop] › e2e/site.spec.ts:68:9 › /sustainability renders its heading (en) (781ms)
+  ✓  118 [desktop] › e2e/site.spec.ts:68:9 › /sustainability renders its heading (fr) (690ms)
+  ✓  116 [desktop] › e2e/site.spec.ts:82:7 › /approach full-page screenshot (6.4s)
+  ✓  120 [desktop] › e2e/site.spec.ts:68:9 › /team renders its heading (en) (1.2s)
+  ✓  119 [desktop] › e2e/site.spec.ts:82:7 › /sustainability full-page screenshot (4.6s)
+  ✓  121 [desktop] › e2e/site.spec.ts:68:9 › /team renders its heading (fr) (1.2s)
+  ✓  123 [desktop] › e2e/site.spec.ts:68:9 › /contact renders its heading (en) (1.4s)
+  ✓  124 [desktop] › e2e/site.spec.ts:68:9 › /contact renders its heading (fr) (1.1s)
+  ✓  122 [desktop] › e2e/site.spec.ts:82:7 › /team full-page screenshot (5.7s)
+  ✓  126 [desktop] › e2e/site.spec.ts:68:9 › /solutions renders its heading (en) (1.1s)
+  ✓  125 [desktop] › e2e/site.spec.ts:82:7 › /contact full-page screenshot (4.5s)
+  ✓  127 [desktop] › e2e/site.spec.ts:68:9 › /solutions renders its heading (fr) (1.2s)
+  ✓  129 [desktop] › e2e/site.spec.ts:68:9 › /legal renders its heading (en) (897ms)
+  ✓  130 [desktop] › e2e/site.spec.ts:68:9 › /legal renders its heading (fr) (1.1s)
+  ✓  128 [desktop] › e2e/site.spec.ts:82:7 › /solutions full-page screenshot (5.9s)
+  ✓  132 [desktop] › e2e/site.spec.ts:68:9 › /privacy renders its heading (en) (997ms)
+  ✓  131 [desktop] › e2e/site.spec.ts:82:7 › /legal full-page screenshot (4.6s)
+  ✓  133 [desktop] › e2e/site.spec.ts:68:9 › /privacy renders its heading (fr) (770ms)
+  ✓  135 [desktop] › e2e/site.spec.ts:91:5 › unknown route: 404 page in the site chrome (4.1s)
+  ✓  134 [desktop] › e2e/site.spec.ts:82:7 › /privacy full-page screenshot (4.6s)
+  ✓  136 [desktop] › e2e/site.spec.ts:102:5 › odometer: the figure's accessible name is the final value (953ms)
+  ✓  138 [desktop] › e2e/site.spec.ts:127:5 › language toggle switches the page to French and back (2.0s)
+  -  139 [desktop] › e2e/site.spec.ts:142:5 › mobile menu opens, traps focus, closes with Escape
+  ✓  137 [desktop] › e2e/site.spec.ts:110:5 › home: live figures come from the data, never invented (2.8s)
+  ✓  141 [desktop] › e2e/site.spec.ts:202:5 › team: filter by department and open a bio (3.2s)
+  ✓  140 [desktop] › e2e/site.spec.ts:166:5 › reduced motion: content is visible without animations (5.8s)
+  ✓  143 [desktop] › e2e/site.spec.ts:244:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.3s)
+  ✓  144 [desktop] › e2e/site.spec.ts:255:5 › admin does not get the public chrome (571ms)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"inset(0px 0px 0px 0%)","op":"1","anim":"ap-loop","disp":"block","w":900},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":96},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":84},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓  142 [desktop] › e2e/site.spec.ts:226:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.9s)
+  ✓  145 [desktop] › e2e/soft-nav-css.spec.ts:10:5 › soft navigation home → fund → home keeps each page's .fx-chip height (3.2s)
+  ✓  146 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: home (5.1s)
+  ✓  147 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: strategies (3.4s)
+  ✓  148 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: core-concepts (3.6s)
+  ✓  149 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: approach (4.4s)
+  ✓  150 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: sustainability (3.3s)
+  ✓  151 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: team (3.9s)
+  ✓  152 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: solutions (3.8s)
+  ✓  153 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: contact (2.9s)
+  ✓  154 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: legal (3.2s)
+  ✓  155 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: privacy (3.5s)
+  ✓  156 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-monthly-income (5.7s)
+  ✓  157 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-sustainable-enhanced-bonds (5.5s)
+  ✓  158 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-multi-strategy (5.3s)
+  ✓  159 [desktop] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-global-minimum-volatility (4.7s)
+  ✓  161 [desktop] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): core-concepts (3.7s)
+  ✓  160 [desktop] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): home (4.7s)
+  ✓  163 [desktop] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): home-scan (3.2s)
+  ✓  162 [desktop] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): fund-monthly-income (5.9s)
+  ✓  164 [desktop] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): home-engines (3.9s)
+  ✓  165 [desktop] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-overlay (3.6s)
+  ✓  166 [desktop] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-futures (3.6s)
+  ✓  167 [desktop] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-coverage (4.3s)
+  ✘  168 [mobile] › e2e/contact.spec.ts:40:5 › contact: three steps validated, consent required, sent to the site (EN) (5.8s)
+  ✘  169 [mobile] › e2e/contact.spec.ts:94:5 › contact: French form, server-side field errors shown at their step (5.1s)
+  ✘  170 [mobile] › e2e/contact.spec.ts:40:5 › contact: three steps validated, consent required, sent to the site (EN) (retry #1) (5.3s)
+  ✘  171 [mobile] › e2e/contact.spec.ts:94:5 › contact: French form, server-side field errors shown at their step (retry #1) (5.1s)
+  ✘  173 [mobile] › e2e/contact.spec.ts:179:7 › POST /api/contact guards › same origin, content type, size, method (109ms)
+  ✘  174 [mobile] › e2e/contact.spec.ts:179:7 › POST /api/contact guards › same origin, content type, size, method (retry #1) (104ms)
+  ✘  175 [mobile] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored (3.3s)
+  ✘  176 [mobile] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored (retry #1) (3.3s)
+  ✘  177 [mobile] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address (65ms)
+  ✘  178 [mobile] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address (retry #1) (63ms)
+  ✓  179 [mobile] › e2e/content-v3.spec.ts:9:5 › approach: risk-first section and the multi-strategy diagram, with links to the three ways in (1.1s)
+  ✓  180 [mobile] › e2e/content-v3.spec.ts:32:5 › approach (fr): the new sections are translated (772ms)
+  ✘  172 [mobile] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) (13.9s)
+  ✓  181 [mobile] › e2e/content-v3.spec.ts:39:5 › team: credentials band counted from the data, self-hosted portraits, LinkedIn in the bio (1.4s)
+  ✓  183 [mobile] › e2e/content-v3.spec.ts:67:5 › solutions: three illustrative use cases, overlay disclosures, no ranking claim in the copy (1.1s)
+  ✓  184 [mobile] › e2e/content-v3.spec.ts:85:5 › GMV: every figure on the home, strategies and solutions pages names its downside-volatility variant (1.2s)
+  ✓  185 [mobile] › e2e/content-v3.spec.ts:99:5 › sustainability: ESG criteria and exclusions are attributed to the Sustainable Enhanced Bonds Fund only (690ms)
+  ✓  186 [mobile] › e2e/core-concepts.spec.ts:22:5 › core concepts (EN): three panels drawn, advancing, labelled, with captions and figures (3.0s)
+  ✓  187 [mobile] › e2e/core-concepts.spec.ts:61:5 › core concepts (FR): French headings, steps and captions (776ms)
+  ✓  188 [mobile] › e2e/core-concepts.spec.ts:75:5 › nav and footer link to core concepts; jump links reach each concept (1.2s)
+  ✓  189 [mobile] › e2e/core-concepts.spec.ts:100:5 › old URL /critical-concepts redirects permanently to /core-concepts (696ms)
+  ✓  190 [mobile] › e2e/core-concepts.spec.ts:109:5 › controls: pause / play, steps by click and arrow keys (1.6s)
+  ✓  191 [mobile] › e2e/core-concepts.spec.ts:148:5 › off screen and hidden tab: the animations pause (1.5s)
+  ✓  192 [mobile] › e2e/core-concepts.spec.ts:167:5 › reduced motion: one still frame per panel, steps switch still frames, live change restarts (2.5s)
+  ✘  182 [mobile] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) (retry #1) (14.2s)
+  -  194 [mobile] › e2e/core-concepts.spec.ts:219:5 › desktop nav: seven links fit without overlapping the logo or the tools, in both languages
+  ✓  193 [mobile] › e2e/core-concepts.spec.ts:196:5 › 360 px phone: no horizontal scroll, panels inside the viewport, captions visible (1.6s)
+  ✓  196 [mobile] › e2e/dialog.spec.ts:28:5 › team: the bio dialog is centred in the viewport, locks the page scroll and traps focus (1.7s)
+  ✓  197 [mobile] › e2e/dialog.spec.ts:52:5 › team: the bio dialog closes from the backdrop and the close button (2.9s)
+  ✓  198 [mobile] › e2e/dialog.spec.ts:68:5 › team: a press that starts inside the bio and ends on the backdrop does not close it (1.8s)
+  ✓  199 [mobile] › e2e/dialog.spec.ts:87:5 › home: the news dialog is centred in the viewport (1.7s)
+  ✓  200 [mobile] › e2e/disclosure.spec.ts:30:5 › fund page: the bottom disclosures are collapsed with a fade and an arrow, the full text is in the HTML and the DOM (3.9s)
+  ✓  201 [mobile] › e2e/disclosure.spec.ts:89:5 › fund page: keyboard (Enter / Space) opens and closes the disclosures (990ms)
+  ✓  202 [mobile] › e2e/disclosure.spec.ts:102:5 › #disclosure opens the box: on load, on hashchange and from a same-page link (2.1s)
+  ✓  203 [mobile] › e2e/disclosure.spec.ts:127:5 › soft navigation: a client-side URL change to /#disclaimers opens the footer box that stays mounted (1.2s)
+  ✓  204 [mobile] › e2e/disclosure.spec.ts:143:5 › a link inside a collapsed box navigates (1.4s)
+  ✓  205 [mobile] › e2e/disclosure.spec.ts:156:5 › 360 px: no horizontal overflow with the boxes (1.5s)
+  ✓  206 [mobile] › e2e/disclosure.spec.ts:169:5 › find-in-page / focus: scrolling the clipped text into view opens the box (804ms)
+  ✓  207 [mobile] › e2e/disclosure.spec.ts:179:5 › print shows every disclosure in full, with no fade and no arrow (1.4s)
+  ✓  208 [mobile] › e2e/disclosure.spec.ts:194:5 › short notes are not wrapped: no box, no fade, no arrow (1.4s)
+  ✓  209 [mobile] › e2e/disclosure.spec.ts:204:5 › another page (strategies) and French labels (2.0s)
+  ✓  210 [mobile] › e2e/disclosure.spec.ts:223:7 › without JavaScript › every disclosure is open and no arrow is shown (865ms)
+  ✓  195 [mobile] › e2e/core-concepts.spec.ts:259:5 › still frame of every step, captured for review (e2e/screenshots/concepts-*) (29.4s)
+  ✓  211 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: monthly-income (15.6s)
+  ✓  212 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: sustainable-enhanced-bonds (16.3s)
+  ✓  213 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: multi-strategy (12.8s)
+  ✓  214 [mobile] › e2e/fund.spec.ts:46:7 › fund page renders: global-minimum-volatility (12.4s)
+  ✓  216 [mobile] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): global-minimum-volatility (31.6s)
+  ✓  215 [mobile] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): monthly-income (52.4s)
+  ✓  217 [mobile] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): sustainable-enhanced-bonds (18.1s)
+  ✓  219 [mobile] › e2e/fund.spec.ts:198:5 › distributions: per-series cards, history chart, calendar years and the full history behind a toggle (3.2s)
+  ✓  220 [mobile] › e2e/fund.spec.ts:253:5 › series selector switches the NAV card (3.3s)
+  ✓  221 [mobile] › e2e/fund.spec.ts:268:5 › tabs follow the URL hash and the keyboard (1.7s)
+  ✓  222 [mobile] › e2e/fund.spec.ts:283:5 › without JavaScript every panel is on the page (1.2s)
+  ✓  218 [mobile] › e2e/fund.spec.ts:188:7 › every tab at rest (screenshots): multi-strategy (10.2s)
+  ✓  223 [mobile] › e2e/fund.spec.ts:296:5 › legacy slug redirects to monthly income (938ms)
+  ✓  224 [mobile] › e2e/fund.spec.ts:303:5 › registry alias redirects to the canonical slug (1.0s)
+  ✓  225 [mobile] › e2e/fund.spec.ts:308:5 › unknown slug is a 404 (543ms)
+  ✓  226 [mobile] › e2e/fund.spec.ts:313:5 › French: labels, names and number formatting (4.6s)
+  ✓  227 [mobile] › e2e/fund.spec.ts:340:5 › class selector: returns follow the class; F is the default; a young class says when it launched (4.7s)
+  ✓  229 [mobile] › e2e/fund.spec.ts:424:5 › class types: only classes whose type is known are labelled, with a disclosure sentence (3.7s)
+  ✓  228 [mobile] › e2e/fund.spec.ts:366:5 › every series of a fund: figures for a series with 12 months, a dash for a withheld figure, why a series shows none (EN + FR) (9.2s)
+  ✓  230 [mobile] › e2e/fund.spec.ts:447:5 › Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selector, no NAV, no distributions (8.1s)
+  ✓  231 [mobile] › e2e/fund.spec.ts:482:5 › Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR) (4.8s)
+  ✓  232 [mobile] › e2e/fund.spec.ts:506:5 › awards and rankings: Morningstar, then Fundata rank and quartile with source and as-at date, then RBC; bond funds only (FundGrade A or B) (4.1s)
+  ✓  233 [mobile] › e2e/fund.spec.ts:555:5 › Morningstar on the overview of both bond funds: official logo and stars images, text alternative, class, as-of, source, attribution (4.8s)
+  ✓  234 [mobile] › e2e/fund.spec.ts:604:5 › Monthly Income: RBC survey 1-quarter rank is the 4th percentile (never '1st across all periods'); French labels (2.6s)
+  ✓  235 [mobile] › e2e/fund.spec.ts:621:5 › calendar-year chart: a value label on every bar, none overlapping, no horizontal page scroll (3.1s)
+  ✓  236 [mobile] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): monthly-income (8.6s)
+  ✓  237 [mobile] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): sustainable-enhanced-bonds (9.0s)
+  ✓  238 [mobile] › e2e/fund.spec.ts:666:7 › performance class label follows the data's class everywhere (EN + FR): multi-strategy (5.5s)
+  ✓  239 [mobile] › e2e/fund.spec.ts:703:5 › home tiles and the strategies index name the class of the returns (EN + FR) (3.9s)
+  ✓  241 [mobile] › e2e/home-engines.spec.ts:60:5 › engines band: paused while the tab is hidden (1.0s)
+  ✓  240 [mobile] › e2e/home-engines.spec.ts:27:5 › engines band: drawn, advancing, labelled as an illustration, paused off screen (3.2s)
+  ✓  243 [mobile] › e2e/home-engines.spec.ts:91:5 › reduced motion: the engines band is one still frame, and follows a live change of the preference (2.7s)
+  ✓  242 [mobile] › e2e/home-engines.spec.ts:71:5 › engines band (FR): French labels and caption (3.5s)
+  ✓  244 [mobile] › e2e/home-engines.spec.ts:117:5 › engines band: no horizontal scroll at 360 px, panel inside the viewport (1.1s)
+  ✓  245 [mobile] › e2e/home-engines.spec.ts:134:5 › science at scale is unchanged (apart from its 2026-10-03 copy and 2026-10-04 counters removal), and the engines band comes right after it (1.4s)
+  ✓  247 [mobile] › e2e/home-v2.spec.ts:21:5 › home: no daily NAV widget, AUM is C$1.9 billion (2.5s)
+  ✓  248 [mobile] › e2e/home-v2.spec.ts:34:5 › home (FR): AUM reads 1,9 G$ and the scan is labelled in French (2.3s)
+  ✓  249 [mobile] › e2e/home-v2.spec.ts:47:5 › home: the analysis scan is drawn, has no counters strip and stops when it leaves the screen (2.0s)
+  ✓  250 [mobile] › e2e/home-v2.spec.ts:70:5 › home: the hero data field starts lazily and pauses off screen (873ms)
+  ✓  251 [mobile] › e2e/home-v2.spec.ts:79:5 › reduced motion: the scan and the data field are one still frame, nothing is hidden (1.4s)
+  ✓  252 [mobile] › e2e/home-v2.spec.ts:99:5 › home: no horizontal overflow, the scan fits the viewport (885ms)
+  ✓  253 [mobile] › e2e/home-v2.spec.ts:109:5 › site-wide motion is decorative: aria-hidden, no focusable element, no pointer capture (901ms)
+  ✓  246 [mobile] › e2e/home-engines.spec.ts:159:5 › engines band: screenshots at several animation moments (14.0s)
+  ✓  254 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (en) (5.8s)
+  ✓  255 [mobile] › e2e/home.spec.ts:45:9 › home: one H1 and no console errors (fr) (5.8s)
+  ✓  257 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (en) (4.6s)
+  ✓  256 [mobile] › e2e/home.spec.ts:57:7 › home: screenshot (9.7s)
+  ✓  258 [mobile] › e2e/home.spec.ts:45:9 › strategies: one H1 and no console errors (fr) (4.6s)
+  ✓  259 [mobile] › e2e/home.spec.ts:57:7 › strategies: screenshot (6.7s)
+  ✓  260 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (en) (5.3s)
+  ✓  261 [mobile] › e2e/home.spec.ts:45:9 › solutions: one H1 and no console errors (fr) (5.8s)
+  ✓  263 [mobile] › e2e/home.spec.ts:66:5 › home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page (2.8s)
+  ✓  262 [mobile] › e2e/home.spec.ts:57:7 › solutions: screenshot (8.4s)
+  ✓  264 [mobile] › e2e/home.spec.ts:83:5 › home: a news item opens in a dialog and closes with Escape (1.3s)
+  ✓  266 [mobile] › e2e/home.spec.ts:118:5 › strategies: the comparison table lists every fund; missing figures are dashes (1.4s)
+  ✓  265 [mobile] › e2e/home.spec.ts:97:5 › strategies: the filter shows fixed income or alternatives only (3.6s)
+  ✓  267 [mobile] › e2e/home.spec.ts:128:5 › solutions: three audiences, each links to fund pages (1.8s)
+  ✓  268 [mobile] › e2e/home.spec.ts:141:5 › reduced motion: every section of the three pages is visible without animations (2.2s)
+  ✓  270 [mobile] › e2e/site-v5.spec.ts:32:5 › approach: protective overlays named with the qualifier and the futures-exposure disclosure (FR too) (1.6s)
+  ✓  271 [mobile] › e2e/site-v5.spec.ts:42:5 › solutions: no third-party rankings section (1.1s)
+  ✓  269 [mobile] › e2e/site-v5.spec.ts:12:5 › about: the people come before the values; the protective-overlay name keeps its qualifier (4.5s)
+  ✓  273 [mobile] › e2e/site-v5.spec.ts:81:5 › Morningstar note: compact info button; hover / focus / tap opens the full text, Escape closes it (3.1s)
+  ✓  274 [mobile] › e2e/site-v5.spec.ts:133:5 › Global Minimum Volatility: variants shown 3 %, 6 %, 9 %, with 6 % selected on every page (4.1s)
+  ✓  272 [mobile] › e2e/site-v5.spec.ts:49:5 › fund awards: Morningstar → Fundata → RBC, official logos sized like Morningstar's, no 'Fund Library' label (7.8s)
+  ✓  275 [mobile] › e2e/site.spec.ts:68:9 › / renders its heading (en) (1.5s)
+  ✓  276 [mobile] › e2e/site.spec.ts:68:9 › / renders its heading (fr) (1.7s)
+  ✓  278 [mobile] › e2e/site.spec.ts:68:9 › /strategies renders its heading (en) (1.2s)
+  ✓  279 [mobile] › e2e/site.spec.ts:68:9 › /strategies renders its heading (fr) (1.2s)
+  ✓  277 [mobile] › e2e/site.spec.ts:82:7 › / full-page screenshot (8.8s)
+  ✓  280 [mobile] › e2e/site.spec.ts:82:7 › /strategies full-page screenshot (5.9s)
+  ✓  281 [mobile] › e2e/site.spec.ts:68:9 › /core-concepts renders its heading (en) (1.2s)
+  ✓  282 [mobile] › e2e/site.spec.ts:68:9 › /core-concepts renders its heading (fr) (1.3s)
+  ✓  284 [mobile] › e2e/site.spec.ts:68:9 › /approach renders its heading (en) (1.1s)
+  ✓  285 [mobile] › e2e/site.spec.ts:68:9 › /approach renders its heading (fr) (885ms)
+  ✓  283 [mobile] › e2e/site.spec.ts:82:7 › /core-concepts full-page screenshot (6.0s)
+  ✓  287 [mobile] › e2e/site.spec.ts:68:9 › /sustainability renders its heading (en) (535ms)
+  ✓  288 [mobile] › e2e/site.spec.ts:68:9 › /sustainability renders its heading (fr) (532ms)
+  ✓  286 [mobile] › e2e/site.spec.ts:82:7 › /approach full-page screenshot (8.0s)
+  ✓  290 [mobile] › e2e/site.spec.ts:68:9 › /team renders its heading (en) (1.5s)
+  ✓  289 [mobile] › e2e/site.spec.ts:82:7 › /sustainability full-page screenshot (6.2s)
+  ✓  291 [mobile] › e2e/site.spec.ts:68:9 › /team renders its heading (fr) (1.3s)
+  ✓  293 [mobile] › e2e/site.spec.ts:68:9 › /contact renders its heading (en) (1.3s)
+  ✓  294 [mobile] › e2e/site.spec.ts:68:9 › /contact renders its heading (fr) (1.0s)
+  ✓  295 [mobile] › e2e/site.spec.ts:82:7 › /contact full-page screenshot (4.8s)
+  ✓  292 [mobile] › e2e/site.spec.ts:82:7 › /team full-page screenshot (7.5s)
+  ✓  296 [mobile] › e2e/site.spec.ts:68:9 › /solutions renders its heading (en) (1.3s)
+  ✓  297 [mobile] › e2e/site.spec.ts:68:9 › /solutions renders its heading (fr) (1.6s)
+  ✓  299 [mobile] › e2e/site.spec.ts:68:9 › /legal renders its heading (en) (846ms)
+  ✓  300 [mobile] › e2e/site.spec.ts:68:9 › /legal renders its heading (fr) (890ms)
+  ✓  298 [mobile] › e2e/site.spec.ts:82:7 › /solutions full-page screenshot (7.3s)
+  ✓  301 [mobile] › e2e/site.spec.ts:82:7 › /legal full-page screenshot (5.3s)
+  ✓  302 [mobile] › e2e/site.spec.ts:68:9 › /privacy renders its heading (en) (933ms)
+  ✓  303 [mobile] › e2e/site.spec.ts:68:9 › /privacy renders its heading (fr) (1.4s)
+  ✓  305 [mobile] › e2e/site.spec.ts:91:5 › unknown route: 404 page in the site chrome (4.4s)
+  ✓  306 [mobile] › e2e/site.spec.ts:102:5 › odometer: the figure's accessible name is the final value (825ms)
+  ✓  304 [mobile] › e2e/site.spec.ts:82:7 › /privacy full-page screenshot (6.5s)
+  ✓  308 [mobile] › e2e/site.spec.ts:127:5 › language toggle switches the page to French and back (2.4s)
+  ✓  307 [mobile] › e2e/site.spec.ts:110:5 › home: live figures come from the data, never invented (2.9s)
+  ✓  309 [mobile] › e2e/site.spec.ts:142:5 › mobile menu opens, traps focus, closes with Escape (2.6s)
+  ✓  310 [mobile] › e2e/site.spec.ts:166:5 › reduced motion: content is visible without animations (4.6s)
+  ✓  311 [mobile] › e2e/site.spec.ts:202:5 › team: filter by department and open a bio (3.1s)
+  ✓  313 [mobile] › e2e/site.spec.ts:244:5 › legal: table of contents follows both documents; privacy covers Law 25 (1.1s)
+  ✓  314 [mobile] › e2e/site.spec.ts:255:5 › admin does not get the public chrome (578ms)
+approach probe {"wave":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":188},"loop":{"off":"0px","clip":"none","op":"1","anim":"ap-loop","disp":"none","w":0},"conv":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"arrow":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"none","w":0},"vol":{"off":"0px","clip":"none","op":"1","anim":"pg-draw","disp":"inline","w":116}}
+  ✓  312 [mobile] › e2e/site.spec.ts:226:5 › approach: the pipeline and the risk flow draw themselves in when scrolled into view (4.5s)
+  ✓  315 [mobile] › e2e/soft-nav-css.spec.ts:10:5 › soft navigation home → fund → home keeps each page's .fx-chip height (3.7s)
+  ✓  317 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: strategies (4.4s)
+  ✓  316 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: home (6.6s)
+  ✓  318 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: core-concepts (4.5s)
+  ✓  319 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: approach (6.2s)
+  ✓  320 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: sustainability (4.5s)
+  ✓  321 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: team (5.4s)
+  ✓  322 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: solutions (5.4s)
+  ✓  323 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: contact (3.7s)
+  ✓  324 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: legal (4.1s)
+  ✓  325 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: privacy (4.8s)
+  ✓  326 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-monthly-income (7.0s)
+  ✓  327 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-sustainable-enhanced-bonds (7.2s)
+  ✓  328 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-multi-strategy (6.5s)
+  ✓  329 [mobile] › e2e/visual-baseline.spec.ts:91:9 › reduced motion › visual baseline: fund-global-minimum-volatility (6.4s)
+  ✓  330 [mobile] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): home (6.5s)
+  ✓  331 [mobile] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): core-concepts (5.1s)
+  ✓  333 [mobile] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): home-scan (2.8s)
+  ✓  334 [mobile] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): home-engines (3.1s)
+  ✓  332 [mobile] › e2e/visual-baseline.spec.ts:109:9 › reduced motion › visual baseline (fr): fund-monthly-income (7.5s)
+  ✓  335 [mobile] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-overlay (2.7s)
+  ✓  336 [mobile] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-futures (3.0s)
+  ✓  338 [cms] › e2e/cms.spec.ts:32:5 › news page: CMS items, newest first, markup stripped, image loads, French on request (1.3s)
+  ✓  337 [mobile] › e2e/visual-baseline.spec.ts:123:9 › motion on, fake clock › visual baseline (motion): concept-coverage (3.7s)
+  ✓  339 [cms] › e2e/cms.spec.ts:51:5 › news article: paragraphs, no script, 404 for an unknown item (922ms)
+  ✓  340 [cms] › e2e/cms.spec.ts:62:5 › home: three latest CMS news, link to all news, banner and AUM label from WordPress (925ms)
+  ✓  341 [cms] › e2e/cms.spec.ts:75:5 › footer and contact page: address, phone and e-mail from WordPress; toll-free and the form endpoint stay built-in (835ms)
+  ✓  342 [cms] › e2e/cms.spec.ts:93:5 › page intros: WordPress headline / lead where filled, built-in copy elsewhere; Sustainability lead stays built-in (2.0s)
+  ✓  343 [cms] › e2e/cms.spec.ts:115:5 › team page: members come from WordPress, not from the built-in list (808ms)
+  ✓  344 [cms] › e2e/cms.spec.ts:125:5 › CSP: the media origin is allowed for images, nothing else changed (40ms)
+  ✓  345 [cms] › e2e/cms.spec.ts:133:5 › revalidation route: authenticated, POST only (45ms)
+  ✓  346 [cms] › e2e/cms.spec.ts:143:5 › an edit in WordPress shows up after revalidation (2.6s)
+  ✓  347 [cms] › e2e/cms.spec.ts:150:5 › hostile content from WordPress is neutralised (3.6s)
+[WebServer] [cms] WordPress document not used: HTTP 503 (keeping the last good copy)
+  ✓  348 [cms] › e2e/cms.spec.ts:177:5 › WordPress down or answering garbage: the last good content stays (7.3s)
+  ✓  349 [cms] › e2e/cms.spec.ts:192:5 › without WP_BASE_URL the site is unchanged: static news and team (848ms)
+  ✓  350 [cms] › e2e/cms.spec.ts:202:5 › without WP_BASE_URL: built-in contact details and page intros, exactly as before (1.9s)
+
+
+  1) [desktop] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) 
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/contact\?sent=1/
+    Received string:  "http://localhost:3100/contact?error=rate_limited#contact-form"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 10000ms
+        23 × locator resolved to <html lang="en">…</html>
+           - unexpected value "http://localhost:3100/contact?error=rate_limited#contact-form"
+
+
+      149 |   await page.waitForTimeout(3200);
+      150 |   await form.getByRole("button", { name: /send my message/i }).click();
+    > 151 |   await expect(page).toHaveURL(/\/contact\?sent=1/);
+          |                      ^
+      152 |   await expect(page.getByTestId("contact-sent")).toBeVisible();
+      153 |   // a field the server refuses comes back as its code only (never the value), with its message and the summary
+      154 |   await page.goto("/contact");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:151:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/contact\?sent=1/
+    Received string:  "http://localhost:3100/contact?error=rate_limited#contact-form"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 10000ms
+        23 × locator resolved to <html lang="en">…</html>
+           - unexpected value "http://localhost:3100/contact?error=rate_limited#contact-form"
+
+
+      149 |   await page.waitForTimeout(3200);
+      150 |   await form.getByRole("button", { name: /send my message/i }).click();
+    > 151 |   await expect(page).toHaveURL(/\/contact\?sent=1/);
+          |                      ^
+      152 |   await expect(page.getByTestId("contact-sent")).toBeVisible();
+      153 |   // a field the server refuses comes back as its code only (never the value), with its message and the summary
+      154 |   await page.goto("/contact");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:151:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-works-with-13956-irect-back-with-the-result--desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      200 |     // (admin.spec.ts checks that "E2E Bot" never reaches the inquiries)
+      201 |     const hp = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, `E2E Bot honeypot ${info.project.name}`), website: "http://spam.example" }) });
+    > 202 |     expect(hp.status()).toBe(200);
+          |                         ^
+      203 |     expect(await hp.json()).toEqual({ ok: true });
+      204 |     const fresh = await token(request);
+      205 |     const fast = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": ip() }, data: JSON.stringify(valid(fresh, `E2E Bot fast ${info.project.name}`)) });
+        at /home/runner/work/website/website/e2e/contact.spec.ts:202:25
+
+    Error Context: test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 429
+
+      195 |     await new Promise((r) => setTimeout(r, 3200));
+      196 |     const bad = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, "<b>x</b>"), email: "nope", consent: false, interests: ["Bitcoin"] }) });
+    > 197 |     expect(bad.status()).toBe(400);
+          |                          ^
+      198 |     expect((await bad.json()).fields).toEqual(["interests", "name", "email", "consent"]);
+      199 |     // honeypot filled, or posted too fast with a fresh token, or without a token: 200 { ok: true }, not stored
+      200 |     // (admin.spec.ts checks that "E2E Bot" never reaches the inquiries)
+        at /home/runner/work/website/website/e2e/contact.spec.ts:197:26
+
+    Error Context: test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address 
+
+    Error: attempt 1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      217 |       // a forged left part does not change the client: always the same bucket
+      218 |       const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
+    > 219 |       expect(r.status(), `attempt ${i + 1}`).toBe(200);
+          |                                              ^
+      220 |     }
+      221 |     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
+      222 |     expect(limited.status()).toBe(429);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:219:46
+
+    Error Context: test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: attempt 1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      217 |       // a forged left part does not change the client: always the same bucket
+      218 |       const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
+    > 219 |       expect(r.status(), `attempt ${i + 1}`).toBe(200);
+          |                                              ^
+      220 |     }
+      221 |     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
+      222 |     expect(limited.status()).toBe(429);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:219:46
+
+    Error Context: test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-desktop-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile] › e2e/contact.spec.ts:40:5 › contact: three steps validated, consent required, sent to the site (EN) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      76 |   const posted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+      77 |   await send.click();
+    > 78 |   expect((await posted).status()).toBe(200);
+         |                                   ^
+      79 |   const sent = page.getByTestId("contact-sent");
+      80 |   await expect(sent).toBeVisible();
+      81 |   await expect(sent).toContainText("Message sent");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:78:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      76 |   const posted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+      77 |   await send.click();
+    > 78 |   expect((await posted).status()).toBe(200);
+         |                                   ^
+      79 |   const sent = page.getByTestId("contact-sent");
+      80 |   await expect(sent).toBeVisible();
+      81 |   await expect(sent).toContainText("Message sent");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:78:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-three-step-bcbcc-quired-sent-to-the-site-EN--mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [mobile] › e2e/contact.spec.ts:94:5 › contact: French form, server-side field errors shown at their step 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      128 |   const posted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+      129 |   await form.getByRole("button", { name: /envoyer mon message/i }).click();
+    > 130 |   expect((await posted).status()).toBe(200);
+          |                                   ^
+      131 |   const sent = page.getByTestId("contact-sent");
+      132 |   await expect(sent).toContainText("Message envoyé");
+      133 |   await expect(sent.getByText("Message envoyé", { exact: true })).toBeFocused();
+        at /home/runner/work/website/website/e2e/contact.spec.ts:130:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      128 |   const posted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+      129 |   await form.getByRole("button", { name: /envoyer mon message/i }).click();
+    > 130 |   expect((await posted).status()).toBe(200);
+          |                                   ^
+      131 |   const sent = page.getByTestId("contact-sent");
+      132 |   await expect(sent).toContainText("Message envoyé");
+      133 |   await expect(sent.getByText("Message envoyé", { exact: true })).toBeFocused();
+        at /home/runner/work/website/website/e2e/contact.spec.ts:130:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-French-for-5bfe6--errors-shown-at-their-step-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [mobile] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) 
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/contact\?sent=1/
+    Received string:  "http://localhost:3100/contact?error=rate_limited#contact-form"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 10000ms
+        23 × locator resolved to <html lang="en">…</html>
+           - unexpected value "http://localhost:3100/contact?error=rate_limited#contact-form"
+
+
+      149 |   await page.waitForTimeout(3200);
+      150 |   await form.getByRole("button", { name: /send my message/i }).click();
+    > 151 |   await expect(page).toHaveURL(/\/contact\?sent=1/);
+          |                      ^
+      152 |   await expect(page.getByTestId("contact-sent")).toBeVisible();
+      153 |   // a field the server refuses comes back as its code only (never the value), with its message and the summary
+      154 |   await page.goto("/contact");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:151:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/contact\?sent=1/
+    Received string:  "http://localhost:3100/contact?error=rate_limited#contact-form"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 10000ms
+        23 × locator resolved to <html lang="en">…</html>
+           - unexpected value "http://localhost:3100/contact?error=rate_limited#contact-form"
+
+
+      149 |   await page.waitForTimeout(3200);
+      150 |   await form.getByRole("button", { name: /send my message/i }).click();
+    > 151 |   await expect(page).toHaveURL(/\/contact\?sent=1/);
+          |                      ^
+      152 |   await expect(page.getByTestId("contact-sent")).toBeVisible();
+      153 |   // a field the server refuses comes back as its code only (never the value), with its message and the summary
+      154 |   await page.goto("/contact");
+        at /home/runner/work/website/website/e2e/contact.spec.ts:151:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile-retry1/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-contact-works-with-13956-irect-back-with-the-result--mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [mobile] › e2e/contact.spec.ts:179:7 › POST /api/contact guards › same origin, content type, size, method 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 415
+    Received: 429
+
+      184 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: "https://evil.example", "content-type": "application/json" }, data })).status()).toBe(403);
+      185 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "sec-fetch-site": "cross-site", "content-type": "application/json" }, data })).status()).toBe(403);
+    > 186 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "content-type": "text/plain" }, data })).status()).toBe(415);
+          |                                                                                                                                      ^
+      187 |     const big = JSON.stringify({ ...valid(t, "Big"), message: "x".repeat(20_000) });
+      188 |     expect((await request.post("/api/contact", { headers: { "x-forwarded-for": ip(), origin: BASE, "content-type": "application/json" }, data: big })).status()).toBe(413);
+      189 |     expect((await request.get("/api/contact")).status()).toBe(405);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:186:134
+
+    Error Context: test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 415
+    Received: 429
+
+      184 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: "https://evil.example", "content-type": "application/json" }, data })).status()).toBe(403);
+      185 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "sec-fetch-site": "cross-site", "content-type": "application/json" }, data })).status()).toBe(403);
+    > 186 |     expect((await request.post("/api/contact", { headers: { ...xff, origin: BASE, "content-type": "text/plain" }, data })).status()).toBe(415);
+          |                                                                                                                                      ^
+      187 |     const big = JSON.stringify({ ...valid(t, "Big"), message: "x".repeat(20_000) });
+      188 |     expect((await request.post("/api/contact", { headers: { "x-forwarded-for": ip(), origin: BASE, "content-type": "application/json" }, data: big })).status()).toBe(413);
+      189 |     expect((await request.get("/api/contact")).status()).toBe(405);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:186:134
+
+    Error Context: test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-48b29-in-content-type-size-method-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [mobile] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 429
+
+      195 |     await new Promise((r) => setTimeout(r, 3200));
+      196 |     const bad = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, "<b>x</b>"), email: "nope", consent: false, interests: ["Bitcoin"] }) });
+    > 197 |     expect(bad.status()).toBe(400);
+          |                          ^
+      198 |     expect((await bad.json()).fields).toEqual(["interests", "name", "email", "consent"]);
+      199 |     // honeypot filled, or posted too fast with a fresh token, or without a token: 200 { ok: true }, not stored
+      200 |     // (admin.spec.ts checks that "E2E Bot" never reaches the inquiries)
+        at /home/runner/work/website/website/e2e/contact.spec.ts:197:26
+
+    Error Context: test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 429
+
+      195 |     await new Promise((r) => setTimeout(r, 3200));
+      196 |     const bad = await request.post("/api/contact", { headers: h, data: JSON.stringify({ ...valid(t, "<b>x</b>"), email: "nope", consent: false, interests: ["Bitcoin"] }) });
+    > 197 |     expect(bad.status()).toBe(400);
+          |                          ^
+      198 |     expect((await bad.json()).fields).toEqual(["interests", "name", "email", "consent"]);
+      199 |     // honeypot filled, or posted too fast with a fresh token, or without a token: 200 { ok: true }, not stored
+      200 |     // (admin.spec.ts checks that "E2E Bot" never reaches the inquiries)
+        at /home/runner/work/website/website/e2e/contact.spec.ts:197:26
+
+    Error Context: test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-9a703-ccess-and-nothing-is-stored-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [mobile] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address 
+
+    Error: attempt 1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      217 |       // a forged left part does not change the client: always the same bucket
+      218 |       const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
+    > 219 |       expect(r.status(), `attempt ${i + 1}`).toBe(200);
+          |                                              ^
+      220 |     }
+      221 |     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
+      222 |     expect(limited.status()).toBe(429);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:219:46
+
+    Error Context: test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: attempt 1
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      217 |       // a forged left part does not change the client: always the same bucket
+      218 |       const r = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.${i}, ${addr}` }, data: body });
+    > 219 |       expect(r.status(), `attempt ${i + 1}`).toBe(200);
+          |                                              ^
+      220 |     }
+      221 |     const limited = await request.post("/api/contact", { headers: { ...h, "x-forwarded-for": `198.51.100.99, ${addr}` }, data: body });
+      222 |     expect(limited.status()).toBe(429);
+        at /home/runner/work/website/website/e2e/contact.spec.ts:219:46
+
+    Error Context: test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile-retry1/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/contact-POST-api-contact-g-c1483-rightmost-forwarded-address-mobile-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9 failed
+    [desktop] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) 
+    [desktop] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored 
+    [desktop] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address 
+    [mobile] › e2e/contact.spec.ts:40:5 › contact: three steps validated, consent required, sent to the site (EN) 
+    [mobile] › e2e/contact.spec.ts:94:5 › contact: French form, server-side field errors shown at their step 
+    [mobile] › e2e/contact.spec.ts:137:5 › contact: works without JavaScript (native post, redirect back with the result) 
+    [mobile] › e2e/contact.spec.ts:179:7 › POST /api/contact guards › same origin, content type, size, method 
+    [mobile] › e2e/contact.spec.ts:192:7 › POST /api/contact guards › invalid fields are listed; bots get a fake success and nothing is stored 
+    [mobile] › e2e/contact.spec.ts:211:7 › POST /api/contact guards › per-client rate limit (5 attempts / 15 min), keyed on the rightmost forwarded address 
+  2 skipped
+  44 did not run
+  330 passed (12.5m)
