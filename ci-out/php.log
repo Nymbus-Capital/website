@@ -1,0 +1,16 @@
+No syntax errors detected in wordpress/plugins/nymbus-site-content/nymbus-site-content.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/settings.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/revalidate.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/fields.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/post-types.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/cli.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/rest.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/normalize.php
+No syntax errors detected in wordpress/plugins/nymbus-site-content/includes/editor.php
+No syntax errors detected in wordpress/tests/normalize-test.php
+No syntax errors detected in wordpress/tests/security-test.php
+No syntax errors detected in wordpress/mu-plugins/nymbus-headless.php
+No syntax errors detected in wordpress/mu-plugins/nymbus-lib/security.php
+No syntax errors detected in wordpress/mu-plugins/nymbus-security.php
+103 checks, 0 failure(s)
+55 checks, 0 failure(s)
