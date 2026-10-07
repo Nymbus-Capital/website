@@ -28,6 +28,8 @@ export interface PerfBuild {
     series: Series;
     origin: Record<string, string>;
     idx: Series | null;
+    /** daily index levels (since-inception benchmark of a series launched mid-month) */
+    idxLevels?: Record<string, number> | null;
     firstMonth: string;
     indexName?: string;
     sourceMonths: Series;

@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   ftseDaily,
+  ftseEarlierGenerations,
   ftseFamily,
   ftseGapCheck,
   ftseReturnEstimate,
@@ -195,4 +196,84 @@ test("gap tolerance is capped at 5 bp; a copied level (zero implied return) is n
   const copied = Object.fromEntries(Object.entries(curL).map(([d, v]) => [d, v * k]));
   const z = ftseGapCheck(copied, cur, oldL, old);
   assert.ok(!z.ok && /implied gap return is zero .*a copied level/.test(z.why), z.ok ? "accepted" : z.why);
+});
+
+/* ---------------------------------------------------------------- earlier generation under the SAME short_name */
+
+/** index-summary rows of one short_name: the old generation (old name, no index_content) then the new one */
+function rowsOf(
+  all: Record<string, FtseDay>,
+  cut: string,
+  opts: { id?: number; oldId?: number; oldName?: string } = {},
+): Record<string, unknown>[] {
+  return Object.entries(all).map(([date, x]) => {
+    const isNew = date >= cut;
+    return {
+      date,
+      index_id: isNew ? (opts.id ?? 26029) : (opts.oldId ?? opts.id ?? 26029),
+      index_name: isNew ? "FTSE Canada Short Term Corporate Bond Index" : (opts.oldName ?? "Short Corporate Bond Index"),
+      total_return: x.level,
+      average_yield: x.ytm,
+      modified_duration: x.dur,
+      rating: "All",
+      term: "Short",
+      industry_sector: "Corporate",
+      industry_group: "All",
+      index_content: isNew ? "Universe" : null,
+    };
+  });
+}
+
+test("same short_name renamed (2024-12): ftseDaily keeps the latest signature only; ftseEarlierGenerations returns the older one", () => {
+  const rows = rowsOf(ALL, "2024-12-05") as never[];
+  const cur = ftseDaily(rows);
+  assert.equal(Object.keys(cur).sort()[0], "2024-12-05", "the current series starts at the renaming");
+  const gens = ftseEarlierGenerations(rows, "2024-12-05");
+  assert.equal(gens.length, 1);
+  assert.equal(gens[0].indexName, "Short Corporate Bond Index");
+  const days = Object.keys(gens[0].daily).sort();
+  assert.equal(days[0], "2024-01-02");
+  assert.equal(days[days.length - 1], "2024-12-04");
+  // joined through the verified gap link, like a separately named generation
+  const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
+  const j = joinFtseHistory(
+    lv(cur),
+    [{ name: "short_corp (earlier name)", levels: lv(gens[0].daily), daily: gens[0].daily, why: "same short_name", gapOk: true }],
+    undefined,
+    cur,
+  );
+  assert.deepEqual(
+    j.used.map((u) => [u.kind, u.link]),
+    [["gap", "2024-12-05"]],
+  );
+  assert.equal(Object.keys(j.levels).sort()[0], "2024-01-02");
+});
+
+test("same short_name: a re-based earlier generation is returned but the gap link refuses it (levels never compared blindly)", () => {
+  const rebased = Object.fromEntries(
+    Object.entries(ALL).map(([d, x]) => [d, d < "2024-12-05" ? { ...x, level: x.level * 0.5 } : x]),
+  );
+  const rows = rowsOf(rebased, "2024-12-05") as never[];
+  const cur = ftseDaily(rows);
+  const gens = ftseEarlierGenerations(rows, "2024-12-05");
+  assert.equal(gens.length, 1);
+  const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
+  const j = joinFtseHistory(
+    lv(cur),
+    [{ name: "old", levels: lv(gens[0].daily), daily: gens[0].daily, why: "same short_name", gapOk: true }],
+    undefined,
+    cur,
+  );
+  assert.equal(j.used.length, 0);
+  assert.match(j.skipped.join(" "), /re-based/);
+});
+
+test("same short_name: rows of another index_id are never taken as an earlier generation", () => {
+  const rows = rowsOf(ALL, "2024-12-05", { id: 26029, oldId: 99999 }) as never[];
+  assert.deepEqual(ftseEarlierGenerations(rows, "2024-12-05"), []);
+});
+
+test("same short_name: nothing earlier → no generation; a single generation is unchanged", () => {
+  const rows = rowsOf(ALL, "2000-01-01") as never[];
+  assert.deepEqual(ftseEarlierGenerations(rows, Object.keys(ftseDaily(rows)).sort()[0]), []);
 });

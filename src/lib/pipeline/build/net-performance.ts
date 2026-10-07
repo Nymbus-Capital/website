@@ -373,6 +373,7 @@ export function buildNetPerformance(
       series,
       origin: fsr.origin,
       idx: FUND_SOURCES[spec.key].ftseIndex ? idx : null,
+      idxLevels: FUND_SOURCES[spec.key].ftseIndex ? (ib?.levels ?? null) : null,
       firstMonth,
       indexName,
       sourceMonths: cand.sourceMonths,
