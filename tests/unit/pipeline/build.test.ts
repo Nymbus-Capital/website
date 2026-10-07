@@ -87,7 +87,9 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
     k === "funds.monthly-income.performance.index" ||
     k === "funds.monthly-income.trailing.index" ||
     /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k) ||
-    /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-05-31)?$/.test(k);
+    /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-05-31)?$/.test(k) ||
+    // the same synthetic defects, now published from each series' own chain: internal data-quality alerts
+    /^funds\.(monthly-income|multi-strategy)\.performance\.classes\.dq$/.test(k);
   assert.deepEqual(
     data.issues.filter((i) => i.level !== "info" && !expectedWarn(i.key)),
     [],
@@ -101,11 +103,11 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   assert.equal(p.monthly[p.monthly.length - 1].r, -0.00121918, "Aug 2026 = dataplatform ready month");
   // Jul 2026 (cut-over) = NAV bridge: Apex NAV per unit 2026-07-31 / CIBC NAV per unit 2026-06-30 − 1 (python3 from nav_history_LDM001.json)
   near(p.monthly[p.monthly.length - 2].r, -0.0013904499981939322);
-  // python3 reference: analytics 2019-01..2021-10, LDM001 CIBC daily returns compounded 2021-11..2026-06 except the two
-  // months withheld for every class (2022-03, 2023-09: the analytics figure instead), bridge, Apex
+  // reference: analytics 2019-01..2021-10, LDM001 CIBC daily returns compounded 2021-11..2026-06 (the synthetic 2022-03
+  // print and 2023-09 drift are data-quality alerts now, no longer withheld: every CIBC month from the chain), bridge, Apex
   near(p.trailing.fund["1Y"], 0.010394608382565895);
-  near(p.trailing.fund["3Y"], 0.010184879046669204);
-  near(p.trailing.fund.SI, 0.02269285344014693);
+  near(p.trailing.fund["3Y"], 0.010184838677784747);
+  near(p.trailing.fund.SI, 0.02269285607744842);
   near(p.trailing.fund.YTD, -0.0006194254199901605);
   assert.equal(p.trailing.fund["10Y"], null);
   // class label: derived from the class of the data (Monthly Income STRATEGY = FP)
@@ -118,7 +120,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   );
   assert.match(
     data.provenance["funds.monthly-income.performance"],
-    /analytics fund_returns\.json "Nymbus Monthly Income" \(36 month\(s\): 2019-01 to 2021-10, 2022-03, 2023-09;/,
+    /analytics fund_returns\.json "Nymbus Monthly Income" \(34 month\(s\): 2019-01 to 2021-10;/,
   );
   // every index figure computed from FTSE short_corp levels (python3 reference from the fixture rows)
   assert.equal(p.indexName, "FTSE Canada Short Term Corporate Bond Index", "from /short-names index_name");
@@ -141,7 +143,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
   // VA = fund − FTSE index
   assert.match(
     data.provenance["funds.monthly-income.performance"],
-    /nav-timeseries LDM001 \(cibc 2021-11 to 2026-06, bridge 2026-07\) daily NAV chain compounded by the website \(55 month/,
+    /nav-timeseries LDM001 \(cibc 2021-11 to 2026-06, bridge 2026-07\) daily NAV chain compounded by the website \(57 month/,
   );
   assert.ok(
     data.issues.some(

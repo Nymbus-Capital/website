@@ -165,6 +165,22 @@ export function buildClasses(
     // a persistent source defect, not an anomaly of this run: one non-blocking notice, posted again only when the list changes
     advisories.push({ code: `defects ${fundRes.fundMonths.map((x) => ym(x.month)).join(",")}`, message: msg });
   }
+  // data-quality alerts that do not withhold anything (internal only): one warn per month, info when a month simply
+  // cannot be compared (a class without a fitted spread yet)
+  for (const a of fundRes.anomalies.filter((x) => x.month <= asOf)) {
+    const blind = /^not checkable|no fitted spread/.test(a.reason);
+    const msg = `data-quality alert (published, not withheld): ${ym(a.month)}${a.fundserv ? ` ${a.fundserv}` : ""}: ${a.reason}`;
+    if (blind) c.info(`${base}.performance.classes.dq`, msg);
+    else c.warn(`${base}.performance.classes.dq`, msg);
+  }
+  const loud = fundRes.anomalies.filter((x) => x.month <= asOf && !/^not checkable|no fitted spread/.test(x.reason));
+  if (loud.length)
+    advisories.push({
+      code: `dq ${loud.map((x) => `${ym(x.month)}${x.fundserv ? `:${x.fundserv}` : ""}`).join(",")}`,
+      message: `data-quality alerts (figures published from each series' own official NAV chain; check with the dataplatform): ${loud
+        .map((x) => `${ym(x.month)}${x.fundserv ? ` ${x.fundserv}` : ""} ${x.reason}`)
+        .join("; ")}`,
+    });
   const classInfo: Record<string, ClassInfo> = {};
   const byRes = new Map(fundRes.classes.map((r) => [r.fundserv, r]));
   // register order first (headline-first choice in pickDefaultClass), the same order validate.ts reads from classInfo

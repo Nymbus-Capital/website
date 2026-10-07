@@ -49,6 +49,8 @@ export interface ChainMonth {
   navGap?: number | null;
   /** CIBC months: valuation days without a NAV whose return is carried, verified, by the next day's stored return */
   bridged?: string[];
+  /** a data-quality note on a month that IS published (internal: admin issue / alert, never on the pages) */
+  note?: string;
 }
 
 /** at most this many consecutive valuation days without a NAV can be bridged by the next day's stored return */
@@ -68,13 +70,51 @@ interface ChainOptions {
 export const CUTOVER = "2026-07-05";
 /** tolerance of the bridge drift checks (dataplatform PR #626 `_BRIDGE_TOLERANCE`) */
 export const BRIDGE_TOLERANCE = 1e-4;
+/**
+ * Largest unit-value step at the CIBC → Apex switch accepted in the cut-over month: beyond BRIDGE_TOLERANCE and up to this,
+ * the month is the official NAV-per-unit bridge (Apex month-end / CIBC prior month-end − 1, dataplatform PR #626) with a
+ * data-quality note; beyond it (a distribution or a different unit at the switch) the month is withheld.
+ */
+export const BRIDGE_SEAM_MAX = 0.0025;
 
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const validReturn = (v: unknown): v is number => finite(v) && v > -1;
 const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
 
+const ROW_FIELDS = [
+  "source",
+  "currency",
+  "nav_type",
+  "nav_per_share_cad",
+  "net_daily_return",
+  "net_return_method",
+  "return_start_date",
+  "return_source_count",
+] as const;
+
+/**
+ * Collapses rows of the same day that are IDENTICAL in every field the chain reads (the same valuation served twice, e.g.
+ * an Apex fund renamed mid-month whose old and new names both map to the fund). Rows of a day that differ in any of these
+ * fields are all kept: the duplicate check still sees a conflict.
+ */
+export function collapseIdentical<T extends DailyRow>(rows: T[]): T[] {
+  const seen = new Map<string, string>();
+  const out: T[] = [];
+  for (const r of rows) {
+    const d = typeof r.date === "string" ? r.date.slice(0, 10) : String(r.date);
+    const sig = JSON.stringify(ROW_FIELDS.map((k) => r[k] ?? null));
+    const key = `${d}|${sig}`;
+    if (seen.has(key)) continue;
+    seen.set(key, d);
+    out.push(r);
+  }
+  return out;
+}
+
 const monthRows = (rows: DailyRow[], monthKey: string): DailyRow[] =>
-  rows.filter((r) => ym(r.date) === monthKey).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  collapseIdentical(rows.filter((r) => ym(r.date) === monthKey)).sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : 0,
+  );
 
 /**
  * CIBC holiday filler: the former administrator wrote a row on some market holidays (Labour Day, Thanksgiving, Christmas,
@@ -313,17 +353,19 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
   // seam continuity: when the first Apex day's return starts on the last CIBC day, the CIBC NAV per unit carried by that
   // return must give the first Apex NAV per unit (a different unit value or an unbooked distribution at the switch)
   const lastCibc = cibcJuly.length ? cibcJuly[cibcJuly.length - 1] : base[0];
+  let seamNote: string | null = null;
   const a0 = apex[0];
   if (a0.return_start_date === lastCibc.date && validReturn(a0.net_daily_return)) {
     const carried = (lastCibc.nav_per_share_cad as number) * (1 + a0.net_daily_return);
-    if (Math.abs(carried / (a0.nav_per_share_cad as number) - 1) > BRIDGE_TOLERANCE) {
-      return fail(
-        `seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`,
-      );
-    }
+    const step = carried / (a0.nav_per_share_cad as number) - 1;
+    const desc = `seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`;
+    if (Math.abs(step) > BRIDGE_SEAM_MAX) return fail(desc);
+    if (Math.abs(step) > BRIDGE_TOLERANCE) seamNote = `${desc} (${(step * 100).toFixed(3)}%, within ${(BRIDGE_SEAM_MAX * 100).toFixed(2)}%): official NAV bridge published`;
   }
   const value = (apex[apex.length - 1].nav_per_share_cad as number) / baseNav - 1;
-  return validReturn(value) ? { ...out, status: "ready", r: value } : fail("Invalid bridged monthly return");
+  return validReturn(value)
+    ? { ...out, status: "ready", r: value, ...(seamNote ? { note: seamNote } : {}) }
+    : fail("Invalid bridged monthly return");
 }
 
 /**

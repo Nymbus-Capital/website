@@ -34,6 +34,7 @@ import {
   BRIDGE_TOLERANCE,
   bridgeMonth,
   cibcMonth,
+  collapseIdentical,
   CUTOVER,
   dropHolidayFiller,
   type ChainMonth,
@@ -120,8 +121,14 @@ export interface FundClassesResult {
   fundMonths: { month: string; reason: string }[];
   /** class-months that could not be cross-checked (no other class over the same days) */
   unchecked: { fundserv: string; month: string }[];
-  /** class-months withheld for that class alone by a check (cross-class outlier, newest month waiting), with the reason */
+  /** class-months withheld for that class alone by a check (newest month waiting), with the reason */
   classChecks: Record<string, { month: string; reason: string }[]>;
+  /**
+   * Data-quality alerts that do NOT withhold a month (internal: admin issues / alerts, never on the pages): cross-class
+   * inconsistency of a month computed from the class's own official NAV path, a bad valuation print reversed inside the
+   * same month (the month's return is unaffected). `fundserv` null: the whole fund.
+   */
+  anomalies: { month: string; fundserv: string | null; reason: string }[];
 }
 
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -133,7 +140,9 @@ const prod = (rs: number[]): number => rs.reduce((a, r) => a * (1 + r), 1);
 /** rows with a string date, the date cut to YYYY-MM-DD, sorted by date (stable), without CIBC holiday filler rows */
 function normalizeRows(rows: DailyRow[]): DailyRow[] {
   return dropHolidayFiller(
-    rows.filter((r) => r && typeof r.date === "string").map((r) => ({ ...r, date: r.date.slice(0, 10) })),
+    collapseIdentical(
+      rows.filter((r) => r && typeof r.date === "string").map((r) => ({ ...r, date: r.date.slice(0, 10) })),
+    ),
   );
 }
 
@@ -361,6 +370,7 @@ function dailyReturns(rows: DailyRow[], inception: string, end?: string): Map<st
 export function spikeMonths(
   daily: Record<string, Map<string, number>>,
   cfg: Pick<ClassCheckConfig, "spikeMin" | "spikeRevert">,
+  sameMonth?: Map<string, string>,
 ): Map<string, string> {
   const out = new Map<string, string>();
   for (const [fsv, m] of Object.entries(daily)) {
@@ -372,6 +382,12 @@ export function spikeMonths(
       const both = (1 + a) * (1 + b) - 1;
       if (Math.abs(both) > cfg.spikeRevert * Math.min(Math.abs(a), Math.abs(b))) continue;
       const why = `bad valuation print: ${fsv} ${ds[i - 1]} ${pct(a)} then ${ds[i]} ${pct(b)} (reversed, combined ${pct(both)})`;
+      // reversed inside one month: the month's compounded return (and its month-end NAV) is unaffected — an alert, not a
+      // withheld month (`sameMonth`, when the caller collects them); across a month-end it shifts return between months
+      if (sameMonth && toMonthEnd(ds[i - 1]) === toMonthEnd(ds[i])) {
+        if (!sameMonth.has(toMonthEnd(ds[i]))) sameMonth.set(toMonthEnd(ds[i]), why);
+        continue;
+      }
       for (const d of [ds[i - 1], ds[i]]) if (!out.has(toMonthEnd(d))) out.set(toMonthEnd(d), why);
     }
   }
@@ -681,7 +697,8 @@ export function computeFundClasses(
     }
     classes.push({ ...res, status: "ok" });
   }
-  const spikes = new Map([...spikeMonths(spikeDaily, cfg)].filter(([m]) => m <= endMonth));
+  const sameMonthPrints = new Map<string, string>();
+  const spikes = new Map([...spikeMonths(spikeDaily, cfg, sameMonthPrints)].filter(([m]) => m <= endMonth));
   // the cross-class comparison runs on months that passed the per-class checks and the bad-print check only
   const candidates: Record<string, { month: string; r: number | null; days: string[]; partial: boolean }[]> = {};
   for (const [fsv, ms] of Object.entries(raw))
@@ -692,7 +709,28 @@ export function computeFundClasses(
       partial: m.partial,
     }));
   const cross = crossClassFailures(candidates, daily, cfg, adjustments);
-  const fundWhy = new Map<string, string>([...cross.fundMonths, ...spikes]);
+  // the cross-class check is a monitor: a month computed from the class's own official chain is published; its
+  // disagreement with the other classes is an internal data-quality alert (admin issue / alert), never a withheld month
+  const anomalies: FundClassesResult["anomalies"] = [];
+  for (const [month, reason] of cross.fundMonths) if (month <= endMonth) anomalies.push({ month, fundserv: null, reason });
+  for (const [fsv, ms] of cross.fails)
+    for (const [month, reason] of ms) if (month <= endMonth) anomalies.push({ month, fundserv: fsv, reason });
+  for (const [month, reason] of sameMonthPrints)
+    if (month <= endMonth)
+      anomalies.push({ month, fundserv: null, reason: `${reason}: reversed inside the month, month return unaffected` });
+  for (const [fsv, ms] of Object.entries(raw))
+    for (const m of ms) {
+      if (m.month > endMonth || m.status !== "ready") continue;
+      if (m.note) anomalies.push({ month: m.month, fundserv: fsv, reason: m.note });
+      if (m.bridged?.length)
+        anomalies.push({
+          month: m.month,
+          fundserv: fsv,
+          reason: `not checkable: valuation day(s) ${m.bridged.join(", ")} served without NAV, bridged by the next day's stored return (verified equal to the NAV-per-unit ratio)`,
+        });
+    }
+  anomalies.sort((a, b) => (a.month < b.month ? -1 : a.month > b.month ? 1 : 0));
+  const fundWhy = new Map<string, string>([...spikes]);
   const fundMonths = [...fundWhy.keys()].sort().map((month) => ({ month, reason: fundWhy.get(month)! }));
   for (const c of classes) {
     const ms = raw[c.fundserv];
@@ -702,7 +740,6 @@ export function computeFundClasses(
         m.status !== "ready" || m.r === null
           ? (m.issue ?? m.status)
           : (fundWhy.get(m.month) ??
-            cross.fails.get(c.fundserv)?.get(m.month) ??
             (m.month === endMonth && newestUnchecked.has(c.fundserv)
               ? "newest month held: no valuation day after its last day yet to rule out a reversed month-end print"
               : null));
@@ -711,9 +748,7 @@ export function computeFundClasses(
   }
   const classChecks: Record<string, { month: string; reason: string }[]> = {};
   for (const fsv of Object.keys(raw)) {
-    const list = [...(cross.fails.get(fsv) ?? [])]
-      .filter(([m]) => !fundWhy.has(m))
-      .map(([month, reason]) => ({ month, reason }));
+    const list: { month: string; reason: string }[] = [];
     if (newestUnchecked.has(fsv) && !fundWhy.has(endMonth))
       list.push({
         month: endMonth,
@@ -721,7 +756,7 @@ export function computeFundClasses(
       });
     if (list.length) classChecks[fsv] = list;
   }
-  return { classes, fundMonths, unchecked: cross.unchecked, classChecks };
+  return { classes, fundMonths, unchecked: cross.unchecked, classChecks, anomalies };
 }
 
 /** Whether `asOf` (a month-end) is at least `months` months after `inception` (same day, clamped to the month's end). */

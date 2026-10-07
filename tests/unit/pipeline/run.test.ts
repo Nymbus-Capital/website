@@ -262,7 +262,7 @@ test("H1/H3: with the opt-in factsheet gate a held month is published without al
   delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
-test("source defects withholding a month of every class: published (not blocked), one non-blocking notice, posted once", async () => {
+test("a class disagreeing with the others in a distribution month: published (not withheld, not blocked), one non-blocking data-quality notice, posted once", async () => {
   const posted: string[] = [];
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) =>
@@ -285,18 +285,18 @@ test("source defects withholding a month of every class: published (not blocked)
     r.advisories?.some(
       (a) =>
         a.fund === "sustainable-enhanced-bonds" &&
-        /month\(s\) withheld for every class of the fund .*2024-03 classes disagree .*LDM202 /.test(a.message),
+        /data-quality alerts .*2024-03 classes disagree .*LDM202 /.test(a.message),
     ),
   );
   assert.ok(
     r.issues.some(
       (x) =>
         x.level === "warn" &&
-        /attention \(not blocking\): month\(s\) withheld for every class of the fund .*2024-03/.test(x.message),
+        /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
     ),
   );
   assert.equal(posted.length, 1);
-  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: month\(s\) withheld for every class/);
+  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: data-quality alerts/);
   // the same notice on the next run: not posted again
   const r2 = await run({ routes: [jump, hook] });
   assert.equal(r2.status, "published");
