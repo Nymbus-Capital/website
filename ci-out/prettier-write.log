@@ -1,0 +1,428 @@
+.github/workflows/ci.yml 23ms
+[90m.github/workflows/northflank-provision.yml[39m 6ms (unchanged)
+[90m.prettierrc[39m 21ms (unchanged)
+deploy/northflank/provision.mjs 72ms
+[90mdocker/start.mjs[39m 6ms (unchanged)
+e2e/admin.spec.ts 238ms
+e2e/cms.spec.ts 51ms
+e2e/contact.spec.ts 54ms
+e2e/content-v3.spec.ts 23ms
+e2e/core-concepts.spec.ts 61ms
+e2e/dialog.spec.ts 15ms
+e2e/disclosure.spec.ts 30ms
+e2e/fund.spec.ts 118ms
+e2e/helpers.ts 8ms
+e2e/home-engines.spec.ts 19ms
+e2e/home-v2.spec.ts 11ms
+e2e/home.spec.ts 17ms
+e2e/mock-wp.mjs 9ms
+e2e/site-v5.spec.ts 18ms
+e2e/site.spec.ts 24ms
+e2e/soft-nav-css.spec.ts 3ms
+e2e/visual-baseline.spec.ts 16ms
+eslint.config.mjs 4ms
+next.config.ts 5ms
+[90mpackage.json[39m 2ms (unchanged)
+playwright.config.ts 6ms
+postcss.config.mjs 1ms
+scripts/visual-diff.d.mts 2ms
+scripts/visual-diff.mjs 26ms
+src/app/(site)/approach/page.tsx 3ms
+src/app/(site)/contact/page.tsx 4ms
+src/app/(site)/core-concepts/page.tsx 1ms
+src/app/(site)/layout.tsx 4ms
+src/app/(site)/legal/page.tsx 2ms
+src/app/(site)/news/[id]/page.tsx 8ms
+src/app/(site)/news/page.tsx 4ms
+[90msrc/app/(site)/not-found.tsx[39m 1ms (unchanged)
+[90msrc/app/(site)/page.tsx[39m 2ms (unchanged)
+src/app/(site)/privacy/page.tsx 1ms
+[90msrc/app/(site)/solutions/page.tsx[39m 2ms (unchanged)
+src/app/(site)/strategies/[slug]/page.tsx 6ms
+[90msrc/app/(site)/strategies/page.tsx[39m 2ms (unchanged)
+src/app/(site)/sustainability/page.tsx 2ms
+[90msrc/app/(site)/team/page.tsx[39m 2ms (unchanged)
+src/app/admin/_lib/data.ts 4ms
+src/app/admin/_lib/rankings.ts 5ms
+src/app/admin/admin.css 93ms
+src/app/admin/audit/page.tsx 6ms
+src/app/admin/documents/page.tsx 3ms
+src/app/admin/error.tsx 3ms
+src/app/admin/funds/[key]/page.tsx 16ms
+[90msrc/app/admin/funds/page.tsx[39m 1ms (unchanged)
+[90msrc/app/admin/inquiries/page.tsx[39m 2ms (unchanged)
+src/app/admin/layout.tsx 2ms
+src/app/admin/not-found.tsx 1ms
+src/app/admin/page.tsx 21ms
+src/app/admin/runs/[id]/page.tsx 17ms
+src/app/admin/runs/page.tsx 3ms
+src/app/admin/settings/page.tsx 2ms
+src/app/api/admin/_lib/http.ts 8ms
+src/app/api/admin/_lib/save.ts 3ms
+src/app/api/admin/_lib/schemas.ts 32ms
+src/app/api/admin/_lib/upload.ts 4ms
+src/app/api/admin/alerts/test/route.ts 3ms
+[90msrc/app/api/admin/audit/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/admin/brand/[slot]/route.ts[39m 3ms (unchanged)
+src/app/api/admin/compliance/route.ts 3ms
+src/app/api/admin/content/funds/[key]/route.ts 3ms
+[90msrc/app/api/admin/content/route.ts[39m 1ms (unchanged)
+src/app/api/admin/content/settings/route.ts 3ms
+src/app/api/admin/documents/[id]/route.ts 6ms
+src/app/api/admin/documents/route.ts 2ms
+src/app/api/admin/inquiries/[id]/route.ts 3ms
+[90msrc/app/api/admin/inquiries/export/route.ts[39m 3ms (unchanged)
+[90msrc/app/api/admin/inquiries/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/admin/me/route.ts[39m 1ms (unchanged)
+src/app/api/admin/pipeline/run/route.ts 3ms
+src/app/api/admin/rankings/check/route.ts 2ms
+src/app/api/admin/runs/[id]/publish/route.ts 3ms
+[90msrc/app/api/admin/runs/[id]/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/admin/runs/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/admin/status/route.ts[39m 2ms (unchanged)
+src/app/api/admin/upload/brand/route.ts 3ms
+src/app/api/admin/upload/documents/[id]/route.ts 2ms
+src/app/api/admin/upload/documents/route.ts 3ms
+src/app/api/auth/callback/route.ts 6ms
+[90msrc/app/api/auth/login/route.ts[39m 3ms (unchanged)
+src/app/api/auth/logout/route.ts 6ms
+src/app/api/brand/[slot]/route.ts 4ms
+src/app/api/cms/revalidate/route.ts 3ms
+src/app/api/contact/route.ts 8ms
+src/app/api/documents/_serve.ts 7ms
+[90msrc/app/api/documents/[id]/[name]/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/documents/[id]/route.ts[39m 2ms (unchanged)
+[90msrc/app/api/health/route.ts[39m 1ms (unchanged)
+src/app/api/status/route.ts 3ms
+src/app/globals.css 82ms
+src/app/layout.tsx 4ms
+src/app/not-found.tsx 1ms
+src/components/admin/AlertsPanel.tsx 7ms
+[90msrc/components/admin/audit-read.ts[39m 5ms (unchanged)
+src/components/admin/BrandAssetsManager.tsx 13ms
+src/components/admin/client.tsx 16ms
+src/components/admin/compliance.ts 5ms
+src/components/admin/ComplianceBanner.tsx 7ms
+src/components/admin/DocumentsManager.tsx 54ms
+src/components/admin/format.ts 7ms
+src/components/admin/fund-content.ts 8ms
+src/components/admin/FundEditor.tsx 25ms
+src/components/admin/Head.tsx 2ms
+src/components/admin/InquiriesManager.tsx 12ms
+src/components/admin/Rail.tsx 3ms
+src/components/admin/RankingsEditor.tsx 47ms
+src/components/admin/RankingsPanel.tsx 5ms
+src/components/admin/runs.tsx 23ms
+src/components/admin/SettingsForm.tsx 14ms
+src/components/admin/summary.ts 8ms
+src/components/fund/Awards.tsx 18ms
+src/components/fund/Block.tsx 2ms
+src/components/fund/charts/Breakdowns.tsx 13ms
+src/components/fund/charts/DistBars.tsx 10ms
+src/components/fund/charts/GroupedBars.tsx 26ms
+src/components/fund/charts/GrowthChart.tsx 30ms
+src/components/fund/charts/Heatmap.tsx 16ms
+src/components/fund/charts/hooks.ts 11ms
+src/components/fund/charts/Tip.tsx 5ms
+src/components/fund/ClassBadge.tsx 3ms
+src/components/fund/Closing.tsx 20ms
+src/components/fund/DocsDist.tsx 30ms
+src/components/fund/fund.copy.ts 36ms
+src/components/fund/fund.css 158ms
+src/components/fund/FundPage.tsx 7ms
+src/components/fund/FundTabs.tsx 7ms
+src/components/fund/Header.tsx 32ms
+src/components/fund/InfoNote.tsx 6ms
+src/components/fund/labels.ts 3ms
+src/components/fund/lib/distributions.ts 5ms
+src/components/fund/lib/documents.ts 3ms
+src/components/fund/lib/facts.ts 8ms
+src/components/fund/lib/format.ts 18ms
+src/components/fund/lib/growth.ts 5ms
+src/components/fund/lib/heatmap.ts 5ms
+src/components/fund/lib/is-num.ts 1ms
+src/components/fund/lib/notice.ts 4ms
+src/components/fund/lib/performance.ts 11ms
+src/components/fund/lib/portfolio.ts 5ms
+src/components/fund/lib/provenance.ts 2ms
+src/components/fund/lib/rankings.ts 3ms
+src/components/fund/lib/scale.ts 18ms
+src/components/fund/lib/select.ts 21ms
+src/components/fund/lib/visibility.ts 9ms
+src/components/fund/Morningstar.tsx 5ms
+src/components/fund/Overview.tsx 27ms
+src/components/fund/Performance.tsx 38ms
+src/components/fund/Portfolio.tsx 33ms
+src/components/fund/rankings.copy.ts 3ms
+src/components/fund/types.ts 2ms
+src/components/motion/motion.tsx 27ms
+src/components/site/canvas/draw-kit.ts 7ms
+src/components/site/canvas/runner.ts 9ms
+src/components/site/canvas/timeline.ts 5ms
+src/components/site/cms/AnnouncementBanner.tsx 2ms
+src/components/site/cms/cms.css 4ms
+src/components/site/cms/format.ts 2ms
+src/components/site/cms/NewsCard.tsx 4ms
+src/components/site/concepts/ConceptPanel.tsx 18ms
+src/components/site/concepts/concepts.copy.ts 12ms
+src/components/site/concepts/concepts.css 14ms
+src/components/site/concepts/CoreConcepts.tsx 3ms
+src/components/site/concepts/coverage-engine.ts 67ms
+src/components/site/concepts/coverage-model.ts 17ms
+src/components/site/concepts/futures-engine.ts 35ms
+src/components/site/concepts/futures-model.ts 7ms
+src/components/site/concepts/overlay-stack-engine.ts 28ms
+src/components/site/concepts/overlay-stack-model.ts 10ms
+[90msrc/components/site/disclosure-logic.ts[39m 4ms (unchanged)
+src/components/site/Disclosure.tsx 17ms
+src/components/site/Footer.tsx 8ms
+src/components/site/fx/chunk-recover.ts 2ms
+src/components/site/fx/datafield-engine.ts 16ms
+src/components/site/fx/overlay-engine.ts 52ms
+src/components/site/fx/overlay-model.ts 25ms
+src/components/site/fx/overlay.copy.ts 3ms
+src/components/site/fx/overlay.css 2ms
+src/components/site/fx/overlay.tsx 10ms
+src/components/site/home/data.ts 15ms
+src/components/site/home/figures.ts 11ms
+src/components/site/home/FundTile.tsx 16ms
+src/components/site/home/home.copy.ts 7ms
+src/components/site/home/home.css 73ms
+src/components/site/home/HomeHero.tsx 2ms
+src/components/site/home/Intro.tsx 2ms
+[90msrc/components/site/home/labels.ts[39m 1ms (unchanged)
+src/components/site/home/news.ts 2ms
+src/components/site/home/Sections.tsx 14ms
+src/components/site/kit.css 44ms
+src/components/site/kit.tsx 28ms
+src/components/site/legal/complaints.ts 5ms
+src/components/site/legal/privacy.ts 6ms
+[90msrc/components/site/legal/types.ts[39m 2ms (unchanged)
+src/components/site/links.ts 2ms
+src/components/site/Logo.tsx 1ms
+src/components/site/Nav.tsx 13ms
+src/components/site/pages/about.copy.ts 5ms
+src/components/site/pages/approach.copy.ts 7ms
+src/components/site/pages/Approach.tsx 34ms
+src/components/site/pages/contact.copy.ts 5ms
+src/components/site/pages/Contact.tsx 31ms
+src/components/site/pages/Legal.tsx 15ms
+src/components/site/pages/lib/contact-links.ts 3ms
+src/components/site/pages/lib/inquiry.ts 8ms
+src/components/site/pages/lib/people.ts 6ms
+src/components/site/pages/NotFound.tsx 5ms
+src/components/site/pages/PageHero.tsx 2ms
+src/components/site/pages/pages.css 137ms
+src/components/site/pages/Portrait.tsx 3ms
+src/components/site/pages/solutions.copy.ts 8ms
+src/components/site/pages/Solutions.tsx 14ms
+src/components/site/pages/strategies.copy.ts 2ms
+src/components/site/pages/StrategiesIndex.tsx 13ms
+src/components/site/pages/sustainability.copy.ts 4ms
+src/components/site/pages/Sustainability.tsx 17ms
+src/components/site/pages/Team.tsx 38ms
+src/components/site/SiteShell.tsx 4ms
+[90msrc/components/site/theme-script.ts[39m 1ms (unchanged)
+src/config/funds-public.ts 4ms
+src/config/funds.ts 8ms
+src/content/disclaimers.ts 11ms
+src/data/team.ts 18ms
+src/instrumentation.ts 3ms
+src/lib/auth/config.ts 5ms
+src/lib/auth/csp.ts 3ms
+src/lib/auth/deny.ts 2ms
+src/lib/auth/diagnostics.ts 5ms
+src/lib/auth/guards.ts 12ms
+src/lib/auth/oidc.ts 8ms
+[90msrc/lib/auth/pkce.ts[39m 2ms (unchanged)
+src/lib/auth/policy.ts 17ms
+[90msrc/lib/auth/revocation.ts[39m 3ms (unchanged)
+[90msrc/lib/auth/server.ts[39m 2ms (unchanged)
+src/lib/auth/session.ts 12ms
+[90msrc/lib/auth/volume-secret.ts[39m 3ms (unchanged)
+src/lib/cms/auth.ts 5ms
+src/lib/cms/client.ts 4ms
+src/lib/cms/config.ts 5ms
+src/lib/cms/export.ts 7ms
+src/lib/cms/index.ts 4ms
+src/lib/cms/map.ts 11ms
+src/lib/cms/sanitize.ts 7ms
+src/lib/cms/source.ts 11ms
+[90msrc/lib/cms/types.ts[39m 5ms (unchanged)
+src/lib/cms/validate.ts 12ms
+src/lib/contact/csv.ts 2ms
+src/lib/contact/guards.ts 9ms
+[90msrc/lib/contact/notify.ts[39m 2ms (unchanged)
+src/lib/contact/retention.ts 2ms
+src/lib/contact/store.ts 14ms
+src/lib/contact/token.ts 4ms
+src/lib/contact/validate.ts 8ms
+src/lib/data/brand-assets.ts 25ms
+src/lib/data/cache.ts 7ms
+src/lib/data/content.ts 4ms
+[90msrc/lib/data/dates.ts[39m 1ms (unchanged)
+src/lib/data/defaults.ts 9ms
+src/lib/data/documents.ts 16ms
+src/lib/data/freshness.ts 2ms
+src/lib/data/site.ts 5ms
+src/lib/data/store.ts 10ms
+src/lib/data/types.ts 19ms
+[90msrc/lib/i18n/config.ts[39m 3ms (unchanged)
+src/lib/i18n/context.tsx 4ms
+src/lib/i18n/dict.ts 3ms
+[90msrc/lib/i18n/en.ts[39m 1ms (unchanged)
+src/lib/i18n/fr.ts 1ms
+[90msrc/lib/i18n/index.ts[39m 1ms (unchanged)
+[90msrc/lib/i18n/server.ts[39m 1ms (unchanged)
+src/lib/pipeline/alerts.ts 32ms
+src/lib/pipeline/build/benchmark.ts 7ms
+src/lib/pipeline/build/class-series.ts 14ms
+src/lib/pipeline/build/context.ts 6ms
+src/lib/pipeline/build/daily-book.ts 9ms
+src/lib/pipeline/build/factsheet-parts.ts 8ms
+src/lib/pipeline/build/factsheet-performance.ts 10ms
+src/lib/pipeline/build/factsheets.ts 7ms
+src/lib/pipeline/build/fund.ts 14ms
+src/lib/pipeline/build/helpers.ts 6ms
+[90msrc/lib/pipeline/build/index.ts[39m 1ms (unchanged)
+src/lib/pipeline/build/nav.ts 9ms
+src/lib/pipeline/build/net-performance.ts 19ms
+src/lib/pipeline/build/performance.ts 5ms
+src/lib/pipeline/build/register.ts 3ms
+src/lib/pipeline/build/series.ts 18ms
+src/lib/pipeline/build/site.ts 6ms
+src/lib/pipeline/build/track-record.ts 28ms
+src/lib/pipeline/build/variants.ts 5ms
+src/lib/pipeline/class-fit.ts 25ms
+src/lib/pipeline/class-returns.ts 58ms
+src/lib/pipeline/classes.ts 23ms
+src/lib/pipeline/cli.ts 4ms
+src/lib/pipeline/config.ts 7ms
+src/lib/pipeline/daily-chain.ts 24ms
+src/lib/pipeline/distributions.ts 13ms
+[90msrc/lib/pipeline/format.ts[39m 1ms (unchanged)
+src/lib/pipeline/freshness.ts 7ms
+src/lib/pipeline/fund-portfolio.ts 49ms
+src/lib/pipeline/fund-sources.ts 10ms
+src/lib/pipeline/index-levels.ts 34ms
+src/lib/pipeline/index.ts 1ms
+src/lib/pipeline/market-calendar.ts 10ms
+src/lib/pipeline/metrics.ts 22ms
+src/lib/pipeline/monitor.ts 20ms
+src/lib/pipeline/parse.ts 30ms
+[90msrc/lib/pipeline/perf-class.ts[39m 4ms (unchanged)
+src/lib/pipeline/portfolio.ts 25ms
+src/lib/pipeline/raw.ts 16ms
+src/lib/pipeline/run.ts 43ms
+src/lib/pipeline/sample.ts 5ms
+src/lib/pipeline/schedule.ts 19ms
+src/lib/pipeline/sources/analytics.ts 6ms
+src/lib/pipeline/sources/contracts.ts 16ms
+src/lib/pipeline/sources/dataplatform.ts 48ms
+src/lib/pipeline/sources/factsheets.ts 6ms
+src/lib/pipeline/sources/github-auth.ts 5ms
+src/lib/pipeline/sources/graph.ts 5ms
+src/lib/pipeline/sources/http.ts 5ms
+src/lib/pipeline/sources/index.ts 13ms
+src/lib/pipeline/validate/distributions.ts 9ms
+src/lib/pipeline/validate/helpers.ts 2ms
+[90msrc/lib/pipeline/validate/index.ts[39m 1ms (unchanged)
+src/lib/pipeline/validate/nav.ts 6ms
+src/lib/pipeline/validate/performance.ts 12ms
+src/lib/pipeline/validate/portfolio.ts 6ms
+src/lib/pipeline/validate/site.ts 18ms
+src/lib/rankings/expiry-alert.ts 2ms
+src/lib/rankings/issues.ts 9ms
+src/lib/rankings/policy.ts 18ms
+src/lib/rankings/rbc-survey.ts 23ms
+src/lib/rankings/schedule.ts 4ms
+src/proxy.ts 4ms
+tests/fixtures/pipeline/generate.ts 67ms
+tests/fixtures/pipeline/holdings.ts 15ms
+tests/fixtures/pipeline/memo.ts 2ms
+tests/fixtures/pipeline/mock-fetch.ts 9ms
+tests/fixtures/pipeline/nav-history.ts 10ms
+tests/fixtures/rankings/rbc-article.html 19ms
+tests/fixtures/rankings/rbc-listing.html 5ms
+tests/unit/admin/content.test.ts 9ms
+tests/unit/admin/disclaimers.test.ts 12ms
+tests/unit/admin/documents.test.ts 14ms
+tests/unit/admin/fund-content.test.ts 5ms
+[90mtests/unit/admin/pin.test.ts[39m 2ms (unchanged)
+tests/unit/admin/public-dto.test.ts 2ms
+tests/unit/admin/rankings-content.test.ts 5ms
+tests/unit/auth/csp.test.ts 3ms
+[90mtests/unit/auth/diagnostics.test.ts[39m 4ms (unchanged)
+tests/unit/auth/guards.test.ts 11ms
+tests/unit/auth/matcher.test.ts 2ms
+tests/unit/auth/policy.test.ts 20ms
+tests/unit/auth/session.test.ts 5ms
+[90mtests/unit/auth/volume-secret.test.ts[39m 4ms (unchanged)
+tests/unit/cms/config-client.test.ts 13ms
+tests/unit/cms/import-export.test.ts 3ms
+tests/unit/cms/intros-contact.test.ts 6ms
+tests/unit/cms/map-auth.test.ts 14ms
+tests/unit/cms/sanitize.test.ts 6ms
+tests/unit/cms/source.test.ts 24ms
+tests/unit/cms/validate.test.ts 9ms
+tests/unit/contact/store.test.ts 13ms
+tests/unit/contact/token-guards.test.ts 11ms
+tests/unit/contact/validate.test.ts 6ms
+tests/unit/data/cache.test.ts 8ms
+tests/unit/data/freshness.test.ts 5ms
+tests/unit/deploy/provision.test.ts 19ms
+tests/unit/fund/data-fixes.test.ts 20ms
+tests/unit/fund/helpers.test.ts 24ms
+tests/unit/fund/portfolio-dist.test.ts 16ms
+tests/unit/fund/rankings.test.ts 18ms
+tests/unit/fund/select.test.ts 15ms
+tests/unit/pipeline/alerts.test.ts 19ms
+tests/unit/pipeline/build.test.ts 48ms
+tests/unit/pipeline/class-returns.test.ts 69ms
+tests/unit/pipeline/classes.test.ts 36ms
+tests/unit/pipeline/daily-chain.test.ts 11ms
+tests/unit/pipeline/freshness.test.ts 5ms
+tests/unit/pipeline/ftse-gap.test.ts 8ms
+tests/unit/pipeline/ftse-grouping.test.ts 3ms
+tests/unit/pipeline/fund-data.test.ts 52ms
+tests/unit/pipeline/fund-portfolio.test.ts 22ms
+tests/unit/pipeline/github-app-source.test.ts 3ms
+tests/unit/pipeline/github-auth.test.ts 5ms
+tests/unit/pipeline/http-safeurl.test.ts 1ms
+tests/unit/pipeline/metrics.test.ts 16ms
+tests/unit/pipeline/monitor.test.ts 9ms
+tests/unit/pipeline/parse.test.ts 10ms
+tests/unit/pipeline/perf-class.test.ts 20ms
+tests/unit/pipeline/review-fixes.test.ts 10ms
+tests/unit/pipeline/run.test.ts 53ms
+tests/unit/pipeline/sample-sync.test.ts 2ms
+tests/unit/pipeline/schedule.test.ts 12ms
+tests/unit/pipeline/sources.test.ts 11ms
+tests/unit/pipeline/validate.test.ts 18ms
+tests/unit/rankings/brand-advisor.test.ts 9ms
+tests/unit/rankings/brand-files.test.ts 3ms
+tests/unit/rankings/expiry.test.ts 9ms
+tests/unit/rankings/policy.test.ts 11ms
+tests/unit/rankings/rbc-survey.test.ts 14ms
+tests/unit/scripts/visual-diff.test.ts 6ms
+tests/unit/site/aum.test.ts 2ms
+tests/unit/site/client-imports.test.ts 6ms
+tests/unit/site/concise-copy.test.ts 9ms
+tests/unit/site/content-v3.test.ts 14ms
+tests/unit/site/copy-typography.test.ts 6ms
+tests/unit/site/core-concepts.test.ts 52ms
+tests/unit/site/disclosure.test.ts 6ms
+tests/unit/site/esg-scope.test.ts 7ms
+tests/unit/site/figures.test.ts 11ms
+tests/unit/site/fonts-and-wording.test.ts 7ms
+tests/unit/site/french-terms.test.ts 3ms
+tests/unit/site/gmv-variant.test.ts 4ms
+tests/unit/site/overlay.test.ts 23ms
+tests/unit/site/pages.test.ts 14ms
+[90mtests/unit/site/scan-frozen.test.ts[39m 3ms (unchanged)
+tests/unit/site/scan.test.ts 9ms
+tests/unit/site/word-budget.test.ts 3ms
+tsconfig.json 2ms
+[90mwordpress/docker-compose.yml[39m 11ms (unchanged)
+wordpress/scripts/import-from-site.mjs 7ms
+exit 0
