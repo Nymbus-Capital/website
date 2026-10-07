@@ -211,14 +211,12 @@ export function publicRankings(
       void _ref;
       return {
         ...rest,
-        rows: e.rows
-          .filter(rowHasFigure)
-          .map((r) => ({
-            period: r.period,
-            percentile: r.percentile,
-            ...(r.rank != null ? { rank: r.rank } : {}),
-            ...(r.of != null ? { of: r.of } : {}),
-          })),
+        rows: e.rows.filter(rowHasFigure).map((r) => ({
+          period: r.period,
+          percentile: r.percentile,
+          ...(r.rank != null ? { rank: r.rank } : {}),
+          ...(r.of != null ? { of: r.of } : {}),
+        })),
         ...(rolling?.length
           ? { rolling: rolling.map((a) => ({ end: a.end, years: a.years, percentile: a.percentile })) }
           : {}),

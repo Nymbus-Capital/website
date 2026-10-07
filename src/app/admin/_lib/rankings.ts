@@ -14,9 +14,7 @@ import { missingMorningstarAssets, rankingIssues, type RankingIssue } from "@/li
 import { effectiveLatest, readRbcState, type RbcCheckState } from "@/lib/rankings/rbc-survey";
 import type { BrandRow } from "@/components/admin/BrandAssetsManager";
 
-export async function rankingsAdmin(
-  content: SiteContent,
-): Promise<{
+export async function rankingsAdmin(content: SiteContent): Promise<{
   issues: RankingIssue[];
   months: number;
   rbc: RbcCheckState | null;

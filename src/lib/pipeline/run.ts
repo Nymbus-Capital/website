@@ -622,9 +622,7 @@ async function lockActive(staleMs = 30 * 60_000): Promise<boolean> {
 /** a pipeline run holds the lock (heartbeat younger than 30 min) */
 export const pipelineRunning = (): Promise<boolean> => lockActive();
 
-export async function pipelineStatus(
-  now: Date = new Date(),
-): Promise<{
+export async function pipelineStatus(now: Date = new Date()): Promise<{
   running: boolean;
   schedule: string[];
   timezone: "America/Toronto";
