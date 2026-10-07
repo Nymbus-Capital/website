@@ -34,11 +34,30 @@ test("next.config.ts serves /brand/third-party/* with a sandboxing CSP and nosni
 });
 
 test("official provider logos shipped (Fundata, RBC Investor Services) beside the Morningstar files", () => {
-  for (const name of ["morningstar-logo.png", "morningstar-stars-5.png", "fundata-logo.png", "rbc-logo.png"]) {
+  for (const name of [
+    "morningstar-logo.png",
+    ...[1, 2, 3, 4, 5].map((n) => `morningstar-stars-${n}.png`),
+    "fundata-logo.png",
+    "rbc-logo.png",
+  ]) {
     assert.ok(existsSync(path.join(DIR, name)), `${name} shipped`);
   }
   assert.ok(
     !existsSync(path.join(DIR, "fundlibrary-logo.png")) && !existsSync(path.join(DIR, "fundlibrary-logo.svg")),
     "former slot name not shipped",
   );
+});
+
+test("Morningstar 1–4 star images are exact left crops of the official 5-star image (no redraw)", () => {
+  // PNG IHDR: width at byte 16, height at byte 20 (big-endian)
+  const size = (name: string): [number, number] => {
+    const b = readFileSync(path.join(DIR, name));
+    return [b.readUInt32BE(16), b.readUInt32BE(20)];
+  };
+  const [w5, h5] = size("morningstar-stars-5.png");
+  for (const n of [1, 2, 3, 4]) {
+    const [w, h] = size(`morningstar-stars-${n}.png`);
+    assert.equal(h, h5, `${n} stars: same height`);
+    assert.equal(w, (w5 / 5) * n, `${n} stars: width of ${n} of the 5 stars`);
+  }
 });

@@ -296,6 +296,9 @@ test.describe("admin flows", () => {
     await expect(page.getByTestId("pipeline-status")).toBeVisible();
     // no PIPELINE_ALERT_WEBHOOK in e2e: the dashboard says at once that alerts are off
     await expect(page.getByTestId("alerts-off")).toBeVisible();
+    // the off state carries the Teams set-up steps (a reminder where the admin will look)
+    await expect(page.getByTestId("alerts-howto")).toContainText("PIPELINE_ALERT_WEBHOOK");
+    await expect(page.getByTestId("alerts-howto").locator("li")).toHaveCount(3);
     await expect(page.getByTestId("alerts-test")).toBeDisabled();
     await expect(page.locator(".adm-user")).toContainText("alice@nymbus.ca");
     // website messages: open count, link to the messages page

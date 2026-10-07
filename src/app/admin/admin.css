@@ -660,6 +660,17 @@ body:has([data-admin]) {
   border-color: rgba(255, 138, 128, 0.35);
   color: #ffd2cc;
 }
+.adm-alert .adm-steps {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+  padding: 0;
+  list-style: decimal;
+  display: grid;
+  gap: 0.35rem;
+}
+.adm-alert p {
+  margin: 0;
+}
+
 .adm-alert.ok {
   background: rgba(94, 224, 143, 0.07);
   border-color: rgba(94, 224, 143, 0.3);
