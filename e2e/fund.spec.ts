@@ -600,11 +600,15 @@ test("Global Minimum Volatility: 3 / 6 / 9 % variants, default 6, no class selec
   await openTab(page, "performance");
   await expect(page.getByTestId("perf-context").getByTestId("perf-variant")).toHaveText("9% downside volatility");
   await page.getByTestId("growth").scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(9% downside volatility, gross of fees)");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+    "(9% downside volatility, gross of fees)",
+  );
   await sel.getByTestId("variant-6").click();
   expect(await si()).toBe(six);
   await expect(page.getByTestId("hero-variant")).toHaveText("6% downside volatility");
-  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText("(6% downside volatility, gross of fees)");
+  await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+    "(6% downside volatility, gross of fees)",
+  );
 });
 
 test("Global Minimum Volatility performance always names its variant: home, strategies index, compare table, solutions (EN + FR)", async ({

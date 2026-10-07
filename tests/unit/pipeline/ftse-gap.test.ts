@@ -211,7 +211,9 @@ function rowsOf(
     return {
       date,
       index_id: isNew ? (opts.id ?? 26029) : (opts.oldId ?? opts.id ?? 26029),
-      index_name: isNew ? "FTSE Canada Short Term Corporate Bond Index" : (opts.oldName ?? "Short Corporate Bond Index"),
+      index_name: isNew
+        ? "FTSE Canada Short Term Corporate Bond Index"
+        : (opts.oldName ?? "Short Corporate Bond Index"),
       total_return: x.level,
       average_yield: x.ytm,
       modified_duration: x.dur,
@@ -238,7 +240,15 @@ test("same short_name renamed (2024-12): ftseDaily keeps the latest signature on
   const lv = (x: Record<string, FtseDay>) => Object.fromEntries(Object.entries(x).map(([d, v]) => [d, v.level]));
   const j = joinFtseHistory(
     lv(cur),
-    [{ name: "short_corp (earlier name)", levels: lv(gens[0].daily), daily: gens[0].daily, why: "same short_name", gapOk: true }],
+    [
+      {
+        name: "short_corp (earlier name)",
+        levels: lv(gens[0].daily),
+        daily: gens[0].daily,
+        why: "same short_name",
+        gapOk: true,
+      },
+    ],
     undefined,
     cur,
   );

@@ -616,7 +616,9 @@ test.describe("admin flows", () => {
         await expect(page.getByTestId("perf-context")).toContainText(h);
         await expect(page.getByTestId("perf-context")).not.toContainText(f);
         await page.getByTestId("growth").scrollIntoViewIfNeeded();
-        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(`${fundWord} (${word} H, ${net})`);
+        await expect(page.getByTestId("growth").locator(".fx-legend").first()).toContainText(
+          `${fundWord} (${word} H, ${net})`,
+        );
         // home tile and strategies index
         for (const p of ["/", "/strategies"]) {
           await page.goto(p);

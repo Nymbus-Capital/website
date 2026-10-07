@@ -111,9 +111,7 @@ export function ftseEarlierGenerations(
     const days = Object.keys(daily).sort();
     if (!days.length) break;
     const lastDay = days[days.length - 1];
-    const named = sub.find(
-      (r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level,
-    );
+    const named = sub.find((r) => String(r.date).slice(0, 10) === lastDay && r.total_return === daily[lastDay].level);
     out.push({ indexName: named?.index_name == null ? null : String(named.index_name), indexId: id, daily });
     before = days[0];
   }

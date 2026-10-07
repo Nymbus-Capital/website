@@ -61,9 +61,7 @@ function FundLink({ f }: { f: FundCard }) {
           <span className="sl-fund-f">
             <b className="tabnum">{si}</b>
             <span>
-              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)}
-              {" "}
-              ·{" "}
+              {pick(f.siAnnualized ? F.siAnn : F.siCumShort)} ·{" "}
               {f.basis === "gross" ? (
                 <abbr title={pick(HL.grossLong)} data-testid="gross-marker">
                   {pick(HL.gross)}

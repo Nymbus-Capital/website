@@ -758,7 +758,12 @@ test("no test leaves the pipeline config mutated (memoised baselines stay valid)
 
 test("indexSinceInception: from the inception-day close to the as-of month-end, same closing levels as the monthly series, 365-day annualization", () => {
   // daily levels: 100 on 2023-06-30 (June close), 101 on 2023-07-24 (inception), 102 on 2023-07-31 (July close)
-  const levels: Record<string, number> = { "2023-06-29": 99.9, "2023-06-30": 100, "2023-07-24": 101, "2023-07-31": 102 };
+  const levels: Record<string, number> = {
+    "2023-06-29": 99.9,
+    "2023-06-30": 100,
+    "2023-07-24": 101,
+    "2023-07-31": 102,
+  };
   const idx: Record<string, number> = { "2023-07-31": 0.02 };
   for (let m = "2023-08-31"; m <= "2026-09-30"; m = addMonths(m, 1)) idx[m] = 0.001;
   const n = Object.keys(idx).length - 1;
@@ -767,7 +772,10 @@ test("indexSinceInception: from the inception-day close to the as-of month-end, 
   const r = indexSinceInception(idx, levels, "2023-07-24", "2023-07-31", "2026-09-30")!;
   assert.ok(Math.abs(r - (Math.pow(1 + total, 365 / days) - 1)) < 1e-12);
   // inception on a bond-market holiday is not used blindly: a missing bond day before it → null
-  assert.equal(indexSinceInception(idx, { ...levels, "2023-07-24": NaN }, "2023-07-24", "2023-07-31", "2026-09-30"), null);
+  assert.equal(
+    indexSinceInception(idx, { ...levels, "2023-07-24": NaN }, "2023-07-24", "2023-07-31", "2026-09-30"),
+    null,
+  );
   // a missing month → null; no levels → null
   const gap = { ...idx };
   delete gap["2025-03-31"];
@@ -795,8 +803,15 @@ test("buildClassEntry: a class launched mid-month gets its since-inception index
   const cls = { fundserv: "LDM998", display: "Y", classCode: "LDM998" as const };
   const idx = Object.fromEntries(months.map((m) => [m.month, 0.002]));
   const levels = { "2023-06-30": 100, "2023-07-24": 101, "2023-07-31": 100 * 1.002 };
-  const e = buildClassEntry({ key: "k", cls, result: res, asOf: "2026-09-30", idx, idxLevels: levels, minMonths: 12 })
-    .entry!;
+  const e = buildClassEntry({
+    key: "k",
+    cls,
+    result: res,
+    asOf: "2026-09-30",
+    idx,
+    idxLevels: levels,
+    minMonths: 12,
+  }).entry!;
   const t = e.performance.trailing;
   assert.ok(t.fund.SI != null && t.index!.SI != null);
   assert.ok(Math.abs(t.va!.SI! - (t.fund.SI! - t.index!.SI!)) < 1e-12);
