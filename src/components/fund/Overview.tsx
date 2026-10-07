@@ -97,8 +97,9 @@ export function Overview({ spec, content, data, lang, ctx, brand }: Props) {
                   ) : null}
                   {cl
                     ? `${cl}, ${tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang)}`
-                    : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}{" "}
-                  · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+                    : cap(tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang))}
+                  {" · "}
+                  {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
                 </>
               ) : null
             }
