@@ -186,6 +186,19 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ## 6. Session log
 
+- 2026-10-06 (sub-agent, branch `chore/prettier`, **not merged**): § 5 B2 — one Prettier 3.9.9 pass over the repository
+  (`style: Prettier over the repository (no code change)` `84f3ff5`, 378 files, + a 3-file second pass `3d802d3` where
+  Prettier is not idempotent; both in `.git-blame-ignore-revs`), produced in CI (temporary step, run 278) and applied
+  locally. `.prettierignore`: frozen scan files (fx `scan-model/engine/copy.ts`, `fx.tsx`, `fx.css`, `home/Home.tsx`),
+  data / fixture JSON, Markdown, `wordpress/plugins/`, `public/`. Permanent blocking `npm run format:check` in CI
+  (writes `ci-out/prettier.diff` on failure); `format` / `format:check` scripts; prettier pinned (no lockfile).
+  Hand fixes in their own commits: four source-text unit tests made whitespace tolerant; three `eslint-disable`
+  comments re-anchored; the Overview Returns lead keeps its ` · ` in one text node (`{" · "}`: Prettier's `{" "}` split
+  shifted the glyph by 8 px on the GMV page). Visual proof: base run 277 (empty `[ci-logs]` commit on `f6da169`; equal
+  to run 275) vs run 282 (`bd02aa3`), `--max-ratio=0`: visual 44, visual-fr 6, visual-motion 10, all byte-identical.
+  Prettier's `{" "}` also splits ~45 other JSX text nodes (admin pages mostly, not covered by the visual set; no other
+  pixel moved on the public pages). Branch `chore/prettier-base` (baseline only) can be deleted.
+
 - 2026-10-06 (sub-agent, branch `feat/contact-form`, fourth pass; **not merged**): rebased on
   `chore/react-compiler-warnings` (Contact uses `useMountValue` and one ref per step, no lint disable; lint cap 0).
   Independent security review (coordinator, on `e940b62`): no blockers; every finding fixed — M1 limiter: IPv6 bucketed
