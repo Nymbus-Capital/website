@@ -28,29 +28,37 @@ const isCashLabel = (s: string) => /\bcash\b|liquidit|encaisse|trésorerie/i.tes
 export function ratingSortRank(label: string): number {
   if (isCashLabel(label)) return 2000;
   if (/\bn\.?\s?r\.?\b|not rated|non cot/i.test(label)) return 1000;
-  const m = label
-    .trim()
-    .toUpperCase()
-    .match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
+  // "other assets" after "not rated", before cash (the pipeline's own order)
+  if (/^other|^autre/i.test(label.trim())) return 1500;
+  const u = label.trim().toUpperCase();
+  // short-term top grades (R-1 / A-1 / P-1): placed with AA (the long-term grades they map to)
+  if (/^(R-1|A-1|P-1)\b/.test(u)) return 1;
+  if (/^BELOW\s+BBB|^SOUS\s+BBB/.test(u)) return RATING_GRADES.indexOf("BB");
+  const m = u.match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
   return m ? RATING_GRADES.indexOf(m[1]) : 500;
 }
 
 /**
  * Rank of a maturity / duration bucket label (owner's rule: shortest at the top, longer downward): the lower bound of
- * its range in years ("Money Market (0-1 yr)" → 0, "Short-Term (>3 yrs)" → 3, "10+" → 10, "<1" → 0), with "money
- * market" / "short" / "mid" / "long" words as a fallback; unknown labels after them, cash last.
+ * its range in years ("Money Market (0-1 yr)" → 0, "1-3 yrs" → 1, "10+" → 10.5, "Short-Term (>3 yrs)" → 3.5); "under /
+ * less than / up to / moins de / moins d'un / jusqu'à" → 0, "over / more than / plus de / > / +" → the bound + 0.5 (after a
+ * range starting there); "money market" / "short" / "mid" / "long" words as a fallback; unknown labels after them, cash
+ * last.
  */
 export function termSortRank(label: string): number {
   if (isCashLabel(label)) return 2000;
-  const range = label.match(/(<|>|≥|≤)?\s*(\d+(?:[.,]\d+)?)\s*(?:[-–—to à]+\s*(\d+(?:[.,]\d+)?))?\s*\+?/);
+  const t = label.toLowerCase();
+  if (/\b(under|less than|up to|below)\b|moins d|jusqu|^<|\(<|≤/.test(t)) return 0;
+  const over = /\b(over|more than|above)\b|plus de|>|≥|\d\s*\+/.test(t);
+  const range = t.match(/(\d+(?:[.,]\d+)?)/);
   if (range) {
-    const lo = range[1] === "<" || range[1] === "≤" ? 0 : Number(range[2].replace(",", "."));
-    if (Number.isFinite(lo)) return lo;
+    const lo = Number(range[1].replace(",", "."));
+    if (Number.isFinite(lo)) return over ? lo + 0.5 : lo;
   }
-  if (/money market|march[ée] monétaire|ultra/i.test(label)) return 0.5;
-  if (/short|court/i.test(label)) return 1.5;
-  if (/mid|moyen/i.test(label)) return 5;
-  if (/long/i.test(label)) return 10;
+  if (/money market|march[ée] monétaire|ultra/.test(t)) return 0.5;
+  if (/short|court/.test(t)) return 1.5;
+  if (/mid|moyen/.test(t)) return 5;
+  if (/long/.test(t)) return 10;
   return 500;
 }
 

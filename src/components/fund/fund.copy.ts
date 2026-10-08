@@ -468,7 +468,6 @@ export const T = {
     index: DISC.benchmark,
     ftse: DISC.ftse,
     general: DISC.firm,
-    provenance: DISC.provenance,
     provenanceFactsheet: DISC.provenanceFactsheet,
     provenanceDaily: DISC.provenanceDaily,
     provenanceEsgFactsheet: DISC.provenanceEsgFactsheet,

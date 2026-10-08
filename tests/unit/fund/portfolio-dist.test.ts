@@ -254,3 +254,20 @@ test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / dur
   assert.ok(ratingSortRank("AA") < ratingSortRank("A") && ratingSortRank("A") < ratingSortRank("BBB"));
   assert.ok(termSortRank("< 1 year") < termSortRank("1-3"));
 });
+
+test("bucket order: under / over wording, French labels, short-term ratings and 'other assets'", async () => {
+  const { orderedBuckets } = await import("../../../src/components/fund/lib/portfolio.ts");
+  const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
+  assert.deepEqual(
+    orderedBuckets(b(["1-3 yrs", "Over 10 years", "Under 1 year", "10-20 years", "3-5 years"]), "term").map((x) => x.label),
+    ["Under 1 year", "1-3 yrs", "3-5 years", "10-20 years", "Over 10 years"],
+  );
+  assert.deepEqual(
+    orderedBuckets(b(["Plus de 10 ans", "1 à 3 ans", "Moins d’un an", "3 à 5 ans"]), "term").map((x) => x.label),
+    ["Moins d’un an", "1 à 3 ans", "3 à 5 ans", "Plus de 10 ans"],
+  );
+  assert.deepEqual(
+    orderedBuckets(b(["BBB", "R-1 (high)", "Other assets", "Not rated", "AAA", "Cash"]), "rating").map((x) => x.label),
+    ["AAA", "R-1 (high)", "BBB", "Not rated", "Other assets", "Cash"],
+  );
+});

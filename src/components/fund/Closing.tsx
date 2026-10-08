@@ -140,14 +140,18 @@ export function Disclosures({
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   const asOf = [
     // the month-end date (FR « rendements au 30 sept. 2026 », never « au août »)
-    perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${dateLabel(perf.asOf, lang)}` : null,
+    perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${dateLabel(perf.asOf, lang, true)}` : null,
     data?.nav?.asOf && !content.hide?.nav
-      ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang)}`
+      ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang, true)}`
       : null,
     data?.aum?.asOf && content.hide?.aum === false
-      ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang)}`
+      ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang, true)}`
       : null,
   ].filter(Boolean);
+  // one line of as-of dates (long dates throughout); not rendered when there is none
+  const asOfLine = [provenanceLine(data, lang), asOf.length ? capFirst(`${asOf.join(" · ")}.`) : ""]
+    .filter(Boolean)
+    .join(" ");
   return (
     <section id="disclosure" className="section tight fxd" aria-labelledby="fxd-title">
       <div className="container">
@@ -209,14 +213,12 @@ export function Disclosures({
                   {tr(T.disclosure.ftse, lang)}
                 </p>
               ) : null}
-              <p className="fxd-prov" data-testid="provenance">
-                <span className="live-dot" aria-hidden="true" />
-                <span>
-                  {[provenanceLine(data, lang), asOf.length ? capFirst(`${asOf.join(" · ")}.`) : ""]
-                    .filter(Boolean)
-                    .join(" ")}
-                </span>
-              </p>
+              {asOfLine ? (
+                <p className="fxd-prov" data-testid="provenance">
+                  <span className="live-dot" aria-hidden="true" />
+                  <span>{asOfLine}</span>
+                </p>
+              ) : null}
             </Disclosure>
           </div>
         </div>
