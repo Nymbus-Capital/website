@@ -1,0 +1,5 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+tests/fixtures/pipeline/generate.ts(622,5): error TS2353: Object literal may only specify known properties, and 'missingDays' does not exist in type 'NavHistorySpec'.
