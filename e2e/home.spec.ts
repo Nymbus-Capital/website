@@ -68,7 +68,7 @@ for (const p of PAGES) {
   });
 }
 
-test("home: the four strategy cards show figures or 'coming soon', in the fund colour, linking to the fund page", async ({
+test("home: the four strategy cards show figures (never 'coming soon'), in the fund colour, linking to the fund page", async ({
   page,
 }) => {
   await page.goto("/");
@@ -76,10 +76,9 @@ test("home: the four strategy cards show figures or 'coming soon', in the fund c
     const card = page.getByTestId(`strategy-${key}`);
     await card.scrollIntoViewIfNeeded();
     await expect(card).toHaveAttribute("href", `/strategies/${key}`);
-    const figs = await card.getByTestId("fund-figure").count();
-    const soon = await card.getByTestId("figures-soon").count();
-    expect(figs + soon, key).toBe(1);
-    if (figs) await expect(card.getByTestId("fund-figure")).toContainText(/\d/);
+    await expect(card.getByTestId("fund-figure")).toContainText(/\d/);
+    await expect(card.getByTestId("figures-soon")).toHaveCount(0);
+    await expect(card).not.toContainText(/coming soon/i);
     // no placeholder zero: a card never shows "0.0%" as its only figure
     await expect(card).not.toContainText(/NaN|undefined|null/);
   }
@@ -118,18 +117,22 @@ test("strategies: the filter shows fixed income or alternatives only", async ({ 
   for (let i = 0; i < 4; i++) {
     const card = cards.nth(i);
     await card.scrollIntoViewIfNeeded();
-    expect((await card.getByTestId("fund-figure").count()) + (await card.getByTestId("figures-soon").count())).toBe(1);
+    expect(await card.getByTestId("fund-figure").count()).toBe(1);
+    await expect(card).not.toContainText(/coming soon/i);
   }
 });
 
-test("strategies: the comparison table lists every fund; missing figures are dashes", async ({ page }) => {
+test("strategies: the comparison table lists every fund; a missing figure is a blank cell, never a dash", async ({
+  page,
+}) => {
   await page.goto("/strategies");
   const table = page.getByTestId("compare-table");
   await table.scrollIntoViewIfNeeded();
   await expect(table.locator("tbody tr")).toHaveCount(4);
   for (const key of KEYS) await expect(table.locator(`a[href="/strategies/${key}"]`)).toHaveCount(1);
   const cells = await table.locator("tbody td").allInnerTexts();
-  for (const c of cells) expect(c).not.toMatch(/NaN|undefined|null/);
+  for (const c of cells) expect(c).not.toMatch(/NaN|undefined|null|—/);
+  await expect(page.locator("body")).not.toContainText(/not published yet|pas encore publié/);
 });
 
 test("solutions: three audiences, each links to fund pages", async ({ page }) => {

@@ -27,6 +27,9 @@ import { fetchAll } from "./sources/index.ts";
 import { errMsg } from "./sources/http.ts";
 import { alertDecision, fingerprintList, markSent, REMIND_AFTER_MS, withAlerts, type AlertMessage } from "./alerts.ts";
 import { validateSite } from "./validate/index.ts";
+import { siteCompleteness } from "./validate/completeness.ts";
+import { expectedPerformanceMonthEnd, localDate } from "./freshness.ts";
+import { FUNDS } from "../../config/funds.ts";
 
 export interface RunReport {
   id: string;
@@ -90,8 +93,9 @@ async function readContent(): Promise<Partial<SiteContent> | null> {
 }
 
 async function publishMode(): Promise<"auto" | "review"> {
-  // until an admin chooses "auto", runs wait for approval (safer for the first live runs)
-  return (await readContent())?.pipeline?.publishMode === "auto" ? "auto" : "review";
+  // auto by default (owner's decision 2026-10-07, gated by the automatic validation); "review" only when an admin
+  // chose it explicitly — the same answer as getContent() merged with DEFAULT_CONTENT (admin settings page)
+  return (await readContent())?.pipeline?.publishMode === "review" ? "review" : "auto";
 }
 
 /**
@@ -471,7 +475,9 @@ export async function runPipeline(opts: {
       raw = await fetchAll({ fetchImpl, now });
       report.sources = sourcesSummary(raw);
       const built = buildSiteData(raw, previous, now, { requireFactsheetForNewMonth: requireFactsheetForNewMonth() });
-      const v = validateSite(built.data, built.context, previous, now);
+      const v = validateSite(built.data, built.context, previous, now, {
+        confirmNewMonths: (process.env.PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION ?? "0").trim() === "1",
+      });
       data = { ...v.data, runId: id };
       // auto mode publishes only what needs no human: a performance class change waits for an approval of this run
       // (publishRun publishes the stored data, the change included)
@@ -486,6 +492,20 @@ export async function runPipeline(opts: {
       const advisories = v.results.flatMap((r) =>
         (r.advisories ?? []).map((a) => ({ fund: r.fund, code: a.code, message: a.message })),
       );
+      // automatic validation of what would go live (internal only: admin issues + one alert per new problem)
+      // on what goes live: autoData in auto mode, the run's own data in review mode; the admin's headline class wins
+      const stored = await readContent();
+      const liveMode = await publishMode();
+      for (const p of siteCompleteness(
+        liveMode === "auto" ? autoData : data,
+        FUNDS.map((f) => ({
+          key: f.key,
+          vehicle: f.vehicle,
+          headlineClass: stored?.funds?.[f.key]?.headlineClass || f.headlineClass,
+        })),
+        expectedPerformanceMonthEnd(localDate(now.getTime())),
+      ))
+        advisories.push({ fund: p.fund, code: `completeness ${p.code}`, message: `data completeness: ${p.message}` });
       if (advisories.length) report.advisories = advisories;
       report.issues = [
         ...data.issues,

@@ -393,7 +393,7 @@ test("cross-class: partial months stay outside the median and the fit; compared 
   assert.deepEqual(alone.unchecked, [{ fundserv: "F", month: "2025-03-31" }]);
 });
 
-test("computeFundClasses: one class off in a month without an adjustment day → that class only; with a distribution day → every class", () => {
+test("computeFundClasses: cross-class disagreement never withholds a month computed from the class's own chain: an internal alert", () => {
   const days = tradingDays("2023-01-03", "2024-06-28");
   const inputs = (distOnA: boolean) => [
     // A pays a distribution on 2024-04-22: NAV −2 %, distribution-aware return unchanged (when distOnA)
@@ -413,37 +413,39 @@ test("computeFundClasses: one class off in a month without an adjustment day →
     { fundserv: "C", display: "C", currency: "CAD", rows: rows(days, (x) => (x === "2024-04-15" ? 0.0125 : 0.0005)) },
   ];
   const opts = { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" };
-  const alone = computeFundClasses(inputs(false), opts);
-  assert.deepEqual(alone.fundMonths, []);
-  for (const c of alone.classes) {
-    const apr = c.months.find((x) => x.month === "2024-04-30")!;
-    if (c.fundserv === "C")
-      assert.match(apr.reason!, /deviates from the fund's other classes, which agree with each other: C/);
-    else assert.equal(apr.reason, null, c.fundserv);
-  }
-  const all = computeFundClasses(inputs(true), opts);
-  assert.deepEqual(
-    all.fundMonths.map((x) => x.month),
-    ["2024-04-30"],
-  );
-  assert.match(all.fundMonths[0].reason, /distribution \/ price-adjustment day \(A 2024-04-22 /);
-  for (const c of all.classes) {
-    assert.equal(c.months.find((x) => x.month === "2024-04-30")!.r, null, c.fundserv);
-    assert.ok(
-      c.months.filter((x) => x.month !== "2024-04-30").every((x) => x.r !== null),
-      c.fundserv,
-    );
+  for (const dist of [false, true]) {
+    const res = computeFundClasses(inputs(dist), opts);
+    assert.deepEqual(res.fundMonths, [], `dist ${dist}`);
+    for (const c of res.classes)
+      assert.ok(
+        c.months.every((x) => x.r !== null),
+        `${c.fundserv} dist ${dist}`,
+      );
+    const apr = res.anomalies.filter((a) => a.month === "2024-04-30");
+    assert.ok(apr.length >= 1, `an alert for April (dist ${dist})`);
+    if (dist)
+      assert.ok(
+        apr.some((a) => a.fundserv === null && /distribution \/ price-adjustment day \(A 2024-04-22 /.test(a.reason)),
+      );
+    else
+      assert.ok(
+        apr.some(
+          (a) =>
+            a.fundserv === "C" &&
+            /deviates from the fund's other classes, which agree with each other: C/.test(a.reason),
+        ),
+      );
   }
 });
 
-test("computeFundClasses: non-CAD class without figures; withheld months keep their place with the reason", () => {
+test("computeFundClasses: non-CAD class without figures; a print reversed inside a month is an alert, one across a month-end withholds both months", () => {
   const days = tradingDays("2024-01-02", "2024-06-28");
-  const base = (d: string): number => (d === "2024-03-15" ? 0.03 : d === "2024-03-18" ? -0.0295 : 0.0005);
+  const within = (d: string): number => (d === "2024-03-15" ? 0.03 : d === "2024-03-18" ? -0.0295 : 0.0005);
   const res = computeFundClasses(
     [
-      { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, base) },
-      { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, (d) => base(d) - 0.00001) },
-      { fundserv: "U", display: "U USD", currency: "USD", rows: rows(days, base, 10, "USD") },
+      { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, within) },
+      { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, (d) => within(d) - 0.00001) },
+      { fundserv: "U", display: "U USD", currency: "USD", rows: rows(days, within, 10, "USD") },
       { fundserv: "X", display: "X", currency: "CAD", rows: null, error: "HTTP 500" },
     ],
     { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" },
@@ -453,14 +455,31 @@ test("computeFundClasses: non-CAD class without figures; withheld months keep th
   assert.equal(by.X.status, "unavailable");
   assert.match(by.X.why!, /HTTP 500/);
   assert.equal(by.A.inception, "2024-01-02");
-  const march = by.A.months.find((m) => m.month === "2024-03-31")!;
-  assert.equal(march.r, null);
-  assert.match(march.reason!, /bad valuation print/);
-  assert.deepEqual(
-    res.fundMonths.map((x) => x.month),
-    ["2024-03-31"],
+  assert.ok(
+    by.A.months.every((m) => m.r !== null),
+    "March published: the reversal stays inside the month",
   );
-  assert.ok(by.B.months.filter((m) => m.month !== "2024-03-31").every((m) => m.r !== null));
+  assert.deepEqual(res.fundMonths, []);
+  assert.ok(
+    res.anomalies.some(
+      (a) => a.month === "2024-03-31" && /bad valuation print.*reversed inside the month/.test(a.reason),
+    ),
+  );
+  // across the month-end (2024-03-28 → 2024-04-01): both months shift return, both withheld for every class
+  const across = (d: string): number => (d === "2024-03-28" ? 0.03 : d === "2024-04-01" ? -0.0295 : 0.0005);
+  const res2 = computeFundClasses(
+    [
+      { fundserv: "A", display: "A", currency: "CAD", rows: rows(days, across) },
+      { fundserv: "B", display: "B", currency: "CAD", rows: rows(days, (d) => across(d) - 0.00001) },
+    ],
+    { endMonth: "2024-05-31", cfg: CLASS_CHECKS, requestedFrom: "2019-01-01" },
+  );
+  assert.deepEqual(
+    res2.fundMonths.map((x) => x.month),
+    ["2024-03-31", "2024-04-30"],
+  );
+  const a2 = res2.classes.find((c) => c.fundserv === "A")!;
+  assert.match(a2.months.find((m) => m.month === "2024-03-31")!.reason!, /bad valuation print/);
 });
 
 test("12-month minimum: counted from the inception day (same day 12 months later, clamped to the month's end)", () => {

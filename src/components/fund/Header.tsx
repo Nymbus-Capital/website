@@ -13,8 +13,8 @@ import type { FundContent, GrowthPoint } from "@/lib/data/types";
 import { FUND_INCEPTION } from "@/content/disclaimers";
 import type { FundDoc, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { ClassTypeBadge, ClassTypeNote } from "./ClassBadge";
-import type { ClassCtx } from "./lib/select.ts";
-import { noticeText, periodLong } from "./lib/notice.ts";
+import { offeredVariants, type ClassCtx } from "./lib/select.ts";
+import { periodLong } from "./lib/notice.ts";
 import { T } from "./fund.copy";
 import { bigMoney, dateLabel, fmt, monthLabel, moneyParts, NAV_DECIMALS } from "./lib/format.ts";
 import { groupDocuments } from "./lib/documents.ts";
@@ -158,6 +158,10 @@ function NavCard({
   const sel = opts.find((o) => o.fundserv === ctx.selected) ?? opts[0] ?? null;
   const cls = sel?.nav ?? null;
   const perf = data?.performance ?? null;
+  // the NAV card describes the selected class: a track-record start of ANOTHER class (returns shown for a class that
+  // cannot show its own) is not stated under this class's name
+  const ownPerf =
+    ctx.returnsClass && sel && ctx.returnsClass.toUpperCase() !== sel.fundserv.toUpperCase() ? null : perf;
   const launch = FUND_INCEPTION[spec.key]?.fundLaunch ?? null;
   const bench = benchmarkLabel(perf?.indexName, spec.benchmark, lang);
   const aum = content.hide?.aum === false ? (data?.aum ?? null) : null;
@@ -246,8 +250,8 @@ function NavCard({
             ) : null}
             {launch ? (
               <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
-            ) : perf?.firstMonth ? (
-              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact>
+            ) : ownPerf?.firstMonth ? (
+              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(ownPerf.firstMonth, lang)}</Fact>
             ) : null}
             {content.mer ? (
               <Fact k={tr(T.nav.mer, lang)}>{content.mer}</Fact>
@@ -269,7 +273,6 @@ function NavCard({
         </>
       ) : (
         <>
-          <p className="nc-empty">{tr(T.nav.none, lang)}</p>
           <dl className="nc-facts">
             {sel ? (
               <Fact k={tr(T.nav.fundserv, lang)} testId="nav-fundserv">
@@ -283,8 +286,8 @@ function NavCard({
             ) : null}
             {launch ? (
               <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
-            ) : perf?.firstMonth ? (
-              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact>
+            ) : ownPerf?.firstMonth ? (
+              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(ownPerf.firstMonth, lang)}</Fact>
             ) : null}
             {bench ? (
               <div className="nc-fact wide">
@@ -319,6 +322,8 @@ function StrategyCard({
   const ann = si != null && isAnnualized("SI", perf?.firstMonth, perf?.asOf);
   // the figure of a strategy with variants is always named by its variant (GMV: "6% downside volatility")
   const heroVariant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
+  // only the published variants are offered
+  const variants = offeredVariants(spec.variants, data);
   return (
     <div ref={tilt} className="navcard" data-testid="strategy-card">
       <span className="nc-shine" aria-hidden="true" />
@@ -331,13 +336,13 @@ function StrategyCard({
           </span>
         ) : null}
       </div>
-      {spec.variants?.length && ctx.variant ? (
+      {variants.length > 1 && ctx.variant ? (
         <div className="nc-variants" data-testid="variant-selector">
           <span className="nc-var-l" id="nc-var-l">
             {tr(T.variants.label, lang)}
           </span>
           <div className="nc-series" role="radiogroup" aria-labelledby="nc-var-l">
-            {spec.variants.map((v) => (
+            {variants.map((v) => (
               <button
                 key={v.id}
                 type="button"
@@ -367,9 +372,7 @@ function StrategyCard({
             </p>
           ) : null}
         </>
-      ) : (
-        <p className="nc-empty">{tr(T.perf.none, lang)}</p>
-      )}
+      ) : null}
       <dl className="nc-facts">
         <Fact k={tr(T.nav.vehicle, lang)}>{tr(T.nav.vehicleAccounts, lang)}</Fact>
         <Fact k={tr(T.nav.basis, lang)}>{tr(T.nav.grossBasis, lang)}</Fact>
@@ -404,13 +407,9 @@ export function ReturnStrip({
   const gross = (perf?.basis ?? spec.sources.basis) === "gross";
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const basis = tr(gross ? T.disclosure.basisGross : T.disclosure.basisNet, lang);
-  const sel = ctx.options.find((o) => o.fundserv === ctx.selected) ?? null;
   const variant = spec.variants?.find((v) => v.id === ctx.variant) ?? null;
-  const soonText = ctx.notice
-    ? noticeText(ctx.notice, lang)
-    : sel
-      ? tr(T.classes.soon, lang).replace("{x}", sel.display)
-      : tr(T.badges.soon, lang);
+  // no figure to show: no returns block at all (never a "coming soon" message)
+  if (!badges.length || !perf) return null;
   return (
     <section className="fr" aria-labelledby="fr-title" data-testid="return-strip">
       <div className="container">
@@ -419,75 +418,55 @@ export function ReturnStrip({
             <h2 id="fr-title" className="fr-title">
               {tr(T.badges.title, lang)}
             </h2>
-            {badges.length && perf ? (
-              <p className="fr-sub" data-testid="basis">
-                {variant ? (
-                  <>
-                    <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
-                  </>
-                ) : null}
-                {cl ? (
-                  <>
-                    {cl}, {basis}
-                  </>
-                ) : (
-                  cap(basis)
-                )}{" "}
-                · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
-                {sel && !variant ? (
-                  <>
-                    {" "}
-                    <ClassTypeBadge type={sel.type} lang={lang} testId="returns-class-type" />
-                  </>
-                ) : null}
+            <p className="fr-sub" data-testid="basis">
+              {variant ? (
+                <>
+                  <span data-testid="variant-name">{tr(variant.name, lang)}</span>,{" "}
+                </>
+              ) : null}
+              {cl ? (
+                <>
+                  {cl}, {basis}
+                </>
+              ) : (
+                cap(basis)
+              )}{" "}
+              · {tr(T.perf.asOf, lang)} {dateLabel(perf.asOf, lang, true)}
+              {ctx.returnsType && !variant ? (
+                <>
+                  {" "}
+                  <ClassTypeBadge type={ctx.returnsType} lang={lang} testId="returns-class-type" />
+                </>
+              ) : null}
+            </p>
+          </div>
+          <>
+            <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
+              {badges.map((b) => (
+                <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
+                  <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
+                    <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
+                    <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
+                    {b.annualized ? <sup aria-hidden="true">*</sup> : null}
+                  </span>
+                  <CountUp
+                    value={b.value}
+                    pct
+                    sign
+                    decimals={2}
+                    lang={lang}
+                    className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
+                  />
+                </div>
+              ))}
+            </Reveal>
+            {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
+            {perf?.shortRecord && perf.firstMonth ? (
+              <p className="fr-note" data-testid="since-class-inception">
+                {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
               </p>
             ) : null}
-          </div>
-          {badges.length ? (
-            <>
-              <Reveal className="fr-badges" kind="pop" stagger={45} role="list">
-                {badges.map((b) => (
-                  <div key={b.period} className="fr-badge" role="listitem" data-testid={`badge-${b.period}`}>
-                    <span className="fr-p" title={periodLong(b.period, perf, lang, track)}>
-                      <span aria-hidden="true">{tr(T.perf.periods[b.period], lang)}</span>
-                      <span className="sr-only">{periodLong(b.period, perf, lang, track)}</span>
-                      {b.annualized ? <sup aria-hidden="true">*</sup> : null}
-                    </span>
-                    {b.value == null ? (
-                      <span className="fr-v" title={tr(T.classes.withheld, lang)}>
-                        <span aria-hidden="true">—</span>
-                        <span className="sr-only">{tr(T.classes.withheld, lang)}</span>
-                      </span>
-                    ) : (
-                      <CountUp
-                        value={b.value}
-                        pct
-                        sign
-                        decimals={2}
-                        lang={lang}
-                        className={`fr-v ${b.value < 0 ? "neg" : "pos"}`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </Reveal>
-              {badges.some((b) => b.annualized) ? <p className="fr-note">* {tr(T.badges.annualized, lang)}</p> : null}
-              {badges.some((b) => b.value == null) ? (
-                <p className="fr-note" data-testid="strip-withheld-note">
-                  {tr(T.classes.withheld, lang)}
-                </p>
-              ) : null}
-              {perf?.shortRecord && perf.firstMonth ? (
-                <p className="fr-note" data-testid="since-class-inception">
-                  {tr(T.classes.since, lang).replace("{date}", monthLabel(perf.firstMonth, lang))}
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <p className="notice fr-soon" data-testid="figures-soon">
-              {ctx.returnsSoon ? soonText : tr(T.badges.soon, lang)}
-            </p>
-          )}
+          </>
         </div>
       </div>
     </section>

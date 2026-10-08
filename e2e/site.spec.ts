@@ -139,13 +139,12 @@ test("home: live figures come from the data, never invented", async ({ page }) =
   const cards = page.locator('[data-testid^="strategy-"]');
   await cards.first().scrollIntoViewIfNeeded();
   await expect(cards).toHaveCount(4);
-  // each card shows either its published figures or the "figures coming soon" state, never both
+  // each card shows its published figures; never a "figures coming soon" state
   for (let i = 0; i < 4; i++) {
     const card = cards.nth(i);
     await card.scrollIntoViewIfNeeded();
-    const figs = await card.getByTestId("fund-figure").count();
-    const soon = await card.getByTestId("figures-soon").count();
-    expect(figs + soon).toBe(1);
+    expect(await card.getByTestId("fund-figure").count()).toBe(1);
+    await expect(card.getByTestId("figures-soon")).toHaveCount(0);
   }
   // the home page is an inspiring page: no daily NAV widget (the NAVs live on the strategies pages)
   await expect(page.getByTestId("nav-panel")).toHaveCount(0);

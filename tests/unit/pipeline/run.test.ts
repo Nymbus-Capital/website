@@ -262,7 +262,7 @@ test("H1/H3: with the opt-in factsheet gate a held month is published without al
   delete process.env.PIPELINE_REQUIRE_FACTSHEET_FOR_NEW_MONTH;
 });
 
-test("source defects withholding a month of every class: published (not blocked), one non-blocking notice, posted once", async () => {
+test("a class disagreeing with the others in a distribution month: published (not withheld, not blocked), one non-blocking data-quality notice, posted once", async () => {
   const posted: string[] = [];
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) =>
@@ -285,18 +285,16 @@ test("source defects withholding a month of every class: published (not blocked)
     r.advisories?.some(
       (a) =>
         a.fund === "sustainable-enhanced-bonds" &&
-        /month\(s\) withheld for every class of the fund .*2024-03 classes disagree .*LDM202 /.test(a.message),
+        /data-quality alerts .*2024-03 classes disagree .*LDM202 /.test(a.message),
     ),
   );
   assert.ok(
     r.issues.some(
-      (x) =>
-        x.level === "warn" &&
-        /attention \(not blocking\): month\(s\) withheld for every class of the fund .*2024-03/.test(x.message),
+      (x) => x.level === "warn" && /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
     ),
   );
   assert.equal(posted.length, 1);
-  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: month\(s\) withheld for every class/);
+  assert.match(posted[0], /attention \(not blocking\) sustainable-enhanced-bonds: data-quality alerts/);
   // the same notice on the next run: not posted again
   const r2 = await run({ routes: [jump, hook] });
   assert.equal(r2.status, "published");
@@ -304,7 +302,7 @@ test("source defects withholding a month of every class: published (not blocked)
   delete process.env.PIPELINE_ALERT_WEBHOOK;
 });
 
-test("M3: a new month no independent source confirms is never auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
+test("M3 (opt-in PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1): a new month no independent source confirms is not auto-published: auto keeps the previous performance and the run waits (pending-review + alert); review mode unchanged", async () => {
   // a first publication with the July archives only (performance as of 2026-07, confirmed by the July factsheets)
   const fsDir = path.join(dir, "fs-m3");
   await mkdir(fsDir, { recursive: true });
@@ -322,6 +320,26 @@ test("M3: a new month no independent source confirms is never auto-published: au
   process.env.PIPELINE_ALERT_WEBHOOK = "https://hooks.example.test/x";
   const hook: Route = (u, init) =>
     u.hostname === "hooks.example.test" ? (posted.push(String(init?.body)), new Response("ok")) : undefined;
+  // default (owner's decision 2026-10-07): published at once, with an internal note — the site never waits
+  const d = await run({ routes: [hook] });
+  assert.equal(d.status, "published", JSON.stringify(d.issues.filter((x) => x.level === "error")));
+  assert.equal(
+    (await readJ<SiteData>("published", "site-data.json")).funds["monthly-income"]!.performance!.asOf,
+    "2026-08-31",
+    "the dataplatform's new month is live",
+  );
+  assert.ok(
+    d.issues.some(
+      (x) =>
+        x.key === "funds.monthly-income.performance.review" &&
+        x.level === "info" &&
+        /published: new month\(s\) 2026-08 from the dataplatform, not yet confirmed/.test(x.message),
+    ),
+  );
+  // back to the July publication, then the opt-in confirmation gate
+  await publishRun(first.id, "admin@nymbus.ca");
+  posted.length = 0;
+  process.env.PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION = "1";
   const r = await run({ routes: [hook] });
   assert.equal(r.status, "pending-review", JSON.stringify(r.issues.filter((x) => x.level === "error")));
   assert.ok(r.reviewNeeded?.includes("monthly-income"), JSON.stringify(r.reviewNeeded));
@@ -364,6 +382,7 @@ test("M3: a new month no independent source confirms is never auto-published: au
   assert.equal(rv.status, "pending-review");
   assert.equal(rv.publishedAt, undefined);
   delete process.env.PIPELINE_ALERT_WEBHOOK;
+  delete process.env.PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION;
 });
 
 test("M5: revision of an already published month -> blocked (auto: published + alert; review: waits)", async () => {
@@ -606,12 +625,19 @@ test("N6: stale-lock takeover renames the stale dir atomically; concurrent takeo
   assert.ok(!left.some((f) => f.includes(".stale-")), `no stale leftovers: ${left}`);
 });
 
-test("without admin content, runs wait for approval (review is the default)", async () => {
+test("without admin content, runs publish automatically (auto is the default); an explicit review choice waits", async () => {
   const { rm } = await import("node:fs/promises");
   await rm(path.join(dir, "content"), { recursive: true, force: true });
   const r = await run();
-  assert.equal(r.status === "pending-review" || (r.status === "blocked" && !r.publishedAt), true, `status ${r.status}`);
-  await assert.rejects(readFile(path.join(dir, "published", "site-data.json"), "utf8"));
+  assert.ok(r.publishedAt, `status ${r.status}`);
+  await readFile(path.join(dir, "published", "site-data.json"), "utf8");
+  // a stored content without a pipeline key: auto too
+  await mkdir(path.join(dir, "content"), { recursive: true });
+  await writeFile(path.join(dir, "content", "site-content.json"), JSON.stringify({ funds: {} }));
+  assert.ok((await run()).publishedAt);
+  await setMode("review");
+  const rv = await run();
+  assert.equal(rv.publishedAt, undefined);
 });
 
 test("class change (SEB F -> H): never published without an admin, even in auto mode; publishing the run approves it", async () => {

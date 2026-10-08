@@ -3,13 +3,13 @@
  * One fund as a card (home and /strategies): fund colour, asset class, vehicle, tagline, the published figures
  * (since-inception return rolling in, 1 year, YTD; on the strategies page also the NAV of the headline series
  * with its date) and, on the
- * strategies page, the last calendar years as small bars growing from the zero line. A fund without published
- * performance shows "figures coming soon", never a number. The card tilts slightly towards the pointer and a
+ * strategies page, the last calendar years as small bars growing from the zero line. A figure that is not published
+ * is not shown (a card without returns shows its NAV only, without any message). The card tilts slightly towards the pointer and a
  * light in the fund colour follows it (inert on touch and under reduced motion).
  */
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Odometer, useInView, useTilt } from "@/components/motion/motion";
 import { useTranslation, type L } from "@/lib/i18n";
 import type { FundCard } from "./data";
@@ -31,20 +31,6 @@ export function SampleTag() {
   return (
     <span className="fx-sample" title={pick(F.sampleLong)}>
       {pick(F.sample)}
-    </span>
-  );
-}
-
-/** "Figures coming soon": a calm, static state (no placeholder number, no animation). */
-function Soon({ long = false }: { long?: boolean }) {
-  const { pick } = useTranslation();
-  return (
-    <span className="fx-soon" data-testid="figures-soon">
-      <Clock aria-hidden="true" />
-      <span>
-        <span className="fx-soon-t">{pick(F.soon)}</span>
-        {long ? <span className="fx-soon-l">{pick(F.soonLong)}</span> : null}
-      </span>
     </span>
   );
 }
@@ -138,7 +124,8 @@ export function FundTile({
   const { locale, pick } = useTranslation();
   const tilt = useTilt<HTMLAnchorElement>(4);
   const H = headingLevel === 2 ? "h2" : "h3";
-  const perf = hasPerf(f);
+  // the home card's figure is the since-inception return: without it the block is not rendered (never an empty slot)
+  const perf = variant === "home" ? f.si !== null : hasPerf(f);
   const basis = pick(f.basis === "gross" ? F.gross : F.net);
   // the daily NAV belongs to the strategies pages: the home cards carry the returns only
   const nav =
@@ -200,20 +187,23 @@ export function FundTile({
             </span>
           ) : null}
           <span className="fx-kv">
-            {variant === "full" ? (
+            {/* a figure that is not published is not shown (no dash, no placeholder) */}
+            {variant === "full" && f.ytd !== null ? (
               <span className="fx-kv-i">
                 <span className="fx-k">{pick(F.ytd)}</span>
-                <span className="fx-v tabnum">{pctText(f.ytd, locale) ?? "—"}</span>
+                <span className="fx-v tabnum">{pctText(f.ytd, locale)}</span>
               </span>
             ) : null}
-            <span className="fx-kv-i">
-              <span className="fx-k">{pick(F.y1)}</span>
-              <span className="fx-v tabnum">{pctText(f.y1, locale) ?? "—"}</span>
-            </span>
-            {variant === "full" ? (
+            {f.y1 !== null ? (
+              <span className="fx-kv-i">
+                <span className="fx-k">{pick(F.y1)}</span>
+                <span className="fx-v tabnum">{pctText(f.y1, locale)}</span>
+              </span>
+            ) : null}
+            {variant === "full" && f.si !== null ? (
               <span className="fx-kv-i">
                 <span className="fx-k">{pick(siLabel(f))}</span>
-                <span className="fx-v tabnum g-fund">{pctText(f.si, locale) ?? "—"}</span>
+                <span className="fx-v tabnum g-fund">{pctText(f.si, locale)}</span>
               </span>
             ) : null}
           </span>
@@ -221,7 +211,7 @@ export function FundTile({
           {f.asOf ? (
             <span className="fx-asof">
               {pick(F.asOf)} {monthText(f.asOf, locale)} · {basis}
-              {/* the class of the returns shown (may differ from the NAV series above) */}
+              {/* the class of the returns shown (the NAV above is the same class when it has a NAV) */}
               {f.perfClass ? (
                 <>
                   {" "}
@@ -240,12 +230,11 @@ export function FundTile({
             </span>
           ) : null}
         </span>
-      ) : (
-        <span className="fx-figs">
-          <Soon long={variant === "full"} />
-          {nav ? <span className="fx-kv">{nav}</span> : null}
+      ) : nav ? (
+        <span className="fx-figs" data-testid="fund-nav-only">
+          <span className="fx-kv">{nav}</span>
         </span>
-      )}
+      ) : null}
 
       {variant === "full" ? (
         <>

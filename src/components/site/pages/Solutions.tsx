@@ -78,6 +78,12 @@ function FundLink({ f }: { f: FundCard }) {
                 {pick(F.asOf)} {monthText(f.asOf, locale)}
               </span>
             ) : null}
+            {/* the class of the figure shown (never another class's figure under a class's name) */}
+            {f.perfClass ? (
+              <span data-testid={`solution-class-${f.key}`}>
+                {pick(F.perfClass)} {f.perfClass}
+              </span>
+            ) : null}
             {f.perfVariant ? <span data-testid={`solution-variant-${f.key}`}>{pick(f.perfVariant)}</span> : null}
           </span>
         ) : null}

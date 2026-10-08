@@ -19,9 +19,9 @@ import { tradingDays } from "./market-calendar.ts";
 
 export const FRESHNESS = {
   /** business days after a month-end before that month must be published */
-  performanceBusinessDays: 15,
+  performanceBusinessDays: 7,
   /** business days a NAV may lag */
-  navBusinessDays: 4,
+  navBusinessDays: 2,
 } as const;
 
 export interface FundFreshnessInput {

@@ -111,7 +111,12 @@ Everything is merged on `redesign/v3-keynote-live-data` and live. No feature bra
     `docs/compliance-review.md`).
   - **Hosting**: move from GitHub Pages (`nymbus-capital.github.io/website`) to Northflank, in the
     project where the dataplatform runs; Claude sets everything up, Gabriel adds credentials.
-- Publish mode defaults to **review** until an admin switches it to auto.
+- ~~Publish mode defaults to review~~ → 2026-10-07: **auto publishing with automatic validation** (default "auto";
+  completeness gate `validate/completeness.ts` + freshness NAV 2 / performance 7 business days → admin issues and
+  alerts). **No "not available" / "coming soon" anywhere** (except the 12-month rule: a series younger than 12 months
+  shows no performance). **Months from a series' own official NAV chain are published; cross-class / adjustment /
+  same-month reversed-print checks are internal data-quality alerts.** **New dataplatform months are published without
+  waiting for an independent source** (opt-in gate `PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1`).
 - 2026-10-02: **dataplatform main endpoints only, no dataplatform change for the website**: groupings and derived
   figures are computed in the website backend from those endpoints (`docs/architecture.md` § Sources). **Benchmarks:
   FTSE for the bond funds.** **Every Global Minimum Volatility figure names its downside volatility variant**; the
@@ -129,7 +134,8 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 1. **Compliance review** of `docs/compliance-review.md`, then "mark as reviewed" in admin. Priorities: P1 ("protective"
    overlays), P3 (Morningstar disclosure behind an info note) and Morningstar "out of N funds", RBC gross-of-fees basis,
-   D1 (collapsed disclosures), AC1–AC6 (series figures, "—" months, 12-month minimum), CC / V rows.
+   D1 (collapsed disclosures), AC1–AC7 (series figures, withheld months now omitted silently, 12-month minimum, the class
+   shown when the headline series is incomplete), CC / V rows.
 2. **Alerts**: Teams channel webhook (Workflows "Post to a channel when a webhook request is received") into
    `PIPELINE_ALERT_WEBHOOK` (`website-secrets`), restart, "send a test alert"; an external uptime monitor on
    `<PUBLIC_URL>/api/status?strict=1` (`docs/deploy.md` § Alerts).
@@ -186,6 +192,23 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    navigation.
 
 ## 6. Session log
+
+- 2026-10-07 (home session, branch `feat/no-unavailable-states`, not merged): **no "data unavailable" state on public
+  pages** (Gabriel: "no place where it shows no data available … I don't want any data incoming things anymore", the
+  12-month rule kept). New `components/fund/lib/returns-class.ts`: the class shown (cards on home / strategies / solutions,
+  comparison table, fund page opening) is the preferred class (admin → registry headline → `defaultClass`) when its own
+  series is complete (≥ 12 full months, no withheld month, an SI figure), else `defaultClass`, the track-record class,
+  then the other CAD classes by FundServ, first complete, else the one with the most figures; always labelled with its
+  class, the card's NAV of the same class. `select.ts`: young / currency / unavailable classes never used for returns
+  (their NAV stays selectable; the returns are then the chosen class's under its own label), a series < 12 months never
+  shown, only published GMV variants offered. Removed: FundTile "Figures coming soon", header `figures-soon`, overview /
+  performance / portfolio soon notices, class notices (young, USD), the "—" footnote and badges, heat-map "—" cells (a year
+  with a withheld month is omitted), "…could not be verified" growth note ("Starts on <date>."), the comparison table
+  "— : not published yet" note (blank cells, empty columns dropped), NAV "will appear here" and portfolio "will appear
+  here" texts (an empty portfolio tab is not rendered). New e2e `no-unavailable.spec.ts` visits every public route and
+  every fund tab × class / variant (EN + FR). `docs/compliance-review.md` AC7 (+ F2, F5, V12, AC1, AC3, AC5 marked removed);
+  architecture § Returns per class. Rule 1's headline fallback is unit-tested only: the sample's headline classes are all
+  complete (the admin SEB class-H e2e exercises an `unavailable` F).
 
 - 2026-10-07 (home session, branch `fix/benchmark-history-and-fee-basis`, merged): (1) **FTSE `short_corp` before
   2024-12**: FTSE's earlier generation is kept under the SAME short_name and index_id (old name "Short Corporate Bond

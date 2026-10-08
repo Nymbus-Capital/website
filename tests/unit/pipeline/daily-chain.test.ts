@@ -96,8 +96,13 @@ test("Apex month: compounds the distribution-aware chain exactly; any gap or oth
   const broken = rs.map((r) => (r.date === "2026-08-20" ? { ...r, return_start_date: "2026-08-18" } : r));
   assert.match(apexMonth(broken, "2026-08-31").issue!, /continuous/);
   // duplicates
-  const dup = [...rs, rs.find((r) => r.date === "2026-08-20")!];
-  assert.equal(apexMonth(dup, "2026-08-31").status, "conflict");
+  // the same valuation served twice (identical rows, e.g. an Apex fund renamed mid-month): collapsed
+  const dup = [...rs, { ...rs.find((r) => r.date === "2026-08-20")! }];
+  assert.equal(apexMonth(dup, "2026-08-31").status, "ready");
+  // two different rows on one day: a conflict
+  const r20 = rs.find((r) => r.date === "2026-08-20")!;
+  const clash = [...rs, { ...r20, nav_per_share_cad: (r20.nav_per_share_cad as number) * 1.001 }];
+  assert.equal(apexMonth(clash, "2026-08-31").status, "conflict");
   // a USD-like row
   const usd = rs.map((r) => (r.date === "2026-08-20" ? { ...r, currency: "USD" } : r));
   assert.equal(apexMonth(usd, "2026-08-31").status, "unavailable");

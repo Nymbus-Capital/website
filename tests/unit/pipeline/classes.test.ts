@@ -154,62 +154,42 @@ test("every active class from its own daily chain since its inception: shown, yo
   );
 });
 
-test("source defects in the fixtures: a bad valuation print and a drift in a distribution month withhold every class; a lone outlier only itself", async () => {
+test("source defects in the fixtures: published from each series' own chain, reported as internal data-quality alerts", async () => {
   const { data } = await build();
   const mi = data.funds[MI]!;
-  // the print of 2022-03-15/16 in every Monthly Income class (March 2022: only FP and J were priced then) and class I
-  // drifting +0.9 % from the other classes in 2023-09 (an inconsistent adjustment: which class is right cannot be told)
-  assert.deepEqual(mi.performanceByClass!.LDM061.performance.withheldMonths, ["2022-03-31", "2023-09-30"]);
-  assert.equal(
-    mi.performanceByClass!.LDM061.performance.trailing.fund.SI,
-    null,
-    "since inception crosses a withheld month",
-  );
-  assert.equal(mi.performanceByClass!.LDM061.performance.trailing.fund["3Y"], null, "so do 3 years");
-  assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund["2Y"] != null, "2 years do not");
-  assert.equal(mi.performanceByClass!.LDM061.performance.growthFrom, "2023-09-30");
-  assert.deepEqual(
-    mi.performanceByClass!.LDM031.performance.withheldMonths,
-    ["2023-09-30"],
-    "the drifting class and every other class",
-  );
-  assert.match(
-    data.issues.find((i) => i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30`)!.message,
-    /distribution \/ price-adjustment day/,
-    "Monthly Income distributes: the majority cannot be trusted",
-  );
-  // Multi-Strategy class A off alone in 2025-05 (no distribution that month, F / I / J agree): A withheld alone
+  // the print of 2022-03-15/16 (reversed inside March) and class I drifting +0.9 % in 2023-09 (a distribution month):
+  // nothing withheld any more — every class keeps its own official figure
+  for (const f of ["LDM061", "LDM031", "LDM081"])
+    assert.equal(mi.performanceByClass![f].performance.withheldMonths, undefined, f);
+  assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund.SI != null);
   const ms = data.funds["multi-strategy"]!.performanceByClass!;
-  assert.deepEqual(ms.LDM300.performance.withheldMonths, ["2025-05-31"]);
   for (const f of ["LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
-  assert.ok(ms.LDM300.performance.trailing.fund["1Y"] != null, "the 1-year window (2025-09 to 2026-08) is clean");
+  // class A's synthetic source gap (three valuation days never served, not bridgeable): that month only, that class only
+  assert.deepEqual(ms.LDM300.performance.withheldMonths, ["2025-10-31"]);
   for (const [k, f] of [
-    [MI, "LDM081"],
     [SEB, "LDM201"],
     [SEB, "LDM203"],
     [SEB, "LDM204"],
   ] as const)
     assert.equal(data.funds[k]!.performanceByClass![f].performance.withheldMonths, undefined, f);
-  assert.ok(
+  const dq = (fund: string, re: RegExp): boolean =>
     data.issues.some(
-      (i) =>
-        i.level === "warn" &&
-        i.key === `funds.${MI}.performance.classes` &&
-        /source defects to report to the dataplatform\): 2022-03 bad valuation print: .*; 2023-09 classes disagree in a month with a distribution \/ price-adjustment day .*LDM031 1\.03%/.test(
-          i.message,
-        ),
+      (i) => i.level === "warn" && i.key === `funds.${fund}.performance.classes.dq` && re.test(i.message),
+    );
+  assert.ok(
+    dq(
+      MI,
+      /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/,
     ),
+    "2022-03 print",
   );
   assert.ok(
-    data.issues.some(
-      (i) =>
-        i.level === "warn" &&
-        i.key === `funds.${MI}.performance.classes.LDM061.monthly.2023-09-30` &&
-        /withheld \("—"\): classes disagree/.test(i.message),
-    ),
-    "one admin issue per class and month",
+    dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/),
+    "2023-09 drift",
   );
-  // the headline (track record) keeps its own logic
+  assert.ok(dq("multi-strategy", /2025-05 LDM300: deviates from the fund's other classes/), "Multi A 2025-05");
+  // nothing on the pages: the public data carries no trace of these alerts
+  assert.ok(!JSON.stringify(mi).includes("data-quality alert"));
   assert.equal(mi.performance!.withheldMonths, undefined);
 });
 
@@ -538,48 +518,47 @@ test("a class not launched yet (no own row up to the as-of): info only, no alert
   assert.ok(!context[SEB]!.alerts.some((a) => /LDM201/.test(a)));
 });
 
-test("M2: a month withheld for every class applies to the track record where it comes from its own NAV chain; an official figure stays", async () => {
-  // fixtures: Monthly Income 2022-03 and 2023-09 are withheld for every class; the track record's CIBC months come from its
-  // verified daily chain, so those two months take the analytics history's own figure instead (warned)
-  const { data } = await build();
-  assert.ok(
-    data.issues.some(
-      (i) =>
-        i.key === `funds.${MI}.performance` &&
-        i.level === "warn" &&
-        /kept in the track record with an official figure \(not an independent check of the class NAV data\): 2022-03 \(official figure of the analytics history, instead of its own daily NAV chain\), 2023-09 \(official figure/.test(
-          i.message,
-        ),
-    ),
-  );
-  // an Apex-era month taken from the chain (monthly-net-returns down) with a bad print in every class: no official figure,
-  // the month is withheld from the track record too (here the newest month: the track record stops before it)
-  const print = (fsv: string): Route =>
-    history(fsv, (rows) =>
-      rows.map((r) =>
-        r.date === "2026-08-13"
-          ? { ...r, net_daily_return: (r.net_daily_return as number) + 0.03 }
-          : r.date === "2026-08-14"
-            ? { ...r, net_daily_return: (r.net_daily_return as number) - 0.0295 }
-            : r,
-      ),
-    );
+test("M2: a print reversed inside a month keeps the month (track record and classes); one across a month-end withholds it from the track record when it comes from the chain", async () => {
   const mnrDown: Route = (url) =>
     url.pathname === "/api/performance/monthly-net-returns" && url.searchParams.get("short_name") === "SEST"
       ? json({ detail: "x" }, 500)
       : undefined;
-  const b = await build(mnrDown, ...["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"].map(print));
+  // a +3 % mis-print on day a reversed exactly on day b: the two days compound to the true two-day return
+  const print =
+    (a: string, b: string) =>
+    (fsv: string): Route =>
+      history(fsv, (rows) =>
+        rows.map((r) =>
+          r.date === a
+            ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) * 1.03 - 1 }
+            : r.date === b
+              ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) / 1.03 - 1 }
+              : r,
+        ),
+      );
+  const codes = ["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"];
+  // inside August: published, alerted
+  const b = await build(mnrDown, ...codes.map(print("2026-08-13", "2026-08-14")));
+  assert.equal(b.data.funds[MI]!.performance!.asOf, "2026-08-31");
   assert.ok(
     b.data.issues.some(
-      (i) =>
-        i.key === `funds.${MI}.performance` &&
-        /2026-08: withheld from the track record \(taken from its own daily NAV chain, which failed the class checks: bad valuation print/.test(
-          i.message,
-        ),
+      (i) => i.key === `funds.${MI}.performance.classes.dq` && /2026-08: bad valuation print/.test(i.message),
     ),
-    JSON.stringify(b.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message)),
   );
-  assert.equal(b.data.funds[MI]!.performance!.asOf, "2026-07-31");
+  // across the May → June month-end (CIBC months): both months withheld for every class; the track record takes the
+  // analytics history's official figure for its chain months instead (or withholds them)
+  const c = await build(mnrDown, ...codes.map(print("2026-05-29", "2026-06-01")));
+  const msgs = c.data.issues.filter((i) => i.key === `funds.${MI}.performance`).map((i) => i.message);
+  assert.ok(
+    msgs.some((m) =>
+      /2026-05 \((official figure of the analytics history|analytics: official figure)|2026-05: withheld from the track record \(taken from its own daily NAV chain, which failed the class checks: bad valuation print/.test(
+        m,
+      ),
+    ),
+    JSON.stringify(msgs),
+  );
+  const fp = c.data.funds[MI]!.performanceByClass!.LDM081.performance;
+  assert.ok(fp.withheldMonths?.includes("2026-05-31") && fp.withheldMonths.includes("2026-06-30"));
 });
 
 test("new classes are gated even when the previous publication had no performance", async () => {

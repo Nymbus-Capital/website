@@ -129,11 +129,6 @@ export const FUND_COPY = {
   sma: l("Managed accounts", "Comptes gérés"),
   risk: l("Risk rating", "Niveau de risque"),
   code: l("Fund code", "Code de fonds"),
-  soon: l("Figures coming soon", "Chiffres à venir"),
-  soonLong: l(
-    "Performance is published here once the month is closed and validated.",
-    "Les rendements sont publiés ici une fois le mois fermé et validé.",
-  ),
   sample: l("Sample data", "Données fictives"),
   sampleLong: l(
     "Illustrative figures only, not actual performance.",

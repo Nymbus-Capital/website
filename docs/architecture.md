@@ -66,7 +66,7 @@ inputs, with gates; a figure is never assembled from two sources.
 | --- | --- | --- | --- |
 | analytics `fund_returns.json` | monthly net returns before the Apex cut-over; verifies the CIBC months of the daily chain | primary (history) | factsheet monthly table (rounded) + alert |
 | dataplatform `/api/performance/monthly-net-returns` | monthly net returns of the track-record class, `ready` months (no class parameter: main branch) | primary (Apex months) | the daily chain's Apex months; else month held / previous kept |
-| dataplatform `/api/performance/nav-timeseries` (`fundserv=`, every class, from 2019-01-01) | daily NAV chain per class → inception and per-class monthly returns (`daily-chain.ts`, `class-returns.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class "coming soon" / headline from monthly-net-returns |
+| dataplatform `/api/performance/nav-timeseries` (`fundserv=`, every class, from 2019-01-01) | daily NAV chain per class → inception and per-class monthly returns (`daily-chain.ts`, `class-returns.ts`); net assets for portfolio weights | primary for non-headline classes; cross-check of the headline | class without returns (its NAV only; returns of the chosen class, labelled) / headline from monthly-net-returns |
 | dataplatform `/api/performance/nav-timeseries`, `/api/apex/funds` | NAV per class, live classes | primary | previous NAV kept + alert |
 | dataplatform `/api/unitholders/aum` | fund AUM (totals only) | primary | previous kept + alert |
 | dataplatform `/api/ftse/index-summary` (+ `/short-names`) | benchmark levels; earlier naming generations chain-linked only when verified (`index-levels.ts` `joinFtseHistory`) | primary | index figures not shown |
@@ -199,7 +199,7 @@ Not read any more: `/api/apex/fund-portfolio` and `/api/performance/distribution
   by validation, rolled back or pinned they are relabelled by it (`fundWithClassLabel`, also at render in `site.ts`).
 - The NAV card is independent: its series is the fund register's class of the FundServ code shown.
 
-### Returns per class and GMV variants (`class-returns.ts`, `classes.ts`, `build/class-series.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`)
+### Returns per class and GMV variants (`class-returns.ts`, `classes.ts`, `build/class-series.ts` `buildClasses`, `validate.ts`, `components/fund/lib/select.ts`, `components/fund/lib/returns-class.ts`)
 
 Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpoints only), for the three funds.
 
@@ -309,16 +309,33 @@ Gabriel 2026-10-04: every class's returns come from the dataplatform (main endpo
   are null; risk statistics over complete months (since inception only when every complete month is usable, 3 years only
   when its 36 months are; labelled "From <first complete month>" when the first month is partial); the growth series starts at
   the inception day (first point dated the inception), or at the month-end after the last withheld month (`growthFrom`,
-  labelled on the page); no index figure is set against a partial first month (marked in the heat map). The page shows a
-  withheld figure as "—" (header badges, trailing table, calendar table, heat map) with a one-line note. The track record
+  labelled on the page "Starts on <date>."); no index figure is set against a partial first month (marked in the heat map).
+  **Since 2026-10-07 the page never shows a withheld figure nor says why** (owner: "no place where it shows no data
+  available"): a trailing period / badge without a figure is not rendered, a calendar year without a fund figure is
+  omitted, a heat-map year with a withheld month (or any gap inside the record) is omitted, benchmark / value-added cells
+  without a figure stay blank (a column without any value is not rendered), and no "—" footnote is shown. The track record
   (headline) shows no series inception next to its figures; its since-inception row reads "Since track-record start (<month>)".
 - **Regulatory minimum**: a class with less than `MIN_CLASS_HISTORY_MONTHS` (12, `config/funds.ts`, compliance may change it)
-  months since its inception (same day 12 months later) shows no performance figure, only "Series X launched on <date>.
-  Performance will be shown once the series has 12 months of history." (`ClassInfo.status` `young`).
-- **Opening series**: `defaultClass` = the registry's headline class when it has returns, else the first class (register
-  order) that has; the page (`openingClass`) prefers the admin's headline class when it has returns, then the data's
-  default, then the first class offered with returns — a page never opens on an empty performance block while another
-  series has data. The home cards still read the headline class (`defaultClassCode`), unchanged.
+  months since its inception (same day 12 months later) shows no performance figure (`ClassInfo.status` `young`); the site
+  also drops any series with less than 12 full months (`returns-class.ts` `hasMinHistory`). No sentence about it is shown
+  (the "Series X launched on … Performance will be shown once …" and the non-CAD "not available in USD" notices were
+  removed 2026-10-07).
+- **Which class's returns are shown** (`returns-class.ts`, 2026-10-07; cards on home / strategies / solutions, the
+  comparison table and the fund page default): the preferred class (admin headline → registry headline → `defaultClass`)
+  when its own series is **complete** (≥ 12 full months, no withheld month, a since-inception figure); else the next
+  candidate — `defaultClass`, the track-record class (the class entry whose label is `performance.returnClass`), then the
+  other CAD classes by FundServ code — whose series is complete; else the candidate whose series has the most figures
+  (trailing periods + calendar years; ties: candidate order); none → no returns at all (a card then shows its NAV only, a
+  fund page no returns block), never a message. A class with status `young`, `currency` or `unavailable`, or without a
+  series of 12 months with at least one figure, is never used for returns. The figures are always that class's own series
+  and carry its label (`performance.returnClass` is set to the class entry's label); the card's NAV is the same class's
+  NAV row when it has one.
+- **Fund page selection**: the NAV card offers every class with a NAV and every class with returns of its own
+  (`selectableClasses`); a class with neither is not offered. The page opens on the chosen class above (`openingClass`). A
+  selected class that can show returns shows its own series (even with withheld months: only its figures are rendered);
+  a selected class that cannot (young, non-CAD, no series) shows its NAV while the returns are the chosen class's, under
+  that class's label (`ClassCtx.returnsClass` / `returnsType`). GMV: only published variants are offered
+  (`offeredVariants`); a portfolio tab without any data is not rendered.
 - **Approval**: a class entry changing class, the default class changing, and classes published for the first time —
   also when the previous publication had no performance, and every series of a fund new to a live site (its page then goes
   live without performance until approved); the very first publication of the whole site has nothing to compare with and is
@@ -414,6 +431,7 @@ decisions is `docs/HANDOFF.md` § 4).
 | 2026-10-04 | Every class's returns from the dataplatform; "the inception date of each class … the first date when there are prices for that class". | `src/lib/pipeline/class-returns.ts` |
 | 2026-10-04 | Fund-page disclosures are the last block, below the call to action and the other strategies. | `src/components/fund/FundPage.tsx` |
 | 2026-10-05 | Long disclosures collapse into a faded box with a static expand arrow. | `src/components/site/Disclosure.tsx`, `src/components/fund/Closing.tsx` |
+| 2026-10-07 | "No place where it shows no data available … I don't want any data incoming things anymore" (except the 12-month rule, which shows nothing): every "coming soon" / "not available" / "could not be verified" / "—" state removed from public pages; the class shown is the preferred class when complete, else the most complete one, always labelled with its class. | `src/components/fund/lib/returns-class.ts`, `select.ts`, `e2e/no-unavailable.spec.ts` |
 
 ## Monitoring and alerts (`src/lib/pipeline/{alerts,freshness,monitor,schedule}.ts`, `src/lib/rankings/expiry-alert.ts`)
 

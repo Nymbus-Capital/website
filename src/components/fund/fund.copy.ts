@@ -46,10 +46,6 @@ export const T = {
     managementFee: l("Management fee", "Frais de gestion"),
     benchmark: l("Benchmark", "Indice de référence"),
     aum: l("Fund assets", "Actif du fonds"),
-    none: l(
-      "Net asset values will appear here once published.",
-      "Les valeurs liquidatives apparaîtront ici une fois publiées.",
-    ),
     // strategy card (managed accounts, no NAV)
     strategyTitle: l("Strategy at a glance", "La stratégie en bref"),
     siGross: l(
@@ -65,7 +61,6 @@ export const T = {
   },
   badges: {
     title: l("Returns", "Rendements"),
-    soon: l("Performance figures coming soon.", "Les rendements seront bientôt publiés."),
     annualized: l("Periods over one year are annualized.", "Les périodes de plus d’un an sont annualisées."),
   },
   tabs: {
@@ -90,10 +85,6 @@ export const T = {
       "Cette série est offerte par notice d’offre, aux investisseurs admissibles seulement.",
     ),
     type: l("Offered under", "Offerte aux termes"),
-    soon: l(
-      "Performance figures for series {x} coming soon.",
-      "Les rendements de la série {x} seront bientôt publiés.",
-    ),
     since: l(
       "Since series inception ({date}): only the periods this series has completed are shown.",
       "Depuis la création de la série ({date})\u00a0: seules les périodes complétées par la série sont présentées.",
@@ -107,27 +98,8 @@ export const T = {
       "Partial month: from the series inception on {date}",
       "Mois partiel : depuis la création de la série, le {date}",
     ),
-    young: l(
-      "Series {x} launched on {date}. Performance will be shown once the series has {n} months of history.",
-      "La série {x} a été lancée le {date}. Les rendements seront présentés lorsque la série aura {n}\u00a0mois d’historique.",
-    ),
-    currency: l(
-      "Performance figures are not shown for series {x}: returns that account for distributions are not available for this series in {cur}.",
-      "Les rendements de la série {x} ne sont pas présentés\u00a0: les rendements tenant compte des distributions ne sont pas disponibles pour cette série en {cur}.",
-    ),
-    withheld: l(
-      "“—”: figure not shown because a month in its period could not be verified.",
-      "«\u00a0—\u00a0»\u00a0: chiffre non présenté parce qu’un mois de sa période n’a pas pu être vérifié.",
-    ),
-    withheldMonth: l(
-      "Return not shown: this month could not be verified",
-      "Rendement non présenté\u00a0: ce mois n’a pas pu être vérifié",
-    ),
     growthFromInception: l("Starts at the series inception, {date}.", "Débute à la création de la série, le {date}."),
-    growthFromAfter: l(
-      "Starts on {date}, after the last month whose return could not be verified.",
-      "Débute le {date}, après le dernier mois dont le rendement n’a pas pu être vérifié.",
-    ),
+    growthFrom: l("Starts on {date}.", "Débute le {date}."),
     rangeFrom: l("From {date}", "Depuis le {date}"),
     partialFirst: l(
       "The first month runs from the series inception on {date}.",
@@ -270,7 +242,6 @@ export const T = {
     va: l("Value added", "Valeur ajoutée"),
     negative: l("Negative", "Négatif"),
     positive: l("Positive", "Positif"),
-    none: l("Performance figures coming soon.", "Les rendements seront bientôt publiés."),
     periods: {
       "1M": l("1M", "1 m"),
       "3M": l("3M", "3 m"),
@@ -324,10 +295,6 @@ export const T = {
     esg: l("Sustainability metrics", "Indicateurs de durabilité"),
     esgLead: l("The portfolio compared with its index.", "Le portefeuille comparé à son indice."),
     metric: l("Metric", "Indicateur"),
-    none: l(
-      "Portfolio data will appear here once the monthly factsheet is published.",
-      "Les données du portefeuille apparaîtront ici une fois la fiche mensuelle publiée.",
-    ),
     /* daily portfolio (data platform book) */
     daily: l("Daily portfolio data", "Données quotidiennes du portefeuille"),
     dailyAsOf: l("as of", "au"),
