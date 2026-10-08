@@ -418,7 +418,7 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
   await expect(page.getByTestId("provenance")).toContainText(
-    "données de portefeuille selon les positions quotidiennes au 28 septembre 2026",
+    "Données de portefeuille au 28 septembre 2026",
   );
 });
 
