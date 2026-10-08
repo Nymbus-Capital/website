@@ -462,6 +462,8 @@ function navPayload(short: string): unknown {
  * series above, so the website's chain reproduces the analytics history and monthly-net-returns.
  */
 type NavHistorySpec = {
+  /** valuation days never served by the source (a synthetic gap) */
+  missingDays?: string[];
   fundserv: string;
   short: string;
   monthly: Series;
@@ -675,7 +677,7 @@ function navHistoryPayload(h: (typeof NAV_HISTORY)[number]): string {
     shocks: h.shocks,
     currency: h.currency,
   })
-    .filter((r) => !("missingDays" in h && (h.missingDays as string[]).includes(r.date)))
+    .filter((r) => !h.missingDays?.includes(r.date))
     .map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
   // one row per line: the file stays readable and diffs stay small
   return `{"short_name": "${h.short}", "fundserv": "${h.fundserv}", "nav_type": "FINAL_NAV", "include_unmapped": false, "row_count": ${rows.length}, "warnings": [], "rows": [\n${rows.map((r) => JSON.stringify(r)).join(",\n")}\n]}\n`;
