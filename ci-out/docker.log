@@ -1,0 +1,40 @@
+#13 54.00 
+#13 54.03   Creating an optimized production build ...
+#13 62.71 ✓ Compiled successfully in 8.3s
+#13 62.71   Running TypeScript ...
+#13 72.51 Failed to compile.
+#13 72.51 
+#13 72.51 ./tests/fixtures/pipeline/generate.ts:622:5
+#13 72.51 Type error: Object literal may only specify known properties, and 'missingDays' does not exist in type 'NavHistorySpec'.
+#13 72.51 
+#13 72.51 [0m [90m 620 |[39m     seed[33m:[39m [35m114[39m[33m,[39m
+#13 72.51  [90m 621 |[39m     [90m// three valuation days never served (synthetic source gap, not bridgeable): 2025-10 withheld for this class only[39m
+#13 72.51 [31m[1m>[22m[39m[90m 622 |[39m     missingDays[33m:[39m [[32m"2025-10-14"[39m[33m,[39m [32m"2025-10-15"[39m[33m,[39m [32m"2025-10-16"[39m][33m,[39m
+#13 72.51  [90m     |[39m     [31m[1m^[22m[39m
+#13 72.51  [90m 623 |[39m   }[33m,[39m
+#13 72.51  [90m 624 |[39m   {
+#13 72.51  [90m 625 |[39m     fundserv[33m:[39m [32m"LDM301"[39m[33m,[39m[0m
+#13 72.55 Next.js build worker exited with code: 1 and signal: null
+#13 ERROR: process "/bin/sh -c npm test && npm run build" did not complete successfully: exit code: 1
+------
+ > [build 5/5] RUN npm test && npm run build:
+72.51 Type error: Object literal may only specify known properties, and 'missingDays' does not exist in type 'NavHistorySpec'.
+72.51 
+72.51 [0m [90m 620 |[39m     seed[33m:[39m [35m114[39m[33m,[39m
+72.51  [90m 621 |[39m     [90m// three valuation days never served (synthetic source gap, not bridgeable): 2025-10 withheld for this class only[39m
+72.51 [31m[1m>[22m[39m[90m 622 |[39m     missingDays[33m:[39m [[32m"2025-10-14"[39m[33m,[39m [32m"2025-10-15"[39m[33m,[39m [32m"2025-10-16"[39m][33m,[39m
+72.51  [90m     |[39m     [31m[1m^[22m[39m
+72.51  [90m 623 |[39m   }[33m,[39m
+72.51  [90m 624 |[39m   {
+72.51  [90m 625 |[39m     fundserv[33m:[39m [32m"LDM301"[39m[33m,[39m[0m
+72.55 Next.js build worker exited with code: 1 and signal: null
+------
+Dockerfile:15
+--------------------
+  13 |     COPY --from=deps /app/node_modules ./node_modules
+  14 |     COPY . .
+  15 | >>> RUN npm test && npm run build
+  16 |     
+  17 |     FROM node:22-bookworm-slim AS run
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm test && npm run build" did not complete successfully: exit code: 1
