@@ -148,7 +148,11 @@ test("SEB (preferHeadlineReturns): Series F is the default whenever it has a 1-y
   bare.performanceByClass!.LDM201 = entry(
     "LDM201",
     "F",
-    perf("F", { firstMonth: "2023-07-31", withheldMonths: ["2026-07-31"], trailing: { fund: { "1M": 0.001, YTD: null, "1Y": null, SI: null } } as never }),
+    perf("F", {
+      firstMonth: "2023-07-31",
+      withheldMonths: ["2026-07-31"],
+      trailing: { fund: { "1M": 0.001, YTD: null, "1Y": null, SI: null } } as never,
+    }),
   );
   assert.equal(chosenReturnsClass(bare, spec, {}), "LDM202");
   // F younger than 12 months: never shown, whatever the flag
