@@ -1,0 +1,6 @@
+
+> nymbus-web@0.1.0 typecheck
+> tsc --noEmit
+
+tests/unit/admin/disclaimers.test.ts(162,29): error TS2339: Property 'provenance' does not exist on type '{ readonly eyebrow: L; readonly title: L; readonly net: Text; readonly standard: Text; readonly index: Text; readonly ftse: Text; readonly general: Text; ... 9 more ...; readonly aumAsOf: L; }'.
+tests/unit/admin/disclaimers.test.ts(162,46): error TS2339: Property 'provenance' does not exist on type '{ readonly firm: Text; readonly fundStandard: Text; readonly returnsNet: Text; readonly benchmark: Text; readonly gmvGross: Text; readonly ftse: Text; ... 8 more ...; readonly byId: (id: string) => Text; }'.
