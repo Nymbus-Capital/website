@@ -29,8 +29,8 @@ export function completeSeries(p: Performance | null | undefined): boolean {
   if (p.withheldMonths?.length) return false;
   const full = monthsBetween(p.firstMonth, p.asOf) - (p.partialFirstMonth ? 1 : 0);
   if (full < 12) return false;
-  const t = p.trailing.fund;
-  return isNum(t.SI) && isNum(t["1Y"]);
+  // same rule as the pages' choice of series (components/fund/lib/returns-class.ts isComplete)
+  return isNum(p.trailing.fund.SI);
 }
 
 export function fundCompleteness(
@@ -54,7 +54,7 @@ export function fundCompleteness(
   else if (!anyComplete && !f.variants)
     add(
       "no-complete-series",
-      "no series with complete figures (≥ 12 full months, nothing withheld, since-inception and 1-year figures): the pages show partial figures only",
+      "no series with complete figures (≥ 12 full months, nothing withheld, a since-inception figure): the pages show partial figures only",
     );
   if (head && byClass.length && !completeSeries(headEntry?.performance) && anyComplete)
     add(
@@ -67,8 +67,17 @@ export function fundCompleteness(
       .filter((c) => c.performance.withheldMonths?.length)
       .map((c) => [c.fundserv, c.performance.withheldMonths!] as const),
   ];
-  for (const [cls, months] of withheld)
-    add(`withheld:${cls}:${months.join(",")}`, `series ${cls}: month(s) ${months.map(ym).join(", ")} withheld (the periods over them are hidden)`);
+  // one problem per distinct set of months (the track record and its own class entry usually share them): no duplicates
+  const byMonths = new Map<string, string[]>();
+  for (const [cls, months] of withheld) {
+    const k = [...months].sort().join(",");
+    byMonths.set(k, [...new Set([...(byMonths.get(k) ?? []), cls])]);
+  }
+  for (const [k, classes] of byMonths)
+    add(
+      `withheld:${k}`,
+      `series ${classes.join(", ")}: month(s) ${k.split(",").map(ym).join(", ")} withheld (the periods over them are hidden)`,
+    );
   if (opts.vehicle === "fund") {
     const navs = f.nav?.classes ?? [];
     if (!navs.some((c) => isNum(c.nav))) add("no-nav", "no NAV for any class");

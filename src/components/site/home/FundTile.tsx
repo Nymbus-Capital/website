@@ -124,7 +124,8 @@ export function FundTile({
   const { locale, pick } = useTranslation();
   const tilt = useTilt<HTMLAnchorElement>(4);
   const H = headingLevel === 2 ? "h2" : "h3";
-  const perf = hasPerf(f);
+  // the home card's figure is the since-inception return: without it the block is not rendered (never an empty slot)
+  const perf = variant === "home" ? f.si !== null : hasPerf(f);
   const basis = pick(f.basis === "gross" ? F.gross : F.net);
   // the daily NAV belongs to the strategies pages: the home cards carry the returns only
   const nav =

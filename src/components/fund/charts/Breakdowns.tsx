@@ -35,7 +35,7 @@ export function HBars({
           className="fx-hbar"
           role="listitem"
           key={r.label}
-          aria-label={`${r.label}: ${names.fund} ${r.fund != null ? pctF(r.fund, lang) : "—"}${hasIndex && r.index != null ? `, ${names.index} ${pctF(r.index, lang)}` : ""}`}
+          aria-label={`${r.label}: ${r.fund != null ? `${names.fund} ${pctF(r.fund, lang)}` : ""}${hasIndex && r.index != null ? `, ${names.index} ${pctF(r.index, lang)}` : ""}`}
         >
           <span className="lab" title={r.label}>
             {r.label}
@@ -45,7 +45,7 @@ export function HBars({
             {hasIndex ? <Bar cls="b index" v={r.index} max={max} hidden={r.index == null} /> : null}
           </span>
           <span className="val" aria-hidden="true">
-            {r.fund != null ? pctF(r.fund, lang) : "—"}
+            {r.fund != null ? pctF(r.fund, lang) : null}
             {hasIndex ? <small>{r.index != null ? pctF(r.index, lang) : null}</small> : null}
           </span>
         </div>

@@ -126,7 +126,7 @@ export interface FundClassesResult {
   /**
    * Data-quality alerts that do NOT withhold a month (internal: admin issues / alerts, never on the pages): cross-class
    * inconsistency of a month computed from the class's own official NAV path, a bad valuation print reversed inside the
-   * same month (the month's return is unaffected). `fundserv` null: the whole fund.
+   * same month (the month-end NAV and the month's return are the official ones). `fundserv` null: the whole fund.
    */
   anomalies: { month: string; fundserv: string | null; reason: string }[];
 }
@@ -717,7 +717,7 @@ export function computeFundClasses(
     for (const [month, reason] of ms) if (month <= endMonth) anomalies.push({ month, fundserv: fsv, reason });
   for (const [month, reason] of sameMonthPrints)
     if (month <= endMonth)
-      anomalies.push({ month, fundserv: null, reason: `${reason}: reversed inside the month, month return unaffected` });
+      anomalies.push({ month, fundserv: null, reason: `${reason}: reversed inside the month, the month's return follows the official month-end NAV` });
   for (const [fsv, ms] of Object.entries(raw))
     for (const m of ms) {
       if (m.month > endMonth || m.status !== "ready") continue;

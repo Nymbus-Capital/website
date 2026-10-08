@@ -39,7 +39,7 @@ test("fundCompleteness: headline class incomplete, withheld months, NAV, months 
   });
   const codes = out.map((p) => p.code);
   assert.ok(codes.includes("sustainable-enhanced-bonds:headline-incomplete:LDM201"), codes.join(" "));
-  assert.ok(codes.includes("sustainable-enhanced-bonds:withheld:LDM201:2026-07-31"));
+  assert.ok(codes.includes("sustainable-enhanced-bonds:withheld:2026-07-31"));
   assert.ok(codes.includes("sustainable-enhanced-bonds:no-headline-nav:LDM201"));
   assert.ok(codes.includes("sustainable-enhanced-bonds:behind:2026-10-31"));
   assert.ok(!codes.some((c) => c.endsWith(":no-complete-series")), "the track record is complete");

@@ -158,6 +158,10 @@ function NavCard({
   const sel = opts.find((o) => o.fundserv === ctx.selected) ?? opts[0] ?? null;
   const cls = sel?.nav ?? null;
   const perf = data?.performance ?? null;
+  // the NAV card describes the selected class: a track-record start of ANOTHER class (returns shown for a class that
+  // cannot show its own) is not stated under this class's name
+  const ownPerf =
+    ctx.returnsClass && sel && ctx.returnsClass.toUpperCase() !== sel.fundserv.toUpperCase() ? null : perf;
   const launch = FUND_INCEPTION[spec.key]?.fundLaunch ?? null;
   const bench = benchmarkLabel(perf?.indexName, spec.benchmark, lang);
   const aum = content.hide?.aum === false ? (data?.aum ?? null) : null;
@@ -246,8 +250,8 @@ function NavCard({
             ) : null}
             {launch ? (
               <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
-            ) : perf?.firstMonth ? (
-              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact>
+            ) : ownPerf?.firstMonth ? (
+              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(ownPerf.firstMonth, lang)}</Fact>
             ) : null}
             {content.mer ? (
               <Fact k={tr(T.nav.mer, lang)}>{content.mer}</Fact>
@@ -282,8 +286,8 @@ function NavCard({
             ) : null}
             {launch ? (
               <Fact k={tr(T.nav.fundLaunch, lang)}>{tr(launch, lang)}</Fact>
-            ) : perf?.firstMonth ? (
-              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(perf.firstMonth, lang)}</Fact>
+            ) : ownPerf?.firstMonth ? (
+              <Fact k={tr(T.nav.trackRecord, lang)}>{monthLabel(ownPerf.firstMonth, lang)}</Fact>
             ) : null}
             {bench ? (
               <div className="nc-fact wide">

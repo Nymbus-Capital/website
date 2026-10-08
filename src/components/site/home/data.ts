@@ -86,10 +86,11 @@ export function toFundCard(v: FundView): FundCard {
   const { spec, content } = v;
   // the class / variant shown, exactly as the fund page opens: the chosen class's own series (complete first), or
   // the default variant's own figures (GMV 3 / 6 / 9 %), always shown with its name
-  const sel = initialSelection(v.data, spec, content);
-  const picked = pickData(v.data, spec, content, sel);
-  // then every block the admin hid is removed (same rule as the fund page): hidden figures never reach the props
+  // every block the admin hid is removed FIRST, exactly like the fund page (strategies/[slug]/page.tsx), so the card and
+  // the page choose the same class; hidden figures never reach the props
   const data = stripHidden(v.data, content);
+  const sel = initialSelection(data, spec, content);
+  const picked = pickData(data, spec, content, sel);
   const perfData = stripHidden(picked.data, content);
   const variantId = spec.variants?.length ? sel.variant : null;
   const perf = perfData?.performance ?? null;

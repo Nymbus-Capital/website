@@ -21455,7 +21455,7 @@
   {
    "key": "funds.monthly-income.performance.classes.dq",
    "level": "warn",
-   "message": "data-quality alert (published, not withheld): 2022-03: bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%): reversed inside the month, month return unaffected"
+   "message": "data-quality alert (published, not withheld): 2022-03: bad valuation print: LDM001 2022-03-15 3.03% then 2022-03-16 -2.96% (reversed, combined -0.02%): reversed inside the month, the month's return follows the official month-end NAV"
   },
   {
    "key": "funds.monthly-income.performance.classes.dq",

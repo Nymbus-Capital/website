@@ -176,7 +176,7 @@ test("source defects in the fixtures: published from each series' own chain, rep
     data.issues.some(
       (i) => i.level === "warn" && i.key === `funds.${fund}.performance.classes.dq` && re.test(i.message),
     );
-  assert.ok(dq(MI, /2022-03: bad valuation print: .*reversed inside the month, month return unaffected/), "2022-03 print");
+  assert.ok(dq(MI, /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/), "2022-03 print");
   assert.ok(dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/), "2023-09 drift");
   assert.ok(dq("multi-strategy", /2025-05 LDM300: deviates from the fund's other classes/), "Multi A 2025-05");
   // nothing on the pages: the public data carries no trace of these alerts

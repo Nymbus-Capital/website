@@ -627,12 +627,19 @@ test("N6: stale-lock takeover renames the stale dir atomically; concurrent takeo
   assert.ok(!left.some((f) => f.includes(".stale-")), `no stale leftovers: ${left}`);
 });
 
-test("without admin content, runs wait for approval (review is the default)", async () => {
+test("without admin content, runs publish automatically (auto is the default); an explicit review choice waits", async () => {
   const { rm } = await import("node:fs/promises");
   await rm(path.join(dir, "content"), { recursive: true, force: true });
   const r = await run();
-  assert.equal(r.status === "pending-review" || (r.status === "blocked" && !r.publishedAt), true, `status ${r.status}`);
-  await assert.rejects(readFile(path.join(dir, "published", "site-data.json"), "utf8"));
+  assert.ok(r.publishedAt, `status ${r.status}`);
+  await readFile(path.join(dir, "published", "site-data.json"), "utf8");
+  // a stored content without a pipeline key: auto too
+  await mkdir(path.join(dir, "content"), { recursive: true });
+  await writeFile(path.join(dir, "content", "site-content.json"), JSON.stringify({ funds: {} }));
+  assert.ok((await run()).publishedAt);
+  await setMode("review");
+  const rv = await run();
+  assert.equal(rv.publishedAt, undefined);
 });
 
 test("class change (SEB F -> H): never published without an admin, even in auto mode; publishing the run approves it", async () => {

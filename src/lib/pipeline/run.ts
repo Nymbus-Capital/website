@@ -93,8 +93,9 @@ async function readContent(): Promise<Partial<SiteContent> | null> {
 }
 
 async function publishMode(): Promise<"auto" | "review"> {
-  // until an admin chooses "auto", runs wait for approval (safer for the first live runs)
-  return (await readContent())?.pipeline?.publishMode === "auto" ? "auto" : "review";
+  // auto by default (owner's decision 2026-10-07, gated by the automatic validation); "review" only when an admin
+  // chose it explicitly — the same answer as getContent() merged with DEFAULT_CONTENT (admin settings page)
+  return (await readContent())?.pipeline?.publishMode === "review" ? "review" : "auto";
 }
 
 /**
@@ -492,9 +493,16 @@ export async function runPipeline(opts: {
         (r.advisories ?? []).map((a) => ({ fund: r.fund, code: a.code, message: a.message })),
       );
       // automatic validation of what would go live (internal only: admin issues + one alert per new problem)
+      // on what goes live: autoData in auto mode, the run's own data in review mode; the admin's headline class wins
+      const stored = await readContent();
+      const liveMode = await publishMode();
       for (const p of siteCompleteness(
-        autoData,
-        FUNDS.map((f) => ({ key: f.key, vehicle: f.vehicle, headlineClass: f.headlineClass })),
+        liveMode === "auto" ? autoData : data,
+        FUNDS.map((f) => ({
+          key: f.key,
+          vehicle: f.vehicle,
+          headlineClass: stored?.funds?.[f.key]?.headlineClass || f.headlineClass,
+        })),
         expectedPerformanceMonthEnd(localDate(now.getTime())),
       ))
         advisories.push({ fund: p.fund, code: `completeness ${p.code}`, message: `data completeness: ${p.message}` });
