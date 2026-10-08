@@ -1,0 +1,82 @@
+
+> nymbus-web@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+▲ Next.js 16.1.6 (Turbopack)
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "1mb"
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.3s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/8) ...
+  Generating static pages using 3 workers (2/8) 
+  Generating static pages using 3 workers (4/8) 
+  Generating static pages using 3 workers (6/8) 
+✓ Generating static pages using 3 workers (8/8) in 136.7ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/audit
+├ ƒ /admin/documents
+├ ƒ /admin/funds
+├ ƒ /admin/funds/[key]
+├ ƒ /admin/inquiries
+├ ƒ /admin/runs
+├ ƒ /admin/runs/[id]
+├ ƒ /admin/settings
+├ ƒ /api/admin/alerts/test
+├ ƒ /api/admin/audit
+├ ƒ /api/admin/brand/[slot]
+├ ƒ /api/admin/compliance
+├ ƒ /api/admin/content
+├ ƒ /api/admin/content/funds/[key]
+├ ƒ /api/admin/content/settings
+├ ƒ /api/admin/documents
+├ ƒ /api/admin/documents/[id]
+├ ƒ /api/admin/inquiries
+├ ƒ /api/admin/inquiries/[id]
+├ ƒ /api/admin/inquiries/export
+├ ƒ /api/admin/me
+├ ƒ /api/admin/pipeline/run
+├ ƒ /api/admin/rankings/check
+├ ƒ /api/admin/runs
+├ ƒ /api/admin/runs/[id]
+├ ƒ /api/admin/runs/[id]/publish
+├ ƒ /api/admin/status
+├ ƒ /api/admin/upload/brand
+├ ƒ /api/admin/upload/documents
+├ ƒ /api/admin/upload/documents/[id]
+├ ƒ /api/auth/callback
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/brand/[slot]
+├ ƒ /api/cms/revalidate
+├ ƒ /api/contact
+├ ƒ /api/documents/[id]
+├ ƒ /api/documents/[id]/[name]
+├ ƒ /api/health
+├ ƒ /api/status
+├ ƒ /approach
+├ ƒ /contact
+├ ƒ /core-concepts
+├ ƒ /legal
+├ ƒ /news
+├ ƒ /news/[id]
+├ ƒ /privacy
+├ ƒ /solutions
+├ ƒ /strategies
+├ ƒ /strategies/[slug]
+├ ƒ /sustainability
+└ ƒ /team
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
