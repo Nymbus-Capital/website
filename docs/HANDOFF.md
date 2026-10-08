@@ -195,6 +195,18 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ## 6. Session log
 
+- 2026-10-08 (home session): **public pages show dates only, never the data source** (Portfolio tab header and
+  sustainability block "As of <date>", disclosure "Portfolio data as of <date>; … Performance as of <date> · NAV as of
+  <date>."; sources stay in the admin run provenance; compliance row 12 and the admin compliance entry updated).
+  **Ordering rule** (Gabriel): credit ratings AAA → AA → A → BBB → … top to bottom (short-term R-1 / A-1 with AA, not
+  rated, other assets, cash last); maturity / duration buckets shortest → longest (`ratingSortRank` / `termSortRank`,
+  components/fund/lib/portfolio.ts, factsheet and daily-book breakdowns). Distributions: dataplatform PR #621 (open,
+  behind main) already serves `/api/performance/distributions` (CIBC `funds_nav_ts.distribution` to 2026-07-05, Apex
+  `valuation.distribution / shares_outstanding` after); verified complete against the return-vs-NAV gap (every
+  distribution day present, amounts equal; year-end rows stored negative). Analytics: dataplatform PR #636 (NYM-1468,
+  open) adds the `analytics` domain (one methodology per metric, coverage on every result) over client positions —
+  plan: run the fund books (Apex holdings, PR #621) through the same library.
+
 - 2026-10-07 (home session, branch `feat/no-unavailable-states`, not merged): **no "data unavailable" state on public
   pages** (Gabriel: "no place where it shows no data available … I don't want any data incoming things anymore", the
   12-month rule kept). New `components/fund/lib/returns-class.ts`: the class shown (cards on home / strategies / solutions,
