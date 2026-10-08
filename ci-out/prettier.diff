@@ -1,0 +1,190 @@
+diff --git a/src/lib/pipeline/class-returns.ts b/src/lib/pipeline/class-returns.ts
+index 5b0dd04..8ad2bfc 100644
+--- a/src/lib/pipeline/class-returns.ts
++++ b/src/lib/pipeline/class-returns.ts
+@@ -712,12 +712,17 @@ export function computeFundClasses(
+   // the cross-class check is a monitor: a month computed from the class's own official chain is published; its
+   // disagreement with the other classes is an internal data-quality alert (admin issue / alert), never a withheld month
+   const anomalies: FundClassesResult["anomalies"] = [];
+-  for (const [month, reason] of cross.fundMonths) if (month <= endMonth) anomalies.push({ month, fundserv: null, reason });
++  for (const [month, reason] of cross.fundMonths)
++    if (month <= endMonth) anomalies.push({ month, fundserv: null, reason });
+   for (const [fsv, ms] of cross.fails)
+     for (const [month, reason] of ms) if (month <= endMonth) anomalies.push({ month, fundserv: fsv, reason });
+   for (const [month, reason] of sameMonthPrints)
+     if (month <= endMonth)
+-      anomalies.push({ month, fundserv: null, reason: `${reason}: reversed inside the month, the month's return follows the official month-end NAV` });
++      anomalies.push({
++        month,
++        fundserv: null,
++        reason: `${reason}: reversed inside the month, the month's return follows the official month-end NAV`,
++      });
+   for (const [fsv, ms] of Object.entries(raw))
+     for (const m of ms) {
+       if (m.month > endMonth || m.status !== "ready") continue;
+diff --git a/src/lib/pipeline/daily-chain.ts b/src/lib/pipeline/daily-chain.ts
+index a13bc62..03b194c 100644
+--- a/src/lib/pipeline/daily-chain.ts
++++ b/src/lib/pipeline/daily-chain.ts
+@@ -360,7 +360,8 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
+     const step = carried / (a0.nav_per_share_cad as number) - 1;
+     const desc = `seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`;
+     if (Math.abs(step) > BRIDGE_SEAM_MAX) return fail(desc);
+-    if (Math.abs(step) > BRIDGE_TOLERANCE) seamNote = `${desc} (${(step * 100).toFixed(3)}%, within ${(BRIDGE_SEAM_MAX * 100).toFixed(2)}%): official NAV bridge published`;
++    if (Math.abs(step) > BRIDGE_TOLERANCE)
++      seamNote = `${desc} (${(step * 100).toFixed(3)}%, within ${(BRIDGE_SEAM_MAX * 100).toFixed(2)}%): official NAV bridge published`;
+   }
+   const value = (apex[apex.length - 1].nav_per_share_cad as number) / baseNav - 1;
+   return validReturn(value)
+diff --git a/src/lib/pipeline/validate/completeness.ts b/src/lib/pipeline/validate/completeness.ts
+index fcd301b..d7e2cfe 100644
+--- a/src/lib/pipeline/validate/completeness.ts
++++ b/src/lib/pipeline/validate/completeness.ts
+@@ -62,7 +62,9 @@ export function fundCompleteness(
+       `the preferred class ${head} has no complete series of its own${headEntry?.performance.withheldMonths?.length ? ` (withheld: ${headEntry.performance.withheldMonths.map(ym).join(", ")})` : ""}: the pages show another class (labelled with its own name)`,
+     );
+   const withheld = [
+-    ...(f.performance?.withheldMonths?.length ? [[f.performance.returnClass ?? "track record", f.performance.withheldMonths] as const] : []),
++    ...(f.performance?.withheldMonths?.length
++      ? [[f.performance.returnClass ?? "track record", f.performance.withheldMonths] as const]
++      : []),
+     ...byClass
+       .filter((c) => c.performance.withheldMonths?.length)
+       .map((c) => [c.fundserv, c.performance.withheldMonths!] as const),
+diff --git a/tests/unit/pipeline/class-returns.test.ts b/tests/unit/pipeline/class-returns.test.ts
+index 044cc2e..3cdcf54 100644
+--- a/tests/unit/pipeline/class-returns.test.ts
++++ b/tests/unit/pipeline/class-returns.test.ts
+@@ -416,11 +416,25 @@ test("computeFundClasses: cross-class disagreement never withholds a month compu
+   for (const dist of [false, true]) {
+     const res = computeFundClasses(inputs(dist), opts);
+     assert.deepEqual(res.fundMonths, [], `dist ${dist}`);
+-    for (const c of res.classes) assert.ok(c.months.every((x) => x.r !== null), `${c.fundserv} dist ${dist}`);
++    for (const c of res.classes)
++      assert.ok(
++        c.months.every((x) => x.r !== null),
++        `${c.fundserv} dist ${dist}`,
++      );
+     const apr = res.anomalies.filter((a) => a.month === "2024-04-30");
+     assert.ok(apr.length >= 1, `an alert for April (dist ${dist})`);
+-    if (dist) assert.ok(apr.some((a) => a.fundserv === null && /distribution \/ price-adjustment day \(A 2024-04-22 /.test(a.reason)));
+-    else assert.ok(apr.some((a) => a.fundserv === "C" && /deviates from the fund's other classes, which agree with each other: C/.test(a.reason)));
++    if (dist)
++      assert.ok(
++        apr.some((a) => a.fundserv === null && /distribution \/ price-adjustment day \(A 2024-04-22 /.test(a.reason)),
++      );
++    else
++      assert.ok(
++        apr.some(
++          (a) =>
++            a.fundserv === "C" &&
++            /deviates from the fund's other classes, which agree with each other: C/.test(a.reason),
++        ),
++      );
+   }
+ });
+ 
+@@ -441,9 +455,16 @@ test("computeFundClasses: non-CAD class without figures; a print reversed inside
+   assert.equal(by.X.status, "unavailable");
+   assert.match(by.X.why!, /HTTP 500/);
+   assert.equal(by.A.inception, "2024-01-02");
+-  assert.ok(by.A.months.every((m) => m.r !== null), "March published: the reversal stays inside the month");
++  assert.ok(
++    by.A.months.every((m) => m.r !== null),
++    "March published: the reversal stays inside the month",
++  );
+   assert.deepEqual(res.fundMonths, []);
+-  assert.ok(res.anomalies.some((a) => a.month === "2024-03-31" && /bad valuation print.*reversed inside the month/.test(a.reason)));
++  assert.ok(
++    res.anomalies.some(
++      (a) => a.month === "2024-03-31" && /bad valuation print.*reversed inside the month/.test(a.reason),
++    ),
++  );
+   // across the month-end (2024-03-28 → 2024-04-01): both months shift return, both withheld for every class
+   const across = (d: string): number => (d === "2024-03-28" ? 0.03 : d === "2024-04-01" ? -0.0295 : 0.0005);
+   const res2 = computeFundClasses(
+diff --git a/tests/unit/pipeline/classes.test.ts b/tests/unit/pipeline/classes.test.ts
+index ed990d8..0de13a0 100644
+--- a/tests/unit/pipeline/classes.test.ts
++++ b/tests/unit/pipeline/classes.test.ts
+@@ -176,8 +176,17 @@ test("source defects in the fixtures: published from each series' own chain, rep
+     data.issues.some(
+       (i) => i.level === "warn" && i.key === `funds.${fund}.performance.classes.dq` && re.test(i.message),
+     );
+-  assert.ok(dq(MI, /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/), "2022-03 print");
+-  assert.ok(dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/), "2023-09 drift");
++  assert.ok(
++    dq(
++      MI,
++      /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/,
++    ),
++    "2022-03 print",
++  );
++  assert.ok(
++    dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/),
++    "2023-09 drift",
++  );
+   assert.ok(dq("multi-strategy", /2025-05 LDM300: deviates from the fund's other classes/), "Multi A 2025-05");
+   // nothing on the pages: the public data carries no trace of these alerts
+   assert.ok(!JSON.stringify(mi).includes("data-quality alert"));
+@@ -515,16 +524,18 @@ test("M2: a print reversed inside a month keeps the month (track record and clas
+       ? json({ detail: "x" }, 500)
+       : undefined;
+   // a +3 % mis-print on day a reversed exactly on day b: the two days compound to the true two-day return
+-  const print = (a: string, b: string) => (fsv: string): Route =>
+-    history(fsv, (rows) =>
+-      rows.map((r) =>
+-        r.date === a
+-          ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) * 1.03 - 1 }
+-          : r.date === b
+-            ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) / 1.03 - 1 }
+-            : r,
+-      ),
+-    );
++  const print =
++    (a: string, b: string) =>
++    (fsv: string): Route =>
++      history(fsv, (rows) =>
++        rows.map((r) =>
++          r.date === a
++            ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) * 1.03 - 1 }
++            : r.date === b
++              ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) / 1.03 - 1 }
++              : r,
++        ),
++      );
+   const codes = ["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"];
+   // inside August: published, alerted
+   const b = await build(mnrDown, ...codes.map(print("2026-08-13", "2026-08-14")));
+diff --git a/tests/unit/pipeline/completeness.test.ts b/tests/unit/pipeline/completeness.test.ts
+index 69728bd..66ecfe7 100644
+--- a/tests/unit/pipeline/completeness.test.ts
++++ b/tests/unit/pipeline/completeness.test.ts
+@@ -19,7 +19,11 @@ test("completeSeries: ≥ 12 full months, nothing withheld, since-inception and
+   assert.equal(completeSeries(perf()), true);
+   assert.equal(completeSeries(perf({ withheldMonths: ["2024-12-31"] })), false);
+   assert.equal(completeSeries(perf({ firstMonth: "2025-11-30" })), false, "11 months");
+-  assert.equal(completeSeries(perf({ firstMonth: "2025-10-31", partialFirstMonth: true })), false, "partial first month");
++  assert.equal(
++    completeSeries(perf({ firstMonth: "2025-10-31", partialFirstMonth: true })),
++    false,
++    "partial first month",
++  );
+   assert.equal(completeSeries(perf({ trailing: { fund: { SI: null, "1Y": 0.01 } } as never })), false);
+   assert.equal(completeSeries(null), false);
+ });
+diff --git a/tests/unit/pipeline/run.test.ts b/tests/unit/pipeline/run.test.ts
+index b4c798c..3388f44 100644
+--- a/tests/unit/pipeline/run.test.ts
++++ b/tests/unit/pipeline/run.test.ts
+@@ -290,9 +290,7 @@ test("a class disagreeing with the others in a distribution month: published (no
+   );
+   assert.ok(
+     r.issues.some(
+-      (x) =>
+-        x.level === "warn" &&
+-        /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
++      (x) => x.level === "warn" && /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
+     ),
+   );
+   assert.equal(posted.length, 1);

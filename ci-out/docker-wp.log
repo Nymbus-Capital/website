@@ -1,0 +1,60 @@
+#6 extracting sha256:928ddadd1b1eae1242a940d9988969d9204e1b71a02333b9753beee71a326868 done
+#6 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+#6 extracting sha256:2508c0cf2fef4abc53ff5777832348005d6b8f1c39f85fd8786970eced14495c 0.1s
+#6 extracting sha256:2508c0cf2fef4abc53ff5777832348005d6b8f1c39f85fd8786970eced14495c 0.7s done
+#6 extracting sha256:e9bfe4d22efe58b868f8d35ac3d40458c5b74f35b73e939b8f74386ed61f4294
+#6 extracting sha256:e9bfe4d22efe58b868f8d35ac3d40458c5b74f35b73e939b8f74386ed61f4294 0.5s done
+#6 extracting sha256:bd08577b88b1e868a589a33891aeffb48ab11a76310a6a74f1857e62b666c406 done
+#6 extracting sha256:6a7c751d20479e353786d66008158dad39c7bcde4c0880309b7ace6f2f47a7cf done
+#6 extracting sha256:4477f0724d55cfb67ba1ede1abd154ed104268947d3b9179c7cd4691a3dcceda done
+#6 extracting sha256:4e58654f711e0a7237273f994dcd4952046ed8ec70efb16a5329cdcf3b9ab09a
+#6 extracting sha256:4e58654f711e0a7237273f994dcd4952046ed8ec70efb16a5329cdcf3b9ab09a 1.3s done
+#6 extracting sha256:fe73e5e9e7240a78088d3b56023db4a1762c718283a70af1eee15b73c4321177
+#6 extracting sha256:fe73e5e9e7240a78088d3b56023db4a1762c718283a70af1eee15b73c4321177 done
+#6 extracting sha256:3221154ccccce8802c74706017ef9d1974fee71e4881d507bf1d8862e47bec34 done
+#6 extracting sha256:00ec4e25969d3f88986d83d10aa71107cd72b39edc5a52f9ea2db1e7f6af6ac9 done
+#6 DONE 8.9s
+
+#7 [ 2/11] RUN set -eu;     cd /tmp; bad=0;     fetch() {       slug="$1"; main="$2"; ver="$3"; sum="$4";       if ! curl -fsSL --retry 3 --retry-delay 5 -o "$slug.zip" "https://downloads.wordpress.org/plugin/$slug.$ver.zip"; then echo "DOWNLOAD FAILED $slug $ver" >&2; bad=1; return 0; fi;       got="$(sha256sum "$slug.zip" | cut -d' ' -f1)";       if [ "$got" != "$sum" ]; then echo "CHECKSUM MISMATCH $slug $ver: expected $sum got $got" >&2; bad=1; return 0; fi;       php -r '$z = new ZipArchive(); if ($z->open($argv[1]) !== true || !$z->extractTo($argv[2])) { fwrite(STDERR, "cannot unzip\n"); exit(1); }' "$slug.zip" /usr/src/wordpress/wp-content/plugins;       grep -Eq "^[[:space:]*]*Version:[[:space:]]*$ver[[:space:]]*$" "/usr/src/wordpress/wp-content/plugins/$slug/$main";       rm -f "$slug.zip";     };     fetch limit-login-attempts-reloaded limit-login-attempts-reloaded.php "3.3.10" "9125ac1bc06c876326802ff1b9783ef0081749d0025e578c6b355d65622abb3f";     fetch daggerhart-openid-connect-generic openid-connect-generic.php "3.11.3" "81c009fe8f8f1504b329656d5a41176b5de09febfca4574393889c46387f8a97";     [ "$bad" = 0 ];     chown -R www-data:www-data /usr/src/wordpress/wp-content/plugins
+#7 DONE 0.7s
+
+#8 [ 3/11] RUN set -eu;     curl -fsSL --retry 3 --retry-delay 5 -o /usr/local/lib/wp-cli.phar "https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar";     echo "ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c  /usr/local/lib/wp-cli.phar" | sha256sum -c -;     chmod 0644 /usr/local/lib/wp-cli.phar
+#8 0.355 /usr/local/lib/wp-cli.phar: OK
+#8 DONE 0.4s
+
+#9 [ 4/11] COPY docker/wp /usr/local/bin/wp
+#9 DONE 0.0s
+
+#10 [ 5/11] COPY plugins/nymbus-site-content /usr/src/wordpress/wp-content/plugins/nymbus-site-content
+#10 DONE 0.0s
+
+#11 [ 6/11] COPY mu-plugins /usr/src/wordpress/wp-content/mu-plugins
+#11 DONE 0.0s
+
+#12 [ 7/11] COPY docker/apache-security.conf /etc/apache2/conf-available/nymbus-security.conf
+#12 DONE 0.0s
+
+#13 [ 8/11] RUN a2enmod headers  && a2enconf nymbus-security  && { echo "expose_php = Off"; echo "upload_max_filesize = 8M"; echo "post_max_size = 10M"; echo "max_file_uploads = 10"; } > /usr/local/etc/php/conf.d/nymbus.ini
+#13 0.137 Enabling module headers.
+#13 0.143 To activate the new configuration, you need to run:
+#13 0.143   service apache2 restart
+#13 0.169 Enabling conf nymbus-security.
+#13 0.174 To activate the new configuration, you need to run:
+#13 0.174   service apache2 reload
+#13 DONE 0.2s
+
+#14 [ 9/11] COPY docker/entrypoint.sh /usr/local/bin/nymbus-entrypoint.sh
+#14 DONE 0.0s
+
+#15 [10/11] COPY docker/apache2-nymbus-prepare /usr/local/bin/apache2-nymbus-prepare
+#15 DONE 0.0s
+
+#16 [11/11] RUN chmod +x /usr/local/bin/nymbus-entrypoint.sh /usr/local/bin/apache2-nymbus-prepare /usr/local/bin/wp
+#16 DONE 0.1s
+
+#17 exporting to image
+#17 exporting layers
+#17 exporting layers 2.8s done
+#17 writing image sha256:281337aac9cdaa268fe5a1b9e9f5e44eeee85a0327582b7248c20360894c9495 done
+#17 naming to docker.io/library/nymbus-wp:ci done
+#17 DONE 2.8s
