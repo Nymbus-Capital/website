@@ -290,9 +290,7 @@ test("a class disagreeing with the others in a distribution month: published (no
   );
   assert.ok(
     r.issues.some(
-      (x) =>
-        x.level === "warn" &&
-        /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
+      (x) => x.level === "warn" && /attention \(not blocking\): data-quality alerts .*2024-03/.test(x.message),
     ),
   );
   assert.equal(posted.length, 1);

@@ -62,7 +62,9 @@ export function fundCompleteness(
       `the preferred class ${head} has no complete series of its own${headEntry?.performance.withheldMonths?.length ? ` (withheld: ${headEntry.performance.withheldMonths.map(ym).join(", ")})` : ""}: the pages show another class (labelled with its own name)`,
     );
   const withheld = [
-    ...(f.performance?.withheldMonths?.length ? [[f.performance.returnClass ?? "track record", f.performance.withheldMonths] as const] : []),
+    ...(f.performance?.withheldMonths?.length
+      ? [[f.performance.returnClass ?? "track record", f.performance.withheldMonths] as const]
+      : []),
     ...byClass
       .filter((c) => c.performance.withheldMonths?.length)
       .map((c) => [c.fundserv, c.performance.withheldMonths!] as const),

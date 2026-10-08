@@ -712,12 +712,17 @@ export function computeFundClasses(
   // the cross-class check is a monitor: a month computed from the class's own official chain is published; its
   // disagreement with the other classes is an internal data-quality alert (admin issue / alert), never a withheld month
   const anomalies: FundClassesResult["anomalies"] = [];
-  for (const [month, reason] of cross.fundMonths) if (month <= endMonth) anomalies.push({ month, fundserv: null, reason });
+  for (const [month, reason] of cross.fundMonths)
+    if (month <= endMonth) anomalies.push({ month, fundserv: null, reason });
   for (const [fsv, ms] of cross.fails)
     for (const [month, reason] of ms) if (month <= endMonth) anomalies.push({ month, fundserv: fsv, reason });
   for (const [month, reason] of sameMonthPrints)
     if (month <= endMonth)
-      anomalies.push({ month, fundserv: null, reason: `${reason}: reversed inside the month, the month's return follows the official month-end NAV` });
+      anomalies.push({
+        month,
+        fundserv: null,
+        reason: `${reason}: reversed inside the month, the month's return follows the official month-end NAV`,
+      });
   for (const [fsv, ms] of Object.entries(raw))
     for (const m of ms) {
       if (m.month > endMonth || m.status !== "ready") continue;

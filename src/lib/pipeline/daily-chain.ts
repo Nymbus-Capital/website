@@ -360,7 +360,8 @@ export function bridgeMonth(rows: DailyRow[], month: string, cutover = CUTOVER):
     const step = carried / (a0.nav_per_share_cad as number) - 1;
     const desc = `seam discontinuity: CIBC NAV per unit of ${lastCibc.date} × (1 + Apex return of ${a0.date}) = ${carried.toFixed(6)} vs Apex NAV per unit ${(a0.nav_per_share_cad as number).toFixed(6)}`;
     if (Math.abs(step) > BRIDGE_SEAM_MAX) return fail(desc);
-    if (Math.abs(step) > BRIDGE_TOLERANCE) seamNote = `${desc} (${(step * 100).toFixed(3)}%, within ${(BRIDGE_SEAM_MAX * 100).toFixed(2)}%): official NAV bridge published`;
+    if (Math.abs(step) > BRIDGE_TOLERANCE)
+      seamNote = `${desc} (${(step * 100).toFixed(3)}%, within ${(BRIDGE_SEAM_MAX * 100).toFixed(2)}%): official NAV bridge published`;
   }
   const value = (apex[apex.length - 1].nav_per_share_cad as number) / baseNav - 1;
   return validReturn(value)

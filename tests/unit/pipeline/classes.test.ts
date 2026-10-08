@@ -176,8 +176,17 @@ test("source defects in the fixtures: published from each series' own chain, rep
     data.issues.some(
       (i) => i.level === "warn" && i.key === `funds.${fund}.performance.classes.dq` && re.test(i.message),
     );
-  assert.ok(dq(MI, /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/), "2022-03 print");
-  assert.ok(dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/), "2023-09 drift");
+  assert.ok(
+    dq(
+      MI,
+      /2022-03: bad valuation print: .*reversed inside the month, the month's return follows the official month-end NAV/,
+    ),
+    "2022-03 print",
+  );
+  assert.ok(
+    dq(MI, /2023-09: classes disagree in a month with a distribution \/ price-adjustment day/),
+    "2023-09 drift",
+  );
   assert.ok(dq("multi-strategy", /2025-05 LDM300: deviates from the fund's other classes/), "Multi A 2025-05");
   // nothing on the pages: the public data carries no trace of these alerts
   assert.ok(!JSON.stringify(mi).includes("data-quality alert"));
@@ -515,16 +524,18 @@ test("M2: a print reversed inside a month keeps the month (track record and clas
       ? json({ detail: "x" }, 500)
       : undefined;
   // a +3 % mis-print on day a reversed exactly on day b: the two days compound to the true two-day return
-  const print = (a: string, b: string) => (fsv: string): Route =>
-    history(fsv, (rows) =>
-      rows.map((r) =>
-        r.date === a
-          ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) * 1.03 - 1 }
-          : r.date === b
-            ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) / 1.03 - 1 }
-            : r,
-      ),
-    );
+  const print =
+    (a: string, b: string) =>
+    (fsv: string): Route =>
+      history(fsv, (rows) =>
+        rows.map((r) =>
+          r.date === a
+            ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) * 1.03 - 1 }
+            : r.date === b
+              ? { ...r, net_daily_return: (1 + (r.net_daily_return as number)) / 1.03 - 1 }
+              : r,
+        ),
+      );
   const codes = ["LDM001", "LDM021", "LDM031", "LDM061", "LDM081"];
   // inside August: published, alerted
   const b = await build(mnrDown, ...codes.map(print("2026-08-13", "2026-08-14")));

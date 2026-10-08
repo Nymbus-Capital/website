@@ -19,7 +19,11 @@ test("completeSeries: ≥ 12 full months, nothing withheld, since-inception and 
   assert.equal(completeSeries(perf()), true);
   assert.equal(completeSeries(perf({ withheldMonths: ["2024-12-31"] })), false);
   assert.equal(completeSeries(perf({ firstMonth: "2025-11-30" })), false, "11 months");
-  assert.equal(completeSeries(perf({ firstMonth: "2025-10-31", partialFirstMonth: true })), false, "partial first month");
+  assert.equal(
+    completeSeries(perf({ firstMonth: "2025-10-31", partialFirstMonth: true })),
+    false,
+    "partial first month",
+  );
   assert.equal(completeSeries(perf({ trailing: { fund: { SI: null, "1Y": 0.01 } } as never })), false);
   assert.equal(completeSeries(null), false);
 });

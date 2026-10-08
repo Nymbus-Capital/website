@@ -416,11 +416,25 @@ test("computeFundClasses: cross-class disagreement never withholds a month compu
   for (const dist of [false, true]) {
     const res = computeFundClasses(inputs(dist), opts);
     assert.deepEqual(res.fundMonths, [], `dist ${dist}`);
-    for (const c of res.classes) assert.ok(c.months.every((x) => x.r !== null), `${c.fundserv} dist ${dist}`);
+    for (const c of res.classes)
+      assert.ok(
+        c.months.every((x) => x.r !== null),
+        `${c.fundserv} dist ${dist}`,
+      );
     const apr = res.anomalies.filter((a) => a.month === "2024-04-30");
     assert.ok(apr.length >= 1, `an alert for April (dist ${dist})`);
-    if (dist) assert.ok(apr.some((a) => a.fundserv === null && /distribution \/ price-adjustment day \(A 2024-04-22 /.test(a.reason)));
-    else assert.ok(apr.some((a) => a.fundserv === "C" && /deviates from the fund's other classes, which agree with each other: C/.test(a.reason)));
+    if (dist)
+      assert.ok(
+        apr.some((a) => a.fundserv === null && /distribution \/ price-adjustment day \(A 2024-04-22 /.test(a.reason)),
+      );
+    else
+      assert.ok(
+        apr.some(
+          (a) =>
+            a.fundserv === "C" &&
+            /deviates from the fund's other classes, which agree with each other: C/.test(a.reason),
+        ),
+      );
   }
 });
 
@@ -441,9 +455,16 @@ test("computeFundClasses: non-CAD class without figures; a print reversed inside
   assert.equal(by.X.status, "unavailable");
   assert.match(by.X.why!, /HTTP 500/);
   assert.equal(by.A.inception, "2024-01-02");
-  assert.ok(by.A.months.every((m) => m.r !== null), "March published: the reversal stays inside the month");
+  assert.ok(
+    by.A.months.every((m) => m.r !== null),
+    "March published: the reversal stays inside the month",
+  );
   assert.deepEqual(res.fundMonths, []);
-  assert.ok(res.anomalies.some((a) => a.month === "2024-03-31" && /bad valuation print.*reversed inside the month/.test(a.reason)));
+  assert.ok(
+    res.anomalies.some(
+      (a) => a.month === "2024-03-31" && /bad valuation print.*reversed inside the month/.test(a.reason),
+    ),
+  );
   // across the month-end (2024-03-28 → 2024-04-01): both months shift return, both withheld for every class
   const across = (d: string): number => (d === "2024-03-28" ? 0.03 : d === "2024-04-01" ? -0.0295 : 0.0005);
   const res2 = computeFundClasses(
