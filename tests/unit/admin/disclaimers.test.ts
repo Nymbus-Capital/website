@@ -159,6 +159,6 @@ test("other regulatory-sounding fund strings come from the module (covered by th
   assert.equal(T.hero.basisGross, DISC.basisGross);
   assert.equal(T.hero.basisNet, DISC.basisNet);
   assert.equal(T.disclosure.sample, DISC.sample);
-  assert.equal(T.disclosure.provenance, DISC.provenance);
+  assert.equal(T.disclosure.provenanceFactsheet, DISC.provenanceFactsheet);
   assert.ok(DISCLAIMERS.find((d) => d.id === "basisLabels")!.text.en.includes(DISC.basisGross.en));
 });
