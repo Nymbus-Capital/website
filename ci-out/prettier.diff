@@ -1,0 +1,36 @@
+diff --git a/tests/unit/fund/portfolio-dist.test.ts b/tests/unit/fund/portfolio-dist.test.ts
+index 57d7a7b..940295e 100644
+--- a/tests/unit/fund/portfolio-dist.test.ts
++++ b/tests/unit/fund/portfolio-dist.test.ts
+@@ -259,7 +259,9 @@ test("bucket order: under / over wording, French labels, short-term ratings and
+   const { orderedBuckets } = await import("../../../src/components/fund/lib/portfolio.ts");
+   const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
+   assert.deepEqual(
+-    orderedBuckets(b(["1-3 yrs", "Over 10 years", "Under 1 year", "10-20 years", "3-5 years"]), "term").map((x) => x.label),
++    orderedBuckets(b(["1-3 yrs", "Over 10 years", "Under 1 year", "10-20 years", "3-5 years"]), "term").map(
++      (x) => x.label,
++    ),
+     ["Under 1 year", "1-3 yrs", "3-5 years", "10-20 years", "Over 10 years"],
+   );
+   assert.deepEqual(
+diff --git a/tests/unit/site/disclosure.test.ts b/tests/unit/site/disclosure.test.ts
+index 2b7891f..ff67cda 100644
+--- a/tests/unit/site/disclosure.test.ts
++++ b/tests/unit/site/disclosure.test.ts
+@@ -41,7 +41,15 @@ test("collapse threshold on the English text: the fund boilerplate / footer coll
+   assert.ok(enLength([DISC.firm.en, "Portfolio data as of September 30, 2026."]) >= DISCLOSURE_MIN_CHARS);
+   const est = Math.ceil(enLength([DISC.firm.en]) / 135) * 23.6 + 12 + 20 + 16 + 21;
+   assert.ok(est > 144 + 20, `estimated ${est} px`);
+-  assert.ok(enLength([DISC.fundStandard.en, DISC.benchmark.en, DISC.firm.en, DISC.ftse.en, "Portfolio data as of September 30, 2026."]) > 2000);
++  assert.ok(
++    enLength([
++      DISC.fundStandard.en,
++      DISC.benchmark.en,
++      DISC.firm.en,
++      DISC.ftse.en,
++      "Portfolio data as of September 30, 2026.",
++    ]) > 2000,
++  );
+   // the gross / net summary shown under the tiles stays a plain note
+   assert.equal(isCollapsible(textLength(el(`${DISC.summaryNet.en} ${DISC.summaryGross.en}`))), false);
+ });
