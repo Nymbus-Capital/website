@@ -1,0 +1,70 @@
+diff --git a/src/components/fund/lib/portfolio.ts b/src/components/fund/lib/portfolio.ts
+index 44ed5bc..e8cef33 100644
+--- a/src/components/fund/lib/portfolio.ts
++++ b/src/components/fund/lib/portfolio.ts
+@@ -28,7 +28,10 @@ const isCashLabel = (s: string) => /\bcash\b|liquidit|encaisse|trésorerie/i.tes
+ export function ratingSortRank(label: string): number {
+   if (isCashLabel(label)) return 2000;
+   if (/\bn\.?\s?r\.?\b|not rated|non cot/i.test(label)) return 1000;
+-  const m = label.trim().toUpperCase().match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
++  const m = label
++    .trim()
++    .toUpperCase()
++    .match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
+   return m ? RATING_GRADES.indexOf(m[1]) : 500;
+ }
+ 
+@@ -93,7 +96,9 @@ const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sect
+ export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
+   if (!p) return [];
+   return DAILY_BREAKDOWNS.map((key) => {
+-    const rows = (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight }));
++    const rows = (p.breakdowns[key] ?? [])
++      .filter((r) => isNum(r.weight))
++      .map((r) => ({ label: r.label, fund: r.weight }));
+     return { key, rows: key === "rating" || key === "term" ? orderedBuckets(rows, key) : rows };
+   }).filter((b) => b.rows.length > 0);
+ }
+diff --git a/src/components/fund/lib/provenance.ts b/src/components/fund/lib/provenance.ts
+index 481da79..f2cd077 100644
+--- a/src/components/fund/lib/provenance.ts
++++ b/src/components/fund/lib/provenance.ts
+@@ -27,7 +27,9 @@ export function provenanceLine(
+     parts.push(`${tr(T.disclosure.provenanceDaily, lang)} ${dateLabel(origin.asOf, lang, true)}`);
+     const esg = (data?.esg ?? []).some((c) => c.fund != null && c.fund !== "");
+     if (esg && data?.factsheetMonth)
+-      parts.push(`${tr(T.disclosure.provenanceEsgFactsheet, lang)} ${dateLabel(monthEndOf(data.factsheetMonth), lang, true)}`);
++      parts.push(
++        `${tr(T.disclosure.provenanceEsgFactsheet, lang)} ${dateLabel(monthEndOf(data.factsheetMonth), lang, true)}`,
++      );
+   } else if (origin?.kind === "factsheet") {
+     parts.push(`${tr(T.disclosure.provenanceFactsheet, lang)} ${dateLabel(monthEndOf(origin.month), lang, true)}`);
+   }
+diff --git a/tests/unit/fund/portfolio-dist.test.ts b/tests/unit/fund/portfolio-dist.test.ts
+index 029916d..770e411 100644
+--- a/tests/unit/fund/portfolio-dist.test.ts
++++ b/tests/unit/fund/portfolio-dist.test.ts
+@@ -224,7 +224,8 @@ test("breakdown grid: an item left alone in a row spans it (odd count, or before
+ });
+ 
+ test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / duration buckets shortest first (any input order)", async () => {
+-  const { orderedBuckets, ratingSortRank, termSortRank } = await import("../../../src/components/fund/lib/portfolio.ts");
++  const { orderedBuckets, ratingSortRank, termSortRank } =
++    await import("../../../src/components/fund/lib/portfolio.ts");
+   const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
+   assert.deepEqual(
+     orderedBuckets(b(["BBB", "Cash", "A", "BB & below", "AAA", "Not rated", "AA"]), "rating").map((x) => x.label),
+@@ -235,10 +236,9 @@ test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / dur
+     ["AAA", "AA+", "A-", "BBB+"],
+   );
+   assert.deepEqual(
+-    orderedBuckets(
+-      b(["Long-Term (>10 yrs)", "Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)"]),
+-      "term",
+-    ).map((x) => x.label),
++    orderedBuckets(b(["Long-Term (>10 yrs)", "Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)"]), "term").map(
++      (x) => x.label,
++    ),
+     ["Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)", "Long-Term (>10 yrs)"],
+   );
+   assert.deepEqual(
