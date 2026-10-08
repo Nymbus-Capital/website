@@ -1,0 +1,27 @@
+diff --git a/e2e/fund.spec.ts b/e2e/fund.spec.ts
+index 6d0f4e9..5ef0647 100644
+--- a/e2e/fund.spec.ts
++++ b/e2e/fund.spec.ts
+@@ -417,9 +417,7 @@ test("French: labels, names and number formatting", async ({ page }) => {
+   await expect(page.getByTestId("portfolio-source")).not.toContainText(/quotidienn|fiche/i);
+   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
+   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
+-  await expect(page.getByTestId("provenance")).toContainText(
+-    "Données de portefeuille au 28 septembre 2026",
+-  );
++  await expect(page.getByTestId("provenance")).toContainText("Données de portefeuille au 28 septembre 2026");
+ });
+ 
+ /* ------------------------------------------------------------------ classes, variants, awards, calendar labels */
+diff --git a/src/components/fund/Closing.tsx b/src/components/fund/Closing.tsx
+index 426fa25..b6ba46d 100644
+--- a/src/components/fund/Closing.tsx
++++ b/src/components/fund/Closing.tsx
+@@ -51,7 +51,6 @@ const ICONS: Record<FeatureIcon, typeof Leaf> = {
+   waves: Waves,
+ };
+ 
+-
+ /** a sentence starts with a capital (the as-of parts are lower-case fragments) */
+ const capFirst = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
+ export function FeatureSection({

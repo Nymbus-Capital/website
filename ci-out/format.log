@@ -1,0 +1,8 @@
+
+> nymbus-web@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+[[33mwarn[39m] e2e/fund.spec.ts
+[[33mwarn[39m] src/components/fund/Closing.tsx
+[[33mwarn[39m] Code style issues found in 2 files. Run Prettier with --write to fix.
