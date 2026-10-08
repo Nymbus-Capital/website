@@ -51,7 +51,6 @@ const ICONS: Record<FeatureIcon, typeof Leaf> = {
   waves: Waves,
 };
 
-
 /** a sentence starts with a capital (the as-of parts are lower-case fragments) */
 const capFirst = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
 export function FeatureSection({

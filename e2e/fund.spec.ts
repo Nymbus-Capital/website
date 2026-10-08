@@ -417,9 +417,7 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("portfolio-source")).not.toContainText(/quotidienn|fiche/i);
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
-  await expect(page.getByTestId("provenance")).toContainText(
-    "Données de portefeuille au 28 septembre 2026",
-  );
+  await expect(page.getByTestId("provenance")).toContainText("Données de portefeuille au 28 septembre 2026");
 });
 
 /* ------------------------------------------------------------------ classes, variants, awards, calendar labels */
