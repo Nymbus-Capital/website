@@ -117,6 +117,8 @@ Everything is merged on `redesign/v3-keynote-live-data` and live. No feature bra
   shows no performance). **Months from a series' own official NAV chain are published; cross-class / adjustment /
   same-month reversed-print checks are internal data-quality alerts.** **New dataplatform months are published without
   waiting for an independent source** (opt-in gate `PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1`).
+  **SEB defaults to Series F** even with a shorter history (`preferHeadlineReturns` in `config/funds.ts`): its own
+  returns whenever it has a 1-year or since-inception figure; other funds keep "complete series first".
 - 2026-10-02: **dataplatform main endpoints only, no dataplatform change for the website**: groupings and derived
   figures are computed in the website backend from those endpoints (`docs/architecture.md` § Sources). **Benchmarks:
   FTSE for the bond funds.** **Every Global Minimum Volatility figure names its downside volatility variant**; the

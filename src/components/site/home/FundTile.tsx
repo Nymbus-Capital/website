@@ -124,8 +124,8 @@ export function FundTile({
   const { locale, pick } = useTranslation();
   const tilt = useTilt<HTMLAnchorElement>(4);
   const H = headingLevel === 2 ? "h2" : "h3";
-  // the home card's figure is the since-inception return: without it the block is not rendered (never an empty slot)
-  const perf = variant === "home" ? f.si !== null : hasPerf(f);
+  // the home card's figure: since inception, else 1 year; without either the block is not rendered (never an empty slot)
+  const perf = variant === "home" ? f.si !== null || f.y1 !== null : hasPerf(f);
   const basis = pick(f.basis === "gross" ? F.gross : F.net);
   // the daily NAV belongs to the strategies pages: the home cards carry the returns only
   const nav =
@@ -169,13 +169,13 @@ export function FundTile({
         <span className="fx-figs" data-testid="fund-figure">
           {variant === "home" ? (
             <span className="fx-main">
-              {f.si !== null ? (
+              {f.si !== null || f.y1 !== null ? (
                 <>
                   <span className="fig m g-fund">
-                    <Odometer value={f.si} pct sign decimals={1} lang={locale} />
+                    <Odometer value={(f.si ?? f.y1)!} pct sign decimals={1} lang={locale} />
                   </span>
                   <span className="fx-lbl">
-                    {pick(siLabel(f))} · {basis}
+                    {pick(f.si !== null ? siLabel(f) : F.y1)} · {basis}
                   </span>
                   {f.perfVariant ? (
                     <span className="fx-lbl" data-testid="perf-variant-main">

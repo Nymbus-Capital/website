@@ -62,6 +62,11 @@ export interface FundSpec {
   benchmark: L | null;
   /** default headline class (FundServ) when the admin has not chosen one: class F, the page opens on it */
   headlineClass: string | null;
+  /**
+   * show the headline class's own returns by default whenever it has a since-inception or 1-year figure, even when
+   * another class has a longer or more complete record (SEB: Series F, owner's decision 2026-10-07)
+   */
+  preferHeadlineReturns?: boolean;
   /** classes known to the site, the default (F) first; the selector adds the other live classes from the NAV data */
   classes: FundClassSpec[];
   /**
@@ -123,6 +128,7 @@ export const FUNDS: FundSpec[] = [
     sources: { basis: "net" },
     benchmark: { en: "FTSE Canada Universe Bond Index", fr: "Indice FTSE Canada des obligations universelles" },
     headlineClass: "LDM201",
+    preferHeadlineReturns: true,
     classes: [
       { fundserv: "LDM201", display: "F" },
       { fundserv: "LDM202", display: "H" },
