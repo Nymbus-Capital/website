@@ -41,7 +41,15 @@ test("collapse threshold on the English text: the fund boilerplate / footer coll
   assert.ok(enLength([DISC.firm.en, "Portfolio data as of September 30, 2026."]) >= DISCLOSURE_MIN_CHARS);
   const est = Math.ceil(enLength([DISC.firm.en]) / 135) * 23.6 + 12 + 20 + 16 + 21;
   assert.ok(est > 144 + 20, `estimated ${est} px`);
-  assert.ok(enLength([DISC.fundStandard.en, DISC.benchmark.en, DISC.firm.en, DISC.ftse.en, "Portfolio data as of September 30, 2026."]) > 2000);
+  assert.ok(
+    enLength([
+      DISC.fundStandard.en,
+      DISC.benchmark.en,
+      DISC.firm.en,
+      DISC.ftse.en,
+      "Portfolio data as of September 30, 2026.",
+    ]) > 2000,
+  );
   // the gross / net summary shown under the tiles stays a plain note
   assert.equal(isCollapsible(textLength(el(`${DISC.summaryNet.en} ${DISC.summaryGross.en}`))), false);
 });

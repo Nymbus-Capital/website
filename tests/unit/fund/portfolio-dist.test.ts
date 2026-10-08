@@ -259,7 +259,9 @@ test("bucket order: under / over wording, French labels, short-term ratings and 
   const { orderedBuckets } = await import("../../../src/components/fund/lib/portfolio.ts");
   const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
   assert.deepEqual(
-    orderedBuckets(b(["1-3 yrs", "Over 10 years", "Under 1 year", "10-20 years", "3-5 years"]), "term").map((x) => x.label),
+    orderedBuckets(b(["1-3 yrs", "Over 10 years", "Under 1 year", "10-20 years", "3-5 years"]), "term").map(
+      (x) => x.label,
+    ),
     ["Under 1 year", "1-3 yrs", "3-5 years", "10-20 years", "Over 10 years"],
   );
   assert.deepEqual(
