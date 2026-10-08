@@ -118,18 +118,11 @@ for (const f of FUNDS) {
     else await expect(page.getByTestId("classes-table")).toHaveCount(0);
 
     await expect(page.getByTestId("other-funds").locator("a")).toHaveCount(3);
-    await expect(page.getByTestId("provenance")).toContainText("Updated daily");
-    // the provenance line names the source of the Portfolio tab: the daily holdings with their date, else the factsheet
-    if (f.daily) {
-      await expect(page.getByTestId("provenance")).toContainText(
-        "portfolio data from the daily holdings as of September 28, 2026",
-      );
-      await expect(page.getByTestId("provenance")).not.toContainText("portfolio data from the monthly factsheet");
-    } else {
-      await expect(page.getByTestId("provenance")).toContainText(
-        "portfolio data from the monthly factsheet of August 2026",
-      );
-    }
+    // the as-of line: dates only, never the data source (owner 2026-10-07)
+    await expect(page.getByTestId("provenance")).toContainText(
+      f.daily ? "Portfolio data as of September 28, 2026" : "Portfolio data as of August 31, 2026",
+    );
+    await expect(page.getByTestId("provenance")).not.toContainText(/factsheet|data platform|holdings/i);
     await expect(page.locator("#disclosure")).toBeVisible();
     // Gabriel 2026-10-04: the disclosures are the last block of the page — after the call to action and the other
     // strategies, immediately above the site footer
@@ -179,8 +172,8 @@ for (const f of FUNDS) {
     const source = page.getByTestId("portfolio-source");
     if (f.daily) {
       await expect(source).toHaveAttribute("data-source", "daily");
-      await expect(source).toContainText("Daily portfolio data");
-      await expect(page.getByTestId("portfolio-asof")).toHaveText("as of September 28, 2026");
+      await expect(page.getByTestId("portfolio-asof")).toHaveText("As of September 28, 2026");
+      await expect(source).not.toContainText(/daily|factsheet/i);
       await expect(page.getByTestId("metric-duration")).toBeVisible();
       // the synthetic books hold futures: duration and yield are labelled as those of the bond holdings only
       await expect(page.getByTestId("metric-scope-duration")).toContainText("bond holdings only, excluding futures");
@@ -206,7 +199,8 @@ for (const f of FUNDS) {
       }
     } else {
       await expect(source).toHaveAttribute("data-source", "factsheet");
-      await expect(page.getByTestId("factsheet-month")).toContainText("August 2026");
+      await expect(page.getByTestId("factsheet-month")).toHaveText("As of August 31, 2026");
+      await expect(source).not.toContainText(/factsheet/i);
     }
     await expect(page.getByTestId("holdings-table").locator("tbody tr").first()).toBeVisible();
     await expect(page.getByTestId("green-bonds")).toHaveCount(f.green ? 1 : 0);
@@ -419,8 +413,8 @@ test("French: labels, names and number formatting", async ({ page }) => {
   await expect(page.getByTestId("badge-SI").locator(".fr-v")).toHaveText(/^[+−]?\d+,\d{2}\s%$/);
   await expect(page.getByTestId("hero-nav").locator(".odo .sr-only")).toHaveText(/^\d+,\d{4}\s\$$/);
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="portfolio"]').click();
-  await expect(page.getByTestId("portfolio-source")).toContainText("Données quotidiennes du portefeuille");
-  await expect(page.getByTestId("portfolio-asof")).toHaveText("au 28 septembre 2026");
+  await expect(page.getByTestId("portfolio-asof")).toHaveText("Au 28 septembre 2026");
+  await expect(page.getByTestId("portfolio-source")).not.toContainText(/quotidienn|fiche/i);
   await page.getByTestId("fund-tabs").locator('[role="tab"][data-tab="distributions"]').click();
   await expect(page.getByTestId("dist-class-LDM001").getByTestId("dist-last-amount")).toHaveText(/^0,\d{6}\s\$$/);
   await expect(page.getByTestId("provenance")).toContainText(

@@ -153,43 +153,24 @@ test("distributions: headline first, newest-first history (12 or all), last 24 b
   assert.ok(bars[0].date < bars[1].date);
 });
 
-test("provenance line: daily holdings with their date when the daily book is shown, else the factsheet month (EN / FR)", () => {
+test("as-of line: dates only, never the data source (EN / FR)", () => {
   const mi = fund("monthly-income");
   const seb = fund("sustainable-enhanced-bonds");
   const ms = fund("multi-strategy");
-  const esgLine = (f: FundData, lang: "en" | "fr") => provenanceLine(f, lang);
-  assert.equal(
-    provenanceLine({ ...mi, esg: [] }, "en"),
-    "Updated daily from Nymbus’ data platform; portfolio data from the daily holdings as of September 28, 2026.",
-  );
-  assert.doesNotMatch(
-    provenanceLine(mi, "en"),
-    /portfolio data from the monthly factsheet/,
-    "never the factsheet wording for the daily book",
-  );
-  assert.equal(
-    provenanceLine({ ...mi, esg: [] }, "fr"),
-    "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus; données de portefeuille selon les positions quotidiennes au 28 septembre 2026.",
-  );
-  // sustainability metrics next to the daily book: they come from the factsheet and say so
+  assert.equal(provenanceLine({ ...mi, esg: [] }, "en"), "Portfolio data as of September 28, 2026.");
+  assert.equal(provenanceLine({ ...mi, esg: [] }, "fr"), "Données de portefeuille au 28 septembre 2026.");
+  // sustainability metrics next to the daily book: their own month-end date
   const withEsg = { ...seb, esg: [{ id: "x", label: { en: "x", fr: "x" }, fund: 1, unit: "num" as const }] };
-  assert.match(
-    esgLine(withEsg, "en"),
-    /daily holdings as of September 28, 2026; sustainability metrics from the monthly factsheet of August 2026\.$/,
-  );
-  assert.match(
-    esgLine(withEsg, "fr"),
-    /positions quotidiennes au 28 septembre 2026; indicateurs de durabilité selon la fiche mensuelle d’août 2026\.$/,
-  );
   assert.equal(
-    provenanceLine(ms, "en"),
-    "Updated daily from Nymbus’ data platform; portfolio data from the monthly factsheet of August 2026.",
+    provenanceLine(withEsg, "en"),
+    "Portfolio data as of September 28, 2026; sustainability metrics as of August 31, 2026.",
   );
-  // a stale book dropped at render time falls back to the factsheet wording
-  assert.match(provenanceLine({ ...mi, portfolio: null }, "en"), /monthly factsheet of August 2026\.$/);
-  assert.equal(provenanceLine(null, "en"), "Updated daily from Nymbus’ data platform.");
-  assert.match(provenanceLine(ms, "fr"), /selon la fiche mensuelle d’août 2026\.$/, "French elision");
-  assert.match(provenanceLine({ ...ms, factsheetMonth: "2026-09" }, "fr"), /fiche mensuelle de septembre 2026\.$/);
+  assert.equal(provenanceLine(ms, "en"), "Portfolio data as of August 31, 2026.");
+  assert.equal(provenanceLine({ ...mi, portfolio: null }, "en"), "Portfolio data as of August 31, 2026.");
+  assert.equal(provenanceLine(null, "en"), "");
+  for (const f of [mi, seb, ms, withEsg])
+    for (const lang of ["en", "fr"] as const)
+      assert.doesNotMatch(provenanceLine(f, lang), /factsheet|fiche|platform|plateforme|holdings|positions/i);
 });
 
 test("distribution amounts: one precision per series (4 to 6 decimals) at which rows add up to the calendar totals", () => {
@@ -240,4 +221,36 @@ test("breakdown grid: an item left alone in a row spans it (odd count, or before
   assert.deepEqual(fullRowItems([]), []);
   // the sample: the SEB daily book has five breakdowns
   assert.equal(dailyBreakdowns(fund("sustainable-enhanced-bonds").portfolio).length, 5);
+});
+
+test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / duration buckets shortest first (any input order)", async () => {
+  const { orderedBuckets, ratingSortRank, termSortRank } = await import("../../../src/components/fund/lib/portfolio.ts");
+  const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
+  assert.deepEqual(
+    orderedBuckets(b(["BBB", "Cash", "A", "BB & below", "AAA", "Not rated", "AA"]), "rating").map((x) => x.label),
+    ["AAA", "AA", "A", "BBB", "BB & below", "Not rated", "Cash"],
+  );
+  assert.deepEqual(
+    orderedBuckets(b(["A-", "AA+", "BBB+", "AAA"]), "rating").map((x) => x.label),
+    ["AAA", "AA+", "A-", "BBB+"],
+  );
+  assert.deepEqual(
+    orderedBuckets(
+      b(["Long-Term (>10 yrs)", "Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)"]),
+      "term",
+    ).map((x) => x.label),
+    ["Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)", "Long-Term (>10 yrs)"],
+  );
+  assert.deepEqual(
+    orderedBuckets(b(["10+", "5-7", "0-1", "1-3", "7-10", "3-5"]), "term").map((x) => x.label),
+    ["0-1", "1-3", "3-5", "5-7", "7-10", "10+"],
+  );
+  assert.deepEqual(
+    orderedBuckets(b(["Short-Term (>3 yrs)", "Money Market (0-1 yr)", "Ultra Short-Term (1-3 yrs)"]), "term").map(
+      (x) => x.label,
+    ),
+    ["Money Market (0-1 yr)", "Ultra Short-Term (1-3 yrs)", "Short-Term (>3 yrs)"],
+  );
+  assert.ok(ratingSortRank("AA") < ratingSortRank("A") && ratingSortRank("A") < ratingSortRank("BBB"));
+  assert.ok(termSortRank("< 1 year") < termSortRank("1-3"));
 });

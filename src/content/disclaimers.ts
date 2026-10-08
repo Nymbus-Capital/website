@@ -134,18 +134,18 @@ const PROVENANCE: Text = {
   fr: "Mis à jour quotidiennement à partir de la plateforme de données de Nymbus",
 };
 const PROVENANCE_FACTSHEET: Text = {
-  en: "portfolio data from the monthly factsheet of",
-  fr: "données de portefeuille selon la fiche mensuelle de",
+  en: "portfolio data as of",
+  fr: "données de portefeuille au",
 };
 /** when the Portfolio tab shows the daily book computed by the data platform */
 const PROVENANCE_DAILY: Text = {
-  en: "portfolio data from the daily holdings as of",
-  fr: "données de portefeuille selon les positions quotidiennes au",
+  en: "portfolio data as of",
+  fr: "données de portefeuille au",
 };
 /** next to the daily book, the sustainability metrics still come from the factsheet */
 const PROVENANCE_ESG_FACTSHEET: Text = {
-  en: "sustainability metrics from the monthly factsheet of",
-  fr: "indicateurs de durabilité selon la fiche mensuelle de",
+  en: "sustainability metrics as of",
+  fr: "indicateurs de durabilité au",
 };
 
 /** Every text of the public site that compliance must approve. */

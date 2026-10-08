@@ -209,8 +209,7 @@ export function Disclosures({
               <p className="fxd-prov" data-testid="provenance">
                 <span className="live-dot" aria-hidden="true" />
                 <span>
-                  {provenanceLine(data, lang)}
-                  {asOf.length ? ` ${asOf.join(" · ")}.` : ""}
+                  {[provenanceLine(data, lang), asOf.length ? `${asOf.join(" · ")}.` : ""].filter(Boolean).join(" ")}
                 </span>
               </p>
             </Disclosure>
