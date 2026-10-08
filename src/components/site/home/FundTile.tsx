@@ -194,7 +194,8 @@ export function FundTile({
                 <span className="fx-v tabnum">{pctText(f.ytd, locale)}</span>
               </span>
             ) : null}
-            {f.y1 !== null ? (
+            {/* on the home card the 1-year figure is already the main one when since inception is missing */}
+            {f.y1 !== null && (variant === "full" || f.si !== null) ? (
               <span className="fx-kv-i">
                 <span className="fx-k">{pick(F.y1)}</span>
                 <span className="fx-v tabnum">{pctText(f.y1, locale)}</span>
