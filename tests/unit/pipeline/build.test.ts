@@ -87,7 +87,7 @@ test("end to end: history from analytics + the dataplatform daily NAV chain + re
     k === "funds.monthly-income.performance.index" ||
     k === "funds.monthly-income.trailing.index" ||
     /^funds\.monthly-income\.performance\.classes(\.LDM0(31|61)(\.monthly\.\d{4}-\d{2}-\d{2})?)?$/.test(k) ||
-    /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-05-31)?$/.test(k) ||
+    /^funds\.multi-strategy\.performance\.classes\.LDM300(\.monthly\.2025-(05|10)-31)?$/.test(k) ||
     // the same synthetic defects, now published from each series' own chain: internal data-quality alerts
     /^funds\.(monthly-income|multi-strategy)\.performance\.classes\.dq$/.test(k);
   assert.deepEqual(

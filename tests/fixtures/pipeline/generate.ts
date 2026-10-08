@@ -618,6 +618,8 @@ export const NAV_HISTORY: NavHistorySpec[] = [
     nav0: 10,
     dist: december(0.24),
     seed: 114,
+    // three valuation days never served (synthetic source gap, not bridgeable): 2025-10 withheld for this class only
+    missingDays: ["2025-10-14", "2025-10-15", "2025-10-16"],
   },
   {
     fundserv: "LDM301",
@@ -672,7 +674,9 @@ function navHistoryPayload(h: (typeof NAV_HISTORY)[number]): string {
     noiseSeed: NOISE_SEED[h.short],
     shocks: h.shocks,
     currency: h.currency,
-  }).map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
+  })
+    .filter((r) => !("missingDays" in h && (h.missingDays as string[]).includes(r.date)))
+    .map((r) => ({ ...r, short_name: h.short, class_display: null, class_code: null }));
   // one row per line: the file stays readable and diffs stay small
   return `{"short_name": "${h.short}", "fundserv": "${h.fundserv}", "nav_type": "FINAL_NAV", "include_unmapped": false, "row_count": ${rows.length}, "warnings": [], "rows": [\n${rows.map((r) => JSON.stringify(r)).join(",\n")}\n]}\n`;
 }

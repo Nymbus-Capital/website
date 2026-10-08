@@ -111,7 +111,12 @@ Everything is merged on `redesign/v3-keynote-live-data` and live. No feature bra
     `docs/compliance-review.md`).
   - **Hosting**: move from GitHub Pages (`nymbus-capital.github.io/website`) to Northflank, in the
     project where the dataplatform runs; Claude sets everything up, Gabriel adds credentials.
-- Publish mode defaults to **review** until an admin switches it to auto.
+- ~~Publish mode defaults to review~~ → 2026-10-07: **auto publishing with automatic validation** (default "auto";
+  completeness gate `validate/completeness.ts` + freshness NAV 2 / performance 7 business days → admin issues and
+  alerts). **No "not available" / "coming soon" anywhere** (except the 12-month rule: a series younger than 12 months
+  shows no performance). **Months from a series' own official NAV chain are published; cross-class / adjustment /
+  same-month reversed-print checks are internal data-quality alerts.** **New dataplatform months are published without
+  waiting for an independent source** (opt-in gate `PIPELINE_REQUIRE_INDEPENDENT_CONFIRMATION=1`).
 - 2026-10-02: **dataplatform main endpoints only, no dataplatform change for the website**: groupings and derived
   figures are computed in the website backend from those endpoints (`docs/architecture.md` § Sources). **Benchmarks:
   FTSE for the bond funds.** **Every Global Minimum Volatility figure names its downside volatility variant**; the

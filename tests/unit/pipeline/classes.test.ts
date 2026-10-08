@@ -163,7 +163,9 @@ test("source defects in the fixtures: published from each series' own chain, rep
     assert.equal(mi.performanceByClass![f].performance.withheldMonths, undefined, f);
   assert.ok(mi.performanceByClass!.LDM061.performance.trailing.fund.SI != null);
   const ms = data.funds["multi-strategy"]!.performanceByClass!;
-  for (const f of ["LDM300", "LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
+  for (const f of ["LDM301", "LDM303", "LDM304"]) assert.equal(ms[f].performance.withheldMonths, undefined, f);
+  // class A's synthetic source gap (three valuation days never served, not bridgeable): that month only, that class only
+  assert.deepEqual(ms.LDM300.performance.withheldMonths, ["2025-10-31"]);
   for (const [k, f] of [
     [SEB, "LDM201"],
     [SEB, "LDM203"],

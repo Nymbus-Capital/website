@@ -16,4 +16,8 @@ model), `docs/deploy.md` (Northflank), `docs/compliance-review.md` (disclaimer t
   mobile, Docker build). Push small commits; don't leave work only on disk.
 - End of a work block: update the **Session log** and **Open items** in HANDOFF.md, commit, push.
 - Public repository: never commit real fund data, credentials, internal hostnames or unitholder data.
-- Numbers shown to investors: prefer showing nothing over showing a wrong number.
+- Numbers shown to investors (Gabriel, 2026-10-07): never show "not available" / "coming soon" states. A series' month
+  computed from its own official NAV chain is published; cross-checks (other classes, factsheet, analytics) raise
+  internal data-quality alerts, never a visible gap. Only an uncomputable month (missing / conflicting source data)
+  is left out, silently, and the pages show a series with complete figures (label = the series shown). Series with
+  less than 12 months show no performance. Auto publishing, gated by the automatic validation.
