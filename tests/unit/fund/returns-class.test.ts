@@ -137,6 +137,32 @@ test("SEB: F has withheld months -> the complete track record (H) is shown, labe
   assert.equal(chosenReturnsClass(fixed, sebSpec, {}), "LDM201");
 });
 
+test("SEB (preferHeadlineReturns): Series F is the default whenever it has a 1-year or since-inception figure, even shorter / with omitted periods", () => {
+  const spec = { ...sebSpec, preferHeadlineReturns: true };
+  const d = seb();
+  assert.equal(chosenReturnsClass(d, spec, {}), "LDM201", "F with a withheld month but a 1-year figure");
+  assert.equal(initialSelection(d, spec, {}).classCode, "LDM201");
+  assert.equal(pickData(d, spec, {}, { classCode: "LDM201", variant: null }).data!.performance!.returnClass, "F");
+  // F without any headline figure (neither 1 year nor since inception): the complete track record (H) instead
+  const bare = seb();
+  bare.performanceByClass!.LDM201 = entry(
+    "LDM201",
+    "F",
+    perf("F", {
+      firstMonth: "2023-07-31",
+      withheldMonths: ["2026-07-31"],
+      trailing: { fund: { "1M": 0.001, YTD: null, "1Y": null, SI: null } } as never,
+    }),
+  );
+  assert.equal(chosenReturnsClass(bare, spec, {}), "LDM202");
+  // F younger than 12 months: never shown, whatever the flag
+  const young = seb();
+  young.performanceByClass!.LDM201 = entry("LDM201", "F", perf("F", { firstMonth: "2026-01-31" }));
+  assert.equal(chosenReturnsClass(young, spec, {}), "LDM202");
+  // without the flag (other funds): unchanged, the complete series first
+  assert.equal(chosenReturnsClass(d, sebSpec, {}), "LDM202");
+});
+
 test("no complete series: the one with the most figures (ties: candidate order); none: null", () => {
   const d = base({
     performanceByClass: {
@@ -169,12 +195,22 @@ test("young / currency / unavailable classes never show returns; a selection poi
 });
 
 test("cards: returns and NAV of the same class, labelled with it", () => {
+  // SEB (preferHeadlineReturns): Series F, its own NAV, its 1-year figure (its since-inception one is not available)
   const spec = { ...FUNDS.find((f) => f.key === "sustainable-enhanced-bonds")! };
+  assert.equal(spec.preferHeadlineReturns, true);
   const card = toFundCard({ spec, content: {}, data: { ...seb(), sourceName: "x" }, sample: false } as never);
-  assert.equal(card.perfClass, "H");
-  assert.equal(card.nav?.code, "LDM202");
-  assert.equal(card.code, "LDM202");
-  assert.equal(card.si, 0.04);
+  assert.equal(card.perfClass, "F");
+  assert.equal(card.nav?.code, "LDM201");
+  assert.equal(card.code, "LDM201");
+  assert.equal(card.si, null);
+  assert.equal(card.y1, 0.02);
+  // a fund without the flag: the complete track record (H), its NAV, its label
+  const plain = { ...spec, preferHeadlineReturns: undefined };
+  const c2 = toFundCard({ spec: plain, content: {}, data: { ...seb(), sourceName: "x" }, sample: false } as never);
+  assert.equal(c2.perfClass, "H");
+  assert.equal(c2.nav?.code, "LDM202");
+  assert.equal(c2.code, "LDM202");
+  assert.equal(c2.si, 0.04);
 });
 
 test("heatmap: a year with a withheld month or a gap inside the record is not shown", () => {

@@ -115,10 +115,19 @@ export function returnsCandidates(
  */
 export function chosenReturnsClass(
   data: Data | null | undefined,
-  spec: { headlineClass: string | null; classes?: { fundserv: string }[] },
+  spec: { headlineClass: string | null; classes?: { fundserv: string }[]; preferHeadlineReturns?: boolean },
   content: Pick<FundContent, "headlineClass"> | null | undefined,
 ): string | null {
-  const ok = returnsCandidates(data, spec, content).filter((c) => showsReturns(data, c));
+  const all = returnsCandidates(data, spec, content);
+  const ok = all.filter((c) => showsReturns(data, c));
+  // the preferred class (admin headline → registry headline, e.g. SEB Series F) is shown whenever its own series can
+  // carry a headline figure (since inception or 1 year), even with a shorter history than another class (owner's
+  // decision 2026-10-07); periods it lacks are simply omitted
+  const preferred = all[0];
+  if (spec.preferHeadlineReturns && preferred && ok.includes(preferred)) {
+    const t = ownSeries(data, preferred)?.trailing?.fund;
+    if (isNum(t?.SI) || isNum(t?.["1Y"])) return preferred;
+  }
   const complete = ok.find((c) => isComplete(ownSeries(data, c)));
   if (complete) return complete;
   let best: string | null = null;

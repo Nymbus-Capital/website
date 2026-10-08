@@ -18,6 +18,8 @@ import { chosenReturnsClass, hasMinHistory, ownSeries, showsReturns } from "./re
 type Data = Omit<FundData, "sourceName">;
 export interface SpecLike {
   headlineClass: string | null;
+  /** the headline class's returns are shown whenever it has a headline figure, even with a shorter history */
+  preferHeadlineReturns?: boolean;
   classes?: { fundserv: string; display: string; type?: "prospectus" | "om" }[];
   /** display order; `default` marks the variant selected when the data names none */
   variants?: { id: string; label: { en: string; fr: string }; default?: true }[];
