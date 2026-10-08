@@ -463,41 +463,55 @@ test("class selector: returns follow the class; F is the default; a young class 
 test("every series of a fund: own figures when it has them, a withheld period / year is omitted, no notice (EN + FR)", async ({
   page,
 }) => {
-  await page.goto("/strategies/monthly-income");
+  // Multi-Strategy class A: three valuation days never served by the source (October 2025, synthetic): that month cannot
+  // be computed, so 1 year and since inception are not shown at all (no row, no dash), the rest is
+  await page.goto("/strategies/multi-strategy");
   const card = page.getByTestId("nav-card");
   const strip = page.getByTestId("return-strip");
-  // class J: since its inception (Oct 5, 2021); a synthetic bad valuation print (March 2022) and a day the classes disagree
-  // (September 2023) are withheld: since inception and 3 years are not shown at all (no row, no dash), 1 year is a number
-  await card.getByTestId("series-LDM061").click();
-  await expect(page.getByTestId("basis")).toContainText(/Series J(?![A-Za-z])/);
-  await expect(card.getByTestId("nav-inception")).toHaveText("Oct 5, 2021");
   const rows = page.getByTestId("overview-returns").locator("tbody tr");
-  await expect(rows.filter({ hasText: "1 year" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
-  await expect(rows.filter({ hasText: "3 years" })).toHaveCount(0);
+  await card.getByTestId("series-LDM300").click();
+  await expect(page.getByTestId("basis")).toContainText(/Series A(?![A-Za-z])/);
+  await expect(rows.filter({ hasText: "3 months" }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
+  await expect(rows.filter({ hasText: "1 year" })).toHaveCount(0);
   await expect(rows.filter({ hasText: "Since inception" })).toHaveCount(0);
   await expect(page.getByTestId("overview-returns")).not.toContainText("—");
   await expect(page.getByTestId("overview-withheld-note")).toHaveCount(0);
-  await expect(strip.getByTestId("badge-1Y")).toBeVisible();
   await expect(strip.getByTestId("badge-SI")).toHaveCount(0);
   await expect(strip).not.toContainText("—");
   await expect(strip.getByTestId("strip-withheld-note")).toHaveCount(0);
   await openTab(page, "performance");
-  await expect(page.getByTestId("perf-inception")).toContainText("Series inception: October 5, 2021");
   await expect(page.getByTestId("perf-withheld-note")).toHaveCount(0);
   await page.getByTestId("growth").scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("growth-from")).toHaveText("Starts on September 30, 2023.");
+  await expect(page.getByTestId("growth-from")).toHaveText("Starts on October 31, 2025.");
   await page.getByTestId("calendar").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("calendar-table")).not.toContainText("—");
-  // the heat map: the years with a withheld month (2022, 2023) are not shown; no empty month inside the record
+  // the heat map: the year with the missing month (2025) is not shown; no empty month inside the record
+  await page.getByTestId("heatmap").scrollIntoViewIfNeeded();
+  const myears = page.getByTestId("heatmap").locator("tbody th.y");
+  await expect(myears.first()).toBeVisible();
+  const mshown = await myears.allInnerTexts();
+  expect(mshown).not.toContain("2025");
+  expect(mshown).toContain("2026");
+  await expect(page.getByTestId("heat-withheld")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/could not be verified|figure not shown/i);
+
+  await page.goto("/strategies/monthly-income");
+  await openTab(page, "overview");
+  // class J: since its inception (Oct 5, 2021); its synthetic source anomalies (a bad print reversed inside March 2022, a
+  // drift in September 2023) are internal data-quality alerts now: every figure it has the history for is shown
+  await card.getByTestId("series-LDM061").click();
+  await expect(page.getByTestId("basis")).toContainText(/Series J(?![A-Za-z])/);
+  await expect(card.getByTestId("nav-inception")).toHaveText("Oct 5, 2021");
+  for (const p of ["1 year", "3 years", "Since inception"])
+    await expect(rows.filter({ hasText: p }).locator("td").nth(1)).toHaveText(/^[−-]?\d+\.\d{2}%$/);
+  await expect(page.getByTestId("overview-returns")).not.toContainText("—");
+  await openTab(page, "performance");
+  await expect(page.getByTestId("perf-inception")).toContainText("Series inception: October 5, 2021");
   await page.getByTestId("heatmap").scrollIntoViewIfNeeded();
   const years = page.getByTestId("heatmap").locator("tbody th.y");
   await expect(years.first()).toBeVisible();
   const shown = await years.allInnerTexts();
-  expect(shown).not.toContain("2022");
-  expect(shown).not.toContain("2023");
-  expect(shown).toContain("2024");
-  await expect(page.getByTestId("heat-withheld")).toHaveCount(0);
-  await expect(page.locator("body")).not.toContainText(/could not be verified|figure not shown/i);
+  for (const y of ["2022", "2023", "2024"]) expect(shown).toContain(y);
   // class F: a series with 12 months and no withheld month: every figure it has the history for
   await openTab(page, "overview");
   await card.getByTestId("series-LDM081").click();
