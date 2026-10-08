@@ -29,7 +29,7 @@ import { preInceptionNote } from "@/content/disclaimers";
 import type { FundContent } from "@/lib/data/types";
 import type { FundLink, PublicFundData as FundData, PublicFundSpec as FundSpec } from "./types";
 import { FUND_TEXTS, T, type FeatureIcon } from "./fund.copy";
-import { dateLabel, monthLabel, colon } from "./lib/format.ts";
+import { dateLabel, colon } from "./lib/format.ts";
 import { perfClassLabel } from "./lib/performance.ts";
 import { provenanceLine } from "./lib/provenance.ts";
 import { tr, type Locale } from "@/lib/i18n/config";
@@ -51,6 +51,8 @@ const ICONS: Record<FeatureIcon, typeof Leaf> = {
   waves: Waves,
 };
 
+/** a sentence starts with a capital (the as-of parts are lower-case fragments) */
+const capFirst = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
 export function FeatureSection({
   spec,
   data,
@@ -137,14 +139,19 @@ export function Disclosures({
   const cl = perfClassLabel(perf, tr(T.nav.series, lang));
   const variant = spec.variants?.find((x) => x.id === ctx?.variant) ?? null;
   const asOf = [
-    perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${monthLabel(perf.asOf, lang)}` : null,
+    // the month-end date (FR « rendements au 30 sept. 2026 », never « au août »)
+    perf?.asOf ? `${tr(T.disclosure.perfAsOf, lang)} ${dateLabel(perf.asOf, lang, true)}` : null,
     data?.nav?.asOf && !content.hide?.nav
-      ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang)}`
+      ? `${tr(T.disclosure.navAsOf, lang)} ${dateLabel(data.nav.asOf, lang, true)}`
       : null,
     data?.aum?.asOf && content.hide?.aum === false
-      ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang)}`
+      ? `${tr(T.disclosure.aumAsOf, lang)} ${dateLabel(data.aum.asOf, lang, true)}`
       : null,
   ].filter(Boolean);
+  // one line of as-of dates (long dates throughout); not rendered when there is none
+  const asOfLine = [provenanceLine(data, lang), asOf.length ? capFirst(`${asOf.join(" · ")}.`) : ""]
+    .filter(Boolean)
+    .join(" ");
   return (
     <section id="disclosure" className="section tight fxd" aria-labelledby="fxd-title">
       <div className="container">
@@ -206,13 +213,12 @@ export function Disclosures({
                   {tr(T.disclosure.ftse, lang)}
                 </p>
               ) : null}
-              <p className="fxd-prov" data-testid="provenance">
-                <span className="live-dot" aria-hidden="true" />
-                <span>
-                  {provenanceLine(data, lang)}
-                  {asOf.length ? ` ${asOf.join(" · ")}.` : ""}
-                </span>
-              </p>
+              {asOfLine ? (
+                <p className="fxd-prov" data-testid="provenance">
+                  <span className="live-dot" aria-hidden="true" />
+                  <span>{asOfLine}</span>
+                </p>
+              ) : null}
             </Disclosure>
           </div>
         </div>

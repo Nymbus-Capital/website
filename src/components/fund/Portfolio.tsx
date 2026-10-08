@@ -23,7 +23,8 @@ import { T } from "./fund.copy";
 import { categoryLabel } from "./labels";
 import { Block } from "./Block";
 import { Donut, HBars } from "./charts/Breakdowns";
-import { charCount, charValue, dateLabel, elide, fmt, monthLabel } from "./lib/format.ts";
+import { charCount, charValue, dateLabel, fmt } from "./lib/format.ts";
+import { monthEndOf } from "./lib/provenance.ts";
 import {
   bucketRows,
   dailyBreakdowns,
@@ -81,7 +82,9 @@ export function PortfolioTab({
       : (["assetClass", "credit", "sectors", "curve", "country"] as BKey[])
           .map((key) => ({
             key,
-            rows: ORDERED.includes(key) ? orderedBuckets(data.breakdowns[key]) : bucketRows(data.breakdowns[key]),
+            rows: ORDERED.includes(key)
+              ? orderedBuckets(data.breakdowns[key], key === "credit" ? "rating" : "term")
+              : bucketRows(data.breakdowns[key]),
           }))
           .filter((b) => b.rows.length > 0);
   const hasContent = chars.length || esg.length || holdings.length || bks.length;
@@ -93,9 +96,9 @@ export function PortfolioTab({
     <div className="container fp">
       {data?.factsheetMonth ? (
         <p className="fp-context pf-source" data-testid="portfolio-source" data-source="factsheet">
-          <span className="fx-chip">{tr(T.portfolio.monthEnd, lang)}</span>
+          {/* the date only: the source is in the admin run details */}
           <span data-testid="factsheet-month">
-            {tr(T.portfolio.asOf, lang)} {monthLabel(data.factsheetMonth, lang)}
+            {tr(T.portfolio.asOf, lang)} {dateLabel(monthEndOf(data.factsheetMonth), lang, true)}
           </span>
         </p>
       ) : null}
@@ -190,12 +193,9 @@ function DailyPortfolio({
   return (
     <div className="container fp">
       <p className="fp-context pf-source" data-testid="portfolio-source" data-source="daily">
-        <span className="fx-chip live">
-          <span className="live-dot" aria-hidden="true" />
-          {tr(T.portfolio.daily, lang)}
-        </span>
+        {/* the date only: the source is in the admin run details */}
         <span data-testid="portfolio-asof">
-          {tr(T.portfolio.dailyAsOf, lang)} {dateLabel(p.asOf, lang, true)}
+          {tr(T.portfolio.asOf, lang)} {dateLabel(p.asOf, lang, true)}
         </span>
       </p>
       {metrics.length || count != null ? (
@@ -410,10 +410,10 @@ function EsgBlock({
   lang: Locale;
 }) {
   const hasIndex = esg.some((c) => c.index != null);
-  // next to the daily book, say that these figures come from the month-end factsheet
+  // next to the daily book, these figures have their own (month-end) date
   const lead =
     daily && month
-      ? `${elide(tr(T.portfolio.esgMonth, lang), monthLabel(month, lang), lang)}.`
+      ? `${tr(T.portfolio.asOf, lang)} ${dateLabel(monthEndOf(month), lang, true)}.`
       : hasIndex
         ? tr(T.portfolio.esgLead, lang)
         : undefined;

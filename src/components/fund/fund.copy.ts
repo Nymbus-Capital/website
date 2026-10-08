@@ -276,7 +276,7 @@ export const T = {
     worstMonth: l("Worst month", "Pire mois"),
   },
   portfolio: {
-    asOf: l("Portfolio data from the monthly factsheet of", "Données du portefeuille selon la fiche mensuelle de"),
+    asOf: l("As of", "Au"),
     characteristics: l("Portfolio characteristics", "Caractéristiques du portefeuille"),
     index: l("Index", "Indice"),
     fund: l("Fund", "Fonds"),
@@ -296,9 +296,6 @@ export const T = {
     esgLead: l("The portfolio compared with its index.", "Le portefeuille comparé à son indice."),
     metric: l("Metric", "Indicateur"),
     /* daily portfolio (data platform book) */
-    daily: l("Daily portfolio data", "Données quotidiennes du portefeuille"),
-    dailyAsOf: l("as of", "au"),
-    monthEnd: l("Month-end factsheet", "Fiche mensuelle"),
     metrics: {
       duration: l("Modified duration", "Durée modifiée"),
       ytm: l("Yield to maturity", "Rendement à l’échéance"),
@@ -340,7 +337,6 @@ export const T = {
       "Part du portefeuille investie dans des obligations vertes, dont le produit finance des projets aux retombées environnementales.",
     ),
     greenOf: l("of the portfolio", "du portefeuille"),
-    esgMonth: l("From the monthly factsheet of", "Selon la fiche mensuelle de"),
   },
   dist: {
     title: l("Distributions", "Distributions"),
@@ -472,7 +468,6 @@ export const T = {
     index: DISC.benchmark,
     ftse: DISC.ftse,
     general: DISC.firm,
-    provenance: DISC.provenance,
     provenanceFactsheet: DISC.provenanceFactsheet,
     provenanceDaily: DISC.provenanceDaily,
     provenanceEsgFactsheet: DISC.provenanceEsgFactsheet,

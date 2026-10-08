@@ -17,9 +17,59 @@ export function bucketRows(b: Bucket[] | undefined | null, limit = 12): Bucket[]
     .slice(0, limit);
 }
 
-/** Keep the natural order for ordered categories (credit ratings, curve buckets). */
-export function orderedBuckets(b: Bucket[] | undefined | null): Bucket[] {
-  return (b ?? []).filter((x) => isNum(x.fund) || isNum(x.index));
+const RATING_GRADES = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"];
+const isCashLabel = (s: string) => /\bcash\b|liquidit|encaisse|trésorerie/i.test(s);
+
+/**
+ * Rank of a credit-rating label (owner's rule: AAA at the top, then AA, A, BBB, … downward): its first grade
+ * ("AA-" → AA, "BB & below" → BB, "R-1 (high)" unknown), unknown grades after the letter grades, "not rated" after them,
+ * cash last.
+ */
+export function ratingSortRank(label: string): number {
+  if (isCashLabel(label)) return 2000;
+  if (/\bn\.?\s?r\.?\b|not rated|non cot/i.test(label)) return 1000;
+  // "other assets" after "not rated", before cash (the pipeline's own order)
+  if (/^other|^autre/i.test(label.trim())) return 1500;
+  const u = label.trim().toUpperCase();
+  // short-term top grades (R-1 / A-1 / P-1): placed with AA (the long-term grades they map to)
+  if (/^(R-1|A-1|P-1)\b/.test(u)) return 1;
+  if (/^BELOW\s+BBB|^SOUS\s+BBB/.test(u)) return RATING_GRADES.indexOf("BB");
+  const m = u.match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
+  return m ? RATING_GRADES.indexOf(m[1]) : 500;
+}
+
+/**
+ * Rank of a maturity / duration bucket label (owner's rule: shortest at the top, longer downward): the lower bound of
+ * its range in years ("Money Market (0-1 yr)" → 0, "1-3 yrs" → 1, "10+" → 10.5, "Short-Term (>3 yrs)" → 3.5); "under /
+ * less than / up to / moins de / moins d'un / jusqu'à" → 0, "over / more than / plus de / > / +" → the bound + 0.5 (after a
+ * range starting there); "money market" / "short" / "mid" / "long" words as a fallback; unknown labels after them, cash
+ * last.
+ */
+export function termSortRank(label: string): number {
+  if (isCashLabel(label)) return 2000;
+  const t = label.toLowerCase();
+  if (/\b(under|less than|up to|below)\b|moins d|jusqu|^<|\(<|≤/.test(t)) return 0;
+  const over = /\b(over|more than|above)\b|plus de|>|≥|\d\s*\+/.test(t);
+  const range = t.match(/(\d+(?:[.,]\d+)?)/);
+  if (range) {
+    const lo = Number(range[1].replace(",", "."));
+    if (Number.isFinite(lo)) return over ? lo + 0.5 : lo;
+  }
+  if (/money market|march[ée] monétaire|ultra/.test(t)) return 0.5;
+  if (/short|court/.test(t)) return 1.5;
+  if (/mid|moyen/.test(t)) return 5;
+  if (/long/.test(t)) return 10;
+  return 500;
+}
+
+/** Ordered categories (credit ratings, maturity / duration buckets) in the owner's display order; stable for ties. */
+export function orderedBuckets(b: Bucket[] | undefined | null, kind: "rating" | "term" = "rating"): Bucket[] {
+  const rank = kind === "rating" ? ratingSortRank : termSortRank;
+  return (b ?? [])
+    .filter((x) => isNum(x.fund) || isNum(x.index))
+    .map((x, i) => ({ x, i }))
+    .sort((p, q) => rank(p.x.label) - rank(q.x.label) || p.i - q.i)
+    .map(({ x }) => x);
 }
 
 /**
@@ -53,10 +103,12 @@ export function portfolioOrigin(
 const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sector", "rating", "term"];
 export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
   if (!p) return [];
-  return DAILY_BREAKDOWNS.map((key) => ({
-    key,
-    rows: (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight })),
-  })).filter((b) => b.rows.length > 0);
+  return DAILY_BREAKDOWNS.map((key) => {
+    const rows = (p.breakdowns[key] ?? [])
+      .filter((r) => isNum(r.weight))
+      .map((r) => ({ label: r.label, fund: r.weight }));
+    return { key, rows: key === "rating" || key === "term" ? orderedBuckets(rows, key) : rows };
+  }).filter((b) => b.rows.length > 0);
 }
 
 /**
