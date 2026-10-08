@@ -27,7 +27,9 @@ export function provenanceLine(
     parts.push(`${tr(T.disclosure.provenanceDaily, lang)} ${dateLabel(origin.asOf, lang, true)}`);
     const esg = (data?.esg ?? []).some((c) => c.fund != null && c.fund !== "");
     if (esg && data?.factsheetMonth)
-      parts.push(`${tr(T.disclosure.provenanceEsgFactsheet, lang)} ${dateLabel(monthEndOf(data.factsheetMonth), lang, true)}`);
+      parts.push(
+        `${tr(T.disclosure.provenanceEsgFactsheet, lang)} ${dateLabel(monthEndOf(data.factsheetMonth), lang, true)}`,
+      );
   } else if (origin?.kind === "factsheet") {
     parts.push(`${tr(T.disclosure.provenanceFactsheet, lang)} ${dateLabel(monthEndOf(origin.month), lang, true)}`);
   }

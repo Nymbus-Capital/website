@@ -224,7 +224,8 @@ test("breakdown grid: an item left alone in a row spans it (odd count, or before
 });
 
 test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / duration buckets shortest first (any input order)", async () => {
-  const { orderedBuckets, ratingSortRank, termSortRank } = await import("../../../src/components/fund/lib/portfolio.ts");
+  const { orderedBuckets, ratingSortRank, termSortRank } =
+    await import("../../../src/components/fund/lib/portfolio.ts");
   const b = (labels: string[]) => labels.map((label, i) => ({ label, fund: 0.1 + i / 100 }));
   assert.deepEqual(
     orderedBuckets(b(["BBB", "Cash", "A", "BB & below", "AAA", "Not rated", "AA"]), "rating").map((x) => x.label),
@@ -235,10 +236,9 @@ test("credit ratings AAA at the top then AA, A, BBB … downward; maturity / dur
     ["AAA", "AA+", "A-", "BBB+"],
   );
   assert.deepEqual(
-    orderedBuckets(
-      b(["Long-Term (>10 yrs)", "Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)"]),
-      "term",
-    ).map((x) => x.label),
+    orderedBuckets(b(["Long-Term (>10 yrs)", "Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)"]), "term").map(
+      (x) => x.label,
+    ),
     ["Short-Term (1-3 yrs)", "Mid-Term (3-10 yrs)", "Long-Term (>10 yrs)"],
   );
   assert.deepEqual(

@@ -28,7 +28,10 @@ const isCashLabel = (s: string) => /\bcash\b|liquidit|encaisse|trésorerie/i.tes
 export function ratingSortRank(label: string): number {
   if (isCashLabel(label)) return 2000;
   if (/\bn\.?\s?r\.?\b|not rated|non cot/i.test(label)) return 1000;
-  const m = label.trim().toUpperCase().match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
+  const m = label
+    .trim()
+    .toUpperCase()
+    .match(/^(AAA|AA|A|BBB|BB|B|CCC|CC|C|D)(?![A-Z])/);
   return m ? RATING_GRADES.indexOf(m[1]) : 500;
 }
 
@@ -93,7 +96,9 @@ const DAILY_BREAKDOWNS: PortfolioBreakdownKey[] = ["assetType", "country", "sect
 export function dailyBreakdowns(p: PortfolioData | null | undefined): { key: PortfolioBreakdownKey; rows: Bucket[] }[] {
   if (!p) return [];
   return DAILY_BREAKDOWNS.map((key) => {
-    const rows = (p.breakdowns[key] ?? []).filter((r) => isNum(r.weight)).map((r) => ({ label: r.label, fund: r.weight }));
+    const rows = (p.breakdowns[key] ?? [])
+      .filter((r) => isNum(r.weight))
+      .map((r) => ({ label: r.label, fund: r.weight }));
     return { key, rows: key === "rating" || key === "term" ? orderedBuckets(rows, key) : rows };
   }).filter((b) => b.rows.length > 0);
 }
