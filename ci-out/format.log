@@ -1,0 +1,7 @@
+
+> nymbus-web@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+[[33mwarn[39m] tests/unit/fund/returns-class.test.ts
+[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
