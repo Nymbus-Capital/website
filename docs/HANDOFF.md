@@ -193,8 +193,21 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    (already rendered from `team.ts` / WordPress `linkedin`, e2e-tested), fund managers from WordPress, News in the
    navigation.
 
+6. **Switch the fund-portfolio reader to the analytics contract** (before the website consumes
+   `/api/apex/fund-portfolio`): dataplatform PR #621 (depends on #636, merge #636 first) now serves
+   `characteristics.average_duration / average_yield / average_coupon / average_maturity / average_rating`, each
+   `{value, unit, display, coverage, status, issue, basis, source}`; yields and coupons (also `top_holdings.coupon`) are in
+   percent, `average_rating.value` is a notch and the letter is `display`. `src/lib/pipeline/raw.ts` and
+   `components/fund/lib/portfolio.ts` still read the old keys (`modified_duration`, `yield_to_maturity`, `coupon`, string
+   rating, fractions). Duration is on the gross basis, so a short-only bond book would show a negative duration: decide
+   with Gabriel how to display it.
+
 ## 6. Session log
 
+- 2026-10-08 (home session): **analytics step 2**: dataplatform PR #621 rebased onto the #636 analytics library
+  (fund characteristics computed by the library metrics; added `average_coupon`, `average_maturity`, `position_ratings`;
+  rating rule = composite, else agency mean with ties to the lower rating, else Apex rating; bases duration gross, others
+  absolute). Two independent adversarial reviews; findings fixed. Website reader switch is open item B6.
 - 2026-10-08 (home session): **public pages show dates only, never the data source** (Portfolio tab header and
   sustainability block "As of <date>", disclosure "Portfolio data as of <date>; … Performance as of <date> · NAV as of
   <date>."; sources stay in the admin run provenance; compliance row 12 and the admin compliance entry updated).
