@@ -182,6 +182,7 @@ export const T = {
     metrics: {
       duration: l("Modified duration", "Durée modifiée"),
       ytm: l("Yield to maturity", "Rendement à l’échéance"),
+      averageYield: l("Average yield", "Rendement moyen"),
       coupon: l("Average coupon", "Coupon moyen"),
       maturity: l("Average term to maturity", "Échéance moyenne"),
       rating: l("Average credit rating", "Cote de crédit moyenne"),

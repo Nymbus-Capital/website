@@ -18,7 +18,10 @@ const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !
 /** A finite number from a JSON number or a plain numeric string; null otherwise. */
 export function num(v: unknown): number | null {
   if (typeof v === "number") return Number.isFinite(v) ? v : null;
-  if (typeof v === "string" && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(v)) return Number(v);
+  if (typeof v === "string" && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(v)) {
+    const parsed = Number(v);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
   return null;
 }
 
@@ -53,6 +56,23 @@ function measure(v: unknown): PortfolioMeasure | null {
   return { value, coverage };
 }
 
+const CANONICAL_UNITS = {
+  average_duration: "years", average_yield: "percent", average_coupon: "percent",
+  average_maturity: "years", average_rating: "notch",
+} as const;
+
+function canonicalMeasure(v: unknown, unit: string): PortfolioMeasure | null {
+  if (!isObj(v) || v.unit !== unit || !["ok", "partial"].includes(String(v.status))) return null;
+  const value = num(v.value);
+  const coverage = num(v.coverage);
+  if (value === null || coverage === null || coverage < 0 || coverage > 1) return null;
+  if (unit === "notch") {
+    const display = text(v.display, 8);
+    return value >= 1 && value <= 22 && display ? { value: display, coverage } : null;
+  }
+  return { value: unit === "percent" ? value / 100 : value, coverage };
+}
+
 function weightRows(v: unknown, where: string, notes: string[]): WeightRow[] {
   if (!Array.isArray(v)) return [];
   const out: WeightRow[] = [];
@@ -68,15 +88,16 @@ function weightRows(v: unknown, where: string, notes: string[]): WeightRow[] {
   return out;
 }
 
-function holding(v: unknown): PortfolioHoldingRow | null {
+function holding(v: unknown, couponScale: number | null = 1): PortfolioHoldingRow | null {
   if (!isObj(v)) return null;
   const name = text(v.name, 160);
   const weight = num(v.weight);
+  const coupon = num(v.coupon);
   if (name === null || weight === null) return null;
   return {
     name, weight,
     issuer: text(v.issuer, 160),
-    coupon: num(v.coupon),
+    coupon: couponScale === null || coupon === null ? null : coupon * couponScale,
     maturity: isoDate(v.maturity),
     rating: text(v.rating, 8),
     sector: text(v.sector, 80),
@@ -93,9 +114,11 @@ export function parseFundPortfolio(body: unknown): FundPortfolio | null {
   const notes: string[] = [];
   const characteristics: FundPortfolio["characteristics"] = {};
   const chars = isObj(body.characteristics) ? body.characteristics : {};
-  for (const k of PORTFOLIO_MEASURES) {
+  const canonical = ["average_duration", "average_yield", "average_coupon"].some((key) => key in chars);
+  const keys = canonical ? Object.keys(CANONICAL_UNITS) as (keyof typeof CANONICAL_UNITS)[] : PORTFOLIO_MEASURES;
+  for (const k of keys) {
     if (!(k in chars)) continue;
-    const m = measure(chars[k]);
+    const m = canonical ? canonicalMeasure(chars[k], CANONICAL_UNITS[k as keyof typeof CANONICAL_UNITS]) : measure(chars[k]);
     if (m) characteristics[k as PortfolioMeasureKey] = m;
     else if (chars[k] !== null) notes.push(`characteristics.${k}: no usable value`);
   }
@@ -106,8 +129,9 @@ export function parseFundPortfolio(body: unknown): FundPortfolio | null {
     if (rows.length) breakdowns[k as BreakdownKey] = rows;
   }
   const top: PortfolioHoldingRow[] = [];
+  const couponScale = !canonical ? 1 : isObj(chars.average_coupon) && chars.average_coupon.unit === "percent" ? 0.01 : null;
   for (const r of Array.isArray(body.top_holdings) ? body.top_holdings : []) {
-    const h = holding(r);
+    const h = holding(r, couponScale);
     if (h) top.push(h);
     else notes.push("top_holdings: row without a name or a numeric weight dropped");
   }
