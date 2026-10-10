@@ -23,6 +23,34 @@ const book = (over: Record<string, unknown> = {}): FundPortfolio => parseFundPor
 const ok = <T>(data: T): SourceResult<T> => ({ ok: true, data });
 const O = { base: "funds.monthly-income", short: "SEST", now: NOW, greenBonds: false };
 
+test("canonical portfolio metrics retain methodology names, trust states and explicit units", () => {
+  const parsed = book({ characteristics: {
+    average_duration: { value: 2.38, unit: "years", coverage: 0.97, status: "partial" },
+    average_yield: { value: "4.14", unit: "percent", coverage: 0.97, status: "ok" },
+    average_coupon: { value: 3.98, unit: "percent", coverage: 1, status: "ok" },
+    average_maturity: { value: 2.71, unit: "years", coverage: 1, status: "ok" },
+    average_rating: { value: 7, display: "A-", unit: "notch", coverage: 1, status: "ok" },
+  }, top_holdings: [{ name: "Bond", weight: 0.03, coupon: 4.0 }] });
+  assert.equal(parsed.characteristics.average_yield?.value, 0.0414);
+  assert.equal(parsed.characteristics.average_coupon?.value, 0.0398);
+  assert.equal(parsed.characteristics.average_rating?.value, "A-");
+  assert.equal(parsed.top_holdings[0].coupon, 0.04);
+  assert.deepEqual(selectPortfolio(ok(parsed), O).portfolio?.characteristics.map((m) => m.id),
+                   ["duration", "averageYield", "coupon", "maturity", "rating"]);
+});
+
+test("canonical empty, blocked and invalid-unit metrics remain unavailable", () => {
+  for (const changes of [{ value: null }, { status: "unavailable" }, { status: "conflict" },
+                         { unit: "fraction" }, { coverage: 1.1 }, { value: "bad" }, { value: "1e999" }]) {
+    const parsed = book({ characteristics: {
+      average_yield: { value: 4, unit: "percent", coverage: 1, status: "ok", ...changes },
+    } });
+    assert.equal(parsed.characteristics.average_yield, undefined);
+    assert.match(parsed.notes[0], /no usable value/);
+  }
+  assert.deepEqual(book({ characteristics: {} }).characteristics, {});
+});
+
 /* ------------------------------------------------------------------ parsers */
 
 test("parseFundPortfolio: the fixture parses; numeric strings accepted; bad rows dropped and noted; never a 0 default", () => {

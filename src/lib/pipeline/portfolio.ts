@@ -19,8 +19,11 @@ const pct = (x: number, d = 1): string => `${(x * 100).toFixed(d)}%`;
 /* ------------------------------------------------------------------ mapping */
 
 const METRICS: { from: PortfolioMeasureKey; id: PortfolioMetricId; unit: PortfolioMetric["unit"] }[] = [
+  { from: "average_duration", id: "duration", unit: "years" },
   { from: "modified_duration", id: "duration", unit: "years" },
+  { from: "average_yield", id: "averageYield", unit: "pct" },
   { from: "yield_to_maturity", id: "ytm", unit: "pct" },
+  { from: "average_coupon", id: "coupon", unit: "pct" },
   { from: "coupon", id: "coupon", unit: "pct" },
   { from: "average_maturity", id: "maturity", unit: "years" },
   { from: "average_rating", id: "rating", unit: "rating" },
@@ -189,7 +192,7 @@ export function crossCheckPortfolio(book: FundPortfolio, fs: FactsheetPortfolio,
     const v = book.characteristics[k]?.value;
     return typeof v === "number" ? v : null;
   };
-  const dur = [apiNum("modified_duration"), fsNum("duration")] as const;
+  const dur = [apiNum("average_duration") ?? apiNum("modified_duration"), fsNum("duration")] as const;
   if (dur[0] !== null && dur[1] !== null) {
     compared++;
     const limit = Math.max(tol.durationYears, tol.durationRel * Math.abs(dur[1]));

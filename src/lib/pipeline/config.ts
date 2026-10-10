@@ -82,7 +82,7 @@ export const PORTFOLIO = {
   /** every breakdown must add up to 100 % of net assets (cash included) within ±3 % */
   weightSumTol: 0.03,
   /** plausible ranges (years, decimal fractions) */
-  ranges: { duration: [0, 30], ytm: [-0.05, 0.25], coupon: [0, 0.25], maturity: [0, 100] } as Record<"duration" | "ytm" | "coupon" | "maturity", [number, number]>,
+  ranges: { duration: [0, 30], ytm: [-0.05, 0.25], averageYield: [-0.05, 0.25], coupon: [0, 0.25], maturity: [0, 100] } as Record<"duration" | "ytm" | "averageYield" | "coupon" | "maturity", [number, number]>,
   /** top 10 holdings: each weight in (0, 25 %], together at most 100 % */
   maxHoldingWeight: 0.25,
   /**

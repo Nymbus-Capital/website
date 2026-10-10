@@ -111,7 +111,7 @@ export interface RawPayloads {
 
 /* ------------------------------------------------------------------ fund portfolio (dataplatform contract A) */
 
-export type PortfolioMeasureKey = "modified_duration" | "yield_to_maturity" | "coupon" | "average_maturity" | "average_rating";
+export type PortfolioMeasureKey = "modified_duration" | "yield_to_maturity" | "coupon" | "average_maturity" | "average_rating" | "average_duration" | "average_yield" | "average_coupon";
 export const PORTFOLIO_MEASURES: readonly PortfolioMeasureKey[] = ["modified_duration", "yield_to_maturity", "coupon", "average_maturity", "average_rating"];
 export type BreakdownKey = "sector" | "rating" | "term" | "country" | "asset_type";
 export const BREAKDOWN_KEYS: readonly BreakdownKey[] = ["sector", "rating", "term", "country", "asset_type"];
