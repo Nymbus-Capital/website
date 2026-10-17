@@ -202,8 +202,8 @@ export const AP = {
     title: l("Several strategies,", "Plusieurs stratégies,"),
     accent: l("across asset classes", "dans plusieurs catégories d’actifs"),
     lead: l(
-      "A liquid alternative across asset classes, designed to have low correlation with stocks and bonds in down months.",
-      "Une solution alternative liquide, multi-actifs, conçue pour avoir une faible corrélation avec les actions et les obligations lors des mois de baisse.",
+      "A liquid alternative across asset classes, designed to have low correlation with stock markets in down months.",
+      "Une solution alternative liquide, multi-actifs, conçue pour avoir une faible corrélation avec les marchés boursiers lors des mois de baisse.",
     ),
     strategies: [
       l("Low volatility", "Faible volatilité"),
@@ -219,8 +219,8 @@ export const AP = {
       l("Commodities", "Matières premières"),
     ],
     overlay: l(
-      "Protective overlay · designed to offset part of bond losses",
-      "Superposition protectrice · conçue pour compenser une partie des pertes obligataires",
+      "Protective overlay · designed to offset part of losses",
+      "Superposition protectrice · conçue pour compenser une partie des pertes",
     ),
     strategiesK: l("Strategies", "Stratégies"),
     assetsK: l("Asset classes", "Catégories d’actifs"),

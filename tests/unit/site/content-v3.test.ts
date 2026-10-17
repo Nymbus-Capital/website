@@ -184,12 +184,16 @@ test("approach: risk-first and multi-strategy sections keep low correlation as a
   assert.ok(!/uncorrelated|non corrélé/i.test(JSON.stringify(AP)), "no 'uncorrelated' as a fact");
   assert.match(
     AP.multi.lead.en,
-    /^A liquid alternative across asset classes, designed to have low correlation with stocks and bonds in down months\.$/,
+    /^A liquid alternative across asset classes, designed to have low correlation with stock markets in down months\.$/,
   );
   assert.ok(AP.multi.note.en.endsWith(OVERLAY_ADDS));
   assert.ok(AP.multi.note.fr.endsWith(OVERLAY_ADDS_FR));
   assert.match(AP.multi.note.en, /^Illustration only/);
   assert.equal(AP.multi.strategies.length, 4);
+  // owner 2026-10-16: the Multi-Strategy description (lead, diagram band, its "three ways" card) never mentions bonds
+  for (const part of [AP.multi.lead, AP.multi.overlay, AP.multi.offers[1].t, AP.multi.offers[1].d])
+    for (const lang of ["en", "fr"] as const)
+      assert.ok(!/bond|obligat/i.test(part[lang]), `multi-strategy copy mentions bonds: ${part[lang]}`);
 });
 
 test("solutions: three illustrative use cases; overlay ones carry the futures-exposure disclosure; no ranking claim in the copy", () => {
