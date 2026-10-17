@@ -204,6 +204,11 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
 
 ## 6. Session log
 
+- 2026-10-16 (home session): team portraits replaced by the nymbus-decks seed photos (13 people; Leana D'Imperio and
+  Philippe Rivet unchanged, not in the decks seed; Jean-Philippe Lejeune is in the decks but not on the site). Fraser
+  Coburn's decks photo differs from the earlier site portrait: to confirm with Gabriel. /approach Multi-Strategy copy no
+  longer mentions bonds (lead: low correlation with stock markets in down months; band: offset part of losses), unit
+  test guard, compliance row C7.
 - 2026-10-08 (home session): **analytics step 2**: dataplatform PR #621 rebased onto the #636 analytics library
   (fund characteristics computed by the library metrics; added `average_coupon`, `average_maturity`, `position_ratings`;
   rating rule = composite, else agency mean with ties to the lower rating, else Apex rating; bases duration gross, others
