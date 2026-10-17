@@ -1,9 +1,9 @@
-const assert = require("node:assert/strict");
-const { test } = require("node:test");
-const { readFileSync } = require("node:fs");
-const { runInNewContext } = require("node:vm");
-const { resolve } = require("node:path");
-const source = readFileSync(resolve(__dirname, process.env.SESSION_SOURCE || "../public/session.js"), "utf8");
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
+import { resolve } from "node:path";
+const source = readFileSync(resolve(import.meta.dirname, process.env.SESSION_SOURCE || "../public/session.js"), "utf8");
 const exported = { exports: {} };
 runInNewContext(source, { module: exported, Response, AbortSignal });
 const { createTransport } = exported.exports;

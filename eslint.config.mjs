@@ -7,6 +7,7 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     rules: {
       // regexes that strip or refuse control characters say so with a disable comment
       "no-control-regex": "error",
