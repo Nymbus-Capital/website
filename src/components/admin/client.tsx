@@ -34,8 +34,12 @@ export async function api<T>(
     cache: "no-store",
   });
   if (res.status === 401) {
-    window.location.href = `/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-    throw new ApiError(401, "unauthenticated", "Your session expired; redirecting to sign-in…");
+    window.dispatchEvent(new Event("nymbus:session-expired"));
+    throw new ApiError(
+      401,
+      "unauthenticated",
+      "Your session expired. Sign in in the recovery banner, then retry. Your draft is still here.",
+    );
   }
   let data: unknown = null;
   try {
