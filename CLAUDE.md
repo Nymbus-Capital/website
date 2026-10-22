@@ -17,3 +17,11 @@ model), `docs/deploy.md` (Northflank), `docs/compliance-review.md` (disclaimer t
 - End of a work block: update the **Session log** and **Open items** in HANDOFF.md, commit, push.
 - Public repository: never commit real fund data, credentials, internal hostnames or unitholder data.
 - Numbers shown to investors: prefer showing nothing over showing a wrong number.
+
+## PR alignment
+
+For changes in this repository, read and use [pr-alignment](.agents/skills/pr-alignment/SKILL.md)
+before implementation and again before preparing or updating a PR. Complete its
+acceptance/correctness and architecture/contract reviews against this repository's
+own sources and checks. Honor the user's existing authorization; review-only
+requests do not authorize edits. The skill does not replace human merge approval.
