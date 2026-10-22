@@ -135,7 +135,8 @@ Setup of the Entra app registration and the security model: [docs/admin.md](admi
 | `ADMIN_REQUIRED_ROLE` | optional: app role value that must be in the `roles` claim (e.g. `Admin.Web`) |
 | `AUTH_INSECURE_COOKIES_FOR_LOCALHOST` | `1` only for the local e2e server (`PUBLIC_URL` on localhost): non-Secure cookies |
 | `DATAPLATFORM_URL` | internal dataplatform base URL |
-| `DATAPLATFORM_USERNAME`, `DATAPLATFORM_PASSWORD` / `DATAPLATFORM_TOKEN` | optional, if the API gets auth |
+| `DATAPLATFORM_USERNAME`, `DATAPLATFORM_PASSWORD` / `DATAPLATFORM_TOKEN` | temporary legacy access, only while Entra settings are absent |
+| `DATAPLATFORM_TENANT_ID`, `DATAPLATFORM_CLIENT_ID`, `DATAPLATFORM_CLIENT_SECRET`, `DATAPLATFORM_API_AUDIENCE` | server-side Entra service tokens; configure together, see [the migration guide](dataplatform-auth.md) |
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | factsheet archives (app-only, `Sites.Selected` read) |
 | `FICHES_BASE_PATH` | default `Business Development/Fiches d'infos` |
 | `FACTSHEET_DATA_DIR` | optional local folder of factsheet archives (overrides Graph) |

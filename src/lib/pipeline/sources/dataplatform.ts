@@ -1,9 +1,8 @@
 /**
  * Dataplatform fetchers (documented API: docs/api/openapi.json of nymbus-dataplatform).
  *
- * Base URL from DATAPLATFORM_URL only (never hardcoded). The API has no machine auth today (network
- * policy); optional basic auth (DATAPLATFORM_USERNAME / DATAPLATFORM_PASSWORD) or bearer
- * (DATAPLATFORM_TOKEN) are sent when configured.
+ * Base URL from DATAPLATFORM_URL only. Entra service tokens take precedence when configured.
+ * Legacy credentials remain available only while all four Entra settings are absent.
  *
  * Each fetcher returns a SourceResult (never throws). Payloads are reduced to what the website needs:
  * AUM to fund totals (no investor-level field ever leaves this module), FTSE to aggregate daily levels,
@@ -20,16 +19,56 @@ export interface DpClient {
   fetchImpl: FetchImpl;
   timeoutMs: number;
   backoffMs: number;
+  token?: (rejectedToken?: string) => Promise<string>;
+}
+
+function entraToken(fetchImpl: FetchImpl, env: Record<string, string | undefined>, base: string): DpClient["token"] {
+  const settings = [env.DATAPLATFORM_TENANT_ID, env.DATAPLATFORM_CLIENT_ID, env.DATAPLATFORM_CLIENT_SECRET, env.DATAPLATFORM_API_AUDIENCE];
+  if (!settings.some(Boolean)) return undefined;
+  if (!settings.every(Boolean)) throw new Error("Configure all four DATAPLATFORM Entra settings.");
+  const [tenant, client, secret, audience] = settings as string[];
+  const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (![tenant, client, audience].every(value => guid.test(value))) throw new Error("Dataplatform identity settings must be UUIDs.");
+  let destination: URL;
+  try { destination = new URL(base); } catch { throw new Error("Invalid Dataplatform URL."); }
+  if ((destination.protocol !== "https:" && base !== "http://dataplatform-staging:8000") || destination.username || destination.password || destination.search || destination.hash || destination.pathname !== "/") {
+    throw new Error("Dataplatform tokens require an HTTPS origin or the private backend address.");
+  }
+  let cached: { value: string; expires: number } | undefined;
+  let pending: Promise<string> | undefined;
+  return async (rejectedToken?: string) => {
+    if (cached?.value === rejectedToken) cached = undefined;
+    if (cached && cached.expires > Date.now() + 60_000) return cached.value;
+    pending ??= (async () => {
+      try {
+        const body = new URLSearchParams({ client_id: client, client_secret: secret, scope: `api://${audience}/.default`, grant_type: "client_credentials" });
+        const res = await fetchRetry(fetchImpl, `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, { method: "POST", body, headers: { "Content-Type": "application/x-www-form-urlencoded" } }, { timeoutMs: 20_000, backoffMs: retryBaseMs(env) });
+        if (res.status !== 200) {
+          await res.body?.cancel().catch(() => undefined);
+          throw new Error("Token request refused");
+        }
+        const result = await res.json() as { access_token?: unknown; expires_in?: unknown };
+        const lifetime = Number(result.expires_in);
+        if (typeof result.access_token !== "string" || !result.access_token || /\s/.test(result.access_token) || !Number.isFinite(lifetime) || lifetime <= 0) throw new Error("Invalid token response");
+        cached = { value: result.access_token, expires: Date.now() + lifetime * 1000 };
+        return cached.value;
+      } catch {
+        throw new Error("Dataplatform Microsoft authentication failed; verify Data.Read consent.");
+      }
+    })();
+    try { return await pending; } finally { pending = undefined; }
+  };
 }
 
 export function dpClient(fetchImpl: FetchImpl, env: Record<string, string | undefined> = process.env): DpClient | null {
   const base = (env.DATAPLATFORM_URL || "").trim().replace(/\/+$/, "");
+  const token = entraToken(fetchImpl, env, base);
   if (!base) return null;
   const headers: Record<string, string> = { Accept: "application/json", "User-Agent": "nymbus-web-pipeline/1.0" };
-  if (env.DATAPLATFORM_TOKEN) headers.Authorization = `Bearer ${env.DATAPLATFORM_TOKEN}`;
-  else if (env.DATAPLATFORM_USERNAME) headers.Authorization = `Basic ${Buffer.from(`${env.DATAPLATFORM_USERNAME}:${env.DATAPLATFORM_PASSWORD ?? ""}`).toString("base64")}`;
+  if (!token && env.DATAPLATFORM_TOKEN) headers.Authorization = `Bearer ${env.DATAPLATFORM_TOKEN}`;
+  else if (!token && env.DATAPLATFORM_USERNAME) headers.Authorization = `Basic ${Buffer.from(`${env.DATAPLATFORM_USERNAME}:${env.DATAPLATFORM_PASSWORD ?? ""}`).toString("base64")}`;
   const t = Number(env.DATAPLATFORM_TIMEOUT_MS);
-  return { base, headers, fetchImpl, timeoutMs: Number.isFinite(t) && t > 0 ? t : 120_000, backoffMs: retryBaseMs(env) };
+  return { base, headers, fetchImpl, timeoutMs: Number.isFinite(t) && t > 0 ? t : 120_000, backoffMs: retryBaseMs(env), token };
 }
 
 type Params = Record<string, string | number | boolean | string[] | undefined>;
@@ -42,7 +81,26 @@ async function get(c: DpClient, path: string, params: Params): Promise<{ status:
     else qs.append(k, String(v));
   }
   const url = `${c.base}${path}${qs.size ? `?${qs}` : ""}`;
-  const res = await fetchRetry(c.fetchImpl, url, { headers: c.headers }, { timeoutMs: c.timeoutMs, backoffMs: c.backoffMs });
+  const token = c.token;
+  if (token) {
+    let decoded = new URL(url).pathname;
+    let previous: string;
+    do { previous = decoded; decoded = decodeURIComponent(decoded); } while (decoded !== previous);
+    if (!path.startsWith("/api/") || !decoded.startsWith("/api/") || decoded.includes("\\") || decoded.split("/").some(segment => segment === "." || segment === "..")) throw new Error("Dataplatform service tokens are restricted to API reads.");
+  }
+  let accessToken = token ? await token() : undefined;
+  let headers = token ? { ...c.headers, Authorization: `Bearer ${accessToken}` } : c.headers;
+  let attempts = 0;
+  const transport: FetchImpl = (input, init) => { attempts++; return c.fetchImpl(input, init); };
+  const opts = { timeoutMs: c.timeoutMs, backoffMs: c.backoffMs };
+  let res = await fetchRetry(transport, url, { headers }, opts);
+  if (token && res.status === 401) {
+    await res.body?.cancel().catch(() => undefined);
+    accessToken = await token(accessToken);
+    headers = { ...c.headers, Authorization: `Bearer ${accessToken}` };
+    // Keep the original three transient attempts, plus one authentication renewal.
+    res = await fetchRetry(transport, url, { headers }, { ...opts, retries: Math.max(0, 3 - attempts) });
+  }
   let body: unknown = null;
   if (res.status === 200) body = await readJsonBody(res, url);
   else {
