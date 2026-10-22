@@ -206,3 +206,10 @@ Not yet run against live data, not deployed.
   verifier; all findings fixed. Applied Gabriel's 2026-09-29 decisions (§4). Wrote the Northflank
   provisioning script + workflow, reviewed adversarially (unrestricted secret groups guard, stopped-
   until-wired order, strict options, secret scrubbing, protected environment). Wrote this handoff.
+
+## 2026-10-22 - Repository PR alignment proposal
+
+Added repository-scoped `.agents/skills/pr-alignment/SKILL.md` and linked agent guidance.
+This AI-generated draft proposal changes instructions only. Skill metadata, local references
+and preservation checks were validated; application tests and deployment were not run.
+Human review/merge and a first real alignment run remain open.
