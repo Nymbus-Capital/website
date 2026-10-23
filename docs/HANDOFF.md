@@ -202,7 +202,14 @@ History of the items closed before 2026-10-06: § 6 and `git log`.
    rating, fractions). Duration is on the gross basis, so a short-only bond book would show a negative duration: decide
    with Gabriel how to display it.
 
+7. **Dataplatform service authentication**: source backported to `fix/dataplatform-entra-live` from the
+   deployed branch. Review, CI and runtime activation remain pending; financial/publication behavior is unchanged.
+
 ## 6. Session log
+
+- 2026-10-22: backported the Dataplatform Entra reader to the deployed branch without merging main.
+  Own service tokens, bounded retries and the delayed-401 cache fix apply to the shared reader;
+  the deployed branch's extra API readers and financial rules are preserved. Runtime activation is separate.
 
 - 2026-10-16 (home session): team portraits replaced by the nymbus-decks seed photos (13 people; Leana D'Imperio and
   Philippe Rivet unchanged, not in the decks seed; Jean-Philippe Lejeune is in the decks but not on the site). Fraser

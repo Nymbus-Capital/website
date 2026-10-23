@@ -6,8 +6,8 @@
              ┌────────────── Northflank project (private network) ──────────────┐
              │                                                                  │
  dataplatform│  /api/performance/monthly-net-returns   ┐                        │
- (no auth,   │  /api/performance/nav-timeseries        │   pipeline (in-process │
- IP policy)  │  /api/apex/funds  /api/unitholders/aum  ├──▶ scheduler, daily)   │
+ (Entra,     │  /api/performance/nav-timeseries        │   pipeline (in-process │
+ Data.Read)  │  /api/apex/funds  /api/unitholders/aum  ├──▶ scheduler, daily)   │
              │  /api/ftse/index-summary                │        │               │
              │  /api/apex/fund-portfolio               │        │               │
              │  /api/performance/distributions         ┘        │               │
@@ -26,9 +26,9 @@
 ```
 
 One container (Next.js standalone, Node 22) serves the public site and the admin, and runs the data
-pipeline on a schedule. The dataplatform API has no machine authentication and is only reachable from
-inside the Northflank private network / IP allow-list, so the pipeline has to run there: the public site
-never calls the dataplatform from the browser.
+pipeline on a schedule. The pipeline authenticates Dataplatform reads with its own Microsoft Entra
+service identity and Data.Read permission. It can use the private network or HTTPS API gateway;
+the public site never calls Dataplatform from the browser. See [service authentication](dataplatform-auth.md).
 
 ## Data flow
 
@@ -616,7 +616,8 @@ dashboard shows the number of open messages).
 | `ADMIN_REQUIRED_ROLE` | optional: app role value that must be in the `roles` claim (e.g. `Admin.Web`) |
 | `AUTH_INSECURE_COOKIES_FOR_LOCALHOST` | `1` only for the local e2e server (`PUBLIC_URL` on localhost): non-Secure cookies |
 | `DATAPLATFORM_URL` | internal dataplatform base URL |
-| `DATAPLATFORM_USERNAME`, `DATAPLATFORM_PASSWORD` / `DATAPLATFORM_TOKEN` | optional, if the API gets auth |
+| `DATAPLATFORM_USERNAME`, `DATAPLATFORM_PASSWORD` / `DATAPLATFORM_TOKEN` | temporary legacy access, only while Entra settings are absent |
+| `DATAPLATFORM_TENANT_ID`, `DATAPLATFORM_CLIENT_ID`, `DATAPLATFORM_CLIENT_SECRET`, `DATAPLATFORM_API_AUDIENCE` | server-side Entra service tokens; configure together, see [the migration guide](dataplatform-auth.md) |
 | `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `GRAPH_DRIVE_ID` | factsheet archives (app-only, `Sites.Selected` read) |
 | `FICHES_BASE_PATH` | default `Business Development/Fiches d'infos` |
 | `FACTSHEET_DATA_DIR` | optional local folder of factsheet archives (overrides Graph) |
